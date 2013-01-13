@@ -22,7 +22,7 @@ public class MixedLogPositionManager extends MemoryLogPositionManager implements
     private static final Logger         logger       = LoggerFactory.getLogger(MixedLogPositionManager.class);
     private ZooKeeperLogPositionManager zooKeeperLogPositionManager;
     private ExecutorService             executor;
-
+    @SuppressWarnings("serial")
     private final LogPosition           nullPosition = new LogPosition() {
                                                      };
 

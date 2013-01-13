@@ -20,10 +20,12 @@ import com.google.common.collect.MapMaker;
  * @author jianghang 2012-7-11 下午03:58:00
  * @version 1.0.0
  */
+
 public class MixedMetaManager extends MemoryMetaManager implements CanalMetaManager {
 
     private ExecutorService      executor;
     private ZooKeeperMetaManager zooKeeperMetaManager;
+    @SuppressWarnings("serial")
     private final Position       nullCursor = new Position() {
                                             };
 

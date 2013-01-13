@@ -28,7 +28,7 @@ public class PeriodMixedLogPositionManager extends MemoryLogPositionManager impl
     private static final Logger         logger       = LoggerFactory.getLogger(PeriodMixedLogPositionManager.class);
     private ZooKeeperLogPositionManager zooKeeperLogPositionManager;
     private ScheduledExecutorService    executor;
-
+    @SuppressWarnings("serial")
     private final LogPosition           nullPosition = new LogPosition() {
                                                      };
 

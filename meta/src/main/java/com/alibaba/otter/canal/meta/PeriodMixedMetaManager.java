@@ -38,6 +38,7 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
     private static final Logger      logger     = LoggerFactory.getLogger(PeriodMixedMetaManager.class);
     private ScheduledExecutorService executor;
     private ZooKeeperMetaManager     zooKeeperMetaManager;
+    @SuppressWarnings("serial")
     private final Position           nullCursor = new Position() {
                                                 };
     private long                     period     = 1000;                                                 // 单位ms

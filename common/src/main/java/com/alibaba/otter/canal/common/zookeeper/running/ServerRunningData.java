@@ -14,12 +14,11 @@ import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
  */
 public class ServerRunningData implements Serializable {
 
-    private static final long   serialVersionUID = 92260481691855281L;
-    private static final String SPLIT            = ":";
+    private static final long serialVersionUID = 92260481691855281L;
 
-    private Long                cid;
-    private String              address;
-    private boolean             active           = true;
+    private Long              cid;
+    private String            address;
+    private boolean           active           = true;
 
     public ServerRunningData(){
     }
