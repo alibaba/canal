@@ -1,6 +1,13 @@
+.svn/
+target/
+test-output/
 *.class
-
-# Package Files #
-*.jar
-*.war
-*.ear
+.classpath
+.project
+.settings/
+tmp
+temp
+*.log
+antx.properties
+otter.properties
+jtester.properties

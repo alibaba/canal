@@ -1,0 +1,35 @@
+package com.alibaba.otter.cancel.store.memory.buffer;
+
+import java.net.InetSocketAddress;
+
+import org.junit.Assert;
+
+import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
+import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Header;
+import com.alibaba.otter.canal.protocol.position.LogIdentity;
+import com.alibaba.otter.canal.store.model.Event;
+
+public class MemoryEventStoreBase {
+
+    private static final String MYSQL_ADDRESS = "10.20.153.51";
+
+    protected void sleep(Long time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            Assert.fail();
+        }
+    }
+
+    protected Event buildEvent(String binlogFile, long offset, long timestamp) {
+        Header.Builder headerBuilder = Header.newBuilder();
+        headerBuilder.setLogfilename(binlogFile);
+        headerBuilder.setLogfileoffset(offset);
+        headerBuilder.setExecutetime(timestamp);
+        Entry.Builder entryBuilder = Entry.newBuilder();
+        entryBuilder.setHeader(headerBuilder.build());
+        Entry entry = entryBuilder.build();
+
+        return new Event(new LogIdentity(new InetSocketAddress(MYSQL_ADDRESS, 3306), 1234L), entry);
+    }
+}
