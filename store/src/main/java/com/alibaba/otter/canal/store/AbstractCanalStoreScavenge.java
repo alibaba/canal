@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.protocol.position.Position;
  * store回收机制
  * 
  * @author jianghang 2012-8-8 下午12:57:36
- * @version 4.1.0
+ * @version 1.0.0
  */
 public abstract class AbstractCanalStoreScavenge extends AbstractCanalLifeCycle implements CanalStoreScavenge {
 

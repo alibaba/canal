@@ -8,7 +8,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  * 接口组合
  * 
  * @author jianghang 2012-7-7 上午10:02:02
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface CanalLogPositionManager extends CanalLifeCycle {
 

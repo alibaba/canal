@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.store.CanalStoreException;
  * 缓冲event队列，提供按事务刷新数据的机制
  * 
  * @author jianghang 2012-12-6 上午11:05:12
- * @version 4.1.3
+ * @version 1.0.0
  */
 public class EventTransactionBuffer extends AbstractCanalLifeCycle {
 
@@ -148,7 +148,7 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
      * 事务刷新机制
      * 
      * @author jianghang 2012-12-6 上午11:57:38
-     * @version 4.1.3
+     * @version 1.0.0
      */
     public static interface TransactionFlushCallback {
 

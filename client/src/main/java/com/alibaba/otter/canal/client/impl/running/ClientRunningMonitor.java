@@ -25,7 +25,7 @@ import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
  * clinet running控制
  * 
  * @author jianghang 2012-11-22 下午03:43:01
- * @version 4.1.3
+ * @version 1.0.0
  */
 public class ClientRunningMonitor extends AbstractCanalLifeCycle {
 

@@ -17,7 +17,7 @@ import com.alibaba.otter.canal.store.helper.CanalEventUtils;
  * 基于meta信息的实现
  * 
  * @author jianghang 2012-7-10 下午05:02:33
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MetaLogPositionManager extends AbstractCanalLifeCycle implements CanalLogPositionManager {
 

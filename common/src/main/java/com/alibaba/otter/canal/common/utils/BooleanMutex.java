@@ -100,7 +100,7 @@ public class BooleanMutex {
      */
     private final class Sync extends AbstractQueuedSynchronizer {
 
-        private static final long serialVersionUID = -7828117401763700385L;
+        private static final long serialVersionUID = -78281171.0.03700385L;
 
         /** State value representing that TRUE */
         private static final int  TRUE             = 1;

@@ -23,7 +23,7 @@ import com.alibaba.otter.canal.store.model.Events;
  * 基于内存buffer构建内存memory store
  * 
  * @author jianghang 2012-6-20 上午09:46:31
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge implements CanalEventStore<Event>, CanalStoreScavenge {
 

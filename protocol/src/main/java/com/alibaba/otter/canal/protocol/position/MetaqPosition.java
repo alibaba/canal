@@ -9,7 +9,7 @@ package com.alibaba.otter.canal.protocol.position;
 
 /**
  * @author zebin.xuzb 2012-11-3 上午12:23:01
- * @since 4.1.2
+ * @since 1.0.0
  */
 public class MetaqPosition extends Position {
 

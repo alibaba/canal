@@ -31,7 +31,7 @@ import com.google.common.collect.MapMaker;
  * </pre>
  * 
  * @author jianghang 2012-9-11 下午02:41:15
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMetaManager {
 

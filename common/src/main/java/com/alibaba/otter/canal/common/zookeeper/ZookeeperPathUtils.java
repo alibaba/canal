@@ -27,7 +27,7 @@ import org.apache.commons.lang.StringUtils;
  * </pre>
  * 
  * @author zebin.xuzb @ 2012-6-21
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class ZookeeperPathUtils {
 

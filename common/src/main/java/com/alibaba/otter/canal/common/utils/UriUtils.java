@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * @author zebin.xuzb 2012-11-15 下午3:53:09
- * @since 4.1.3
+ * @since 1.0.0
  */
 public final class UriUtils {
 

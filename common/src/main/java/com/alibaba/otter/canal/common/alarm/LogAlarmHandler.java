@@ -9,7 +9,7 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
  * 基于log的alarm机制实现
  * 
  * @author jianghang 2012-8-22 下午10:12:35
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class LogAlarmHandler extends AbstractCanalLifeCycle implements CanalAlarmHandler {
 

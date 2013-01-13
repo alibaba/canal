@@ -8,7 +8,7 @@ import com.alibaba.otter.shared.common.model.canal.Canal;
  * 基于manager生成对应的{@linkplain CanalInstance}
  * 
  * @author jianghang 2012-7-12 下午05:37:09
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class ManagerCanalInstanceGenerator implements CanalInstanceGenerator {
 

@@ -8,7 +8,7 @@ import com.alibaba.otter.canal.common.CanalLifeCycle;
  * 处理下sink时的数据流
  * 
  * @author jianghang 2012-7-31 下午03:06:26
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface CanalEventDownStreamHandler<T> extends CanalLifeCycle {
 

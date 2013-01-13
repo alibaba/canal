@@ -16,7 +16,7 @@ import com.alibaba.otter.canal.store.model.Events;
  * 测试下rollback / ack的操作
  * 
  * @author jianghang 2012-6-19 下午09:49:28
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
 

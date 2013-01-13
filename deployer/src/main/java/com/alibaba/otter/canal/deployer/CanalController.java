@@ -40,7 +40,7 @@ import com.google.common.collect.MapMaker;
  * canal调度控制器
  * 
  * @author jianghang 2012-11-8 下午12:03:11
- * @version 4.1.2
+ * @version 1.0.0
  */
 public class CanalController {
 

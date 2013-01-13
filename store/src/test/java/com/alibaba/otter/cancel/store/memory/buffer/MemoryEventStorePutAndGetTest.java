@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.store.model.Events;
  * 测试普通的put / get操作
  * 
  * @author jianghang 2012-6-19 下午09:50:08
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
 

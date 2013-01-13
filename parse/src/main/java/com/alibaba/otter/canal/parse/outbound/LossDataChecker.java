@@ -15,7 +15,7 @@ import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
  * </pre>
  * 
  * @author jianghang 2012-7-7 下午02:10:07
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class LossDataChecker {
 

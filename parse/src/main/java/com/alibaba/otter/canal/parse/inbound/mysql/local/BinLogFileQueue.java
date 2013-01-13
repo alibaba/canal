@@ -19,7 +19,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
  * 维护binlog文件列表
  * 
  * @author jianghang 2012-7-7 下午03:48:05
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class BinLogFileQueue {
 

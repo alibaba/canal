@@ -21,7 +21,7 @@ import com.alibaba.otter.canal.protocol.exception.CanalClientException;
  * 集群模式的调度策略
  * 
  * @author jianghang 2012-12-3 下午10:01:04
- * @version 4.1.3
+ * @version 1.0.0
  */
 public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
 

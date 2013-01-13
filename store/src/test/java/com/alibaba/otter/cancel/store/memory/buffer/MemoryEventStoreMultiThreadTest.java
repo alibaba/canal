@@ -26,7 +26,7 @@ import com.alibaba.otter.canal.store.model.Events;
  * 多线程的put/get/ack/rollback测试
  * 
  * @author jianghang 2012-6-20 下午02:50:36
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
 

@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.protocol.exception.CanalClientException;
  * 集群版本connector实现，自带了failover功能<br/>
  * 
  * @author jianghang 2012-10-29 下午08:04:06
- * @version 4.1.2
+ * @version 1.0.0
  */
 public class ClusterCanalConnector implements CanalConnector {
 

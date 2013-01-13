@@ -30,7 +30,7 @@ import org.springframework.util.ReflectionUtils;
  * 封装了ZooKeeper，使其支持节点的优先顺序，比如美国机房的节点会优先加载美国对应的zk集群列表，都失败后才会选择加载杭州的zk集群列表 *
  * 
  * @author jianghang 2012-7-10 下午02:31:42
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class ZooKeeperx implements IZkConnection {
 

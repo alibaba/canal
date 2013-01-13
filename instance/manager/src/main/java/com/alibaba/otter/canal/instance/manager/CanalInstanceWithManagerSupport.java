@@ -22,7 +22,7 @@ import com.alibaba.otter.canal.store.model.Event;
 
 /**
  * @author zebin.xuzb 2012-10-17 下午3:12:34
- * @version 4.1.0
+ * @version 1.0.0
  */
 public abstract class CanalInstanceWithManagerSupport extends AbstractCanalLifeCycle {
 

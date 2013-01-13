@@ -4,7 +4,7 @@ package com.alibaba.otter.canal.protocol.position;
  * 基于mysql/oracle log位置标示
  * 
  * @author jianghang 2012-6-21 上午10:52:41
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class LogPosition extends Position {
 

@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.store.model.Event;
  * </pre>
  * 
  * @author jianghang 2012-10-15 下午09:54:18
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class GroupEventSink extends EntryEventSink {
 

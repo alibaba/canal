@@ -24,7 +24,7 @@ import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
  * 针对server的running节点控制
  * 
  * @author jianghang 2012-11-22 下午02:59:42
- * @version 4.1.3
+ * @version 1.0.0
  */
 public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 

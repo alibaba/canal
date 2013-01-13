@@ -41,7 +41,7 @@ import com.google.common.collect.Maps;
  * 
  * @author zebin.xuzb @ 2012-6-21
  * @author jianghang
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements CanalMetaManager {
 

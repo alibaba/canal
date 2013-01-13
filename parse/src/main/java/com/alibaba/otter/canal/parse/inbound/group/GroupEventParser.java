@@ -10,7 +10,7 @@ import com.alibaba.otter.canal.parse.CanalEventParser;
  * 组合多个EventParser进行合并处理，group只是做为一个delegate处理
  * 
  * @author jianghang 2012-10-16 上午11:23:14
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class GroupEventParser extends AbstractCanalLifeCycle implements CanalEventParser {
 

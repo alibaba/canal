@@ -18,7 +18,7 @@ import com.google.common.collect.MapMaker;
  * 使用自定义的ZooKeeperx for zk connection
  * 
  * @author jianghang 2012-7-10 下午02:31:15
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class ZkClientx extends ZkClient {
 

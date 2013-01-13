@@ -1,5 +1,5 @@
 /**
- * Project: otter.canal.server-4.1.0
+ * Project: otter.canal.server-1.0.0
  * 
  * File Created at 2012-7-12
  * $Id$
@@ -24,7 +24,7 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 
 /**
  * @author zebin.xuzb @ 2012-7-12
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class SpringCanalInstanceGenerator implements CanalInstanceGenerator, BeanFactoryAware {
 

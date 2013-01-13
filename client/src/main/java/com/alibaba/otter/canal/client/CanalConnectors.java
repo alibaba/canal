@@ -13,7 +13,7 @@ import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
  * canal connectors创建工具类
  * 
  * @author jianghang 2012-10-29 下午11:18:50
- * @version 4.1.2
+ * @version 1.0.0
  */
 public class CanalConnectors {
 

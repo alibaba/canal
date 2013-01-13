@@ -9,7 +9,7 @@ import org.I0Itec.zkclient.serialize.ZkSerializer;
  * 基于string的序列化方式
  * 
  * @author jianghang 2012-7-11 下午02:57:09
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class StringSerializer implements ZkSerializer {
 

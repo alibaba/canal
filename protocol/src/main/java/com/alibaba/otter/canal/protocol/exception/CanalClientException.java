@@ -1,5 +1,5 @@
 /**
- * Project: otter.canal.protocol-4.1.0
+ * Project: otter.canal.protocol-1.0.0
  * 
  * File Created at 2012-6-20
  * $Id$
@@ -19,7 +19,7 @@ import org.apache.commons.lang.exception.NestableRuntimeException;
 
 /**
  * @author zebin.xuzb @ 2012-6-20
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class CanalClientException extends NestableRuntimeException {
 

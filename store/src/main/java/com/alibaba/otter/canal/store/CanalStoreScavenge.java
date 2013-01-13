@@ -6,7 +6,7 @@ import com.alibaba.otter.canal.protocol.position.Position;
  * store空间回收机制，信息采集以及控制何时调用{@linkplain CanalEventStore}.cleanUtil()接口
  * 
  * @author jianghang 2012-8-8 上午11:57:42
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface CanalStoreScavenge {
 

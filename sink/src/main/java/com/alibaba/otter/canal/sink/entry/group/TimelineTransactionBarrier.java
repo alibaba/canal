@@ -11,7 +11,7 @@ import com.alibaba.otter.canal.store.model.Event;
  * 相比于{@linkplain TimelineBarrier}，增加了按事务支持，会按照事务进行分库合并处理
  * 
  * @author jianghang 2012-10-18 下午05:18:38
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class TimelineTransactionBarrier extends TimelineBarrier {
 

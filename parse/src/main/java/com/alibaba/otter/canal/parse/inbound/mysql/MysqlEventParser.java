@@ -35,7 +35,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  * </pre>
  * 
  * @author jianghang 2012-6-21 下午04:06:32
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MysqlEventParser extends AbstractMysqlEventParser implements CanalEventParser, CanalHASwitchable {
 
@@ -139,7 +139,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      * 心跳信息
      * 
      * @author jianghang 2012-7-6 下午02:50:15
-     * @version 4.1.0
+     * @version 1.0.0
      */
     class MysqlHeartBeatTimeTask extends TimerTask {
 

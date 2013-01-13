@@ -10,7 +10,7 @@ import com.google.common.collect.MapMaker;
  * 基于内存的实现
  * 
  * @author jianghang 2012-7-7 上午10:17:23
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MemoryLogPositionManager extends AbstractCanalLifeCycle implements CanalLogPositionManager {
 

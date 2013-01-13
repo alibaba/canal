@@ -8,7 +8,7 @@ import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
  * 基于HeartBeat信息的HA控制 , 注意：非线程安全，需要做做多例化
  * 
  * @author jianghang 2012-7-6 下午02:33:30
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class HeartBeatHAController extends AbstractCanalLifeCycle implements CanalHAController, HeartBeatCallback {
 

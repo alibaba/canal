@@ -4,7 +4,7 @@ package com.alibaba.otter.canal.protocol.position;
  * 数据库对象的唯一标示
  * 
  * @author jianghang 2012-6-14 下午09:20:07
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class EntryPosition extends TimePosition {
 

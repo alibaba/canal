@@ -4,7 +4,7 @@ package com.alibaba.otter.canal.parse.inbound;
  * 提供mysql heartBeat心跳数据的callback机制
  * 
  * @author jianghang 2012-6-26 下午04:49:56
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface HeartBeatCallback {
 

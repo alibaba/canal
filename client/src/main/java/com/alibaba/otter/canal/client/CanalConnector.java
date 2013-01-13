@@ -8,7 +8,7 @@ import com.alibaba.otter.canal.protocol.exception.CanalClientException;
  * 
  * @author zebin.xuzb @ 2012-6-19
  * @author jianghang
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface CanalConnector {
 

@@ -4,7 +4,7 @@ package com.alibaba.otter.canal.store;
  * 常量值
  * 
  * @author jianghang 2012-6-14 下午09:40:33
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface CanalStoreConstants {
 

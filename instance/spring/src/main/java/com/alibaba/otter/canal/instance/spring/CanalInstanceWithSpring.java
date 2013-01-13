@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.store.CanalEventStore;
  * 
  * @author jianghang 2012-7-12 下午01:21:26
  * @author zebin.xuzb
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements CanalInstance {
 

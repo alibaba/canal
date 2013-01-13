@@ -10,7 +10,7 @@ import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
  * 描述一个position范围
  * 
  * @author jianghang 2012-7-10 下午05:28:38
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class PositionRange<T extends Position> implements Serializable {
 

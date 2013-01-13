@@ -6,7 +6,7 @@ import java.util.Map;
  * {@linkplain ServerRunningMonitor}管理容器，使用static进行数据全局共享
  * 
  * @author jianghang 2012-12-3 下午09:32:06
- * @version 4.1.3
+ * @version 1.0.0
  */
 public class ServerRunningMonitors {
 

@@ -13,7 +13,7 @@ import com.alibaba.otter.canal.protocol.position.PositionRange;
  * 代表一组数据对象的集合
  * 
  * @author jianghang 2012-6-14 下午09:07:41
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class Events<EVENT> implements Serializable {
 

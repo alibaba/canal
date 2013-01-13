@@ -10,7 +10,7 @@ import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
  * 服务端running状态信息
  * 
  * @author jianghang 2012-11-22 下午03:11:30
- * @version 4.1.3
+ * @version 1.0.0
  */
 public class ServerRunningData implements Serializable {
 

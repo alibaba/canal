@@ -26,7 +26,7 @@ import com.alibaba.otter.canal.server.netty.NettyUtils;
  * 客户端身份认证处理
  * 
  * @author jianghang 2012-10-24 上午11:12:45
- * @version 4.1.2
+ * @version 1.0.0
  */
 public class ClientAuthenticationHandler extends SimpleChannelHandler {
 

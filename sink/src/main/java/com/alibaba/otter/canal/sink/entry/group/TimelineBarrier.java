@@ -24,7 +24,7 @@ import com.alibaba.otter.canal.store.model.Event;
  * </pre>
  * 
  * @author jianghang 2012-10-15 下午10:01:53
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class TimelineBarrier implements GroupBarrier<Event> {
 

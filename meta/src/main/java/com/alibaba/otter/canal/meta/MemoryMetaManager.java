@@ -1,5 +1,5 @@
 /**
- * Project: otter.canal.server-4.1.0
+ * Project: otter.canal.server-1.0.0
  * 
  * File Created at 2012-7-2
  * $Id$
@@ -35,7 +35,7 @@ import com.google.common.collect.Maps;
  * 内存版实现
  * 
  * @author zebin.xuzb @ 2012-7-2
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMetaManager {
 

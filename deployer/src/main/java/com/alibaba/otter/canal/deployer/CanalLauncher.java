@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * canal独立版本启动的入口类
  * 
  * @author jianghang 2012-11-6 下午05:20:49
- * @version 4.1.2
+ * @version 1.0.0
  */
 public class CanalLauncher {
 

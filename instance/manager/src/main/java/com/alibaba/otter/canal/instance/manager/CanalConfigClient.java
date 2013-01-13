@@ -9,7 +9,7 @@ import com.alibaba.otter.shared.communication.model.canal.FindFilterEvent;
  * 对应canal的配置
  * 
  * @author jianghang 2012-7-4 下午03:09:17
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class CanalConfigClient {
 

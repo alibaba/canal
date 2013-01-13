@@ -13,7 +13,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  * 基于zk的实现
  * 
  * @author jianghang 2012-7-7 上午10:08:27
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class ZooKeeperLogPositionManager extends AbstractCanalLifeCycle implements CanalLogPositionManager {
 

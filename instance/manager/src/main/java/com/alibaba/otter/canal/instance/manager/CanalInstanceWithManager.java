@@ -59,7 +59,7 @@ import com.alibaba.otter.shared.common.utils.JsonUtils;
  * 单个canal实例，比如一个destination会独立一个实例
  * 
  * @author jianghang 2012-7-11 下午09:26:51
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport implements CanalInstance {
 

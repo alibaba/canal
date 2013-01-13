@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  * 基于本地binlog文件的复制
  * 
  * @author jianghang 2012-6-21 下午04:07:33
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class LocalBinlogEventParser extends AbstractMysqlEventParser implements CanalEventParser {
 

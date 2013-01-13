@@ -39,7 +39,7 @@ import com.alibaba.otter.canal.sink.filter.AviaterRegexFilter;
  * 处理具体的客户端请求
  * 
  * @author jianghang 2012-10-24 下午02:21:13
- * @version 4.1.2
+ * @version 1.0.0
  */
 public class SessionHandler extends SimpleChannelHandler {
 

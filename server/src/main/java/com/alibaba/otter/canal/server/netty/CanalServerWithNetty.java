@@ -23,7 +23,7 @@ import com.alibaba.otter.canal.server.netty.handler.SessionHandler;
  * 基于netty网络服务的server实现
  * 
  * @author jianghang 2012-7-12 下午01:34:49
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class CanalServerWithNetty extends AbstractCanalLifeCycle implements CanalServer {
 

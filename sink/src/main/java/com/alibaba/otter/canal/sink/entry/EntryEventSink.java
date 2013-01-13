@@ -25,7 +25,7 @@ import com.alibaba.otter.canal.store.model.Event;
  * mysql binlog数据对象输出
  * 
  * @author jianghang 2012-7-4 下午03:23:16
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class EntryEventSink extends AbstractCanalEventSink<List<Entry>> implements CanalEventSink<List<Entry>> {
 

@@ -77,7 +77,7 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
      * 因此此类对正则表达式进行了从长到短的排序
      * 
      * @author zebin.xuzb 2012-10-22 下午2:02:26
-     * @version 4.1.0
+     * @version 1.0.0
      */
     private static class StringComparator implements Comparator<String> {
 
@@ -103,7 +103,7 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
      * 因此此类对正则表达式进行头尾完全匹配
      * 
      * @author simon
-     * @version 4.1.2
+     * @version 1.0.0
      */
 
     private List<String> completionPattern(List<String> patterns) {

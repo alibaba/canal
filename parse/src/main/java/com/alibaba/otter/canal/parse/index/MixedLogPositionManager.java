@@ -15,7 +15,7 @@ import com.google.common.collect.MapMaker;
  * 混合memory + zookeeper的存储模式
  * 
  * @author jianghang 2012-7-7 上午10:33:19
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MixedLogPositionManager extends MemoryLogPositionManager implements CanalLogPositionManager {
 

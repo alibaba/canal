@@ -36,7 +36,7 @@ import com.google.common.collect.Maps;
  * 
  * @author jianghang 2012-7-12 下午01:34:00
  * @author zebin.xuzb
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements CanalServer {
 

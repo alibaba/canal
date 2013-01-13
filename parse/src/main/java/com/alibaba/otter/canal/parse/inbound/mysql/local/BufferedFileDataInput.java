@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author jianghang 2012-7-7 下午03:10:47
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class BufferedFileDataInput {
 

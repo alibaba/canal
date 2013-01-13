@@ -11,7 +11,7 @@ import com.alibaba.otter.canal.store.model.Events;
  * canel数据存储接口
  * 
  * @author jianghang 2012-6-14 下午08:44:52
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface CanalEventStore<T> extends CanalLifeCycle, CanalStoreScavenge {
 

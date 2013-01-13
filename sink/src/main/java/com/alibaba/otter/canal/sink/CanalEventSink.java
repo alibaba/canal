@@ -10,7 +10,7 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
  * event事件消费者
  * 
  * @author jianghang 2012-6-21 下午05:03:40
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface CanalEventSink<T> extends CanalLifeCycle {
 

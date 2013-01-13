@@ -6,7 +6,7 @@ import java.text.MessageFormat;
  * 启动常用变量
  * 
  * @author jianghang 2012-11-8 下午03:15:55
- * @version 4.1.2
+ * @version 1.0.0
  */
 public class CanalConstants {
 

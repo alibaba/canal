@@ -21,7 +21,7 @@ import com.google.common.collect.MapMaker;
  * 基于定时刷新的策略的mixed实现
  * 
  * @author jianghang 2012-9-12 上午11:18:14
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class PeriodMixedLogPositionManager extends MemoryLogPositionManager implements CanalLogPositionManager {
 

@@ -18,7 +18,7 @@ import com.google.common.collect.MapMaker;
  * 组合memory + zookeeper的使用模式
  * 
  * @author jianghang 2012-7-11 下午03:58:00
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class MixedMetaManager extends MemoryMetaManager implements CanalMetaManager {
 

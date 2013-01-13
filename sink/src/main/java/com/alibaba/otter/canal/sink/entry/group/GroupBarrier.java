@@ -7,7 +7,7 @@ import java.util.concurrent.TimeoutException;
  * 针对group合并的barrier接口，控制多个sink操作的合并处理
  * 
  * @author jianghang 2012-10-18 下午05:07:35
- * @version 4.1.0
+ * @version 1.0.0
  */
 public interface GroupBarrier<T> {
 

@@ -4,7 +4,7 @@ import org.apache.commons.lang.exception.NestableRuntimeException;
 
 /**
  * @author jianghang 2012-7-12 上午10:10:31
- * @version 4.1.0
+ * @version 1.0.0
  */
 public class CanalException extends NestableRuntimeException {
 

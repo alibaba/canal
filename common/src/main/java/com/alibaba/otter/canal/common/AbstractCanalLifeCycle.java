@@ -4,7 +4,7 @@ package com.alibaba.otter.canal.common;
  * 基本实现
  * 
  * @author jianghang 2012-7-12 上午10:11:07
- * @version 4.1.0
+ * @version 1.0.0
  */
 public abstract class AbstractCanalLifeCycle implements CanalLifeCycle {
 

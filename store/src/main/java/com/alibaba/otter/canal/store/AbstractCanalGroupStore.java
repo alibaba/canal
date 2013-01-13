@@ -16,7 +16,7 @@ import com.google.common.collect.MapMaker;
 
 /**
  * @author zebin.xuzb 2012-10-30 下午3:45:17
- * @since 4.1.2
+ * @since 1.0.0
  */
 public abstract class AbstractCanalGroupStore<T> extends AbstractCanalLifeCycle implements CanalGroupEventStore<T> {
 
