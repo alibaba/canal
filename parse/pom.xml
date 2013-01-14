@@ -33,6 +33,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.alibaba.otter</groupId>
+			<artifactId>canal.parse.dbsync</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.alibaba.platform.shared</groupId>
 			<artifactId>erosa.parse</artifactId>
 		</dependency>
