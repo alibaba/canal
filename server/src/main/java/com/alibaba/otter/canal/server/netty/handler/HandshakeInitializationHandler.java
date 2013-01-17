@@ -6,9 +6,9 @@ import org.jboss.netty.channel.SimpleChannelHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.protocol.E3;
-import com.alibaba.otter.canal.protocol.E3.E3Packet;
-import com.alibaba.otter.canal.protocol.E3.Handshake;
+import com.alibaba.otter.canal.protocol.CanalPacket;
+import com.alibaba.otter.canal.protocol.CanalPacket.Handshake;
+import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 
 /**
@@ -22,8 +22,8 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
     private static final Logger logger = LoggerFactory.getLogger(HandshakeInitializationHandler.class);
 
     public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        byte[] body = E3Packet.newBuilder().setType(E3.PacketType.HANDSHAKE).setBody(
-                                                                                     Handshake.newBuilder().build().toByteString()).build().toByteArray();
+        byte[] body = Packet.newBuilder().setType(CanalPacket.PacketType.HANDSHAKE).setBody(
+                                                                                            Handshake.newBuilder().build().toByteString()).build().toByteArray();
         NettyUtils.write(ctx.getChannel(), body, null);
         logger.info("send handshake initialization packet to : {}", ctx.getChannel());
     }

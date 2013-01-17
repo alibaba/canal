@@ -3,7 +3,7 @@ package com.alibaba.otter.canal.parse.outbound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 
 /**
  * loss数据检验机制
@@ -23,9 +23,9 @@ public class LossDataChecker {
     private Long                lossInterval    = 5 * 60L;
     private Long                lastExecuteTime = -1L;
 
-    public void process(Entry entry) {
+    public void process(CanalEntry.Entry entry) {
         if (isHeartBeat(entry)) {
-            Long executeTime = entry.getHeader().getExecutetime();
+            Long executeTime = entry.getHeader().getExecuteTime();
             if (lastExecuteTime == -1L) {
                 lastExecuteTime = executeTime;
             } else {
@@ -38,7 +38,7 @@ public class LossDataChecker {
         }
     }
 
-    private boolean isHeartBeat(Entry entry) {
+    private boolean isHeartBeat(CanalEntry.Entry entry) {
         return true;
     }
 

@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.parse.CanalEventParser;
@@ -20,6 +19,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
@@ -31,12 +31,12 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
  * 
  * @author: yuanzu Date: 12-9-20 Time: 下午2:55
  */
-public abstract class AbstractEventParser extends AbstractCanalLifeCycle implements CanalEventParser {
+public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle implements CanalEventParser<EVENT> {
 
     protected final Logger                           logger             = LoggerFactory.getLogger(this.getClass());
 
     protected CanalLogPositionManager                logPositionManager = null;
-    protected CanalEventSink<List<ErosaEntry.Entry>> eventSink          = null;
+    protected CanalEventSink<List<CanalEntry.Entry>> eventSink          = null;
 
     private CanalAlarmHandler                        alarmHandler       = null;
 
@@ -92,7 +92,7 @@ public abstract class AbstractEventParser extends AbstractCanalLifeCycle impleme
         // 初始化一下
         transactionBuffer = new EventTransactionBuffer(new TransactionFlushCallback() {
 
-            public void flush(List<ErosaEntry.Entry> transaction) throws InterruptedException {
+            public void flush(List<CanalEntry.Entry> transaction) throws InterruptedException {
                 boolean successed = consumeTheEventAndProfilingIfNecessary(transaction);
                 if (!running) {
                     return;
@@ -143,22 +143,22 @@ public abstract class AbstractEventParser extends AbstractCanalLifeCycle impleme
                         // 3. 执行dump前的准备工作
                         preDump(erosaConnection);
 
-                        final SinkFunction sinkHandler = new SinkFunction() {
+                        final SinkFunction sinkHandler = new SinkFunction<EVENT>() {
 
                             private LogPosition lastPosition;
 
-                            public boolean sink(byte[] data) {
+                            public boolean sink(EVENT event) {
                                 try {
-                                    List<ErosaEntry.Entry> entries = parseAndProfilingIfNecessary(data);
+                                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
 
                                     if (!running) {
                                         return false;
                                     }
 
-                                    transactionBuffer.add(entries);
+                                    transactionBuffer.add(entry);
 
                                     // 记录一下对应的positions
-                                    this.lastPosition = buildLastPosition(entries);
+                                    this.lastPosition = buildLastPosition(entry);
                                     return running;
                                 } catch (Exception e) {
                                     processError(e, this.lastPosition, startPosition.getJournalName(),
@@ -248,7 +248,7 @@ public abstract class AbstractEventParser extends AbstractCanalLifeCycle impleme
         }
     }
 
-    protected boolean consumeTheEventAndProfilingIfNecessary(List<ErosaEntry.Entry> entrys) throws CanalSinkException,
+    protected boolean consumeTheEventAndProfilingIfNecessary(List<CanalEntry.Entry> entrys) throws CanalSinkException,
                                                                                            InterruptedException {
         long startTs = -1;
         boolean enabled = getProfilingEnabled();
@@ -273,15 +273,15 @@ public abstract class AbstractEventParser extends AbstractCanalLifeCycle impleme
         return profilingEnabled.get();
     }
 
-    protected LogPosition buildLastTranasctionPosition(List<ErosaEntry.Entry> entries) { // 初始化一下
+    protected LogPosition buildLastTranasctionPosition(List<CanalEntry.Entry> entries) { // 初始化一下
         for (int i = entries.size() - 1; i > 0; i--) {
-            ErosaEntry.Entry entry = entries.get(i);
-            if (entry.getEntryType() == ErosaEntry.EntryType.TRANSACTIONEND) {// 尽量记录一个事务做为position
+            CanalEntry.Entry entry = entries.get(i);
+            if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {// 尽量记录一个事务做为position
                 LogPosition logPosition = new LogPosition();
                 EntryPosition position = new EntryPosition();
-                position.setJournalName(entry.getHeader().getLogfilename());
-                position.setPosition(entry.getHeader().getLogfileoffset());
-                position.setTimestamp(entry.getHeader().getExecutetime());
+                position.setJournalName(entry.getHeader().getLogfileName());
+                position.setPosition(entry.getHeader().getLogfileOffset());
+                position.setTimestamp(entry.getHeader().getExecuteTime());
                 logPosition.setPostion(position);
 
                 LogIdentity identity = new LogIdentity(runningInfo.getAddress(), -1L);
@@ -293,13 +293,12 @@ public abstract class AbstractEventParser extends AbstractCanalLifeCycle impleme
         return null;
     }
 
-    protected LogPosition buildLastPosition(List<ErosaEntry.Entry> entries) { // 初始化一下
-        ErosaEntry.Entry entry = entries.get(entries.size() - 1);
+    protected LogPosition buildLastPosition(CanalEntry.Entry entry) { // 初始化一下
         LogPosition logPosition = new LogPosition();
         EntryPosition position = new EntryPosition();
-        position.setJournalName(entry.getHeader().getLogfilename());
-        position.setPosition(entry.getHeader().getLogfileoffset());
-        position.setTimestamp(entry.getHeader().getExecutetime());
+        position.setJournalName(entry.getHeader().getLogfileName());
+        position.setPosition(entry.getHeader().getLogfileOffset());
+        position.setTimestamp(entry.getHeader().getExecuteTime());
         logPosition.setPostion(position);
 
         LogIdentity identity = new LogIdentity(runningInfo.getAddress(), -1L);
@@ -327,7 +326,7 @@ public abstract class AbstractEventParser extends AbstractCanalLifeCycle impleme
         return processingInterval;
     }
 
-    public void setEventSink(CanalEventSink<List<ErosaEntry.Entry>> eventSink) {
+    public void setEventSink(CanalEventSink<List<CanalEntry.Entry>> eventSink) {
         this.eventSink = eventSink;
     }
 
@@ -343,13 +342,13 @@ public abstract class AbstractEventParser extends AbstractCanalLifeCycle impleme
         return binlogParser;
     }
 
-    protected List<ErosaEntry.Entry> parseAndProfilingIfNecessary(byte[] body) throws Exception {
+    protected CanalEntry.Entry parseAndProfilingIfNecessary(EVENT bod) throws Exception {
         long startTs = -1;
         boolean enabled = getProfilingEnabled();
         if (enabled) {
             startTs = System.currentTimeMillis();
         }
-        List<ErosaEntry.Entry> event = binlogParser.parse(body);
+        CanalEntry.Entry event = binlogParser.parse(bod);
         if (enabled) {
             this.parsingInterval = System.currentTimeMillis() - startTs;
         }

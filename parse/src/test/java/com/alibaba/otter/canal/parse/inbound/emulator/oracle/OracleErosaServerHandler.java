@@ -15,11 +15,11 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry;
 import com.alibaba.otter.canal.parse.inbound.emulator.oracle.data.BinLogFile;
-import com.alibaba.otter.canal.protocol.E3;
-import com.alibaba.otter.canal.protocol.E3.E3Packet;
-import com.alibaba.otter.canal.protocol.E3.PacketType;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalPacket;
+import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
+import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
@@ -50,7 +50,7 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
             return;
         }
 
-        sendPacket(e.getChannel(), E3.E3Packet.newBuilder().setType(E3.PacketType.HANDSHAKE).build());
+        sendPacket(e.getChannel(), CanalPacket.Packet.newBuilder().setType(CanalPacket.PacketType.HANDSHAKE).build());
 
         this.status = RunningStatus.ClientAuth;
     }
@@ -59,22 +59,23 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         try {
             Object message = e.getMessage();
-            if (message instanceof E3.E3Packet) {
-                E3.E3Packet e3Packet = (E3.E3Packet) message;
+            if (message instanceof CanalPacket.Packet) {
+                CanalPacket.Packet e3Packet = (CanalPacket.Packet) message;
                 switch (this.status) {
                     case ClientAuth:
-                        if (!authenticate(E3.ClientAuth.parseFrom(e3Packet.getBody()))) {
+                        if (!authenticate(CanalPacket.ClientAuth.parseFrom(e3Packet.getBody()))) {
                             logger.log(Level.WARNING, "user auth failed");
                             e.getChannel().close();
                             return;
                         }
 
-                        sendPacket(e.getChannel(), E3.E3Packet.newBuilder().setType(E3.PacketType.ACK).build());
+                        sendPacket(e.getChannel(),
+                                   CanalPacket.Packet.newBuilder().setType(CanalPacket.PacketType.ACK).build());
 
                         this.status = RunningStatus.Dump;
                         break;
                     case Dump:
-                        if (!dump(E3.Dump.parseFrom(e3Packet.getBody()))) {
+                        if (!dump(CanalPacket.Dump.parseFrom(e3Packet.getBody()))) {
                             e.getChannel().close();
                             return;
                         }
@@ -112,15 +113,15 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
                 bufLen.resetReaderIndex();
 
                 byte[] data = binLogFile.getData((int) this.binLogFileOffset + 4, dataLen);
-                ErosaEntry.Entry oldEntry = ErosaEntry.Entry.parseFrom(data);
+                CanalEntry.Entry oldEntry = CanalEntry.Entry.parseFrom(data);
 
                 // 替换为正确的log file name和log file offset
-                ErosaEntry.Entry newEntry = ErosaEntry.Entry.newBuilder(oldEntry).setHeader(
-                                                                                            ErosaEntry.Header.newBuilder(
-                                                                                                                         oldEntry.getHeader()).setLogfilename(
-                                                                                                                                                              binLogFile.getFilename()).setLogfileoffset(
+                CanalEntry.Entry newEntry = CanalEntry.Entry.newBuilder(oldEntry).setHeader(
+                                                                                            CanalEntry.Header.newBuilder(
+                                                                                                                         oldEntry.getHeader()).setLogfileName(
+                                                                                                                                                              binLogFile.getFilename()).setLogfileOffset(
                                                                                                                                                                                                          this.binLogFileOffset).build()).build();
-                E3Packet packet = E3Packet.newBuilder().setBody(newEntry.toByteString()).setType(PacketType.MESSAGES).build();
+                Packet packet = Packet.newBuilder().setBody(newEntry.toByteString()).setType(PacketType.MESSAGES).build();
 
                 bufLen.resetWriterIndex();
                 bufLen.writeInt(packet.getSerializedSize());
@@ -142,12 +143,12 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
      * @param clientAuth client auth packet
      * @return true if matched
      */
-    private boolean authenticate(E3.ClientAuth clientAuth) {
+    private boolean authenticate(CanalPacket.ClientAuth clientAuth) {
         return StringUtils.equals(clientAuth.getUsername(), "erosa_user1")
                && StringUtils.equals(clientAuth.getPassword().toStringUtf8(), "12345");
     }
 
-    private boolean dump(E3.Dump dump) throws InvalidProtocolBufferException {
+    private boolean dump(CanalPacket.Dump dump) throws InvalidProtocolBufferException {
         String journalName = dump.getJournal();
         long position = dump.getPosition();
         long timestamp = dump.getTimestamp();
@@ -190,8 +191,8 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
                     int len = bufLen.getInt();
 
                     byte[] data = file.getData(offset + 4, len);
-                    ErosaEntry.Entry entry = ErosaEntry.Entry.parseFrom(data);
-                    long executeTime = entry.getHeader().getExecutetime();
+                    CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(data);
+                    long executeTime = entry.getHeader().getExecuteTime();
 
                     offset += (4 + len);
 
@@ -213,7 +214,7 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
      * 
      * @throws java.io.IOException
      */
-    private static boolean sendPacket(Channel channel, E3.E3Packet packet) throws IOException {
+    private static boolean sendPacket(Channel channel, CanalPacket.Packet packet) throws IOException {
         int len = packet.getSerializedSize();
         ChannelBuffer bufLen = ChannelBuffers.buffer(4);
         bufLen.writeInt(len);

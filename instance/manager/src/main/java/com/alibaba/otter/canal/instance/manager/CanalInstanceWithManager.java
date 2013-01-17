@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
@@ -35,6 +34,7 @@ import com.alibaba.otter.canal.parse.index.MetaLogPositionManager;
 import com.alibaba.otter.canal.parse.index.PeriodMixedLogPositionManager;
 import com.alibaba.otter.canal.parse.index.ZooKeeperLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
 import com.alibaba.otter.canal.sink.CanalEventSink;
@@ -275,7 +275,7 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
             // 后续版本支持
             throw new CanalException("unsupport MetaMode for " + mode);
         } else if (mode.isMetaq()) {
-			throw new CanalException("unsupport MetaMode for " + mode);
+            throw new CanalException("unsupport MetaMode for " + mode);
         } else {
             throw new CanalException("unsupport MetaMode for " + mode);
         }
@@ -302,7 +302,7 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
             haController = new HeartBeatHAController();
             ((HeartBeatHAController) haController).setDetectingRetryTimes(parameters.getDetectingRetryTimes());
         } else if (haMode.isTddl()) {
-			throw new CanalException("unsupport HAMode for " + haMode);
+            throw new CanalException("unsupport HAMode for " + haMode);
         } else if (haMode.isCobar()) {
             throw new CanalException("unsupport HAMode for " + haMode);
         } else {
@@ -461,7 +461,7 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
             }
             eventParser = localBinlogEventParser;
         } else if (type.isOracle()) {
-			throw new CanalException("unsupport SourcingType for " + type);
+            throw new CanalException("unsupport SourcingType for " + type);
         } else {
             throw new CanalException("unsupport SourcingType for " + type);
         }

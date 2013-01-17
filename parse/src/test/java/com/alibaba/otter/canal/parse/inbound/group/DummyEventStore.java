@@ -7,8 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.EntryType;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.CanalStoreException;
@@ -82,8 +82,8 @@ public class DummyEventStore implements CanalEventStore<Event> {
 
     public void put(List<Event> datas) throws InterruptedException, CanalStoreException {
         for (Event data : datas) {
-            ErosaEntry.Header header = data.getEntry().getHeader();
-            Date date = new Date(header.getExecutetime());
+            CanalEntry.Header header = data.getEntry().getHeader();
+            Date date = new Date(header.getExecuteTime());
             SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
             if (data.getEntry().getEntryType() == EntryType.TRANSACTIONBEGIN
                 || data.getEntry().getEntryType() == EntryType.TRANSACTIONEND) {
@@ -94,16 +94,16 @@ public class DummyEventStore implements CanalEventStore<Event> {
 
             } else {
                 System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                        header.getLogfilename(), header.getLogfileoffset(), format.format(date),
-                        header.getSchemaname(), header.getTablename() }));
+                        header.getLogfileName(), header.getLogfileOffset(), format.format(date),
+                        header.getSchemaName(), header.getTableName() }));
             }
         }
     }
 
     public boolean put(List<Event> datas, long timeout, TimeUnit unit) throws InterruptedException, CanalStoreException {
         for (Event data : datas) {
-            ErosaEntry.Header header = data.getEntry().getHeader();
-            Date date = new Date(header.getExecutetime());
+            CanalEntry.Header header = data.getEntry().getHeader();
+            Date date = new Date(header.getExecuteTime());
             SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
             if (data.getEntry().getEntryType() == EntryType.TRANSACTIONBEGIN
                 || data.getEntry().getEntryType() == EntryType.TRANSACTIONEND) {
@@ -114,8 +114,8 @@ public class DummyEventStore implements CanalEventStore<Event> {
 
             } else {
                 System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                        header.getLogfilename(), header.getLogfileoffset(), format.format(date),
-                        header.getSchemaname(), header.getTablename() }));
+                        header.getLogfileName(), header.getLogfileOffset(), format.format(date),
+                        header.getSchemaName(), header.getTableName() }));
             }
         }
         return true;
@@ -125,8 +125,8 @@ public class DummyEventStore implements CanalEventStore<Event> {
         System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         for (Event data : datas) {
 
-            ErosaEntry.Header header = data.getEntry().getHeader();
-            Date date = new Date(header.getExecutetime());
+            CanalEntry.Header header = data.getEntry().getHeader();
+            Date date = new Date(header.getExecuteTime());
             SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
             if (data.getEntry().getEntryType() == EntryType.TRANSACTIONBEGIN
                 || data.getEntry().getEntryType() == EntryType.TRANSACTIONEND) {
@@ -137,8 +137,8 @@ public class DummyEventStore implements CanalEventStore<Event> {
 
             } else {
                 System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                        header.getLogfilename(), header.getLogfileoffset(), format.format(date),
-                        header.getSchemaname(), header.getTablename() }));
+                        header.getLogfileName(), header.getLogfileOffset(), format.format(date),
+                        header.getSchemaName(), header.getTableName() }));
             }
 
         }

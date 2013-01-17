@@ -9,8 +9,8 @@ import java.util.concurrent.Executors;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Header;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry.Header;
 import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
 import com.alibaba.otter.canal.sink.stub.DummyEventStore;
 
@@ -107,9 +107,9 @@ public class GroupEventSinkTest {
 
     private static Entry buildEntry(String binlogFile, long offset, long timestamp) {
         Header.Builder headerBuilder = Header.newBuilder();
-        headerBuilder.setLogfilename(binlogFile);
-        headerBuilder.setLogfileoffset(offset);
-        headerBuilder.setExecutetime(timestamp);
+        headerBuilder.setLogfileName(binlogFile);
+        headerBuilder.setLogfileOffset(offset);
+        headerBuilder.setExecuteTime(timestamp);
         Entry.Builder entryBuilder = Entry.newBuilder();
         entryBuilder.setHeader(headerBuilder.build());
         return entryBuilder.build();

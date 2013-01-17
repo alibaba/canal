@@ -17,8 +17,8 @@ import org.slf4j.MDC;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitor;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
-import com.alibaba.otter.canal.protocol.E3.ClientAuth;
-import com.alibaba.otter.canal.protocol.E3.E3Packet;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
+import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 
@@ -45,11 +45,11 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
 
     public void messageReceived(final ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         ChannelBuffer buffer = (ChannelBuffer) e.getMessage();
-        final E3Packet e3packet = E3Packet.parseFrom(buffer.readBytes(buffer.readableBytes()).array());
-        switch (e3packet.getVersion()) {
+        final Packet packet = Packet.parseFrom(buffer.readBytes(buffer.readableBytes()).array());
+        switch (packet.getVersion()) {
             case SUPPORTED_VERSION:
             default:
-                final ClientAuth clientAuth = ClientAuth.parseFrom(e3packet.getBody());
+                final ClientAuth clientAuth = ClientAuth.parseFrom(packet.getBody());
                 // 如果存在订阅信息
                 if (StringUtils.isNotEmpty(clientAuth.getDestination())
                     && StringUtils.isNotEmpty(clientAuth.getClientId())) {

@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
 import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 
 /**
@@ -18,12 +18,12 @@ public class Event implements Serializable {
     private static final long serialVersionUID = 1333330351758762739L;
 
     private LogIdentity       logIdentity;                            // 记录数据产生的来源
-    private Entry             entry;
+    private CanalEntry.Entry  entry;
 
     public Event(){
     }
 
-    public Event(LogIdentity logIdentity, Entry entry){
+    public Event(LogIdentity logIdentity, CanalEntry.Entry entry){
         this.logIdentity = logIdentity;
         this.entry = entry;
     }
@@ -36,11 +36,11 @@ public class Event implements Serializable {
         this.logIdentity = logIdentity;
     }
 
-    public Entry getEntry() {
+    public CanalEntry.Entry getEntry() {
         return entry;
     }
 
-    public void setEntry(Entry entry) {
+    public void setEntry(CanalEntry.Entry entry) {
         this.entry = entry;
     }
 

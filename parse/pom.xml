@@ -38,10 +38,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.platform.shared</groupId>
-			<artifactId>erosa.parse</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.alibaba.external</groupId>
 			<artifactId>jboss.jboss-netty</artifactId>
 		</dependency>

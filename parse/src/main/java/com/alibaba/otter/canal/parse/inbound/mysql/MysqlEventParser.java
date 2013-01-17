@@ -10,11 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.springframework.util.CollectionUtils;
 
-import com.alibaba.erosa.parse.exceptions.TableIDParserException;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.CanalHASwitchable;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -23,8 +19,10 @@ import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
  * 基于向mysql server复制binlog实现
@@ -323,79 +321,54 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         // 尝试找到一个合适的位置
         final AtomicBoolean reDump = new AtomicBoolean(false);
         mysqlConnection.reconnect();
-        mysqlConnection.dump(entryPosition.getJournalName(), entryPosition.getPosition(), new SinkFunction() {
+        mysqlConnection.dump(entryPosition.getJournalName(), entryPosition.getPosition(), new SinkFunction<LogEvent>() {
 
             private LogPosition lastPosition;
 
-            public boolean sink(byte[] data) {
+            public boolean sink(LogEvent event) {
                 try {
-                    List<ErosaEntry.Entry> entries = parseAndProfilingIfNecessary(data);
-                    if (!CollectionUtils.isEmpty(entries)) {
-                        for (ErosaEntry.Entry entry : entries) {
-                            // 直接查询第一条业务数据，确认是否为事务Begin/End
-                            if (ErosaEntry.EntryType.MYSQL_FORMATDESCRIPTION == entry.getEntryType()
-                                || ErosaEntry.EntryType.MYSQL_ROTATE == entry.getEntryType()) {
-                                // do nothing
-                                continue;
-                            } else if (ErosaEntry.EntryType.TRANSACTIONBEGIN == entry.getEntryType()
-                                       || ErosaEntry.EntryType.TRANSACTIONEND == entry.getEntryType()) {
-                                lastPosition = buildLastPosition(entries);
-                                return false;
-                            } else {
-                                reDump.set(true);
-                                lastPosition = buildLastPosition(entries);
-                                return false;
-                            }
-
-                        }
+                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                    // 直接查询第一条业务数据，确认是否为事务Begin/End
+                    if (CanalEntry.EntryType.TRANSACTIONBEGIN == entry.getEntryType()
+                        || CanalEntry.EntryType.TRANSACTIONEND == entry.getEntryType()) {
+                        lastPosition = buildLastPosition(entry);
+                        return false;
+                    } else {
+                        reDump.set(true);
+                        lastPosition = buildLastPosition(entry);
+                        return false;
                     }
-
-                } catch (TableIDParserException e) {
+                } catch (Exception e) {
                     // 上一次记录的poistion可能为一条update/insert/delete变更事件，直接进行dump的话，会缺少tableMap事件，导致tableId未进行解析
                     processError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
                     reDump.set(true);
                     return false;
-                } catch (Exception e) {
-                    processError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
-                    reDump.set(true);
-                    return false;
                 }
-
-                return running;
             }
         });
         // 针对开始的第一条为非Begin记录，需要从该binlog扫描
         if (reDump.get()) {
             final AtomicLong preTransactionStartPosition = new AtomicLong(0L);
             mysqlConnection.reconnect();
-            mysqlConnection.dump(entryPosition.getJournalName(), 4L, new SinkFunction() {
+            mysqlConnection.dump(entryPosition.getJournalName(), 4L, new SinkFunction<LogEvent>() {
 
                 private LogPosition lastPosition;
 
-                public boolean sink(byte[] data) {
+                public boolean sink(LogEvent event) {
                     try {
-                        List<ErosaEntry.Entry> entrys = parseAndProfilingIfNecessary(data);
-                        if (!CollectionUtils.isEmpty(entrys)) {
-                            for (ErosaEntry.Entry entry : entrys) {
-                                // 直接查询第一条业务数据，确认是否为事务Begin
-                                if (!(ErosaEntry.EntryType.MYSQL_FORMATDESCRIPTION == entry.getEntryType()
-                                      || ErosaEntry.EntryType.MYSQL_ROTATE == entry.getEntryType() || ErosaEntry.EntryType.MYSQL_STOP == entry.getEntryType())) {
-                                    // 记录一下transaction begin position
-                                    if (entry.getEntryType() == ErosaEntry.EntryType.TRANSACTIONBEGIN
-                                        && entry.getHeader().getLogfileoffset() < entryPosition.getPosition()) {
-                                        preTransactionStartPosition.set(entry.getHeader().getLogfileoffset());
-                                    }
-
-                                    if (entry.getHeader().getLogfileoffset() >= entryPosition.getPosition()) {
-                                        return false;// 退出
-                                    }
-
-                                    lastPosition = buildLastPosition(entrys);
-                                }
-                            }
-
+                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                        // 直接查询第一条业务数据，确认是否为事务Begin
+                        // 记录一下transaction begin position
+                        if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
+                            && entry.getHeader().getLogfileOffset() < entryPosition.getPosition()) {
+                            preTransactionStartPosition.set(entry.getHeader().getLogfileOffset());
                         }
 
+                        if (entry.getHeader().getLogfileOffset() >= entryPosition.getPosition()) {
+                            return false;// 退出
+                        }
+
+                        lastPosition = buildLastPosition(entry);
                     } catch (Exception e) {
                         processError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
                         return false;
@@ -493,50 +466,43 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         try {
             mysqlConnection.reconnect();
             // 开始遍历文件
-            mysqlConnection.dump(searchBinlogFile, 4L, new SinkFunction() {
+            mysqlConnection.dump(searchBinlogFile, 4L, new SinkFunction<LogEvent>() {
 
                 private LogPosition lastPosition;
 
-                public boolean sink(byte[] data) {
+                public boolean sink(LogEvent event) {
                     EntryPosition entryPosition = null;
                     try {
-                        List<Entry> entrys = parseAndProfilingIfNecessary(data);
-                        if (!CollectionUtils.isEmpty(entrys)) {
-                            for (Entry entry : entrys) {
-                                String logfilename = entry.getHeader().getLogfilename();
-                                Long logfileoffset = entry.getHeader().getLogfileoffset();
-                                Long logposTimestamp = entry.getHeader().getExecutetime();
+                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                        String logfilename = entry.getHeader().getLogfileName();
+                        Long logfileoffset = entry.getHeader().getLogfileOffset();
+                        Long logposTimestamp = entry.getHeader().getExecuteTime();
 
-                                if (ErosaEntry.EntryType.TRANSACTIONBEGIN.equals(entry.getEntryType())) {
-                                    logger.debug("compare exit condition:{},{},{}, startTimestamp={}...", new Object[] {
-                                            logfilename, logfileoffset, logposTimestamp, startTimestamp });
-                                    // 寻找第一条记录时间戳，如果最小的一条记录都不满足条件，可直接退出
-                                    if (logposTimestamp >= startTimestamp) {
-                                        return false;
-                                    }
-                                }
-
-                                if (StringUtils.equals(endPosition.getJournalName(), logfilename)
-                                    && endPosition.getPosition() <= (logfileoffset + data.length)) {
-                                    return false;
-                                }
-
-                                // 记录一下上一个事务结束的位置，即下一个事务的position
-                                // position = current + data.length，代表该事务的下一条offest，避免多余的事务重复
-                                if (ErosaEntry.EntryType.TRANSACTIONEND.equals(entry.getEntryType())) {
-                                    entryPosition = new EntryPosition(logfilename, logfileoffset + data.length,
-                                                                      logposTimestamp);
-                                    logger.debug(
-                                                 "set {} to be pending start position before finding another proper one...",
-                                                 entryPosition);
-                                    logPosition.setPostion(entryPosition);
-                                }
-
-                                lastPosition = buildLastPosition(entrys);
+                        if (CanalEntry.EntryType.TRANSACTIONBEGIN.equals(entry.getEntryType())) {
+                            logger.debug("compare exit condition:{},{},{}, startTimestamp={}...", new Object[] {
+                                    logfilename, logfileoffset, logposTimestamp, startTimestamp });
+                            // 寻找第一条记录时间戳，如果最小的一条记录都不满足条件，可直接退出
+                            if (logposTimestamp >= startTimestamp) {
+                                return false;
                             }
-                        } else {
-                            logger.info("no binary events is parsed out.");
                         }
+
+                        if (StringUtils.equals(endPosition.getJournalName(), logfilename)
+                            && endPosition.getPosition() <= (logfileoffset + event.getEventLen())) {
+                            return false;
+                        }
+
+                        // 记录一下上一个事务结束的位置，即下一个事务的position
+                        // position = current + data.length，代表该事务的下一条offest，避免多余的事务重复
+                        if (CanalEntry.EntryType.TRANSACTIONEND.equals(entry.getEntryType())) {
+                            entryPosition = new EntryPosition(logfilename, logfileoffset + event.getEventLen(),
+                                                              logposTimestamp);
+                            logger.debug("set {} to be pending start position before finding another proper one...",
+                                         entryPosition);
+                            logPosition.setPostion(entryPosition);
+                        }
+
+                        lastPosition = buildLastPosition(entry);
                     } catch (Exception e) {
                         processError(e, lastPosition, searchBinlogFile, 4L);
                     }

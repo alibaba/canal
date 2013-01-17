@@ -1,23 +1,21 @@
 package com.alibaba.otter.canal.parse.inbound.group;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
-import java.util.List;
 
 import org.junit.Test;
 
-import com.alibaba.erosa.parse.DefaultMysqlBinlogParser;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
 import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class GroupEventPaserTest {
 
@@ -85,14 +83,11 @@ public class GroupEventPaserTest {
     }
 
     private BinlogParser buildParser(AuthenticationInfo info) {
-        final DefaultMysqlBinlogParser _parser = new DefaultMysqlBinlogParser(Charset.forName("UTF-8"),
-                                                                              (InetSocketAddress) info.getAddress(),
-                                                                              info.getUsername(), info.getPassword());
+        return new AbstractBinlogParser<LogEvent>() {
 
-        return new AbstractBinlogParser() {
-
-            public List<Entry> parse(byte[] event) throws CanalParseException {
-                return _parser.parse(event);
+            public Entry parse(LogEvent event) throws CanalParseException {
+                // return _parser.parse(event);
+                return null;
             }
         };
     }

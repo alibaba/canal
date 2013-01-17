@@ -9,11 +9,11 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.EntryType;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Header;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
+import com.alibaba.otter.canal.protocol.CanalEntry.Header;
 
 public class EventTransactionBufferTest {
 
@@ -33,8 +33,8 @@ public class EventTransactionBufferTest {
                 System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                 for (Entry data : transaction) {
 
-                    ErosaEntry.Header header = data.getHeader();
-                    Date date = new Date(header.getExecutetime());
+                    CanalEntry.Header header = data.getHeader();
+                    Date date = new Date(header.getExecuteTime());
                     SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
                     if (data.getEntryType() == EntryType.TRANSACTIONBEGIN
                         || data.getEntryType() == EntryType.TRANSACTIONEND) {
@@ -42,8 +42,8 @@ public class EventTransactionBufferTest {
 
                     } else {
                         System.out.println(MessageFormat.format(messgae, new Object[] {
-                                Thread.currentThread().getName(), header.getLogfilename(), header.getLogfileoffset(),
-                                format.format(date), header.getSchemaname(), header.getTablename() }));
+                                Thread.currentThread().getName(), header.getLogfileName(), header.getLogfileOffset(),
+                                format.format(date), header.getSchemaName(), header.getTableName() }));
                     }
 
                 }
@@ -81,8 +81,8 @@ public class EventTransactionBufferTest {
                 System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                 for (Entry data : transaction) {
 
-                    ErosaEntry.Header header = data.getHeader();
-                    Date date = new Date(header.getExecutetime());
+                    CanalEntry.Header header = data.getHeader();
+                    Date date = new Date(header.getExecuteTime());
                     SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
                     if (data.getEntryType() == EntryType.TRANSACTIONBEGIN
                         || data.getEntryType() == EntryType.TRANSACTIONEND) {
@@ -94,8 +94,8 @@ public class EventTransactionBufferTest {
 
                     } else {
                         System.out.println(MessageFormat.format(messgae, new Object[] {
-                                Thread.currentThread().getName(), header.getLogfilename(), header.getLogfileoffset(),
-                                format.format(date), header.getSchemaname(), header.getTablename() }));
+                                Thread.currentThread().getName(), header.getLogfileName(), header.getLogfileOffset(),
+                                format.format(date), header.getSchemaName(), header.getTableName() }));
                     }
 
                 }
@@ -117,9 +117,9 @@ public class EventTransactionBufferTest {
 
     private static Entry buildEntry(String binlogFile, long offset, long timestamp) {
         Header.Builder headerBuilder = Header.newBuilder();
-        headerBuilder.setLogfilename(binlogFile);
-        headerBuilder.setLogfileoffset(offset);
-        headerBuilder.setExecutetime(timestamp);
+        headerBuilder.setLogfileName(binlogFile);
+        headerBuilder.setLogfileOffset(offset);
+        headerBuilder.setExecuteTime(timestamp);
         Entry.Builder entryBuilder = Entry.newBuilder();
         entryBuilder.setHeader(headerBuilder.build());
         return entryBuilder.build();
@@ -127,9 +127,9 @@ public class EventTransactionBufferTest {
 
     private static Entry buildEntry(String binlogFile, long offset, long timestamp, EntryType type) {
         Header.Builder headerBuilder = Header.newBuilder();
-        headerBuilder.setLogfilename(binlogFile);
-        headerBuilder.setLogfileoffset(offset);
-        headerBuilder.setExecutetime(timestamp);
+        headerBuilder.setLogfileName(binlogFile);
+        headerBuilder.setLogfileOffset(offset);
+        headerBuilder.setExecuteTime(timestamp);
         Entry.Builder entryBuilder = Entry.newBuilder();
         entryBuilder.setHeader(headerBuilder.build());
         entryBuilder.setEntryType(type);

@@ -13,17 +13,17 @@ import org.junit.Test;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalInstanceWithManager;
-import com.alibaba.otter.canal.protocol.E3.Ack;
-import com.alibaba.otter.canal.protocol.E3.ClientAck;
-import com.alibaba.otter.canal.protocol.E3.ClientAuth;
-import com.alibaba.otter.canal.protocol.E3.ClientRollback;
-import com.alibaba.otter.canal.protocol.E3.E3Packet;
-import com.alibaba.otter.canal.protocol.E3.Get;
-import com.alibaba.otter.canal.protocol.E3.Handshake;
-import com.alibaba.otter.canal.protocol.E3.Messages;
-import com.alibaba.otter.canal.protocol.E3.PacketType;
-import com.alibaba.otter.canal.protocol.E3.Sub;
-import com.alibaba.otter.canal.protocol.E3.Unsub;
+import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientAck;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientRollback;
+import com.alibaba.otter.canal.protocol.CanalPacket.Get;
+import com.alibaba.otter.canal.protocol.CanalPacket.Handshake;
+import com.alibaba.otter.canal.protocol.CanalPacket.Messages;
+import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
+import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
+import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
+import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
 import com.alibaba.otter.shared.common.model.canal.Canal;
@@ -68,7 +68,7 @@ public class CanalServerWithNettyTest {
         try {
             SocketChannel channel = SocketChannel.open();
             channel.connect(new InetSocketAddress("127.0.0.1", 1088));
-            E3Packet p = E3Packet.parseFrom(readNextPacket(channel));
+            Packet p = Packet.parseFrom(readNextPacket(channel));
 
             if (p.getVersion() != 1) {
                 throw new Exception("unsupported version at this client.");
@@ -84,9 +84,9 @@ public class CanalServerWithNettyTest {
             ClientAuth ca = ClientAuth.newBuilder().setUsername("").setNetReadTimeout(10000).setNetWriteTimeout(10000).build();
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());
             //
-            p = E3Packet.parseFrom(readNextPacket(channel));
+            p = Packet.parseFrom(readNextPacket(channel));
             if (p.getType() != PacketType.ACK) {
                 throw new Exception("unexpected packet type when ack is expected");
             }
@@ -98,12 +98,12 @@ public class CanalServerWithNettyTest {
 
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.SUBSCRIPTION).setBody(
-                                                                                           Sub.newBuilder().setDestination(
-                                                                                                                           DESTINATION).setClientId(
-                                                                                                                                                    "1").build().toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.SUBSCRIPTION).setBody(
+                                                                                         Sub.newBuilder().setDestination(
+                                                                                                                         DESTINATION).setClientId(
+                                                                                                                                                  "1").build().toByteString()).build().toByteArray());
             //
-            p = E3Packet.parseFrom(readNextPacket(channel));
+            p = Packet.parseFrom(readNextPacket(channel));
             ack = Ack.parseFrom(p.getBody());
             if (ack.getErrorCode() > 0) {
                 throw new Exception("failed to subscribe with reason: " + ack.getErrorMessage());
@@ -112,12 +112,12 @@ public class CanalServerWithNettyTest {
             for (int i = 0; i < 10; i++) {
                 writeWithHeader(
                                 channel,
-                                E3Packet.newBuilder().setType(PacketType.GET).setBody(
-                                                                                      Get.newBuilder().setDestination(
-                                                                                                                      DESTINATION).setClientId(
-                                                                                                                                               "1").setFetchSize(
-                                                                                                                                                                 10).build().toByteString()).build().toByteArray());
-                p = E3Packet.parseFrom(readNextPacket(channel));
+                                Packet.newBuilder().setType(PacketType.GET).setBody(
+                                                                                    Get.newBuilder().setDestination(
+                                                                                                                    DESTINATION).setClientId(
+                                                                                                                                             "1").setFetchSize(
+                                                                                                                                                               10).build().toByteString()).build().toByteArray());
+                p = Packet.parseFrom(readNextPacket(channel));
 
                 long batchId = -1L;
                 switch (p.getType()) {
@@ -142,26 +142,26 @@ public class CanalServerWithNettyTest {
                 Thread.sleep(1000L);
                 writeWithHeader(
                                 channel,
-                                E3Packet.newBuilder().setType(PacketType.CLIENTACK).setBody(
-                                                                                            ClientAck.newBuilder().setDestination(
-                                                                                                                                  DESTINATION).setClientId(
-                                                                                                                                                           "1").setBatchId(
-                                                                                                                                                                           batchId).build().toByteString()).build().toByteArray());
+                                Packet.newBuilder().setType(PacketType.CLIENTACK).setBody(
+                                                                                          ClientAck.newBuilder().setDestination(
+                                                                                                                                DESTINATION).setClientId(
+                                                                                                                                                         "1").setBatchId(
+                                                                                                                                                                         batchId).build().toByteString()).build().toByteArray());
             }
 
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.CLIENTROLLBACK).setBody(
-                                                                                             ClientRollback.newBuilder().setDestination(
-                                                                                                                                        DESTINATION).setClientId(
-                                                                                                                                                                 "1").build().toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.CLIENTROLLBACK).setBody(
+                                                                                           ClientRollback.newBuilder().setDestination(
+                                                                                                                                      DESTINATION).setClientId(
+                                                                                                                                                               "1").build().toByteString()).build().toByteArray());
 
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.UNSUBSCRIPTION).setBody(
-                                                                                             Unsub.newBuilder().setDestination(
-                                                                                                                               DESTINATION).setClientId(
-                                                                                                                                                        "1").build().toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.UNSUBSCRIPTION).setBody(
+                                                                                           Unsub.newBuilder().setDestination(
+                                                                                                                             DESTINATION).setClientId(
+                                                                                                                                                      "1").build().toByteString()).build().toByteArray());
 
         } catch (Exception e) {
             e.printStackTrace();

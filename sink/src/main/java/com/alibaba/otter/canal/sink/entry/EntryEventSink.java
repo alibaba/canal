@@ -10,10 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.EntryType;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Pair;
-import com.alibaba.erosa.protocol.protobuf.util.ErosaEntryUtils;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
 import com.alibaba.otter.canal.sink.CanalEventSink;
@@ -27,7 +25,7 @@ import com.alibaba.otter.canal.store.model.Event;
  * @author jianghang 2012-7-4 下午03:23:16
  * @version 1.0.0
  */
-public class EntryEventSink extends AbstractCanalEventSink<List<Entry>> implements CanalEventSink<List<Entry>> {
+public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry>> implements CanalEventSink<List<CanalEntry.Entry>> {
 
     private static final Logger    logger                 = LoggerFactory.getLogger(EntryEventSink.class);
     private static final int       maxFullTimes           = 10;
@@ -46,13 +44,13 @@ public class EntryEventSink extends AbstractCanalEventSink<List<Entry>> implemen
         eventStore = null;
     }
 
-    public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination)
-                                                                                                throws CanalSinkException,
-                                                                                                InterruptedException {
+    public boolean sink(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress, String destination)
+                                                                                                           throws CanalSinkException,
+                                                                                                           InterruptedException {
         List rowDatas = entrys;
         if (filterTransactionEntry) {
-            rowDatas = new ArrayList<Entry>();
-            for (Entry entry : entrys) {
+            rowDatas = new ArrayList<CanalEntry.Entry>();
+            for (CanalEntry.Entry entry : entrys) {
                 if (entry.getEntryType() == EntryType.ROWDATA) {
                     rowDatas.add(entry);
                 }
@@ -62,9 +60,10 @@ public class EntryEventSink extends AbstractCanalEventSink<List<Entry>> implemen
         return sinkData(rowDatas, remoteAddress);
     }
 
-    private boolean sinkData(List<Entry> entrys, InetSocketAddress remoteAddress) throws InterruptedException {
+    private boolean sinkData(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress)
+                                                                                            throws InterruptedException {
         List<Event> events = new ArrayList<Event>();
-        for (Entry entry : entrys) {
+        for (CanalEntry.Entry entry : entrys) {
             Event event = new Event(new LogIdentity(remoteAddress, -1L), entry);
             if (!doFilter(event)) {
                 continue;
@@ -82,8 +81,8 @@ public class EntryEventSink extends AbstractCanalEventSink<List<Entry>> implemen
             boolean need = filter.filter(name);
             if (!need) {
                 logger.debug("filter name[{}] entry : {}:{}",
-                             new Object[] { name, event.getEntry().getHeader().getLogfilename(),
-                                     event.getEntry().getHeader().getLogfileoffset() });
+                             new Object[] { name, event.getEntry().getHeader().getLogfileName(),
+                                     event.getEntry().getHeader().getLogfileOffset() });
             }
 
             return need;
@@ -130,17 +129,9 @@ public class EntryEventSink extends AbstractCanalEventSink<List<Entry>> implemen
 
     }
 
-    private String getSchemaNameAndTableName(Entry entry) {
-        List<Pair> pairs = entry.getHeader().getPropsList();
+    private String getSchemaNameAndTableName(CanalEntry.Entry entry) {
         StringBuilder result = new StringBuilder();
-        for (Pair pair : pairs) {
-            if (pair.getKey().equals(ErosaEntryUtils.SCHEMANAME)) {
-                result.append(pair.getValue());
-            }
-            if (pair.getKey().equals(ErosaEntryUtils.TABLENAME)) {
-                result.append(".").append(pair.getValue());
-            }
-        }
+        result.append(entry.getHeader().getSchemaName()).append(".").append(entry.getHeader().getTableName());
         return result.toString();
     }
 

@@ -4,8 +4,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 
 public class AviaterFilterTest {
 
@@ -97,8 +96,8 @@ public class AviaterFilterTest {
     public void test_el() {
         AviaterELFilter filter = new AviaterELFilter("str(entry.entryType) == 'ROWDATA'");
 
-        Entry.Builder entry = Entry.newBuilder();
-        entry.setEntryType(ErosaEntry.EntryType.ROWDATA);
+        CanalEntry.Entry.Builder entry = CanalEntry.Entry.newBuilder();
+        entry.setEntryType(CanalEntry.EntryType.ROWDATA);
 
         boolean result = filter.filter(entry.build());
         Assert.assertEquals(true, result);

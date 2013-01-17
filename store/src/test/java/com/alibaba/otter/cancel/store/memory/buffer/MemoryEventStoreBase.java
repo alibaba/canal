@@ -4,8 +4,8 @@ import java.net.InetSocketAddress;
 
 import org.junit.Assert;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Header;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry.Header;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.store.model.Event;
 
@@ -23,9 +23,9 @@ public class MemoryEventStoreBase {
 
     protected Event buildEvent(String binlogFile, long offset, long timestamp) {
         Header.Builder headerBuilder = Header.newBuilder();
-        headerBuilder.setLogfilename(binlogFile);
-        headerBuilder.setLogfileoffset(offset);
-        headerBuilder.setExecutetime(timestamp);
+        headerBuilder.setLogfileName(binlogFile);
+        headerBuilder.setLogfileOffset(offset);
+        headerBuilder.setExecuteTime(timestamp);
         Entry.Builder entryBuilder = Entry.newBuilder();
         entryBuilder.setHeader(headerBuilder.build());
         Entry entry = entryBuilder.build();

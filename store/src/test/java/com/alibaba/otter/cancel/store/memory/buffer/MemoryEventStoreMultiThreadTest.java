@@ -155,12 +155,12 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
 
                         first = entrys.getPositionRange().getEnd();
                         for (Event event : entrys.getEvents()) {
-                            this.result.add(event.getEntry().getHeader().getLogfileoffset());
+                            this.result.add(event.getEntry().getHeader().getLogfileOffset());
                         }
                         emptyCount = 0;
 
                         System.out.println("offest : "
-                                           + entrys.getEvents().get(0).getEntry().getHeader().getLogfileoffset()
+                                           + entrys.getEvents().get(0).getEntry().getHeader().getLogfileOffset()
                                            + " , count :" + entrys.getEvents().size());
                         ackCount++;
                         if (ackCount == 1) {

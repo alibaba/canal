@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
@@ -255,8 +255,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
             for (int i = entrys.size() - 1; i >= 0; i--) {
                 Event event = entrys.get(i);
-                if (ErosaEntry.EntryType.TRANSACTIONBEGIN == event.getEntry().getEntryType()
-                    || ErosaEntry.EntryType.TRANSACTIONEND == event.getEntry().getEntryType()) {
+                if (CanalEntry.EntryType.TRANSACTIONBEGIN == event.getEntry().getEntryType()
+                    || CanalEntry.EntryType.TRANSACTIONEND == event.getEntry().getEntryType()) {
                     // 将事务头/尾设置可被为ack的点
                     range.setAck(CanalEventUtils.createPosition(event));
                     break;

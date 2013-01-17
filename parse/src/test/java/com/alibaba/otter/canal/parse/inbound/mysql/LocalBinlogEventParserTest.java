@@ -7,7 +7,6 @@ import static junit.framework.Assert.assertTrue;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,9 +15,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.alibaba.erosa.parse.DefaultMysqlBinlogParser;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.EntryType;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
 import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
@@ -26,9 +22,11 @@ import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class LocalBinlogEventParserTest {
 
@@ -64,18 +62,16 @@ public class LocalBinlogEventParserTest {
                 entryCount.incrementAndGet();
 
                 for (Entry entry : entrys) {
-                    if (!(entry.getEntryType() == EntryType.MYSQL_FORMATDESCRIPTION || entry.getEntryType() == EntryType.MYSQL_ROTATE)) {
-                        String logfilename = entry.getHeader().getLogfilename();
-                        long logfileoffset = entry.getHeader().getLogfileoffset();
-                        long executeTime = entry.getHeader().getExecutetime();
+                    String logfilename = entry.getHeader().getLogfileName();
+                    long logfileoffset = entry.getHeader().getLogfileOffset();
+                    long executeTime = entry.getHeader().getExecuteTime();
 
-                        entryPosition.setJournalName(logfilename);
-                        entryPosition.setPosition(logfileoffset);
-                        entryPosition.setTimestamp(executeTime);
+                    entryPosition.setJournalName(logfilename);
+                    entryPosition.setPosition(logfileoffset);
+                    entryPosition.setTimestamp(executeTime);
 
-                        controller.stop();
-                        timeoutChecker.stop();
-                    }
+                    controller.stop();
+                    timeoutChecker.stop();
                 }
                 timeoutChecker.touch();
                 return true;
@@ -129,18 +125,16 @@ public class LocalBinlogEventParserTest {
                 for (Entry entry : entrys) {
                     entryCount.incrementAndGet();
 
-                    if (!(entry.getEntryType() == EntryType.MYSQL_FORMATDESCRIPTION || entry.getEntryType() == EntryType.MYSQL_ROTATE)) {
-                        String logfilename = entry.getHeader().getLogfilename();
-                        long logfileoffset = entry.getHeader().getLogfileoffset();
-                        long executeTime = entry.getHeader().getExecutetime();
+                    String logfilename = entry.getHeader().getLogfileName();
+                    long logfileoffset = entry.getHeader().getLogfileOffset();
+                    long executeTime = entry.getHeader().getExecuteTime();
 
-                        entryPosition.setJournalName(logfilename);
-                        entryPosition.setPosition(logfileoffset);
-                        entryPosition.setTimestamp(executeTime);
+                    entryPosition.setJournalName(logfilename);
+                    entryPosition.setPosition(logfileoffset);
+                    entryPosition.setTimestamp(executeTime);
 
-                        controller.stop();
-                        timeoutChecker.stop();
-                    }
+                    controller.stop();
+                    timeoutChecker.stop();
                 }
                 timeoutChecker.touch();
                 return true;
@@ -222,15 +216,12 @@ public class LocalBinlogEventParserTest {
     }
 
     private BinlogParser buildParser(AuthenticationInfo info) {
-        final DefaultMysqlBinlogParser _parser = new DefaultMysqlBinlogParser(Charset.forName("UTF-8"),
-                                                                              (InetSocketAddress) info.getAddress(),
-                                                                              info.getUsername(), info.getPassword());
-
-        return new AbstractBinlogParser() {
+        return new AbstractBinlogParser<LogEvent>() {
 
             @Override
-            public List<Entry> parse(byte[] event) throws CanalParseException {
-                return _parser.parse(event);
+            public Entry parse(LogEvent event) throws CanalParseException {
+                // return _parser.parse(event);
+                return null;
             }
         };
     }

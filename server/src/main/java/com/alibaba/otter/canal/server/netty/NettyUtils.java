@@ -9,9 +9,9 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
 
-import com.alibaba.otter.canal.protocol.E3;
-import com.alibaba.otter.canal.protocol.E3.Ack;
-import com.alibaba.otter.canal.protocol.E3.E3Packet;
+import com.alibaba.otter.canal.protocol.CanalPacket;
+import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
+import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 
 public class NettyUtils {
 
@@ -30,7 +30,7 @@ public class NettyUtils {
     public static void ack(Channel channel, ChannelFutureListener channelFutureListner) {
         write(
               channel,
-              E3Packet.newBuilder().setType(E3.PacketType.ACK).setBody(Ack.newBuilder().build().toByteString()).build().toByteArray(),
+              Packet.newBuilder().setType(CanalPacket.PacketType.ACK).setBody(Ack.newBuilder().build().toByteString()).build().toByteArray(),
               channelFutureListner);
     }
 
@@ -42,9 +42,9 @@ public class NettyUtils {
 
         write(
               channel,
-              E3Packet.newBuilder().setType(E3.PacketType.ACK).setBody(
-                                                                       Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(
-                                                                                                                                errorMessage).build().toByteString()).build().toByteArray(),
+              Packet.newBuilder().setType(CanalPacket.PacketType.ACK).setBody(
+                                                                              Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(
+                                                                                                                                       errorMessage).build().toByteString()).build().toByteArray(),
               channelFutureListener);
     }
 }

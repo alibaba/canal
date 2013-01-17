@@ -11,7 +11,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.impl.running.ClientRunningData;
 import com.alibaba.otter.canal.client.impl.running.ClientRunningListener;
@@ -21,18 +20,19 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.protocol.E3.Ack;
-import com.alibaba.otter.canal.protocol.E3.ClientAck;
-import com.alibaba.otter.canal.protocol.E3.ClientAuth;
-import com.alibaba.otter.canal.protocol.E3.ClientRollback;
-import com.alibaba.otter.canal.protocol.E3.Compression;
-import com.alibaba.otter.canal.protocol.E3.E3Packet;
-import com.alibaba.otter.canal.protocol.E3.Get;
-import com.alibaba.otter.canal.protocol.E3.Handshake;
-import com.alibaba.otter.canal.protocol.E3.Messages;
-import com.alibaba.otter.canal.protocol.E3.PacketType;
-import com.alibaba.otter.canal.protocol.E3.Sub;
-import com.alibaba.otter.canal.protocol.E3.Unsub;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientAck;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientRollback;
+import com.alibaba.otter.canal.protocol.CanalPacket.Compression;
+import com.alibaba.otter.canal.protocol.CanalPacket.Get;
+import com.alibaba.otter.canal.protocol.CanalPacket.Handshake;
+import com.alibaba.otter.canal.protocol.CanalPacket.Messages;
+import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
+import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
+import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
+import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.protobuf.ByteString;
 
@@ -97,7 +97,7 @@ public class SimpleCanalConnector implements CanalConnector {
             channel = SocketChannel.open();
             channel.socket().setSoTimeout(soTimeout);
             channel.connect(address);
-            E3Packet p = E3Packet.parseFrom(readNextPacket(channel));
+            Packet p = Packet.parseFrom(readNextPacket(channel));
             if (p.getVersion() != 1) {
                 throw new CanalClientException("unsupported version at this client.");
             }
@@ -113,9 +113,9 @@ public class SimpleCanalConnector implements CanalConnector {
                                                                                                                       10000).build();
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());
             //
-            E3Packet ack = E3Packet.parseFrom(readNextPacket(channel));
+            Packet ack = Packet.parseFrom(readNextPacket(channel));
             if (ack.getType() != PacketType.ACK) {
                 throw new CanalClientException("unexpected packet type when ack is expected");
             }
@@ -148,13 +148,13 @@ public class SimpleCanalConnector implements CanalConnector {
         try {
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.SUBSCRIPTION).setBody(
-                                                                                           Sub.newBuilder().setDestination(
-                                                                                                                           clientIdentity.getDestination()).setClientId(
-                                                                                                                                                                        String.valueOf(clientIdentity.getClientId())).setFilter(
-                                                                                                                                                                                                                                filter).build().toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.SUBSCRIPTION).setBody(
+                                                                                         Sub.newBuilder().setDestination(
+                                                                                                                         clientIdentity.getDestination()).setClientId(
+                                                                                                                                                                      String.valueOf(clientIdentity.getClientId())).setFilter(
+                                                                                                                                                                                                                              filter).build().toByteString()).build().toByteArray());
             //
-            E3Packet p = E3Packet.parseFrom(readNextPacket(channel));
+            Packet p = Packet.parseFrom(readNextPacket(channel));
             Ack ack = Ack.parseFrom(p.getBody());
             if (ack.getErrorCode() > 0) {
                 throw new CanalClientException("failed to subscribe with reason: " + ack.getErrorMessage());
@@ -171,12 +171,12 @@ public class SimpleCanalConnector implements CanalConnector {
         try {
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.UNSUBSCRIPTION).setBody(
-                                                                                             Unsub.newBuilder().setDestination(
-                                                                                                                               clientIdentity.getDestination()).setClientId(
-                                                                                                                                                                            String.valueOf(clientIdentity.getClientId())).build().toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.UNSUBSCRIPTION).setBody(
+                                                                                           Unsub.newBuilder().setDestination(
+                                                                                                                             clientIdentity.getDestination()).setClientId(
+                                                                                                                                                                          String.valueOf(clientIdentity.getClientId())).build().toByteString()).build().toByteArray());
             //
-            E3Packet p = E3Packet.parseFrom(readNextPacket(channel));
+            Packet p = Packet.parseFrom(readNextPacket(channel));
             Ack ack = Ack.parseFrom(p.getBody());
             if (ack.getErrorCode() > 0) {
                 throw new CanalClientException("failed to unSubscribe with reason: " + ack.getErrorMessage());
@@ -199,13 +199,13 @@ public class SimpleCanalConnector implements CanalConnector {
             int size = (batchSize <= 0) ? 1000 : batchSize;
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.GET).setBody(
-                                                                                  Get.newBuilder().setDestination(
-                                                                                                                  clientIdentity.getDestination()).setClientId(
-                                                                                                                                                               String.valueOf(clientIdentity.getClientId())).setFetchSize(
-                                                                                                                                                                                                                          size).build().toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.GET).setBody(
+                                                                                Get.newBuilder().setDestination(
+                                                                                                                clientIdentity.getDestination()).setClientId(
+                                                                                                                                                             String.valueOf(clientIdentity.getClientId())).setFetchSize(
+                                                                                                                                                                                                                        size).build().toByteString()).build().toByteArray());
             //
-            E3Packet p = E3Packet.parseFrom(readNextPacket(channel));
+            Packet p = Packet.parseFrom(readNextPacket(channel));
             switch (p.getType()) {
                 case MESSAGES: {
                     if (!p.getCompression().equals(Compression.NONE)) {
@@ -240,7 +240,7 @@ public class SimpleCanalConnector implements CanalConnector {
         try {
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.CLIENTACK).setBody(ca.toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.CLIENTACK).setBody(ca.toByteString()).build().toByteArray());
         } catch (IOException e) {
             throw new CanalClientException(e);
         }
@@ -254,7 +254,7 @@ public class SimpleCanalConnector implements CanalConnector {
         try {
             writeWithHeader(
                             channel,
-                            E3Packet.newBuilder().setType(PacketType.CLIENTROLLBACK).setBody(ca.toByteString()).build().toByteArray());
+                            Packet.newBuilder().setType(PacketType.CLIENTROLLBACK).setBody(ca.toByteString()).build().toByteArray());
         } catch (IOException e) {
             throw new CanalClientException(e);
         }

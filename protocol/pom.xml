@@ -19,12 +19,10 @@
 			<artifactId>canal.common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- erosa -->
 		<dependency>
-			<groupId>com.alibaba.platform.shared</groupId>
-			<artifactId>erosa_protocol</artifactId>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>

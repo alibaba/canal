@@ -16,20 +16,20 @@ import org.slf4j.MDC;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitor;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
+import com.alibaba.otter.canal.protocol.CanalPacket;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
-import com.alibaba.otter.canal.protocol.E3;
 import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.protocol.E3.ClientAck;
-import com.alibaba.otter.canal.protocol.E3.ClientRollback;
-import com.alibaba.otter.canal.protocol.E3.E3Packet;
-import com.alibaba.otter.canal.protocol.E3.Get;
-import com.alibaba.otter.canal.protocol.E3.Messages;
-import com.alibaba.otter.canal.protocol.E3.PacketType;
-import com.alibaba.otter.canal.protocol.E3.Sub;
-import com.alibaba.otter.canal.protocol.E3.Unsub;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientAck;
+import com.alibaba.otter.canal.protocol.CanalPacket.ClientRollback;
+import com.alibaba.otter.canal.protocol.CanalPacket.Get;
+import com.alibaba.otter.canal.protocol.CanalPacket.Messages;
+import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
+import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
+import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
+import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
@@ -57,12 +57,12 @@ public class SessionHandler extends SimpleChannelHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         logger.info("message receives in session handler...");
         ChannelBuffer buffer = (ChannelBuffer) e.getMessage();
-        E3Packet e3packet = E3Packet.parseFrom(buffer.readBytes(buffer.readableBytes()).array());
+        Packet packet = Packet.parseFrom(buffer.readBytes(buffer.readableBytes()).array());
         ClientIdentity clientIdentity = null;
         try {
-            switch (e3packet.getType()) {
+            switch (packet.getType()) {
                 case SUBSCRIPTION:
-                    Sub sub = Sub.parseFrom(e3packet.getBody());
+                    Sub sub = Sub.parseFrom(packet.getBody());
                     if (StringUtils.isNotEmpty(sub.getDestination()) && StringUtils.isNotEmpty(sub.getClientId())) {
                         clientIdentity = new ClientIdentity(sub.getDestination(), Short.valueOf(sub.getClientId()),
                                                             sub.getFilter());
@@ -94,7 +94,7 @@ public class SessionHandler extends SimpleChannelHandler {
                     }
                     break;
                 case UNSUBSCRIPTION:
-                    Unsub unsub = Unsub.parseFrom(e3packet.getBody());
+                    Unsub unsub = Unsub.parseFrom(packet.getBody());
                     if (StringUtils.isNotEmpty(unsub.getDestination()) && StringUtils.isNotEmpty(unsub.getClientId())) {
                         clientIdentity = new ClientIdentity(unsub.getDestination(), Short.valueOf(unsub.getClientId()),
                                                             unsub.getFilter());
@@ -109,16 +109,16 @@ public class SessionHandler extends SimpleChannelHandler {
                     }
                     break;
                 case GET:
-                    Get get = E3.Get.parseFrom(e3packet.getBody());
+                    Get get = CanalPacket.Get.parseFrom(packet.getBody());
                     if (StringUtils.isNotEmpty(get.getDestination()) && StringUtils.isNotEmpty(get.getClientId())) {
                         clientIdentity = new ClientIdentity(get.getDestination(), Short.valueOf(get.getClientId()));
                         MDC.put("destination", clientIdentity.getDestination());
                         Message message = embededServer.getWithoutAck(clientIdentity, get.getFetchSize());
 
-                        E3Packet.Builder packetBuilder = E3.E3Packet.newBuilder();
+                        Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
                         packetBuilder.setType(PacketType.MESSAGES);
 
-                        Messages.Builder messageBuilder = E3.Messages.newBuilder();
+                        Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
                         messageBuilder.setBatchId(message.getId());
                         if (message.getId() != -1 && !CollectionUtils.isEmpty(message.getEntries())) {
                             for (Entry entry : message.getEntries()) {
@@ -135,7 +135,7 @@ public class SessionHandler extends SimpleChannelHandler {
                     }
                     break;
                 case CLIENTACK:
-                    ClientAck ack = E3.ClientAck.parseFrom(e3packet.getBody());
+                    ClientAck ack = CanalPacket.ClientAck.parseFrom(packet.getBody());
                     MDC.put("destination", ack.getDestination());
                     if (StringUtils.isNotEmpty(ack.getDestination()) && StringUtils.isNotEmpty(ack.getClientId())) {
                         if (ack.getBatchId() == 0L) {
@@ -157,7 +157,7 @@ public class SessionHandler extends SimpleChannelHandler {
                     }
                     break;
                 case CLIENTROLLBACK:
-                    ClientRollback rollback = E3.ClientRollback.parseFrom(e3packet.getBody());
+                    ClientRollback rollback = CanalPacket.ClientRollback.parseFrom(packet.getBody());
                     MDC.put("destination", rollback.getDestination());
                     if (StringUtils.isNotEmpty(rollback.getDestination())
                         && StringUtils.isNotEmpty(rollback.getClientId())) {
@@ -175,9 +175,10 @@ public class SessionHandler extends SimpleChannelHandler {
                     }
                     break;
                 default:
-                    NettyUtils.error(400, MessageFormatter.format("packet type={} is NOT supported!",
-                                                                  e3packet.getType()).getMessage(), ctx.getChannel(),
-                                     null);
+                    NettyUtils.error(
+                                     400,
+                                     MessageFormatter.format("packet type={} is NOT supported!", packet.getType()).getMessage(),
+                                     ctx.getChannel(), null);
                     break;
             }
         } catch (Throwable exception) {

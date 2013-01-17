@@ -5,11 +5,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -17,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.client.BinlogDumpCommandPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.client.ClientAuthenticationPacket;
@@ -26,6 +25,9 @@ import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.Res
 import com.alibaba.otter.canal.parse.inbound.mysql.utils.MysqlQueryExecutor;
 import com.alibaba.otter.canal.parse.inbound.mysql.utils.MysqlUpdateExecutor;
 import com.alibaba.otter.canal.parse.support.PacketManager;
+import com.taobao.tddl.dbsync.binlog.LogContext;
+import com.taobao.tddl.dbsync.binlog.LogDecoder;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class MysqlConnection implements ErosaConnection {
 
@@ -137,10 +139,15 @@ public class MysqlConnection implements ErosaConnection {
         PacketManager.write(channel, new ByteBuffer[] { ByteBuffer.wrap(binlogDumpHeader.toBytes()),
                 ByteBuffer.wrap(cmdBody) });
 
-        byte[] data;
-        do {
-            data = readEntry();
-        } while (func.sink(data));
+        DirectLogFetcher fetcher = new DirectLogFetcher(getReceiveBufferSize());
+        LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
+        LogContext context = new LogContext();
+        while (fetcher.fetch()) {
+            LogEvent event;
+            do {
+                event = decoder.decode(fetcher, context);
+            } while (event != null && func.sink(event));
+        }
     }
 
     @Override
@@ -286,29 +293,16 @@ public class MysqlConnection implements ErosaConnection {
         }
     }
 
-    private byte[] readEntry() throws IOException {
-        HeaderPacket header = PacketManager.readHeader(channel, 4);
-        if (header.getPacketBodyLength() < 0) {
-            logger.warn("unexpected packet length on body with header bytes:{}", Arrays.toString(header.toBytes()));
-        }
-        // 读取对应的body
-        byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength());
-        if (body[0] < 0) {
-            if (body[0] == -1) {
-                ErrorPacket error = new ErrorPacket();
-                error.fromBytes(body);
-                logger.error("Unexpected Error when processing binlog event:{}", error.toString());
-            } else if ((body[0] == -2)) {
-                logger.error("duplicate slave Id :" + slaveId);
-            } else {
-                logger.error("unexpected packet type:{}", body[0]);
-            }
-
-            throw new IOException("Error When doing read Entry");
-        }
-
-        return ArrayUtils.subarray(body, 1, body.length); // skip field count byte
-    }
+    /**
+     * private byte[] readEntry() throws IOException { HeaderPacket header = PacketManager.readHeader(channel, 4); if
+     * (header.getPacketBodyLength() < 0) { logger.warn("unexpected packet length on body with header bytes:{}",
+     * Arrays.toString(header.toBytes())); } // 读取对应的body byte[] body = PacketManager.readBytes(channel,
+     * header.getPacketBodyLength()); if (body[0] < 0) { if (body[0] == -1) { ErrorPacket error = new ErrorPacket();
+     * error.fromBytes(body); logger.error("Unexpected Error when processing binlog event:{}", error.toString()); } else
+     * if ((body[0] == -2)) { logger.error("duplicate slave Id :" + slaveId); } else {
+     * logger.error("unexpected packet type:{}", body[0]); } throw new IOException("Error When doing read Entry"); }
+     * return ArrayUtils.subarray(body, 1, body.length); // skip field count byte }
+     **/
 
     // ================== setter / getter ===================
 
@@ -407,4 +401,5 @@ public class MysqlConnection implements ErosaConnection {
     public void setSlaveId(long slaveId) {
         this.slaveId = slaveId;
     }
+
 }

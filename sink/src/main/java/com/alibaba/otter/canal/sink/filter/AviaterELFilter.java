@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.CanalEventFilter;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.googlecode.aviator.AviatorEvaluator;
@@ -15,7 +15,7 @@ import com.googlecode.aviator.AviatorEvaluator;
  * 
  * @author jianghang 2012-7-23 上午10:46:32
  */
-public class AviaterELFilter implements CanalEventFilter<Entry> {
+public class AviaterELFilter implements CanalEventFilter<CanalEntry.Entry> {
 
     public static final String ROOT_KEY = "entry";
     private String             expression;
@@ -24,7 +24,7 @@ public class AviaterELFilter implements CanalEventFilter<Entry> {
         this.expression = expression;
     }
 
-    public boolean filter(Entry entry) throws CanalSinkException {
+    public boolean filter(CanalEntry.Entry entry) throws CanalSinkException {
         if (StringUtils.isEmpty(expression)) {
             return true;
         }

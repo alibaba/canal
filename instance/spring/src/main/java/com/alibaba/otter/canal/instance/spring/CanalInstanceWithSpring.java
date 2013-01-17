@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.instance.spring;
 
 import java.util.List;
 
-import com.alibaba.erosa.protocol.protobuf.ErosaEntry.Entry;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
@@ -10,6 +9,7 @@ import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.store.CanalEventStore;
 
@@ -22,14 +22,14 @@ import com.alibaba.otter.canal.store.CanalEventStore;
  */
 public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements CanalInstance {
 
-    private String                      destination;
-    private CanalEventParser            eventParser;
-    private CanalEventSink<List<Entry>> eventSink;
-    private CanalEventStore<Entry>      eventStore;
-    private CanalHAController           haController;
-    private CanalLogPositionManager     logPositionManager;
-    private CanalMetaManager            metaManager;
-    private CanalAlarmHandler           alarmHandler;
+    private String                                 destination;
+    private CanalEventParser                       eventParser;
+    private CanalEventSink<List<CanalEntry.Entry>> eventSink;
+    private CanalEventStore<CanalEntry.Entry>      eventStore;
+    private CanalHAController                      haController;
+    private CanalLogPositionManager                logPositionManager;
+    private CanalMetaManager                       metaManager;
+    private CanalAlarmHandler                      alarmHandler;
 
     public String getDestination() {
         return this.destination;
@@ -39,11 +39,11 @@ public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements C
         return this.eventParser;
     }
 
-    public CanalEventSink<List<Entry>> getEventSink() {
+    public CanalEventSink<List<CanalEntry.Entry>> getEventSink() {
         return this.eventSink;
     }
 
-    public CanalEventStore<Entry> getEventStore() {
+    public CanalEventStore<CanalEntry.Entry> getEventStore() {
         return this.eventStore;
     }
 
@@ -72,11 +72,11 @@ public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements C
         this.eventParser = eventParser;
     }
 
-    public void setEventSink(CanalEventSink<List<Entry>> eventSink) {
+    public void setEventSink(CanalEventSink<List<CanalEntry.Entry>> eventSink) {
         this.eventSink = eventSink;
     }
 
-    public void setEventStore(CanalEventStore<Entry> eventStore) {
+    public void setEventStore(CanalEventStore<CanalEntry.Entry> eventStore) {
         this.eventStore = eventStore;
     }
 
