@@ -132,6 +132,9 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
         } else {
             logger.info("subscribe successfully, use last cursor position:{} ", clientIdentity, position);
         }
+
+        // 通知下订阅关系变化
+        canalInstance.subscribeChange(clientIdentity);
     }
 
     /**

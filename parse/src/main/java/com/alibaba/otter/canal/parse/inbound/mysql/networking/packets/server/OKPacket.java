@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.PacketWithHeaderPacket;
 import com.alibaba.otter.canal.parse.support.ByteHelper;
@@ -58,6 +59,60 @@ public class OKPacket extends PacketWithHeaderPacket {
 
     public byte[] toBytes() throws IOException {
         return null;
+    }
+
+    public byte getFieldCount() {
+        return fieldCount;
+    }
+
+    public void setFieldCount(byte fieldCount) {
+        this.fieldCount = fieldCount;
+    }
+
+    public byte[] getAffectedRows() {
+        return affectedRows;
+    }
+
+    public void setAffectedRows(byte[] affectedRows) {
+        this.affectedRows = affectedRows;
+    }
+
+    public byte[] getInsertId() {
+        return insertId;
+    }
+
+    public void setInsertId(byte[] insertId) {
+        this.insertId = insertId;
+    }
+
+    public int getServerStatus() {
+        return serverStatus;
+    }
+
+    public void setServerStatus(int serverStatus) {
+        this.serverStatus = serverStatus;
+    }
+
+    public int getWarningCount() {
+        return warningCount;
+    }
+
+    public void setWarningCount(int warningCount) {
+        this.warningCount = warningCount;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String toString() {
+        return "OKPacket [affectedRows=" + Arrays.toString(affectedRows) + ", fieldCount=" + fieldCount + ", insertId="
+               + Arrays.toString(insertId) + ", message=" + message + ", serverStatus=" + serverStatus
+               + ", warningCount=" + warningCount + "]";
     }
 
 }

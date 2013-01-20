@@ -1,13 +1,13 @@
-package com.alibaba.otter.canal.sink.filter;
+package com.alibaba.otter.canal.filter.aviater;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.alibaba.otter.canal.filter.CanalEventFilter;
+import com.alibaba.otter.canal.filter.exception.CanalFilterException;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.sink.CanalEventFilter;
-import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.googlecode.aviator.AviatorEvaluator;
 
 /**
@@ -24,7 +24,7 @@ public class AviaterELFilter implements CanalEventFilter<CanalEntry.Entry> {
         this.expression = expression;
     }
 
-    public boolean filter(CanalEntry.Entry entry) throws CanalSinkException {
+    public boolean filter(CanalEntry.Entry entry) throws CanalFilterException {
         if (StringUtils.isEmpty(expression)) {
             return true;
         }

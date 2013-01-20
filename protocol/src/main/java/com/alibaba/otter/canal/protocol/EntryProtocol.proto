@@ -49,16 +49,19 @@ message Header {
 	optional string					tableName			= 9;	
 	
 	/**每个event的长度**/
-	optional int64					eventLength         = 10;	
+	optional int64					eventLength         = 10;
+	
+	/**数据变更类型**/
+	optional EventType 				eventType			= 11 [default = UPDATE];
 	
 	/**预留扩展**/
-	repeated Pair					props				= 11;		
+	repeated Pair					props				= 12;		
 }
 
 /**每个字段的数据结构**/
 message Column {
 	/**字段下标**/
-	optional int32		index		= 		1;
+	optional int32		index			= 		1;
 	
 	/**字段类型**/
 	optional int32 		sqlType			= 		2;
@@ -80,6 +83,9 @@ message Column {
 	
 	/** 字段值,timestamp,Datetime是一个时间格式的文本 **/
 	optional string		value			= 		8;
+	
+	/** 对应数据对象原始长度 **/
+	optional int32		length			= 		9;
 }
 
 message RowData {
@@ -89,6 +95,9 @@ message RowData {
 
 	/** 字段信息，增量数据(修改后,新增后)  **/
 	repeated Column			afterColumns	= 		2;
+	
+	/**预留扩展**/
+	repeated Pair			props			=		3;	
 }
 
 /**message row 每行变更数据的数据结构**/
@@ -110,7 +119,7 @@ message RowChange {
 	repeated RowData		rowDatas		= 		12;
 	
 	/**预留扩展**/
-	repeated Pair			props			=		14;	
+	repeated Pair			props			=		13;	
 	
 }
 

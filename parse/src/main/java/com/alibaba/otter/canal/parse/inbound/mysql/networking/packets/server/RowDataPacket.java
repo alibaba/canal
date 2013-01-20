@@ -31,4 +31,8 @@ public class RowDataPacket extends PacketWithHeaderPacket {
         return columns;
     }
 
+    public String toString() {
+        return "RowDataPacket [columns=" + columns + "]";
+    }
+
 }

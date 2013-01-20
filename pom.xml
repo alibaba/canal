@@ -74,6 +74,7 @@
 		<module>common</module>
 		<module>meta</module>
 		<module>dbsync</module>
+		<module>filter</module>	
 		<module>parse</module>
 		<module>sink</module>
 		<module>store</module>

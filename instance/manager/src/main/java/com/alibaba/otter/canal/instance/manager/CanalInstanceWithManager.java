@@ -15,6 +15,7 @@ import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.meta.MemoryMetaManager;
@@ -34,12 +35,11 @@ import com.alibaba.otter.canal.parse.index.MetaLogPositionManager;
 import com.alibaba.otter.canal.parse.index.PeriodMixedLogPositionManager;
 import com.alibaba.otter.canal.parse.index.ZooKeeperLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
-import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
-import com.alibaba.otter.canal.sink.filter.AviaterRegexFilter;
 import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
@@ -234,6 +234,19 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
         logger.info("stop successful....");
     }
 
+    public boolean subscribeChange(ClientIdentity identity) {
+        if (StringUtils.isNotEmpty(identity.getFilter())) {
+            AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
+            ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+        }
+
+        // filter的处理规则
+        // a. parser处理数据过滤处理
+        // b. sink处理数据的路由&分发,一份parse数据经过sink后可以分发为多份，每份的数据可以根据自己的过滤规则不同而有不同的数据
+        // 后续内存版的一对多分发，可以考虑
+        return true;
+    }
+
     protected void initAlarmHandler() {
         logger.info("init alarmHandler begin...");
         alarmHandler = new LogAlarmHandler();
@@ -349,10 +362,10 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
 
         eventSink = new EntryEventSink();
         ((EntryEventSink) eventSink).setEventStore(eventStore);
-        if (StringUtils.isNotEmpty(filter)) {
-            AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
-            ((AbstractCanalEventSink) eventSink).setFilter(aviaterFilter);
-        }
+        // if (StringUtils.isNotEmpty(filter)) {
+        // AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
+        // ((AbstractCanalEventSink) eventSink).setFilter(aviaterFilter);
+        // }
 
         ((EntryEventSink) eventSink).setFilterTransactionEntry(false);
         logger.info("init eventSink end! \n\t load CanalEventSink:{}", eventSink.getClass().getName());
@@ -468,6 +481,10 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
 
         if (eventParser instanceof AbstractEventParser) { // add transaction support at 2012-12-06
             ((AbstractEventParser) eventParser).setTransactionSize(parameters.getTransactionSize());
+            if (StringUtils.isNotEmpty(filter)) {
+                AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
+                ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+            }
         }
 
         return eventParser;

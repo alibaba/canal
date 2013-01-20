@@ -34,4 +34,9 @@ public class ResultSetPacket {
         return sourceAddress;
     }
 
+    public String toString() {
+        return "ResultSetPacket [fieldDescriptors=" + fieldDescriptors + ", fieldValues=" + fieldValues
+               + ", sourceAddress=" + sourceAddress + "]";
+    }
+
 }

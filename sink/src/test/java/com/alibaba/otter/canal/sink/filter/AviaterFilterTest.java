@@ -4,6 +4,9 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.alibaba.otter.canal.filter.aviater.AviaterELFilter;
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.alibaba.otter.canal.filter.aviater.AviaterSimpleFilter;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 
 public class AviaterFilterTest {

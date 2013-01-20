@@ -10,6 +10,7 @@ import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.store.CanalEventStore;
 
@@ -61,6 +62,10 @@ public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements C
 
     public CanalAlarmHandler getAlarmHandler() {
         return alarmHandler;
+    }
+
+    public boolean subscribeChange(ClientIdentity identity) {
+        return false;
     }
 
     // ======== setter ========

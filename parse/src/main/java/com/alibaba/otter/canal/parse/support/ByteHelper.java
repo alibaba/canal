@@ -65,7 +65,7 @@ public abstract class ByteHelper {
     }
 
     public static long readLengthCodedBinary(byte[] data, int index) throws IOException {
-        int firstByte = data[index];
+        int firstByte = data[index] & 0xFF;
         switch (firstByte) {
             case 251:
                 return NULL_LENGTH;
@@ -85,16 +85,17 @@ public abstract class ByteHelper {
         out.write(data[index]);
 
         byte[] buffer = null;
-        if (data[index] == 251) {
+        int value = data[index] & 0xFF;
+        if (value == 251) {
             buffer = new byte[0];
         }
-        if (data[index] == 252) {
+        if (value == 252) {
             buffer = new byte[2];
         }
-        if (data[index] == 253) {
+        if (value == 253) {
             buffer = new byte[3];
         }
-        if (data[index] == 254) {
+        if (value == 254) {
             buffer = new byte[8];
         }
         if (buffer != null) {

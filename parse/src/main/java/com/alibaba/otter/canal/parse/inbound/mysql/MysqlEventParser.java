@@ -17,9 +17,12 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
@@ -54,24 +57,36 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private String                 detectingSQL;                                 // 心跳sql
     private Integer                detectingIntervalInSeconds        = 3;        // 检测频率
     private MysqlHeartBeatTimeTask mysqlHeartBeatTimeTask;
+    private MysqlConnection        metaConnection;                               // 查询meta信息的链接
+    private TableMetaCache         tableMetaCache;                               // 对应meta cache
     // 心跳检查
     private volatile Timer         timer;
 
-    @Override
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
     }
 
-    @Override
     protected void preDump(ErosaConnection connection) {
         if (!(connection instanceof MysqlConnection)) {
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
         }
 
+        if (binlogParser != null && binlogParser instanceof LogEventConvert) {
+            metaConnection = (MysqlConnection) connection.fork();
+            try {
+                metaConnection.connect();
+            } catch (IOException e) {
+                throw new CanalParseException(e);
+            }
+
+            tableMetaCache = new TableMetaCache(metaConnection);
+            ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
+        }
+
         // 开始启动心跳包
         if (detectingEnable && StringUtils.isNotBlank(detectingSQL)) {
             logger.info("start heart beat.... ");
-            startHeartbeat((MysqlConnection) connection);
+            startHeartbeat((MysqlConnection) connection.fork());
         }
     }
 
@@ -99,6 +114,19 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void stop() throws CanalParseException {
         stopHeartbeat();
+
+        if (metaConnection != null) {
+            try {
+                metaConnection.disconnect();
+            } catch (IOException e) {
+                logger.error("ERROR # disconnect for address:{}", metaConnection.getAddress(), e);
+            }
+        }
+
+        if (tableMetaCache != null) {
+            tableMetaCache.clearTableMeta();
+        }
+
         super.stop();
     }
 
@@ -111,7 +139,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             }
         }
 
-        mysqlHeartBeatTimeTask = new MysqlHeartBeatTimeTask(mysqlConnection.fork());
+        mysqlHeartBeatTimeTask = new MysqlHeartBeatTimeTask(mysqlConnection);
         Integer interval = detectingIntervalInSeconds;
         timer.schedule(mysqlHeartBeatTimeTask, interval * 1000L, interval * 1000L);
     }
@@ -192,7 +220,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         this.doSwitch(newRunningInfo);
     }
 
-    @Override
     public void doSwitch(AuthenticationInfo newRunningInfo) {
         // 1. 需要停止当前正在复制的过程
         // 2. 找到新的position点
@@ -328,6 +355,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             public boolean sink(LogEvent event) {
                 try {
                     CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                    if (entry == null) {
+                        return true;
+                    }
+
                     // 直接查询第一条业务数据，确认是否为事务Begin/End
                     if (CanalEntry.EntryType.TRANSACTIONBEGIN == entry.getEntryType()
                         || CanalEntry.EntryType.TRANSACTIONEND == entry.getEntryType()) {
@@ -357,6 +388,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 public boolean sink(LogEvent event) {
                     try {
                         CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                        if (entry == null) {
+                            return true;
+                        }
+
                         // 直接查询第一条业务数据，确认是否为事务Begin
                         // 记录一下transaction begin position
                         if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
@@ -474,6 +509,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     EntryPosition entryPosition = null;
                     try {
                         CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                        if (entry == null) {
+                            return true;
+                        }
+
                         String logfilename = entry.getHeader().getLogfileName();
                         Long logfileoffset = entry.getHeader().getLogfileOffset();
                         Long logposTimestamp = entry.getHeader().getExecuteTime();
@@ -520,6 +559,23 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         } else {
             return null;
         }
+    }
+
+    protected Entry parseAndProfilingIfNecessary(LogEvent bod) throws Exception {
+        long startTs = -1;
+        boolean enabled = getProfilingEnabled();
+        if (enabled) {
+            startTs = System.currentTimeMillis();
+        }
+        CanalEntry.Entry event = binlogParser.parse(bod);
+        if (enabled) {
+            this.parsingInterval = System.currentTimeMillis() - startTs;
+        }
+
+        if (parsedEventCount.incrementAndGet() < 0) {
+            parsedEventCount.set(0);
+        }
+        return event;
     }
 
     // ===================== setter / getter ========================

@@ -38,6 +38,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.alibaba.otter</groupId>
+			<artifactId>canal.filter</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.alibaba.external</groupId>
 			<artifactId>jboss.jboss-netty</artifactId>
 		</dependency>

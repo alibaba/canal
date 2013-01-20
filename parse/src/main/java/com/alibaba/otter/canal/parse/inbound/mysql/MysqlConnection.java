@@ -13,6 +13,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher;
@@ -140,13 +141,20 @@ public class MysqlConnection implements ErosaConnection {
                 ByteBuffer.wrap(cmdBody) });
 
         DirectLogFetcher fetcher = new DirectLogFetcher(getReceiveBufferSize());
+        fetcher.start(channel);
         LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
         LogContext context = new LogContext();
         while (fetcher.fetch()) {
-            LogEvent event;
-            do {
-                event = decoder.decode(fetcher, context);
-            } while (event != null && func.sink(event));
+            LogEvent event = null;
+            event = decoder.decode(fetcher, context);
+
+            if (event == null) {
+                throw new CanalParseException("parse failed");
+            }
+
+            if (!func.sink(event)) {
+                break;
+            }
         }
     }
 

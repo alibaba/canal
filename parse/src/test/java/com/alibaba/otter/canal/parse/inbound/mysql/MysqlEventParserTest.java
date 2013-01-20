@@ -12,10 +12,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
-import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
-import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
@@ -25,7 +22,6 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class MysqlEventParserTest {
 
@@ -48,7 +44,6 @@ public class MysqlEventParserTest {
         controller.setDetectingSQL(DETECTING_SQL);
         controller.setMasterInfo(buildAuthentication());
         controller.setMasterPosition(defaultPosition);
-        controller.setBinlogParser(buildParser(buildAuthentication()));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
             @Override
@@ -122,7 +117,6 @@ public class MysqlEventParserTest {
         controller.setDetectingSQL(DETECTING_SQL);
         controller.setMasterInfo(buildAuthentication());
         controller.setMasterPosition(defaultPosition);
-        controller.setBinlogParser(buildParser(buildAuthentication()));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
             @Override
@@ -196,7 +190,6 @@ public class MysqlEventParserTest {
         controller.setDetectingEnable(false);
         controller.setMasterInfo(buildAuthentication());
         controller.setMasterPosition(defaultPosition);
-        controller.setBinlogParser(buildParser(buildAuthentication()));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
             @Override
@@ -274,7 +267,6 @@ public class MysqlEventParserTest {
         controller.setDetectingEnable(false);
         controller.setMasterInfo(buildAuthentication());
         controller.setMasterPosition(defaultPosition);
-        controller.setBinlogParser(buildParser(buildAuthentication()));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
             @Override
@@ -338,17 +330,6 @@ public class MysqlEventParserTest {
     }
 
     // ======================== helper method =======================
-
-    private BinlogParser buildParser(AuthenticationInfo info) {
-        return new AbstractBinlogParser<LogEvent>() {
-
-            @Override
-            public Entry parse(LogEvent event) throws CanalParseException {
-                // return _parser.parse(event);
-                return null;
-            }
-        };
-    }
 
     private EntryPosition buildPosition(String binlogFile, Long offest, Long timestamp) {
         return new EntryPosition(binlogFile, offest, timestamp);

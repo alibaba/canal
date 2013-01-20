@@ -32,8 +32,6 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
-import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
-import com.alibaba.otter.canal.sink.filter.AviaterRegexFilter;
 
 /**
  * 处理具体的客户端请求
@@ -68,13 +66,6 @@ public class SessionHandler extends SimpleChannelHandler {
                                                             sub.getFilter());
                         MDC.put("destination", clientIdentity.getDestination());
                         embededServer.subscribe(clientIdentity);
-                        // 注册过滤条件
-                        if (StringUtils.isNotEmpty(clientIdentity.getFilter())) {
-                            AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(clientIdentity.getFilter());
-                            AbstractCanalEventSink eventSink = (AbstractCanalEventSink) embededServer.getCanalInstances().get(
-                                                                                                                              clientIdentity.getDestination()).getEventSink();
-                            eventSink.setFilter(aviaterFilter);
-                        }
 
                         // 尝试启动，如果已经启动，忽略
                         if (!embededServer.isStart(clientIdentity.getDestination())) {

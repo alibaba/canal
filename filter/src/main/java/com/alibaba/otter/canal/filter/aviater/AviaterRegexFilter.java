@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.sink.filter;
+package com.alibaba.otter.canal.filter.aviater;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,8 +10,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.alibaba.otter.canal.sink.CanalEventFilter;
-import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import com.alibaba.otter.canal.filter.CanalEventFilter;
+import com.alibaba.otter.canal.filter.exception.CanalFilterException;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.Expression;
 
@@ -52,7 +52,7 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
         this.pattern = StringUtils.join(list, PATTERN_SPLIT);
     }
 
-    public boolean filter(String filtered) throws CanalSinkException {
+    public boolean filter(String filtered) throws CanalFilterException {
         if (StringUtils.isEmpty(pattern)) {
             return true;
         }

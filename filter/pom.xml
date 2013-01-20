@@ -8,7 +8,7 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.alibaba.otter</groupId>
-	<artifactId>canal.sink</artifactId>
+	<artifactId>canal.filter</artifactId>
 	<packaging>jar</packaging>
 	<name>canal sink module for otter</name>
 	<dependencies>
@@ -20,16 +20,6 @@
 		<dependency>
 			<groupId>com.alibaba.otter</groupId>
 			<artifactId>canal.protocol</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.filter</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.store</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

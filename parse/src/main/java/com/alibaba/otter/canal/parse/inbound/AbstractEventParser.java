@@ -14,6 +14,7 @@ import org.slf4j.MDC;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
+import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
@@ -29,7 +30,8 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 /**
  * 抽象的EventParser, 最大化共用mysql/oracle版本的实现
  * 
- * @author: yuanzu Date: 12-9-20 Time: 下午2:55
+ * @author jianghang 2013-1-20 下午08:10:25
+ * @version 1.0.0
  */
 public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle implements CanalEventParser<EVENT> {
 
@@ -37,6 +39,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     protected CanalLogPositionManager                logPositionManager = null;
     protected CanalEventSink<List<CanalEntry.Entry>> eventSink          = null;
+    protected CanalEventFilter                       eventFilter        = null;
 
     private CanalAlarmHandler                        alarmHandler       = null;
 
@@ -118,7 +121,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         transactionBuffer.setBufferSize(transactionSize);// 设置buffer大小
         transactionBuffer.start();
         // 1. 构造bin log parser
-        buildParser();// 初始化一下BinLogParser
+        binlogParser = buildParser();// 初始化一下BinLogParser
         binlogParser.start();
         // 启动工作线程
         parseThread = new Thread(new Runnable() {
@@ -155,10 +158,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                         return false;
                                     }
 
-                                    transactionBuffer.add(entry);
-
-                                    // 记录一下对应的positions
-                                    this.lastPosition = buildLastPosition(entry);
+                                    if (entry != null) {
+                                        transactionBuffer.add(entry);
+                                        // 记录一下对应的positions
+                                        this.lastPosition = buildLastPosition(entry);
+                                    }
                                     return running;
                                 } catch (Exception e) {
                                     processError(e, this.lastPosition, startPosition.getJournalName(),
@@ -269,6 +273,24 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return result;
     }
 
+    protected CanalEntry.Entry parseAndProfilingIfNecessary(EVENT bod) throws Exception {
+        long startTs = -1;
+        boolean enabled = getProfilingEnabled();
+        if (enabled) {
+            startTs = System.currentTimeMillis();
+        }
+        CanalEntry.Entry event = binlogParser.parse(bod);
+
+        if (enabled) {
+            this.parsingInterval = System.currentTimeMillis() - startTs;
+        }
+
+        if (parsedEventCount.incrementAndGet() < 0) {
+            parsedEventCount.set(0);
+        }
+        return event;
+    }
+
     public Boolean getProfilingEnabled() {
         return profilingEnabled.get();
     }
@@ -306,6 +328,20 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return logPosition;
     }
 
+    protected void processError(Exception e, LogPosition lastPosition, String startBinlogFile, long startPosition) {
+        if (lastPosition != null) {
+            logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s]",
+                                      lastPosition.getPostion()), e);
+        } else {
+            logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s,%s]",
+                                      startBinlogFile, startPosition), e);
+        }
+    }
+
+    public void setEventFilter(CanalEventFilter eventFilter) {
+        this.eventFilter = eventFilter;
+    }
+
     public Long getParsedEventCount() {
         return parsedEventCount.get();
     }
@@ -340,33 +376,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     public BinlogParser getBinlogParser() {
         return binlogParser;
-    }
-
-    protected CanalEntry.Entry parseAndProfilingIfNecessary(EVENT bod) throws Exception {
-        long startTs = -1;
-        boolean enabled = getProfilingEnabled();
-        if (enabled) {
-            startTs = System.currentTimeMillis();
-        }
-        CanalEntry.Entry event = binlogParser.parse(bod);
-        if (enabled) {
-            this.parsingInterval = System.currentTimeMillis() - startTs;
-        }
-
-        if (parsedEventCount.incrementAndGet() < 0) {
-            parsedEventCount.set(0);
-        }
-        return event;
-    }
-
-    protected void processError(Exception e, LogPosition lastPosition, String startBinlogFile, long startPosition) {
-        if (lastPosition != null) {
-            logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s]",
-                                      lastPosition.getPostion()), e);
-        } else {
-            logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s,%s]",
-                                      startBinlogFile, startPosition), e);
-        }
     }
 
     public void setAlarmHandler(CanalAlarmHandler alarmHandler) {

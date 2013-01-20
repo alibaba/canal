@@ -5,6 +5,8 @@ import java.nio.charset.Charset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.filter.CanalEventFilter;
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
@@ -19,9 +21,22 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected Charset           connectionCharset       = Charset.forName("UTF-8");
 
     protected BinlogParser buildParser() {
-        BinlogParser parser = new LogEventConvert();
-        setBinlogParser(parser);
-        return parser;
+        LogEventConvert convert = new LogEventConvert();
+        if (eventFilter != null && eventFilter instanceof AviaterRegexFilter) {
+            convert.setNameFilter((AviaterRegexFilter) eventFilter);
+        }
+
+        convert.setCharset(connectionCharset);
+        return convert;
+    }
+
+    public void setEventFilter(CanalEventFilter eventFilter) {
+        super.setEventFilter(eventFilter);
+
+        // 触发一下filter变更
+        if (eventFilter != null && eventFilter instanceof AviaterRegexFilter && binlogParser instanceof LogEventConvert) {
+            ((LogEventConvert) binlogParser).setNameFilter((AviaterRegexFilter) eventFilter);
+        }
     }
 
     // ============================ setter / getter =========================

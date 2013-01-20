@@ -9,6 +9,10 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 /**
  * event事件消费者
  * 
+ * <pre>
+ * 1. 剥离filter/sink为独立的两个动作，方便在快速判断数据是否有效
+ * </pre>
+ * 
  * @author jianghang 2012-6-21 下午05:03:40
  * @version 1.0.0
  */

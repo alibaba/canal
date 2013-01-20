@@ -181,4 +181,11 @@ public class FieldPacket extends PacketWithHeaderPacket {
         this.definition = definition;
     }
 
+    public String toString() {
+        return "FieldPacket [catalog=" + catalog + ", character=" + character + ", db=" + db + ", decimals=" + decimals
+               + ", definition=" + definition + ", flags=" + flags + ", length=" + length + ", name=" + name
+               + ", originalName=" + originalName + ", originalTable=" + originalTable + ", table=" + table + ", type="
+               + type + "]";
+    }
+
 }

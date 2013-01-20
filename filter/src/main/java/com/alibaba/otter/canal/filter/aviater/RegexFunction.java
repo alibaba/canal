@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.sink.filter;
+package com.alibaba.otter.canal.filter.aviater;
 
 import java.util.Map;
 
@@ -8,7 +8,7 @@ import org.apache.oro.text.regex.PatternCompiler;
 import org.apache.oro.text.regex.Perl5Compiler;
 import org.apache.oro.text.regex.Perl5Matcher;
 
-import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import com.alibaba.otter.canal.filter.exception.CanalFilterException;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
 import com.googlecode.aviator.runtime.function.AbstractFunction;
@@ -33,7 +33,7 @@ public class RegexFunction extends AbstractFunction {
                     PatternCompiler pc = new Perl5Compiler();
                     return pc.compile(pattern, Perl5Compiler.CASE_INSENSITIVE_MASK | Perl5Compiler.READ_ONLY_MASK);
                 } catch (MalformedPatternException e) {
-                    throw new CanalSinkException(e);
+                    throw new CanalFilterException(e);
                 }
             }
         });

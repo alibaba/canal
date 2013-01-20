@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
+import com.alibaba.otter.canal.sink.CanalEventDownStreamHandler;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.alibaba.otter.canal.store.CanalEventStore;
@@ -27,11 +29,12 @@ import com.alibaba.otter.canal.store.model.Event;
  */
 public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry>> implements CanalEventSink<List<CanalEntry.Entry>> {
 
-    private static final Logger    logger                 = LoggerFactory.getLogger(EntryEventSink.class);
-    private static final int       maxFullTimes           = 10;
+    private static final Logger    logger                      = LoggerFactory.getLogger(EntryEventSink.class);
+    private static final int       maxFullTimes                = 10;
     private CanalEventStore<Event> eventStore;
-    protected boolean              filterTransactionEntry = false;
-    protected AtomicBoolean        isInterrupt            = new AtomicBoolean(false);
+    protected boolean              filterTransactionEntry      = false;                                        // 是否需要过滤事务头/尾
+    protected boolean              filterEmtryTransactionEntry = true;                                         // 是否需要过滤空的事务头/尾
+    protected AtomicBoolean        isInterrupt                 = new AtomicBoolean(false);
 
     public void start() {
         super.start();
@@ -42,6 +45,11 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
         super.stop();
 
         eventStore = null;
+    }
+
+    public boolean filter(List<Entry> event, InetSocketAddress remoteAddress, String destination) {
+
+        return false;
     }
 
     public boolean sink(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress, String destination)
@@ -92,14 +100,14 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     }
 
     protected boolean doSink(List<Event> events) {
-        if (handler != null) {
+        for (CanalEventDownStreamHandler<Event> handler : getHandlers()) {
             handler.before(events);
         }
 
         int fullTimes = 0;
         do {
             if (eventStore.tryPut(events)) {
-                if (handler != null) {
+                for (CanalEventDownStreamHandler<Event> handler : getHandlers()) {
                     handler.after(events);
                 }
                 return true;
@@ -107,7 +115,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
                 applyWait(++fullTimes);
             }
 
-            if (handler != null) {
+            for (CanalEventDownStreamHandler<Event> handler : getHandlers()) {
                 handler.retry(events);
             }
             // isInterrupt 只会被响应一次，一旦true改为false后，就会退出无限的tryPut操作
@@ -146,6 +154,10 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
 
     public void setFilterTransactionEntry(boolean filterTransactionEntry) {
         this.filterTransactionEntry = filterTransactionEntry;
+    }
+
+    public void setFilterEmtryTransactionEntry(boolean filterEmtryTransactionEntry) {
+        this.filterEmtryTransactionEntry = filterEmtryTransactionEntry;
     }
 
 }

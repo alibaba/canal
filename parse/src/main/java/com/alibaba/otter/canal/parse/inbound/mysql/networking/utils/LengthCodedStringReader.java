@@ -22,6 +22,10 @@ public class LengthCodedStringReader {
         byte[] lengthBytes = ByteHelper.readBinaryCodedLengthBytes(data, getIndex());
         long length = ByteHelper.readLengthCodedBinary(data, getIndex());
         setIndex(getIndex() + lengthBytes.length);
+        if (ByteHelper.NULL_LENGTH == length) {
+            return null;
+        }
+
         try {
             return new String(ArrayUtils.subarray(data, getIndex(), (int) (getIndex() + length)),
                               encoding == null ? CODE_PAGE_1252 : encoding);

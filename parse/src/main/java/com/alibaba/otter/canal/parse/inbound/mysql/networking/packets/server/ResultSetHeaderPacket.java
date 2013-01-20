@@ -60,4 +60,8 @@ public class ResultSetHeaderPacket extends PacketWithHeaderPacket {
         this.extra = extra;
     }
 
+    public String toString() {
+        return "ResultSetHeaderPacket [columnCount=" + columnCount + ", extra=" + extra + "]";
+    }
+
 }

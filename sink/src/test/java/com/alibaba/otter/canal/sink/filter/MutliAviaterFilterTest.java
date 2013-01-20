@@ -10,6 +10,8 @@ import junit.framework.Assert;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+
 public class MutliAviaterFilterTest {
 
     @Test
