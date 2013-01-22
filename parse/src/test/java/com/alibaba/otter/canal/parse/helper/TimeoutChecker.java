@@ -24,7 +24,7 @@ public class TimeoutChecker {
     /**
      * default 3s
      */
-    private static final long DEFAULT_TIMEOUT_MILLIS = 3 * 1000 * 1000;
+    private static final long DEFAULT_TIMEOUT_MILLIS = 3 * 1000;
 
     public TimeoutChecker(long timeoutMillis){
         this.timeoutMillis = timeoutMillis;

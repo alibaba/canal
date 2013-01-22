@@ -76,7 +76,6 @@ public class MysqlConnection implements ErosaConnection {
                 logger.info("connect MysqlConnection to {}...", address);
                 channel.connect(address);
                 negotiate(channel);
-                checkSettings(channel);
             } catch (Exception e) {
                 logger.warn("connect failed!" + ExceptionUtils.getStackTrace(e));
                 disconnect();
@@ -127,6 +126,8 @@ public class MysqlConnection implements ErosaConnection {
     }
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
+        checkSettings(channel);
+
         BinlogDumpCommandPacket binlogDumpCmd = new BinlogDumpCommandPacket();
         binlogDumpCmd.binlogFileName = binlogfilename;
         binlogDumpCmd.binlogPosition = binlogPosition;
@@ -262,9 +263,9 @@ public class MysqlConnection implements ErosaConnection {
      * </ol>
      * 
      * @param channel
-     * @throws Exception
+     * @throws IOException
      */
-    private void checkSettings(SocketChannel channel) throws Exception {
+    private void checkSettings(SocketChannel channel) throws IOException {
         checkBinlogFormat(channel);
 
         MysqlUpdateExecutor updateExecutor = new MysqlUpdateExecutor(channel);

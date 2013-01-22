@@ -51,7 +51,6 @@ public class MysqlEventParserTest {
                                                                                                         throws CanalSinkException {
                 for (Entry entry : entrys) {
                     entryCount.incrementAndGet();
-
                     String logfilename = entry.getHeader().getLogfileName();
                     long logfileoffset = entry.getHeader().getLogfileOffset();
                     long executeTime = entry.getHeader().getExecuteTime();
@@ -59,9 +58,11 @@ public class MysqlEventParserTest {
                     entryPosition.setPosition(logfileoffset);
                     entryPosition.setTimestamp(executeTime);
 
-                    controller.stop();
-                    timeoutChecker.stop();
+                    break;
                 }
+
+                controller.stop();
+                timeoutChecker.stop();
                 timeoutChecker.touch();
                 return true;
             }
@@ -133,9 +134,11 @@ public class MysqlEventParserTest {
                     entryPosition.setPosition(logfileoffset);
                     entryPosition.setTimestamp(executeTime);
 
-                    controller.stop();
-                    timeoutChecker.stop();
+                    break;
                 }
+
+                controller.stop();
+                timeoutChecker.stop();
                 timeoutChecker.touch();
                 return true;
             }
@@ -205,10 +208,11 @@ public class MysqlEventParserTest {
                     entryPosition.setJournalName(logfilename);
                     entryPosition.setPosition(logfileoffset);
                     entryPosition.setTimestamp(executeTime);
-
-                    controller.stop();
-                    timeoutChecker.stop();
+                    break;
                 }
+
+                controller.stop();
+                timeoutChecker.stop();
                 timeoutChecker.touch();
                 return true;
             }
@@ -282,10 +286,11 @@ public class MysqlEventParserTest {
                     // entryPosition.setJournalName(logfilename);
                     // entryPosition.setPosition(logfileoffset);
                     entryPosition.setTimestamp(executeTime);
-
-                    controller.stop();
-                    timeoutChecker.stop();
+                    break;
                 }
+
+                controller.stop();
+                timeoutChecker.stop();
                 timeoutChecker.touch();
                 return true;
             }

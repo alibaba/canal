@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
@@ -63,14 +65,30 @@ public class TableMetaCache {
 
     }
 
-    public TableMeta getTableMeta(String name) throws IOException {
-        ResultSetPacket packet = connection.query("desc " + name);
-        return new TableMeta(name, parserTableMeta(packet));
+    public TableMeta getTableMeta(String fullname) throws IOException {
+        ResultSetPacket packet = connection.query("desc " + fullname);
+        return new TableMeta(fullname, parserTableMeta(packet));
     }
 
-    public void clearTableMeta(String fullname) {
+    public void clearTableMetaWithFullName(String fullname) {
         for (Map<String, TableMeta> tables : tableMetaCache.values()) {
             tables.remove(fullname);
+        }
+    }
+
+    public void clearTableMetaWithSchemaName(String schema) {
+        for (Map<String, TableMeta> tables : tableMetaCache.values()) {
+            // Set<String> removeNames = new HashSet<String>(); // 存一份临时变量，避免在遍历的时候进行删除
+            for (String name : tables.keySet()) {
+                if (StringUtils.startsWithIgnoreCase(name, schema + ".")) {
+                    // removeNames.add(name);
+                    tables.remove(name);
+                }
+            }
+
+            // for (String name : removeNames) {
+            // tables.remove(name);
+            // }
         }
     }
 

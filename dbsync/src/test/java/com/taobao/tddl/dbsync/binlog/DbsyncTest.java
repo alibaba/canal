@@ -83,6 +83,9 @@ public class DbsyncTest {
                 } else {
                     // update需要处理before/after
                     parseOneRow(event, buffer, columns, false);
+                    if (!buffer.nextOneRow(changeColumns)) {
+                        break;
+                    }
                     parseOneRow(event, buffer, changeColumns, true);
                 }
 

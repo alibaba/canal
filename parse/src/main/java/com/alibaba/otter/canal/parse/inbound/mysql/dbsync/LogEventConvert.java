@@ -9,6 +9,8 @@ import java.sql.Types;
 import java.util.BitSet;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
@@ -16,6 +18,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.SimpleDdlParser.DdlResult;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
@@ -59,8 +62,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public static final int             version             = 1;
     public static final String          BEGIN               = "BEGIN";
     public static final String          COMMIT              = "COMMIT";
+    public static final Logger          logger              = LoggerFactory.getLogger(LogEventConvert.class);
 
-    private volatile AviaterRegexFilter nameFilter;                                                  // 运行时引用可能会有变化，比如规则发生变化时
+    private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private TableMetaCache              tableMetaCache;
     private String                      binlogFileName      = "mysql-bin.000001";
     private Charset                     charset             = Charset.defaultCharset();
@@ -109,10 +113,35 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             Header header = createHeader(binlogFileName, event.getHeader(), "", "");
             return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
         } else {
-            // TODO : DDL语句处理
-        }
+            // DDL语句处理
+            DdlResult result = SimpleDdlParser.parse(queryString, event.getDbName());
+            if (result == null) {
+                logger.info(
+                            "INFO ## sql = {} , position = {}:{} is not create table/alter table/drop table ddl sql,so will ignore",
+                            new Object[] { queryString, binlogFileName,
+                                    event.getHeader().getLogPos() - event.getHeader().getEventLen() });
+                return null;
+            }
 
-        return null;
+            String schemaName = event.getDbName();
+            String tableName = result.getTableName();
+            if (tableMetaCache != null && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE)) {
+                if (StringUtils.isNotEmpty(tableName)) {
+                    // 如果解析到了正确的表信息，则根据全名进行清除
+                    tableMetaCache.clearTableMetaWithFullName(schemaName + "." + tableName);
+                } else {
+                    // 如果无法解析正确的表信息，则根据schema进行清除
+                    tableMetaCache.clearTableMetaWithSchemaName(schemaName);
+                }
+            }
+
+            Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName);
+            RowChange.Builder rowChangeBuider = RowChange.newBuilder();
+            rowChangeBuider.setIsDdl(true);
+            rowChangeBuider.setSql(queryString);
+            rowChangeBuider.setEventType(result.getType());
+            return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+        }
     }
 
     private Entry paserXidEvent(XidLogEvent event) {
@@ -128,9 +157,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return null;
             }
 
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "");
+            Header header = createHeader(binlogFileName, event.getHeader(), event.getTable().getDbName(),
+                                         event.getTable().getTableName());
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setTableId(event.getTableId());
+            rowChangeBuider.setIsDdl(false);
             EventType eventType = null;
             if (LogEvent.WRITE_ROWS_EVENT == event.getHeader().getType()) {
                 eventType = EventType.INSERT;
@@ -145,7 +176,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             RowsLogBuffer buffer = event.getRowsBuf(charset.name());
             BitSet columns = event.getColumns();
-
+            BitSet changeColumns = event.getColumns();
             TableMeta tableMeta = null;
             if (tableMetaCache != null) {// 入错存在table meta cache
                 tableMeta = tableMetaCache.getTableMeta(fullname);
@@ -166,6 +197,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 } else {
                     // update需要处理before/after
                     parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
+                    if (!buffer.nextOneRow(changeColumns)) {
+                        rowChangeBuider.addRowDatas(rowDataBuilder.build());
+                        break;
+                    }
+
                     parseOneRow(rowDataBuilder, event, buffer, event.getChangeColumns(), true, tableMeta);
                 }
 
@@ -304,7 +340,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         headerBuilder.setLogfileOffset(logHeader.getLogPos() - logHeader.getEventLen());
         headerBuilder.setServerId(logHeader.getServerId());
         headerBuilder.setServerenCode(UTF_8);// 经过java输出后所有的编码为unicode
-        headerBuilder.setExecuteTime(logHeader.getWhen());
+        headerBuilder.setExecuteTime(logHeader.getWhen() * 1000L);
         headerBuilder.setSourceType(Type.MYSQL);
         headerBuilder.setSchemaName(StringUtils.lowerCase(schemaName));
         headerBuilder.setTableName(StringUtils.lowerCase(tableName));
