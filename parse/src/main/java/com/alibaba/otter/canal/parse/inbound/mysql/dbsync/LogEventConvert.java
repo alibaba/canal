@@ -343,8 +343,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         headerBuilder.setServerenCode(UTF_8);// 经过java输出后所有的编码为unicode
         headerBuilder.setExecuteTime(logHeader.getWhen() * 1000L);
         headerBuilder.setSourceType(Type.MYSQL);
-        headerBuilder.setSchemaName(StringUtils.lowerCase(schemaName));
-        headerBuilder.setTableName(StringUtils.lowerCase(tableName));
+        if (schemaName != null) {
+            headerBuilder.setSchemaName(StringUtils.lowerCase(schemaName));
+        }
+        if (tableName != null) {
+            headerBuilder.setTableName(StringUtils.lowerCase(tableName));
+        }
         headerBuilder.setEventLength(logHeader.getEventLen());
         return headerBuilder.build();
     }

@@ -117,4 +117,5 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
         }
         return result;
     }
+    
 }

@@ -4,6 +4,7 @@ import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
+import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.sink.CanalEventSink;
@@ -19,8 +20,6 @@ public interface CanalInstance extends CanalLifeCycle {
 
     public String getDestination();
 
-    public CanalLogPositionManager getLogPositionManager();
-
     public CanalEventParser getEventParser();
 
     public CanalEventSink getEventSink();
@@ -30,6 +29,10 @@ public interface CanalInstance extends CanalLifeCycle {
     public CanalMetaManager getMetaManager();
 
     public CanalAlarmHandler getAlarmHandler();
+
+    public CanalLogPositionManager getLogPositionManager();
+
+    public CanalHAController getHaController();
 
     /**
      * 客户端发生订阅/取消订阅行为

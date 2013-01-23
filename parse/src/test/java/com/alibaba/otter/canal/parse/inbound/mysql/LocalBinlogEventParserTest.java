@@ -15,10 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
-import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
-import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
@@ -26,7 +23,6 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class LocalBinlogEventParserTest {
 
@@ -52,11 +48,10 @@ public class LocalBinlogEventParserTest {
         final EntryPosition defaultPosition = buildPosition("mysql-bin.000001", 6163L, 1322803601000L);
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
         controller.setMasterPosition(defaultPosition);
+        controller.setMasterInfo(buildAuthentication());
         controller.setDirectory(directory);
-        controller.setBinlogParser(buildParser(buildAuthentication()));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
-            @Override
             public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                         throws CanalSinkException {
                 entryCount.incrementAndGet();
@@ -69,10 +64,11 @@ public class LocalBinlogEventParserTest {
                     entryPosition.setJournalName(logfilename);
                     entryPosition.setPosition(logfileoffset);
                     entryPosition.setTimestamp(executeTime);
-
-                    controller.stop();
-                    timeoutChecker.stop();
+                    break;
                 }
+
+                controller.stop();
+                timeoutChecker.stop();
                 timeoutChecker.touch();
                 return true;
             }
@@ -115,8 +111,8 @@ public class LocalBinlogEventParserTest {
         final EntryPosition defaultPosition = buildPosition("mysql-bin.000001", null, 1322803601000L);
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
         controller.setMasterPosition(defaultPosition);
+        controller.setMasterInfo(buildAuthentication());
         controller.setDirectory(directory);
-        controller.setBinlogParser(buildParser(buildAuthentication()));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
             @Override
@@ -132,10 +128,11 @@ public class LocalBinlogEventParserTest {
                     entryPosition.setJournalName(logfilename);
                     entryPosition.setPosition(logfileoffset);
                     entryPosition.setTimestamp(executeTime);
-
-                    controller.stop();
-                    timeoutChecker.stop();
+                    break;
                 }
+
+                controller.stop();
+                timeoutChecker.stop();
                 timeoutChecker.touch();
                 return true;
             }
@@ -178,11 +175,10 @@ public class LocalBinlogEventParserTest {
                                                             new Date().getTime() + 1000 * 1000L);
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
         controller.setMasterPosition(defaultPosition);
+        controller.setMasterInfo(buildAuthentication());
         controller.setDirectory(directory);
-        controller.setBinlogParser(buildParser(buildAuthentication()));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
-            @Override
             public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                         throws CanalSinkException {
                 sinkExecuted.set(true);
@@ -213,17 +209,6 @@ public class LocalBinlogEventParserTest {
 
         // check
         assertFalse("can't not execute this code", sinkExecuted.get());
-    }
-
-    private BinlogParser buildParser(AuthenticationInfo info) {
-        return new AbstractBinlogParser<LogEvent>() {
-
-            @Override
-            public Entry parse(LogEvent event) throws CanalParseException {
-                // return _parser.parse(event);
-                return null;
-            }
-        };
     }
 
     private EntryPosition buildPosition(String binlogFile, Long offest, Long timestamp) {

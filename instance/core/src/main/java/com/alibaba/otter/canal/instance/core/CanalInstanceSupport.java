@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.instance.manager;
+package com.alibaba.otter.canal.instance.core;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import com.alibaba.otter.canal.store.model.Event;
  * @author zebin.xuzb 2012-10-17 下午3:12:34
  * @version 1.0.0
  */
-public abstract class CanalInstanceWithManagerSupport extends AbstractCanalLifeCycle {
+public abstract class CanalInstanceSupport extends AbstractCanalLifeCycle {
 
     // around alarm handler start
     protected void beforeStartAlarmHandler(CanalAlarmHandler alarmHandler) {

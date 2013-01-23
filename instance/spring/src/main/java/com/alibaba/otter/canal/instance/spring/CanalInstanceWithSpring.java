@@ -2,9 +2,12 @@ package com.alibaba.otter.canal.instance.spring;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
+import com.alibaba.otter.canal.instance.core.CanalInstanceSupport;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
@@ -13,6 +16,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.store.CanalEventStore;
+import com.alibaba.otter.canal.store.model.Event;
 
 /**
  * 基于spring容器启动canal实例，方便独立于manager启动
@@ -21,16 +25,17 @@ import com.alibaba.otter.canal.store.CanalEventStore;
  * @author zebin.xuzb
  * @version 1.0.0
  */
-public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements CanalInstance {
+public class CanalInstanceWithSpring extends CanalInstanceSupport implements CanalInstance {
 
+    private static final Logger                    logger = LoggerFactory.getLogger(CanalInstanceWithSpring.class);
     private String                                 destination;
     private CanalEventParser                       eventParser;
     private CanalEventSink<List<CanalEntry.Entry>> eventSink;
-    private CanalEventStore<CanalEntry.Entry>      eventStore;
-    private CanalHAController                      haController;
-    private CanalLogPositionManager                logPositionManager;
+    private CanalEventStore<Event>                 eventStore;
     private CanalMetaManager                       metaManager;
     private CanalAlarmHandler                      alarmHandler;
+    private CanalHAController                      haController;
+    private CanalLogPositionManager                logPositionManager;
 
     public String getDestination() {
         return this.destination;
@@ -44,16 +49,8 @@ public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements C
         return this.eventSink;
     }
 
-    public CanalEventStore<CanalEntry.Entry> getEventStore() {
+    public CanalEventStore<Event> getEventStore() {
         return this.eventStore;
-    }
-
-    public CanalHAController getHaController() {
-        return this.haController;
-    }
-
-    public CanalLogPositionManager getLogPositionManager() {
-        return this.logPositionManager;
     }
 
     public CanalMetaManager getMetaManager() {
@@ -66,6 +63,82 @@ public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements C
 
     public boolean subscribeChange(ClientIdentity identity) {
         return false;
+    }
+
+    public void start() {
+        super.start();
+
+        logger.info("start CannalInstance for {}-{} ", new Object[] { 1, destination });
+
+        if (!eventStore.isStart()) {
+            beforeStartEventStore(eventStore);
+            eventStore.start();
+            afterStartEventStore(eventStore);
+        }
+
+        if (!eventSink.isStart()) {
+            beforeStartEventSink(eventSink);
+            eventSink.start();
+            afterStartEventSink(eventSink);
+        }
+
+        if (!logPositionManager.isStart()) {
+            beforeStartLogPositionManager(logPositionManager);
+            logPositionManager.start();
+            afterStartLogPositionManager(logPositionManager);
+        }
+
+        if (!haController.isStart()) {
+            beforeStartHAController(haController);
+            haController.start();
+            afterStartHAController(haController);
+        }
+
+        if (!eventParser.isStart()) {
+            beforeStartEventParser(eventParser);
+            eventParser.start();
+            afterStartEventParser(eventParser);
+        }
+
+        logger.info("start successful....");
+    }
+
+    public void stop() {
+        logger.info("stop CannalInstance for {}-{} ", new Object[] { 1, destination });
+        if (eventParser.isStart()) {
+            eventParser.stop();
+        }
+
+        if (haController.isStart()) {
+            haController.stop();
+        }
+
+        if (logPositionManager.isStart()) {
+            logPositionManager.stop();
+        }
+
+        if (eventSink.isStart()) {
+            eventSink.stop();
+        }
+
+        if (eventStore.isStart()) {
+            eventStore.stop();
+        }
+
+        if (metaManager.isStart()) {
+            metaManager.stop();
+        }
+
+        if (alarmHandler.isStart()) {
+            alarmHandler.stop();
+        }
+
+        // if (zkClientx != null) {
+        // zkClientx.close();
+        // }
+
+        super.stop();
+        logger.info("stop successful....");
     }
 
     // ======== setter ========
@@ -81,16 +154,8 @@ public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements C
         this.eventSink = eventSink;
     }
 
-    public void setEventStore(CanalEventStore<CanalEntry.Entry> eventStore) {
+    public void setEventStore(CanalEventStore<Event> eventStore) {
         this.eventStore = eventStore;
-    }
-
-    public void setHaController(CanalHAController haController) {
-        this.haController = haController;
-    }
-
-    public void setLogPositionManager(CanalLogPositionManager logPositionManager) {
-        this.logPositionManager = logPositionManager;
     }
 
     public void setMetaManager(CanalMetaManager metaManager) {
@@ -99,6 +164,22 @@ public class CanalInstanceWithSpring extends AbstractCanalLifeCycle implements C
 
     public void setAlarmHandler(CanalAlarmHandler alarmHandler) {
         this.alarmHandler = alarmHandler;
+    }
+
+    public CanalHAController getHaController() {
+        return haController;
+    }
+
+    public void setHaController(CanalHAController haController) {
+        this.haController = haController;
+    }
+
+    public CanalLogPositionManager getLogPositionManager() {
+        return logPositionManager;
+    }
+
+    public void setLogPositionManager(CanalLogPositionManager logPositionManager) {
+        this.logPositionManager = logPositionManager;
     }
 
 }

@@ -17,6 +17,7 @@ import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
+import com.alibaba.otter.canal.instance.core.CanalInstanceSupport;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.meta.MemoryMetaManager;
 import com.alibaba.otter.canal.meta.PeriodMixedMetaManager;
@@ -61,7 +62,7 @@ import com.alibaba.otter.shared.common.utils.JsonUtils;
  * @author jianghang 2012-7-11 下午09:26:51
  * @version 1.0.0
  */
-public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport implements CanalInstance {
+public class CanalInstanceWithManager extends CanalInstanceSupport implements CanalInstance {
 
     private static final Logger           logger = LoggerFactory.getLogger(CanalInstanceWithManager.class);
     protected Long                        canalId;                                                         // 和manager交互唯一标示
@@ -159,13 +160,11 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
         logger.info("start successful....");
     }
 
-    @Override
     protected void beforeStartEventSink(CanalEventSink<List<Entry>> eventSink) {
         super.beforeStartEventSink(eventSink);
         ((EntryEventSink) eventSink).setEventStore(getEventStore());
     }
 
-    @Override
     protected void beforeStartEventParser(CanalEventParser eventParser) {
         super.beforeStartEventParser(eventParser);
         AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
@@ -183,7 +182,6 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
 
     }
 
-    @Override
     protected void beforeStartHAController(CanalHAController haController) {
         super.beforeStartHAController(haController);
         SourcingType type = parameters.getSourcingType();
@@ -512,14 +510,6 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
         return eventStore;
     }
 
-    public CanalHAController getHaController() {
-        return haController;
-    }
-
-    public CanalLogPositionManager getLogPositionManager() {
-        return logPositionManager;
-    }
-
     public CanalEventParser getEventParser() {
         return eventParser;
     }
@@ -534,6 +524,14 @@ public class CanalInstanceWithManager extends CanalInstanceWithManagerSupport im
 
     public void setAlarmHandler(CanalAlarmHandler alarmHandler) {
         this.alarmHandler = alarmHandler;
+    }
+
+    public CanalHAController getHaController() {
+        return haController;
+    }
+
+    public CanalLogPositionManager getLogPositionManager() {
+        return logPositionManager;
     }
 
 }

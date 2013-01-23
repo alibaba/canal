@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.local.BinLogFileQueue;
@@ -15,6 +16,7 @@ import com.taobao.tddl.dbsync.binlog.FileLogFetcher;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
+import com.taobao.tddl.dbsync.binlog.LogPosition;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 
 /**
@@ -78,16 +80,18 @@ public class LocalBinLogConnection implements ErosaConnection {
         LogContext context = new LogContext();
         try {
             fetcher.open(current, binlogPosition);
+            context.setLogPosition(new LogPosition(binlogfilename, binlogPosition));
             while (running) {
                 boolean needContinue = true;
-                while (fetcher.fetch() && needContinue) {
-                    LogEvent event;
-                    do {
-                        event = decoder.decode(fetcher, context);
-                        if (event != null) {
-                            needContinue = func.sink(event);
-                        }
-                    } while (event != null && needContinue);
+                while (fetcher.fetch()) {
+                    LogEvent event = decoder.decode(fetcher, context);
+                    if (event == null) {
+                        throw new CanalParseException("parse failed");
+                    }
+                    if (!func.sink(event)) {
+                        needContinue = false;
+                        break;
+                    }
                 }
 
                 if (needContinue) {// 读取下一个
@@ -107,6 +111,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                     current = nextFile;
 
                     fetcher.open(current);
+                    context.setLogPosition(new LogPosition(binlogfilename));
                 } else {
                     break;// 跳出
                 }
@@ -135,32 +140,36 @@ public class LocalBinLogConnection implements ErosaConnection {
         LogContext context = new LogContext();
         try {
             fetcher.open(current);
-
+            context.setLogPosition(new LogPosition(current.getName()));
             while (running) {
                 boolean needContinue = true;
                 String lastXidLogFilename = current.getName();
                 long lastXidLogFileOffset = 4;
                 long currentOffset = 0L;
-                while (fetcher.fetch() && needContinue) {
-                    LogEvent event;
-                    do {
-                        event = decoder.decode(fetcher, context);
-                        if (timestampSeconds < event.getWhen()) {
-                            needContinue = false;
-                            break;
-                        }
 
-                        currentOffset += event.getEventLen();
-                        if (LogEvent.QUERY_EVENT == event.getHeader().getType()) {
-                            if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "BEGIN")) {
-                                binlogFilename = lastXidLogFilename;
-                                binlogFileOffset = lastXidLogFileOffset;
-                            } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
-                                lastXidLogFilename = current.getName();
-                                lastXidLogFileOffset = currentOffset;
-                            }
+                binlogFilename = lastXidLogFilename;
+                binlogFileOffset = lastXidLogFileOffset;
+                while (fetcher.fetch()) {
+                    LogEvent event = decoder.decode(fetcher, context);
+                    if (event == null) {
+                        throw new CanalParseException("parse failed");
+                    }
+
+                    if (timestampSeconds > event.getWhen()) {
+                        needContinue = false;
+                        break;
+                    }
+
+                    currentOffset += event.getEventLen();
+                    if (LogEvent.QUERY_EVENT == event.getHeader().getType()) {
+                        if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "BEGIN")) {
+                            binlogFilename = lastXidLogFilename;
+                            binlogFileOffset = lastXidLogFileOffset;
+                        } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
+                            lastXidLogFilename = current.getName();
+                            lastXidLogFileOffset = currentOffset;
                         }
-                    } while (event != null && needContinue);
+                    }
                 }
 
                 if (needContinue) {// 读取下一个
@@ -173,6 +182,7 @@ public class LocalBinLogConnection implements ErosaConnection {
 
                     current = nextFile;
                     fetcher.open(current);
+                    context.setLogPosition(new LogPosition(current.getName()));
                 } else {
                     break;// 跳出
                 }

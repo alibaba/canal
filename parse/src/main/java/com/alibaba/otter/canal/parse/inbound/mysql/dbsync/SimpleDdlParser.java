@@ -24,7 +24,7 @@ public class SimpleDdlParser {
     public static final String CREATE_PATTERN = "^\\s*CREATE\\s*TABLE\\s*(.*)$";
     public static final String DROP_PATTERN   = "^\\s*DROP\\s*TABLE\\s*(.*)$";
     public static final String ALERT_PATTERN  = "^\\s*ALTER\\s*TABLE\\s*(.*)$";
-    public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?[;\\s]+)?.*$"; // 采用非贪婪模式
+    public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\s]+)?.*$"; // 采用非贪婪模式
 
     public static DdlResult parse(String queryString, String schmeaName) {
         DdlResult result = parse(queryString, schmeaName, ALERT_PATTERN);
@@ -54,21 +54,34 @@ public class SimpleDdlParser {
             Perl5Matcher tableMatcher = new Perl5Matcher();
             String matchString = matcher.getMatch().group(1);
             if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
-                String tableString = tableMatcher.getMatch().group(3);
+                String schmeaString = tableMatcher.getMatch().group(3);
+                String tableString = tableMatcher.getMatch().group(4);
+                if (StringUtils.isNotEmpty(schmeaString)) {
+                    // 特殊处理引号`
+                    schmeaString = StringUtils.removeEnd(schmeaString, ".");
+                    schmeaString = StringUtils.removeEnd(schmeaString, "`");
+                    schmeaString = StringUtils.removeStart(schmeaString, "`");
+
+                    if (StringUtils.isNotEmpty(schmeaName) && !StringUtils.equalsIgnoreCase(schmeaString, schmeaName)) {
+                        return new DdlResult(schmeaName);
+                    }
+                } else {
+                    schmeaString = schmeaName;
+                }
+
                 tableString = StringUtils.removeEnd(tableString, ";");
                 tableString = StringUtils.trim(tableString);
                 // 特殊处理引号`
-                if (tableString.startsWith("`") && tableString.endsWith("`")) {
-                    tableString = tableString.substring(1, tableString.length() - 1);
-                }
+                tableString = StringUtils.removeEnd(tableString, "`");
+                tableString = StringUtils.removeStart(tableString, "`");
                 // 处理schema.table的写法
                 String names[] = StringUtils.split(tableString, ".");
                 if (names.length > 1) {
-                    if (StringUtils.equalsIgnoreCase(schmeaName, names[0])) {
-                        return new DdlResult(schmeaName, names[1]);
+                    if (StringUtils.equalsIgnoreCase(schmeaString, names[0])) {
+                        return new DdlResult(schmeaString, names[1]);
                     }
                 } else {
-                    return new DdlResult(schmeaName, names[0]);
+                    return new DdlResult(schmeaString, names[0]);
                 }
             }
 

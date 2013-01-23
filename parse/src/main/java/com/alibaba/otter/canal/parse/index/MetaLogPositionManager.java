@@ -41,7 +41,7 @@ public class MetaLogPositionManager extends AbstractCanalLifeCycle implements Ca
 
     public void persistLogPosition(String destination, LogPosition logPosition) {
         // do nothing
-        logger.info("destination:{} , persist LogPosition:{}", destination, logPosition);
+        logger.info("persist LogPosition:{}", destination, logPosition);
     }
 
     public LogPosition getLatestIndexBy(String destination) {

@@ -42,8 +42,8 @@ public class MysqlEventParserTest {
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(true);
         controller.setDetectingSQL(DETECTING_SQL);
-        controller.setMasterInfo(buildAuthentication());
         controller.setMasterPosition(defaultPosition);
+        controller.setMasterInfo(buildAuthentication());
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
             @Override

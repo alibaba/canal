@@ -49,4 +49,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         this.connectionCharset = connectionCharset;
     }
 
+    public void setConnectionCharset(String connectionCharset) {
+        this.connectionCharset = Charset.forName(connectionCharset);
+    }
+
 }
