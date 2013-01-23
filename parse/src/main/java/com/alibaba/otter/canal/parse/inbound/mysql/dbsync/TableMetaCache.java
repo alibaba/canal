@@ -25,75 +25,70 @@ import com.google.common.collect.MapMaker;
  */
 public class TableMetaCache {
 
-    public static final String                COLUMN_NAME    = "COLUMN_NAME";
-    public static final String                COLUMN_TYPE    = "COLUMN_TYPE";
-    public static final String                IS_NULLABLE    = "IS_NULLABLE";
-    public static final String                COLUMN_KEY     = "COLUMN_KEY";
-    public static final String                COLUMN_DEFAULT = "COLUMN_DEFAULT";
-    public static final String                EXTRA          = "EXTRA";
-    private MysqlConnection                   connection;
+    public static final String     COLUMN_NAME    = "COLUMN_NAME";
+    public static final String     COLUMN_TYPE    = "COLUMN_TYPE";
+    public static final String     IS_NULLABLE    = "IS_NULLABLE";
+    public static final String     COLUMN_KEY     = "COLUMN_KEY";
+    public static final String     COLUMN_DEFAULT = "COLUMN_DEFAULT";
+    public static final String     EXTRA          = "EXTRA";
+    private MysqlConnection        connection;
 
     // 第一层tableId,第二层schema.table,解决tableId重复，对应多张表
-    private Map<Long, Map<String, TableMeta>> tableMetaCache;
+    private Map<String, TableMeta> tableMetaCache;
 
     public TableMetaCache(MysqlConnection con){
         this.connection = con;
-        tableMetaCache = new MapMaker().makeComputingMap(new Function<Long, Map<String, TableMeta>>() {
+        tableMetaCache = new MapMaker().makeComputingMap(new Function<String, TableMeta>() {
 
-            public Map<String, TableMeta> apply(Long input) {
-                return new MapMaker().makeComputingMap(new Function<String, TableMeta>() {
-
-                    public TableMeta apply(String name) {
+            public TableMeta apply(String name) {
+                try {
+                    return getTableMeta0(name);
+                } catch (IOException e) {
+                    // 尝试做一次retry操作
+                    if (!connection.isConnected()) {
                         try {
-                            return getTableMeta(name);
-                        } catch (IOException e) {
-                            // 尝试做一次retry操作
-                            if (!connection.isConnected()) {
-                                try {
-                                    connection.connect();
-                                    return getTableMeta(name);
-                                } catch (IOException e1) {
-                                }
-                            }
-                            throw new CanalParseException("fetch failed by table meta:" + name, e);
+                            connection.connect();
+                            return getTableMeta0(name);
+                        } catch (IOException e1) {
                         }
                     }
-
-                });
+                    throw new CanalParseException("fetch failed by table meta:" + name, e);
+                }
             }
+
         });
 
     }
 
-    public TableMeta getTableMeta(String fullname) throws IOException {
-        ResultSetPacket packet = connection.query("desc " + fullname);
-        return new TableMeta(fullname, parserTableMeta(packet));
+    public TableMeta getTableMeta(String fullname) {
+        return tableMetaCache.get(fullname);
     }
 
     public void clearTableMetaWithFullName(String fullname) {
-        for (Map<String, TableMeta> tables : tableMetaCache.values()) {
-            tables.remove(fullname);
-        }
+        tableMetaCache.remove(fullname);
     }
 
     public void clearTableMetaWithSchemaName(String schema) {
-        for (Map<String, TableMeta> tables : tableMetaCache.values()) {
-            // Set<String> removeNames = new HashSet<String>(); // 存一份临时变量，避免在遍历的时候进行删除
-            for (String name : tables.keySet()) {
-                if (StringUtils.startsWithIgnoreCase(name, schema + ".")) {
-                    // removeNames.add(name);
-                    tables.remove(name);
-                }
+        // Set<String> removeNames = new HashSet<String>(); // 存一份临时变量，避免在遍历的时候进行删除
+        for (String name : tableMetaCache.keySet()) {
+            if (StringUtils.startsWithIgnoreCase(name, schema + ".")) {
+                // removeNames.add(name);
+                tableMetaCache.remove(name);
             }
-
-            // for (String name : removeNames) {
-            // tables.remove(name);
-            // }
         }
+
+        // for (String name : removeNames) {
+        // tables.remove(name);
+        // }
     }
 
     public void clearTableMeta() {
         tableMetaCache.clear();
+    }
+
+    private TableMeta getTableMeta0(String fullname) throws IOException {
+        ResultSetPacket packet = connection.query("desc " + fullname);
+        return new TableMeta(fullname, parserTableMeta(packet));
     }
 
     private List<FieldMeta> parserTableMeta(ResultSetPacket packet) {

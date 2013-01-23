@@ -67,7 +67,9 @@ public class LocalBinLogConnection implements ErosaConnection {
         return running;
     }
 
-    @Override
+    public void seek(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
+    }
+
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         File current = new File(directory, binlogfilename);
 
@@ -127,7 +129,9 @@ public class LocalBinLogConnection implements ErosaConnection {
         long binlogFileOffset = 0;
 
         FileLogFetcher fetcher = new FileLogFetcher(bufferSize);
-        LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
+        LogDecoder decoder = new LogDecoder();
+        decoder.handle(LogEvent.QUERY_EVENT);
+        decoder.handle(LogEvent.XID_EVENT);
         LogContext context = new LogContext();
         try {
             fetcher.open(current);
@@ -147,7 +151,6 @@ public class LocalBinLogConnection implements ErosaConnection {
                         }
 
                         currentOffset += event.getEventLen();
-
                         if (LogEvent.QUERY_EVENT == event.getHeader().getType()) {
                             if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "BEGIN")) {
                                 binlogFilename = lastXidLogFilename;
@@ -215,4 +218,5 @@ public class LocalBinLogConnection implements ErosaConnection {
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
     }
+
 }

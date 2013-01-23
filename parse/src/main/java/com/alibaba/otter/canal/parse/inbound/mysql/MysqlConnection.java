@@ -125,22 +125,39 @@ public class MysqlConnection implements ErosaConnection {
         executor.update(cmd);
     }
 
+    /**
+     * 加速主备切换时的查找速度，做一些特殊优化，比如只解析事务头或者尾
+     */
+    public void seek(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
+        checkBinlogFormat(channel);
+        updateSettings(channel);
+
+        sendBinlogDump(binlogfilename, binlogPosition);
+        DirectLogFetcher fetcher = new DirectLogFetcher(getReceiveBufferSize());
+        fetcher.start(channel);
+        LogDecoder decoder = new LogDecoder();
+        decoder.handle(LogEvent.QUERY_EVENT);
+        decoder.handle(LogEvent.XID_EVENT);
+        LogContext context = new LogContext();
+        while (fetcher.fetch()) {
+            LogEvent event = null;
+            event = decoder.decode(fetcher, context);
+
+            if (event == null) {
+                throw new CanalParseException("parse failed");
+            }
+
+            if (!func.sink(event)) {
+                break;
+            }
+        }
+    }
+
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
-        checkSettings(channel);
+        checkBinlogFormat(channel);
+        updateSettings(channel);
 
-        BinlogDumpCommandPacket binlogDumpCmd = new BinlogDumpCommandPacket();
-        binlogDumpCmd.binlogFileName = binlogfilename;
-        binlogDumpCmd.binlogPosition = binlogPosition;
-        binlogDumpCmd.slaveServerId = this.slaveId;
-        byte[] cmdBody = binlogDumpCmd.toBytes();
-
-        logger.info("COM_BINLOG_DUMP with position:{}", binlogDumpCmd);
-        HeaderPacket binlogDumpHeader = new HeaderPacket();
-        binlogDumpHeader.setPacketBodyLength(cmdBody.length);
-        binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
-        PacketManager.write(channel, new ByteBuffer[] { ByteBuffer.wrap(binlogDumpHeader.toBytes()),
-                ByteBuffer.wrap(cmdBody) });
-
+        sendBinlogDump(binlogfilename, binlogPosition);
         DirectLogFetcher fetcher = new DirectLogFetcher(getReceiveBufferSize());
         fetcher.start(channel);
         LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
@@ -159,9 +176,23 @@ public class MysqlConnection implements ErosaConnection {
         }
     }
 
-    @Override
     public void dump(long timestamp, SinkFunction func) throws IOException {
         throw new NullPointerException("Not implement yet");
+    }
+
+    private void sendBinlogDump(String binlogfilename, Long binlogPosition) throws IOException {
+        BinlogDumpCommandPacket binlogDumpCmd = new BinlogDumpCommandPacket();
+        binlogDumpCmd.binlogFileName = binlogfilename;
+        binlogDumpCmd.binlogPosition = binlogPosition;
+        binlogDumpCmd.slaveServerId = this.slaveId;
+        byte[] cmdBody = binlogDumpCmd.toBytes();
+
+        logger.info("COM_BINLOG_DUMP with position:{}", binlogDumpCmd);
+        HeaderPacket binlogDumpHeader = new HeaderPacket();
+        binlogDumpHeader.setPacketBodyLength(cmdBody.length);
+        binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
+        PacketManager.write(channel, new ByteBuffer[] { ByteBuffer.wrap(binlogDumpHeader.toBytes()),
+                ByteBuffer.wrap(cmdBody) });
     }
 
     public MysqlConnection fork() {
@@ -256,7 +287,6 @@ public class MysqlConnection implements ErosaConnection {
     /**
      * the settings that will need to be checked or set:<br>
      * <ol>
-     * <li>binlog format</li>
      * <li>wait_timeout</li>
      * <li>net_write_timeout</li>
      * <li>net_read_timeout</li>
@@ -265,9 +295,7 @@ public class MysqlConnection implements ErosaConnection {
      * @param channel
      * @throws IOException
      */
-    private void checkSettings(SocketChannel channel) throws IOException {
-        checkBinlogFormat(channel);
-
+    private void updateSettings(SocketChannel channel) throws IOException {
         MysqlUpdateExecutor updateExecutor = new MysqlUpdateExecutor(channel);
         try {
             updateExecutor.update("set wait_timeout=9999999");

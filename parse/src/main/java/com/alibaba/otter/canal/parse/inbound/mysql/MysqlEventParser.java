@@ -2,7 +2,9 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,6 +21,7 @@ import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
+import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
@@ -270,15 +273,16 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     protected EntryPosition findStartPosition(ErosaConnection connection) throws IOException {
         EntryPosition startPosition = findStartPositionInternal(connection);
-
-        logger.info("prepare to find last position : {}", startPosition.toString());
-        Long preTransactionStartPosition = findTransactionBeginPosition(connection, startPosition);
-        if (!preTransactionStartPosition.equals(startPosition.getPosition())) {
-            logger.info("find new start Transaction Position , old : {} , new : {}", startPosition.getPosition(),
-                        preTransactionStartPosition);
-            startPosition.setPosition(preTransactionStartPosition);
+        if (needTransactionPosition.get()) {
+            logger.info("prepare to find last position : {}", startPosition.toString());
+            Long preTransactionStartPosition = findTransactionBeginPosition(connection, startPosition);
+            if (!preTransactionStartPosition.equals(startPosition.getPosition())) {
+                logger.info("find new start Transaction Position , old : {} , new : {}", startPosition.getPosition(),
+                            preTransactionStartPosition);
+                startPosition.setPosition(preTransactionStartPosition);
+            }
+            needTransactionPosition.compareAndSet(true, false);
         }
-
         return startPosition;
     }
 
@@ -348,7 +352,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         // 尝试找到一个合适的位置
         final AtomicBoolean reDump = new AtomicBoolean(false);
         mysqlConnection.reconnect();
-        mysqlConnection.dump(entryPosition.getJournalName(), entryPosition.getPosition(), new SinkFunction<LogEvent>() {
+        mysqlConnection.seek(entryPosition.getJournalName(), entryPosition.getPosition(), new SinkFunction<LogEvent>() {
 
             private LogPosition lastPosition;
 
@@ -381,7 +385,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         if (reDump.get()) {
             final AtomicLong preTransactionStartPosition = new AtomicLong(0L);
             mysqlConnection.reconnect();
-            mysqlConnection.dump(entryPosition.getJournalName(), 4L, new SinkFunction<LogEvent>() {
+            mysqlConnection.seek(entryPosition.getJournalName(), 4L, new SinkFunction<LogEvent>() {
 
                 private LogPosition lastPosition;
 
@@ -490,6 +494,44 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     /**
+     * 查询当前的slave视图的binlog位置
+     */
+    @SuppressWarnings("unused")
+    private SlaveEntryPosition findSlavePosition(MysqlConnection mysqlConnection) {
+        try {
+            ResultSetPacket packet = mysqlConnection.query("show slave status");
+            List<FieldPacket> names = packet.getFieldDescriptors();
+            List<String> fields = packet.getFieldValues();
+            int i = 0;
+            Map<String, String> maps = new HashMap<String, String>(names.size(), 1f);
+            for (FieldPacket name : names) {
+                maps.put(name.getName(), fields.get(i));
+                i++;
+            }
+
+            String errno = maps.get("Last_Errno");
+            String slaveIORunning = maps.get("Slave_IO_Running"); // Slave_SQL_Running
+            String slaveSQLRunning = maps.get("Slave_SQL_Running"); // Slave_SQL_Running
+            if ((!"0".equals(errno)) || (!"Yes".equalsIgnoreCase(slaveIORunning))
+                || (!"Yes".equalsIgnoreCase(slaveSQLRunning))) {
+                logger.warn("Ignoring failed slave: " + mysqlConnection.getChannel().toString() + ", Last_Errno = "
+                            + errno + ", Slave_IO_Running = " + slaveIORunning + ", Slave_SQL_Running = "
+                            + slaveSQLRunning);
+            }
+
+            String masterHost = maps.get("Master_Host");
+            String masterPort = maps.get("Master_Port");
+            String binlog = maps.get("Master_Log_File");
+            String position = maps.get("Exec_Master_Log_Pos");
+            return new SlaveEntryPosition(binlog, Long.valueOf(position), masterHost, masterPort);
+        } catch (IOException e) {
+            logger.error("find slave position error", e);
+        }
+
+        return null;
+    }
+
+    /**
      * 根据给定的时间戳，在指定的binlog中找到最接近于该时间戳(必须是小于时间戳)的一个事务起始位置。针对最后一个binlog会给定endPosition，避免无尽的查询
      */
     private EntryPosition findAsPerTimestampInSpecificLogFile(MysqlConnection mysqlConnection,
@@ -501,7 +543,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         try {
             mysqlConnection.reconnect();
             // 开始遍历文件
-            mysqlConnection.dump(searchBinlogFile, 4L, new SinkFunction<LogEvent>() {
+            mysqlConnection.seek(searchBinlogFile, 4L, new SinkFunction<LogEvent>() {
 
                 private LogPosition lastPosition;
 

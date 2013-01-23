@@ -17,6 +17,7 @@ import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
@@ -35,43 +36,45 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
  */
 public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle implements CanalEventParser<EVENT> {
 
-    protected final Logger                           logger             = LoggerFactory.getLogger(this.getClass());
+    protected final Logger                           logger                  = LoggerFactory.getLogger(this.getClass());
 
-    protected CanalLogPositionManager                logPositionManager = null;
-    protected CanalEventSink<List<CanalEntry.Entry>> eventSink          = null;
-    protected CanalEventFilter                       eventFilter        = null;
+    protected CanalLogPositionManager                logPositionManager      = null;
+    protected CanalEventSink<List<CanalEntry.Entry>> eventSink               = null;
+    protected CanalEventFilter                       eventFilter             = null;
 
-    private CanalAlarmHandler                        alarmHandler       = null;
+    private CanalAlarmHandler                        alarmHandler            = null;
 
     // 统计参数
-    protected AtomicBoolean                          profilingEnabled   = new AtomicBoolean(false);                // profile开关参数
-    protected AtomicLong                             receivedEventCount = new AtomicLong();
-    protected AtomicLong                             parsedEventCount   = new AtomicLong();
-    protected AtomicLong                             consumedEventCount = new AtomicLong();
-    protected long                                   parsingInterval    = -1;
-    protected long                                   processingInterval = -1;
+    protected AtomicBoolean                          profilingEnabled        = new AtomicBoolean(false);                // profile开关参数
+    protected AtomicLong                             receivedEventCount      = new AtomicLong();
+    protected AtomicLong                             parsedEventCount        = new AtomicLong();
+    protected AtomicLong                             consumedEventCount      = new AtomicLong();
+    protected long                                   parsingInterval         = -1;
+    protected long                                   processingInterval      = -1;
 
     // 认证信息
     protected volatile AuthenticationInfo            runningInfo;
     protected String                                 destination;
 
     // binLogParser
-    protected BinlogParser                           binlogParser       = null;
+    protected BinlogParser                           binlogParser            = null;
 
-    private Thread                                   parseThread        = null;
+    protected Thread                                 parseThread             = null;
 
-    private Thread.UncaughtExceptionHandler          handler            = new Thread.UncaughtExceptionHandler() {
+    protected Thread.UncaughtExceptionHandler        handler                 = new Thread.UncaughtExceptionHandler() {
 
-                                                                            public void uncaughtException(Thread t,
-                                                                                                          Throwable e) {
-                                                                                logger.error(
-                                                                                             "parse events has an error",
-                                                                                             e);
-                                                                            }
-                                                                        };
+                                                                                 public void uncaughtException(
+                                                                                                               Thread t,
+                                                                                                               Throwable e) {
+                                                                                     logger.error(
+                                                                                                  "parse events has an error",
+                                                                                                  e);
+                                                                                 }
+                                                                             };
 
-    private EventTransactionBuffer                   transactionBuffer;
-    private int                                      transactionSize    = 1024;
+    protected EventTransactionBuffer                 transactionBuffer;
+    protected int                                    transactionSize         = 1024;
+    protected AtomicBoolean                          needTransactionPosition = new AtomicBoolean(false);
 
     protected abstract BinlogParser buildParser();
 
@@ -138,6 +141,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         erosaConnection.connect();// 链接
                         // 2. 获取最后的位置信息
                         final EntryPosition startPosition = findStartPosition(erosaConnection);
+                        logger.info("find start position : {}", startPosition.toString());
                         if (startPosition == null) {
                             throw new CanalParseException("can't find start position for {} " + destination);
                         }
@@ -164,6 +168,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                         this.lastPosition = buildLastPosition(entry);
                                     }
                                     return running;
+                                } catch (TableIdNotFoundException e) {
+                                    throw e;
                                 } catch (Exception e) {
                                     processError(e, this.lastPosition, startPosition.getJournalName(),
                                                  startPosition.getPosition());
@@ -182,6 +188,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                                  sinkHandler);
                         }
 
+                    } catch (TableIdNotFoundException e) {
+                        // 特殊处理TableIdNotFound异常,出现这样的异常，一种可能就是起始的position是一个事务当中，导致tablemap Event时间没解析过
+                        needTransactionPosition.compareAndSet(false, true);
+                        logger.error(String.format("dump address %s has an error, retrying. caused by ",
+                                                   runningInfo.getAddress().toString()), e);
                     } catch (Throwable e) {
                         if (!running) {
                             if (!(e.getCause() instanceof java.nio.channels.ClosedByInterruptException)) {

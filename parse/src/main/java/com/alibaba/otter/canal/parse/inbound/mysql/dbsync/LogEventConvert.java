@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
@@ -116,8 +117,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // DDL语句处理
             DdlResult result = SimpleDdlParser.parse(queryString, event.getDbName());
             if (result == null) {
-                logger.info(
-                            "INFO ## sql = {} , position = {}:{} is not create table/alter table/drop table ddl sql,so will ignore",
+                logger.warn(
+                            "WARN ## sql = {} , position = {}:{} is not create table/alter table/drop table ddl sql,so will ignore",
                             new Object[] { queryString, binlogFileName,
                                     event.getHeader().getLogPos() - event.getHeader().getEventLen() });
                 return null;
@@ -152,13 +153,18 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private Entry parseRowsEvent(RowsLogEvent event) {
         try {
-            String fullname = getSchemaNameAndTableName(event.getTable());
+            TableMapLogEvent table = event.getTable();
+            if (table == null) {
+                // tableId对应的记录不存在
+                throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
+            }
+
+            String fullname = getSchemaNameAndTableName(table);
             if (nameFilter != null && !nameFilter.filter(fullname)) { // check name filter
                 return null;
             }
 
-            Header header = createHeader(binlogFileName, event.getHeader(), event.getTable().getDbName(),
-                                         event.getTable().getTableName());
+            Header header = createHeader(binlogFileName, event.getHeader(), table.getDbName(), table.getTableName());
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
@@ -215,13 +221,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private void parseOneRow(RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
                              boolean isAfter, TableMeta tableMeta) throws UnsupportedEncodingException {
-        TableMapLogEvent map = event.getTable();
-        if (map == null) {
-            throw new CanalParseException("not found TableMap with tid=" + event.getTableId());
-        }
-
-        final int columnCnt = map.getColumnCnt();
-        final ColumnInfo[] columnInfo = map.getColumnInfo();
+        final int columnCnt = event.getTable().getColumnCnt();
+        final ColumnInfo[] columnInfo = event.getTable().getColumnInfo();
 
         // check table fileds count，只能处理加字段
         if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
