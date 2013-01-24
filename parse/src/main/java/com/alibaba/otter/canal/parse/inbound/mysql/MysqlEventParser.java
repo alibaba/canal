@@ -342,7 +342,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 return logPosition.getPostion();
             } else {
                 // 针对切换的情况，考虑回退时间
-                long newStartTimestamp = logPosition.getPostion().getTimestamp() - fallbackIntervalInSeconds;
+                long newStartTimestamp = logPosition.getPostion().getTimestamp() - fallbackIntervalInSeconds * 1000;
                 return findByStartTimeStamp(mysqlConnection, newStartTimestamp);
             }
         }
