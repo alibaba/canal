@@ -92,48 +92,6 @@
 				<artifactId>spring</artifactId>
 				<version>2.5.6</version>
 			</dependency>
-			<!--
-            <dependency>
-				<groupId>net.sf.sdedit</groupId>
-				<artifactId>sdedit-light</artifactId>
-				<version>3.1</version>
-			</dependency>
-            -->
-            
-			<!-- test dependency -->
-            <dependency>
-                <groupId>com.alibaba.external</groupId>
-                <artifactId>sourceforge.spring.modules.test</artifactId>
-                <version>2.5.6</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba.external</groupId>
-                <artifactId>test.junit</artifactId>
-                <version>4.5</version>
-                <scope>test</scope>
-            </dependency>
-            <!-- log -->
-            <dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-core</artifactId>
-				<version>1.0.6</version>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>1.0.6</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>jcl-over-slf4j</artifactId>
-				<version>1.6.0</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>1.6.0</version>
-			</dependency>
             <!-- external -->
             <dependency>
 				<groupId>commons-lang</groupId>
@@ -144,12 +102,6 @@
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
 				<version>2.4</version>
-			</dependency>
-            
-			<dependency>
-				<groupId>mysql</groupId>
-				<artifactId>mysql-connector-java</artifactId>
-				<version>5.1.12</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.zookeeper</groupId>
@@ -200,6 +152,40 @@
 				<groupId>com.google.protobuf</groupId>
 				<artifactId>protobuf-java</artifactId>
 				<version>2.4.1</version>
+			</dependency>
+            <!-- log -->
+            <dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>1.0.6</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>1.0.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<version>1.6.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>1.6.0</version>
+			</dependency>
+			<!-- test dependency -->
+            <dependency>
+                <groupId>com.alibaba.external</groupId>
+                <artifactId>test.junit</artifactId>
+                <version>4.5</version>
+                <scope>test</scope>
+            </dependency>
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>5.1.12</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

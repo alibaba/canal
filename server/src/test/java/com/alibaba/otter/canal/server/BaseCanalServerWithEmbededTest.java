@@ -9,12 +9,12 @@ import org.springframework.util.CollectionUtils;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalInstanceWithManager;
+import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.CanalHASwitchable;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
-import com.alibaba.otter.shared.common.model.canal.Canal;
 
 public abstract class BaseCanalServerWithEmbededTest {
 

@@ -24,15 +24,12 @@ import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
 import com.alibaba.otter.canal.deployer.InstanceConfig.InstanceMode;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
-import com.alibaba.otter.canal.instance.manager.CanalCommmunicationClient;
 import com.alibaba.otter.canal.instance.manager.CanalConfigClient;
 import com.alibaba.otter.canal.instance.manager.ManagerCanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
-import com.alibaba.otter.shared.communication.core.impl.DefaultCommunicationClientImpl;
-import com.alibaba.otter.shared.communication.core.impl.dubbo.DubboCommunicationConnectionFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
 
@@ -217,17 +214,7 @@ public class CanalController {
     }
 
     private CanalConfigClient getManagerClient(String managerAddress) {
-        DefaultCommunicationClientImpl canalCommmunicationClient = new DefaultCommunicationClientImpl();
-        canalCommmunicationClient.setPoolSize(10);
-        canalCommmunicationClient.setFactory(new DubboCommunicationConnectionFactory());
-
-        CanalCommmunicationClient canalCommunicationClientDelegate = new CanalCommmunicationClient();
-        canalCommunicationClientDelegate.setManagerAddress(managerAddress);
-        canalCommunicationClientDelegate.setDelegate(canalCommmunicationClient);
-
-        CanalConfigClient managerClient = new CanalConfigClient();
-        managerClient.setDelegate(canalCommunicationClientDelegate);
-        return managerClient;
+        return new CanalConfigClient();
     }
 
     private BeanFactory getBeanFactory(String springXml) {

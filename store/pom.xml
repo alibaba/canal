@@ -30,11 +30,6 @@
 		<!-- test dependency -->
 		<dependency>
 			<groupId>com.alibaba.external</groupId>
-			<artifactId>sourceforge.spring.modules.test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.external</groupId>
 			<artifactId>test.junit</artifactId>
 			<scope>test</scope>
 		</dependency>

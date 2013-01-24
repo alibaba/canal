@@ -13,16 +13,6 @@
 	<name>canal instance manager module for otter</name>
 	<dependencies>
 		<dependency>
-			<groupId>com.alibaba.platform.shared</groupId>
-			<artifactId>otter.shared.common</artifactId>
-			<version>4.1.6</version>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.platform.shared</groupId>
-			<artifactId>otter.shared.communication</artifactId>
-			<version>4.1.6</version>
-		</dependency>
-		<dependency>
 			<groupId>com.alibaba.otter</groupId>
 			<artifactId>canal.instance.core</artifactId>
 			<version>${project.version}</version>

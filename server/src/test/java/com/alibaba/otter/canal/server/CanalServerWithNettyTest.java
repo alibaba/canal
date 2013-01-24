@@ -13,6 +13,13 @@ import org.junit.Test;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalInstanceWithManager;
+import com.alibaba.otter.canal.instance.manager.model.Canal;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.HAMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.IndexMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
 import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAck;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
@@ -26,13 +33,6 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
-import com.alibaba.otter.shared.common.model.canal.Canal;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.HAMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.IndexMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.MetaMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.SourcingType;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.StorageMode;
 
 public class CanalServerWithNettyTest {
 

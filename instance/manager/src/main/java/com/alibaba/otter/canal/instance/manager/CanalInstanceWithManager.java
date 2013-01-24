@@ -14,10 +14,20 @@ import org.springframework.util.CollectionUtils;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
+import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceSupport;
+import com.alibaba.otter.canal.instance.manager.model.Canal;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.DataSourcing;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.HAMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.IndexMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageScavengeMode;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.meta.MemoryMetaManager;
 import com.alibaba.otter.canal.meta.PeriodMixedMetaManager;
@@ -45,16 +55,6 @@ import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
 import com.alibaba.otter.canal.store.model.Event;
-import com.alibaba.otter.shared.common.model.canal.Canal;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.DataSourcing;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.HAMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.IndexMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.MetaMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.SourcingType;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.StorageMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.StorageScavengeMode;
-import com.alibaba.otter.shared.common.utils.JsonUtils;
 
 /**
  * 单个canal实例，比如一个destination会独立一个实例

@@ -3,13 +3,13 @@ package com.alibaba.otter.canal.server;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
-import com.alibaba.otter.shared.common.model.canal.Canal;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.HAMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.IndexMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.MetaMode;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.SourcingType;
-import com.alibaba.otter.shared.common.model.canal.CanalParameter.StorageMode;
+import com.alibaba.otter.canal.instance.manager.model.Canal;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.HAMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.IndexMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
 
 public class CanalServerWithEmbeded_StandaloneTest extends BaseCanalServerWithEmbededTest {
 

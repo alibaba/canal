@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.instance.manager;
 
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
-import com.alibaba.otter.shared.common.model.canal.Canal;
+import com.alibaba.otter.canal.instance.manager.model.Canal;
 
 /**
  * 基于manager生成对应的{@linkplain CanalInstance}
