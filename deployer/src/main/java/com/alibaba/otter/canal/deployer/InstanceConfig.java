@@ -16,8 +16,8 @@ public class InstanceConfig {
     private InstanceMode   mode;
     private Boolean        lazy;
     private String         managerAddress;
-    private String         springRootDir;
-    private String         springCustomDir;
+    private String         springRootXml;
+    private String         springCustomXml;
 
     public InstanceConfig(){
 
@@ -75,28 +75,28 @@ public class InstanceConfig {
         this.managerAddress = managerAddress;
     }
 
-    public String getSpringRootDir() {
-        if (springRootDir == null && globalConfig != null) {
-            return globalConfig.getSpringRootDir();
+    public String getSpringRootXml() {
+        if (springRootXml == null && globalConfig != null) {
+            return globalConfig.getSpringRootXml();
         } else {
-            return springRootDir;
+            return springRootXml;
         }
     }
 
-    public void setSpringRootDir(String springRootDir) {
-        this.springRootDir = springRootDir;
+    public void setSpringRootXml(String springRootXml) {
+        this.springRootXml = springRootXml;
     }
 
-    public String getSpringCustomDir() {
-        if (springCustomDir == null && globalConfig != null) {
-            return globalConfig.getSpringCustomDir();
+    public String getSpringCustomXml() {
+        if (springCustomXml == null && globalConfig != null) {
+            return globalConfig.getSpringCustomXml();
         } else {
-            return springCustomDir;
+            return springCustomXml;
         }
     }
 
-    public void setSpringCustomDir(String springCustomDir) {
-        this.springCustomDir = springCustomDir;
+    public void setSpringCustomXml(String springCustomXml) {
+        this.springCustomXml = springCustomXml;
     }
 
     public String toString() {

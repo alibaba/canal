@@ -47,7 +47,7 @@ public class MetaLogPositionManagerTest extends AbstractLogPositionManagerTest {
         metaManager.start();
 
         MetaLogPositionManager logPositionManager = new MetaLogPositionManager();
-        logPositionManager.setCanalMetaManager(metaManager);
+        logPositionManager.setMetaManager(metaManager);
         logPositionManager.start();
         // 构建meta信息
         ClientIdentity client1 = new ClientIdentity(destination, (short) 1);

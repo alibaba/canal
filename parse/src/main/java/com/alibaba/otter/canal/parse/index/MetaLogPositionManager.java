@@ -22,20 +22,20 @@ import com.alibaba.otter.canal.store.helper.CanalEventUtils;
 public class MetaLogPositionManager extends AbstractCanalLifeCycle implements CanalLogPositionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(MetaLogPositionManager.class);
-    private CanalMetaManager    canalMetaManager;
+    private CanalMetaManager    metaManager;
 
     public void start() {
         super.start();
-        Assert.notNull(canalMetaManager);
-        if (!canalMetaManager.isStart()) {
-            canalMetaManager.start();
+        Assert.notNull(metaManager);
+        if (!metaManager.isStart()) {
+            metaManager.start();
         }
     }
 
     public void stop() {
         super.stop();
-        if (canalMetaManager.isStart()) {
-            canalMetaManager.stop();
+        if (metaManager.isStart()) {
+            metaManager.stop();
         }
     }
 
@@ -45,12 +45,12 @@ public class MetaLogPositionManager extends AbstractCanalLifeCycle implements Ca
     }
 
     public LogPosition getLatestIndexBy(String destination) {
-        List<ClientIdentity> clientIdentitys = canalMetaManager.listAllSubscribeInfo(destination);
+        List<ClientIdentity> clientIdentitys = metaManager.listAllSubscribeInfo(destination);
         LogPosition result = null;
         if (!CollectionUtils.isEmpty(clientIdentitys)) {
             // 尝试找到一个最小的logPosition
             for (ClientIdentity clientIdentity : clientIdentitys) {
-                LogPosition position = (LogPosition) canalMetaManager.getCursor(clientIdentity);
+                LogPosition position = (LogPosition) metaManager.getCursor(clientIdentity);
                 if (position == null) {
                     continue;
                 }
@@ -66,8 +66,8 @@ public class MetaLogPositionManager extends AbstractCanalLifeCycle implements Ca
         return result;
     }
 
-    public void setCanalMetaManager(CanalMetaManager canalMetaManager) {
-        this.canalMetaManager = canalMetaManager;
+    public void setMetaManager(CanalMetaManager metaManager) {
+        this.metaManager = metaManager;
     }
 
 }

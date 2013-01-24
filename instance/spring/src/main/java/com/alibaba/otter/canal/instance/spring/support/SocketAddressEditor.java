@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.instance.spring.editor;
+package com.alibaba.otter.canal.instance.spring.support;
 
 import java.beans.PropertyEditorSupport;
 import java.net.InetSocketAddress;

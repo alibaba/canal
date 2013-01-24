@@ -62,6 +62,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private MysqlHeartBeatTimeTask mysqlHeartBeatTimeTask;
     private MysqlConnection        metaConnection;                               // 查询meta信息的链接
     private TableMetaCache         tableMetaCache;                               // 对应meta cache
+    private int                    fallbackIntervalInSeconds         = 60;       // 切换回退时间
     // 心跳检查
     private volatile Timer         timer;
 
@@ -340,7 +341,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             if (logPosition.getIdentity().getSourceAddress().equals(mysqlConnection.getAddress())) {
                 return logPosition.getPostion();
             } else {
-                return findByStartTimeStamp(mysqlConnection, logPosition.getPostion().getTimestamp());
+                // 针对切换的情况，考虑回退时间
+                long newStartTimestamp = logPosition.getPostion().getTimestamp() - fallbackIntervalInSeconds;
+                return findByStartTimeStamp(mysqlConnection, newStartTimestamp);
             }
         }
     }
@@ -668,6 +671,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDetectingEnable(boolean detectingEnable) {
         this.detectingEnable = detectingEnable;
+    }
+
+    public void setFallbackIntervalInSeconds(int fallbackIntervalInSeconds) {
+        this.fallbackIntervalInSeconds = fallbackIntervalInSeconds;
     }
 
 }

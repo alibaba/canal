@@ -24,7 +24,9 @@ public class CanalConstants {
     public static final String INSTANCE_MODE_TEMPLATE            = ROOT + "." + "instance.{0}.mode";
     public static final String INSTANCE_LAZY_TEMPLATE            = ROOT + "." + "instance.{0}.lazy";
     public static final String INSTANCE_MANAGER_ADDRESS_TEMPLATE = ROOT + "." + "instance.{0}.manager.address";
-    public static final String INSTANCE_SPRING_DIR_TEMPLATE      = ROOT + "." + "instance.{0}.spring.dir";
+    public static final String INSTANCE_SPRING_XML_TEMPLATE      = ROOT + "." + "instance.{0}.spring.xml";
+
+    public static final String CANAL_DESTINATION_PROPERTY        = ROOT + ".instance.destination";
 
     public static String getInstanceModeKey(String destination) {
         return MessageFormat.format(INSTANCE_MODE_TEMPLATE, destination);
@@ -34,8 +36,8 @@ public class CanalConstants {
         return MessageFormat.format(INSTANCE_MANAGER_ADDRESS_TEMPLATE, destination);
     }
 
-    public static String getInstancSpringDirKey(String destination) {
-        return MessageFormat.format(INSTANCE_SPRING_DIR_TEMPLATE, destination);
+    public static String getInstancSpringXmlKey(String destination) {
+        return MessageFormat.format(INSTANCE_SPRING_XML_TEMPLATE, destination);
     }
 
     public static String getInstancLazyKey(String destination) {

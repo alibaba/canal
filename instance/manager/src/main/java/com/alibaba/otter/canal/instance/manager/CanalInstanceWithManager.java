@@ -338,11 +338,11 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             ((PeriodMixedLogPositionManager) logPositionManager).setZooKeeperLogPositionManager(zooKeeperLogPositionManager);
         } else if (indexMode.isMeta()) {
             logPositionManager = new MetaLogPositionManager();
-            ((MetaLogPositionManager) logPositionManager).setCanalMetaManager(metaManager);
+            ((MetaLogPositionManager) logPositionManager).setMetaManager(metaManager);
         } else if (indexMode.isMemoryMetaFailback()) {
             MemoryLogPositionManager primaryLogPositionManager = new MemoryLogPositionManager();
             MetaLogPositionManager failbackLogPositionManager = new MetaLogPositionManager();
-            failbackLogPositionManager.setCanalMetaManager(metaManager);
+            failbackLogPositionManager.setMetaManager(metaManager);
 
             logPositionManager = new FailbackLogPositionManager();
             ((FailbackLogPositionManager) logPositionManager).setPrimary(primaryLogPositionManager);

@@ -30,13 +30,13 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
  * @author zebin.xuzb @ 2012-7-13
  * @version 1.0.0
  */
-public class SpringInstanceTest {
+public class DefaultSpringInstanceTest {
 
     private ApplicationContext context;
 
     @Before
     public void start() {
-        context = new ClassPathXmlApplicationContext(new String[] { "canal.xml" });
+        context = new ClassPathXmlApplicationContext(new String[] { "spring/default-instance.xml" });
     }
 
     @After

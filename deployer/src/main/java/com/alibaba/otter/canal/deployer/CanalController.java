@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
@@ -177,9 +177,9 @@ public class CanalController {
             globalConfig.setManagerAddress(managerAddress);
         }
 
-        String springDir = getProperty(properties, CanalConstants.getInstancSpringDirKey(CanalConstants.GLOBAL_NAME));
-        if (StringUtils.isNotEmpty(springDir)) {
-            globalConfig.setSpringRootDir(springDir);
+        String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(CanalConstants.GLOBAL_NAME));
+        if (StringUtils.isNotEmpty(springXml)) {
+            globalConfig.setSpringRootXml(springXml);
         }
         instanceConfigs.put(CanalConstants.GLOBAL_NAME, globalConfig);
 
@@ -197,8 +197,16 @@ public class CanalController {
                     return instanceGenerator.generate(destination);
                 } else if (config.getMode().isSpring()) {
                     SpringCanalInstanceGenerator instanceGenerator = new SpringCanalInstanceGenerator();
-                    instanceGenerator.setBeanFactory(springClients.get(config.getSpringRootDir()));
-                    return instanceGenerator.generate(destination);
+                    synchronized (this) {
+                        try {
+                            // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
+                            System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, destination);
+                            instanceGenerator.setBeanFactory(springClients.get(config.getSpringRootXml()));
+                            return instanceGenerator.generate(destination);
+                        } finally {
+                            System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, "");
+                        }
+                    }
                 } else {
                     throw new UnsupportedOperationException("unknow mode :" + config.getMode());
                 }
@@ -222,8 +230,8 @@ public class CanalController {
         return managerClient;
     }
 
-    private BeanFactory getBeanFactory(String springDir) {
-        ApplicationContext applicationContext = new FileSystemXmlApplicationContext(springDir + "/*.xml");
+    private BeanFactory getBeanFactory(String springXml) {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
         return applicationContext;
     }
 
@@ -259,9 +267,9 @@ public class CanalController {
                 config.setManagerAddress(managerAddress);
             }
         } else if (config.getMode().isSpring()) {
-            String springDir = getProperty(properties, CanalConstants.getInstancSpringDirKey(destination));
-            if (StringUtils.isNotEmpty(springDir)) {
-                config.setSpringRootDir(springDir);
+            String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(destination));
+            if (StringUtils.isNotEmpty(springXml)) {
+                config.setSpringCustomXml(springXml);
             }
         }
 
