@@ -37,9 +37,9 @@
 	</licenses>
 
 	<scm>
-		<url>git@github.com:agapple/canal.git</url>
-		<connection>scm:git:git@github.com:agapple/canal.git</connection>
-		<developerConnection>scm:git:git@github.com:agapple/canal.git</developerConnection>
+    <url>git@github.com:otter-projects/canal.git</url>
+    <connection>scm:git:git@github.com:otter-projects/canal.git</connection>
+    <developerConnection>scm:git:git@github.com:otter-projects/canal.git</developerConnection>
 	</scm>
 	
 	<repositories>
