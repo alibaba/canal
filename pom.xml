@@ -21,6 +21,12 @@
 			<email>jianghang115@gmail.com</email>
 			<timezone>8</timezone>
 		</developer>
+		<developer>
+			<name>zavakid</name>
+			<url>http://www.zavakid.com</url>
+			<email>zava.kid@gmail.com</email>
+			<timezone>8</timezone>
+		</developer>
 	</developers>
 
 	<licenses>
