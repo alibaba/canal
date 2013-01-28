@@ -127,6 +127,12 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         logger.info("start CannalInstance for {}-{} with parameters:{}", new Object[] { canalId, destination,
                 parameters });
 
+        if (!metaManager.isStart()) {
+            beforeStartMetaManager(metaManager);
+            metaManager.start();
+            afterStartMetaManager(metaManager);
+        }
+
         if (!eventStore.isStart()) {
             beforeStartEventStore(eventStore);
             eventStore.start();
@@ -234,7 +240,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
 
     public boolean subscribeChange(ClientIdentity identity) {
         if (StringUtils.isNotEmpty(identity.getFilter())) {
-            AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
+            AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(identity.getFilter());
             ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
         }
 

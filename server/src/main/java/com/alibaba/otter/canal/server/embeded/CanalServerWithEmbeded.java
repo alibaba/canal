@@ -81,26 +81,23 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
     }
 
     public void start(final String destination) {
-        if (!canalInstances.containsKey(destination)) {
-            final CanalInstance canalInstance = canalInstances.get(destination);
-            if (!canalInstance.isStart()) {
-                try {
-                    MDC.put("destination", destination);
-                    canalInstance.start();
-                    logger.info("start CanalInstances[{}] successfully", destination);
-                } finally {
-                    MDC.remove("destination");
-                }
+        final CanalInstance canalInstance = canalInstances.get(destination);
+        if (!canalInstance.isStart()) {
+            try {
+                MDC.put("destination", destination);
+                canalInstance.start();
+                logger.info("start CanalInstances[{}] successfully", destination);
+            } finally {
+                MDC.remove("destination");
             }
         }
     }
 
     public void stop(String destination) {
-        if (canalInstances.containsKey(destination)) {
-            CanalInstance canalInstance = canalInstances.get(destination);
+        CanalInstance canalInstance = canalInstances.remove(destination);
+        if (canalInstance != null) {
             if (canalInstance.isStart()) {
                 try {
-                    canalInstances.remove(destination);
                     MDC.put("destination", destination);
                     canalInstance.stop();
                     logger.info("stop CanalInstances[{}] successfully", destination);
@@ -120,6 +117,10 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
      */
     public void subscribe(ClientIdentity clientIdentity) throws CanalServerException {
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
+        if (!canalInstance.getMetaManager().isStart()) {
+            canalInstance.getMetaManager().start();
+        }
+
         canalInstance.getMetaManager().subscribe(clientIdentity); // 执行一下meta订阅
 
         Position position = canalInstance.getMetaManager().getCursor(clientIdentity);

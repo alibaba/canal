@@ -43,8 +43,6 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
 
     public void stop() {
         super.stop();
-
-        eventStore = null;
     }
 
     public boolean filter(List<Entry> event, InetSocketAddress remoteAddress, String destination) {

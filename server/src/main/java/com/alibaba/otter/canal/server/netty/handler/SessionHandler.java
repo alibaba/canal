@@ -203,12 +203,9 @@ public class SessionHandler extends SimpleChannelHandler {
     private void stopCanalInstanceIfNecessary(ClientIdentity clientIdentity) {
         List<ClientIdentity> clientIdentitys = embededServer.listAllSubscribe(clientIdentity.getDestination());
         if (clientIdentitys != null && clientIdentitys.size() == 1 && clientIdentitys.contains(clientIdentity)) {
-            if (embededServer.isStart(clientIdentity.getDestination())) {
-                embededServer.stop(clientIdentity.getDestination());
-                ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
-                if (runningMonitor.isStart()) {
-                    runningMonitor.stop();
-                }
+            ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
+            if (runningMonitor.isStart()) {
+                runningMonitor.stop();
             }
         }
     }

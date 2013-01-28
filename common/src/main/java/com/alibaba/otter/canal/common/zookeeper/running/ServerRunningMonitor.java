@@ -126,7 +126,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
                 activeData = JsonUtils.unmarshalFromByte(bytes, ServerRunningData.class);
             }
         } catch (ZkNoNodeException e) {
-            zkClient.createPersistent(path, true); // 尝试创建父节点
+            zkClient.createPersistent(ZookeeperPathUtils.getDestinationPath(destination), true); // 尝试创建父节点
             initRunning();
         }
     }

@@ -15,7 +15,11 @@ public class SocketAddressEditor extends PropertyEditorSupport implements Proper
 
     public void setAsText(String text) throws IllegalArgumentException {
         String[] addresses = StringUtils.split(text, ":");
-        setValue(new InetSocketAddress(addresses[0], Integer.valueOf(addresses[1])));
+        if (addresses.length > 0) {
+            setValue(new InetSocketAddress(addresses[0], Integer.valueOf(addresses[1])));
+        } else {
+            setValue(null);
+        }
     }
 
 }

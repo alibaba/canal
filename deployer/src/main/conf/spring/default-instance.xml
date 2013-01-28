@@ -101,7 +101,7 @@
 		<!-- 解析过滤处理 -->
 		<property name="eventFilter">
 			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
-				<constructor-arg index="0" value="${canal.instance.filter.regex}:.*\\..*" />
+				<constructor-arg index="0" value="${canal.instance.filter.regex:.*\..*}" />
 			</bean>
 		</property>
 		

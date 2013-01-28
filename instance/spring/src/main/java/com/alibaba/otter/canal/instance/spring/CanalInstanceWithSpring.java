@@ -2,15 +2,18 @@ package com.alibaba.otter.canal.instance.spring;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceSupport;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
+import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
@@ -62,13 +65,27 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
     }
 
     public boolean subscribeChange(ClientIdentity identity) {
-        return false;
+        if (StringUtils.isNotEmpty(identity.getFilter())) {
+            AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(identity.getFilter());
+            ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+        }
+
+        // filter的处理规则
+        // a. parser处理数据过滤处理
+        // b. sink处理数据的路由&分发,一份parse数据经过sink后可以分发为多份，每份的数据可以根据自己的过滤规则不同而有不同的数据
+        // 后续内存版的一对多分发，可以考虑
+        return true;
     }
 
     public void start() {
         super.start();
 
         logger.info("start CannalInstance for {}-{} ", new Object[] { 1, destination });
+        if (!metaManager.isStart()) {
+            beforeStartMetaManager(metaManager);
+            metaManager.start();
+            afterStartMetaManager(metaManager);
+        }
 
         if (!eventStore.isStart()) {
             beforeStartEventStore(eventStore);
@@ -142,6 +159,7 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
     }
 
     // ======== setter ========
+
     public void setDestination(String destination) {
         this.destination = destination;
     }
