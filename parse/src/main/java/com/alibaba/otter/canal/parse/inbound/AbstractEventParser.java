@@ -141,10 +141,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         erosaConnection.connect();// 链接
                         // 2. 获取最后的位置信息
                         final EntryPosition startPosition = findStartPosition(erosaConnection);
-                        logger.info("find start position : {}", startPosition.toString());
                         if (startPosition == null) {
                             throw new CanalParseException("can't find start position for {} " + destination);
                         }
+                        logger.info("find start position : {}", startPosition.toString());
                         // 重新链接，因为在找position过程中可能有状态，需要断开后重建
                         erosaConnection.reconnect();
                         // 3. 执行dump前的准备工作

@@ -40,6 +40,7 @@ import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
@@ -71,6 +72,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private Charset                     charset             = Charset.defaultCharset();
 
     public Entry parse(LogEvent logEvent) throws CanalParseException {
+        if (logEvent == null || logEvent instanceof UnknownLogEvent) {
+            return null;
+        }
+
         int eventType = logEvent.getHeader().getType();
         switch (eventType) {
             case LogEvent.ROTATE_EVENT:
