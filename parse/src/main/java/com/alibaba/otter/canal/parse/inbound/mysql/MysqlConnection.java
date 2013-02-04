@@ -136,6 +136,7 @@ public class MysqlConnection implements ErosaConnection {
         DirectLogFetcher fetcher = new DirectLogFetcher(getReceiveBufferSize());
         fetcher.start(channel);
         LogDecoder decoder = new LogDecoder();
+        decoder.handle(LogEvent.ROTATE_EVENT);
         decoder.handle(LogEvent.QUERY_EVENT);
         decoder.handle(LogEvent.XID_EVENT);
         LogContext context = new LogContext();

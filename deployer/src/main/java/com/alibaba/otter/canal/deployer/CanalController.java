@@ -48,7 +48,6 @@ public class CanalController {
     // 默认使用spring的方式载入
     private Map<String, InstanceConfig>    instanceConfigs;
     private Map<String, CanalConfigClient> managerClients;
-    private Map<String, BeanFactory>       springClients;
     private CanalServerWithEmbeded         embededCanalServer;
     private CanalServerWithNetty           canalServer;
 
@@ -65,13 +64,6 @@ public class CanalController {
 
             public CanalConfigClient apply(String managerAddress) {
                 return getManagerClient(managerAddress);
-            }
-        });
-
-        springClients = new MapMaker().makeComputingMap(new Function<String, BeanFactory>() {
-
-            public BeanFactory apply(String springDir) {
-                return getBeanFactory(springDir);
             }
         });
 
@@ -198,7 +190,7 @@ public class CanalController {
                         try {
                             // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, destination);
-                            instanceGenerator.setBeanFactory(springClients.get(config.getSpringRootXml()));
+                            instanceGenerator.setBeanFactory(getBeanFactory(config.getSpringRootXml()));
                             return instanceGenerator.generate(destination);
                         } finally {
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, "");

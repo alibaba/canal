@@ -12,7 +12,6 @@
 	<artifactId>canal.client</artifactId>
 	<packaging>jar</packaging>
 	<name>canal client module for otter</name>
-	<url>http://b2b-doc.alibaba-inc.com/display/opentech/Otter</url>
 	<dependencies>
 		<dependency>
 			<groupId>com.alibaba.otter</groupId>

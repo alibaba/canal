@@ -308,7 +308,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 if (entryPosition.getTimestamp() != null && entryPosition.getTimestamp() > 0L) {
                     return findByStartTimeStamp(mysqlConnection, entryPosition.getTimestamp());
                 } else {
-                    return null;
+                    return findEndPosition(mysqlConnection); // 默认从当前最后一个位置进行消费
                 }
             } else {
                 if (entryPosition.getPosition() != null && entryPosition.getPosition() > 0L) {
@@ -435,6 +435,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     // 根据时间查找binlog位置
     private EntryPosition findByStartTimeStamp(MysqlConnection mysqlConnection, Long startTimestamp) {
         EntryPosition endPosition = findEndPosition(mysqlConnection);
+        EntryPosition startPosition = findStartPosition(mysqlConnection);
+        String maxBinlogFileName = startPosition.getJournalName();
+        String minBinlogFileName = startPosition.getJournalName();
         logger.info("show master status to set search end condition:{} ", endPosition);
         String startSearchBinlogFile = endPosition.getJournalName();
         boolean shouldBreak = false;
@@ -443,25 +446,34 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 EntryPosition entryPosition = findAsPerTimestampInSpecificLogFile(mysqlConnection, startTimestamp,
                                                                                   endPosition, startSearchBinlogFile);
                 if (entryPosition == null) {
-                    // 继续往前找
-                    int binlogSeqNum = Integer.parseInt(startSearchBinlogFile.substring(startSearchBinlogFile.indexOf(".") + 1));
-                    if (binlogSeqNum <= 1) {
-                        logger.warn("Didn't find the corresponding binlog files");
+                    if (StringUtils.equalsIgnoreCase(minBinlogFileName, startSearchBinlogFile)) {
+                        // 已经找到最早的一个binlog，没必要往前找了
                         shouldBreak = true;
+                        logger.warn("Didn't find the corresponding binlog files from {} to {}", minBinlogFileName,
+                                    maxBinlogFileName);
                     } else {
-                        int nextBinlogSeqNum = binlogSeqNum - 1;
-                        String binlogFileNamePrefix = startSearchBinlogFile.substring(
-                                                                                      0,
-                                                                                      startSearchBinlogFile.indexOf(".") + 1);
-                        String binlogFileNameSuffix = String.format("%06d", nextBinlogSeqNum);
-                        startSearchBinlogFile = binlogFileNamePrefix + binlogFileNameSuffix;
+                        // 继续往前找
+                        int binlogSeqNum = Integer.parseInt(startSearchBinlogFile.substring(startSearchBinlogFile.indexOf(".") + 1));
+                        if (binlogSeqNum <= 1) {
+                            logger.warn("Didn't find the corresponding binlog files");
+                            shouldBreak = true;
+                        } else {
+                            int nextBinlogSeqNum = binlogSeqNum - 1;
+                            String binlogFileNamePrefix = startSearchBinlogFile.substring(
+                                                                                          0,
+                                                                                          startSearchBinlogFile.indexOf(".") + 1);
+                            String binlogFileNameSuffix = String.format("%06d", nextBinlogSeqNum);
+                            startSearchBinlogFile = binlogFileNamePrefix + binlogFileNameSuffix;
+                        }
                     }
                 } else {
                     logger.info("found and return:{} in findByStartTimeStamp operation.", entryPosition);
                     return entryPosition;
                 }
             } catch (Exception e) {
-                logger.info("the binlogfile:{} doesn't exist, to continue to search the next binlogfile");
+                logger.warn(
+                            "the binlogfile:{} doesn't exist, to continue to search the next binlogfile , caused by {}",
+                            startSearchBinlogFile, ExceptionUtils.getFullStackTrace(e));
                 int binlogSeqNum = Integer.parseInt(startSearchBinlogFile.substring(startSearchBinlogFile.indexOf(".") + 1));
                 if (binlogSeqNum <= 1) {
                     logger.warn("Didn't find the corresponding binlog files");
@@ -486,6 +498,22 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private EntryPosition findEndPosition(MysqlConnection mysqlConnection) {
         try {
             ResultSetPacket packet = mysqlConnection.query("show master status");
+            List<String> fields = packet.getFieldValues();
+            EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
+            return endPosition;
+        } catch (IOException e) {
+            logger.error("find end position error", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * 查询当前的binlog位置
+     */
+    private EntryPosition findStartPosition(MysqlConnection mysqlConnection) {
+        try {
+            ResultSetPacket packet = mysqlConnection.query("show binlog events limit 1");
             List<String> fields = packet.getFieldValues();
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
