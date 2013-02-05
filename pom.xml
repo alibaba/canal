@@ -5,8 +5,8 @@
 	<artifactId>canal</artifactId>
 	<packaging>pom</packaging>
 	<name>canal module for otter</name>
-	<version>1.0.0</version>
-	<url>https://github.com/agapple/canal</url>
+	<version>1.0.1-SNAPSHOT</version>
+	<url>https://github.com/otter-projects/canal</url>
 	
 	<parent>
 	    <groupId>org.sonatype.oss</groupId>
