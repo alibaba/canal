@@ -24,7 +24,7 @@ public class SimpleDdlParser {
     public static final String CREATE_PATTERN = "^\\s*CREATE\\s*TABLE\\s*(.*)$";
     public static final String DROP_PATTERN   = "^\\s*DROP\\s*TABLE\\s*(.*)$";
     public static final String ALERT_PATTERN  = "^\\s*ALTER\\s*TABLE\\s*(.*)$";
-    public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\s]+)?.*$"; // 采用非贪婪模式
+    public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\s]+?)?.*$"; // 采用非贪婪模式
 
     public static DdlResult parse(String queryString, String schmeaName) {
         DdlResult result = parse(queryString, schmeaName, ALERT_PATTERN);
@@ -52,7 +52,7 @@ public class SimpleDdlParser {
         Perl5Matcher matcher = new Perl5Matcher();
         if (matcher.matches(queryString, PatternUtils.getPattern(pattern))) {
             Perl5Matcher tableMatcher = new Perl5Matcher();
-            String matchString = matcher.getMatch().group(1);
+            String matchString = matcher.getMatch().group(1) + " ";
             if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
                 String schmeaString = tableMatcher.getMatch().group(3);
                 String tableString = tableMatcher.getMatch().group(4);

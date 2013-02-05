@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.SocketChannel;
 
 import org.slf4j.Logger;
@@ -125,7 +126,11 @@ public class DirectLogFetcher extends LogFetcher {
             throw e;
         } catch (InterruptedIOException e) {
             close(); /* Do cleanup */
-            logger.warn("I/O interrupted while reading from client socket", e);
+            logger.info("I/O interrupted while reading from client socket", e);
+            throw e;
+        } catch (ClosedByInterruptException e) {
+            close(); /* Do cleanup */
+            logger.info("I/O interrupted while reading from client socket", e);
             throw e;
         } catch (IOException e) {
             close(); /* Do cleanup */

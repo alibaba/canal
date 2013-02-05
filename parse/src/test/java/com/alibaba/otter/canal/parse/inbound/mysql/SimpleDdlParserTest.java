@@ -39,7 +39,7 @@ public class SimpleDdlParserTest {
 
     @Test
     public void testDrop() {
-        String queryString = "DROP TABLE retl_mark ;";
+        String queryString = "DROP TABLE retl_mark";
         DdlResult result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());

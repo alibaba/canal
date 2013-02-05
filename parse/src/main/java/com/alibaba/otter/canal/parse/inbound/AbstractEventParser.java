@@ -195,7 +195,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                                    runningInfo.getAddress().toString()), e);
                     } catch (Throwable e) {
                         if (!running) {
-                            if (!(e.getCause() instanceof java.nio.channels.ClosedByInterruptException)) {
+                            if (!(e instanceof java.nio.channels.ClosedByInterruptException || e.getCause() instanceof java.nio.channels.ClosedByInterruptException)) {
                                 throw new CanalParseException(String.format("dump address %s has an error, retrying. ",
                                                                             runningInfo.getAddress().toString()), e);
                             }
