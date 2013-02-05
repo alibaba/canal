@@ -63,8 +63,8 @@
 		</dependency>
 		<!-- junit -->
 		<dependency>
-		  <groupId>com.alibaba.external</groupId>
-		  <artifactId>test.junit</artifactId>
+		  <groupId>junit</groupId>
+		  <artifactId>junit</artifactId>
 		</dependency>
   </dependencies>
 </project>

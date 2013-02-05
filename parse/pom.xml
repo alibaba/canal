@@ -43,13 +43,13 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.external</groupId>
-			<artifactId>jboss.jboss-netty</artifactId>
+			<groupId>org.jboss.netty</groupId>
+			<artifactId>netty</artifactId>
 		</dependency>
 		<!-- test dependency -->
 		<dependency>
-			<groupId>com.alibaba.external</groupId>
-			<artifactId>test.junit</artifactId>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
