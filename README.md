@@ -173,3 +173,149 @@ canal.instance.filter.regex = .*\\..*
 <p>it's over. </p>
 </div>
 <h1>ClientExample</h1>
+<p>依赖配置：(目前暂未正式发布到mvn仓库，所以需要各位下载canal源码后手工执行下mvn clean install -Dmaven.test.skip)</p>
+<pre name="code" class="java">&lt;dependency&gt;
+    &lt;groupId&gt;com.alibaba.otter&lt;/groupId&gt;
+    &lt;artifactId&gt;canal.client&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+&lt;/dependency&gt;</pre>
+<p> </p>
+<p>1. 创建mvn标准工程：</p>
+<pre name="code" class="java">mvn archetype:create -DgroupId=com.alibaba.otter -DartifactId=canal.sample</pre>
+<p> </p>
+<p>2.  修改pom.xml，添加依赖</p>
+<p> </p>
+<p>3.  ClientSample代码</p>
+<pre name="code" class="SimpleCanalClientExample">package com.alibaba.otter.canal.sample;
+
+import java.net.InetSocketAddress;
+import java.util.List;
+
+import com.alibaba.otter.canal.common.utils.AddressUtils;
+import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.protocol.CanalEntry.Column;
+import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
+import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
+import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
+import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
+
+public class SimpleCanalClientExample {
+
+    public static void main(String args[]) {
+        // 创建链接
+        CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(AddressUtils.getHostIp(),
+                                                                                            11111), "example", "", "");
+        int batchSize = 1000;
+        int emptyCount = 0;
+        try {
+            connector.connect();
+            connector.subscribe(".*\\..*");
+            connector.rollback();
+            int totalEmtryCount = 120;
+            while (emptyCount &lt; totalEmtryCount) {
+                Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
+                long batchId = message.getId();
+                int size = message.getEntries().size();
+                if (batchId == -1 || size == 0) {
+                    emptyCount++;
+                    System.out.println("empty count : " + emptyCount);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                } else {
+                    emptyCount = 0;
+                    // System.out.printf("message[batchId=%s,size=%s] \n", batchId, size);
+                    printEntry(message.getEntries());
+                }
+
+                connector.ack(batchId); // 提交确认
+                // connector.rollback(batchId); // 处理失败, 回滚数据
+            }
+
+            System.out.println("empty too many times, exit");
+        } finally {
+            connector.disconnect();
+        }
+    }
+
+    private static void printEntry(List&lt;Entry&gt; entrys) {
+        for (Entry entry : entrys) {
+            if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN || entry.getEntryType() == EntryType.TRANSACTIONEND) {
+                continue;
+            }
+
+            RowChange rowChage = null;
+            try {
+                rowChage = RowChange.parseFrom(entry.getStoreValue());
+            } catch (Exception e) {
+                throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
+                                           e);
+            }
+
+            EventType eventType = rowChage.getEventType();
+            System.out.println(String.format("================&gt; binlog[%s:%s] , name[%s,%s] , eventType : %s",
+                                             entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
+                                             entry.getHeader().getSchemaName(), entry.getHeader().getTableName(),
+                                             eventType));
+
+            for (RowData rowData : rowChage.getRowDatasList()) {
+                if (eventType == EventType.DELETE) {
+                    printColumn(rowData.getBeforeColumnsList());
+                } else if (eventType == EventType.INSERT) {
+                    printColumn(rowData.getAfterColumnsList());
+                } else {
+                    System.out.println("-------&gt; before");
+                    printColumn(rowData.getBeforeColumnsList());
+                    System.out.println("-------&gt; after");
+                    printColumn(rowData.getAfterColumnsList());
+                }
+            }
+        }
+    }
+
+    private static void printColumn(List&lt;Column&gt; columns) {
+        for (Column column : columns) {
+            System.out.println(column.getName() + " : " + column.getValue() + "    update=" + column.getUpdated());
+        }
+    }
+}</pre>
+<p> </p>
+<p>4. 运行Client</p>
+<p>首先启动Canal Server，可参加QuickStart : <a style="line-height: 1.5;" href="/blogs/1796070">http://agapple.iteye.com/blogs/1796070</a></p>
+<p>启动Canal Client后，可以从控制台从看到类似消息：</p>
+<pre name="code" class="java">empty count : 1
+empty count : 2
+empty count : 3
+empty count : 4</pre>
+<p> 此时代表当前数据库无变更数据</p>
+<p> </p>
+<p>5.  触发数据库变更</p>
+<pre name="code" class="java">mysql&gt; use test;
+Database changed
+mysql&gt; CREATE TABLE `xdual` (
+    -&gt;   `ID` int(11) NOT NULL AUTO_INCREMENT,
+    -&gt;   `X` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -&gt;   PRIMARY KEY (`ID`)
+    -&gt; ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ;
+Query OK, 0 rows affected (0.06 sec)
+
+mysql&gt; insert into xdual(id,x) values(null,now());Query OK, 1 row affected (0.06 sec)</pre>
+<p> </p>
+<p>可以从控制台中看到：</p>
+<pre name="code" class="java">empty count : 1
+empty count : 2
+empty count : 3
+empty count : 4
+================&gt; binlog[mysql-bin.001946:313661577] , name[test,xdual] , eventType : INSERT
+ID : 4    update=true
+X : 2013-02-05 23:29:46    update=true</pre>
+<p> </p>
+<h2>最后：</h2>
+<p>  整个代码在附件中可以下载，如有问题可及时联系。 </p>
+</div>
+    
+  <div class="attachments">
+<a href="http://dl.iteye.com/topics/download/7a893f19-bafb-313a-8a7a-e371a4265ad9">canal.sample.tar.gz</a> (2.2 KB)
+  </div>
