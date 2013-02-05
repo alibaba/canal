@@ -49,7 +49,39 @@
 <li>eventStore (数据存储)</li>
 <li>metaManager (增量订阅&amp;消费信息管理器)</li>
 </ul>
-
+<h3>数据对象格式：<a href="https://github.com/otter-projects/canal/blob/master/protocol/src/main/java/com/alibaba/otter/canal/protocol/EntryProtocol.proto" style="font-size: 14px; line-height: 1.5; color: #bc2a4d; text-decoration: underline;">EntryProtocol.proto</a>
+</h3>
+<pre name="code" class="java">Entry
+    Header
+		logfileName [binlog文件名]
+		logfileOffset [binlog position]
+		executeTime [发生的变更]
+		schemaName 
+		tableName
+		eventType [insert/update/delete类型]
+	entryType 	[事务头BEGIN/事务尾END/数据ROWDATA]
+	storeValue 	[byte数据,可展开，对应的类型为RowChange]
+	
+RowChange
+	isDdl		[是否是ddl变更操作，比如create table/drop table]
+	sql		[具体的ddl sql]
+	rowDatas	[具体insert/update/delete的变更数据，可为多条，1个binlog event事件可对应多条变更，比如批处理]
+		beforeColumns [Column类型的数组]
+		afterColumns [Column类型的数组]
+		
+Column 
+	index		
+	sqlType		[jdbc type]
+	name		[column name]
+	isKey		[是否为主键]
+	updated		[是否发生过变更]
+	isNull		[值是否为null]
+	value		[具体的内容，注意为文本]</pre>
+<p>说明：</p>
+<ul>
+<li>可以提供数据库变更前和变更后的字段内容，针对binlog中没有的name,isKey等信息进行补全</li>
+<li>可以提供ddl的变更语句</li>
+</ul>
 <h1>QuickStart</h1>
 <p>1.  下载canal</p>
 <p>下载部署包</p>
