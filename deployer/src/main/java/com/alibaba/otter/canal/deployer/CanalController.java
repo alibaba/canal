@@ -306,9 +306,11 @@ public class CanalController {
     public void stop() throws Throwable {
         canalServer.stop();
 
-        for (ServerRunningMonitor runningMonitor : ServerRunningMonitors.getRunningMonitors().values()) {
-            if (runningMonitor.isStart()) {
-                runningMonitor.stop();
+        if (zkclientx != null) {
+            for (ServerRunningMonitor runningMonitor : ServerRunningMonitors.getRunningMonitors().values()) {
+                if (runningMonitor.isStart()) {
+                    runningMonitor.stop();
+                }
             }
         }
 

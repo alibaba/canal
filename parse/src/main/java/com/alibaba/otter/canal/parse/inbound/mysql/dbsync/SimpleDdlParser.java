@@ -76,7 +76,7 @@ public class SimpleDdlParser {
                 tableString = StringUtils.removeStart(tableString, "`");
                 // 处理schema.table的写法
                 String names[] = StringUtils.split(tableString, ".");
-                if (names.length > 1) {
+                if (names != null && names.length > 1) {
                     if (StringUtils.equalsIgnoreCase(schmeaString, names[0])) {
                         return new DdlResult(schmeaString, names[1]);
                     }
