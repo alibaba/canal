@@ -83,19 +83,25 @@ public class CanalController {
         final String zkServers = getProperty(properties, CanalConstants.CANAL_ZKSERVERS);
         if (StringUtils.isNotEmpty(zkServers)) {
             zkclientx = ZkClientx.getZkClient(zkServers);
-            final ServerRunningData serverData = new ServerRunningData(cid, ip + ":" + port);
-            ServerRunningMonitors.setServerData(serverData);
-            ServerRunningMonitors.setRunningMonitors(new MapMaker().makeComputingMap(new Function<String, ServerRunningMonitor>() {
+            // 初始化系统目录
+            zkclientx.createPersistent(ZookeeperPathUtils.DESTINATION_ROOT_NODE, true);
+            zkclientx.createPersistent(ZookeeperPathUtils.CANAL_CLUSTER_ROOT_NODE, true);
+        }
 
-                public ServerRunningMonitor apply(final String destination) {
-                    ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
-                    runningMonitor.setDestination(destination);
-                    runningMonitor.setListener(new ServerRunningListener() {
+        final ServerRunningData serverData = new ServerRunningData(cid, ip + ":" + port);
+        ServerRunningMonitors.setServerData(serverData);
+        ServerRunningMonitors.setRunningMonitors(new MapMaker().makeComputingMap(new Function<String, ServerRunningMonitor>() {
 
-                        public void processActiveEnter() {
-                            try {
-                                MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                                embededCanalServer.start(destination);
+            public ServerRunningMonitor apply(final String destination) {
+                ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
+                runningMonitor.setDestination(destination);
+                runningMonitor.setListener(new ServerRunningListener() {
+
+                    public void processActiveEnter() {
+                        try {
+                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                            embededCanalServer.start(destination);
+                            if (zkclientx != null) {
                                 final String path = ZookeeperPathUtils.getDestinationClusterNode(destination, ip + ":"
                                                                                                               + port);
                                 initCid(path);
@@ -109,34 +115,33 @@ public class CanalController {
                                         initCid(path);
                                     }
                                 });
-                            } finally {
-                                MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
+                        } finally {
+                            MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
+                    }
 
-                        public void processActiveExit() {
-                            try {
-                                MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                    public void processActiveExit() {
+                        try {
+                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                            if (zkclientx != null) {
                                 final String path = ZookeeperPathUtils.getDestinationClusterNode(destination, ip + ":"
                                                                                                               + port);
                                 releaseCid(path);
-                                embededCanalServer.stop(destination);
-                            } finally {
-                                MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
+                            embededCanalServer.stop(destination);
+                        } finally {
+                            MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
+                    }
 
-                    });
-
-                    runningMonitor.setZkClient(ZkClientx.getZkClient(zkServers));
-                    return runningMonitor;
+                });
+                if (zkclientx != null) {
+                    runningMonitor.setZkClient(zkclientx);
                 }
-            }));
-
-            // 初始化系统目录
-            zkclientx.createPersistent(ZookeeperPathUtils.DESTINATION_ROOT_NODE, true);
-            zkclientx.createPersistent(ZookeeperPathUtils.CANAL_CLUSTER_ROOT_NODE, true);
-        }
+                return runningMonitor;
+            }
+        }));
 
         embededCanalServer = new CanalServerWithEmbeded();
         embededCanalServer.setCanalInstanceGenerator(instanceGenerator);// 设置自定义的instanceGenerator
@@ -282,20 +287,10 @@ public class CanalController {
             if (!StringUtils.equalsIgnoreCase(destination, CanalConstants.GLOBAL_NAME)) {
                 // 创建destination的工作节点
                 if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
-                    if (zkclientx != null) {
-                        // HA机制启动
-                        ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
-                        if (!runningMonitor.isStart()) {
-                            runningMonitor.start();
-                        }
-                    } else {
-                        // 普通模式启动
-                        try {
-                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            embededCanalServer.start(destination);
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
-                        }
+                    // HA机制启动
+                    ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
+                    if (!runningMonitor.isStart()) {
+                        runningMonitor.start();
                     }
                 }
 
@@ -306,11 +301,9 @@ public class CanalController {
     public void stop() throws Throwable {
         canalServer.stop();
 
-        if (zkclientx != null) {
-            for (ServerRunningMonitor runningMonitor : ServerRunningMonitors.getRunningMonitors().values()) {
-                if (runningMonitor.isStart()) {
-                    runningMonitor.stop();
-                }
+        for (ServerRunningMonitor runningMonitor : ServerRunningMonitors.getRunningMonitors().values()) {
+            if (runningMonitor.isStart()) {
+                runningMonitor.stop();
             }
         }
 

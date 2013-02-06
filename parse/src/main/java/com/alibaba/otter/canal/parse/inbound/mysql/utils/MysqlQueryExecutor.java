@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.client.QueryCommandPacket;
+import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ResultSetHeaderPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ResultSetPacket;
@@ -37,9 +38,16 @@ public class MysqlQueryExecutor {
         cmd.setQueryString(queryString);
         byte[] bodyBytes = cmd.toBytes();
         PacketManager.write(channel, bodyBytes);
+        byte[] body = readNextPacket();
+
+        if (body[0] < 0) {
+            ErrorPacket packet = new ErrorPacket();
+            packet.fromBytes(body);
+            throw new IOException(packet + "\n with command: " + queryString);
+        }
 
         ResultSetHeaderPacket rsHeader = new ResultSetHeaderPacket();
-        rsHeader.fromBytes(readNextPacket());
+        rsHeader.fromBytes(body);
 
         List<FieldPacket> fields = new ArrayList<FieldPacket>();
         for (int i = 0; i < rsHeader.getColumnCount(); i++) {
@@ -52,7 +60,7 @@ public class MysqlQueryExecutor {
 
         List<RowDataPacket> rowData = new ArrayList<RowDataPacket>();
         while (true) {
-            byte[] body = readNextPacket();
+            body = readNextPacket();
             if (body[0] == -2) {
                 break;
             }

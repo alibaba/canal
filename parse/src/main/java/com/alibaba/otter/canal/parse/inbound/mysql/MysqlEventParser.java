@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.CanalHASwitchable;
@@ -499,6 +500,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         try {
             ResultSetPacket packet = mysqlConnection.query("show master status");
             List<String> fields = packet.getFieldValues();
+            if (CollectionUtils.isEmpty(fields)) {
+                throw new CanalParseException(
+                                              "command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+            }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
         } catch (IOException e) {
@@ -515,6 +520,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         try {
             ResultSetPacket packet = mysqlConnection.query("show binlog events limit 1");
             List<String> fields = packet.getFieldValues();
+            if (CollectionUtils.isEmpty(fields)) {
+                throw new CanalParseException(
+                                              "command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+            }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
         } catch (IOException e) {
@@ -533,6 +542,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             ResultSetPacket packet = mysqlConnection.query("show slave status");
             List<FieldPacket> names = packet.getFieldDescriptors();
             List<String> fields = packet.getFieldValues();
+            if (CollectionUtils.isEmpty(fields)) {
+                return null;
+            }
+
             int i = 0;
             Map<String, String> maps = new HashMap<String, String>(names.size(), 1f);
             for (FieldPacket name : names) {

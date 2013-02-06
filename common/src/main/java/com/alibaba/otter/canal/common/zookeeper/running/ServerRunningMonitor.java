@@ -90,17 +90,25 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
     public void start() {
         super.start();
 
-        String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
-        zkClient.subscribeDataChanges(path, dataListener);
-        initRunning();
+        if (zkClient != null) {
+            String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
+            zkClient.subscribeDataChanges(path, dataListener);
+            initRunning();
+        } else {
+            processActiveEnter();// 没有zk，直接启动
+        }
     }
 
     public void stop() {
         super.stop();
 
-        String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
-        zkClient.unsubscribeDataChanges(path, dataListener);
-        releaseRunning(); // 尝试一下release
+        if (zkClient != null) {
+            String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
+            zkClient.unsubscribeDataChanges(path, dataListener);
+            releaseRunning(); // 尝试一下release
+        } else {
+            processActiveExit(); // 没有zk，直接启动
+        }
 
     }
 
