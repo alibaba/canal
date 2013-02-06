@@ -103,6 +103,9 @@
 		<!-- 解析位点记录 -->
 		<property name="logPositionManager" ref="logPositionManager" />
 		
+		<!-- failover切换时回退的时间 -->
+		<property name="fallbackIntervalInSeconds" value="${canal.instance.fallbackIntervalInSeconds:60}" />
+		
 		<!-- 解析数据库信息 -->
 		<property name="masterInfo">
 			<bean class="com.alibaba.otter.canal.parse.support.AuthenticationInfo">
@@ -144,5 +147,6 @@
 			<ref local="eventParser" />
 		</property>
 		<property name="detectingRetryTimes" value="${canal.instance.detecting.retry.threshold:3}" />
+		<property name="switchEnable" value="${canal.instance.detecting.heartbeatHaEnable:false}" />
 	</bean>
 </beans>

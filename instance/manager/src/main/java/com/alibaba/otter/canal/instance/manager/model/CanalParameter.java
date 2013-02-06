@@ -62,11 +62,12 @@ public class CanalParameter implements Serializable {
     private IndexMode                indexMode;
     private List<String>             positions;                                                      // 数据库positions信息
     private String                   defaultDatabaseName;                                            // 默认链接的数据库schmea
-    private Long                     slaveId;                                                        // 链接到mysql的slave
-    // Id
+    private Long                     slaveId;                                                        // 链接到mysql的slaveId
+    private Integer                  fallbackIntervalInSeconds          = 60;                        // 数据库发生切换查找时回退的时间
 
     // 心跳检查信息
     private Boolean                  detectingEnable                    = true;                      // 是否开启心跳语句
+    private Boolean                  heartbeatHaEnable                  = false;                     // 是否开启基于心跳检查的ha功能
     private String                   detectingSQL;                                                   // 心跳sql
     private Integer                  detectingIntervalInSeconds         = 3;                         // 检测频率
     private Integer                  detectingTimeoutThresholdInSeconds = 30;                        // 心跳超时时间
@@ -735,6 +736,22 @@ public class CanalParameter implements Serializable {
 
     public void setMasterAddress(InetSocketAddress masterAddress) {
         this.masterAddress = masterAddress;
+    }
+
+    public Integer getFallbackIntervalInSeconds() {
+        return fallbackIntervalInSeconds == null ? 60 : fallbackIntervalInSeconds;
+    }
+
+    public void setFallbackIntervalInSeconds(Integer fallbackIntervalInSeconds) {
+        this.fallbackIntervalInSeconds = fallbackIntervalInSeconds;
+    }
+
+    public Boolean getHeartbeatHaEnable() {
+        return heartbeatHaEnable == null ? false : true;
+    }
+
+    public void setHeartbeatHaEnable(Boolean heartbeatHaEnable) {
+        this.heartbeatHaEnable = heartbeatHaEnable;
     }
 
     public String toString() {
