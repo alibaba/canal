@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>com.alibaba.otter</groupId>
 		<artifactId>canal</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.alibaba.otter</groupId>
 	<artifactId>canal.protocol</artifactId>
 	<packaging>jar</packaging>
-	<name>canal protocol module for otter</name>
+	<name>canal protocol module for otter ${project.version}</name>
 	<url>http://b2b-doc.alibaba-inc.com/display/opentech/Otter</url>
 
 	<dependencies>

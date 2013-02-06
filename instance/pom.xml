@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>com.alibaba.otter</groupId>
 		<artifactId>canal</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.alibaba.otter</groupId>
 	<artifactId>canal.instance</artifactId>
 	<packaging>pom</packaging>
-	<name>canal instance</name>
+	<name>canal instance module for otter ${project.version}</name>
 	
 	<modules>
 		<module>core</module>
