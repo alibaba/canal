@@ -83,6 +83,20 @@ Column
 <li>可以提供ddl的变更语句</li>
 </ul>
 <h1>QuickStart</h1>
+<h2>几点说明：(mysql初始化)</h2>
+<p>a.  canal的原理是基于mysql binlog技术，所以这里一定需要开启mysql的binlog写入功能，并且配置binlog模式为row. </p>
+<pre class="java" name="code">[mysqld]
+log-bin=mysql-bin #添加这一行就ok
+binlog-format=ROW #选择row模式
+server_id=1 #配置mysql replaction需要定义，不能和canal的slaveId重复</pre>
+b.  canal的原理是模拟自己为mysql slave，所以这里一定需要做为mysql slave的相关权限.</div>
+<div class="iteye-blog-content-contain">
+<pre class="java" name="code">CREATE USER canal IDENTIFIED BY 'canal';  
+GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'canal'@'%';
+-- GRANT ALL PRIVILEGES ON *.* TO 'canal'@'%' ;
+FLUSH PRIVILEGES;</pre>
+<p>针对已有的账户可通过grants查询权限：</p>
+<h2>启动步骤：</h2>
 <p>1.  下载canal</p>
 <p>下载部署包</p>
 <pre name="code" class="java">wget http://canal4mysql.googlecode.com/files/canal.deployer-1.0.0.tar.gz</pre>
