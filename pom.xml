@@ -81,6 +81,7 @@
 		<module>meta</module>
 		<module>dbsync</module>
 		<module>filter</module>	
+		<module>driver</module>
 		<module>parse</module>
 		<module>sink</module>
 		<module>store</module>

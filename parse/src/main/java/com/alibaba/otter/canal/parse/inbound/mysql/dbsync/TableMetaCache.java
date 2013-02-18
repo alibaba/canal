@@ -8,12 +8,12 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
-import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.FieldPacket;
-import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ResultSetPacket;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
 

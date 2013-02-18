@@ -16,14 +16,14 @@ import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.CanalHASwitchable;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
-import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.FieldPacket;
-import com.alibaba.otter.canal.parse.inbound.mysql.networking.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
@@ -124,7 +124,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             try {
                 metaConnection.disconnect();
             } catch (IOException e) {
-                logger.error("ERROR # disconnect for address:{}", metaConnection.getAddress(), e);
+                logger.error("ERROR # disconnect for address:{}", metaConnection.getConnector().getAddress(), e);
             }
         }
 
@@ -159,7 +159,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             try {
                 mysqlConnection.disconnect();
             } catch (IOException e) {
-                logger.error("ERROR # disconnect for address:{}", mysqlConnection.getAddress(), e);
+                logger.error("ERROR # disconnect for address:{}", mysqlConnection.getConnector().getAddress(), e);
             }
 
             mysqlHeartBeatTimeTask = null;
@@ -186,7 +186,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 if (reconnect) {
                     reconnect = false;
                     mysqlConnection.reconnect();
-                } else if (!mysqlConnection.getConnected().get()) {
+                } else if (!mysqlConnection.isConnected()) {
                     mysqlConnection.connect();
                 }
 
@@ -258,18 +258,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     // =================== helper method =================
 
     private MysqlConnection buildMysqlConnection(AuthenticationInfo runningInfo) {
-        MysqlConnection connection = new MysqlConnection(this.slaveId);
-        connection.setAddress(runningInfo.getAddress());
-
-        connection.setUsername(runningInfo.getUsername());
-        connection.setPassword(runningInfo.getPassword());
-        connection.setDefaultSchema(runningInfo.getDefaultDatabaseName());
-
+        MysqlConnection connection = new MysqlConnection(runningInfo.getAddress(), runningInfo.getUsername(),
+                                                         runningInfo.getPassword(), connectionCharsetNumber,
+                                                         runningInfo.getDefaultDatabaseName());
+        connection.getConnector().setReceiveBufferSize(receiveBufferSize);
+        connection.getConnector().setSendBufferSize(sendBufferSize);
+        connection.getConnector().setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
         connection.setCharset(connectionCharset);
-        connection.setCharsetNumber(connectionCharsetNumber);
-        connection.setReceiveBufferSize(receiveBufferSize);
-        connection.setSendBufferSize(sendBufferSize);
-        connection.setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
+        connection.setSlaveId(this.slaveId);
         return connection;
     }
 
@@ -293,9 +289,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         LogPosition logPosition = logPositionManager.getLatestIndexBy(destination);
         if (logPosition == null) {// 找不到历史成功记录
             EntryPosition entryPosition = null;
-            if (masterInfo != null && mysqlConnection.getAddress().equals(masterInfo.getAddress())) {
+            if (masterInfo != null && mysqlConnection.getConnector().getAddress().equals(masterInfo.getAddress())) {
                 entryPosition = masterPosition;
-            } else if (standbyInfo != null && mysqlConnection.getAddress().equals(standbyInfo.getAddress())) {
+            } else if (standbyInfo != null
+                       && mysqlConnection.getConnector().getAddress().equals(standbyInfo.getAddress())) {
                 entryPosition = standbyPosition;
             }
 
@@ -339,7 +336,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 }
             }
         } else {
-            if (logPosition.getIdentity().getSourceAddress().equals(mysqlConnection.getAddress())) {
+            if (logPosition.getIdentity().getSourceAddress().equals(mysqlConnection.getConnector().getAddress())) {
                 return logPosition.getPostion();
             } else {
                 // 针对切换的情况，考虑回退时间
@@ -558,7 +555,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             String slaveSQLRunning = maps.get("Slave_SQL_Running"); // Slave_SQL_Running
             if ((!"0".equals(errno)) || (!"Yes".equalsIgnoreCase(slaveIORunning))
                 || (!"Yes".equalsIgnoreCase(slaveSQLRunning))) {
-                logger.warn("Ignoring failed slave: " + mysqlConnection.getChannel().toString() + ", Last_Errno = "
+                logger.warn("Ignoring failed slave: " + mysqlConnection.getConnector().getAddress() + ", Last_Errno = "
                             + errno + ", Slave_IO_Running = " + slaveIORunning + ", Slave_SQL_Running = "
                             + slaveSQLRunning);
             }

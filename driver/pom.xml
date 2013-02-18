@@ -8,44 +8,31 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.alibaba.otter</groupId>
-	<artifactId>canal.parse</artifactId>
+	<artifactId>canal.parse.driver</artifactId>
 	<packaging>jar</packaging>
-	<name>canal parse module for otter ${project.version}</name>
+	<name>canal driver module for otter ${project.version}</name>
 	<dependencies>
 		<dependency>
 			<groupId>com.alibaba.otter</groupId>
 			<artifactId>canal.common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- log -->
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.protocol</artifactId>
-			<version>${project.version}</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.meta</artifactId>
-			<version>${project.version}</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.sink</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.parse.dbsync</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.filter</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.parse.driver</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.netty</groupId>
