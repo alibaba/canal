@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.slf4j.Logger;
@@ -22,6 +23,10 @@ import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningListener;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitor;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
 import com.alibaba.otter.canal.deployer.InstanceConfig.InstanceMode;
+import com.alibaba.otter.canal.deployer.monitor.InstanceAction;
+import com.alibaba.otter.canal.deployer.monitor.InstanceConfigMonitor;
+import com.alibaba.otter.canal.deployer.monitor.ManagerInstanceConfigMonitor;
+import com.alibaba.otter.canal.deployer.monitor.SpringInstanceConfigMonitor;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalConfigClient;
@@ -41,25 +46,29 @@ import com.google.common.collect.MapMaker;
  */
 public class CanalController {
 
-    private static final Logger            logger = LoggerFactory.getLogger(CanalController.class);
-    private Long                           cid;
-    private String                         ip;
-    private int                            port;
+    private static final Logger                      logger   = LoggerFactory.getLogger(CanalController.class);
+    private Long                                     cid;
+    private String                                   ip;
+    private int                                      port;
     // 默认使用spring的方式载入
-    private Map<String, InstanceConfig>    instanceConfigs;
-    private Map<String, CanalConfigClient> managerClients;
-    private CanalServerWithEmbeded         embededCanalServer;
-    private CanalServerWithNetty           canalServer;
+    private Map<String, InstanceConfig>              instanceConfigs;
+    private InstanceConfig                           globalInstanceConfig;
+    private Map<String, CanalConfigClient>           managerClients;
+    // 监听instance config的变化
+    private boolean                                  autoScan = true;
+    private InstanceAction                           defaultAction;
+    private Map<InstanceMode, InstanceConfigMonitor> instanceConfigMonitors;
+    private CanalServerWithEmbeded                   embededCanalServer;
+    private CanalServerWithNetty                     canalServer;
 
-    private CanalInstanceGenerator         instanceGenerator;
-    private ZkClientx                      zkclientx;
+    private CanalInstanceGenerator                   instanceGenerator;
+    private ZkClientx                                zkclientx;
 
     public CanalController(){
         this(System.getProperties());
     }
 
-    public CanalController(Properties properties){
-        instanceConfigs = new MapMaker().makeMap();
+    public CanalController(final Properties properties){
         managerClients = new MapMaker().makeComputingMap(new Function<String, CanalConfigClient>() {
 
             public CanalConfigClient apply(String managerAddress) {
@@ -68,8 +77,8 @@ public class CanalController {
         });
 
         // 初始化全局参数设置
-        initGlobalConfig(properties);
-
+        globalInstanceConfig = initGlobalConfig(properties);
+        instanceConfigs = new MapMaker().makeMap();
         // 初始化instance config
         initInstanceConfig(properties);
 
@@ -148,9 +157,74 @@ public class CanalController {
         canalServer = new CanalServerWithNetty(embededCanalServer);
         canalServer.setIp(ip);
         canalServer.setPort(port);
+
+        // 初始化monitor机制
+        autoScan = BooleanUtils.toBoolean(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN));
+        if (autoScan) {
+            defaultAction = new InstanceAction() {
+
+                public void start(String destination) {
+                    InstanceConfig config = instanceConfigs.get(destination);
+                    if (config == null) {
+                        config = new InstanceConfig(globalInstanceConfig);
+                        instanceConfigs.put(destination, config);
+                    }
+
+                    if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
+                        // HA机制启动
+                        ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
+                        if (!runningMonitor.isStart()) {
+                            runningMonitor.start();
+                        }
+                    }
+                }
+
+                public void stop(String destination) {
+                    // 此处的stop，代表强制退出，非HA机制，所以需要退出HA的monitor和配置信息
+                    InstanceConfig config = instanceConfigs.remove(destination);
+                    if (config != null) {
+                        embededCanalServer.stop(destination);
+                        ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
+                        if (runningMonitor.isStart()) {
+                            runningMonitor.stop();
+                        }
+                    }
+                }
+
+                public void reload(String destination) {
+                    // 目前任何配置变化，直接重启，简单处理
+                    stop(destination);
+                    start(destination);
+                }
+            };
+
+            instanceConfigMonitors = new MapMaker().makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
+
+                public InstanceConfigMonitor apply(InstanceMode mode) {
+                    int scanInterval = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
+
+                    if (mode.isSpring()) {
+                        SpringInstanceConfigMonitor monitor = new SpringInstanceConfigMonitor();
+                        monitor.setScanIntervalInSecond(scanInterval);
+                        monitor.setDefaultAction(defaultAction);
+                        // 设置conf目录，默认是user.dir + conf目录组成
+                        String rootDir = getProperty(properties, CanalConstants.CANAL_CONF_DIR);
+                        if (StringUtils.isEmpty(rootDir)) {
+                            rootDir = "../conf";
+                        }
+                        monitor.setRootConf(rootDir);
+                        return monitor;
+                    } else if (mode.isManager()) {
+                        return new ManagerInstanceConfigMonitor();
+                    } else {
+                        throw new UnsupportedOperationException("unknow mode :" + mode + " for monitor");
+                    }
+                }
+            });
+        }
     }
 
-    private void initGlobalConfig(Properties properties) {
+    private InstanceConfig initGlobalConfig(Properties properties) {
         InstanceConfig globalConfig = new InstanceConfig();
         String modeStr = getProperty(properties, CanalConstants.getInstanceModeKey(CanalConstants.GLOBAL_NAME));
         if (StringUtils.isNotEmpty(modeStr)) {
@@ -172,7 +246,6 @@ public class CanalController {
         if (StringUtils.isNotEmpty(springXml)) {
             globalConfig.setSpringRootXml(springXml);
         }
-        instanceConfigs.put(CanalConstants.GLOBAL_NAME, globalConfig);
 
         instanceGenerator = new CanalInstanceGenerator() {
 
@@ -205,6 +278,8 @@ public class CanalController {
             }
 
         };
+
+        return globalConfig;
     }
 
     private CanalConfigClient getManagerClient(String managerAddress) {
@@ -219,6 +294,7 @@ public class CanalController {
     private void initInstanceConfig(Properties properties) {
         String destinationStr = getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
         String[] destinations = StringUtils.split(destinationStr, CanalConstants.CANAL_DESTINATION_SPLIT);
+
         for (String destination : destinations) {
             InstanceConfig config = parseInstanceConfig(properties, destination);
             InstanceConfig oldConfig = instanceConfigs.put(destination, config);
@@ -231,7 +307,7 @@ public class CanalController {
     }
 
     private InstanceConfig parseInstanceConfig(Properties properties, String destination) {
-        InstanceConfig config = new InstanceConfig(instanceConfigs.get(CanalConstants.GLOBAL_NAME));
+        InstanceConfig config = new InstanceConfig(globalInstanceConfig);
         String modeStr = getProperty(properties, CanalConstants.getInstanceModeKey(destination));
         if (!StringUtils.isEmpty(modeStr)) {
             config.setMode(InstanceMode.valueOf(StringUtils.upperCase(modeStr)));
@@ -284,22 +360,40 @@ public class CanalController {
         for (Map.Entry<String, InstanceConfig> entry : instanceConfigs.entrySet()) {
             final String destination = entry.getKey();
             InstanceConfig config = entry.getValue();
-            if (!StringUtils.equalsIgnoreCase(destination, CanalConstants.GLOBAL_NAME)) {
-                // 创建destination的工作节点
-                if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
-                    // HA机制启动
-                    ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
-                    if (!runningMonitor.isStart()) {
-                        runningMonitor.start();
-                    }
+            // 创建destination的工作节点
+            if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
+                // HA机制启动
+                ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
+                if (!runningMonitor.isStart()) {
+                    runningMonitor.start();
                 }
+            }
 
+            if (autoScan) {
+                instanceConfigMonitors.get(config.getMode()).regeister(destination, defaultAction);
+            }
+        }
+
+        if (autoScan) {
+            instanceConfigMonitors.get(globalInstanceConfig.getMode()).start();
+            for (InstanceConfigMonitor monitor : instanceConfigMonitors.values()) {
+                if (!monitor.isStart()) {
+                    monitor.start();
+                }
             }
         }
     }
 
     public void stop() throws Throwable {
         canalServer.stop();
+
+        if (autoScan) {
+            for (InstanceConfigMonitor monitor : instanceConfigMonitors.values()) {
+                if (monitor.isStart()) {
+                    monitor.stop();
+                }
+            }
+        }
 
         for (ServerRunningMonitor runningMonitor : ServerRunningMonitors.getRunningMonitors().values()) {
             if (runningMonitor.isStart()) {
