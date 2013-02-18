@@ -38,7 +38,7 @@ public class MysqlConnection implements ErosaConnection {
     private String              username;
     private String              password;
     private long                slaveId;
-    private byte                charsetNumber     = 28;
+    private byte                charsetNumber     = 33;
     private Charset             charset           = Charset.forName("UTF-8");
     private String              defaultSchema     = "retl";
     private int                 soTimeout         = 30 * 1000;
@@ -311,6 +311,13 @@ public class MysqlConnection implements ErosaConnection {
 
         try {
             updateExecutor.update("set net_read_timeout=1800");
+        } catch (Exception e) {
+            logger.warn(ExceptionUtils.getFullStackTrace(e));
+        }
+
+        try {
+            // 设置服务端返回结果时不做编码转化，直接按照数据库的二进制编码进行发送，由客户端自己根据需求进行编码转化
+            updateExecutor.update("set names 'binary'");
         } catch (Exception e) {
             logger.warn(ExceptionUtils.getFullStackTrace(e));
         }

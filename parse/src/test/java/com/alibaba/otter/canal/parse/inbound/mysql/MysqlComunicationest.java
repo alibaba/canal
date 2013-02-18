@@ -18,7 +18,7 @@ public class MysqlComunicationest {
                                                          "ottermysql", "ottermysql");
         try {
             connection.connect();
-            ResultSetPacket result = connection.query("desc otter1.otter_stability1");
+            ResultSetPacket result = connection.query("desc test.lj_table1");
             System.out.println(result);
         } catch (IOException e) {
             Assert.fail(e.getMessage());
