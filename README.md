@@ -95,7 +95,7 @@ b.  canal的原理是模拟自己为mysql slave，所以这里一定需要做为
 GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'canal'@'%';
 -- GRANT ALL PRIVILEGES ON *.* TO 'canal'@'%' ;
 FLUSH PRIVILEGES;</pre>
-<p>针对已有的账户可通过grants查询权限：</p>
+<p>针对已有的账户可通过grant
 <h2>启动步骤：</h2>
 <p>1.  下载canal</p>
 <p>下载部署包</p>
@@ -120,46 +120,6 @@ drwxr-xr-x 2 jianghang jianghang   48 2013-02-05 21:29 logs</pre>
 <p> </p>
 <p>3.  配置修改</p>
 <p> </p>
-<p>公用参数：   </p>
-<pre name="code" class="shell">vi conf/canal.properties</pre>
-<pre name="code" class="java">#################################################
-#########               common argument         ############# 
-#################################################
-canal.id= 1
-canal.address=
-canal.port= 11111
-canal.zkServers=
-# flush data to zk
-canal.zookeeper.flush.period = 1000
-## memory store RingBuffer size, should be Math.pow(2,n)
-canal.instance.memory.buffer.size = 32768
-
-## detecing config
-canal.instance.detecting.enable = false
-canal.instance.detecting.sql = insert into retl.xdual values(1,now()) on duplicate key update x=now()
-canal.instance.detecting.interval.time = 3 
-canal.instance.detecting.retry.threshold = 3 
-canal.instance.detecting.heartbeatHaEnable = false
-
-# support maximum transaction size, more than the size of the transaction will be cut into multiple transactions delivery
-canal.instance.transactionn.size =  1024
-
-# network config
-canal.instance.network.receiveBufferSize = 16384
-canal.instance.network.sendBufferSize = 16384
-canal.instance.network.soTimeout = 30
-
-#################################################
-#########               destinations            ############# 
-#################################################
-canal.destinations= example
-
-canal.instance.global.mode = spring 
-canal.instance.global.lazy = true  ##修改为false，代表立马启动
-#canal.instance.global.manager.address = 127.0.0.1:1099
-canal.instance.global.spring.xml = classpath:spring/memory-instance.xml
-#canal.instance.global.spring.xml = classpath:spring/default-instance.xml</pre>
-<p> </p>
 <p>应用参数：</p>
 <pre name="code" class="shell">vi conf/example/instance.properties</pre>
 <pre name="code" class="instance.properties">#################################################
@@ -178,10 +138,9 @@ canal.instance.master.timestamp =
 #canal.instance.standby.timestamp = 
 
 # username/password
-canal.instance.dbUsername = retl  #改成自己的数据库信息
-canal.instance.dbPassword = retl  #改成自己的数据库信息
+canal.instance.dbUsername = canal  #改成自己的数据库信息
+canal.instance.dbPassword = canal  #改成自己的数据库信息
 canal.instance.defaultDatabaseName =   #改成自己的数据库信息
-canal.instance.connectionCharsetNumber = 33  #改成自己的数据库信息
 canal.instance.connectionCharset = UTF-8  #改成自己的数据库信息
 
 # table regex
@@ -194,7 +153,6 @@ canal.instance.filter.regex = .*\\..*
 <p> 说明：</p>
 <ul>
 <li>canal.instance.connectionCharset 代表数据库的编码方式对应到java中的编码类型，比如UTF-8，GBK , ISO-8859-1</li>
-<li>canal.instance.connectionCharsetNumber 代表数据库的编码方式对应mysql中的唯一id，详细的映射关系可查看：com.mysql.jdbc.CharsetMapping.INDEX_TO_CHARSET<br>针对常见的编码：<br>utf-8  &lt;=&gt;  33<br>gb2312 &lt;=&gt; 24<br>gbk &lt;=&gt; 28</li>
 </ul>
 <p>4.   准备启动</p>
 <p> </p>

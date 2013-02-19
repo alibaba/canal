@@ -106,11 +106,11 @@ public class TableMeta {
         }
 
         public boolean isKey() {
-            return StringUtils.endsWithIgnoreCase("PRI", iskey);
+            return StringUtils.equalsIgnoreCase(iskey, "PRI");
         }
 
         public boolean isNullable() {
-            return StringUtils.endsWithIgnoreCase("YES", isNullable);
+            return StringUtils.equalsIgnoreCase(isNullable, "YES");
         }
 
         public String toString() {
