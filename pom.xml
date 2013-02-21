@@ -4,7 +4,7 @@
 	<artifactId>canal</artifactId>
 	<packaging>pom</packaging>
 	<name>canal module for otter ${project.version}</name>
-	<version>1.0.1</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<url>https://github.com/otter-projects/canal</url>
 	
 	<parent>
@@ -245,7 +245,6 @@
                 <version>2.5</version>
             </plugin>
             <!-- javadoc -->
-            <!--
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -285,7 +284,6 @@
 					<javadocDir>${project.basedir}/docs/javadoc</javadocDir>
 				</configuration>
 			</plugin>
-			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
