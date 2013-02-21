@@ -99,7 +99,7 @@ FLUSH PRIVILEGES;</pre>
 <h2>启动步骤：</h2>
 <p>1.  下载canal</p>
 <p>下载部署包</p>
-<pre name="code" class="java">wget http://canal4mysql.googlecode.com/files/canal.deployer-1.0.0.tar.gz</pre>
+<pre name="code" class="java">wget http://canal4mysql.googlecode.com/files/canal.deployer-1.0.1.tar.gz</pre>
 <p>or </p>
 <p>自己编译 </p>
 <pre name="code" class="java">git clone git@github.com:otter-projects/canal.git
