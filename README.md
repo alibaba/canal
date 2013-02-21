@@ -109,7 +109,7 @@ mvn clean install -Dmaven.test.skip -Denv=release</pre>
 <p> </p>
 <p>2.  解压缩</p>
 <pre name="code" class="java">mkdir /tmp/canal
-tar zxvf canal.deployer-1.0.0.tar.gz  -C /tmp/canal</pre>
+tar zxvf canal.deployer-$version.tar.gz  -C /tmp/canal</pre>
 <p>   </p>
 <p>   解压完成后，进入/tmp/canal目录，可以看到如下结构：</p>
 <p> </p>
