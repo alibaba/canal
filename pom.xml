@@ -1,11 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.alibaba.otter</groupId>
 	<artifactId>canal</artifactId>
 	<packaging>pom</packaging>
 	<name>canal module for otter ${project.version}</name>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<url>https://github.com/otter-projects/canal</url>
 	
 	<parent>
@@ -68,7 +67,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!--maven properties-->
-		<maven.test.skip>false</maven.test.skip>
+		<maven.test.skip>true</maven.test.skip>
 		<downloadSources>true</downloadSources>
 		<!-- compiler settings properties -->
 		<java_source_version>1.6</java_source_version>
@@ -246,7 +245,6 @@
                 <version>2.5</version>
             </plugin>
             <!-- javadoc -->
-            <!--
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -286,7 +284,6 @@
 					<javadocDir>${project.basedir}/docs/javadoc</javadocDir>
 				</configuration>
 			</plugin>
-			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
