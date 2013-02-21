@@ -245,6 +245,7 @@
                 <version>2.5</version>
             </plugin>
             <!-- javadoc -->
+	    <!-- 
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -297,6 +298,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 		</plugins>
 		<sourceDirectory>src/main/java</sourceDirectory>  
 		<testSourceDirectory>src/test/java</testSourceDirectory>
