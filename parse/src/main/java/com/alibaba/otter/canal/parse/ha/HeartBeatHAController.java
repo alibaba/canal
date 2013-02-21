@@ -47,8 +47,8 @@ public class HeartBeatHAController extends AbstractCanalLifeCycle implements Can
 
     // ============================= setter / getter ============================
 
-    public void setReplicationController(CanalHASwitchable replicationController) {
-        this.eventParser = replicationController;
+    public void setCanalHASwitchable(CanalHASwitchable canalHASwitchable) {
+        this.eventParser = canalHASwitchable;
     }
 
     public void setDetectingRetryTimes(int detectingRetryTimes) {

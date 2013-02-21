@@ -123,7 +123,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         // 初始化缓冲队列
         transactionBuffer.setBufferSize(transactionSize);// 设置buffer大小
         transactionBuffer.start();
-        // 1. 构造bin log parser
+        // 构造bin log parser
         binlogParser = buildParser();// 初始化一下BinLogParser
         binlogParser.start();
         // 启动工作线程
@@ -405,4 +405,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.transactionSize = transactionSize;
     }
 
+    public CanalLogPositionManager getLogPositionManager() {
+        return logPositionManager;
+    }
 }

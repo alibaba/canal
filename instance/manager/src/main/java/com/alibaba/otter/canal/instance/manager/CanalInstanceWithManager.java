@@ -51,6 +51,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
+import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
 import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
@@ -72,8 +73,6 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
     protected CanalMetaManager            metaManager;                                                     // 消费信息管理器
     protected CanalEventStore<Event>      eventStore;                                                      // 有序队列
 
-    protected CanalHAController           haController;                                                    // 主备切换管理器
-    protected CanalLogPositionManager     logPositionManager;                                              // 解析位置管理器
     protected CanalEventParser            eventParser;                                                     // 解析对应的数据信息
     protected CanalEventSink<List<Entry>> eventSink;                                                       // 链接parse和store的桥接器
     protected CanalAlarmHandler           alarmHandler;                                                    // alarm报警机制
@@ -99,24 +98,16 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         initEventStore();
         // 初始化eventSink
         initEventSink();
-        // 初始化parse ha控制器
-        initHaController();
-        // 初始化position记录器
-        initLogPositionManager();
         // 初始化eventParser;
         initEventParser();
 
         // 基础工具，需要提前start，会有先订阅再根据filter条件启动paser的需求
         if (!alarmHandler.isStart()) {
-            beforeStartAlarmHandler(alarmHandler);
             alarmHandler.start();
-            afterStartAlarmHandler(alarmHandler);
         }
 
         if (!metaManager.isStart()) {
-            beforeStartMetaManager(metaManager);
             metaManager.start();
-            afterStartMetaManager(metaManager);
         }
         logger.info("init successful....");
     }
@@ -128,75 +119,27 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
                 parameters });
 
         if (!metaManager.isStart()) {
-            beforeStartMetaManager(metaManager);
             metaManager.start();
-            afterStartMetaManager(metaManager);
+        }
+
+        if (!alarmHandler.isStart()) {
+            alarmHandler.start();
         }
 
         if (!eventStore.isStart()) {
-            beforeStartEventStore(eventStore);
             eventStore.start();
-            afterStartEventStore(eventStore);
         }
 
         if (!eventSink.isStart()) {
-            beforeStartEventSink(eventSink);
             eventSink.start();
-            afterStartEventSink(eventSink);
-        }
-
-        if (!logPositionManager.isStart()) {
-            beforeStartLogPositionManager(logPositionManager);
-            logPositionManager.start();
-            afterStartLogPositionManager(logPositionManager);
-        }
-
-        if (!haController.isStart()) {
-            beforeStartHAController(haController);
-            haController.start();
-            afterStartHAController(haController);
         }
 
         if (!eventParser.isStart()) {
             beforeStartEventParser(eventParser);
             eventParser.start();
-            afterStartEventParser(eventParser);
         }
 
         logger.info("start successful....");
-    }
-
-    protected void beforeStartEventSink(CanalEventSink<List<Entry>> eventSink) {
-        super.beforeStartEventSink(eventSink);
-        ((EntryEventSink) eventSink).setEventStore(getEventStore());
-    }
-
-    protected void beforeStartEventParser(CanalEventParser eventParser) {
-        super.beforeStartEventParser(eventParser);
-        AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
-        abstractEventParser.setEventSink(getEventSink());
-        abstractEventParser.setLogPositionManager(getLogPositionManager());
-        abstractEventParser.setAlarmHandler(getAlarmHandler());
-
-        SourcingType type = parameters.getSourcingType();
-        if (type.isMysql()) {
-            if (getHaController() instanceof HeartBeatHAController) {
-                ((MysqlEventParser) eventParser).setHeartBeatCallback((HeartBeatHAController) getHaController());
-            }
-
-        }
-
-    }
-
-    protected void beforeStartHAController(CanalHAController haController) {
-        super.beforeStartHAController(haController);
-        SourcingType type = parameters.getSourcingType();
-        if (type.isMysql()) {
-            MysqlEventParser mysqlEventParser = (MysqlEventParser) getEventParser();
-            if (haController instanceof HeartBeatHAController) {
-                ((HeartBeatHAController) haController).setReplicationController(mysqlEventParser);
-            }
-        }
     }
 
     public void stop() {
@@ -204,14 +147,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
 
         if (eventParser.isStart()) {
             eventParser.stop();
-        }
-
-        if (haController.isStart()) {
-            haController.stop();
-        }
-
-        if (logPositionManager.isStart()) {
-            logPositionManager.stop();
+            afterStopEventParser(eventParser);
         }
 
         if (eventSink.isStart()) {
@@ -241,7 +177,17 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
     public boolean subscribeChange(ClientIdentity identity) {
         if (StringUtils.isNotEmpty(identity.getFilter())) {
             AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(identity.getFilter());
-            ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+
+            boolean isGroup = (eventParser instanceof GroupEventParser);
+            if (isGroup) {
+                // 处理group的模式
+                List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
+                for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
+                    ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
+                }
+            } else {
+                ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+            }
         }
 
         // filter的处理规则
@@ -292,6 +238,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             // 后续版本支持
             throw new CanalException("unsupport MetaMode for " + mode);
         } else if (mode.isMetaq()) {
+            // TODO create metaq store
             throw new CanalException("unsupport MetaMode for " + mode);
         } else {
             throw new CanalException("unsupport MetaMode for " + mode);
@@ -312,66 +259,24 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         logger.info("init eventStore end! \n\t load CanalEventStore:{}", eventStore.getClass().getName());
     }
 
-    protected void initHaController() {
-        logger.info("init haController begin...");
-        HAMode haMode = parameters.getHaMode();
-        if (haMode.isHeartBeat()) {
-            haController = new HeartBeatHAController();
-            ((HeartBeatHAController) haController).setDetectingRetryTimes(parameters.getDetectingRetryTimes());
-        } else if (haMode.isTddl()) {
-            throw new CanalException("unsupport HAMode for " + haMode);
-        } else if (haMode.isCobar()) {
-            throw new CanalException("unsupport HAMode for " + haMode);
-        } else {
-            throw new CanalException("unsupport HAMode for " + haMode);
-        }
-        logger.info("init haController end! \n\t load CanalHAController:{}", haController.getClass().getName());
-    }
-
-    protected void initLogPositionManager() {
-        logger.info("init logPositionPersistManager begin...");
-        IndexMode indexMode = parameters.getIndexMode();
-        if (indexMode.isMemory()) {
-            logPositionManager = new MemoryLogPositionManager();
-        } else if (indexMode.isZookeeper()) {
-            logPositionManager = new ZooKeeperLogPositionManager();
-            ((ZooKeeperLogPositionManager) logPositionManager).setZkClientx(getZkclientx());
-        } else if (indexMode.isMixed()) {
-            logPositionManager = new PeriodMixedLogPositionManager();
-
-            ZooKeeperLogPositionManager zooKeeperLogPositionManager = new ZooKeeperLogPositionManager();
-            zooKeeperLogPositionManager.setZkClientx(getZkclientx());
-            ((PeriodMixedLogPositionManager) logPositionManager).setZooKeeperLogPositionManager(zooKeeperLogPositionManager);
-        } else if (indexMode.isMeta()) {
-            logPositionManager = new MetaLogPositionManager();
-            ((MetaLogPositionManager) logPositionManager).setMetaManager(metaManager);
-        } else if (indexMode.isMemoryMetaFailback()) {
-            MemoryLogPositionManager primaryLogPositionManager = new MemoryLogPositionManager();
-            MetaLogPositionManager failbackLogPositionManager = new MetaLogPositionManager();
-            failbackLogPositionManager.setMetaManager(metaManager);
-
-            logPositionManager = new FailbackLogPositionManager();
-            ((FailbackLogPositionManager) logPositionManager).setPrimary(primaryLogPositionManager);
-            ((FailbackLogPositionManager) logPositionManager).setFailback(failbackLogPositionManager);
-        } else {
-            throw new CanalException("unsupport indexMode for " + indexMode);
-        }
-
-        logger.info("init logPositionManager end! \n\t load CanalLogPositionManager:{}",
-                    logPositionManager.getClass().getName());
-    }
-
     protected void initEventSink() {
         logger.info("init eventSink begin...");
 
-        eventSink = new EntryEventSink();
-        ((EntryEventSink) eventSink).setEventStore(eventStore);
+        int groupSize = getGroupSize();
+        if (groupSize <= 1) {
+            eventSink = new EntryEventSink();
+        } else {
+            eventSink = new GroupEventSink(groupSize);
+        }
+
+        if (eventSink instanceof EntryEventSink) {
+            ((EntryEventSink) eventSink).setFilterTransactionEntry(false);
+            ((EntryEventSink) eventSink).setEventStore(getEventStore());
+        }
         // if (StringUtils.isNotEmpty(filter)) {
         // AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
         // ((AbstractCanalEventSink) eventSink).setFilter(aviaterFilter);
         // }
-
-        ((EntryEventSink) eventSink).setFilterTransactionEntry(false);
         logger.info("init eventSink end! \n\t load CanalEventSink:{}", eventSink.getClass().getName());
     }
 
@@ -381,7 +286,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
 
         List<List<DataSourcing>> groupDbAddresses = parameters.getGroupDbAddresses();
         if (!CollectionUtils.isEmpty(groupDbAddresses)) {
-            int size = groupDbAddresses.get(0).size();// 去第一个分组的数量，主备分组的数量必须一致
+            int size = groupDbAddresses.get(0).size();// 取第一个分组的数量，主备分组的数量必须一致
             List<CanalEventParser> eventParsers = new ArrayList<CanalEventParser>();
             for (int i = 0; i < size; i++) {
                 List<InetSocketAddress> dbAddress = new ArrayList<InetSocketAddress>();
@@ -458,6 +363,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
                     mysqlEventParser.setStandbyPosition(standbyPosition);
                 }
             }
+            mysqlEventParser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
             mysqlEventParser.setProfilingEnabled(false);
             eventParser = mysqlEventParser;
         } else if (type.isLocalBinlog()) {
@@ -484,14 +390,91 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         }
 
         if (eventParser instanceof AbstractEventParser) { // add transaction support at 2012-12-06
-            ((AbstractEventParser) eventParser).setTransactionSize(parameters.getTransactionSize());
+            AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
+            abstractEventParser.setTransactionSize(parameters.getTransactionSize());
+            abstractEventParser.setLogPositionManager(initLogPositionManager());
+            abstractEventParser.setAlarmHandler(getAlarmHandler());
+            abstractEventParser.setEventSink(getEventSink());
+
             if (StringUtils.isNotEmpty(filter)) {
                 AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
-                ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+                abstractEventParser.setEventFilter(aviaterFilter);
             }
         }
+        if (eventParser instanceof MysqlEventParser) {
+            MysqlEventParser mysqlEventParser = (MysqlEventParser) eventParser;
 
+            // 初始化haController，绑定与eventParser的关系，haController会控制eventParser
+            CanalHAController haController = initHaController();
+            mysqlEventParser.setHaController(haController);
+        }
         return eventParser;
+    }
+
+    protected CanalHAController initHaController() {
+        logger.info("init haController begin...");
+        HAMode haMode = parameters.getHaMode();
+        CanalHAController haController = null;
+        if (haMode.isHeartBeat()) {
+            haController = new HeartBeatHAController();
+            ((HeartBeatHAController) haController).setDetectingRetryTimes(parameters.getDetectingRetryTimes());
+            ((HeartBeatHAController) haController).setSwitchEnable(parameters.getHeartbeatHaEnable());
+        } else if (haMode.isTddl()) {
+            throw new CanalException("unsupport HAMode for " + haMode);
+        } else if (haMode.isCobar()) {
+            throw new CanalException("unsupport HAMode for " + haMode);
+        } else {
+            throw new CanalException("unsupport HAMode for " + haMode);
+        }
+        logger.info("init haController end! \n\t load CanalHAController:{}", haController.getClass().getName());
+
+        return haController;
+    }
+
+    protected CanalLogPositionManager initLogPositionManager() {
+        logger.info("init logPositionPersistManager begin...");
+        IndexMode indexMode = parameters.getIndexMode();
+        CanalLogPositionManager logPositionManager = null;
+        if (indexMode.isMemory()) {
+            logPositionManager = new MemoryLogPositionManager();
+        } else if (indexMode.isZookeeper()) {
+            logPositionManager = new ZooKeeperLogPositionManager();
+            ((ZooKeeperLogPositionManager) logPositionManager).setZkClientx(getZkclientx());
+        } else if (indexMode.isMixed()) {
+            logPositionManager = new PeriodMixedLogPositionManager();
+
+            ZooKeeperLogPositionManager zooKeeperLogPositionManager = new ZooKeeperLogPositionManager();
+            zooKeeperLogPositionManager.setZkClientx(getZkclientx());
+            ((PeriodMixedLogPositionManager) logPositionManager).setZooKeeperLogPositionManager(zooKeeperLogPositionManager);
+        } else if (indexMode.isMeta()) {
+            logPositionManager = new MetaLogPositionManager();
+            ((MetaLogPositionManager) logPositionManager).setMetaManager(metaManager);
+        } else if (indexMode.isMemoryMetaFailback()) {
+            MemoryLogPositionManager primaryLogPositionManager = new MemoryLogPositionManager();
+            MetaLogPositionManager failbackLogPositionManager = new MetaLogPositionManager();
+            failbackLogPositionManager.setMetaManager(metaManager);
+
+            logPositionManager = new FailbackLogPositionManager();
+            ((FailbackLogPositionManager) logPositionManager).setPrimary(primaryLogPositionManager);
+            ((FailbackLogPositionManager) logPositionManager).setFailback(failbackLogPositionManager);
+        } else {
+            throw new CanalException("unsupport indexMode for " + indexMode);
+        }
+
+        logger.info("init logPositionManager end! \n\t load CanalLogPositionManager:{}",
+                    logPositionManager.getClass().getName());
+
+        return logPositionManager;
+    }
+
+    private int getGroupSize() {
+        List<List<DataSourcing>> groupDbAddresses = parameters.getGroupDbAddresses();
+        if (!CollectionUtils.isEmpty(groupDbAddresses)) {
+            return groupDbAddresses.get(0).size();
+        } else {
+            // 可能是基于tddl的启动
+            return 1;
+        }
     }
 
     private synchronized ZkClientx getZkclientx() {
@@ -530,14 +513,6 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
 
     public void setAlarmHandler(CanalAlarmHandler alarmHandler) {
         this.alarmHandler = alarmHandler;
-    }
-
-    public CanalHAController getHaController() {
-        return haController;
-    }
-
-    public CanalLogPositionManager getLogPositionManager() {
-        return logPositionManager;
     }
 
 }

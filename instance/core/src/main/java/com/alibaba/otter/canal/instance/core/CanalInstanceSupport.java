@@ -3,15 +3,13 @@ package com.alibaba.otter.canal.instance.core;
 import java.util.List;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
-import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
-import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
+import com.alibaba.otter.canal.parse.ha.HeartBeatHAController;
+import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
+import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
-import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
-import com.alibaba.otter.canal.sink.CanalEventSink;
-import com.alibaba.otter.canal.store.CanalEventStore;
-import com.alibaba.otter.canal.store.model.Event;
 
 /**
  * @author zebin.xuzb 2012-10-17 下午3:12:34
@@ -19,67 +17,89 @@ import com.alibaba.otter.canal.store.model.Event;
  */
 public abstract class CanalInstanceSupport extends AbstractCanalLifeCycle {
 
-    // around alarm handler start
-    protected void beforeStartAlarmHandler(CanalAlarmHandler alarmHandler) {
-        // noop
-    }
+    protected void beforeStartEventParser(CanalEventParser eventParser) {
 
-    protected void afterStartAlarmHandler(CanalAlarmHandler alarmHandler) {
-        // noop
-    }
-
-    // around meta manager start
-    protected void beforeStartMetaManager(CanalMetaManager metaManager) {
-        // noop
-    }
-
-    protected void afterStartMetaManager(CanalMetaManager metaManager) {
-        // noop
-    }
-
-    // around event store
-    protected void beforeStartEventStore(CanalEventStore<Event> eventStore) {
-        // noop
-    }
-
-    protected void afterStartEventStore(CanalEventStore<Event> eventStore) {
-        // noop
-    }
-
-    // around event sink
-    protected void beforeStartEventSink(CanalEventSink<List<Entry>> eventSink) {
-        // noop
-    }
-
-    protected void afterStartEventSink(CanalEventSink<List<Entry>> eventSink) {
-        // noop
-    }
-
-    // around log position manager
-    protected void beforeStartLogPositionManager(CanalLogPositionManager logPositionManager) {
-        // noop
-    }
-
-    protected void afterStartLogPositionManager(CanalLogPositionManager logPositionManager) {
-        // noop
+        boolean isGroup = (eventParser instanceof GroupEventParser);
+        if (isGroup) {
+            // 处理group的模式
+            List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
+            for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
+                startEventParserInternal(singleEventParser);
+            }
+        } else {
+            startEventParserInternal(eventParser);
+        }
     }
 
     // around event parser
-    protected void beforeStartEventParser(CanalEventParser eventParser) {
-        // noop
-    }
-
     protected void afterStartEventParser(CanalEventParser eventParser) {
         // noop
     }
 
-    // around HA controller
-    protected void beforeStartHAController(CanalHAController haController) {
+    // around event parser
+    protected void beforeStopEventParser(CanalEventParser eventParser) {
         // noop
     }
 
-    protected void afterStartHAController(CanalHAController haController) {
-        // noop
+    protected void afterStopEventParser(CanalEventParser eventParser) {
+
+        boolean isGroup = (eventParser instanceof GroupEventParser);
+        if (isGroup) {
+            // 处理group的模式
+            List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
+            for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
+                stopEventParserInternal(singleEventParser);
+            }
+        } else {
+            stopEventParserInternal(eventParser);
+        }
+    }
+
+    /**
+     * 初始化单个eventParser，不需要考虑group
+     */
+    protected void startEventParserInternal(CanalEventParser eventParser) {
+        if (eventParser instanceof AbstractEventParser) {
+            AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
+            // 首先启动log position管理器
+            CanalLogPositionManager logPositionManager = abstractEventParser.getLogPositionManager();
+            if (!logPositionManager.isStart()) {
+                logPositionManager.start();
+            }
+        }
+
+        if (eventParser instanceof MysqlEventParser) {
+            MysqlEventParser mysqlEventParser = (MysqlEventParser) eventParser;
+            CanalHAController haController = mysqlEventParser.getHaController();
+
+            if (haController instanceof HeartBeatHAController) {
+                ((HeartBeatHAController) haController).setCanalHASwitchable(mysqlEventParser);
+            }
+
+            if (!haController.isStart()) {
+                haController.start();
+            }
+
+        }
+    }
+
+    protected void stopEventParserInternal(CanalEventParser eventParser) {
+        if (eventParser instanceof AbstractEventParser) {
+            AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
+            // 首先启动log position管理器
+            CanalLogPositionManager logPositionManager = abstractEventParser.getLogPositionManager();
+            if (logPositionManager.isStart()) {
+                logPositionManager.stop();
+            }
+        }
+
+        if (eventParser instanceof MysqlEventParser) {
+            MysqlEventParser mysqlEventParser = (MysqlEventParser) eventParser;
+            CanalHAController haController = mysqlEventParser.getHaController();
+            if (haController.isStart()) {
+                haController.stop();
+            }
+        }
     }
 
 }

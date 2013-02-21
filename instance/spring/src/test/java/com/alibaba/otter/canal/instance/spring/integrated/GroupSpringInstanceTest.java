@@ -15,14 +15,14 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
  * @author zebin.xuzb @ 2012-7-13
  * @version 1.0.0
  */
-public class MemorySpringInstanceTest {
+public class GroupSpringInstanceTest {
 
     private ApplicationContext context;
 
     @Before
     public void start() {
         System.setProperty("canal.instance.destination", "retl");
-        context = new ClassPathXmlApplicationContext(new String[] { "spring/memory-instance.xml" });
+        context = new ClassPathXmlApplicationContext(new String[] { "spring/group-instance.xml" });
     }
 
     @After

@@ -49,12 +49,6 @@
 		<property name="alarmHandler">
 			<ref local="alarmHandler" />
 		</property>
-		<property name="logPositionManager">
-			<ref local="logPositionManager" />
-		</property>
-		<property name="haController">
-			<ref local="haController" />
-		</property>
 	</bean>
 	
 	<!-- 报警处理类 -->
@@ -94,7 +88,12 @@
 		<property name="detectingEnable" value="${canal.instance.detecting.enable:false}" />
 		<property name="detectingSQL" value="${canal.instance.detecting.sql}" />
 		<property name="detectingIntervalInSeconds" value="${canal.instance.detecting.interval.time:5}" />
-		<property name="heartBeatCallback" ref="haController" />
+		<property name="haController">
+			<bean class="com.alibaba.otter.canal.parse.ha.HeartBeatHAController">
+				<property name="detectingRetryTimes" value="${canal.instance.detecting.retry.threshold:3}" />
+				<property name="switchEnable" value="${canal.instance.detecting.heartbeatHaEnable:false}" />
+			</bean>
+		</property>
 		
 		<property name="alarmHandler" ref="alarmHandler" />
 		
@@ -118,7 +117,19 @@
 		<property name="connectionCharset" value="${canal.instance.connectionCharset:UTF-8}" />
 	
 		<!-- 解析位点记录 -->
-		<property name="logPositionManager" ref="logPositionManager" />
+		<property name="logPositionManager">
+			<bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
+				<property name="primary">
+					<bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
+				</property>
+				<property name="failback">
+					<bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
+						<property name="metaManager" ref="metaManager" />
+					</bean>
+				</property>
+			</bean>
+		</property>
+		
 		<!-- failover切换时回退的时间 -->
 		<property name="fallbackIntervalInSeconds" value="${canal.instance.fallbackIntervalInSeconds:60}" />
 		
@@ -142,7 +153,7 @@
 		
 		<!-- 解析起始位点 -->
 		<property name="masterPosition">
-			<bean id="masterPosition" class="com.alibaba.otter.canal.protocol.position.EntryPosition">
+			<bean class="com.alibaba.otter.canal.protocol.position.EntryPosition">
 				<property name="journalName" value="${canal.instance.master.journal.name}" />
 				<property name="position" value="${canal.instance.master.position}" />
 				<property name="timestamp" value="${canal.instance.master.timestamp}" />
@@ -155,25 +166,5 @@
 				<property name="timestamp" value="${canal.instance.standby.timestamp}" />
 			</bean>
 		</property>
-	</bean>
-	
-	<!-- 优先查找内存记录的位置，如果内存不存在则通过MetaManager进行查找位点 -->
-	<bean id="logPositionManager" class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
-		<property name="primary">
-			<bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
-		</property>
-		<property name="failback">
-			<bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
-				<property name="metaManager" ref="metaManager" />
-			</bean>
-		</property>
-	</bean>
-	
-	<bean id="haController" class="com.alibaba.otter.canal.parse.ha.HeartBeatHAController">
-		<property name="replicationController">
-			<ref local="eventParser" />
-		</property>
-		<property name="detectingRetryTimes" value="${canal.instance.detecting.retry.threshold:3}" />
-		<property name="switchEnable" value="${canal.instance.detecting.heartbeatHaEnable:false}" />
 	</bean>
 </beans>

@@ -19,6 +19,7 @@ import com.alibaba.otter.canal.parse.CanalHASwitchable;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
@@ -44,7 +45,7 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
  */
 public class MysqlEventParser extends AbstractMysqlEventParser implements CanalEventParser, CanalHASwitchable {
 
-    private HeartBeatCallback      heartBeatCallback                 = null;
+    private CanalHAController      haController                      = null;
 
     private int                    defaultConnectionTimeoutInSeconds = 30;       // sotimeout
     private int                    receiveBufferSize                 = 64 * 1024;
@@ -194,17 +195,17 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     Long startTime = System.currentTimeMillis();
                     mysqlConnection.update(detectingSQL);
                     Long costTime = System.currentTimeMillis() - startTime;
-                    if (heartBeatCallback != null) {
-                        heartBeatCallback.onSuccess(costTime);
+                    if (haController != null && haController instanceof HeartBeatCallback) {
+                        ((HeartBeatCallback) haController).onSuccess(costTime);
                     }
                 } catch (SocketTimeoutException e) {
-                    if (heartBeatCallback != null) {
-                        heartBeatCallback.onFailed(e);
+                    if (haController != null && haController instanceof HeartBeatCallback) {
+                        ((HeartBeatCallback) haController).onFailed(e);
                     }
                     reconnect = true;
                 } catch (IOException e) {
-                    if (heartBeatCallback != null) {
-                        heartBeatCallback.onFailed(e);
+                    if (haController != null && haController instanceof HeartBeatCallback) {
+                        ((HeartBeatCallback) haController).onFailed(e);
                     }
                     reconnect = true;
                 }
@@ -663,10 +664,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     // ===================== setter / getter ========================
 
-    public void setHeartBeatCallback(HeartBeatCallback heartBeatCallback) {
-        this.heartBeatCallback = heartBeatCallback;
-    }
-
     public void setDefaultConnectionTimeoutInSeconds(int defaultConnectionTimeoutInSeconds) {
         this.defaultConnectionTimeoutInSeconds = defaultConnectionTimeoutInSeconds;
     }
@@ -715,4 +712,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         this.fallbackIntervalInSeconds = fallbackIntervalInSeconds;
     }
 
+    public CanalHAController getHaController() {
+        return haController;
+    }
+
+    public void setHaController(CanalHAController haController) {
+        this.haController = haController;
+    }
 }

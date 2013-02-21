@@ -244,7 +244,7 @@ public class CanalController {
 
         String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(CanalConstants.GLOBAL_NAME));
         if (StringUtils.isNotEmpty(springXml)) {
-            globalConfig.setSpringRootXml(springXml);
+            globalConfig.setSpringXml(springXml);
         }
 
         instanceGenerator = new CanalInstanceGenerator() {
@@ -265,7 +265,7 @@ public class CanalController {
                         try {
                             // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, destination);
-                            instanceGenerator.setBeanFactory(getBeanFactory(config.getSpringRootXml()));
+                            instanceGenerator.setBeanFactory(getBeanFactory(config.getSpringXml()));
                             return instanceGenerator.generate(destination);
                         } finally {
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, "");
@@ -326,7 +326,7 @@ public class CanalController {
         } else if (config.getMode().isSpring()) {
             String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(destination));
             if (StringUtils.isNotEmpty(springXml)) {
-                config.setSpringCustomXml(springXml);
+                config.setSpringXml(springXml);
             }
         }
 

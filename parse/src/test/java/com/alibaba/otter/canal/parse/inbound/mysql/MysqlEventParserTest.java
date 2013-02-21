@@ -13,7 +13,6 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
-import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
@@ -80,16 +79,6 @@ public class MysqlEventParserTest {
             }
         });
 
-        controller.setHeartBeatCallback(new HeartBeatCallback() {
-
-            public void onSuccess(long costTime) {
-            }
-
-            public void onFailed(Exception e) {
-                e.printStackTrace();
-            }
-        });
-
         controller.start();
 
         timeoutChecker.waitForIdle();
@@ -152,16 +141,6 @@ public class MysqlEventParserTest {
 
             public LogPosition getLatestIndexBy(String destination) {
                 return null;
-            }
-        });
-
-        controller.setHeartBeatCallback(new HeartBeatCallback() {
-
-            public void onSuccess(long costTime) {
-            }
-
-            public void onFailed(Exception e) {
-                e.printStackTrace();
             }
         });
 
@@ -232,16 +211,6 @@ public class MysqlEventParserTest {
             }
         });
 
-        controller.setHeartBeatCallback(new HeartBeatCallback() {
-
-            public void onSuccess(long costTime) {
-            }
-
-            public void onFailed(Exception e) {
-                e.printStackTrace();
-            }
-        });
-
         controller.start();
         timeoutChecker.waitForIdle();
 
@@ -305,16 +274,6 @@ public class MysqlEventParserTest {
             @Override
             public LogPosition getLatestIndexBy(String destination) {
                 return null;
-            }
-        });
-
-        controller.setHeartBeatCallback(new HeartBeatCallback() {
-
-            public void onSuccess(long costTime) {
-            }
-
-            public void onFailed(Exception e) {
-                e.printStackTrace();
             }
         });
 

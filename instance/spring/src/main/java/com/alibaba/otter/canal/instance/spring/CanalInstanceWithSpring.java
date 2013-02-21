@@ -12,9 +12,8 @@ import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceSupport;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
-import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
-import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
+import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.sink.CanalEventSink;
@@ -37,8 +36,6 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
     private CanalEventStore<Event>                 eventStore;
     private CanalMetaManager                       metaManager;
     private CanalAlarmHandler                      alarmHandler;
-    private CanalHAController                      haController;
-    private CanalLogPositionManager                logPositionManager;
 
     public String getDestination() {
         return this.destination;
@@ -67,7 +64,18 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
     public boolean subscribeChange(ClientIdentity identity) {
         if (StringUtils.isNotEmpty(identity.getFilter())) {
             AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(identity.getFilter());
-            ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+
+            boolean isGroup = (eventParser instanceof GroupEventParser);
+            if (isGroup) {
+                // 处理group的模式
+                List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
+                for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
+                    ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
+                }
+            } else {
+                ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+            }
+
         }
 
         // filter的处理规则
@@ -82,33 +90,15 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
 
         logger.info("start CannalInstance for {}-{} ", new Object[] { 1, destination });
         if (!metaManager.isStart()) {
-            beforeStartMetaManager(metaManager);
             metaManager.start();
-            afterStartMetaManager(metaManager);
         }
 
         if (!eventStore.isStart()) {
-            beforeStartEventStore(eventStore);
             eventStore.start();
-            afterStartEventStore(eventStore);
         }
 
         if (!eventSink.isStart()) {
-            beforeStartEventSink(eventSink);
             eventSink.start();
-            afterStartEventSink(eventSink);
-        }
-
-        if (!logPositionManager.isStart()) {
-            beforeStartLogPositionManager(logPositionManager);
-            logPositionManager.start();
-            afterStartLogPositionManager(logPositionManager);
-        }
-
-        if (!haController.isStart()) {
-            beforeStartHAController(haController);
-            haController.start();
-            afterStartHAController(haController);
         }
 
         if (!eventParser.isStart()) {
@@ -123,15 +113,9 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
     public void stop() {
         logger.info("stop CannalInstance for {}-{} ", new Object[] { 1, destination });
         if (eventParser.isStart()) {
+            beforeStopEventParser(eventParser);
             eventParser.stop();
-        }
-
-        if (haController.isStart()) {
-            haController.stop();
-        }
-
-        if (logPositionManager.isStart()) {
-            logPositionManager.stop();
+            afterStopEventParser(eventParser);
         }
 
         if (eventSink.isStart()) {
@@ -182,22 +166,6 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
 
     public void setAlarmHandler(CanalAlarmHandler alarmHandler) {
         this.alarmHandler = alarmHandler;
-    }
-
-    public CanalHAController getHaController() {
-        return haController;
-    }
-
-    public void setHaController(CanalHAController haController) {
-        this.haController = haController;
-    }
-
-    public CanalLogPositionManager getLogPositionManager() {
-        return logPositionManager;
-    }
-
-    public void setLogPositionManager(CanalLogPositionManager logPositionManager) {
-        this.logPositionManager = logPositionManager;
     }
 
 }

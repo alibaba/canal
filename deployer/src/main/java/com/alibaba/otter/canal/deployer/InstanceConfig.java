@@ -16,8 +16,7 @@ public class InstanceConfig {
     private InstanceMode   mode;
     private Boolean        lazy;
     private String         managerAddress;
-    private String         springRootXml;
-    private String         springCustomXml;
+    private String         springXml;
 
     public InstanceConfig(){
 
@@ -75,28 +74,16 @@ public class InstanceConfig {
         this.managerAddress = managerAddress;
     }
 
-    public String getSpringRootXml() {
-        if (springRootXml == null && globalConfig != null) {
-            return globalConfig.getSpringRootXml();
+    public String getSpringXml() {
+        if (springXml == null && globalConfig != null) {
+            return globalConfig.getSpringXml();
         } else {
-            return springRootXml;
+            return springXml;
         }
     }
 
-    public void setSpringRootXml(String springRootXml) {
-        this.springRootXml = springRootXml;
-    }
-
-    public String getSpringCustomXml() {
-        if (springCustomXml == null && globalConfig != null) {
-            return globalConfig.getSpringCustomXml();
-        } else {
-            return springCustomXml;
-        }
-    }
-
-    public void setSpringCustomXml(String springCustomXml) {
-        this.springCustomXml = springCustomXml;
+    public void setSpringXml(String springXml) {
+        this.springXml = springXml;
     }
 
     public String toString() {
