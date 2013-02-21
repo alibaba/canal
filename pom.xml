@@ -26,6 +26,12 @@
 			<email>zava.kid@gmail.com</email>
 			<timezone>8</timezone>
 		</developer>
+		<developer>
+			<name>in355hz</name>
+			<url>http://in355hz.iteye.com</url>
+			<email>in355hz@gmail.com</email>
+			<timezone>8</timezone>
+		</developer>
 	</developers>
 
 	<licenses>
@@ -193,6 +199,7 @@
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<version>4.5</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>mysql</groupId>
