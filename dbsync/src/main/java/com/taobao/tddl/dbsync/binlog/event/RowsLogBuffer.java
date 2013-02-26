@@ -589,7 +589,7 @@ public final class RowsLogBuffer
                 {
                     len = buffer.getUint16();
                 }
-                value = buffer.getFixString(len, charsetName);
+                value = buffer.getFullString(len, charsetName);
                 javaType = Types.VARCHAR;
                 length = len;
                 break;
@@ -604,7 +604,7 @@ public final class RowsLogBuffer
                 {
                     len = buffer.getUint16();
                 }
-                value = buffer.getFixString(len, charsetName);
+                value = buffer.getFullString(len, charsetName);
                 javaType = Types.CHAR; // Types.VARCHAR;
                 length = len;
                 break;

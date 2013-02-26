@@ -828,6 +828,54 @@ public class LogBuffer
     }
 
     /**
+     * Return fix-length string from buffer without null-terminate checking.
+     * 
+     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
+     */
+    public final String getFullString(final int pos, final int len,
+            String charsetName)
+    {
+        if (pos + len > limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + len)));
+
+        try
+        {
+            return new String(buffer, origin + pos, len, charsetName);
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            throw new IllegalArgumentException("Unsupported encoding: "
+                    + charsetName, e);
+        }
+    }
+
+    /**
+     * Return next fix-length string from buffer without null-terminate
+     * checking.
+     * 
+     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
+     */
+    public final String getFullString(final int len, String charsetName)
+    {
+        if (position + len > origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position + len - origin));
+
+        try
+        {
+            String string = new String(buffer, position, len, charsetName);
+            position += len;
+            return string;
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            throw new IllegalArgumentException("Unsupported encoding: "
+                    + charsetName, e);
+        }
+    }
+
+    /**
      * Return dynamic length string from buffer.
      */
     public final String getString(final int pos)
