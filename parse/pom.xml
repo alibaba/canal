@@ -46,10 +46,6 @@
 			<artifactId>canal.parse.driver</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.jboss.netty</groupId>
-			<artifactId>netty</artifactId>
-		</dependency>
 		<!-- test dependency -->
 		<dependency>
 			<groupId>junit</groupId>

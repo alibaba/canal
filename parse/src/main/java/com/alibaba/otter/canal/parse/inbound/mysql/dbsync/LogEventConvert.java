@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.sql.Types;
 import java.util.BitSet;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -242,17 +243,17 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             Column.Builder columnBuilder = Column.newBuilder();
             columnBuilder.setIndex(i);
             columnBuilder.setIsNull(false);
-            columnBuilder.setUpdated(cols.get(i) && isAfter);
             if (tableMeta != null) {
                 // 处理file meta
                 fieldMeta = tableMeta.getFileds().get(i);
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
             }
+            final int javaType = buffer.getJavaType();
+            columnBuilder.setSqlType(javaType);
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
             } else {
-                final int javaType = buffer.getJavaType();
                 final Serializable value = buffer.getValue();
                 // 处理各种类型
                 switch (javaType) {
@@ -322,11 +323,16 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         columnBuilder.setValue(value.toString());
                 }
 
-                if (isAfter) {
-                    rowDataBuilder.addAfterColumns(columnBuilder.build());
-                } else {
-                    rowDataBuilder.addBeforeColumns(columnBuilder.build());
-                }
+            }
+
+            // 设置是否update的标记位
+            columnBuilder.setUpdated(isAfter
+                                     && isUpdate(rowDataBuilder.getBeforeColumnsList(),
+                                                 columnBuilder.getIsNull() ? null : columnBuilder.getValue(), i));
+            if (isAfter) {
+                rowDataBuilder.addAfterColumns(columnBuilder.build());
+            } else {
+                rowDataBuilder.addBeforeColumns(columnBuilder.build());
             }
         }
 
@@ -356,6 +362,35 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
         headerBuilder.setEventLength(logHeader.getEventLen());
         return headerBuilder.build();
+    }
+
+    private boolean isUpdate(List<Column> bfColumns, String newValue, int index) {
+        if (bfColumns == null) {
+            throw new CanalParseException("ERROR ## the bfColumns is null");
+        }
+
+        if (index < 0) {
+            return false;
+        }
+        if ((bfColumns.size() - 1) < index) {
+            return false;
+        }
+        Column column = bfColumns.get(index);
+
+        if (column.getIsNull()) {
+            if (newValue != null) {
+                return true;
+            }
+        } else {
+            if (newValue == null) {
+                return true;
+            } else {
+                if (!column.getValue().equals(newValue)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static TransactionBegin createTransactionBegin(long executeTime) {
