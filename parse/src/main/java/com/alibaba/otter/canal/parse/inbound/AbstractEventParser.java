@@ -240,7 +240,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         });
 
         parseThread.setUncaughtExceptionHandler(handler);
-        parseThread.setName(String.format("destination = %s , AbstractEventParser", destination));
+        parseThread.setName(String.format("destination = %s , address = %s , EventParser", destination,
+                                          runningInfo == null ? null : runningInfo.getAddress().toString()));
         parseThread.start();
     }
 
