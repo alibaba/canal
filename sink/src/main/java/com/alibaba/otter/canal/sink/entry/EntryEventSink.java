@@ -3,12 +3,13 @@ package com.alibaba.otter.canal.sink.entry;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
@@ -29,12 +30,15 @@ import com.alibaba.otter.canal.store.model.Event;
  */
 public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry>> implements CanalEventSink<List<CanalEntry.Entry>> {
 
-    private static final Logger    logger                      = LoggerFactory.getLogger(EntryEventSink.class);
-    private static final int       maxFullTimes                = 10;
+    private static final Logger    logger                        = LoggerFactory.getLogger(EntryEventSink.class);
+    private static final int       maxFullTimes                  = 10;
     private CanalEventStore<Event> eventStore;
-    protected boolean              filterTransactionEntry      = false;                                        // 是否需要过滤事务头/尾
-    protected boolean              filterEmtryTransactionEntry = true;                                         // 是否需要过滤空的事务头/尾
-    protected AtomicBoolean        isInterrupt                 = new AtomicBoolean(false);
+    protected boolean              filterTransactionEntry        = false;                                        // 是否需要过滤事务头/尾
+    protected boolean              filterEmtryTransactionEntry   = true;                                         // 是否需要过滤空的事务头/尾
+    protected long                 emptyTransactionInterval      = 5 * 1000;                                     // 空的事务输出的频率
+    protected long                 emptyTransctionThresold       = 8192;                                         // 超过1024个事务头，输出一个
+    protected volatile long        lastEmptyTransactionTimestamp = 0L;
+    protected AtomicLong           lastEmptyTransactionCount     = new AtomicLong(0L);
 
     public void start() {
         super.start();
@@ -68,6 +72,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
 
     private boolean sinkData(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress)
                                                                                             throws InterruptedException {
+        boolean hasRowData = false;
         List<Event> events = new ArrayList<Event>();
         for (CanalEntry.Entry entry : entrys) {
             Event event = new Event(new LogIdentity(remoteAddress, -1L), entry);
@@ -76,9 +81,28 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
             }
 
             events.add(event);
+            hasRowData |= (entry.getEntryType() == EntryType.ROWDATA);
         }
 
-        return doSink(events);
+        if (hasRowData) {
+            // 存在row记录
+            return doSink(events);
+        } else {
+            // 需要过滤的数据
+            if (filterEmtryTransactionEntry && !CollectionUtils.isEmpty(events)) {
+                long currentTimestamp = events.get(0).getEntry().getHeader().getExecuteTime();
+                // 基于一定的策略控制，放过空的事务头和尾，便于及时更新数据库位点，表明工作正常
+                if (Math.abs(currentTimestamp - lastEmptyTransactionTimestamp) > emptyTransactionInterval
+                    || lastEmptyTransactionCount.incrementAndGet() > emptyTransctionThresold) {
+                    lastEmptyTransactionCount.set(0L);
+                    lastEmptyTransactionTimestamp = currentTimestamp;
+                    return doSink(events);
+                }
+            }
+
+            // 直接返回true，忽略空的事务头和尾
+            return true;
+        }
     }
 
     protected boolean doFilter(Event event) {
@@ -116,11 +140,8 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
             for (CanalEventDownStreamHandler<Event> handler : getHandlers()) {
                 handler.retry(events);
             }
-            // isInterrupt 只会被响应一次，一旦true改为false后，就会退出无限的tryPut操作
-            if (isInterrupt.compareAndSet(true, false)) {
-                return false;
-            }
-        } while (running && !Thread.currentThread().isInterrupted());
+
+        } while (running && !Thread.interrupted());
         return false;
     }
 
@@ -141,11 +162,6 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
         return result.toString();
     }
 
-    public void interrupt() {
-        super.interrupt();
-        isInterrupt.compareAndSet(false, true); // 设置为中断状态
-    }
-
     public void setEventStore(CanalEventStore<Event> eventStore) {
         this.eventStore = eventStore;
     }
@@ -156,6 +172,14 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
 
     public void setFilterEmtryTransactionEntry(boolean filterEmtryTransactionEntry) {
         this.filterEmtryTransactionEntry = filterEmtryTransactionEntry;
+    }
+
+    public void setEmptyTransactionInterval(long emptyTransactionInterval) {
+        this.emptyTransactionInterval = emptyTransactionInterval;
+    }
+
+    public void setEmptyTransctionThresold(long emptyTransctionThresold) {
+        this.emptyTransctionThresold = emptyTransctionThresold;
     }
 
 }
