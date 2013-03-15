@@ -103,6 +103,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
         }
 
+        if (metaConnection != null) {
+            try {
+                metaConnection.disconnect();
+            } catch (IOException e) {
+                logger.error("ERROR # disconnect for address:{}", metaConnection.getConnector().getAddress(), e);
+            }
+        }
+
         // 开始启动心跳包
         if (detectingEnable && StringUtils.isNotBlank(detectingSQL)) {
             logger.info("stop heart beat.... ");
