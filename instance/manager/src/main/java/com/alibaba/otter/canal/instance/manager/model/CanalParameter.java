@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
+import com.alibaba.otter.canal.store.model.BatchMode;
 
 /**
  * canal运行相关参数
@@ -31,7 +32,9 @@ public class CanalParameter implements Serializable {
     // storage存储
     private Integer                  transactionSize                    = 1024;                      // 支持处理的transaction事务大小
     private StorageMode              storageMode                        = StorageMode.MEMORY;        // 存储机制
-    private Integer                  memoryStorageBufferSize            = 32 * 1024;                 // 内存存储的buffer大小
+    private BatchMode                storagebatchMode                   = BatchMode.MEMSIZE;         // 基于大小返回结果
+    private Integer                  memoryStorageBufferSize            = 16 * 1024;                 // 内存存储的buffer大小
+    private Integer                  memoryStorageBufferMemSize         = 50 * 1024 * 1024;          // 内存存储的buffer内存占用大小
     private String                   fileStorageDirectory;                                           // 文件存储的目录位置
     private Integer                  fileStorageStoreCount;                                          // 每个文件store存储的记录数
     private Integer                  fileStorageRollverCount;                                        // store文件的个数
@@ -752,6 +755,22 @@ public class CanalParameter implements Serializable {
 
     public void setHeartbeatHaEnable(Boolean heartbeatHaEnable) {
         this.heartbeatHaEnable = heartbeatHaEnable;
+    }
+
+    public BatchMode getStoragebatchMode() {
+        return storagebatchMode == null ? BatchMode.MEMSIZE : storagebatchMode;
+    }
+
+    public void setStoragebatchMode(BatchMode storagebatchMode) {
+        this.storagebatchMode = storagebatchMode;
+    }
+
+    public Integer getMemoryStorageBufferMemSize() {
+        return memoryStorageBufferMemSize == null ? 50 * 1024 * 1024 : memoryStorageBufferMemSize;
+    }
+
+    public void setMemoryStorageBufferMemSize(Integer memoryStorageBufferMemSize) {
+        this.memoryStorageBufferMemSize = memoryStorageBufferMemSize;
     }
 
     public String toString() {
