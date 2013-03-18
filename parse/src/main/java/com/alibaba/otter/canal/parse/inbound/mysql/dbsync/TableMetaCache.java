@@ -104,7 +104,8 @@ public class TableMetaCache {
         List<FieldMeta> result = new ArrayList<FieldMeta>();
         for (int i = 0; i < count; i++) {
             FieldMeta meta = new FieldMeta();
-            meta.setColumnName(packet.getFieldValues().get(nameMaps.get(COLUMN_NAME) + i * size));
+            // 做一个优化，使用String.intern()，共享String对象，减少内存使用
+            meta.setColumnName(packet.getFieldValues().get(nameMaps.get(COLUMN_NAME) + i * size).intern());
             meta.setColumnType(packet.getFieldValues().get(nameMaps.get(COLUMN_TYPE) + i * size));
             meta.setIsNullable(packet.getFieldValues().get(nameMaps.get(IS_NULLABLE) + i * size));
             meta.setIskey(packet.getFieldValues().get(nameMaps.get(COLUMN_KEY) + i * size));
