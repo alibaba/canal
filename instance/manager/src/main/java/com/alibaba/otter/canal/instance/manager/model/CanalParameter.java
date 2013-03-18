@@ -32,7 +32,7 @@ public class CanalParameter implements Serializable {
     // storage存储
     private Integer                  transactionSize                    = 1024;                      // 支持处理的transaction事务大小
     private StorageMode              storageMode                        = StorageMode.MEMORY;        // 存储机制
-    private BatchMode                storagebatchMode                   = BatchMode.MEMSIZE;         // 基于大小返回结果
+    private BatchMode                storageBatchMode                   = BatchMode.MEMSIZE;         // 基于大小返回结果
     private Integer                  memoryStorageBufferSize            = 16 * 1024;                 // 内存存储的buffer大小
     private Integer                  memoryStorageBufferMemSize         = 50 * 1024 * 1024;          // 内存存储的buffer内存占用大小
     private String                   fileStorageDirectory;                                           // 文件存储的目录位置
@@ -757,12 +757,12 @@ public class CanalParameter implements Serializable {
         this.heartbeatHaEnable = heartbeatHaEnable;
     }
 
-    public BatchMode getStoragebatchMode() {
-        return storagebatchMode == null ? BatchMode.MEMSIZE : storagebatchMode;
+    public BatchMode getStorageBatchMode() {
+        return storageBatchMode == null ? BatchMode.MEMSIZE : storageBatchMode;
     }
 
-    public void setStoragebatchMode(BatchMode storagebatchMode) {
-        this.storagebatchMode = storagebatchMode;
+    public void setStorageBatchMode(BatchMode storageBatchMode) {
+        this.storageBatchMode = storageBatchMode;
     }
 
     public Integer getMemoryStorageBufferMemSize() {
