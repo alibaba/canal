@@ -26,7 +26,7 @@ import com.alibaba.otter.canal.store.model.Events;
  * <pre>
  * 变更记录：
  * 1. 新增BatchMode类型，支持按内存大小获取批次数据，内存大小更加可控.
- *   a. put操作，会首先根据bufferSize进行控制，然后再进行bufferMemSize进行控制. 因存储的内容是以Event，如果纯依赖于memsize进行控制，会导致RingBuffer出现动态伸缩
+ *   a. put操作，会首先根据bufferSize进行控制，然后再进行bufferSize * bufferMemUnit进行控制. 因存储的内容是以Event，如果纯依赖于memsize进行控制，会导致RingBuffer出现动态伸缩
  * </pre>
  * 
  * @author jianghang 2012-6-20 上午09:46:31
@@ -36,7 +36,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     private static final long INIT_SQEUENCE = -1;
     private int               bufferSize    = 16 * 1024;
-    private int               bufferMemSize = 50 * 1024 * 1024;             // 默认50MB
+    private int               bufferMemUnit = 1024;                         // memsize的单位，默认为1kb大小
     private int               indexMask;
     private Event[]           entries;
 
@@ -283,7 +283,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
         } else {
             long memsize = 0;
-            for (; memsize <= batchSize && next <= maxAbleSequence; next++) {
+            long maxMemSize = batchSize * bufferMemUnit;
+            for (; memsize <= maxMemSize && next <= maxAbleSequence; next++) {
                 // 永远保证可以取出第一条的记录，避免死锁
                 Event event = entries[getIndex(next)];
                 entrys.add(event);
@@ -456,13 +457,11 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         final long minPoint = getMinimumGetOrAck();
         if (wrapPoint > minPoint) { // 刚好追上一轮
             return false;
-        } else if (putSequence.get() == minPoint) { // 说明是第一条数据，允许加入，避免出现第一条数据过大，导致永远无法放入buffer中
-            return true;
         } else {
             // 在bufferSize模式上，再增加memSize控制
             if (batchMode.isMemSize()) {
                 final long memsize = putMemSize.get() - ackMemSize.get();
-                if (memsize < bufferMemSize) {
+                if (memsize < bufferSize * bufferMemUnit) {
                     return true;
                 } else {
                     return false;
@@ -495,7 +494,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             long currentSize = getMemSize.get();
             long maxAbleSize = putMemSize.get();
 
-            if (maxAbleSize - currentSize >= batchSize) {
+            if (maxAbleSize - currentSize >= batchSize * bufferMemUnit) {
                 return true;
             } else {
                 return false;
@@ -518,8 +517,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         this.bufferSize = bufferSize;
     }
 
-    public void setBufferMemSize(int bufferMemSize) {
-        this.bufferMemSize = bufferMemSize;
+    public void setBufferMemUnit(int bufferMemUnit) {
+        this.bufferMemUnit = bufferMemUnit;
     }
 
     public void setBatchMode(BatchMode batchMode) {

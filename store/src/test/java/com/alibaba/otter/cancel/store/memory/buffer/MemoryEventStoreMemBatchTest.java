@@ -23,7 +23,6 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
     public void testOnePut() {
         MemoryEventStoreWithBuffer eventStore = new MemoryEventStoreWithBuffer();
         eventStore.setBatchMode(BatchMode.MEMSIZE);
-        eventStore.setBufferMemSize(1024 * 1024);
         eventStore.start();
         // 尝试阻塞
         try {
@@ -49,8 +48,8 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
     @Test
     public void testOnePutExceedLimit() {
         MemoryEventStoreWithBuffer eventStore = new MemoryEventStoreWithBuffer();
+        eventStore.setBufferSize(1);
         eventStore.setBatchMode(BatchMode.MEMSIZE);
-        eventStore.setBufferMemSize(1024);
         eventStore.start();
         // 尝试阻塞
         try {
@@ -67,8 +66,8 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
     public void testFullPut() {
         int bufferSize = 16;
         MemoryEventStoreWithBuffer eventStore = new MemoryEventStoreWithBuffer();
+        eventStore.setBufferSize(bufferSize);
         eventStore.setBatchMode(BatchMode.MEMSIZE);
-        eventStore.setBufferMemSize(bufferSize * 1024);
         eventStore.start();
 
         for (int i = 0; i < bufferSize; i++) {
@@ -114,8 +113,8 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
     public void testFullPutBatchGet() {
         int bufferSize = 16;
         MemoryEventStoreWithBuffer eventStore = new MemoryEventStoreWithBuffer();
+        eventStore.setBufferSize(bufferSize);
         eventStore.setBatchMode(BatchMode.MEMSIZE);
-        eventStore.setBufferMemSize(bufferSize * 1024);
         eventStore.start();
 
         for (int i = 0; i < bufferSize; i++) {
@@ -130,7 +129,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
         Assert.assertEquals(lastest, CanalEventUtils.createPosition(buildEvent("1", 1L, 1L + bufferSize - 1)));
 
         System.out.println("start get");
-        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize * 1024);
+        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize);
         System.out.println("first get size : " + entrys1.getEvents().size());
 
         Assert.assertTrue(entrys1.getEvents().size() == bufferSize);
@@ -145,6 +144,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
     @Test
     public void testBlockPutOneGet() {
         final MemoryEventStoreWithBuffer eventStore = new MemoryEventStoreWithBuffer();
+        eventStore.setBufferSize(16);
         eventStore.setBatchMode(BatchMode.MEMSIZE);
         eventStore.start();
 
@@ -156,7 +156,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
 
         final Position position = eventStore.getFirstPosition();
         try {
-            Events<Event> entrys = eventStore.get(position, batchSize * 1024);
+            Events<Event> entrys = eventStore.get(position, batchSize);
             Assert.assertTrue(entrys.getEvents().size() == batchSize);
             Assert.assertEquals(position, entrys.getPositionRange().getStart());
             Assert.assertEquals(position, entrys.getPositionRange().getEnd());
@@ -170,7 +170,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
             public void run() {
                 boolean result = false;
                 try {
-                    eventStore.get(position, batchSize * 1024);
+                    eventStore.get(position, batchSize);
                 } catch (CanalStoreException e) {
                 } catch (InterruptedException e) {
                     System.out.println("interrupt occured.");
@@ -199,8 +199,8 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
     public void testRollback() {
         int bufferSize = 16;
         MemoryEventStoreWithBuffer eventStore = new MemoryEventStoreWithBuffer();
+        eventStore.setBufferSize(bufferSize);
         eventStore.setBatchMode(BatchMode.MEMSIZE);
-        eventStore.setBufferMemSize(bufferSize * 1024);
         eventStore.start();
 
         for (int i = 0; i < bufferSize / 2; i++) {
@@ -216,12 +216,12 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
         Assert.assertEquals(lastest, CanalEventUtils.createPosition(buildEvent("1", 1L, 1L + bufferSize / 2 - 1)));
 
         System.out.println("start get");
-        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize * 1024);
+        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize);
         System.out.println("first get size : " + entrys1.getEvents().size());
 
         eventStore.rollback();
 
-        entrys1 = eventStore.tryGet(first, bufferSize * 1024);
+        entrys1 = eventStore.tryGet(first, bufferSize);
         System.out.println("after rollback get size : " + entrys1.getEvents().size());
         Assert.assertTrue(entrys1.getEvents().size() == bufferSize / 2);
 
@@ -232,12 +232,12 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
             Assert.assertTrue(result);
         }
 
-        Events<Event> entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize * 1024);
+        Events<Event> entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
         System.out.println("second get size : " + entrys2.getEvents().size());
 
         eventStore.rollback();
 
-        entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize * 1024);
+        entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
         System.out.println("after rollback get size : " + entrys2.getEvents().size());
         Assert.assertTrue(entrys2.getEvents().size() == bufferSize);
 
@@ -257,8 +257,8 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
     public void testAck() {
         int bufferSize = 16;
         MemoryEventStoreWithBuffer eventStore = new MemoryEventStoreWithBuffer();
+        eventStore.setBufferSize(bufferSize);
         eventStore.setBatchMode(BatchMode.MEMSIZE);
-        eventStore.setBufferMemSize(bufferSize * 1024);
         eventStore.start();
 
         for (int i = 0; i < bufferSize / 2; i++) {
@@ -274,7 +274,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
         Assert.assertEquals(lastest, CanalEventUtils.createPosition(buildEvent("1", 1L, 1L + bufferSize / 2 - 1)));
 
         System.out.println("start get");
-        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize * 1024);
+        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize);
         System.out.println("first get size : " + entrys1.getEvents().size());
 
         eventStore.cleanUntil(entrys1.getPositionRange().getEnd());
@@ -287,12 +287,12 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
             Assert.assertTrue(result);
         }
 
-        Events<Event> entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize * 1024);
+        Events<Event> entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
         System.out.println("second get size : " + entrys2.getEvents().size());
 
         eventStore.rollback();
 
-        entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize * 1024);
+        entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
         System.out.println("after rollback get size : " + entrys2.getEvents().size());
 
         first = eventStore.getFirstPosition();
@@ -308,7 +308,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
         eventStore.cleanUntil(entrys2.getPositionRange().getEnd());
 
         // 最后就拿不到数据
-        Events<Event> entrys3 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize * 1024);
+        Events<Event> entrys3 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
         System.out.println("third get size : " + entrys3.getEvents().size());
         Assert.assertEquals(0, entrys3.getEvents().size());
 

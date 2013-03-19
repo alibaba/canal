@@ -37,9 +37,8 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
     @Before
     public void setUp() {
         eventStore = new MemoryEventStoreWithBuffer();
-        // eventStore.setBufferSize(16 * 16);
+        eventStore.setBufferSize(16 * 16);
         eventStore.setBatchMode(BatchMode.MEMSIZE);
-        eventStore.setBufferMemSize(16 * 16 * 1024);
         eventStore.start();
     }
 
@@ -53,7 +52,7 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
         CountDownLatch latch = new CountDownLatch(1);
         BooleanMutex mutex = new BooleanMutex(true);
         Producer producer = new Producer(mutex, 10);
-        Cosumer cosumer = new Cosumer(latch, 20, 50 * 1024);
+        Cosumer cosumer = new Cosumer(latch, 20, 50);
 
         executor.submit(producer);
         executor.submit(cosumer);
