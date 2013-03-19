@@ -96,6 +96,8 @@ public class CanalController {
             zkclientx.createPersistent(ZookeeperPathUtils.DESTINATION_ROOT_NODE, true);
             zkclientx.createPersistent(ZookeeperPathUtils.CANAL_CLUSTER_ROOT_NODE, true);
         }
+        boolean stopInstanceAsPossible = BooleanUtils.toBoolean(getProperty(properties,
+                                                                            CanalConstants.CANAL_STOPINSTANCEASPOSSIBLE));
 
         final ServerRunningData serverData = new ServerRunningData(cid, ip + ":" + port);
         ServerRunningMonitors.setServerData(serverData);
@@ -157,6 +159,7 @@ public class CanalController {
         canalServer = new CanalServerWithNetty(embededCanalServer);
         canalServer.setIp(ip);
         canalServer.setPort(port);
+        canalServer.setStopInstanceAsPossible(stopInstanceAsPossible);
 
         // 初始化monitor机制
         autoScan = BooleanUtils.toBoolean(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN));
