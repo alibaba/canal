@@ -18,11 +18,12 @@ import com.alibaba.otter.canal.protocol.exception.CanalClientException;
  */
 public class ClusterCanalConnector implements CanalConnector {
 
-    private final Logger            logger     = LoggerFactory.getLogger(this.getClass());
+    private final Logger            logger        = LoggerFactory.getLogger(this.getClass());
     private String                  username;
     private String                  password;
-    private int                     soTimeout  = 10000;
-    private int                     retryTimes = 3;
+    private int                     soTimeout     = 10000;
+    private int                     retryTimes    = 3;
+    private int                     retryInterval = 5000;                                    // 重试的时间间隔，默认5秒
     private CanalNodeAccessStrategy accessStrategy;
     private SimpleCanalConnector    currentConnector;
     private String                  destination;
@@ -198,6 +199,11 @@ public class ClusterCanalConnector implements CanalConnector {
 
     private void restart() throws CanalClientException {
         disconnect();
+        try {
+            Thread.sleep(retryInterval);
+        } catch (InterruptedException e) {
+            throw new CanalClientException(e);
+        }
         connect();
     }
 
