@@ -192,12 +192,11 @@ public class SessionHandler extends SimpleChannelHandler {
 
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         logger.info("remove binding subscription value object if any...");
-        ClientIdentity clientIdentity = (ClientIdentity) ctx.getAttachment();
+        // ClientIdentity clientIdentity = (ClientIdentity) ctx.getAttachment();
         // 如果唯一的订阅者都取消了订阅，直接关闭服务，针对内部版本模式下可以减少资源浪费
-        if (clientIdentity != null) {
-            stopCanalInstanceIfNecessary(clientIdentity);
-        }
-
+        // if (clientIdentity != null) {
+        // stopCanalInstanceIfNecessary(clientIdentity);
+        // }
     }
 
     private void stopCanalInstanceIfNecessary(ClientIdentity clientIdentity) {
