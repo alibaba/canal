@@ -5,9 +5,9 @@
 set ENV_PATH=.\
 if "%OS%" == "Windows_NT" set ENV_PATH=%~dp0%
 
-conf_dir=%ENV_PATH%\..\conf
-canal_conf=%conf_dir%\canal.properties
-logback_configurationFile=%conf_dir%\logback.xml
+set conf_dir=%ENV_PATH%\..\conf
+set canal_conf=%conf_dir%\canal.properties
+set logback_configurationFile=%conf_dir%\logback.xml
 
 set CLASSPATH=%conf_dir%
 set CLASSPATH=%conf_dir%\..\lib\*;%CLASSPATH%
