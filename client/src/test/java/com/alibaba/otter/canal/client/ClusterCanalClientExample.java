@@ -19,7 +19,7 @@ public class ClusterCanalClientExample {
         // AddressUtils.getHostIp(),
         // 11111)),
         // "stability_test", "", "");
-        CanalConnector connector = CanalConnectors.newClusterConnector("10.20.144.51:2181", "stability_test", "", "");
+        CanalConnector connector = CanalConnectors.newClusterConnector("10.20.144.51:2181", "example", "", "");
         int batchSize = 1000;
         int emptyCount = 0;
         try {
@@ -40,8 +40,12 @@ public class ClusterCanalClientExample {
                     }
                 } else {
                     emptyCount = 0;
-                    // System.out.printf("message[batchId=%s,size=%s] \n", batchId, size);
-                    printEntry(message.getEntries());
+                    long memsize = 0;
+                    for (Entry entry : message.getEntries()) {
+                        memsize += entry.getHeader().getEventLength();
+                    }
+                    System.out.printf("message[batchId=%s,size=%s,memsize=%s] \n", batchId, size, memsize);
+                    // printEntry(message.getEntries());
                 }
 
                 connector.ack(batchId); // 提交确认

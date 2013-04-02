@@ -19,6 +19,7 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.store.CanalStoreException;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
+import com.alibaba.otter.canal.store.model.BatchMode;
 import com.alibaba.otter.canal.store.model.Event;
 import com.alibaba.otter.canal.store.model.Events;
 
@@ -37,6 +38,7 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
     public void setUp() {
         eventStore = new MemoryEventStoreWithBuffer();
         eventStore.setBufferSize(16 * 16);
+        eventStore.setBatchMode(BatchMode.MEMSIZE);
         eventStore.start();
     }
 
@@ -50,13 +52,13 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
         CountDownLatch latch = new CountDownLatch(1);
         BooleanMutex mutex = new BooleanMutex(true);
         Producer producer = new Producer(mutex, 10);
-        Cosumer cosumer = new Cosumer(latch, 50, 50);
+        Cosumer cosumer = new Cosumer(latch, 20, 50);
 
         executor.submit(producer);
         executor.submit(cosumer);
 
         try {
-            Thread.sleep(10 * 1000L);
+            Thread.sleep(1000 * 1000L);
         } catch (InterruptedException e) {
         }
 
@@ -147,6 +149,7 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
 
                 try {
                     Events<Event> entrys = eventStore.get(first, batchSize, 1000L, TimeUnit.MILLISECONDS);
+                    // Events<Event> entrys = eventStore.tryGet(first, batchSize);
                     if (!CollectionUtils.isEmpty(entrys.getEvents())) {
                         if (entrys.getEvents().size() != batchSize) {
                             System.out.println("get size:" + entrys.getEvents().size() + " with not full batchSize:"
@@ -172,8 +175,8 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
                         emptyCount++;
                         System.out.println("empty events for " + emptyCount);
                     }
-                } catch (CanalStoreException e) {
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 

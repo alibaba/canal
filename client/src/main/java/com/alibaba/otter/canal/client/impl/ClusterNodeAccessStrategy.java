@@ -59,7 +59,7 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
 
         String runningPath = ZookeeperPathUtils.getDestinationServerRunning(destination);
         this.zkClient.subscribeDataChanges(runningPath, dataListener);
-        initRunning(this.zkClient.readData(runningPath));
+        initRunning(this.zkClient.readData(runningPath, true));
     }
 
     public SocketAddress nextNode() {
@@ -90,6 +90,10 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
     }
 
     private void initRunning(Object data) {
+        if (data == null) {
+            return;
+        }
+
         ServerRunningData runningData = JsonUtils.unmarshalFromByte((byte[]) data, ServerRunningData.class);
         String[] strs = StringUtils.split(runningData.getAddress(), ':');
         if (strs.length == 2) {

@@ -55,6 +55,7 @@ import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
 import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
+import com.alibaba.otter.canal.store.model.BatchMode;
 import com.alibaba.otter.canal.store.model.Event;
 
 /**
@@ -229,8 +230,11 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         logger.info("init eventStore begin...");
         StorageMode mode = parameters.getStorageMode();
         if (mode.isMemory()) {
-            eventStore = new MemoryEventStoreWithBuffer();
-            ((MemoryEventStoreWithBuffer) eventStore).setBufferSize(parameters.getMemoryStorageBufferSize());
+            MemoryEventStoreWithBuffer memoryEventStore = new MemoryEventStoreWithBuffer();
+            memoryEventStore.setBufferSize(parameters.getMemoryStorageBufferSize());
+            memoryEventStore.setBufferMemUnit(parameters.getMemoryStorageBufferMemUnit());
+            memoryEventStore.setBatchMode(BatchMode.valueOf(parameters.getStorageBatchMode().name()));
+            eventStore = memoryEventStore;
         } else if (mode.isFile()) {
             // 后续版本支持
             throw new CanalException("unsupport MetaMode for " + mode);
