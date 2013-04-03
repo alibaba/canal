@@ -46,6 +46,14 @@ public interface CanalConnector {
     /**
      * 客户端订阅，重复订阅时会更新对应的filter信息
      * 
+     * <pre>
+     * 说明：
+     * a. 如果本次订阅中filter信息为空，则直接使用canal server服务端配置的filter信息
+     * b. 如果本次订阅中filter信息不为空，目前会直接替换canal server服务端配置的filter信息，以本次提交的为准
+     * 
+     * TODO: 后续可以考虑，如果本次提交的filter不为空，在执行过滤时，是对canal server filter + 本次filter的交集处理，达到只取1份binlog数据，多个客户端消费不同的表
+     * </pre>
+     * 
      * @param clientIdentity
      * @throws CanalClientException
      */

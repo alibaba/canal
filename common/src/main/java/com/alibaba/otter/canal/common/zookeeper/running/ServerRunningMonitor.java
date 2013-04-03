@@ -89,7 +89,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     public void start() {
         super.start();
-
+        processStart();
         if (zkClient != null) {
             String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
             zkClient.subscribeDataChanges(path, dataListener);
@@ -109,7 +109,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         } else {
             processActiveExit(); // 没有zk，直接启动
         }
-
+        processStop();
     }
 
     public void initRunning() {
@@ -194,6 +194,26 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     private boolean isMine(String address) {
         return address.equals(serverData.getAddress());
+    }
+
+    private void processStart() {
+        if (listener != null) {
+            try {
+                listener.processStart();
+            } catch (Exception e) {
+                logger.error("processStart failed", e);
+            }
+        }
+    }
+
+    private void processStop() {
+        if (listener != null) {
+            try {
+                listener.processStop();
+            } catch (Exception e) {
+                logger.error("processStop failed", e);
+            }
+        }
     }
 
     private void processActiveEnter() {
