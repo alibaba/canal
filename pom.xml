@@ -7,11 +7,13 @@
 	<version>1.0.3-SNAPSHOT</version>
 	<url>https://github.com/alibaba/canal</url>
 	
+	<!--
 	<parent>
 	    <groupId>org.sonatype.oss</groupId>
 	    <artifactId>oss-parent</artifactId>
 	    <version>7</version>
 	</parent>
+	-->
 	
 	<developers>
 		<developer>

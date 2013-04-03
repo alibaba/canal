@@ -76,26 +76,6 @@
 							<outputDirectory>${project.build.directory}</outputDirectory>
 						</configuration>
 					</plugin>
-
-					<!-- 对装配出来的目录执行autoconfig -->
-					<plugin>
-						<groupId>com.alibaba.maven.plugins</groupId>
-						<artifactId>maven-autoconf-plugin</artifactId>
-						<executions>
-							<execution>
-								<goals>
-									<goal>config</goal>
-								</goals>
-								<phase>pre-integration-test</phase>
-							</execution>
-						</executions>
-						<configuration>
-							<destFiles>
-								<destFile>${project.build.directory}/${project.artifactId}</destFile>
-							</destFiles>
-							<!-- 各个项目可能还有一些特定的配置 -->
-						</configuration>
-					</plugin>
 				</plugins>
 			</build>
 
