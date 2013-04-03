@@ -246,11 +246,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            if (checkUnGetSlotAt((LogPosition) start, 1)) {// 注意这里直接使用get操作，有数据就取
-                return doGet(start, batchSize);
-            } else {
-                return new Events<Event>();
-            }
+            return doGet(start, batchSize);
         } finally {
             lock.unlock();
         }

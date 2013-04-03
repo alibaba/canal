@@ -750,7 +750,7 @@ public class CanalParameter implements Serializable {
     }
 
     public Boolean getHeartbeatHaEnable() {
-        return heartbeatHaEnable == null ? false : true;
+        return heartbeatHaEnable == null ? false : heartbeatHaEnable;
     }
 
     public void setHeartbeatHaEnable(Boolean heartbeatHaEnable) {

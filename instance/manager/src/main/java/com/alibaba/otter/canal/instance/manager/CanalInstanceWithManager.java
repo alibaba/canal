@@ -471,6 +471,15 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         return logPositionManager;
     }
 
+    protected void startEventParserInternal(CanalEventParser eventParser) {
+        if (eventParser instanceof AbstractEventParser) {
+            AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
+            abstractEventParser.setAlarmHandler(getAlarmHandler());
+        }
+
+        super.startEventParserInternal(eventParser);
+    }
+
     private int getGroupSize() {
         List<List<DataSourcing>> groupDbAddresses = parameters.getGroupDbAddresses();
         if (!CollectionUtils.isEmpty(groupDbAddresses)) {

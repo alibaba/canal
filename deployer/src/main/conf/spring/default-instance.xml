@@ -30,7 +30,6 @@
 			</list>
 		</property>
 	</bean>
-	<bean id="canalInstanceGenerator" class="com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator"/>
 	
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
