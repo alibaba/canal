@@ -54,11 +54,11 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             public void handleDataChange(String dataPath, Object data) throws Exception {
                 MDC.put("destination", destination);
                 ServerRunningData runningData = JsonUtils.unmarshalFromByte((byte[]) data, ServerRunningData.class);
-                if (!isMine(runningData.getCid())) {
+                if (!isMine(runningData.getAddress())) {
                     mutex.set(false);
                 }
 
-                if (!runningData.isActive() && isMine(runningData.getCid())) { // 说明出现了主动释放的操作，并且本机之前是active
+                if (!runningData.isActive() && isMine(runningData.getAddress())) { // 说明出现了主动释放的操作，并且本机之前是active
                     release = true;
                     releaseRunning();// 彻底释放mainstem
                 }
@@ -69,7 +69,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             public void handleDataDeleted(String dataPath) throws Exception {
                 MDC.put("destination", destination);
                 mutex.set(false);
-                if (!release && isMine(activeData.getCid())) {
+                if (!release && isMine(activeData.getAddress())) {
                     // 如果上一次active的状态就是本机，则即时触发一下active抢占
                     initRunning();
                 } else {
@@ -89,7 +89,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     public void start() {
         super.start();
-
+        processStart();
         if (zkClient != null) {
             String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
             zkClient.subscribeDataChanges(path, dataListener);
@@ -109,7 +109,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         } else {
             processActiveExit(); // 没有zk，直接启动
         }
-
+        processStop();
     }
 
     public void initRunning() {
@@ -159,7 +159,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             ServerRunningData eventData = JsonUtils.unmarshalFromByte(bytes, ServerRunningData.class);
             activeData = eventData;// 更新下为最新值
             // 检查下nid是否为自己
-            boolean result = isMine(activeData.getCid());
+            boolean result = isMine(activeData.getAddress());
             if (!result) {
                 logger.warn("canal is running in node[{}] , but not in node[{}]", activeData.getCid(),
                             serverData.getCid());
@@ -192,8 +192,28 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     // ====================== helper method ======================
 
-    private boolean isMine(Long targetNid) {
-        return targetNid.equals(serverData.getCid());
+    private boolean isMine(String address) {
+        return address.equals(serverData.getAddress());
+    }
+
+    private void processStart() {
+        if (listener != null) {
+            try {
+                listener.processStart();
+            } catch (Exception e) {
+                logger.error("processStart failed", e);
+            }
+        }
+    }
+
+    private void processStop() {
+        if (listener != null) {
+            try {
+                listener.processStop();
+            } catch (Exception e) {
+                logger.error("processStop failed", e);
+            }
+        }
     }
 
     private void processActiveEnter() {

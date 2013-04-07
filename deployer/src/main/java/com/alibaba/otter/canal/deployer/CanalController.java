@@ -112,6 +112,22 @@ public class CanalController {
                         try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
                             embededCanalServer.start(destination);
+                        } finally {
+                            MDC.remove(CanalConstants.MDC_DESTINATION);
+                        }
+                    }
+
+                    public void processActiveExit() {
+                        try {
+                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                            embededCanalServer.stop(destination);
+                        } finally {
+                            MDC.remove(CanalConstants.MDC_DESTINATION);
+                        }
+                    }
+
+                    public void processStart() {
+                        try {
                             if (zkclientx != null) {
                                 final String path = ZookeeperPathUtils.getDestinationClusterNode(destination, ip + ":"
                                                                                                               + port);
@@ -132,7 +148,7 @@ public class CanalController {
                         }
                     }
 
-                    public void processActiveExit() {
+                    public void processStop() {
                         try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
                             if (zkclientx != null) {
@@ -140,7 +156,6 @@ public class CanalController {
                                                                                                               + port);
                                 releaseCid(path);
                             }
-                            embededCanalServer.stop(destination);
                         } finally {
                             MDC.remove(CanalConstants.MDC_DESTINATION);
                         }

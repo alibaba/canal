@@ -528,7 +528,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             List<String> fields = packet.getFieldValues();
             if (CollectionUtils.isEmpty(fields)) {
                 throw new CanalParseException(
-                                              "command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+                                              "command : 'show binlog events limit 1' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
             }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
@@ -567,6 +567,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 logger.warn("Ignoring failed slave: " + mysqlConnection.getConnector().getAddress() + ", Last_Errno = "
                             + errno + ", Slave_IO_Running = " + slaveIORunning + ", Slave_SQL_Running = "
                             + slaveSQLRunning);
+                return null;
             }
 
             String masterHost = maps.get("Master_Host");

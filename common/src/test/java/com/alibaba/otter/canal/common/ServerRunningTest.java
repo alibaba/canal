@@ -126,6 +126,14 @@ public class ServerRunningTest extends AbstractZkTest {
                 countLatch.countDown();
             }
 
+            public void processStart() {
+                System.out.println(String.format("cid:%s ip:%s:%s processStart", cid, ip, port));
+            }
+
+            public void processStop() {
+                System.out.println(String.format("cid:%s ip:%s:%s processStop", cid, ip, port));
+            }
+
         });
 
         runningMonitor.setZkClient(zkclientx);

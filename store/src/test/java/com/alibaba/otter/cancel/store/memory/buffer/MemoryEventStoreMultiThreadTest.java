@@ -58,7 +58,7 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
         executor.submit(cosumer);
 
         try {
-            Thread.sleep(1000 * 1000L);
+            Thread.sleep(30 * 1000L);
         } catch (InterruptedException e) {
         }
 

@@ -39,7 +39,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
     private volatile ClientRunningData activeData;
     private ScheduledExecutorService   delayExector = Executors.newScheduledThreadPool(1);
     private ClientRunningListener      listener;
-    private int                        delayTime    = 10;
+    private int                        delayTime    = 5;
 
     public ClientRunningMonitor(){
         dataListener = new IZkDataListener() {
