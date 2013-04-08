@@ -40,6 +40,7 @@ import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
@@ -84,6 +85,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 break;
             case LogEvent.QUERY_EVENT:
                 return parserQueryEvent((QueryLogEvent) logEvent);
+            case LogEvent.ROWS_QUERY_LOG_EVENT:
+                parserRowsQueryEvent((RowsQueryLogEvent) logEvent);
+                break;
             case LogEvent.XID_EVENT:
                 return paserXidEvent((XidLogEvent) logEvent);
             case LogEvent.TABLE_MAP_EVENT:
@@ -154,6 +158,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
     }
 
+    private void parserRowsQueryEvent(RowsQueryLogEvent event) {
+        String query = null;
+        try {
+            query = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+        } catch (UnsupportedEncodingException e) {
+        }
+        logger.info("row query sql = {}", query);
+    }
+
     private Entry paserXidEvent(XidLogEvent event) {
         TransactionEnd transactionEnd = createTransactionEnd(event.getXid(), event.getWhen());
         Header header = createHeader(binlogFileName, event.getHeader(), "", "");
@@ -178,7 +191,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
             EventType eventType = null;
-            int type =  event.getHeader().getType();
+            int type = event.getHeader().getType();
             if (LogEvent.WRITE_ROWS_EVENT_V1 == type || LogEvent.WRITE_ROWS_EVENT == type) {
                 eventType = EventType.INSERT;
             } else if (LogEvent.UPDATE_ROWS_EVENT_V1 == type || LogEvent.UPDATE_ROWS_EVENT == type) {
