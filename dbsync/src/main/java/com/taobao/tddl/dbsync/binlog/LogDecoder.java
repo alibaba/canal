@@ -14,14 +14,18 @@ import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IncidentLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LoadLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LogHeader;
+import com.taobao.tddl.dbsync.binlog.event.PreviousGtidsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RandLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.StartLogEventV3;
 import com.taobao.tddl.dbsync.binlog.event.StopLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
@@ -149,7 +153,32 @@ public final class LogDecoder
     {
         FormatDescriptionLogEvent descriptionEvent = context.getFormatDescription();
         LogPosition logPosition = context.getLogPosition();
+        
+        /*
+        CRC verification by SQL and Show-Binlog-Events master side.
+        The caller has to provide @description_event->checksum_alg to
+        be the last seen FD's (A) descriptor.
+        If event is FD the descriptor is in it.
+        Notice, FD of the binlog can be only in one instance and therefore
+        Show-Binlog-Events executing master side thread needs just to know
+        the only FD's (A) value -  whereas RL can contain more.
+        In the RL case, the alg is kept in FD_e (@description_event) which is reset 
+        to the newer read-out event after its execution with possibly new alg descriptor.
+        Therefore in a typical sequence of RL:
+        {FD_s^0, FD_m, E_m^1} E_m^1 
+        will be verified with (A) of FD_m.
 
+        See legends definition on MYSQL_BIN_LOG::relay_log_checksum_alg docs
+        lines (log.h).
+
+        Notice, a pre-checksum FD version forces alg := BINLOG_CHECKSUM_ALG_UNDEF.
+        */
+        int alg = descriptionEvent.getChecksumAlg();
+        if (alg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF
+            && (header.getType() == LogEvent.FORMAT_DESCRIPTION_EVENT || alg != LogEvent.BINLOG_CHECKSUM_ALG_OFF)) {
+            buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
+        }
+        
         switch (header.getType())
         {
         case LogEvent.QUERY_EVENT:
@@ -177,7 +206,7 @@ public final class LogDecoder
                 context.putTable(mapEvent);
                 return mapEvent;
             }
-        case LogEvent.WRITE_ROWS_EVENT:
+        case LogEvent.WRITE_ROWS_EVENT_V1:
             {
                 RowsLogEvent event = new WriteRowsLogEvent(header, buffer,
                         descriptionEvent);
@@ -186,7 +215,7 @@ public final class LogDecoder
                 event.fillTable(context);
                 return event;
             }
-        case LogEvent.UPDATE_ROWS_EVENT:
+        case LogEvent.UPDATE_ROWS_EVENT_V1:
             {
                 RowsLogEvent event = new UpdateRowsLogEvent(header, buffer,
                         descriptionEvent);
@@ -195,7 +224,7 @@ public final class LogDecoder
                 event.fillTable(context);
                 return event;
             }
-        case LogEvent.DELETE_ROWS_EVENT:
+        case LogEvent.DELETE_ROWS_EVENT_V1:
             {
                 RowsLogEvent event = new DeleteRowsLogEvent(header, buffer,
                         descriptionEvent);
@@ -357,6 +386,56 @@ public final class LogDecoder
             {
                 IncidentLogEvent event = new IncidentLogEvent(header, buffer,
                         descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+        case LogEvent.IGNORABLE_LOG_EVENT:
+            {
+                IgnorableLogEvent event = new IgnorableLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+        case LogEvent.ROWS_QUERY_LOG_EVENT:
+            {
+                RowsQueryLogEvent event = new RowsQueryLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+        case LogEvent.WRITE_ROWS_EVENT: {
+                RowsLogEvent event = new WriteRowsLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                return event;
+            }
+        case LogEvent.UPDATE_ROWS_EVENT: {
+                RowsLogEvent event = new UpdateRowsLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                return event;
+            }
+        case LogEvent.DELETE_ROWS_EVENT: {
+                RowsLogEvent event = new DeleteRowsLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                return event;
+            }
+        case LogEvent.GTID_LOG_EVENT:
+        case LogEvent.ANONYMOUS_GTID_LOG_EVENT:
+            {
+                GtidLogEvent event = new GtidLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+        case LogEvent.PREVIOUS_GTIDS_LOG_EVENT:
+            {
+                PreviousGtidsLogEvent event = new PreviousGtidsLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 return event;

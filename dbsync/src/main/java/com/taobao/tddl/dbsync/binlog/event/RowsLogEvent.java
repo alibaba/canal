@@ -108,6 +108,10 @@ public abstract class RowsLogEvent extends LogEvent
     /* RW = "RoWs" */
     public static final int  RW_MAPID_OFFSET         = 0;
     public static final int  RW_FLAGS_OFFSET         = 6;
+    public static final int  RW_VHLEN_OFFSET         = 8;
+    public static final int  RW_V_TAG_LEN            = 1;
+    public static final int  RW_V_EXTRAINFO_TAG      = 0;
+
 
     public RowsLogEvent(LogHeader header, LogBuffer buffer,
             FormatDescriptionLogEvent descriptionEvent)
@@ -116,6 +120,7 @@ public abstract class RowsLogEvent extends LogEvent
 
         final int commonHeaderLen = descriptionEvent.commonHeaderLen;
         final int postHeaderLen = descriptionEvent.postHeaderLen[header.type - 1];
+        int headerLen = 0;
         buffer.position(commonHeaderLen + RW_MAPID_OFFSET);
         if (postHeaderLen == 6)
         {
@@ -127,12 +132,40 @@ public abstract class RowsLogEvent extends LogEvent
             tableId = buffer.getUlong48(); // RW_FLAGS_OFFSET
         }
         flags = buffer.getUint16();
-
-        buffer.position(commonHeaderLen + postHeaderLen);
+        
+        if (postHeaderLen == FormatDescriptionLogEvent.ROWS_HEADER_LEN_V2)
+        {
+            headerLen = buffer.getUint16();
+            headerLen -= 2;
+            LogBuffer headerBuffer = buffer.duplicate(headerLen);
+            
+            boolean knowCode = true;
+            while(headerBuffer.hasRemaining() && knowCode) {
+                int code = headerBuffer.getInt8();
+                switch (code) {
+                    case RW_V_EXTRAINFO_TAG:
+                        int infoLen = headerBuffer.getUint8();
+                        LogBuffer checkBuffer = buffer.duplicate(infoLen);
+                        checkBuffer.position(EXTRA_ROW_INFO_LEN_OFFSET);
+                        int checkLen = checkBuffer.getUint8(); // EXTRA_ROW_INFO_LEN_OFFSET
+                        int val= checkLen - EXTRA_ROW_INFO_HDR_BYTES;
+                        assert(headerBuffer.getUint8() == val); //EXTRA_ROW_INFO_FORMAT_OFFSET
+                        for (int i= 0; i < val; i++) {
+                          assert(headerBuffer.getUint8() == val); // EXTRA_ROW_INFO_HDR_BYTES + i
+                        }
+                        break;
+                    default:
+                        knowCode = false; // break loop
+                        break;
+                }
+            }
+        }
+        
+        buffer.position(commonHeaderLen + postHeaderLen + headerLen);
         columnLen = (int) buffer.getPackedLong();
         columns = buffer.getBitmap(columnLen);
 
-        if (header.type == UPDATE_ROWS_EVENT)
+        if (header.type == UPDATE_ROWS_EVENT_V1 || header.type == UPDATE_ROWS_EVENT)
         {
             changeColumns = buffer.getBitmap(columnLen);
         }

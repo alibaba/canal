@@ -51,13 +51,13 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
                     case LogEvent.ROTATE_EVENT:
                         binlogFileName = ((RotateLogEvent) event).getFilename();
                         break;
-                    case LogEvent.WRITE_ROWS_EVENT:
+                    case LogEvent.WRITE_ROWS_EVENT_V1:
                         parseRowsEvent((WriteRowsLogEvent) event);
                         break;
-                    case LogEvent.UPDATE_ROWS_EVENT:
+                    case LogEvent.UPDATE_ROWS_EVENT_V1:
                         parseRowsEvent((UpdateRowsLogEvent) event);
                         break;
-                    case LogEvent.DELETE_ROWS_EVENT:
+                    case LogEvent.DELETE_ROWS_EVENT_V1:
                         parseRowsEvent((DeleteRowsLogEvent) event);
                         break;
                     case LogEvent.QUERY_EVENT:

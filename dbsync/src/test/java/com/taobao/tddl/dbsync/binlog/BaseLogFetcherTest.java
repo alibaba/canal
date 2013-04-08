@@ -33,7 +33,7 @@ public class BaseLogFetcherTest {
             BitSet changeColumns = event.getChangeColumns();
             while (buffer.nextOneRow(columns)) {
                 // 处理row记录
-                if (LogEvent.WRITE_ROWS_EVENT == event.getHeader().getType()) {
+                if (LogEvent.WRITE_ROWS_EVENT_V1 == event.getHeader().getType()) {
                     // insert的记录放在before字段中
                     parseOneRow(event, buffer, columns, true);
                 } else if (LogEvent.DELETE_ROWS_EVENT == event.getHeader().getType()) {
