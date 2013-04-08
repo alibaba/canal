@@ -88,10 +88,13 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return paserXidEvent((XidLogEvent) logEvent);
             case LogEvent.TABLE_MAP_EVENT:
                 break;
+            case LogEvent.WRITE_ROWS_EVENT_V1:
             case LogEvent.WRITE_ROWS_EVENT:
                 return parseRowsEvent((WriteRowsLogEvent) logEvent);
+            case LogEvent.UPDATE_ROWS_EVENT_V1:
             case LogEvent.UPDATE_ROWS_EVENT:
                 return parseRowsEvent((UpdateRowsLogEvent) logEvent);
+            case LogEvent.DELETE_ROWS_EVENT_V1:
             case LogEvent.DELETE_ROWS_EVENT:
                 return parseRowsEvent((DeleteRowsLogEvent) logEvent);
             default:
@@ -175,7 +178,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
             EventType eventType = null;
-            if (LogEvent.WRITE_ROWS_EVENT == event.getHeader().getType()) {
+            if (LogEvent.WRITE_ROWS_EVENT_V1 == event.getHeader().getType()) {
                 eventType = EventType.INSERT;
             } else if (LogEvent.UPDATE_ROWS_EVENT == event.getHeader().getType()) {
                 eventType = EventType.UPDATE;
