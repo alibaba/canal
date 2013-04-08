@@ -30,7 +30,7 @@ public class HeartbeatLogEvent extends LogEvent {
         super(header);
 
         final int commonHeaderLen = descriptionEvent.commonHeaderLen;
-        identLen = header.getEventLen() - commonHeaderLen;
+        identLen = buffer.limit() - commonHeaderLen;
         if (identLen > FN_REFLEN - 1) {
             identLen = FN_REFLEN - 1;
         }

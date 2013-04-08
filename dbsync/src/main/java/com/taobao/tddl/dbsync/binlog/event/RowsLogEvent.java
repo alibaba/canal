@@ -172,11 +172,7 @@ public abstract class RowsLogEvent extends LogEvent
         }
 
         // XXX: Don't handle buffer in another thread.
-        int dataSize = header.eventLen - buffer.position();
-        if (header.checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF
-            && header.checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
-            dataSize -= LogEvent.BINLOG_CHECKSUM_LEN;
-        }
+        int dataSize = buffer.limit() - buffer.position();
         rowsBuf = buffer.duplicate(dataSize);
     }
 

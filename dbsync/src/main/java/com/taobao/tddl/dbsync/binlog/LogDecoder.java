@@ -154,6 +154,14 @@ public final class LogDecoder
         FormatDescriptionLogEvent descriptionEvent = context.getFormatDescription();
         LogPosition logPosition = context.getLogPosition();
         
+        if (header.getType() != LogEvent.FORMAT_DESCRIPTION_EVENT) {
+            int checksumAlg = descriptionEvent.header.getChecksumAlg();
+            if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
+                // remove checksum bytes
+                buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
+            }
+        }
+        
         switch (header.getType())
         {
         case LogEvent.QUERY_EVENT:

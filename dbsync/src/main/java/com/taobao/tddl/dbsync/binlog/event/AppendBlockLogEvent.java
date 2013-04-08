@@ -32,7 +32,7 @@ public class AppendBlockLogEvent extends LogEvent
         fileId = buffer.getUint32();
 
         buffer.position(postHeaderLen);
-        blockLen = header.eventLen - totalHeaderLen;
+        blockLen = buffer.limit() - totalHeaderLen;
         blockBuf = buffer.duplicate(blockLen);
     }
 

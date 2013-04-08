@@ -47,7 +47,7 @@ public final class CreateFileLogEvent extends LoadLogEvent
               as these Load events are not changed between 4.0 and 5.0 (as logging of
               LOAD DATA INFILE does not use Load_log_event in 5.0).
             */
-            blockLen = header.eventLen - buffer.position();
+            blockLen = buffer.limit() - buffer.position();
             blockBuf = buffer.duplicate(blockLen);
         }
         else

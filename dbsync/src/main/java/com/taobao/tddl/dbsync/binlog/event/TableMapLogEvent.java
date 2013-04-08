@@ -426,7 +426,7 @@ public final class TableMapLogEvent extends LogEvent
             columnInfo[i] = info;
         }
 
-        if (buffer.position() < header.eventLen)
+        if (buffer.position() < buffer.limit())
         {
             final int fieldSize = (int) buffer.getPackedLong();
             decodeFields(buffer, fieldSize);

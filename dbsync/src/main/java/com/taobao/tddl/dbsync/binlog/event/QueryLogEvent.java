@@ -442,11 +442,11 @@ public class QueryLogEvent extends LogEvent
          * format-tolerant. We use QUERY_HEADER_MINIMAL_LEN which is the same
          * for 3.23, 4.0 & 5.0.
          */
-        if (header.eventLen < (commonHeaderLen + postHeaderLen))
+        if (buffer.limit() < (commonHeaderLen + postHeaderLen))
         {
             throw new IOException("Query event length is too short.");
         }
-        int dataLen = header.eventLen - (commonHeaderLen + postHeaderLen);
+        int dataLen = buffer.limit() - (commonHeaderLen + postHeaderLen);
         buffer.position(commonHeaderLen + Q_THREAD_ID_OFFSET);
 
         sessionId = buffer.getUint32(); // Q_THREAD_ID_OFFSET

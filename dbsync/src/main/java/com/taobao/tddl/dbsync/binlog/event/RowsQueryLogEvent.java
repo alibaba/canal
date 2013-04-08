@@ -23,7 +23,7 @@ public class RowsQueryLogEvent extends IgnorableLogEvent{
         ignored and the complete query is read.
        */
        int offset= commonHeaderLen + postHeaderLen + 1;
-       int len = header.getEventLen() - offset;
+       int len = buffer.limit() - offset;
        rowsQuery= buffer.getFullString(offset , len, LogBuffer.ISO_8859_1);
     }
 

@@ -305,8 +305,6 @@ public final class LogHeader
         if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF &&
                 checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF){
             crc = buffer.getUint32(eventLen -  LogEvent.BINLOG_CHECKSUM_LEN);
-            // eventLen -= LogEvent.BINLOG_CHECKSUM_LEN;
-            // buffer.limit(eventLen - LogEvent.BINLOG_CHECKSUM_LEN);
         }
     }
 }

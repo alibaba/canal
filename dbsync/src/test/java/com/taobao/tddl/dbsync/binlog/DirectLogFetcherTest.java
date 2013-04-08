@@ -3,6 +3,7 @@ package com.taobao.tddl.dbsync.binlog;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Statement;
 
 import junit.framework.Assert;
 
@@ -23,10 +24,11 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection connection = DriverManager.getConnection("jdbc:mysql://10.20.144.34:3306", "root", "hello");
-            // Statement statement = connection.createStatement();
-            // statement.execute("SET @master_binlog_checksum='CRC32'");
+            Statement statement = connection.createStatement();
+            statement.execute("SET @master_binlog_checksum='@@global.binlog_checksum'");
+            statement.executeQuery("select @master_binlog_checksum");
             
-            fecther.open(connection, "mysql-bin.000006", 4L, 2);
+            fecther.open(connection, "mysql-bin.000010", 4L, 2);
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();

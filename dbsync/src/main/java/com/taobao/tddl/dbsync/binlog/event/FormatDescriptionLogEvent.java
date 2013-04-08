@@ -89,7 +89,7 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
             throw new IOException("Format Description event header length is too short");
         }
 
-        numberOfEventTypes = header.getEventLen() - (LOG_EVENT_MINIMAL_HEADER_LEN + ST_COMMON_HEADER_LEN_OFFSET + 1);
+        numberOfEventTypes = buffer.limit() - (LOG_EVENT_MINIMAL_HEADER_LEN + ST_COMMON_HEADER_LEN_OFFSET + 1);
 
         if (logger.isInfoEnabled()) logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= "
                                                 + numberOfEventTypes);
