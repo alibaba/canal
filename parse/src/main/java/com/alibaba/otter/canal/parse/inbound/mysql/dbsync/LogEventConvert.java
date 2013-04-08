@@ -178,11 +178,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
             EventType eventType = null;
-            if (LogEvent.WRITE_ROWS_EVENT_V1 == event.getHeader().getType()) {
+            int type =  event.getHeader().getType();
+            if (LogEvent.WRITE_ROWS_EVENT_V1 == type || LogEvent.WRITE_ROWS_EVENT == type) {
                 eventType = EventType.INSERT;
-            } else if (LogEvent.UPDATE_ROWS_EVENT == event.getHeader().getType()) {
+            } else if (LogEvent.UPDATE_ROWS_EVENT_V1 == type || LogEvent.UPDATE_ROWS_EVENT == type) {
                 eventType = EventType.UPDATE;
-            } else if (LogEvent.DELETE_ROWS_EVENT == event.getHeader().getType()) {
+            } else if (LogEvent.DELETE_ROWS_EVENT_V1 == type || LogEvent.DELETE_ROWS_EVENT == type) {
                 eventType = EventType.DELETE;
             } else {
                 throw new CanalParseException("unsupport event type :" + event.getHeader().getType());

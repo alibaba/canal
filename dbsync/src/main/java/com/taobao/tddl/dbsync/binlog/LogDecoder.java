@@ -107,7 +107,6 @@ public final class LogDecoder
                 if (handleSet.get(header.getType()))
                 {
                     buffer.limit(len);
-
                     try
                     {
                         /* Decoding binary-log to event */

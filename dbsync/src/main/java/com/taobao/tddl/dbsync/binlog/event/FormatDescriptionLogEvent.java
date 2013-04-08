@@ -18,20 +18,20 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
      * The number of types we handle in Format_description_log_event (UNKNOWN_EVENT is not to be handled, it does not
      * exist in binlogs, it does not have a format).
      */
-    public static final int LOG_EVENT_TYPES                     = (ENUM_END_EVENT - 1);
+    public static final int    LOG_EVENT_TYPES                     = (ENUM_END_EVENT - 1);
 
-    public static final int ST_COMMON_HEADER_LEN_OFFSET         = (ST_SERVER_VER_OFFSET + ST_SERVER_VER_LEN + 4);
+    public static final int    ST_COMMON_HEADER_LEN_OFFSET         = (ST_SERVER_VER_OFFSET + ST_SERVER_VER_LEN + 4);
 
-    public static final int OLD_HEADER_LEN                      = 13;
-    public static final int LOG_EVENT_HEADER_LEN                = 19;
-    public static final int LOG_EVENT_MINIMAL_HEADER_LEN        = 19;
+    public static final int    OLD_HEADER_LEN                      = 13;
+    public static final int    LOG_EVENT_HEADER_LEN                = 19;
+    public static final int    LOG_EVENT_MINIMAL_HEADER_LEN        = 19;
 
     /* event-specific post-header sizes */
-    public static final int STOP_HEADER_LEN                     = 0;
-    public static final int LOAD_HEADER_LEN                     = (4 + 4 + 4 + 1 + 1 + 4);
-    public static final int SLAVE_HEADER_LEN                    = 0;
-    public static final int START_V3_HEADER_LEN                 = (2 + ST_SERVER_VER_LEN + 4);
-    public static final int ROTATE_HEADER_LEN                   = 8;                                                       // this
+    public static final int    STOP_HEADER_LEN                     = 0;
+    public static final int    LOAD_HEADER_LEN                     = (4 + 4 + 4 + 1 + 1 + 4);
+    public static final int    SLAVE_HEADER_LEN                    = 0;
+    public static final int    START_V3_HEADER_LEN                 = (2 + ST_SERVER_VER_LEN + 4);
+    public static final int    ROTATE_HEADER_LEN                   = 8;                                                       // this
     // is
     // FROZEN
     // (the
@@ -39,32 +39,32 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
     // post-header
     // is
     // frozen)
-    public static final int INTVAR_HEADER_LEN                   = 0;
-    public static final int CREATE_FILE_HEADER_LEN              = 4;
-    public static final int APPEND_BLOCK_HEADER_LEN             = 4;
-    public static final int EXEC_LOAD_HEADER_LEN                = 4;
-    public static final int DELETE_FILE_HEADER_LEN              = 4;
-    public static final int NEW_LOAD_HEADER_LEN                 = LOAD_HEADER_LEN;
-    public static final int RAND_HEADER_LEN                     = 0;
-    public static final int USER_VAR_HEADER_LEN                 = 0;
-    public static final int FORMAT_DESCRIPTION_HEADER_LEN       = (START_V3_HEADER_LEN + 1 + LOG_EVENT_TYPES);
-    public static final int XID_HEADER_LEN                      = 0;
-    public static final int BEGIN_LOAD_QUERY_HEADER_LEN         = APPEND_BLOCK_HEADER_LEN;
-    public static final int ROWS_HEADER_LEN_V1                  = 8;
-    public static final int TABLE_MAP_HEADER_LEN                = 8;
-    public static final int EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN = (4 + 4 + 4 + 1);
-    public static final int EXECUTE_LOAD_QUERY_HEADER_LEN       = (QUERY_HEADER_LEN + EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN);
-    public static final int INCIDENT_HEADER_LEN                 = 2;
-    public static final int HEARTBEAT_HEADER_LEN                = 0;
-    public static final int IGNORABLE_HEADER_LEN                = 0;
-    public static final int ROWS_HEADER_LEN_V2                  = 10;
+    public static final int    INTVAR_HEADER_LEN                   = 0;
+    public static final int    CREATE_FILE_HEADER_LEN              = 4;
+    public static final int    APPEND_BLOCK_HEADER_LEN             = 4;
+    public static final int    EXEC_LOAD_HEADER_LEN                = 4;
+    public static final int    DELETE_FILE_HEADER_LEN              = 4;
+    public static final int    NEW_LOAD_HEADER_LEN                 = LOAD_HEADER_LEN;
+    public static final int    RAND_HEADER_LEN                     = 0;
+    public static final int    USER_VAR_HEADER_LEN                 = 0;
+    public static final int    FORMAT_DESCRIPTION_HEADER_LEN       = (START_V3_HEADER_LEN + 1 + LOG_EVENT_TYPES);
+    public static final int    XID_HEADER_LEN                      = 0;
+    public static final int    BEGIN_LOAD_QUERY_HEADER_LEN         = APPEND_BLOCK_HEADER_LEN;
+    public static final int    ROWS_HEADER_LEN_V1                  = 8;
+    public static final int    TABLE_MAP_HEADER_LEN                = 8;
+    public static final int    EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN = (4 + 4 + 4 + 1);
+    public static final int    EXECUTE_LOAD_QUERY_HEADER_LEN       = (QUERY_HEADER_LEN + EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN);
+    public static final int    INCIDENT_HEADER_LEN                 = 2;
+    public static final int    HEARTBEAT_HEADER_LEN                = 0;
+    public static final int    IGNORABLE_HEADER_LEN                = 0;
+    public static final int    ROWS_HEADER_LEN_V2                  = 10;
 
-    public static final int POST_HEADER_LENGTH                  = 11;
-    
-    public static final int    BINLOG_CHECKSUM_ALG_DESC_LEN        = 1;
-    public static final char[] checksumVersionSplit                = { (char) 5, (char) 6, (char) 1 };
-    public static final long   checksumVersionProduct              = (checksumVersionSplit[0] * 256 + checksumVersionSplit[1])
-                                                                     * 256 + checksumVersionSplit[2];
+    public static final int    POST_HEADER_LENGTH                  = 11;
+
+    public static final int   BINLOG_CHECKSUM_ALG_DESC_LEN        = 1;
+    public static final int[] checksumVersionSplit                = { 5, 6, 1 };
+    public static final long  checksumVersionProduct              = (checksumVersionSplit[0] * 256 + checksumVersionSplit[1])
+                                                                    * 256 + checksumVersionSplit[2];
     /**
      * The size of the fixed header which _all_ events have (for binlogs written by this version, this is equal to
      * LOG_EVENT_HEADER_LEN), except FORMAT_DESCRIPTION_EVENT and ROTATE_EVENT (those have a header of size
@@ -74,10 +74,8 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
     protected int              numberOfEventTypes;
 
     /** The list of post-headers' lengthes */
-    protected final short[] postHeaderLen;
-    protected int           checksumAlg;
-    protected char[]        serverVersionSplit                  = new char[3];
-    
+    protected final short[]    postHeaderLen;
+    protected int[]            serverVersionSplit                  = new int[3];
 
     public FormatDescriptionLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent)
                                                                                                                     throws IOException{
@@ -108,9 +106,6 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
         if (calc >= checksumVersionProduct) {
             /* the last bytes are the checksum alg desc and value (or value's room) */
             numberOfEventTypes -= BINLOG_CHECKSUM_ALG_DESC_LEN;
-            checksumAlg = postHeaderLen[numberOfEventTypes];
-        } else {
-            checksumAlg = BINLOG_CHECKSUM_ALG_UNDEF;
         }
     }
 
@@ -247,9 +242,9 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 commonHeaderLen = 0;
         }
     }
-
-    protected void calcServerVersionSplit() {
-        doServerVersionSplit(serverVersionSplit);
+    
+    public void calcServerVersionSplit() {
+        doServerVersionSplit(serverVersion, serverVersionSplit);
     }
 
     public long getVersionProduct() {
@@ -260,28 +255,33 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
         return getVersionProduct() < checksumVersionProduct;
     }
 
-    protected void doServerVersionSplit(char[] versionSplit) {
-        for (int i = 0, j = 0; j < serverVersion.length() && i <= 2;) {
-            char number = serverVersion.charAt(j);
-            /*
-             * It is an invalid version if any version number greater than 255 or first number is not followed by '.'.
-             */
-            if (number < 256 && (number == '.' || i != 0)) {
-                versionSplit[i++] = number;
-            } else {
-                versionSplit[0] = 0;
-                versionSplit[1] = 0;
-                versionSplit[2] = 0;
-                break;
-            }
-
-            if (number == '.') {
-                j++; // skip the dot
+    public static void doServerVersionSplit(String serverVersion, int[] versionSplit) {
+        String[] split = serverVersion.split("\\.");
+        if (split.length < 3) {
+            versionSplit[0] = 0;
+            versionSplit[1] = 0;
+            versionSplit[2] = 0;
+        } else {
+            int j = 0;
+            for (int i = 0; i <= 2; i++) {
+                String str = split[i];
+                for (j = 0; j < str.length(); j++) {
+                    if (Character.isDigit(str.charAt(j)) == false) {
+                        break;
+                    }
+                }
+                if (j > 0) {
+                    versionSplit[i] = Integer.valueOf(str.substring(0, j), 10);
+                } else {
+                    versionSplit[0] = 0;
+                    versionSplit[1] = 0;
+                    versionSplit[2] = 0;
+                }
             }
         }
     }
 
-    protected long versionProduct(char[] versionSplit) {
+    public static long versionProduct(int[] versionSplit) {
         return ((versionSplit[0] * 256 + versionSplit[1]) * 256 + versionSplit[2]);
     }
 
@@ -291,14 +291,6 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
 
     public final short[] getPostHeaderLen() {
         return postHeaderLen;
-    }
-
-    public int getChecksumAlg() {
-        return checksumAlg;
-    }
-
-    public void setChecksumAlg(int checksumAlg) {
-        this.checksumAlg = checksumAlg;
     }
 
 }

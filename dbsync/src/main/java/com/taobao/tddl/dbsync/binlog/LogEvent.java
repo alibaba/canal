@@ -206,6 +206,7 @@ public abstract class LogEvent
     // or events from checksum-unaware servers
 
     public static final int    CHECKSUM_CRC32_SIGNATURE_LEN = 4;
+    public static final int    BINLOG_CHECKSUM_ALG_DESC_LEN = 1;
     /**
      * defined statically while there is just one alg implemented
      */
@@ -382,4 +383,6 @@ public abstract class LogEvent
     {
         return header.getWhen();
     }
+    
+    
 }

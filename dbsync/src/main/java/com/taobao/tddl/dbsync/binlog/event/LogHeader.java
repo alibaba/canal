@@ -193,6 +193,22 @@ public final class LogHeader
               twice when you have two masters which are slaves of a 3rd master).
               Then we are done.
             */
+            
+            if (type == LogEvent.FORMAT_DESCRIPTION_EVENT) {
+                int commonHeaderLen = buffer.getUint8(FormatDescriptionLogEvent.LOG_EVENT_MINIMAL_HEADER_LEN
+                                                      + FormatDescriptionLogEvent.ST_COMMON_HEADER_LEN_OFFSET);
+                buffer.position(commonHeaderLen + FormatDescriptionLogEvent.ST_SERVER_VER_OFFSET);
+                String serverVersion = buffer.getFixString(FormatDescriptionLogEvent.ST_SERVER_VER_LEN); // ST_SERVER_VER_OFFSET
+                int versionSplit[] = new int[] { 0, 0, 0 };
+                FormatDescriptionLogEvent.doServerVersionSplit(serverVersion, versionSplit);
+                checksumAlg = LogEvent.BINLOG_CHECKSUM_ALG_UNDEF;
+                if (FormatDescriptionLogEvent.versionProduct(versionSplit) >= FormatDescriptionLogEvent.checksumVersionProduct) {
+                    buffer.position(eventLen - LogEvent.BINLOG_CHECKSUM_LEN - LogEvent.BINLOG_CHECKSUM_ALG_DESC_LEN);
+                    checksumAlg = buffer.getUint8();
+                }
+
+                processCheckSum(buffer);
+            }
             return;
         }
         
@@ -215,12 +231,8 @@ public final class LogHeader
 
         Notice, a pre-checksum FD version forces alg := BINLOG_CHECKSUM_ALG_UNDEF.
         */
-        checksumAlg = descriptionEvent.checksumAlg; // fetch checksum alg
-        if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF &&
-                checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF){
-            crc = buffer.getUint32(eventLen -  LogEvent.BINLOG_CHECKSUM_LEN);
-            buffer.limit(eventLen - LogEvent.BINLOG_CHECKSUM_LEN);
-        }
+        checksumAlg = descriptionEvent.getHeader().checksumAlg; // fetch checksum alg
+        processCheckSum(buffer);
         /* otherwise, go on with reading the header from buf (nothing now) */
     }
 
@@ -284,4 +296,17 @@ public final class LogHeader
         return crc;
     }
     
+    
+    public int getChecksumAlg() {
+        return checksumAlg;
+    }
+
+    private void processCheckSum(LogBuffer buffer) {
+        if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF &&
+                checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF){
+            crc = buffer.getUint32(eventLen -  LogEvent.BINLOG_CHECKSUM_LEN);
+            // eventLen -= LogEvent.BINLOG_CHECKSUM_LEN;
+            // buffer.limit(eventLen - LogEvent.BINLOG_CHECKSUM_LEN);
+        }
+    }
 }
