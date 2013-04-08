@@ -211,6 +211,16 @@ public abstract class LogEvent
      */
     public static final int    BINLOG_CHECKSUM_LEN          = CHECKSUM_CRC32_SIGNATURE_LEN;
     
+    
+    /**
+        For an event, 'e', carrying a type code, that a slave,
+        's', does not recognize, 's' will check 'e' for
+        LOG_EVENT_IGNORABLE_F, and if the flag is set, then 'e'
+        is ignored. Otherwise, 's' acknowledges that it has
+        found an unknown event in the relay log.
+     */
+    public static final int   LOG_EVENT_IGNORABLE_F    = 0x80;
+    
     /** enum_field_types */
     public static final int    MYSQL_TYPE_DECIMAL       = 0;
     public static final int    MYSQL_TYPE_TINY          = 1;

@@ -15,6 +15,7 @@ import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.HeartbeatLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IncidentLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
@@ -153,31 +154,6 @@ public final class LogDecoder
     {
         FormatDescriptionLogEvent descriptionEvent = context.getFormatDescription();
         LogPosition logPosition = context.getLogPosition();
-        
-        /*
-        CRC verification by SQL and Show-Binlog-Events master side.
-        The caller has to provide @description_event->checksum_alg to
-        be the last seen FD's (A) descriptor.
-        If event is FD the descriptor is in it.
-        Notice, FD of the binlog can be only in one instance and therefore
-        Show-Binlog-Events executing master side thread needs just to know
-        the only FD's (A) value -  whereas RL can contain more.
-        In the RL case, the alg is kept in FD_e (@description_event) which is reset 
-        to the newer read-out event after its execution with possibly new alg descriptor.
-        Therefore in a typical sequence of RL:
-        {FD_s^0, FD_m, E_m^1} E_m^1 
-        will be verified with (A) of FD_m.
-
-        See legends definition on MYSQL_BIN_LOG::relay_log_checksum_alg docs
-        lines (log.h).
-
-        Notice, a pre-checksum FD version forces alg := BINLOG_CHECKSUM_ALG_UNDEF.
-        */
-        int alg = descriptionEvent.getChecksumAlg();
-        if (alg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF
-            && (header.getType() == LogEvent.FORMAT_DESCRIPTION_EVENT || alg != LogEvent.BINLOG_CHECKSUM_ALG_OFF)) {
-            buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
-        }
         
         switch (header.getType())
         {
@@ -390,6 +366,14 @@ public final class LogDecoder
                 logPosition.position = header.getLogPos();
                 return event;
             }
+        case LogEvent.HEARTBEAT_LOG_EVENT:
+        {
+            HeartbeatLogEvent event = new HeartbeatLogEvent(header, buffer,
+                    descriptionEvent);
+            /* updating position in context */
+            logPosition.position = header.getLogPos();
+            return event;
+        }
         case LogEvent.IGNORABLE_LOG_EVENT:
             {
                 IgnorableLogEvent event = new IgnorableLogEvent(header, buffer, descriptionEvent);
@@ -441,10 +425,21 @@ public final class LogDecoder
                 return event;
             }
         default:
-            if (logger.isWarnEnabled())
-                logger.warn("Skipping unrecognized binlog event "
-                        + LogEvent.getTypeName(header.getType()) + " from: "
-                        + context.getLogPosition());
+            /*
+                Create an object of Ignorable_log_event for unrecognized sub-class.
+                So that SLAVE SQL THREAD will only update the position and continue.
+             */
+            if((buffer.getUint16(LogEvent.FLAGS_OFFSET) & LogEvent.LOG_EVENT_IGNORABLE_F) > 0){
+                IgnorableLogEvent event = new IgnorableLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }else {
+                if (logger.isWarnEnabled())
+                    logger.warn("Skipping unrecognized binlog event "
+                            + LogEvent.getTypeName(header.getType()) + " from: "
+                            + context.getLogPosition());
+            }
         }
 
         /* updating position in context */

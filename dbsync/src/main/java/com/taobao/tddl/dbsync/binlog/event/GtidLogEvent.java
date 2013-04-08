@@ -24,7 +24,7 @@ public class GtidLogEvent extends LogEvent {
 //        final int postHeaderLen = descriptionEvent.postHeaderLen[header.type - 1];
 
         buffer.position(commonHeaderLen);
-        commitFlag = (buffer.getUint8()!=0); //ENCODED_FLAG_LENGTH
+        commitFlag = (buffer.getUint8() != 0); // ENCODED_FLAG_LENGTH
         
         //ignore gtid info read 
         // sid.copy_from((uchar *)ptr_buffer);

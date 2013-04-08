@@ -137,25 +137,22 @@ public abstract class RowsLogEvent extends LogEvent
         {
             headerLen = buffer.getUint16();
             headerLen -= 2;
-            LogBuffer headerBuffer = buffer.duplicate(headerLen);
-            
-            boolean knowCode = true;
-            while(headerBuffer.hasRemaining() && knowCode) {
-                int code = headerBuffer.getInt8();
-                switch (code) {
+            int start = buffer.position();
+            int end = start + headerLen;
+            for(int i = start ;i < end; ){
+                switch (buffer.getUint8(i++)) {
                     case RW_V_EXTRAINFO_TAG:
-                        int infoLen = headerBuffer.getUint8();
-                        LogBuffer checkBuffer = buffer.duplicate(infoLen);
-                        checkBuffer.position(EXTRA_ROW_INFO_LEN_OFFSET);
-                        int checkLen = checkBuffer.getUint8(); // EXTRA_ROW_INFO_LEN_OFFSET
+                        // int infoLen = buffer.getUint8();
+                        buffer.position(i + EXTRA_ROW_INFO_LEN_OFFSET);
+                        int checkLen = buffer.getUint8(); // EXTRA_ROW_INFO_LEN_OFFSET
                         int val= checkLen - EXTRA_ROW_INFO_HDR_BYTES;
-                        assert(headerBuffer.getUint8() == val); //EXTRA_ROW_INFO_FORMAT_OFFSET
-                        for (int i= 0; i < val; i++) {
-                          assert(headerBuffer.getUint8() == val); // EXTRA_ROW_INFO_HDR_BYTES + i
+                        assert(buffer.getUint8() == val); //EXTRA_ROW_INFO_FORMAT_OFFSET
+                        for (int j= 0; j < val; j++) {
+                          assert(buffer.getUint8() == val); // EXTRA_ROW_INFO_HDR_BYTES + i
                         }
                         break;
                     default:
-                        knowCode = false; // break loop
+                        i = end;
                         break;
                 }
             }
