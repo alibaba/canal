@@ -103,7 +103,7 @@ public final class RotateLogEvent extends LogEvent
         position = (postHeaderLen != 0) ? buffer.getLong64() : 4; // !uint8korr(buf + R_POS_OFFSET)
 
         final int filenameOffset = headerSize + postHeaderLen;
-        int filenameLen = header.eventLen - filenameOffset;
+        int filenameLen = buffer.limit() - filenameOffset;
         if (filenameLen > FN_REFLEN - 1)
             filenameLen = FN_REFLEN - 1;
         buffer.position(filenameOffset);

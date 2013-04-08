@@ -8,6 +8,7 @@ import java.util.BitSet;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
 
@@ -23,6 +24,12 @@ public class BaseLogFetcherTest {
         System.out.println("sql : " + event.getQuery());
     }
 
+    protected void parseRowsQueryEvent(RowsQueryLogEvent event) throws Exception {
+        System.out.println(String.format("================> binlog[%s:%s]", binlogFileName,
+                                         event.getHeader().getLogPos() - event.getHeader().getEventLen()));
+        System.out.println("sql : " + new String(event.getRowsQuery().getBytes("ISO-8859-1"), charset.name()));
+    }
+
     protected void parseRowsEvent(RowsLogEvent event) {
         try {
             System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s]", binlogFileName,
@@ -33,10 +40,11 @@ public class BaseLogFetcherTest {
             BitSet changeColumns = event.getChangeColumns();
             while (buffer.nextOneRow(columns)) {
                 // 处理row记录
-                if (LogEvent.WRITE_ROWS_EVENT == event.getHeader().getType()) {
+                int type = event.getHeader().getType();
+                if (LogEvent.WRITE_ROWS_EVENT_V1 == type || LogEvent.WRITE_ROWS_EVENT == type) {
                     // insert的记录放在before字段中
                     parseOneRow(event, buffer, columns, true);
-                } else if (LogEvent.DELETE_ROWS_EVENT == event.getHeader().getType()) {
+                } else if (LogEvent.DELETE_ROWS_EVENT_V1 == type || LogEvent.DELETE_ROWS_EVENT == type) {
                     // delete的记录放在before字段中
                     parseOneRow(event, buffer, columns, false);
                 } else {

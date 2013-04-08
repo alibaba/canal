@@ -150,18 +150,78 @@ public abstract class LogEvent
     /**
      * These event numbers are used from 5.1.16 and forward
      */
-    public static final int    WRITE_ROWS_EVENT         = 23;
-    public static final int    UPDATE_ROWS_EVENT        = 24;
-    public static final int    DELETE_ROWS_EVENT        = 25;
+    public static final int    WRITE_ROWS_EVENT_V1      = 23;
+    public static final int    UPDATE_ROWS_EVENT_V1     = 24;
+    public static final int    DELETE_ROWS_EVENT_V1     = 25;
 
     /**
      * Something out of the ordinary happened on the master
      */
     public static final int    INCIDENT_EVENT           = 26;
 
-    /** end marker */
-    public static final int    ENUM_END_EVENT           = 27;
+    /**
+     * Heartbeat event to be send by master at its idle time to ensure master's online status to slave
+     */
+    public static final int    HEARTBEAT_LOG_EVENT      = 27;
 
+    /**
+     * In some situations, it is necessary to send over ignorable data to the slave: data that a slave can handle in
+     * case there is code for handling it, but which can be ignored if it is not recognized.
+     */
+    public static final int    IGNORABLE_LOG_EVENT      = 28;
+    public static final int    ROWS_QUERY_LOG_EVENT     = 29;
+
+    /** Version 2 of the Row events */
+    public static final int    WRITE_ROWS_EVENT         = 30;
+    public static final int    UPDATE_ROWS_EVENT        = 31;
+    public static final int    DELETE_ROWS_EVENT        = 32;
+
+    public static final int    GTID_LOG_EVENT           = 33;
+    public static final int    ANONYMOUS_GTID_LOG_EVENT = 34;
+
+    public static final int    PREVIOUS_GTIDS_LOG_EVENT = 35;
+    
+    /** end marker */
+    public static final int    ENUM_END_EVENT           = 36;
+
+    /**
+    1 byte length, 1 byte format
+    Length is total length in bytes, including 2 byte header
+    Length values 0 and 1 are currently invalid and reserved.
+    */
+    public static final int    EXTRA_ROW_INFO_LEN_OFFSET    = 0;
+    public static final int    EXTRA_ROW_INFO_FORMAT_OFFSET = 1;
+    public static final int    EXTRA_ROW_INFO_HDR_BYTES     = 2;
+    public static final int    EXTRA_ROW_INFO_MAX_PAYLOAD   = (255 - EXTRA_ROW_INFO_HDR_BYTES);
+    
+    // Events are without checksum though its generator
+    public static final int    BINLOG_CHECKSUM_ALG_OFF      = 0;
+    // is checksum-capable New Master (NM).
+    // CRC32 of zlib algorithm.
+    public static final int    BINLOG_CHECKSUM_ALG_CRC32    = 1;
+    // the cut line: valid alg range is [1, 0x7f].
+    public static final int    BINLOG_CHECKSUM_ALG_ENUM_END = 2;
+    // special value to tag undetermined yet checksum
+    public static final int    BINLOG_CHECKSUM_ALG_UNDEF    = 255;
+    // or events from checksum-unaware servers
+
+    public static final int    CHECKSUM_CRC32_SIGNATURE_LEN = 4;
+    public static final int    BINLOG_CHECKSUM_ALG_DESC_LEN = 1;
+    /**
+     * defined statically while there is just one alg implemented
+     */
+    public static final int    BINLOG_CHECKSUM_LEN          = CHECKSUM_CRC32_SIGNATURE_LEN;
+    
+    
+    /**
+        For an event, 'e', carrying a type code, that a slave,
+        's', does not recognize, 's' will check 'e' for
+        LOG_EVENT_IGNORABLE_F, and if the flag is set, then 'e'
+        is ignored. Otherwise, 's' acknowledges that it has
+        found an unknown event in the relay log.
+     */
+    public static final int   LOG_EVENT_IGNORABLE_F    = 0x80;
+    
     /** enum_field_types */
     public static final int    MYSQL_TYPE_DECIMAL       = 0;
     public static final int    MYSQL_TYPE_TINY          = 1;
@@ -235,18 +295,36 @@ public abstract class LogEvent
             return "Update_rows_event_old";
         case PRE_GA_DELETE_ROWS_EVENT:
             return "Delete_rows_event_old";
-        case WRITE_ROWS_EVENT:
-            return "Write_rows";
-        case UPDATE_ROWS_EVENT:
-            return "Update_rows";
-        case DELETE_ROWS_EVENT:
-            return "Delete_rows";
+        case WRITE_ROWS_EVENT_V1:
+            return "Write_rows_v1";
+        case UPDATE_ROWS_EVENT_V1:
+            return "Update_rows_v1";
+        case DELETE_ROWS_EVENT_V1:
+            return "Delete_rows_v1";
         case BEGIN_LOAD_QUERY_EVENT:
             return "Begin_load_query";
         case EXECUTE_LOAD_QUERY_EVENT:
             return "Execute_load_query";
         case INCIDENT_EVENT:
             return "Incident";
+        case HEARTBEAT_LOG_EVENT:
+            return "Heartbeat";
+        case IGNORABLE_LOG_EVENT:
+            return "Ignorable";
+        case ROWS_QUERY_LOG_EVENT:
+            return "Rows_query";
+        case WRITE_ROWS_EVENT:
+            return "Write_rows";
+        case UPDATE_ROWS_EVENT:
+            return "Update_rows";
+        case DELETE_ROWS_EVENT:
+            return "Delete_rows";
+        case GTID_LOG_EVENT:
+            return "Gtid";
+        case ANONYMOUS_GTID_LOG_EVENT:
+            return "Anonymous_Gtid";
+        case PREVIOUS_GTIDS_LOG_EVENT:
+            return "Previous_gtids";
         default:
             return "Unknown"; /* impossible */
         }
@@ -305,4 +383,6 @@ public abstract class LogEvent
     {
         return header.getWhen();
     }
+    
+    
 }

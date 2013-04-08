@@ -111,6 +111,20 @@ public final class LogHeader
      * LOG_EVENT_SUPPRESS_USE_F for notes.
      */
     protected int       flags;
+    
+    /** 
+     * The value is set by caller of FD constructor and
+     * Log_event::write_header() for the rest.
+     * In the FD case it's propagated into the last byte 
+     * of post_header_len[] at FD::write().
+     * On the slave side the value is assigned from post_header_len[last] 
+     * of the last seen FD event.
+     */
+    protected int       checksumAlg;
+    /**
+       Placeholder for event checksum while writing to binlog.
+    */
+    protected long      crc;      // ha_checksum
 
     /* for Start_event_v3 */
     public LogHeader(final int type)
@@ -125,6 +139,7 @@ public final class LogHeader
         type = buffer.getUint8(); // LogEvent.EVENT_TYPE_OFFSET;
         serverId = buffer.getUint32(); // LogEvent.SERVER_ID_OFFSET;
         eventLen = (int) buffer.getUint32(); // LogEvent.EVENT_LEN_OFFSET;
+        
         if (descriptionEvent.binlogVersion == 1)
         {
             logPos = 0;
@@ -178,8 +193,46 @@ public final class LogHeader
               twice when you have two masters which are slaves of a 3rd master).
               Then we are done.
             */
+            
+            if (type == LogEvent.FORMAT_DESCRIPTION_EVENT) {
+                int commonHeaderLen = buffer.getUint8(FormatDescriptionLogEvent.LOG_EVENT_MINIMAL_HEADER_LEN
+                                                      + FormatDescriptionLogEvent.ST_COMMON_HEADER_LEN_OFFSET);
+                buffer.position(commonHeaderLen + FormatDescriptionLogEvent.ST_SERVER_VER_OFFSET);
+                String serverVersion = buffer.getFixString(FormatDescriptionLogEvent.ST_SERVER_VER_LEN); // ST_SERVER_VER_OFFSET
+                int versionSplit[] = new int[] { 0, 0, 0 };
+                FormatDescriptionLogEvent.doServerVersionSplit(serverVersion, versionSplit);
+                checksumAlg = LogEvent.BINLOG_CHECKSUM_ALG_UNDEF;
+                if (FormatDescriptionLogEvent.versionProduct(versionSplit) >= FormatDescriptionLogEvent.checksumVersionProduct) {
+                    buffer.position(eventLen - LogEvent.BINLOG_CHECKSUM_LEN - LogEvent.BINLOG_CHECKSUM_ALG_DESC_LEN);
+                    checksumAlg = buffer.getUint8();
+                }
+
+                processCheckSum(buffer);
+            }
             return;
         }
+        
+        /*
+        CRC verification by SQL and Show-Binlog-Events master side.
+        The caller has to provide @description_event->checksum_alg to
+        be the last seen FD's (A) descriptor.
+        If event is FD the descriptor is in it.
+        Notice, FD of the binlog can be only in one instance and therefore
+        Show-Binlog-Events executing master side thread needs just to know
+        the only FD's (A) value -  whereas RL can contain more.
+        In the RL case, the alg is kept in FD_e (@description_event) which is reset 
+        to the newer read-out event after its execution with possibly new alg descriptor.
+        Therefore in a typical sequence of RL:
+        {FD_s^0, FD_m, E_m^1} E_m^1 
+        will be verified with (A) of FD_m.
+
+        See legends definition on MYSQL_BIN_LOG::relay_log_checksum_alg docs
+        lines (log.h).
+
+        Notice, a pre-checksum FD version forces alg := BINLOG_CHECKSUM_ALG_UNDEF.
+        */
+        checksumAlg = descriptionEvent.getHeader().checksumAlg; // fetch checksum alg
+        processCheckSum(buffer);
         /* otherwise, go on with reading the header from buf (nothing now) */
     }
 
@@ -236,5 +289,22 @@ public final class LogHeader
     public final int getFlags()
     {
         return flags;
+    }
+
+    
+    public long getCrc() {
+        return crc;
+    }
+    
+    
+    public int getChecksumAlg() {
+        return checksumAlg;
+    }
+
+    private void processCheckSum(LogBuffer buffer) {
+        if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF &&
+                checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF){
+            crc = buffer.getUint32(eventLen -  LogEvent.BINLOG_CHECKSUM_LEN);
+        }
     }
 }

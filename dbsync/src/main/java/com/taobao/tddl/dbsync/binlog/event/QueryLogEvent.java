@@ -330,6 +330,25 @@ public class QueryLogEvent extends LogEvent
                                                               + 1 + 8 /* type, table_map_for_update */
                                                               + 1 + 4 /* type, master_data_written */
                                                               + 1 + 16 + 1 + 60/* type, user_len, user, host_len, host */);
+    /**
+    The maximum number of updated databases that a status of
+    Query-log-event can carry.  It can redefined within a range
+    [1.. OVER_MAX_DBS_IN_EVENT_MTS].
+     */
+    public static final int MAX_DBS_IN_EVENT_MTS      = 16;
+    
+    /**
+    When the actual number of databases exceeds MAX_DBS_IN_EVENT_MTS
+    the value of OVER_MAX_DBS_IN_EVENT_MTS is is put into the
+    mts_accessed_dbs status.
+     */
+    public static final int OVER_MAX_DBS_IN_EVENT_MTS = 254;
+    
+    
+    public static final int SYSTEM_CHARSET_MBMAXLEN   = 3;
+    public static final int NAME_CHAR_LEN             = 64;
+    /* Field/table name length */
+    public static final int NAME_LEN                  = (NAME_CHAR_LEN * SYSTEM_CHARSET_MBMAXLEN);
 
     /**
      * Fixed data part:
@@ -423,11 +442,11 @@ public class QueryLogEvent extends LogEvent
          * format-tolerant. We use QUERY_HEADER_MINIMAL_LEN which is the same
          * for 3.23, 4.0 & 5.0.
          */
-        if (header.eventLen < (commonHeaderLen + postHeaderLen))
+        if (buffer.limit() < (commonHeaderLen + postHeaderLen))
         {
             throw new IOException("Query event length is too short.");
         }
-        int dataLen = header.eventLen - (commonHeaderLen + postHeaderLen);
+        int dataLen = buffer.limit() - (commonHeaderLen + postHeaderLen);
         buffer.position(commonHeaderLen + Q_THREAD_ID_OFFSET);
 
         sessionId = buffer.getUint32(); // Q_THREAD_ID_OFFSET
@@ -543,6 +562,15 @@ public class QueryLogEvent extends LogEvent
     public static final int Q_MASTER_DATA_WRITTEN_CODE  = 10;
 
     public static final int Q_INVOKER                   = 11;
+    
+    /**
+        Q_UPDATED_DB_NAMES status variable collects of the updated databases
+        total number and their names to be propagated to the slave in order
+        to facilitate the parallel applying of the Query events.
+     */
+    public static final int Q_UPDATED_DB_NAMES          = 12;
+
+    public static final int Q_MICROSECONDS              = 13;
 
     private final void unpackVariables(LogBuffer buffer, final int end)
             throws IOException
@@ -603,6 +631,27 @@ public class QueryLogEvent extends LogEvent
                     user = buffer.getString();
                     host = buffer.getString();
                     break;
+                case Q_MICROSECONDS:
+                    // when.tv_usec= uint3korr(pos);
+                    buffer.forward(3);
+                    break;
+                case Q_UPDATED_DB_NAMES:
+                    int mtsAccessedDbs = buffer.getUint8(); 
+                    /**
+                        Notice, the following check is positive also in case of
+                        the master's MAX_DBS_IN_EVENT_MTS > the slave's one and the event 
+                        contains e.g the master's MAX_DBS_IN_EVENT_MTS db:s.
+                     */
+                    if (mtsAccessedDbs > MAX_DBS_IN_EVENT_MTS) {
+                        mtsAccessedDbs = OVER_MAX_DBS_IN_EVENT_MTS;
+                        break;
+                    }
+                    String mtsAccessedDbNames[] = new String[mtsAccessedDbs];
+                    for (int i = 0; i < mtsAccessedDbs && buffer.position() < end; i++) {
+                        int length = end - buffer.position();
+                        mtsAccessedDbNames[i] = buffer.getFixString(length < NAME_LEN ? length : NAME_LEN);
+                    }
+                    break;
                 default:
                     /* That's why you must write status vars in growing order of code */
                     if (logger.isDebugEnabled())
@@ -645,6 +694,10 @@ public class QueryLogEvent extends LogEvent
             return "Q_TABLE_MAP_FOR_UPDATE_CODE";
         case Q_MASTER_DATA_WRITTEN_CODE:
             return "Q_MASTER_DATA_WRITTEN_CODE";
+        case Q_UPDATED_DB_NAMES: 
+            return "Q_UPDATED_DB_NAMES";
+        case Q_MICROSECONDS:
+            return "Q_MICROSECONDS";
         }
         return "CODE#" + code;
     }
