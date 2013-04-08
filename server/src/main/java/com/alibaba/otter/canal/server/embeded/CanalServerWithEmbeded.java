@@ -23,7 +23,6 @@ import com.alibaba.otter.canal.protocol.position.PositionRange;
 import com.alibaba.otter.canal.server.CanalServer;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.store.CanalEventStore;
-import com.alibaba.otter.canal.store.helper.CanalEventUtils;
 import com.alibaba.otter.canal.store.model.Event;
 import com.alibaba.otter.canal.store.model.Events;
 import com.google.common.base.Function;
@@ -40,10 +39,10 @@ import com.google.common.collect.Maps;
  */
 public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements CanalServer {
 
-    private static final Logger           logger = LoggerFactory.getLogger(CanalServerWithEmbeded.class);
-    private Map<String, CanalInstance>    canalInstances;
-    private Map<ClientIdentity, Position> lastRollbackPostions;
-    private CanalInstanceGenerator        canalInstanceGenerator;
+    private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbeded.class);
+    private Map<String, CanalInstance> canalInstances;
+    // private Map<ClientIdentity, Position> lastRollbackPostions;
+    private CanalInstanceGenerator     canalInstanceGenerator;
 
     public void start() {
         super.start();
@@ -56,7 +55,7 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
             }
         });
 
-        lastRollbackPostions = new MapMaker().makeMap();
+        // lastRollbackPostions = new MapMaker().makeMap();
     }
 
     public void stop() {
@@ -333,18 +332,18 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
         }
 
         // 更新cursor最好严格判断下位置是否有跳跃更新
-        Position position = lastRollbackPostions.get(clientIdentity);
-        if (position != null) {
-            // Position position = canalInstance.getMetaManager().getCursor(clientIdentity);
-            LogPosition minPosition = CanalEventUtils.min(positionRanges.getStart(), (LogPosition) position);
-            if (minPosition == position) {// ack的position要晚于该最后ack的位置，可能有丢数据
-                throw new CanalServerException(
-                                               String.format(
-                                                             "ack error , clientId:%s batchId:%d %s is jump ack , last ack:%s",
-                                                             clientIdentity.getClientId(), batchId, positionRanges,
-                                                             position));
-            }
-        }
+        // Position position = lastRollbackPostions.get(clientIdentity);
+        // if (position != null) {
+        // // Position position = canalInstance.getMetaManager().getCursor(clientIdentity);
+        // LogPosition minPosition = CanalEventUtils.min(positionRanges.getStart(), (LogPosition) position);
+        // if (minPosition == position) {// ack的position要晚于该最后ack的位置，可能有丢数据
+        // throw new CanalServerException(
+        // String.format(
+        // "ack error , clientId:%s batchId:%d %s is jump ack , last ack:%s",
+        // clientIdentity.getClientId(), batchId, positionRanges,
+        // position));
+        // }
+        // }
 
         // 更新cursor
         if (positionRanges.getAck() != null) {
@@ -393,7 +392,7 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
                                                              clientIdentity.getClientId(), batchId));
             }
 
-            lastRollbackPostions.put(clientIdentity, positionRanges.getEnd());// 记录一下最后rollback的位置
+            // lastRollbackPostions.put(clientIdentity, positionRanges.getEnd());// 记录一下最后rollback的位置
             // TODO 后续rollback到指定的batchId位置
             canalInstance.getEventStore().rollback();// rollback eventStore中的状态信息
             logger.info("rollback successfully, clientId:{} batchId:{} position:{}", new Object[] {

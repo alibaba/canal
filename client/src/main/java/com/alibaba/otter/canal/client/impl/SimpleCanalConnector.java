@@ -109,8 +109,9 @@ public class SimpleCanalConnector implements CanalConnector {
             Handshake handshake = Handshake.parseFrom(p.getBody());
             supportedCompressions.addAll(handshake.getSupportedCompressionsList());
             //
-            ClientAuth ca = ClientAuth.newBuilder().setUsername(username).setNetReadTimeout(10000).setNetWriteTimeout(
-                                                                                                                      10000).build();
+            ClientAuth ca = ClientAuth.newBuilder().setUsername(username != null ? username : "").setNetReadTimeout(
+                                                                                                                    10000).setNetWriteTimeout(
+                                                                                                                                              10000).build();
             writeWithHeader(
                             channel,
                             Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());
@@ -152,7 +153,7 @@ public class SimpleCanalConnector implements CanalConnector {
                                                                                          Sub.newBuilder().setDestination(
                                                                                                                          clientIdentity.getDestination()).setClientId(
                                                                                                                                                                       String.valueOf(clientIdentity.getClientId())).setFilter(
-                                                                                                                                                                                                                              filter).build().toByteString()).build().toByteArray());
+                                                                                                                                                                                                                              filter != null ? filter : "").build().toByteString()).build().toByteArray());
             //
             Packet p = Packet.parseFrom(readNextPacket(channel));
             Ack ack = Ack.parseFrom(p.getBody());
