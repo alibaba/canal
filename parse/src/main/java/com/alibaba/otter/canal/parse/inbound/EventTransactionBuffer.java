@@ -42,10 +42,6 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
             throw new IllegalArgumentException("bufferSize must be a power of 2");
         }
 
-        if (bufferSize < 64) {
-            throw new IllegalArgumentException("bufferSize must be >=64");
-        }
-
         Assert.notNull(flushCallback, "flush callback is null!");
         indexMask = bufferSize - 1;
         entries = new CanalEntry.Entry[bufferSize];
