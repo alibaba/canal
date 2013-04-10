@@ -226,6 +226,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     // 出异常了，退出sink消费，释放一下状态
                     eventSink.interrupt();
                     transactionBuffer.reset();// 重置一下缓冲队列，重新记录数据
+                    binlogParser.reset();// 重新置位
 
                     if (running) {
                         // sleep一段时间再进行重试
