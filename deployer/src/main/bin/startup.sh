@@ -1,8 +1,14 @@
 #!/bin/bash 
 
 current_path=`pwd`
-bin_abs_path=$(readlink -f $(dirname $0))
-
+case "`uname`" in
+    Linux)
+		bin_abs_path=$(readlink -f $(dirname $0))
+		;;
+	*)
+		bin_abs_path=`cd $(dirname $0); pwd`
+		;;
+esac
 base=${bin_abs_path}/..
 canal_conf=$base/conf/canal.properties
 logback_configurationFile=$base/conf/logback.xml
