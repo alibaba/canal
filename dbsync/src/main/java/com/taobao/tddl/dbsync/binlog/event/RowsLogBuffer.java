@@ -436,14 +436,23 @@ public final class RowsLogBuffer
         case LogEvent.MYSQL_TYPE_YEAR:
             {
                 final int i32 = buffer.getUint8();
+                // If connection property 'YearIsDateType' has
+                // set, value is java.sql.Date.
+                /*
                 if (cal == null)
                     cal = Calendar.getInstance();
                 cal.clear();
                 cal.set(Calendar.YEAR, i32 + 1900);
-                // If connection property 'YearIsDateType' has 
-                // set, value is java.sql.Date.
                 value = new java.sql.Date(cal.getTimeInMillis());
-                javaType = Types.DATE; // Types.INTEGER;
+                */
+                // The else, value is java.lang.Short.
+                value = Short.valueOf((short) (i32 + 1900));
+                // It might seem more correct to create a java.sql.Types.DATE value
+                // for this date, but it is much simpler to pass the value as an
+                // integer. The MySQL JDBC specification states that one can
+                // pass a java int between 1901 and 2055. Creating a DATE value
+                // causes truncation errors with certain SQL_MODES (e.g."STRICT_TRANS_TABLES").
+                javaType = Types.INTEGER; // Types.INTEGER;
                 length = 1;
                 break;
             }
