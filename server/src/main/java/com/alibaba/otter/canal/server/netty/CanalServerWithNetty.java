@@ -27,12 +27,11 @@ import com.alibaba.otter.canal.server.netty.handler.SessionHandler;
  */
 public class CanalServerWithNetty extends AbstractCanalLifeCycle implements CanalServer {
 
-    private CanalServerWithEmbeded embededServer;                // 嵌入式server
+    private CanalServerWithEmbeded embededServer;       // 嵌入式server
     private String                 ip;
     private int                    port;
-    private Channel                serverChannel          = null;
-    private ServerBootstrap        bootstrap              = null;
-    private boolean                stopInstanceAsPossible = true; // 针对client close时是否尽可能释放instance
+    private Channel                serverChannel = null;
+    private ServerBootstrap        bootstrap     = null;
 
     public CanalServerWithNetty(){
     }
@@ -62,7 +61,6 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
                                   new ClientAuthenticationHandler(embededServer));
 
                 SessionHandler sessionHandler = new SessionHandler(embededServer);
-                sessionHandler.setStopInstanceAsPossible(stopInstanceAsPossible);
                 pipelines.addLast(SessionHandler.class.getName(), sessionHandler);
                 return pipelines;
             }
@@ -98,14 +96,6 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
 
     public void setPort(int port) {
         this.port = port;
-    }
-
-    public boolean isStopInstanceAsPossible() {
-        return stopInstanceAsPossible;
-    }
-
-    public void setStopInstanceAsPossible(boolean stopInstanceAsPossible) {
-        this.stopInstanceAsPossible = stopInstanceAsPossible;
     }
 
     public void setEmbededServer(CanalServerWithEmbeded embededServer) {

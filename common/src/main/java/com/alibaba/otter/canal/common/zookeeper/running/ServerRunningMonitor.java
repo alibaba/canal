@@ -91,11 +91,21 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         super.start();
         processStart();
         if (zkClient != null) {
+            // 如果需要尽可能释放instance资源，不需要监听running节点，不然即使stop了这台机器，另一台机器立马会start
             String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
             zkClient.subscribeDataChanges(path, dataListener);
+
             initRunning();
         } else {
             processActiveEnter();// 没有zk，直接启动
+        }
+    }
+
+    public void release() {
+        if (zkClient != null) {
+            releaseRunning(); // 尝试一下release
+        } else {
+            processActiveExit(); // 没有zk，直接启动
         }
     }
 
@@ -105,6 +115,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         if (zkClient != null) {
             String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
             zkClient.unsubscribeDataChanges(path, dataListener);
+
             releaseRunning(); // 尝试一下release
         } else {
             processActiveExit(); // 没有zk，直接启动
@@ -112,7 +123,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         processStop();
     }
 
-    public void initRunning() {
+    private void initRunning() {
         if (!isStart()) {
             return;
         }
@@ -178,7 +189,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         }
     }
 
-    public boolean releaseRunning() {
+    private boolean releaseRunning() {
         if (check()) {
             String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
             zkClient.delete(path);

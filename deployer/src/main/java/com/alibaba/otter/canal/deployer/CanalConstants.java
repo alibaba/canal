@@ -21,7 +21,6 @@ public class CanalConstants {
     public static final String CANAL_AUTO_SCAN                   = ROOT + "." + "auto.scan";
     public static final String CANAL_AUTO_SCAN_INTERVAL          = ROOT + "." + "auto.scan.interval";
     public static final String CANAL_CONF_DIR                    = ROOT + "." + "conf.dir";
-    public static final String CANAL_STOPINSTANCEASPOSSIBLE      = ROOT + "." + "stopInstanceAsPossible";
 
     public static final String CANAL_DESTINATION_SPLIT           = ",";
     public static final String GLOBAL_NAME                       = "global";
