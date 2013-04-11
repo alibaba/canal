@@ -56,7 +56,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private ClientIdentity       clientIdentity;
     private ClientRunningMonitor runningMonitor;                                                             // 运行控制
     private ZkClientx            zkClientx;
-    private BooleanMutex         mutex                 = new BooleanMutex(true);
+    private BooleanMutex         mutex                 = new BooleanMutex(false);
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
         this(address, username, password, destination, 10000);
@@ -309,8 +309,9 @@ public class SimpleCanalConnector implements CanalConnector {
             runningMonitor.setListener(new ClientRunningListener() {
 
                 public InetSocketAddress processActiveEnter() {
+                    InetSocketAddress address = doConnect();
                     mutex.set(true);
-                    return doConnect();
+                    return address;
                 }
 
                 public void processActiveExit() {
