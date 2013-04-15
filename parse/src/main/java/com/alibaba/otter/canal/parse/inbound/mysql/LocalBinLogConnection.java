@@ -110,7 +110,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                     current = nextFile;
 
                     fetcher.open(current);
-                    context.setLogPosition(new LogPosition(binlogfilename));
+                    context.setLogPosition(new LogPosition(nextFile.getName()));
                 } else {
                     break;// 跳出
                 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private String               password;
     private int                  soTimeout             = 10000;                                              // milliseconds
 
-    private final ByteBuffer     header                = ByteBuffer.allocate(4);
+    private final ByteBuffer     header                = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
     private SocketChannel        channel;
     private List<Compression>    supportedCompressions = new ArrayList<Compression>();
     private ClientIdentity       clientIdentity;

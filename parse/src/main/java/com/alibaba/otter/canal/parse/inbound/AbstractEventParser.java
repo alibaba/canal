@@ -171,10 +171,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 } catch (TableIdNotFoundException e) {
                                     throw e;
                                 } catch (Exception e) {
+                                    // 记录一下，出错的位点信息
                                     processError(e, this.lastPosition, startPosition.getJournalName(),
                                                  startPosition.getPosition());
-                                    // 走到这一步，说明出错了
-                                    return false;
+                                    throw new CanalParseException(e); // 继续抛出异常，让上层统一感知
                                 }
                             }
 

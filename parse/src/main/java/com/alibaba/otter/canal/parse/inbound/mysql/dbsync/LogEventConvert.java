@@ -138,6 +138,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             String schemaName = event.getDbName();
+            if (StringUtils.isEmpty(schemaName) && StringUtils.isNotEmpty(result.getSchemaName())) {
+                schemaName = result.getSchemaName();
+            }
+
             String tableName = result.getTableName();
             if (tableMetaCache != null && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE)) {
                 if (StringUtils.isNotEmpty(tableName)) {
