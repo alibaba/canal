@@ -40,6 +40,8 @@ public class AbstractMetaManagerTest extends AbstractZkTest {
     }
 
     public void doBatchTest(CanalMetaManager metaManager) {
+        metaManager.subscribe(clientIdentity);
+
         PositionRange first = metaManager.getFirstBatch(clientIdentity);
         PositionRange lastest = metaManager.getLastestBatch(clientIdentity);
 
@@ -84,6 +86,8 @@ public class AbstractMetaManagerTest extends AbstractZkTest {
     }
 
     public Position doCursorTest(CanalMetaManager metaManager) {
+        metaManager.subscribe(clientIdentity);
+
         Position position1 = metaManager.getCursor(clientIdentity);
         Assert.assertNull(position1);
 

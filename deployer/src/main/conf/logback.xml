@@ -34,6 +34,33 @@
 		</sift>
 	</appender>
 	
+	<appender name="CANAL-META" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<Key>destination</Key>
+			<DefaultValue>canal</DefaultValue>
+		</discriminator>
+		<sift>
+			<appender name="META-FILE-${destination}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>../logs/${destination}/meta.log</File>
+				<rollingPolicy
+					class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<!-- rollover daily -->
+					<fileNamePattern>../logs/${destination}/%d{yyyy-MM-dd}/meta-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+					<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+						<!-- or whenever the file size reaches 100MB -->
+						<maxFileSize>32MB</maxFileSize>
+					</timeBasedFileNamingAndTriggeringPolicy>
+					<maxHistory>60</maxHistory>
+				</rollingPolicy>
+				<encoder>
+					<pattern>
+						%d{yyyy-MM-dd HH:mm:ss.SSS} - %msg%n
+					</pattern>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+	
     <logger name="com.alibaba.otter.canal.instance" additivity="false">  
         <level value="INFO" />  
         <appender-ref ref="CANAL-ROOT" />
@@ -42,7 +69,11 @@
         <level value="INFO" />  
         <appender-ref ref="CANAL-ROOT" />
     </logger>
-     
+    <logger name="com.alibaba.otter.canal.meta.FileMixedMetaManager" additivity="false">  
+        <level value="INFO" />  
+        <appender-ref ref="CANAL-META" />
+    </logger>
+    
 	<root level="WARN">
 		<!--  
 		<appender-ref ref="STDOUT"/>
