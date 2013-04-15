@@ -95,6 +95,7 @@
 		<module>server</module>
 		<module>client</module>
 		<module>deployer</module>
+		<module>example</module>
 	</modules>
 	
 	<dependencyManagement>
