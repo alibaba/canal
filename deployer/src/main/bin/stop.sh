@@ -25,7 +25,13 @@ get_pid() {
 }
 
 base=`dirname $0`/..
-pid=`cat $base/bin/canal.pid`
+pidfile=$base/bin/canal.pid
+if [ ! -f "$pidfile" ];then
+	echo "canal is not running. exists"
+	exit
+fi
+
+pid=`cat $pidfile`
 if [ "$pid" == "" ] ; then
 	pid=`get_pid "appName=otter-canal"`
 fi
@@ -39,7 +45,7 @@ do
 	gpid=`get_pid "appName=otter-canal" "$pid"`
     if [ "$gpid" == "" ] ; then
     	echo "Oook! cost:$LOOPS"
-    	`rm $base/bin/canal.pid`
+    	`rm $pidfile`
     	break;
     fi
     let LOOPS=LOOPS+1
