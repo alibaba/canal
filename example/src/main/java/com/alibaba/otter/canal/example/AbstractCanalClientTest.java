@@ -115,8 +115,7 @@ public class AbstractCanalClientTest {
             try {
                 rowChage = RowChange.parseFrom(entry.getStoreValue());
             } catch (Exception e) {
-                throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
-                                           e);
+                throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
             }
 
             EventType eventType = rowChage.getEventType();
@@ -124,6 +123,10 @@ public class AbstractCanalClientTest {
                                              entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
                                              entry.getHeader().getSchemaName(), entry.getHeader().getTableName(),
                                              eventType));
+
+            if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
+                System.out.println(" sql ----> " + rowChage.getSql());
+            }
 
             for (RowData rowData : rowChage.getRowDatasList()) {
                 if (eventType == EventType.DELETE) {
