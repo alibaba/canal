@@ -45,6 +45,8 @@ public class SimpleDdlParser {
             return result;
         }
 
+        result = new DdlResult(schmeaName);
+        result.setType(EventType.QUERY);
         return result;
     }
 
