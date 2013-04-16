@@ -2,6 +2,8 @@ package com.alibaba.otter.canal.example;
 
 import java.net.InetSocketAddress;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
 import com.alibaba.otter.canal.common.utils.AddressUtils;
@@ -19,8 +21,23 @@ public class SimpleCanalClientTest extends AbstractCanalClientTest {
         CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(AddressUtils.getHostIp(),
                                                                                             11111), "example", "", "");
 
-        SimpleCanalClientTest clientTest = new SimpleCanalClientTest();
-        clientTest.testCanal(connector);
+        final SimpleCanalClientTest clientTest = new SimpleCanalClientTest();
+        clientTest.setConnector(connector);
+        clientTest.start();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+
+            public void run() {
+                try {
+                    logger.info("## stop the canal client");
+                    clientTest.stop();
+                } catch (Throwable e) {
+                    logger.warn("##something goes wrong when stopping canal:\n{}", ExceptionUtils.getFullStackTrace(e));
+                } finally {
+                    logger.info("## canal client is down.");
+                }
+            }
+
+        });
     }
 
 }

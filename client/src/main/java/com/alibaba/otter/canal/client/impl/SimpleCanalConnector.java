@@ -58,6 +58,8 @@ public class SimpleCanalConnector implements CanalConnector {
     private ClientRunningMonitor runningMonitor;                                                             // 运行控制
     private ZkClientx            zkClientx;
     private BooleanMutex         mutex                 = new BooleanMutex(false);
+    private boolean              rollbackOnConnect     = false;                                              // 是否在connect链接成功后，自动执行rollback操作
+    private boolean              rollbackOnDisConnect  = true;                                               // 是否在connect链接成功后，自动执行rollback操作
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
         this(address, username, password, destination, 10000);
@@ -80,10 +82,18 @@ public class SimpleCanalConnector implements CanalConnector {
         } else {
             waitClientRunning();
             doConnect();
+
+            if (rollbackOnConnect) {
+                rollback();
+            }
         }
     }
 
     public void disconnect() throws CanalClientException {
+        if (rollbackOnDisConnect) {
+            rollback();
+        }
+
         if (runningMonitor != null) {
             if (runningMonitor.isStart()) {
                 runningMonitor.stop();
@@ -312,6 +322,10 @@ public class SimpleCanalConnector implements CanalConnector {
                 public InetSocketAddress processActiveEnter() {
                     InetSocketAddress address = doConnect();
                     mutex.set(true);
+                    if (rollbackOnConnect) {
+                        rollback();
+                    }
+
                     return address;
                 }
 
@@ -366,6 +380,10 @@ public class SimpleCanalConnector implements CanalConnector {
     public void setZkClientx(ZkClientx zkClientx) {
         this.zkClientx = zkClientx;
         initClientRunningMonitor(this.clientIdentity);
+    }
+
+    public void setRollbackOnConnect(boolean rollbackOnConnect) {
+        this.rollbackOnConnect = rollbackOnConnect;
     }
 
 }

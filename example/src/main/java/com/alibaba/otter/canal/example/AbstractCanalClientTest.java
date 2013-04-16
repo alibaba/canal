@@ -2,6 +2,10 @@ package com.alibaba.otter.canal.example;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
@@ -19,42 +23,85 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
  */
 public class AbstractCanalClientTest {
 
-    protected void testCanal(CanalConnector connector) {
-        int batchSize = 5 * 1024;
-        int emptyCount = 0;
-        try {
-            connector.connect();
-            connector.subscribe(".*\\..*");
-            connector.rollback();
-            int totalEmtryCount = 120;
-            while (emptyCount < totalEmtryCount) {
-                Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
-                long batchId = message.getId();
-                int size = message.getEntries().size();
-                if (batchId == -1 || size == 0) {
-                    emptyCount++;
-                    System.out.println("empty count : " + emptyCount);
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                    }
-                } else {
-                    emptyCount = 0;
-                    long memsize = 0;
-                    for (Entry entry : message.getEntries()) {
-                        memsize += entry.getHeader().getEventLength();
-                    }
-                    System.out.printf("message[batchId=%s,size=%s,memsize=%s] \n", batchId, size, memsize);
-                    printEntry(message.getEntries());
-                }
+    protected final static Logger             logger  = LoggerFactory.getLogger(AbstractCanalClientTest.class);
+    protected volatile boolean                running = false;
+    protected Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
 
-                connector.ack(batchId); // 提交确认
-                // connector.rollback(batchId); // 处理失败, 回滚数据
+                                                          public void uncaughtException(Thread t, Throwable e) {
+                                                              logger.error("parse events has an error", e);
+                                                          }
+                                                      };
+    protected Thread                          thread  = null;
+    protected CanalConnector                  connector;
+
+    public AbstractCanalClientTest(){
+
+    }
+
+    public AbstractCanalClientTest(CanalConnector connector){
+        this.connector = connector;
+    }
+
+    protected void start() {
+        Assert.notNull(connector, "connector is null");
+        thread = new Thread(new Runnable() {
+
+            public void run() {
+                process();
             }
+        });
 
-            System.out.println("empty too many times, exit");
-        } finally {
-            connector.disconnect();
+        thread.setUncaughtExceptionHandler(handler);
+        thread.start();
+        running = true;
+    }
+
+    protected void stop() {
+        if (!running) {
+            return;
+        }
+        running = false;
+        if (thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+
+    }
+
+    protected void process() {
+        int batchSize = 5 * 1024;
+        while (running) {
+            try {
+                connector.connect();
+                connector.subscribe(".*\\..*");
+                connector.rollback();
+                while (running) {
+                    Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
+                    long batchId = message.getId();
+                    int size = message.getEntries().size();
+                    if (batchId == -1 || size == 0) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                        }
+                    } else {
+                        long memsize = 0;
+                        for (Entry entry : message.getEntries()) {
+                            memsize += entry.getHeader().getEventLength();
+                        }
+                        System.out.printf("message[batchId=%s,size=%s,memsize=%s] \n", batchId, size, memsize);
+                        printEntry(message.getEntries());
+                    }
+
+                    connector.ack(batchId); // 提交确认
+                    // connector.rollback(batchId); // 处理失败, 回滚数据
+                }
+            } finally {
+                connector.disconnect();
+            }
         }
     }
 
@@ -98,4 +145,9 @@ public class AbstractCanalClientTest {
             System.out.println(column.getName() + " : " + column.getValue() + "    update=" + column.getUpdated());
         }
     }
+
+    public void setConnector(CanalConnector connector) {
+        this.connector = connector;
+    }
+
 }
