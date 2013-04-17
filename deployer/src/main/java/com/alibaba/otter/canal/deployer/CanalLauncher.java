@@ -21,15 +21,11 @@ public class CanalLauncher {
 
     public static void main(String[] args) throws Throwable {
         try {
-            String conf = System.getProperty("canal.conf", "classpath:conf/canal.properties");
-            if (StringUtils.isEmpty(conf)) {
-                System.err.println("-Dcanal.conf is miss!");
-                System.exit(0);
-            }
-
+            String conf = System.getProperty("canal.conf", "classpath:canal.properties");
             Properties properties = new Properties();
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
-                properties.load(CanalLauncher.class.getResourceAsStream(conf));
+                conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
+                properties.load(CanalLauncher.class.getClassLoader().getResourceAsStream(conf));
             } else {
                 properties.load(new FileInputStream(conf));
             }
