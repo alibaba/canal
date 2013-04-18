@@ -75,7 +75,8 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
             case ROWDATA:
                 put(entry);
                 // 针对非DML的数据，直接输出，不进行buffer控制
-                if (!isDml(entry.getHeader().getEventType())) {
+                EventType eventType = entry.getHeader().getEventType();
+                if (eventType != null && !isDml(eventType)) {
                     flush();
                 }
                 break;
@@ -108,7 +109,7 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
         long start = this.flushSequence.get() + 1;
         long end = this.putSequence.get();
 
-        if (start < end) {
+        if (start <= end) {
             List<CanalEntry.Entry> transaction = new ArrayList<CanalEntry.Entry>();
             for (long next = start; next <= end; next++) {
                 transaction.add(this.entries[getIndex(next)]);

@@ -128,11 +128,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         String queryString = event.getQuery();
         if (StringUtils.endsWithIgnoreCase(queryString, BEGIN)) {
             TransactionBegin transactionBegin = createTransactionBegin(event.getExecTime());
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "");
+            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONBEGIN, transactionBegin.toByteString());
         } else if (StringUtils.endsWithIgnoreCase(queryString, COMMIT)) {
             TransactionEnd transactionEnd = createTransactionEnd(0L, event.getWhen()); // MyISAM可能不会有xid事件
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "");
+            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
         } else {
             // DDL语句处理
@@ -154,7 +154,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
             }
 
-            Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName);
+            Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, result.getType());
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             if (result.getType() != EventType.QUERY) {
                 rowChangeBuider.setIsDdl(true);
@@ -189,7 +189,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private Entry parseXidEvent(XidLogEvent event) {
         TransactionEnd transactionEnd = createTransactionEnd(event.getXid(), event.getWhen());
-        Header header = createHeader(binlogFileName, event.getHeader(), "", "");
+        Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
         return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
     }
 
@@ -205,11 +205,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             if (nameFilter != null && !nameFilter.filter(fullname)) { // check name filter
                 return null;
             }
-
-            Header header = createHeader(binlogFileName, event.getHeader(), table.getDbName(), table.getTableName());
-            RowChange.Builder rowChangeBuider = RowChange.newBuilder();
-            rowChangeBuider.setTableId(event.getTableId());
-            rowChangeBuider.setIsDdl(false);
             EventType eventType = null;
             int type = event.getHeader().getType();
             if (LogEvent.WRITE_ROWS_EVENT_V1 == type || LogEvent.WRITE_ROWS_EVENT == type) {
@@ -221,8 +216,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             } else {
                 throw new CanalParseException("unsupport event type :" + event.getHeader().getType());
             }
-            rowChangeBuider.setEventType(eventType);
 
+            Header header = createHeader(binlogFileName, event.getHeader(), table.getDbName(), table.getTableName(),
+                                         eventType);
+            RowChange.Builder rowChangeBuider = RowChange.newBuilder();
+            rowChangeBuider.setTableId(event.getTableId());
+            rowChangeBuider.setIsDdl(false);
+
+            rowChangeBuider.setEventType(eventType);
             RowsLogBuffer buffer = event.getRowsBuf(charset.name());
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getColumns();
@@ -382,7 +383,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry buildQueryEntry(String queryString, LogHeader logHeader) {
-        Header header = createHeader(binlogFileName, logHeader, "", "");
+        Header header = createHeader(binlogFileName, logHeader, "", "", EventType.QUERY);
         RowChange.Builder rowChangeBuider = RowChange.newBuilder();
         rowChangeBuider.setSql(queryString);
         rowChangeBuider.setEventType(EventType.QUERY);
@@ -395,7 +396,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return result.toString();
     }
 
-    private Header createHeader(String binlogFile, LogHeader logHeader, String schemaName, String tableName) {
+    private Header createHeader(String binlogFile, LogHeader logHeader, String schemaName, String tableName,
+                                EventType eventType) {
         // header会做信息冗余,方便以后做检索或者过滤
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setVersion(version);
@@ -405,6 +407,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         headerBuilder.setServerenCode(UTF_8);// 经过java输出后所有的编码为unicode
         headerBuilder.setExecuteTime(logHeader.getWhen() * 1000L);
         headerBuilder.setSourceType(Type.MYSQL);
+        if (eventType != null) {
+            headerBuilder.setEventType(eventType);
+        }
         if (schemaName != null) {
             headerBuilder.setSchemaName(StringUtils.lowerCase(schemaName));
         }
