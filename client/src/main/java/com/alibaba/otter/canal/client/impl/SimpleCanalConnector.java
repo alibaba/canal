@@ -386,4 +386,8 @@ public class SimpleCanalConnector implements CanalConnector {
         this.rollbackOnConnect = rollbackOnConnect;
     }
 
+    public void setRollbackOnDisConnect(boolean rollbackOnDisConnect) {
+        this.rollbackOnDisConnect = rollbackOnDisConnect;
+    }
+
 }

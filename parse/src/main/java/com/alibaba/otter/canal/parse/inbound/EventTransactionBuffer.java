@@ -8,6 +8,7 @@ import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 import com.alibaba.otter.canal.store.CanalStoreException;
 
 /**
@@ -73,6 +74,10 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
                 break;
             case ROWDATA:
                 put(entry);
+                // 针对非DML的数据，直接输出，不进行buffer控制
+                if (!isDml(entry.getHeader().getEventType())) {
+                    flush();
+                }
                 break;
             default:
                 break;
@@ -128,6 +133,10 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
 
     private int getIndex(long sequcnce) {
         return (int) sequcnce & indexMask;
+    }
+
+    private boolean isDml(EventType eventType) {
+        return eventType == EventType.INSERT || eventType == EventType.UPDATE || eventType == EventType.DELETE;
     }
 
     // ================ setter / getter ==================
