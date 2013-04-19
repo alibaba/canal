@@ -173,7 +173,7 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
                 return null;
             }
 
-            String json = FileUtils.readFileToString(dataFile, charset);
+            String json = FileUtils.readFileToString(dataFile, charset.name());
             return JsonUtils.unmarshalFromString(json, LogPosition.class);
         } catch (IOException e) {
             throw new CanalMetaManagerException(e);

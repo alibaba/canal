@@ -287,8 +287,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
             }
-            final int javaType = buffer.getJavaType();
-            columnBuilder.setSqlType(javaType);
+            int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
             } else {
@@ -306,21 +305,31 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                 case 1: /* MYSQL_TYPE_TINY */
                                     columnBuilder.setValue(String.valueOf(Integer.valueOf(TINYINT_MAX_VALUE
                                                                                           + number.intValue())));
+                                    javaType = Types.SMALLINT; // 往上加一个量级
+                                    break;
 
                                 case 2: /* MYSQL_TYPE_SHORT */
                                     columnBuilder.setValue(String.valueOf(Integer.valueOf(SMALLINT_MAX_VALUE
                                                                                           + number.intValue())));
+                                    javaType = Types.INTEGER; // 往上加一个量级
+                                    break;
 
                                 case 3: /* MYSQL_TYPE_INT24 */
                                     columnBuilder.setValue(String.valueOf(Integer.valueOf(MEDIUMINT_MAX_VALUE
                                                                                           + number.intValue())));
+                                    javaType = Types.INTEGER; // 往上加一个量级
+                                    break;
 
                                 case 4: /* MYSQL_TYPE_LONG */
                                     columnBuilder.setValue(String.valueOf(Long.valueOf(INTEGER_MAX_VALUE
                                                                                        + number.longValue())));
+                                    javaType = Types.BIGINT; // 往上加一个量级
+                                    break;
 
                                 case 8: /* MYSQL_TYPE_LONGLONG */
                                     columnBuilder.setValue(BIGINT_MAX_VALUE.add(BigInteger.valueOf(number.longValue())).toString());
+                                    javaType = Types.DECIMAL; // 往上加一个量级，避免执行出错
+                                    break;
                             }
                         } else {
                             // 对象为number类型，直接valueof即可
@@ -369,6 +378,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             }
 
+            columnBuilder.setSqlType(javaType);
             // 设置是否update的标记位
             columnBuilder.setUpdated(isAfter
                                      && isUpdate(rowDataBuilder.getBeforeColumnsList(),
