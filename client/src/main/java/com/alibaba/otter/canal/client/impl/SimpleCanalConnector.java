@@ -58,8 +58,8 @@ public class SimpleCanalConnector implements CanalConnector {
     private ClientRunningMonitor runningMonitor;                                                             // 运行控制
     private ZkClientx            zkClientx;
     private BooleanMutex         mutex                 = new BooleanMutex(false);
-    private boolean              rollbackOnConnect     = false;                                              // 是否在connect链接成功后，自动执行rollback操作
-    private boolean              rollbackOnDisConnect  = true;                                               // 是否在connect链接成功后，自动执行rollback操作
+    private boolean              rollbackOnConnect     = true;                                               // 是否在connect链接成功后，自动执行rollback操作
+    private boolean              rollbackOnDisConnect  = false;                                              // 是否在connect链接成功后，自动执行rollback操作
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
         this(address, username, password, destination, 10000);
@@ -90,7 +90,7 @@ public class SimpleCanalConnector implements CanalConnector {
     }
 
     public void disconnect() throws CanalClientException {
-        if (rollbackOnDisConnect) {
+        if (rollbackOnDisConnect && channel.isConnected()) {
             rollback();
         }
 
