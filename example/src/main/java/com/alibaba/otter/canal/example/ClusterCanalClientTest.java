@@ -13,7 +13,13 @@ import com.alibaba.otter.canal.client.CanalConnectors;
  */
 public class ClusterCanalClientTest extends AbstractCanalClientTest {
 
+    public ClusterCanalClientTest(String destination){
+        super(destination);
+    }
+
     public static void main(String args[]) {
+        String destination = "example";
+
         // 基于固定canal server的地址，建立链接，其中一台server发生crash，可以支持failover
         // CanalConnector connector = CanalConnectors.newClusterConnector(
         // Arrays.asList(new InetSocketAddress(
@@ -22,9 +28,9 @@ public class ClusterCanalClientTest extends AbstractCanalClientTest {
         // "stability_test", "", "");
 
         // 基于zookeeper动态获取canal server的地址，建立链接，其中一台server发生crash，可以支持failover
-        CanalConnector connector = CanalConnectors.newClusterConnector("10.20.144.51:2181", "example", "", "");
+        CanalConnector connector = CanalConnectors.newClusterConnector("10.20.144.51:2181", destination, "", "");
 
-        final ClusterCanalClientTest clientTest = new ClusterCanalClientTest();
+        final ClusterCanalClientTest clientTest = new ClusterCanalClientTest(destination);
         clientTest.setConnector(connector);
         clientTest.start();
 

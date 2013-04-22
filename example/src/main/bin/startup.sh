@@ -46,12 +46,12 @@ in
 	client_mode=$*
 	;;
 2 )	
-	var=$1
-	client_mode=$1
 	if [ "$1" = "debug" ]; then
 		DEBUG_PORT=$2
 		DEBUG_SUSPEND="y"
 		JAVA_DEBUG_OPT="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=$DEBUG_SUSPEND"
+	else 
+		client_mode=$1
  	fi;;
 * )
 	echo "THE PARAMETERS MUST BE TWO OR LESS.PLEASE CHECK AGAIN."

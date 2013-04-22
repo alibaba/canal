@@ -1,10 +1,15 @@
 package com.alibaba.otter.canal.example;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.protocol.Message;
@@ -23,22 +28,38 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
  */
 public class AbstractCanalClientTest {
 
-    protected final static Logger             logger  = LoggerFactory.getLogger(AbstractCanalClientTest.class);
-    protected volatile boolean                running = false;
-    protected Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
+    protected final static Logger             logger         = LoggerFactory.getLogger(AbstractCanalClientTest.class);
+    protected static final String             SEP            = SystemUtils.LINE_SEPARATOR;
+    protected static final String             DATE_FORMAT    = "yyyy-MM-dd HH:mm:ss";
+    protected volatile boolean                running        = false;
+    protected Thread.UncaughtExceptionHandler handler        = new Thread.UncaughtExceptionHandler() {
 
-                                                          public void uncaughtException(Thread t, Throwable e) {
-                                                              logger.error("parse events has an error", e);
-                                                          }
-                                                      };
-    protected Thread                          thread  = null;
+                                                                 public void uncaughtException(Thread t, Throwable e) {
+                                                                     logger.error("parse events has an error", e);
+                                                                 }
+                                                             };
+    protected Thread                          thread         = null;
     protected CanalConnector                  connector;
+    protected static String                   context_format = null;
+    protected static String                   row_format     = null;
+    protected String                          destination;
 
-    public AbstractCanalClientTest(){
+    static {
+        context_format = SEP + "****************************************************" + SEP;
+        context_format += "* Batch Id: [{}] ,count : [{}] , memsize : [{}] , Time : {}" + SEP;
+        context_format += "* Start : [{}] " + SEP;
+        context_format += "* End : [{}] " + SEP;
+        context_format += "****************************************************" + SEP;
 
+        row_format = SEP + "================> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {}" + SEP;
     }
 
-    public AbstractCanalClientTest(CanalConnector connector){
+    public AbstractCanalClientTest(String destination){
+        this(destination, null);
+    }
+
+    public AbstractCanalClientTest(String destination, CanalConnector connector){
+        this.destination = destination;
         this.connector = connector;
     }
 
@@ -69,12 +90,14 @@ public class AbstractCanalClientTest {
             }
         }
 
+        MDC.remove("destination");
     }
 
     protected void process() {
         int batchSize = 5 * 1024;
         while (running) {
             try {
+                MDC.put("destination", destination);
                 connector.connect();
                 connector.subscribe(".*\\..*");
                 connector.rollback();
@@ -88,11 +111,7 @@ public class AbstractCanalClientTest {
                         } catch (InterruptedException e) {
                         }
                     } else {
-                        long memsize = 0;
-                        for (Entry entry : message.getEntries()) {
-                            memsize += entry.getHeader().getEventLength();
-                        }
-                        System.out.printf("message[batchId=%s,size=%s,memsize=%s] \n", batchId, size, memsize);
+                        printSummary(message, batchId, size);
                         printEntry(message.getEntries());
                     }
 
@@ -101,8 +120,35 @@ public class AbstractCanalClientTest {
                 }
             } finally {
                 connector.disconnect();
+                MDC.remove("destination");
             }
         }
+    }
+
+    private void printSummary(Message message, long batchId, int size) {
+        long memsize = 0;
+        for (Entry entry : message.getEntries()) {
+            memsize += entry.getHeader().getEventLength();
+        }
+
+        String startPosition = null;
+        String endPosition = null;
+        if (!CollectionUtils.isEmpty(message.getEntries())) {
+            startPosition = buildPositionForDump(message.getEntries().get(0));
+            endPosition = buildPositionForDump(message.getEntries().get(message.getEntries().size() - 1));
+        }
+
+        SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+        logger.info(context_format, new Object[] { batchId, size, memsize, format.format(new Date()), startPosition,
+                endPosition });
+    }
+
+    protected String buildPositionForDump(Entry entry) {
+        long time = entry.getHeader().getExecuteTime();
+        Date date = new Date(time);
+        SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+        return entry.getHeader().getLogfileName() + ":" + entry.getHeader().getLogfileOffset() + ":"
+               + entry.getHeader().getExecuteTime() + "(" + format.format(date) + ")";
     }
 
     protected void printEntry(List<Entry> entrys) {
@@ -119,13 +165,12 @@ public class AbstractCanalClientTest {
             }
 
             EventType eventType = rowChage.getEventType();
-            System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s] , eventType : %s",
-                                             entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
-                                             entry.getHeader().getSchemaName(), entry.getHeader().getTableName(),
-                                             eventType));
+            logger.info(row_format, new Object[] { entry.getHeader().getLogfileName(),
+                    String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
+                    entry.getHeader().getTableName(), eventType, String.valueOf(entry.getHeader().getExecuteTime()) });
 
             if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
-                System.out.println(" sql ----> " + rowChage.getSql());
+                logger.info(" sql ----> " + rowChage.getSql() + SEP);
             }
 
             for (RowData rowData : rowChage.getRowDatasList()) {
@@ -134,9 +179,9 @@ public class AbstractCanalClientTest {
                 } else if (eventType == EventType.INSERT) {
                     printColumn(rowData.getAfterColumnsList());
                 } else {
-                    System.out.println("-------> before");
+                    logger.info("-------> before" + SEP);
                     printColumn(rowData.getBeforeColumnsList());
-                    System.out.println("-------> after");
+                    logger.info("-------> after" + SEP);
                     printColumn(rowData.getAfterColumnsList());
                 }
             }
@@ -145,7 +190,7 @@ public class AbstractCanalClientTest {
 
     protected void printColumn(List<Column> columns) {
         for (Column column : columns) {
-            System.out.println(column.getName() + " : " + column.getValue() + "    update=" + column.getUpdated());
+            logger.info(column.getName() + " : " + column.getValue() + "    update=" + column.getUpdated() + SEP);
         }
     }
 

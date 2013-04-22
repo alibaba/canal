@@ -8,7 +8,18 @@
 		</encoder>
 	</appender>
 	
-	<root level="WARN">
+	<appender name="ENTRY_LOG" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%msg</pattern>
+		</encoder>
+	</appender>
+	
+	<logger name="com.alibaba.otter.canal.example.AbstractCanalClientTest" additivity="false">  
+        <level value="INFO" />  
+        <appender-ref ref="ENTRY_LOG" />
+    </logger>
+	
+	<root level="INFO">
 		<appender-ref ref="STDOUT"/>
 	</root>
 </configuration>
