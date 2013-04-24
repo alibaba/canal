@@ -26,12 +26,12 @@ public class MysqlDumpTest {
     @Test
     public void testSimple() {
         final MysqlEventParser controller = new MysqlEventParser();
-        final EntryPosition startPosition = new EntryPosition("mysql-bin.000002", 38266L);
+        final EntryPosition startPosition = new EntryPosition("mysql-bin.000011", 4L);
 
         controller.setConnectionCharset(Charset.forName("UTF-8"));
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
-        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("10.20.153.51", 3306), "retl", "retl"));
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("10.20.144.34", 3306), "root", "hello"));
         controller.setMasterPosition(startPosition);
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
@@ -59,6 +59,10 @@ public class MysqlDumpTest {
                                                      entry.getHeader().getLogfileOffset(),
                                                      entry.getHeader().getSchemaName(),
                                                      entry.getHeader().getTableName(), eventType));
+
+                    if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
+                        System.out.println(" sql ----> " + rowChage.getSql());
+                    }
 
                     for (RowData rowData : rowChage.getRowDatasList()) {
                         if (eventType == EventType.DELETE) {

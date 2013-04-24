@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.server.netty;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -19,7 +20,7 @@ public class NettyUtils {
     public static Timer hashedWheelTimer = new HashedWheelTimer();
 
     public static void write(Channel channel, byte[] body, ChannelFutureListener channelFutureListner) {
-        byte[] header = ByteBuffer.allocate(HEADER_LENGTH).putInt(body.length).array();
+        byte[] header = ByteBuffer.allocate(HEADER_LENGTH).order(ByteOrder.BIG_ENDIAN).putInt(body.length).array();
         if (channelFutureListner == null) {
             Channels.write(channel, ChannelBuffers.wrappedBuffer(header, body));
         } else {

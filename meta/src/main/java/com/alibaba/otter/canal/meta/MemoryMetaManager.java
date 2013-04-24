@@ -135,6 +135,10 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
             return new MemoryClientIdentityBatch(clientIdentity);
         }
 
+        public MemoryClientIdentityBatch(){
+
+        }
+
         protected MemoryClientIdentityBatch(ClientIdentity clientIdentity){
             this.clientIdentity = clientIdentity;
         }

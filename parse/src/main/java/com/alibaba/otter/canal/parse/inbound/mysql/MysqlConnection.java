@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +27,12 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class MysqlConnection implements ErosaConnection {
 
-    private static final Logger logger  = LoggerFactory.getLogger(MysqlConnection.class);
+    private static final Logger logger       = LoggerFactory.getLogger(MysqlConnection.class);
 
     private MysqlConnector      connector;
     private long                slaveId;
-    private Charset             charset = Charset.forName("UTF-8");
+    private Charset             charset      = Charset.forName("UTF-8");
+    private BinlogFormat        binlogFormat = BinlogFormat.ROW;
 
     public MysqlConnection(){
     }
@@ -77,7 +77,6 @@ public class MysqlConnection implements ErosaConnection {
      * 加速主备切换时的查找速度，做一些特殊优化，比如只解析事务头或者尾
      */
     public void seek(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
-        checkBinlogFormat();
         updateSettings();
 
         sendBinlogDump(binlogfilename, binlogPosition);
@@ -103,7 +102,6 @@ public class MysqlConnection implements ErosaConnection {
     }
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
-        checkBinlogFormat();
         updateSettings();
 
         sendBinlogDump(binlogfilename, binlogPosition);
@@ -190,31 +188,72 @@ public class MysqlConnection implements ErosaConnection {
             logger.warn(ExceptionUtils.getFullStackTrace(e));
         }
 
+        try {
+            // mysql5.6针对checksum支持需要设置session变量
+            // 如果不设置会出现错误： Slave can not handle replication events with the checksum that master is configured to log
+            // 但也不能乱设置，需要和mysql server的checksum配置一致，不然RotateLogEvent会出现乱码
+            update("set @master_binlog_checksum= '@@global.binlog_checksum'");
+        } catch (Exception e) {
+            logger.warn(ExceptionUtils.getFullStackTrace(e));
+        }
+
     }
 
     /**
      * 判断一下是否采用ROW模式
      */
-    private void checkBinlogFormat() throws IOException {
-        ResultSetPacket rs = query("show variables like 'binlog_format'");
+    private void loadBinlogFormat() {
+        ResultSetPacket rs = null;
+        try {
+            rs = query("show variables like 'binlog_format'");
+        } catch (IOException e) {
+            throw new CanalParseException(e);
+        }
+
         List<String> columnValues = rs.getFieldValues();
-        if (columnValues == null || columnValues.size() != 2
-            || !StringUtils.equalsIgnoreCase("row", columnValues.get(1))) {
+        if (columnValues == null || columnValues.size() != 2) {
             logger.warn("unexpected binlog format query result, this may cause unexpected result, so throw exception to request network to io shutdown.");
+            throw new IllegalStateException("unexpected binlog format query result:" + rs.getFieldValues());
+        }
+
+        binlogFormat = BinlogFormat.valuesOf(columnValues.get(1));
+        if (binlogFormat == null) {
             throw new IllegalStateException("unexpected binlog format query result:" + rs.getFieldValues());
         }
     }
 
-    /**
-     * private byte[] readEntry() throws IOException { HeaderPacket header = PacketManager.readHeader(channel, 4); if
-     * (header.getPacketBodyLength() < 0) { logger.warn("unexpected packet length on body with header bytes:{}",
-     * Arrays.toString(header.toBytes())); } // 读取对应的body byte[] body = PacketManager.readBytes(channel,
-     * header.getPacketBodyLength()); if (body[0] < 0) { if (body[0] == -1) { ErrorPacket error = new ErrorPacket();
-     * error.fromBytes(body); logger.error("Unexpected Error when processing binlog event:{}", error.toString()); } else
-     * if ((body[0] == -2)) { logger.error("duplicate slave Id :" + slaveId); } else {
-     * logger.error("unexpected packet type:{}", body[0]); } throw new IOException("Error When doing read Entry"); }
-     * return ArrayUtils.subarray(body, 1, body.length); // skip field count byte }
-     **/
+    public static enum BinlogFormat {
+
+        STATEMENT("STATEMENT"), ROW("ROW"), MIXED("MIXED");
+
+        public boolean isStatement() {
+            return this == STATEMENT;
+        }
+
+        public boolean isRow() {
+            return this == ROW;
+        }
+
+        public boolean isMixed() {
+            return this == MIXED;
+        }
+
+        private String value;
+
+        private BinlogFormat(String value){
+            this.value = value;
+        }
+
+        public static BinlogFormat valuesOf(String value) {
+            BinlogFormat[] formats = values();
+            for (BinlogFormat format : formats) {
+                if (format.value.equalsIgnoreCase(value)) {
+                    return format;
+                }
+            }
+            return null;
+        }
+    }
 
     // ================== setter / getter ===================
 
@@ -240,6 +279,16 @@ public class MysqlConnection implements ErosaConnection {
 
     public void setConnector(MysqlConnector connector) {
         this.connector = connector;
+    }
+
+    public BinlogFormat getBinlogFormat() {
+        if (binlogFormat == null) {
+            synchronized (this) {
+                loadBinlogFormat();
+            }
+        }
+
+        return binlogFormat;
     }
 
 }

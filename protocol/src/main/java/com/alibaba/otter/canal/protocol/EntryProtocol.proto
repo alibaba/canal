@@ -112,7 +112,7 @@ message RowChange {
 	/** 标识是否是ddl语句  **/
 	optional bool			isDdl			= 		10 [default = false];
 
-	/** ddl的sql语句  **/
+	/** ddl/query的sql语句  **/
 	optional string			sql 			= 		11;
 	
 	/** 一次数据库变更可能存在多行  **/
@@ -170,6 +170,7 @@ enum EventType {
     CREATE		= 		4;
     ALTER		= 		5;
     ERASE		= 		6;
+    QUERY		=		7;
 }
 
 /**数据库类型**/

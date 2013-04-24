@@ -171,10 +171,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 } catch (TableIdNotFoundException e) {
                                     throw e;
                                 } catch (Exception e) {
+                                    // 记录一下，出错的位点信息
                                     processError(e, this.lastPosition, startPosition.getJournalName(),
                                                  startPosition.getPosition());
-                                    // 走到这一步，说明出错了
-                                    return false;
+                                    throw new CanalParseException(e); // 继续抛出异常，让上层统一感知
                                 }
                             }
 
@@ -226,6 +226,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     // 出异常了，退出sink消费，释放一下状态
                     eventSink.interrupt();
                     transactionBuffer.reset();// 重置一下缓冲队列，重新记录数据
+                    binlogParser.reset();// 重新置位
 
                     if (running) {
                         // sleep一段时间再进行重试

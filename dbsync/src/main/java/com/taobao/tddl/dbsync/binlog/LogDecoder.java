@@ -14,14 +14,19 @@ import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.HeartbeatLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IncidentLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LoadLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LogHeader;
+import com.taobao.tddl.dbsync.binlog.event.PreviousGtidsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RandLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.StartLogEventV3;
 import com.taobao.tddl.dbsync.binlog.event.StopLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
@@ -102,7 +107,6 @@ public final class LogDecoder
                 if (handleSet.get(header.getType()))
                 {
                     buffer.limit(len);
-
                     try
                     {
                         /* Decoding binary-log to event */
@@ -149,7 +153,15 @@ public final class LogDecoder
     {
         FormatDescriptionLogEvent descriptionEvent = context.getFormatDescription();
         LogPosition logPosition = context.getLogPosition();
-
+        
+        if (header.getType() != LogEvent.FORMAT_DESCRIPTION_EVENT) {
+            int checksumAlg = descriptionEvent.header.getChecksumAlg();
+            if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
+                // remove checksum bytes
+                buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
+            }
+        }
+        
         switch (header.getType())
         {
         case LogEvent.QUERY_EVENT:
@@ -177,7 +189,7 @@ public final class LogDecoder
                 context.putTable(mapEvent);
                 return mapEvent;
             }
-        case LogEvent.WRITE_ROWS_EVENT:
+        case LogEvent.WRITE_ROWS_EVENT_V1:
             {
                 RowsLogEvent event = new WriteRowsLogEvent(header, buffer,
                         descriptionEvent);
@@ -186,7 +198,7 @@ public final class LogDecoder
                 event.fillTable(context);
                 return event;
             }
-        case LogEvent.UPDATE_ROWS_EVENT:
+        case LogEvent.UPDATE_ROWS_EVENT_V1:
             {
                 RowsLogEvent event = new UpdateRowsLogEvent(header, buffer,
                         descriptionEvent);
@@ -195,7 +207,7 @@ public final class LogDecoder
                 event.fillTable(context);
                 return event;
             }
-        case LogEvent.DELETE_ROWS_EVENT:
+        case LogEvent.DELETE_ROWS_EVENT_V1:
             {
                 RowsLogEvent event = new DeleteRowsLogEvent(header, buffer,
                         descriptionEvent);
@@ -361,11 +373,80 @@ public final class LogDecoder
                 logPosition.position = header.getLogPos();
                 return event;
             }
+        case LogEvent.HEARTBEAT_LOG_EVENT:
+        {
+            HeartbeatLogEvent event = new HeartbeatLogEvent(header, buffer,
+                    descriptionEvent);
+            /* updating position in context */
+            logPosition.position = header.getLogPos();
+            return event;
+        }
+        case LogEvent.IGNORABLE_LOG_EVENT:
+            {
+                IgnorableLogEvent event = new IgnorableLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+        case LogEvent.ROWS_QUERY_LOG_EVENT:
+            {
+                RowsQueryLogEvent event = new RowsQueryLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+        case LogEvent.WRITE_ROWS_EVENT: {
+                RowsLogEvent event = new WriteRowsLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                return event;
+            }
+        case LogEvent.UPDATE_ROWS_EVENT: {
+                RowsLogEvent event = new UpdateRowsLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                return event;
+            }
+        case LogEvent.DELETE_ROWS_EVENT: {
+                RowsLogEvent event = new DeleteRowsLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                return event;
+            }
+        case LogEvent.GTID_LOG_EVENT:
+        case LogEvent.ANONYMOUS_GTID_LOG_EVENT:
+            {
+                GtidLogEvent event = new GtidLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+        case LogEvent.PREVIOUS_GTIDS_LOG_EVENT:
+            {
+                PreviousGtidsLogEvent event = new PreviousGtidsLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
         default:
-            if (logger.isWarnEnabled())
-                logger.warn("Skipping unrecognized binlog event "
-                        + LogEvent.getTypeName(header.getType()) + " from: "
-                        + context.getLogPosition());
+            /*
+                Create an object of Ignorable_log_event for unrecognized sub-class.
+                So that SLAVE SQL THREAD will only update the position and continue.
+             */
+            if((buffer.getUint16(LogEvent.FLAGS_OFFSET) & LogEvent.LOG_EVENT_IGNORABLE_F) > 0){
+                IgnorableLogEvent event = new IgnorableLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }else {
+                if (logger.isWarnEnabled())
+                    logger.warn("Skipping unrecognized binlog event "
+                            + LogEvent.getTypeName(header.getType()) + " from: "
+                            + context.getLogPosition());
+            }
         }
 
         /* updating position in context */

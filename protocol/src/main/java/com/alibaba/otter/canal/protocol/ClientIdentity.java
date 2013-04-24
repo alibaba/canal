@@ -15,6 +15,10 @@ public class ClientIdentity {
     private short  clientId;
     private String filter;
 
+    public ClientIdentity(){
+
+    }
+
     public ClientIdentity(String destination, short clientId){
         this.clientId = clientId;
         this.destination = destination;

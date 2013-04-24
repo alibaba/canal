@@ -8,7 +8,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.local.BinLogFileQueue;
@@ -84,14 +83,14 @@ public class LocalBinLogConnection implements ErosaConnection {
             while (running) {
                 boolean needContinue = true;
                 while (fetcher.fetch()) {
-                    LogEvent event = decoder.decode(fetcher, context);
-                    if (event == null) {
-                        throw new CanalParseException("parse failed");
-                    }
-                    if (!func.sink(event)) {
-                        needContinue = false;
-                        break;
-                    }
+                    LogEvent event;
+                    do {
+                        event = decoder.decode(fetcher, context);
+                        if (event != null && !func.sink(event)) {
+                            needContinue = false;
+                            break;
+                        }
+                    } while (event != null);
                 }
 
                 if (needContinue) {// 读取下一个
@@ -111,7 +110,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                     current = nextFile;
 
                     fetcher.open(current);
-                    context.setLogPosition(new LogPosition(binlogfilename));
+                    context.setLogPosition(new LogPosition(nextFile.getName()));
                 } else {
                     break;// 跳出
                 }
@@ -150,15 +149,14 @@ public class LocalBinLogConnection implements ErosaConnection {
                 binlogFilename = lastXidLogFilename;
                 binlogFileOffset = lastXidLogFileOffset;
                 while (fetcher.fetch()) {
-                    LogEvent event = decoder.decode(fetcher, context);
-                    if (event == null) {
-                        throw new CanalParseException("parse failed");
-                    }
-
-                    if (timestampSeconds > event.getWhen()) {
-                        needContinue = false;
-                        break;
-                    }
+                    LogEvent event;
+                    do {
+                        event = decoder.decode(fetcher, context);
+                        if (timestampSeconds > event.getWhen()) {
+                            needContinue = false;
+                            break;
+                        }
+                    } while (event != null);
 
                     currentOffset += event.getEventLen();
                     if (LogEvent.QUERY_EVENT == event.getHeader().getType()) {

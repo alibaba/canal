@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,13 +51,15 @@ public class SimpleCanalConnector implements CanalConnector {
     private String               password;
     private int                  soTimeout             = 10000;                                              // milliseconds
 
-    private final ByteBuffer     header                = ByteBuffer.allocate(4);
+    private final ByteBuffer     header                = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
     private SocketChannel        channel;
     private List<Compression>    supportedCompressions = new ArrayList<Compression>();
     private ClientIdentity       clientIdentity;
     private ClientRunningMonitor runningMonitor;                                                             // 运行控制
     private ZkClientx            zkClientx;
-    private BooleanMutex         mutex                 = new BooleanMutex(true);
+    private BooleanMutex         mutex                 = new BooleanMutex(false);
+    private boolean              rollbackOnConnect     = true;                                               // 是否在connect链接成功后，自动执行rollback操作
+    private boolean              rollbackOnDisConnect  = false;                                              // 是否在connect链接成功后，自动执行rollback操作
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
         this(address, username, password, destination, 10000);
@@ -79,10 +82,18 @@ public class SimpleCanalConnector implements CanalConnector {
         } else {
             waitClientRunning();
             doConnect();
+
+            if (rollbackOnConnect) {
+                rollback();
+            }
         }
     }
 
     public void disconnect() throws CanalClientException {
+        if (rollbackOnDisConnect && channel.isConnected()) {
+            rollback();
+        }
+
         if (runningMonitor != null) {
             if (runningMonitor.isStart()) {
                 runningMonitor.stop();
@@ -109,8 +120,9 @@ public class SimpleCanalConnector implements CanalConnector {
             Handshake handshake = Handshake.parseFrom(p.getBody());
             supportedCompressions.addAll(handshake.getSupportedCompressionsList());
             //
-            ClientAuth ca = ClientAuth.newBuilder().setUsername(username).setNetReadTimeout(10000).setNetWriteTimeout(
-                                                                                                                      10000).build();
+            ClientAuth ca = ClientAuth.newBuilder().setUsername(username != null ? username : "").setNetReadTimeout(
+                                                                                                                    10000).setNetWriteTimeout(
+                                                                                                                                              10000).build();
             writeWithHeader(
                             channel,
                             Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());
@@ -152,7 +164,7 @@ public class SimpleCanalConnector implements CanalConnector {
                                                                                          Sub.newBuilder().setDestination(
                                                                                                                          clientIdentity.getDestination()).setClientId(
                                                                                                                                                                       String.valueOf(clientIdentity.getClientId())).setFilter(
-                                                                                                                                                                                                                              filter).build().toByteString()).build().toByteArray());
+                                                                                                                                                                                                                              filter != null ? filter : "").build().toByteString()).build().toByteArray());
             //
             Packet p = Packet.parseFrom(readNextPacket(channel));
             Ack ack = Ack.parseFrom(p.getBody());
@@ -308,8 +320,13 @@ public class SimpleCanalConnector implements CanalConnector {
             runningMonitor.setListener(new ClientRunningListener() {
 
                 public InetSocketAddress processActiveEnter() {
+                    InetSocketAddress address = doConnect();
                     mutex.set(true);
-                    return doConnect();
+                    if (rollbackOnConnect) {
+                        rollback();
+                    }
+
+                    return address;
                 }
 
                 public void processActiveExit() {
@@ -363,6 +380,14 @@ public class SimpleCanalConnector implements CanalConnector {
     public void setZkClientx(ZkClientx zkClientx) {
         this.zkClientx = zkClientx;
         initClientRunningMonitor(this.clientIdentity);
+    }
+
+    public void setRollbackOnConnect(boolean rollbackOnConnect) {
+        this.rollbackOnConnect = rollbackOnConnect;
+    }
+
+    public void setRollbackOnDisConnect(boolean rollbackOnDisConnect) {
+        this.rollbackOnDisConnect = rollbackOnDisConnect;
     }
 
 }

@@ -36,7 +36,6 @@ public class LocalBinlogEventParserTest {
         URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
         File dummyFile = new File(url.getFile());
         directory = new File(dummyFile.getParent() + "/binlog").getPath();
-        // directory = "/home/jianghang/work/otter-1.0.0/canal/parse/src/test/resources/binlog";
     }
 
     @Test

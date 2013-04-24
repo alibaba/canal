@@ -45,14 +45,12 @@ public class TableMetaCache {
                     return getTableMeta0(name);
                 } catch (IOException e) {
                     // 尝试做一次retry操作
-                    if (!connection.isConnected()) {
-                        try {
-                            connection.connect();
-                            return getTableMeta0(name);
-                        } catch (IOException e1) {
-                        }
+                    try {
+                        connection.reconnect();
+                        return getTableMeta0(name);
+                    } catch (IOException e1) {
+                        throw new CanalParseException("fetch failed by table meta:" + name, e1);
                     }
-                    throw new CanalParseException("fetch failed by table meta:" + name, e);
                 }
             }
 

@@ -43,7 +43,6 @@ public class SessionHandler extends SimpleChannelHandler {
 
     private static final Logger    logger = LoggerFactory.getLogger(SessionHandler.class);
     private CanalServerWithEmbeded embededServer;
-    private boolean                stopInstanceAsPossible;
 
     public SessionHandler(){
 
@@ -192,14 +191,12 @@ public class SessionHandler extends SimpleChannelHandler {
     }
 
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        logger.info("remove binding subscription value object if any...");
-        if (stopInstanceAsPossible) {
-            ClientIdentity clientIdentity = (ClientIdentity) ctx.getAttachment();
-            // 如果唯一的订阅者都取消了订阅，直接关闭服务，针对内部版本模式下可以减少资源浪费
-            if (clientIdentity != null) {
-                stopCanalInstanceIfNecessary(clientIdentity);
-            }
-        }
+        // logger.info("remove binding subscription value object if any...");
+        // ClientIdentity clientIdentity = (ClientIdentity) ctx.getAttachment();
+        // // 如果唯一的订阅者都取消了订阅，直接关闭服务，针对内部版本模式下可以减少资源浪费
+        // if (clientIdentity != null) {
+        // stopCanalInstanceIfNecessary(clientIdentity);
+        // }
     }
 
     private void stopCanalInstanceIfNecessary(ClientIdentity clientIdentity) {
@@ -207,17 +204,13 @@ public class SessionHandler extends SimpleChannelHandler {
         if (clientIdentitys != null && clientIdentitys.size() == 1 && clientIdentitys.contains(clientIdentity)) {
             ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
             if (runningMonitor.isStart()) {
-                runningMonitor.stop();
+                runningMonitor.release();
             }
         }
     }
 
     public void setEmbededServer(CanalServerWithEmbeded embededServer) {
         this.embededServer = embededServer;
-    }
-
-    public void setStopInstanceAsPossible(boolean stopInstanceAsPossible) {
-        this.stopInstanceAsPossible = stopInstanceAsPossible;
     }
 
 }

@@ -8,6 +8,7 @@ import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 import com.alibaba.otter.canal.store.CanalStoreException;
 
 /**
@@ -42,10 +43,6 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
             throw new IllegalArgumentException("bufferSize must be a power of 2");
         }
 
-        if (bufferSize < 64) {
-            throw new IllegalArgumentException("bufferSize must be >=64");
-        }
-
         Assert.notNull(flushCallback, "flush callback is null!");
         indexMask = bufferSize - 1;
         entries = new CanalEntry.Entry[bufferSize];
@@ -77,6 +74,11 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
                 break;
             case ROWDATA:
                 put(entry);
+                // 针对非DML的数据，直接输出，不进行buffer控制
+                EventType eventType = entry.getHeader().getEventType();
+                if (eventType != null && !isDml(eventType)) {
+                    flush();
+                }
                 break;
             default:
                 break;
@@ -107,7 +109,7 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
         long start = this.flushSequence.get() + 1;
         long end = this.putSequence.get();
 
-        if (start < end) {
+        if (start <= end) {
             List<CanalEntry.Entry> transaction = new ArrayList<CanalEntry.Entry>();
             for (long next = start; next <= end; next++) {
                 transaction.add(this.entries[getIndex(next)]);
@@ -132,6 +134,10 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
 
     private int getIndex(long sequcnce) {
         return (int) sequcnce & indexMask;
+    }
+
+    private boolean isDml(EventType eventType) {
+        return eventType == EventType.INSERT || eventType == EventType.UPDATE || eventType == EventType.DELETE;
     }
 
     // ================ setter / getter ==================

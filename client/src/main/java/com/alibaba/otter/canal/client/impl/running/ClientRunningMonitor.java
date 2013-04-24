@@ -107,8 +107,8 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
         try {
             mutex.set(false);
             zkClient.create(path, bytes, CreateMode.EPHEMERAL);
-            activeData = clientData;
             processActiveEnter();// 触发一下事件
+            activeData = clientData;
             mutex.set(true);
         } catch (ZkNodeExistsException e) {
             bytes = zkClient.readData(path, true);
@@ -179,7 +179,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
     // ====================== helper method ======================
 
     private boolean isMine(String address) {
-        return address.equals(activeData.getAddress());
+        return address.equals(clientData.getAddress());
     }
 
     private void processActiveEnter() {
@@ -189,12 +189,11 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 InetSocketAddress connectAddress = listener.processActiveEnter();
                 String address = connectAddress.getAddress().getHostAddress() + ":" + connectAddress.getPort();
                 this.clientData.setAddress(address);
-                activeData.setAddress(address);
 
                 String path = ZookeeperPathUtils.getDestinationClientRunning(this.destination,
                                                                              this.clientData.getClientId());
                 // 序列化
-                byte[] bytes = JsonUtils.marshalToByte(activeData);
+                byte[] bytes = JsonUtils.marshalToByte(clientData);
                 zkClient.writeData(path, bytes);
             } catch (Exception e) {
                 logger.error("processSwitchActive failed", e);

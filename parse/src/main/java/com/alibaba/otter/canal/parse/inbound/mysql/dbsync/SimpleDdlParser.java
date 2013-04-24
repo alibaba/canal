@@ -24,7 +24,7 @@ public class SimpleDdlParser {
     public static final String CREATE_PATTERN = "^\\s*CREATE\\s*TABLE\\s*(.*)$";
     public static final String DROP_PATTERN   = "^\\s*DROP\\s*TABLE\\s*(.*)$";
     public static final String ALERT_PATTERN  = "^\\s*ALTER\\s*TABLE\\s*(.*)$";
-    public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\s]+?)?.*$"; // 采用非贪婪模式
+    public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
 
     public static DdlResult parse(String queryString, String schmeaName) {
         DdlResult result = parse(queryString, schmeaName, ALERT_PATTERN);
@@ -45,6 +45,8 @@ public class SimpleDdlParser {
             return result;
         }
 
+        result = new DdlResult(schmeaName);
+        result.setType(EventType.QUERY);
         return result;
     }
 
@@ -70,6 +72,7 @@ public class SimpleDdlParser {
                 }
 
                 tableString = StringUtils.removeEnd(tableString, ";");
+                tableString = StringUtils.removeEnd(tableString, "(");
                 tableString = StringUtils.trim(tableString);
                 // 特殊处理引号`
                 tableString = StringUtils.removeEnd(tableString, "`");

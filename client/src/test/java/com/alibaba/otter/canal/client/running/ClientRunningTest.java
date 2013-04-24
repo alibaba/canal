@@ -66,9 +66,7 @@ public class ClientRunningTest extends AbstractZkTest {
                         runningMonitor1.start();
                     }
                     sleep(2000L + RandomUtils.nextInt(500));
-                    if (runningMonitor1.check()) {
-                        runningMonitor1.stop();
-                    }
+                    runningMonitor1.stop();
                     sleep(2000L + RandomUtils.nextInt(500));
                 }
             }
@@ -83,9 +81,7 @@ public class ClientRunningTest extends AbstractZkTest {
                         runningMonitor2.start();
                     }
                     sleep(2000L + RandomUtils.nextInt(500));
-                    if (runningMonitor2.check()) {
-                        runningMonitor2.stop();
-                    }
+                    runningMonitor2.stop();
                     sleep(2000L + RandomUtils.nextInt(500));
                 }
             }
@@ -100,9 +96,7 @@ public class ClientRunningTest extends AbstractZkTest {
                         runningMonitor3.start();
                     }
                     sleep(2000L + RandomUtils.nextInt(500));
-                    if (runningMonitor3.check()) {
-                        runningMonitor3.stop();
-                    }
+                    runningMonitor3.stop();
                     sleep(2000L + RandomUtils.nextInt(500));
                 }
             }
