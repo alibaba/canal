@@ -362,9 +362,13 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
      */
     public void rollback(ClientIdentity clientIdentity) throws CanalServerException {
         checkStart(clientIdentity.getDestination());
-        checkSubscribe(clientIdentity);
-
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
+        // 因为存在第一次链接时自动rollback的情况，所以需要忽略未订阅
+        boolean hasSubscribe = canalInstance.getMetaManager().hasSubscribe(clientIdentity);
+        if (!hasSubscribe) {
+            return;
+        }
+
         synchronized (canalInstance) {
             // 清除batch信息
             canalInstance.getMetaManager().clearAllBatchs(clientIdentity);
@@ -378,9 +382,14 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
      * 回滚到未进行 {@link ack} 的地方，下次fetch的时候，可以从最后一个没有 {@link ack} 的地方开始拿
      */
     public void rollback(ClientIdentity clientIdentity, Long batchId) throws CanalServerException {
-        checkSubscribe(clientIdentity);
-
+        checkStart(clientIdentity.getDestination());
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
+        
+        // 因为存在第一次链接时自动rollback的情况，所以需要忽略未订阅
+        boolean hasSubscribe = canalInstance.getMetaManager().hasSubscribe(clientIdentity);
+        if (!hasSubscribe) {
+            return;
+        }
         synchronized (canalInstance) {
             // 清除batch信息
             PositionRange<LogPosition> positionRanges = canalInstance.getMetaManager().removeBatch(clientIdentity,
