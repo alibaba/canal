@@ -49,7 +49,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private SocketAddress        address;
     private String               username;
     private String               password;
-    private int                  soTimeout             = 10000;                                              // milliseconds
+    private int                  soTimeout             = 60000;                                              // milliseconds
 
     private final ByteBuffer     header                = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
     private SocketChannel        channel;
@@ -62,7 +62,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private boolean              rollbackOnDisConnect  = false;                                              // 是否在connect链接成功后，自动执行rollback操作
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
-        this(address, username, password, destination, 10000);
+        this(address, username, password, destination, 60000);
     }
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination,
@@ -279,17 +279,15 @@ public class SimpleCanalConnector implements CanalConnector {
 
     // ==================== helper method ====================
 
-    private void writeWithHeader(SocketChannel channel, byte[] body) throws IOException {
+    private synchronized void writeWithHeader(SocketChannel channel, byte[] body) throws IOException {
         ByteBuffer header = ByteBuffer.allocate(4);
         header.putInt(body.length);
         header.flip();
-        int len = channel.write(header);
-        assert (len == header.capacity());
-
+        channel.write(header);
         channel.write(ByteBuffer.wrap(body));
     }
 
-    private byte[] readNextPacket(SocketChannel channel) throws IOException {
+    private synchronized byte[] readNextPacket(SocketChannel channel) throws IOException {
         header.clear();
         read(channel, header);
         int bodyLen = header.getInt(0);
