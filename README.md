@@ -60,4 +60,5 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li>qq交流群： 161559791 </li>
 <li>邮件交流： jianghang115@gmail.com </li>
 <li>新浪微博： agapple0002 </li>
+<li>报告issue：<a href="https://github.com/alibaba/canal/issues">issues</li>
 </ol>
