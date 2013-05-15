@@ -51,7 +51,8 @@ public class SimpleCanalConnector implements CanalConnector {
     private String               password;
     private int                  soTimeout             = 60000;                                              // milliseconds
 
-    private final ByteBuffer     header                = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
+    private final ByteBuffer     readHeader            = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
+    private final ByteBuffer     writeHeader           = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
     private SocketChannel        channel;
     private List<Compression>    supportedCompressions = new ArrayList<Compression>();
     private ClientIdentity       clientIdentity;
@@ -60,6 +61,10 @@ public class SimpleCanalConnector implements CanalConnector {
     private BooleanMutex         mutex                 = new BooleanMutex(false);
     private boolean              rollbackOnConnect     = true;                                               // 是否在connect链接成功后，自动执行rollback操作
     private boolean              rollbackOnDisConnect  = false;                                              // 是否在connect链接成功后，自动执行rollback操作
+
+    // 读写数据分别使用不同的锁进行控制，减小锁粒度,读也需要排他锁，并发度容易造成数据包混乱，反序列化失败
+    private Object               readDataLock          = new Object();
+    private Object               writeDataLock         = new Object();
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
         this(address, username, password, destination, 60000);
@@ -280,20 +285,24 @@ public class SimpleCanalConnector implements CanalConnector {
     // ==================== helper method ====================
 
     private synchronized void writeWithHeader(SocketChannel channel, byte[] body) throws IOException {
-        ByteBuffer header = ByteBuffer.allocate(4);
-        header.putInt(body.length);
-        header.flip();
-        channel.write(header);
-        channel.write(ByteBuffer.wrap(body));
+        synchronized (writeDataLock) {
+            writeHeader.clear();
+            writeHeader.putInt(body.length);
+            writeHeader.flip();
+            channel.write(writeHeader);
+            channel.write(ByteBuffer.wrap(body));
+        }
     }
 
-    private synchronized byte[] readNextPacket(SocketChannel channel) throws IOException {
-        header.clear();
-        read(channel, header);
-        int bodyLen = header.getInt(0);
-        ByteBuffer bodyBuf = ByteBuffer.allocate(bodyLen);
-        read(channel, bodyBuf);
-        return bodyBuf.array();
+    private byte[] readNextPacket(SocketChannel channel) throws IOException {
+        synchronized (readDataLock) {
+            readHeader.clear();
+            read(channel, readHeader);
+            int bodyLen = readHeader.getInt(0);
+            ByteBuffer bodyBuf = ByteBuffer.allocate(bodyLen);
+            read(channel, bodyBuf);
+            return bodyBuf.array();
+        }
     }
 
     private void read(SocketChannel channel, ByteBuffer buffer) throws IOException {
