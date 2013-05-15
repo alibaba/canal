@@ -1,6 +1,6 @@
 <div class="blog_content">
     <div class="iteye-blog-content-contain">
-<p style="font-size: 14px;">  </p>
+
 <h3>最新更新：canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</h3>
 <h1>背景</h1>
 <p style="font-size: 14px;">   早期，阿里巴巴B2B公司因为存在杭州和美国双机房部署，存在跨机房同步的业务需求。不过早期的数据库同步业务，主要是基于trigger的方式获取增量变更，不过从2010年开始，阿里系公司开始逐步的尝试基于数据库的日志解析，获取增量变更进行同步，由此衍生出了增量订阅&amp;消费的业务，从此开启了一段新纪元。</p>
@@ -38,9 +38,22 @@
 <li>canal解析binary log对象(原始为byte流)</li>
 </ol>
 
-<h1>wiki文档</h1>
+<h1>相关文档</h1>
 
-See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki</href>
+See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文档</href>
+
+<a name="table-of-contents" class="anchor" href="#table-of-contents"><span class="mini-icon mini-icon-link"></span></a>wiki文档列表</h3>
+<ul>
+<li><a class="internal present" href="/alibaba/canal/wiki/Home">Home</a></li>
+<li><a class="internal present" href="/alibaba/canal/wiki/Introduction">Introduction</a></li>
+<li><a class="internal present" href="/alibaba/canal/wiki/QuickStart">QuickStart</a></li>
+<li><a class="internal present" href="/alibaba/canal/wiki/ClientExample">ClientExample</a></li>
+<li><a class="internal present" href="/alibaba/canal/wiki/AdminGuide">AdminGuide</a></li>
+<li><a class="internal present" href="/alibaba/canal/wiki/DevGuide">DevGuide</a></li>
+<li><a class="internal present" href="/alibaba/canal/wiki/BinlogChange%28mysql5.6%29">BinlogChange(Mysql5.6)</a></li>
+<li><a href="http://alibaba.github.com/canal/release.html">ReleaseNotes</a></li>
+<li><a href="https://github.com/alibaba/canal/tree/gh-pages/download">Download</a></li>
+</ul>
 
 <h1>问题反馈</h1>
 <ol>
