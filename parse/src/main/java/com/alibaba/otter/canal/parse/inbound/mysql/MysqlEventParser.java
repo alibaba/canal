@@ -77,6 +77,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
         }
 
+        // 开始启动心跳包
+        if (detectingEnable && StringUtils.isNotBlank(detectingSQL)) {
+            logger.info("start heart beat.... ");
+            startHeartbeat((MysqlConnection) connection.fork());
+        }
+
         if (binlogParser != null && binlogParser instanceof LogEventConvert) {
             metaConnection = (MysqlConnection) connection.fork();
             try {
@@ -87,12 +93,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
             tableMetaCache = new TableMetaCache(metaConnection);
             ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
-        }
-
-        // 开始启动心跳包
-        if (detectingEnable && StringUtils.isNotBlank(detectingSQL)) {
-            logger.info("start heart beat.... ");
-            startHeartbeat((MysqlConnection) connection.fork());
         }
     }
 
@@ -110,12 +110,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 logger.error("ERROR # disconnect for address:{}", metaConnection.getConnector().getAddress(), e);
             }
         }
-
-        // 开始启动心跳包
-        if (detectingEnable && StringUtils.isNotBlank(detectingSQL)) {
-            logger.info("stop heart beat.... ");
-            stopHeartbeat();
-        }
     }
 
     public void start() throws CanalParseException {
@@ -127,8 +121,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     public void stop() throws CanalParseException {
-        stopHeartbeat();
-
         if (metaConnection != null) {
             try {
                 metaConnection.disconnect();
@@ -141,14 +133,17 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             tableMetaCache.clearTableMeta();
         }
 
+        stopHeartbeat();
         super.stop();
     }
 
     private void startHeartbeat(MysqlConnection mysqlConnection) {
+        String name = String.format("destination = %s , address = %s , MysqlHeartBeatTimeTask", destination,
+                                    runningInfo == null ? null : runningInfo.getAddress().toString());
         if (timer == null) {// lazy初始化一下
             synchronized (MysqlEventParser.class) {
                 if (timer == null) {
-                    timer = new Timer("MysqlHeartBeatTimeTask", true);
+                    timer = new Timer(name, true);
                 }
             }
         }
@@ -198,29 +193,26 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 } else if (!mysqlConnection.isConnected()) {
                     mysqlConnection.connect();
                 }
-
-                try {
-                    Long startTime = System.currentTimeMillis();
-                    mysqlConnection.update(detectingSQL);
-                    Long costTime = System.currentTimeMillis() - startTime;
-                    if (haController != null && haController instanceof HeartBeatCallback) {
-                        ((HeartBeatCallback) haController).onSuccess(costTime);
-                    }
-                } catch (SocketTimeoutException e) {
-                    if (haController != null && haController instanceof HeartBeatCallback) {
-                        ((HeartBeatCallback) haController).onFailed(e);
-                    }
-                    reconnect = true;
-                } catch (IOException e) {
-                    if (haController != null && haController instanceof HeartBeatCallback) {
-                        ((HeartBeatCallback) haController).onFailed(e);
-                    }
-                    reconnect = true;
+                Long startTime = System.currentTimeMillis();
+                mysqlConnection.update(detectingSQL);
+                Long costTime = System.currentTimeMillis() - startTime;
+                if (haController != null && haController instanceof HeartBeatCallback) {
+                    ((HeartBeatCallback) haController).onSuccess(costTime);
                 }
-
+            } catch (SocketTimeoutException e) {
+                if (haController != null && haController instanceof HeartBeatCallback) {
+                    ((HeartBeatCallback) haController).onFailed(e);
+                }
+                reconnect = true;
+                logger.warn("connect failed by " + ExceptionUtils.getStackTrace(e));
             } catch (IOException e) {
+                if (haController != null && haController instanceof HeartBeatCallback) {
+                    ((HeartBeatCallback) haController).onFailed(e);
+                }
+                reconnect = true;
                 logger.warn("connect failed by " + ExceptionUtils.getStackTrace(e));
             }
+
         }
 
         public MysqlConnection getMysqlConnection() {

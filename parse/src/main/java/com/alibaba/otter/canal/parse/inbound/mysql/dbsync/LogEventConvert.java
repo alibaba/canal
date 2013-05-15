@@ -362,9 +362,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         // mysql binlog中blob/text都处理为blob类型，需要反查table meta，按编码解析text
                         if (isText(fieldMeta.getColumnType())) {
                             columnBuilder.setValue(new String((byte[]) value, charset));
+                            javaType = Types.CLOB;
                         } else {
                             // byte数组，直接使用iso-8859-1保留对应编码，浪费内存
                             columnBuilder.setValue(new String((byte[]) value, ISO_8859_1));
+                            javaType = Types.BLOB;
                         }
                         break;
                     case Types.CHAR:
