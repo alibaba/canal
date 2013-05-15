@@ -51,7 +51,9 @@ public class AbstractCanalClientTest {
         context_format += "* End : [{}] " + SEP;
         context_format += "****************************************************" + SEP;
 
-        row_format = SEP + "================> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {}" + SEP;
+        row_format = SEP
+                     + "================> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {} , delay : {}ms"
+                     + SEP;
     }
 
     public AbstractCanalClientTest(String destination){
@@ -165,9 +167,12 @@ public class AbstractCanalClientTest {
             }
 
             EventType eventType = rowChage.getEventType();
+            long executeTime = entry.getHeader().getExecuteTime();
+            long delayTime = new Date().getTime() - executeTime;
             logger.info(row_format, new Object[] { entry.getHeader().getLogfileName(),
                     String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
-                    entry.getHeader().getTableName(), eventType, String.valueOf(entry.getHeader().getExecuteTime()) });
+                    entry.getHeader().getTableName(), eventType, String.valueOf(entry.getHeader().getExecuteTime()),
+                    String.valueOf(delayTime) });
 
             if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
                 logger.info(" sql ----> " + rowChage.getSql() + SEP);

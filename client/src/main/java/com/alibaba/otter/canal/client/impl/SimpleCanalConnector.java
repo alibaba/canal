@@ -284,7 +284,7 @@ public class SimpleCanalConnector implements CanalConnector {
 
     // ==================== helper method ====================
 
-    private synchronized void writeWithHeader(SocketChannel channel, byte[] body) throws IOException {
+    private void writeWithHeader(SocketChannel channel, byte[] body) throws IOException {
         synchronized (writeDataLock) {
             writeHeader.clear();
             writeHeader.putInt(body.length);
