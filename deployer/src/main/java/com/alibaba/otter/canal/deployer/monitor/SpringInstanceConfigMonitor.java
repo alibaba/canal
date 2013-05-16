@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.deployer.monitor;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +129,13 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         // 判断目录内文件的变化
         for (File instanceDir : instanceDirs) {
             String destination = instanceDir.getName();
-            File[] instanceConfigs = instanceDir.listFiles();
+            File[] instanceConfigs = instanceDir.listFiles(new FilenameFilter() {
+
+                public boolean accept(File dir, String name) {
+                    return !StringUtils.endsWithIgnoreCase(name, ".dat");
+                }
+
+            });
             InstanceConfigFiles lastFile = lastFiles.get(destination);
             boolean hasChanged = judgeFileChanged(instanceConfigs, lastFile.getInstanceFiles());
             // 通知变化

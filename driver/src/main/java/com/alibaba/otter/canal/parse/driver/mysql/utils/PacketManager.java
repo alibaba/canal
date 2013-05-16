@@ -43,10 +43,14 @@ public abstract class PacketManager {
         for (ByteBuffer buffer : srcs) {
             total += buffer.remaining();
         }
-        long size = ch.write(srcs);
-        if (size != total) {
-            throw new IOException("unexpected blocking io behavior");
-        }
+
+        ch.write(srcs);
+        // https://github.com/alibaba/canal/issues/24
+        // 部分windows用户会出现size != total的情况，jdk为java7/openjdk，估计和java版本有关，暂时不做检查
+        // long size = ch.write(srcs);
+        // if (size != total) {
+        // throw new IOException("unexpected blocking io behavior");
+        // }
     }
 
     public static void write(SocketChannel ch, byte[] body) throws IOException {

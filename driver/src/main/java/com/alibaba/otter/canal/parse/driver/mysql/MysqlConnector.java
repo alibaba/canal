@@ -65,9 +65,9 @@ public class MysqlConnector {
                 channel.connect(address);
                 negotiate(channel);
             } catch (Exception e) {
-                logger.warn("connect failed!" + ExceptionUtils.getStackTrace(e));
                 disconnect();
                 connected.compareAndSet(true, false);
+                throw new IOException("connect " + this.address + " failure:" + ExceptionUtils.getStackTrace(e));
             }
         } else {
             logger.error("the channel can't be connected twice.");

@@ -4,15 +4,15 @@
 	<artifactId>canal</artifactId>
 	<packaging>pom</packaging>
 	<name>canal module for otter ${project.version}</name>
-	<version>1.0.5-SNAPSHOT</version>
+	<version>1.0.6-SNAPSHOT</version>
 	<url>https://github.com/alibaba/canal</url>
-
+	<!--
 	<parent>
 	    <groupId>org.sonatype.oss</groupId>
 	    <artifactId>oss-parent</artifactId>
 	    <version>7</version>
 	</parent>
-		
+	-->	
 	<developers>
 		<developer>
 			<name>agapple</name>
