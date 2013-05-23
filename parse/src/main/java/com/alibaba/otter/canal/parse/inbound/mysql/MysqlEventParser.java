@@ -505,10 +505,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
         } catch (IOException e) {
-            logger.error("find end position error", e);
+            throw new CanalParseException("command : 'show master status' has an error!", e);
         }
-
-        return null;
     }
 
     /**
@@ -525,10 +523,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
         } catch (IOException e) {
-            logger.error("find end position error", e);
+            throw new CanalParseException("command : 'show binlog events limit 1' has an error!", e);
         }
 
-        return null;
     }
 
     /**

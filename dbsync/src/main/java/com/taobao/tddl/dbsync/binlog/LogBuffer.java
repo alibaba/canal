@@ -310,7 +310,7 @@ public class LogBuffer
         byte[] buf = buffer;
         return (0xff & buf[position++]) | ((buf[position++]) << 8);
     }
-
+    
     /**
      * Return 16-bit unsigned int from buffer. (little-endian)
      * 
@@ -342,7 +342,71 @@ public class LogBuffer
         byte[] buf = buffer;
         return (0xff & buf[position++]) | ((0xff & buf[position++]) << 8);
     }
+    
+    /**
+     * Return 16-bit signed int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_sint2korr
+     */
+    public final int getBeInt16(final int pos)
+    {
+        final int position = origin + pos;
 
+        if (pos + 1 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 1)));
+
+        byte[] buf = buffer;
+        return (0xff & buf[position + 1]) | ((buf[position]) << 8);
+    }
+
+    /**
+     * Return next 16-bit signed int from buffer. (big-endian)
+     * 
+     * @see mysql-5.1.60/include/my_global.h - mi_sint2korr
+     */
+    public final int getBeInt16()
+    {
+        if (position + 1 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 1));
+
+        byte[] buf = buffer;
+        return (buf[position++] << 8) | (0xff & buf[position++]);
+    }
+
+    /**
+     * Return 16-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_usint2korr
+     */
+    public final int getBeUint16(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 1 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 1)));
+
+        byte[] buf = buffer;
+        return (0xff & buf[position + 1]) | ((0xff & buf[position]) << 8);
+    }
+
+    /**
+     * Return next 16-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_usint2korr
+     */
+    public final int getBeUint16()
+    {
+        if (position + 1 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 1));
+
+        byte[] buf = buffer;
+        return ((0xff & buf[position++]) << 8) | (0xff & buf[position++]);
+    }
+    
     /**
      * Return 24-bit signed int from buffer. (little-endian)
      * 
@@ -376,6 +440,41 @@ public class LogBuffer
         return (0xff & buf[position++]) | ((0xff & buf[position++]) << 8)
                 | ((buf[position++]) << 16);
     }
+    
+    /**
+     * Return 24-bit signed int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_usint3korr
+     */
+    public final int getBeInt24(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 2 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 2)));
+
+        byte[] buf = buffer;
+        return (0xff & buf[position + 2]) | ((0xff & buf[position + 1]) << 8)
+                | ((buf[position]) << 16);
+    }
+
+    /**
+     * Return next 24-bit signed int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_usint3korr
+     */
+    public final int getBeInt24()
+    {
+        if (position + 2 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 2));
+
+        byte[] buf = buffer;
+        return ((buf[position++]) << 16) | ((0xff & buf[position++]) << 8)
+                | (0xff & buf[position++]);
+    }
+    
 
     /**
      * Return 24-bit unsigned int from buffer. (little-endian)
@@ -410,6 +509,40 @@ public class LogBuffer
         return (0xff & buf[position++]) | ((0xff & buf[position++]) << 8)
                 | ((0xff & buf[position++]) << 16);
     }
+    
+    /**
+     * Return 24-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_usint3korr
+     */
+    public final int getBeUint24(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 2 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 2)));
+
+        byte[] buf = buffer;
+        return (0xff & buf[position + 2]) | ((0xff & buf[position + 1]) << 8)
+                | ((0xff & buf[position]) << 16);
+    }
+
+    /**
+     * Return next 24-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_usint3korr
+     */
+    public final int getBeUint24()
+    {
+        if (position + 2 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 2));
+
+        byte[] buf = buffer;
+        return ((0xff & buf[position++]) << 16) | ((0xff & buf[position++]) << 8)
+                | (0xff & buf[position++]);
+    }
 
     /**
      * Return 32-bit signed int from buffer. (little-endian)
@@ -429,6 +562,25 @@ public class LogBuffer
                 | ((0xff & buf[position + 2]) << 16)
                 | ((buf[position + 3]) << 24);
     }
+    
+    /**
+     * Return 32-bit signed int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_sint4korr
+     */
+    public final int getBeInt32(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 3 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 3)));
+
+        byte[] buf = buffer;
+        return (0xff & buf[position + 3]) | ((0xff & buf[position + 2]) << 8)
+                | ((0xff & buf[position + 1]) << 16)
+                | ((buf[position]) << 24);
+    }
 
     /**
      * Return next 32-bit signed int from buffer. (little-endian)
@@ -446,6 +598,22 @@ public class LogBuffer
                 | ((0xff & buf[position++]) << 16) | ((buf[position++]) << 24);
     }
 
+    /**
+     * Return next 32-bit signed int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_sint4korr
+     */
+    public final int getBeInt32()
+    {
+        if (position + 3 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 3));
+
+        byte[] buf = buffer;
+        return ((buf[position++]) << 24) | ((0xff & buf[position++]) << 16) | ((0xff & buf[position++]) << 8)
+               | (0xff & buf[position++]);
+    }
+    
     /**
      * Return 32-bit unsigned int from buffer. (little-endian)
      * 
@@ -467,6 +635,27 @@ public class LogBuffer
     }
 
     /**
+     * Return 32-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_usint4korr
+     */
+    public final long getBeUint32(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 3 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 3)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position + 3]))
+                | ((long) (0xff & buf[position + 2]) << 8)
+                | ((long) (0xff & buf[position + 1]) << 16)
+                | ((long) (0xff & buf[position]) << 24);
+    }
+
+    
+    /**
      * Return next 32-bit unsigned int from buffer. (little-endian)
      * 
      * @see mysql-5.1.60/include/my_global.h - uint4korr
@@ -482,6 +671,64 @@ public class LogBuffer
                 | ((long) (0xff & buf[position++]) << 8)
                 | ((long) (0xff & buf[position++]) << 16)
                 | ((long) (0xff & buf[position++]) << 24);
+    }
+    
+    /**
+     * Return next 32-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_uint4korr
+     */
+    public final long getBeUint32()
+    {
+        if (position + 3 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 3));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]));
+    }
+    
+    /**
+     * Return 40-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_uint5korr
+     */
+    public final long geBeUlong40(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 4 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 4)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position + 4]))
+                | ((long) (0xff & buf[position + 3]) << 8)
+                | ((long) (0xff & buf[position + 2]) << 16)
+                | ((long) (0xff & buf[position + 1]) << 24)
+                | ((long) (0xff & buf[position]) << 32);
+    }
+
+    /**
+     * Return next 40-bit unsigned int from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_uint5korr
+     */
+    public final long geBeUlong40()
+    {
+        if (position + 4 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 4));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position++]) << 32)
+                | ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]));
     }
 
     /**
@@ -505,6 +752,28 @@ public class LogBuffer
                 | ((long) (0xff & buf[position + 4]) << 32)
                 | ((long) (buf[position + 5]) << 40);
     }
+    
+    /**
+     * Return 48-bit signed long from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_sint6korr
+     */
+    public final long getBeLong48(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 5 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 5)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position + 5]))
+                | ((long) (0xff & buf[position + 4]) << 8)
+                | ((long) (0xff & buf[position + 3]) << 16)
+                | ((long) (0xff & buf[position + 2]) << 24)
+                | ((long) (0xff & buf[position + 1]) << 32)
+                | ((long) (buf[position]) << 40);
+    }
 
     /**
      * Return next 48-bit signed long from buffer. (little-endian)
@@ -524,6 +793,26 @@ public class LogBuffer
                 | ((long) (0xff & buf[position++]) << 24)
                 | ((long) (0xff & buf[position++]) << 32)
                 | ((long) (buf[position++]) << 40);
+    }
+    
+    /**
+     * Return next 48-bit signed long from buffer. (Big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_sint6korr
+     */
+    public final long getBeLong48()
+    {
+        if (position + 5 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 5));
+
+        byte[] buf = buffer;
+        return ((long) (buf[position++]) << 40)
+                | ((long) (0xff & buf[position++]) << 32)
+                | ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]));
     }
 
     /**
@@ -547,6 +836,28 @@ public class LogBuffer
                 | ((long) (0xff & buf[position + 4]) << 32)
                 | ((long) (0xff & buf[position + 5]) << 40);
     }
+    
+    /**
+     * Return 48-bit unsigned long from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_uint6korr
+     */
+    public final long getBeUlong48(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 5 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 5)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position + 5]))
+                | ((long) (0xff & buf[position + 4]) << 8)
+                | ((long) (0xff & buf[position + 3]) << 16)
+                | ((long) (0xff & buf[position + 2]) << 24)
+                | ((long) (0xff & buf[position + 1]) << 32)
+                | ((long) (0xff & buf[position]) << 40);
+    }
 
     /**
      * Return next 48-bit unsigned long from buffer. (little-endian)
@@ -566,6 +877,26 @@ public class LogBuffer
                 | ((long) (0xff & buf[position++]) << 24)
                 | ((long) (0xff & buf[position++]) << 32)
                 | ((long) (0xff & buf[position++]) << 40);
+    }
+    
+    /**
+     * Return next 48-bit unsigned long from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_uint6korr
+     */
+    public final long getBeUlong48()
+    {
+        if (position + 5 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 5));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position++]) << 40)
+                | ((long) (0xff & buf[position++]) << 32)
+                | ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]));
     }
 
     /**
@@ -591,6 +922,30 @@ public class LogBuffer
                 | ((long) (0xff & buf[position + 6]) << 48)
                 | ((long) (buf[position + 7]) << 56);
     }
+    
+    /**
+     * Return 64-bit signed long from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_sint8korr
+     */
+    public final long getBeLong64(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 7 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 7)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position + 7]))
+                | ((long) (0xff & buf[position + 6]) << 8)
+                | ((long) (0xff & buf[position + 5]) << 16)
+                | ((long) (0xff & buf[position + 4]) << 24)
+                | ((long) (0xff & buf[position + 3]) << 32)
+                | ((long) (0xff & buf[position + 2]) << 40)
+                | ((long) (0xff & buf[position + 1]) << 48)
+                | ((long) (buf[position]) << 56);
+    }
 
     /**
      * Return next 64-bit signed long from buffer. (little-endian)
@@ -613,6 +968,28 @@ public class LogBuffer
                 | ((long) (0xff & buf[position++]) << 48)
                 | ((long) (buf[position++]) << 56);
     }
+    
+    /**
+     * Return next 64-bit signed long from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_sint8korr
+     */
+    public final long getBeLong64()
+    {
+        if (position + 7 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 7));
+
+        byte[] buf = buffer;
+        return ((long) (buf[position++]) << 56)
+                | ((long) (0xff & buf[position++]) << 48)
+                | ((long) (0xff & buf[position++]) << 40)
+                | ((long) (0xff & buf[position++]) << 32)
+                | ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]));
+    }
 
     /* The max ulonglong - 0x ff ff ff ff ff ff ff ff */
     public static final BigInteger BIGINT_MAX_VALUE = new BigInteger(
@@ -630,6 +1007,19 @@ public class LogBuffer
         return (long64 >= 0) ? BigInteger.valueOf(long64)
                 : BIGINT_MAX_VALUE.add(BigInteger.valueOf(1 + long64));
     }
+    
+    /**
+     * Return 64-bit unsigned long from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_uint8korr
+     */
+    public final BigInteger getBeUlong64(final int pos)
+    {
+        final long long64 = getBeLong64(pos);
+
+        return (long64 >= 0) ? BigInteger.valueOf(long64)
+                : BIGINT_MAX_VALUE.add(BigInteger.valueOf(1 + long64));
+    }
 
     /**
      * Return next 64-bit unsigned long from buffer. (little-endian)
@@ -639,6 +1029,19 @@ public class LogBuffer
     public final BigInteger getUlong64()
     {
         final long long64 = getLong64();
+
+        return (long64 >= 0) ? BigInteger.valueOf(long64)
+                : BIGINT_MAX_VALUE.add(BigInteger.valueOf(1 + long64));
+    }
+    
+    /**
+     * Return next 64-bit unsigned long from buffer. (big-endian)
+     * 
+     * @see mysql-5.6.10/include/myisampack.h - mi_uint8korr
+     */
+    public final BigInteger getBeUlong64()
+    {
+        final long long64 = getBeLong64();
 
         return (long64 >= 0) ? BigInteger.valueOf(long64)
                 : BIGINT_MAX_VALUE.add(BigInteger.valueOf(1 + long64));

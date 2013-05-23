@@ -270,7 +270,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
         // check table fileds count，只能处理加字段
         if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
-            throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName());
+            throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName() + ","
+                                          + columnInfo.length + " vs " + tableMeta.getFileds().size());
         }
 
         for (int i = 0; i < columnCnt; i++) {
