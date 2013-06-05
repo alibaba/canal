@@ -369,8 +369,6 @@ public class CanalController {
                 }
             });
         }
-        // 启动网络接口
-        canalServer.start();
         // 尝试启动一下非lazy状态的通道
         for (Map.Entry<String, InstanceConfig> entry : instanceConfigs.entrySet()) {
             final String destination = entry.getKey();
@@ -397,6 +395,9 @@ public class CanalController {
                 }
             }
         }
+        
+        // 启动网络接口
+        canalServer.start();
     }
 
     public void stop() throws Throwable {
