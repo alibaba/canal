@@ -71,7 +71,7 @@ public abstract class CanalInstanceSupport extends AbstractCanalLifeCycle {
         if (eventParser instanceof MysqlEventParser) {
             MysqlEventParser mysqlEventParser = (MysqlEventParser) eventParser;
             CanalHAController haController = mysqlEventParser.getHaController();
-
+            
             if (haController instanceof HeartBeatHAController) {
                 ((HeartBeatHAController) haController).setCanalHASwitchable(mysqlEventParser);
             }

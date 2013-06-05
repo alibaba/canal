@@ -198,6 +198,16 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         return true;
     }
 
+    protected void afterStartEventParser(CanalEventParser eventParser) {
+        super.afterStartEventParser(eventParser);
+
+        // 读取一下历史订阅的filter信息
+        List<ClientIdentity> clientIdentitys = metaManager.listAllSubscribeInfo(destination);
+        for (ClientIdentity clientIdentity : clientIdentitys) {
+            subscribeChange(clientIdentity);
+        }
+    }
+
     protected void initAlarmHandler() {
         logger.info("init alarmHandler begin...");
         alarmHandler = new LogAlarmHandler();
