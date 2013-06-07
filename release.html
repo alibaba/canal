@@ -1,0 +1,46 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+	<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+	<title>Release Notes</title>
+
+	<link href="stylesheets/style.css" rel="stylesheet">
+	<link rel="stylesheet" href="stylesheets/releasenotes.plugin.css">
+
+
+	<script src="javascripts/libs/jquery-1.7.1.min.js"></script>
+	<script src="javascripts/libs/marked.js"></script>
+	<script src="javascripts/releasenotes.js"></script>
+	<script>
+		$(document).ready(function() {
+			$("#releaseNotesContainer").releaseNotes({
+				milestonesShown			: 10,
+				// If you want to show private repo
+				// You need to add repo credentials in api.php
+				phpApi 				: false,
+					phpApiPath		: '/',
+				showDescription 			: true,
+				showComments 			: true,
+				// Used if phpAPI is false
+	     			repo		            		: 'canal',
+	     			username       			: 'alibaba'
+			});
+		});
+	</script>
+</head>
+<body>
+<div id="websiteContainer">
+	<div class="containerRelease">
+		<h1>Release Notes</h1>
+		<div id="releaseNotesContainer" role="main"></div>
+
+	</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,274 @@
+
+
+
+
+.milestoneContainer{
+  padding-bottom:35px;
+  margin-bottom:10px;
+}
+	.milestoneContainer.separator{background:url("../images/lineseparator.png") bottom center no-repeat;}
+	.milestoneContainer .cursor:hover{cursor:pointer;}
+
+h3.release {margin:0 0 2px 0;font-size:18px;}
+p.dateRelease{margin:0 0 10px 0; font-size:14px;}
+
+	.milestoneContainer  .body p{padding:5px 0; margin:0;}
+	.milestoneContainer pre {
+	    display: block;
+	    padding: 8.5px;
+	    margin: 0 0 9px;
+	    font-size: 12.025px;
+	    line-height: 18px;
+	    background-color: whiteSmoke;
+	    border: 1px solid #CCC;
+	    border: 1px solid rgba(0, 0, 0, 0.15);
+	    -webkit-border-radius: 4px;
+	    -moz-border-radius: 4px;
+	    border-radius: 4px;
+	    white-space: pre;
+	    white-space: pre-wrap;
+	    word-break: break-all;
+	    word-wrap: break-word;
+	}
+	.milestoneContainer code, .milestoneContainer pre {
+	    padding: 0 3px 2px;
+	    font-family: Menlo,Monaco,"Courier New",monospace;
+	    font-size: 12px;
+	    color: #333;
+	    -webkit-border-radius: 3px;
+	    -moz-border-radius: 3px;
+	    border-radius: 3px;
+	}
+
+
+	/* BUTTONS */
+	.milestoneContainer .btn {
+	  display: inline-block;
+	  text-decoration:none;
+	  *display: inline;
+	  /* IE7 inline-block hack */
+
+	  *zoom: 1;
+	  padding: 4px 10px 4px;
+	  margin-bottom: 0;
+	  font-size: 13px;
+	  line-height: 18px;
+	  color: #333333;
+	  text-align: center;
+	  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+	  vertical-align: middle;
+	  background-color: #f5f5f5;
+	  background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
+	  background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6);
+	  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
+	  background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
+	  background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+	  background-image: linear-gradient(top, #ffffff, #e6e6e6);
+	  background-repeat: repeat-x;
+	  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0);
+	  border-color: #e6e6e6 #e6e6e6 #bfbfbf;
+	  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+	  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+	  border: 1px solid #cccccc;
+	  border-bottom-color: #b3b3b3;
+	  -webkit-border-radius: 4px;
+	  -moz-border-radius: 4px;
+	  border-radius: 4px;
+	  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+	  -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+	  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+	  cursor: pointer;
+	  *margin-left: .3em;
+	}
+	.milestoneContainer .btn:hover,
+	.milestoneContainer .btn:active{
+	  background-color: #e6e6e6;
+	}
+	.milestoneContainer .btn:active,
+	.milestoneContainer .btn.active {
+	  background-color: #cccccc \9;
+	}
+	.milestoneContainer .btn:first-child {
+	  *margin-left: 0;
+	}
+	.milestoneContainer .btn:hover {
+	  color: #333333;
+	  text-decoration: none;
+	  background-color: #e6e6e6;
+	  background-position: 0 -15px;
+	  -webkit-transition: background-position 0.1s linear;
+	  -moz-transition: background-position 0.1s linear;
+	  -ms-transition: background-position 0.1s linear;
+	  -o-transition: background-position 0.1s linear;
+	  transition: background-position 0.1s linear;
+	}
+	.milestoneContainer .btn:focus {
+	  outline: thin dotted #333;
+	  outline: 5px auto -webkit-focus-ring-color;
+	  outline-offset: -2px;
+	}
+	.milestoneContainer .btn:active {
+	  background-image: none;
+	  -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+	  -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+	  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+	  background-color: #e6e6e6;
+	  background-color: #d9d9d9 \9;
+	  outline: 0;
+	}
+
+
+	/* ISSUE DESCRIPTION */
+	.milestoneContainer .date{
+	    font-size:14px;
+	}
+	.milestoneContainer .cmeta .date {font-size:11px;}
+	.milestoneContainer  .issue{
+	  padding-bottom: 3px;
+	}
+	.milestoneContainer .issues{
+	    color:#555;
+	}
+	.milestoneContainer .issueTitle{
+	    line-height:24px;
+	    font-size:13px;
+	}
+	.milestoneContainer .label{
+	    display:inline-block;
+	    font-family: arial;
+	    font-weight:normal;
+	    line-height: 13px;
+	    color: white;
+	    vertical-align: middle;
+	    white-space: nowrap;
+	    font-size:12px;
+	    color:#fff;
+	    text-shadow: 1px 1px 1 #000;
+	    padding:3px 4px;
+	    border-radius:5px;
+	    margin-top: -6px;
+	    margin-right:5px;
+	}
+
+
+	.milestoneContainer .btnComments{
+	    margin:-8px 0 15px 63px ;
+	}
+
+	.milestoneContainer .hidden{display:none;}
+	.milestoneContainer .content-body{
+	    padding-top:10px;
+	    margin-top:15px;
+	    border-top:1px solid #CACACA;
+	}
+	.milestoneContainer .normal-comment .content-body{
+	    padding-top: 0px;
+	    margin-top: 0px;
+	    border-top: none;
+	}
+
+	/* COMMENTS */
+
+	.milestoneContainer .new-comments .bubble .comment { margin: 0 }
+	.milestoneContainer .view-pull-request .new-comments .bubble .commit-comment { margin-top: 3px }
+	.milestoneContainer .new-comments .bubble .commit-comment.thread-start { margin-top: 0 }
+	.milestoneContainer .bubble .comment-form { margin: 0 }
+
+	.milestoneContainer .avatar-bubble {
+	    margin: 20px 0;
+	    padding-left: 60px;
+	    background: url('../images/bubble-arrow.png') 51px 20px no-repeat;
+	}
+	.milestoneContainer .avatar-bubble>.avatar {
+	    position: relative;
+	    float: left;
+	    margin-left: -60px;
+	}
+	.bubble {
+	    padding: 3px;
+	    background: #eee;
+	    border-radius: 3px;
+	}
+	.milestoneContainer .avatar-bubble .form-actions { margin-top: 10px }
+	.milestoneContainer .bubble .file-box { margin-bottom: 0 }
+
+	.milestoneContainer .avatar img { border-radius: 3px }
+
+	.milestoneContainer .starting-comment {
+	    margin: 0;
+	    background: #fff;
+	    padding:0px;
+	    border: 1px solid #CACACA;
+	    border-radius: 2px;
+	}
+	.milestoneContainer  .normal-comment .starting-comment{ padding:10px;}
+	.milestoneContainer .starting-comment .content-title { border-bottom: none }
+	.milestoneContainer .starting-comment h2.content-title {
+	    margin: 0 0 -6px;
+	    font-size: 20px;
+	    font-weight: bold;
+	}
+	.milestoneContainer .starting-comment .body p.author {
+	    margin: 0px 0 0;
+	    color: #666;
+	    font-size: 12px;
+	}
+	.milestoneContainer .starting-comment p.author a {
+	    font-weight: bold;
+	    color: #666;
+	}
+	.milestoneContainer .new-comments .starting-comment .body {
+	    padding: 0 10px;
+	    font-size: 13px;
+	    background: #fff;
+	}
+	.milestoneContainer .comment .cmeta {
+	    height: 33px;
+	    padding: 0 10px;
+	    border-bottom: 1px solid #CCC;
+	    background-color: #F8F8F8;
+	    background-image: -moz-linear-gradient(#F8F8F8,#E1E1E1);
+	    background-image: -webkit-linear-gradient(#F8F8F8,#E1E1E1);
+	    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#f8f8f8',endColorstr='#e1e1e1',GradientType=0)";
+	}
+	.milestoneContainer .comment .cmeta p.author {
+	    margin: 0;
+	    float: left;
+	    max-width: 600px;
+	    font-size: 12px;
+	    height: 33px;
+	    line-height: 33px;
+	    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.7);
+	    overflow: hidden;
+	    white-space: nowrap;
+	    text-overflow: ellipsis;
+	}
+
+	.milestoneContainer .comment .cmeta .icon {
+	    display: inline-block;
+	    margin-top: -2px;
+	    margin-left: 0px;
+	    width: 16px;
+	    height: 16px;
+	    vertical-align: middle;
+	    background: url('../images/icons.png') 0 0 no-repeat;
+	}
+	.milestoneContainer .comment .cmeta p.author a {
+	    color: #222;
+	}
+
+	.milestoneContainer  .comment .cmeta p.info {
+	    float: right;
+	    margin: 0;
+	    font-size: 11px;
+	    height: 33px;
+	    line-height: 33px;
+	}
+
+	.milestoneContainer .comment > .body {
+	    position: relative;
+	    padding: 10px;
+	    color: #333;
+	    font-size: 12px;
+	    background: #FBFBFB;
+	}

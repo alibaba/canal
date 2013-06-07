@@ -1,0 +1,30 @@
+body{
+  background:url(../images/bg.jpg);
+  text-shadow: 1px 1px 0px white;
+  margin: 0;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+  color: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-family: inherit;
+  font-weight: bold;
+  color: inherit;
+  text-rendering: optimizelegibility;
+}
+h1 {
+  font-size: 30px;
+  line-height: 36px;
+  padding: 50px 0 20px;
+}
+#websiteContainer{
+  background:url(../images/bg2.png) top left no-repeat;
+  height: 529px;
+}
+.containerRelease{
+  width:780px;
+  margin-left:230px;
+}
