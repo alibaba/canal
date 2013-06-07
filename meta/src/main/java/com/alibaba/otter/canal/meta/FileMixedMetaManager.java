@@ -61,7 +61,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             try {
                 FileUtils.forceMkdir(dataDir);
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new CanalMetaManagerException(e);
             }
         }
 
@@ -80,7 +80,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         destinations = new MapMaker().makeComputingMap(new Function<String, List<ClientIdentity>>() {
 
             public List<ClientIdentity> apply(String destination) {
-                return loadClientIdentiry(destination);
+                return loadClientIdentity(destination);
             }
         });
 
@@ -96,14 +96,6 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             }
         });
 
-        batches = new MapMaker().makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
-
-            public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
-                // 读取一下zookeeper信息，初始化一次
-                return loadBatch(clientIdentity.getDestination(), clientIdentity);
-            }
-        });
-
         updateCursorTasks = Collections.synchronizedSet(new HashSet<ClientIdentity>());
 
         // 启动定时工作任务
@@ -114,7 +106,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                 for (ClientIdentity clientIdentity : tasks) {
                     MDC.put("destination", String.valueOf(clientIdentity.getDestination()));
                     try {
-                        // 定时将内存中的最新值刷到zookeeper中，多次变更只刷一次
+                        // 定时将内存中的最新值刷到file中，多次变更只刷一次
                         if (logger.isInfoEnabled()) {
                             LogPosition cursor = (LogPosition) getCursor(clientIdentity);
                             logger.info("clientId:{} cursor:[{},{},{}] address[{}]", new Object[] {
@@ -233,7 +225,6 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                     if (position != null && position != nullCursor) {
                         clientData.setCursor((LogPosition) position);
                     }
-                    clientData.setBatch(batches.get(clientIdentity));
 
                     clientDatas.add(clientData);
                 }
@@ -250,7 +241,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         }
     }
 
-    private List<ClientIdentity> loadClientIdentiry(String destination) {
+    private List<ClientIdentity> loadClientIdentity(String destination) {
         List<ClientIdentity> result = Lists.newArrayList();
 
         FileMetaInstanceData data = loadDataFromFile(dataFileCaches.get(destination));
@@ -264,7 +255,9 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         }
 
         for (FileMetaClientIdentityData clientData : clientDatas) {
-            result.add(clientData.getClientIdentity());
+            if (clientData.getClientIdentity().getDestination().equals(destination)) {
+                result.add(clientData.getClientIdentity());
+            }
         }
 
         return result;
@@ -290,26 +283,6 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         return null;
     }
 
-    private MemoryClientIdentityBatch loadBatch(String destination, ClientIdentity clientIdentity) {
-        FileMetaInstanceData data = loadDataFromFile(dataFileCaches.get(destination));
-        if (data == null) {
-            return MemoryClientIdentityBatch.create(clientIdentity);
-        }
-
-        List<FileMetaClientIdentityData> clientDatas = data.getClientDatas();
-        if (clientDatas == null) {
-            return MemoryClientIdentityBatch.create(clientIdentity);
-        }
-
-        for (FileMetaClientIdentityData clientData : clientDatas) {
-            if (clientData.getClientIdentity() != null && clientData.getClientIdentity().equals(clientIdentity)) {
-                return clientData.getBatch();
-            }
-        }
-
-        return MemoryClientIdentityBatch.create(clientIdentity);
-    }
-
     /**
      * 描述一个clientIdentity对应的数据对象
      * 
@@ -318,9 +291,8 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
      */
     public static class FileMetaClientIdentityData {
 
-        private ClientIdentity            clientIdentity;
-        private MemoryClientIdentityBatch batch;
-        private LogPosition               cursor;
+        private ClientIdentity clientIdentity;
+        private LogPosition    cursor;
 
         public FileMetaClientIdentityData(){
 
@@ -329,7 +301,6 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         public FileMetaClientIdentityData(ClientIdentity clientIdentity, MemoryClientIdentityBatch batch,
                                           LogPosition cursor){
             this.clientIdentity = clientIdentity;
-            this.batch = batch;
             this.cursor = cursor;
         }
 
@@ -339,14 +310,6 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
 
         public void setClientIdentity(ClientIdentity clientIdentity) {
             this.clientIdentity = clientIdentity;
-        }
-
-        public MemoryClientIdentityBatch getBatch() {
-            return batch;
-        }
-
-        public void setBatch(MemoryClientIdentityBatch batch) {
-            this.batch = batch;
         }
 
         public Position getCursor() {

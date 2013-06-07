@@ -648,8 +648,8 @@ public final class RowsLogBuffer
                     throw new IllegalArgumentException(
                             "!! Unknown ENUM packlen = " + len);
                 }
-                logger.warn("MYSQL_TYPE_ENUM : This enumeration value is "
-                        + "only used internally and cannot exist in a binlog!");
+                // logger.warn("MYSQL_TYPE_ENUM : This enumeration value is "
+                // + "only used internally and cannot exist in a binlog!");
                 value = Integer.valueOf(int32);
                 javaType = Types.INTEGER;
                 length = len;
