@@ -189,6 +189,12 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             } else {
                 ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
             }
+
+            // 订阅条件发生变化，重新启动一次，加载新的订阅规则
+            if (eventParser.isStart()) {
+                eventParser.stop();
+                eventParser.start();
+            }
         }
 
         // filter的处理规则

@@ -59,6 +59,14 @@ public class TableMetaCache {
     }
 
     public TableMeta getTableMeta(String fullname) {
+        return getTableMeta(fullname, true);
+    }
+
+    public TableMeta getTableMeta(String fullname, boolean useCache) {
+        if (!useCache) {
+            tableMetaCache.remove(fullname);
+        }
+
         return tableMetaCache.get(fullname);
     }
 
