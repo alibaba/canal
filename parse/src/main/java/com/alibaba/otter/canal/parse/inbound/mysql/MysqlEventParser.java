@@ -194,7 +194,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     mysqlConnection.connect();
                 }
                 Long startTime = System.currentTimeMillis();
-                mysqlConnection.update(detectingSQL);
+
+                // 可能心跳sql为select 1
+                if (StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "select")) {
+                    mysqlConnection.query(detectingSQL);
+                } else {
+                    mysqlConnection.update(detectingSQL);
+                }
+
                 Long costTime = System.currentTimeMillis() - startTime;
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onSuccess(costTime);
@@ -505,10 +512,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
         } catch (IOException e) {
-            logger.error("find end position error", e);
+            throw new CanalParseException("command : 'show master status' has an error!", e);
         }
-
-        return null;
     }
 
     /**
@@ -525,10 +530,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
         } catch (IOException e) {
-            logger.error("find end position error", e);
+            throw new CanalParseException("command : 'show binlog events limit 1' has an error!", e);
         }
 
-        return null;
     }
 
     /**

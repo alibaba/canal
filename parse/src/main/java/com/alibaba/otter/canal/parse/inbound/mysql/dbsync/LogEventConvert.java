@@ -270,7 +270,23 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
         // check table fileds count，只能处理加字段
         if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
-            throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName());
+            // online ddl增加字段操作步骤：
+            // 1. 新增一张临时表，将需要做ddl表的数据全量导入
+            // 2. 在老表上建立I/U/D的trigger，增量的将数据插入到临时表
+            // 3. 锁住应用请求，将临时表rename为老表的名字，完成增加字段的操作
+            // 尝试做一次reload，可能因为ddl没有正确解析，或者使用了类似online ddl的操作
+            // 因为online ddl没有对应表名的alter语法，所以不会有clear cache的操作
+            String fullname = getSchemaNameAndTableName(event.getTable());
+            tableMeta = tableMetaCache.getTableMeta(fullname, false);// 强制重新获取一次
+            if (tableMeta == null) {
+                throw new CanalParseException("not found [" + fullname + "] in db , pls check!");
+            }
+
+            // 在做一次判断
+            if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
+                throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName() + ","
+                                              + columnInfo.length + " vs " + tableMeta.getFileds().size());
+            }
         }
 
         for (int i = 0; i < columnCnt; i++) {

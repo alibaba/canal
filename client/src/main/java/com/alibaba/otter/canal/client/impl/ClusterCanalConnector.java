@@ -242,4 +242,29 @@ public class ClusterCanalConnector implements CanalConnector {
         this.retryTimes = retryTimes;
     }
 
+    
+    public int getRetryInterval() {
+        return retryInterval;
+    }
+
+    
+    public void setRetryInterval(int retryInterval) {
+        this.retryInterval = retryInterval;
+    }
+
+    
+    public CanalNodeAccessStrategy getAccessStrategy() {
+        return accessStrategy;
+    }
+
+    
+    public void setAccessStrategy(CanalNodeAccessStrategy accessStrategy) {
+        this.accessStrategy = accessStrategy;
+    }
+
+    
+    public SimpleCanalConnector getCurrentConnector() {
+        return currentConnector;
+    }
+
 }

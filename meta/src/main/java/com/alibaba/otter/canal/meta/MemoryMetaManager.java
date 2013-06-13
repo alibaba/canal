@@ -61,9 +61,12 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
 
     public synchronized void subscribe(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         List<ClientIdentity> clientIdentitys = destinations.get(clientIdentity.getDestination());
-        if (clientIdentitys != null && !clientIdentitys.contains(clientIdentity)) {
-            clientIdentitys.add(clientIdentity);
+
+        if (clientIdentitys.contains(clientIdentity)) {
+            clientIdentitys.remove(clientIdentity);
         }
+        
+        clientIdentitys.add(clientIdentity);
     }
 
     public synchronized boolean hasSubscribe(ClientIdentity clientIdentity) throws CanalMetaManagerException {

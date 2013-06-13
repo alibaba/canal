@@ -59,7 +59,7 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
             try {
                 FileUtils.forceMkdir(dataDir);
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new CanalMetaManagerException(e);
             }
         }
 

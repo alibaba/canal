@@ -85,6 +85,16 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
         return true;
     }
 
+    protected void afterStartEventParser(CanalEventParser eventParser) {
+        super.afterStartEventParser(eventParser);
+
+        // 读取一下历史订阅的filter信息
+        List<ClientIdentity> clientIdentitys = metaManager.listAllSubscribeInfo(destination);
+        for (ClientIdentity clientIdentity : clientIdentitys) {
+            subscribeChange(clientIdentity);
+        }
+    }
+
     public void start() {
         super.start();
 

@@ -189,6 +189,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             } else {
                 ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
             }
+
         }
 
         // filter的处理规则
@@ -196,6 +197,16 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         // b. sink处理数据的路由&分发,一份parse数据经过sink后可以分发为多份，每份的数据可以根据自己的过滤规则不同而有不同的数据
         // 后续内存版的一对多分发，可以考虑
         return true;
+    }
+
+    protected void afterStartEventParser(CanalEventParser eventParser) {
+        super.afterStartEventParser(eventParser);
+
+        // 读取一下历史订阅的filter信息
+        List<ClientIdentity> clientIdentitys = metaManager.listAllSubscribeInfo(destination);
+        for (ClientIdentity clientIdentity : clientIdentitys) {
+            subscribeChange(clientIdentity);
+        }
     }
 
     protected void initAlarmHandler() {

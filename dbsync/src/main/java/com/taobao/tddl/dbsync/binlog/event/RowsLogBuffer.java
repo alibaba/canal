@@ -25,6 +25,8 @@ public final class RowsLogBuffer
 {
     protected static final Log logger = LogFactory.getLog(RowsLogBuffer.class);
 
+    public static final long   DATETIMEF_INT_OFS = 0x8000000000L;
+    public static final long   TIMEF_INT_OFS     = 0x800000L;
     private final LogBuffer    buffer;
     private final int          columnLen;
     private final String       charsetName;
@@ -379,6 +381,38 @@ public final class RowsLogBuffer
                 length = 4;
                 break;
             }
+        case LogEvent.MYSQL_TYPE_TIMESTAMP2:
+            {
+                final long tv_sec = buffer.getBeUint32(); //big-endian
+                int tv_usec = 0;
+                switch (meta) {
+                    case 0:
+                        tv_usec = 0;
+                        break;
+                    case 1:
+                    case 2:
+                        tv_usec = buffer.getInt8() * 10000;
+                        break;
+                    case 3:
+                    case 4:
+                        tv_usec = buffer.getBeInt16() * 100;
+                        break;
+                    case 5:
+                    case 6:
+                        tv_usec = buffer.getBeInt24();
+                        break;
+                    default:
+                        tv_usec= 0;
+                        break;
+                }
+                
+                Timestamp time = new Timestamp(tv_sec * 1000);
+                time.setNanos(tv_usec  * 1000);
+                value = time;
+                javaType = Types.TIMESTAMP;
+                length = 4 + (meta + 1) / 2;
+                break;
+            }
         case LogEvent.MYSQL_TYPE_DATETIME:
             {
                 final long i64 = buffer.getLong64(); /* YYYYMMDDhhmmss */
@@ -395,6 +429,61 @@ public final class RowsLogBuffer
                 length = 8;
                 break;
             }
+        case LogEvent.MYSQL_TYPE_DATETIME2:
+            {
+                /*
+                    DATETIME and DATE low-level memory and disk representation routines
+                    1 bit  sign            (used when on disk)
+                   17 bits year*13+month   (year 0-9999, month 0-12)
+                    5 bits day             (0-31)
+                    5 bits hour            (0-23)
+                    6 bits minute          (0-59)
+                    6 bits second          (0-59)
+                   24 bits microseconds    (0-999999)
+
+                   Total: 64 bits = 8 bytes
+
+                   SYYYYYYY.YYYYYYYY.YYdddddh.hhhhmmmm.mmssssss.ffffffff.ffffffff.ffffffff
+                */
+                long intpart = buffer.geBeUlong40() - DATETIMEF_INT_OFS; //big-endian
+                @SuppressWarnings("unused")
+                int frac = 0;
+                switch (meta) {
+                    case 0:
+                        frac = 0;
+                        break;
+                    case 1:
+                    case 2:
+                        frac = buffer.getInt8() * 10000;
+                        break;
+                    case 3:
+                    case 4:
+                        frac = buffer.getBeInt16() * 100;
+                        break;
+                    case 5:
+                    case 6:
+                        frac = buffer.getBeInt24();
+                        break;
+                    default:
+                        frac = 0;
+                        break;
+                }
+                
+                // 构造TimeStamp只处理到秒
+                long ymd= intpart >> 17;
+                long ym= ymd >> 5;
+                long hms= intpart % (1 << 17);
+                
+                if (cal == null)
+                    cal = Calendar.getInstance();
+                cal.clear();
+                cal.set((int) (ym / 13), (int) (ym % 13) - 1, (int) (ymd % (1 << 5)), (int) (hms >> 12),
+                        (int) ((hms >> 6) % (1 << 6)), (int) (hms % (1 << 6)));
+                value = new Timestamp(cal.getTimeInMillis());
+                javaType = Types.TIMESTAMP;
+                length = 5 + (meta + 1) / 2;
+                break;
+            }
         case LogEvent.MYSQL_TYPE_TIME:
             {
                 final int i32 = buffer.getUint24();
@@ -405,6 +494,90 @@ public final class RowsLogBuffer
                 value = new Time(cal.getTimeInMillis());
                 javaType = Types.TIME;
                 length = 3;
+                break;
+            }
+        case LogEvent.MYSQL_TYPE_TIME2:
+            {
+                /*
+                  TIME low-level memory and disk representation routines
+                  In-memory format:
+
+                   1  bit sign          (Used for sign, when on disk)
+                   1  bit unused        (Reserved for wider hour range, e.g. for intervals)
+                   10 bit hour          (0-836)
+                   6  bit minute        (0-59)
+                   6  bit second        (0-59)
+                  24  bits microseconds (0-999999)
+
+                 Total: 48 bits = 6 bytes
+                   Suhhhhhh.hhhhmmmm.mmssssss.ffffffff.ffffffff.ffffffff
+                */
+                long intpart = 0;
+                int frac = 0;
+                switch (meta) {
+                    case 0:
+                        intpart = buffer.getBeUint24() - TIMEF_INT_OFS; //big-endian
+                        break;
+                    case 1:
+                    case 2:
+                        intpart = buffer.getBeUint24() - TIMEF_INT_OFS;
+                        frac = buffer.getUint8();
+                        if (intpart < 0 && frac > 0) {
+                            /*
+                            Negative values are stored with reverse fractional part order,
+                            for binary sort compatibility.
+
+                              Disk value  intpart frac   Time value   Memory value
+                              800000.00    0      0      00:00:00.00  0000000000.000000
+                              7FFFFF.FF   -1      255   -00:00:00.01  FFFFFFFFFF.FFD8F0
+                              7FFFFF.9D   -1      99    -00:00:00.99  FFFFFFFFFF.F0E4D0
+                              7FFFFF.00   -1      0     -00:00:01.00  FFFFFFFFFF.000000
+                              7FFFFE.FF   -1      255   -00:00:01.01  FFFFFFFFFE.FFD8F0
+                              7FFFFE.F6   -2      246   -00:00:01.10  FFFFFFFFFE.FE7960
+
+                              Formula to convert fractional part from disk format
+                              (now stored in "frac" variable) to absolute value: "0x100 - frac".
+                              To reconstruct in-memory value, we shift
+                              to the next integer value and then substruct fractional part.
+                          */
+                          intpart++;    /* Shift to the next integer value */
+                          frac -= 0x100; /* -(0x100 - frac) */
+                          // fraclong = frac * 10000;
+                        }
+                        break;
+                    case 3:
+                    case 4:
+                        intpart = buffer.getBeUint24() - TIMEF_INT_OFS;
+                        frac = buffer.getBeUint16();
+                        if (intpart < 0 && frac > 0)
+                        {
+                          /*
+                            Fix reverse fractional part order: "0x10000 - frac".
+                            See comments for FSP=1 and FSP=2 above.
+                          */
+                          intpart++;      /* Shift to the next integer value */
+                          frac-= 0x10000; /* -(0x10000-frac) */
+                          // fraclong = frac * 100;
+                        }
+                        break;
+                    case 5:
+                    case 6:
+                        intpart = buffer.getBeUlong48() - TIMEF_INT_OFS;  
+                        break;
+                    default:
+                        intpart = buffer.getBeUint24() - TIMEF_INT_OFS;
+                        break;
+                }
+                
+                // 目前只记录秒，不处理us frac
+                if (cal == null)
+                    cal = Calendar.getInstance();
+                cal.clear();
+                cal.set(70, 0, 1, (int) ((intpart >> 12) % (1 << 10)), (int) ((intpart >> 6) % (1 << 6)),
+                        (int) (intpart % (1 << 6)));
+                value = new Time(cal.getTimeInMillis());
+                javaType = Types.TIME;
+                length = 3 + (meta + 1) / 2;
                 break;
             }
         case LogEvent.MYSQL_TYPE_NEWDATE:
@@ -475,8 +648,8 @@ public final class RowsLogBuffer
                     throw new IllegalArgumentException(
                             "!! Unknown ENUM packlen = " + len);
                 }
-                logger.warn("MYSQL_TYPE_ENUM : This enumeration value is "
-                        + "only used internally and cannot exist in a binlog!");
+                // logger.warn("MYSQL_TYPE_ENUM : This enumeration value is "
+                // + "only used internally and cannot exist in a binlog!");
                 value = Integer.valueOf(int32);
                 javaType = Types.INTEGER;
                 length = len;

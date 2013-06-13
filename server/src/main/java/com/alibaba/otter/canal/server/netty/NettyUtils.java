@@ -9,6 +9,8 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.protocol.CanalPacket;
 import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
@@ -16,8 +18,9 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 
 public class NettyUtils {
 
-    private static int  HEADER_LENGTH    = 4;
-    public static Timer hashedWheelTimer = new HashedWheelTimer();
+    private static final Logger logger           = LoggerFactory.getLogger(NettyUtils.class);
+    private static int          HEADER_LENGTH    = 4;
+    public static Timer         hashedWheelTimer = new HashedWheelTimer();
 
     public static void write(Channel channel, byte[] body, ChannelFutureListener channelFutureListner) {
         byte[] header = ByteBuffer.allocate(HEADER_LENGTH).order(ByteOrder.BIG_ENDIAN).putInt(body.length).array();
@@ -41,6 +44,7 @@ public class NettyUtils {
             channelFutureListener = ChannelFutureListener.CLOSE;
         }
 
+        logger.error("ErrotCode:{} , Caused by : \n{}", errorCode, errorMessage);
         write(
               channel,
               Packet.newBuilder().setType(CanalPacket.PacketType.ACK).setBody(

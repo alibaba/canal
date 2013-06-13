@@ -101,17 +101,17 @@ public class AbstractCanalClientTest {
             try {
                 MDC.put("destination", destination);
                 connector.connect();
-                connector.subscribe(".*\\..*");
+                connector.subscribe("");
                 connector.rollback();
                 while (running) {
                     Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
                     long batchId = message.getId();
                     int size = message.getEntries().size();
                     if (batchId == -1 || size == 0) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                        }
+                        // try {
+                        // Thread.sleep(1000);
+                        // } catch (InterruptedException e) {
+                        // }
                     } else {
                         printSummary(message, batchId, size);
                         printEntry(message.getEntries());
@@ -184,9 +184,6 @@ public class AbstractCanalClientTest {
                 } else if (eventType == EventType.INSERT) {
                     printColumn(rowData.getAfterColumnsList());
                 } else {
-                    logger.info("-------> before" + SEP);
-                    printColumn(rowData.getBeforeColumnsList());
-                    logger.info("-------> after" + SEP);
                     printColumn(rowData.getAfterColumnsList());
                 }
             }
@@ -195,7 +192,13 @@ public class AbstractCanalClientTest {
 
     protected void printColumn(List<Column> columns) {
         for (Column column : columns) {
-            logger.info(column.getName() + " : " + column.getValue() + "    update=" + column.getUpdated() + SEP);
+            StringBuilder builder = new StringBuilder();
+            builder.append(column.getName() + " : " + column.getValue());
+            if (column.getUpdated()) {
+                builder.append("    update=" + column.getUpdated());
+            }
+            builder.append(SEP);
+            logger.info(builder.toString());
         }
     }
 

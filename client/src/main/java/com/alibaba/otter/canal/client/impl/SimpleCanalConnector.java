@@ -126,8 +126,8 @@ public class SimpleCanalConnector implements CanalConnector {
             supportedCompressions.addAll(handshake.getSupportedCompressionsList());
             //
             ClientAuth ca = ClientAuth.newBuilder().setUsername(username != null ? username : "").setNetReadTimeout(
-                                                                                                                    10000).setNetWriteTimeout(
-                                                                                                                                              10000).build();
+                                                                                                                    soTimeout).setNetWriteTimeout(
+                                                                                                                                                  soTimeout).build();
             writeWithHeader(
                             channel,
                             Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());

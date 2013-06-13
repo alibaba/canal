@@ -26,7 +26,7 @@ public class AbstractMetaManagerTest extends AbstractZkTest {
         metaManager.subscribe(client1); // 重复调用
         ClientIdentity client2 = new ClientIdentity(destination, (short) 2);
         metaManager.subscribe(client2);
-
+        
         List<ClientIdentity> clients = metaManager.listAllSubscribeInfo(destination);
         Assert.assertEquals(Arrays.asList(client1, client2), clients);
 
