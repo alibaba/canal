@@ -64,6 +64,15 @@
 			</activation>
 
 			<build>
+				<resources>
+		            <resource>
+		                <directory>src/main/java</directory>
+		                <!-- 包含 -->
+		                <includes>
+		                    <include>**/*</include>
+		                </includes>
+		            </resource>
+		        </resources>
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -91,6 +100,15 @@
 			</activation>
 
 			<build>
+				<resources>
+		            <resource>
+		                <directory>src/main/java</directory>
+		                <!-- 包含 -->
+		                <includes>
+		                    <include>**/*</include>
+		                </includes>
+		            </resource>
+		        </resources>
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
