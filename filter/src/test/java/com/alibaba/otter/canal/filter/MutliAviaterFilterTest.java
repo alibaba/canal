@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.sink.filter;
+package com.alibaba.otter.canal.filter;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;

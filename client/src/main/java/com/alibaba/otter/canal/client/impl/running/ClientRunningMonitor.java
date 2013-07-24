@@ -196,7 +196,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 byte[] bytes = JsonUtils.marshalToByte(clientData);
                 zkClient.writeData(path, bytes);
             } catch (Exception e) {
-                logger.error("processSwitchActive failed", e);
+                logger.error("processActiveEnter failed", e);
             }
         }
     }
@@ -206,7 +206,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             try {
                 listener.processActiveExit();
             } catch (Exception e) {
-                logger.error("processSwitchActive failed", e);
+                logger.error("processActiveExit failed", e);
             }
         }
     }

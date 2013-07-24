@@ -232,7 +232,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             try {
                 listener.processActiveEnter();
             } catch (Exception e) {
-                logger.error("processSwitchActive failed", e);
+                logger.error("processActiveEnter failed", e);
             }
         }
     }
@@ -242,7 +242,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             try {
                 listener.processActiveExit();
             } catch (Exception e) {
-                logger.error("processSwitchActive failed", e);
+                logger.error("processActiveExit failed", e);
             }
         }
     }
