@@ -1476,7 +1476,7 @@ public class LogBuffer
         int from = begin;
 
         /* max string length */
-        final int len = ((mask != 0) ? 1 : 0) + intg // NL
+        final int len = ((mask != 0) ? 1 : 0) + ((intg != 0) ? intg : 1) // NL
                 + ((frac != 0) ? 1 : 0) + frac;
         char[] buf = new char[len];
         int pos = 0;
