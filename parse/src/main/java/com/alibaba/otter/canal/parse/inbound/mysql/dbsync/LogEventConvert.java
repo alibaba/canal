@@ -202,7 +202,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             String fullname = getSchemaNameAndTableName(table);
-            if (nameFilter != null && !nameFilter.filter(fullname)) { // check name filter
+            if (nameFilter != null && !nameFilter.filter(fullname)) { // check
+                                                                      // name
+                                                                      // filter
                 return null;
             }
             EventType eventType = null;
@@ -217,8 +219,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 throw new CanalParseException("unsupport event type :" + event.getHeader().getType());
             }
 
-            Header header = createHeader(binlogFileName, event.getHeader(), table.getDbName(), table.getTableName(),
-                                         eventType);
+            Header header = createHeader(binlogFileName,
+                event.getHeader(),
+                table.getDbName(),
+                table.getTableName(),
+                eventType);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
@@ -343,7 +348,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                     break;
 
                                 case 8: /* MYSQL_TYPE_LONGLONG */
-                                    columnBuilder.setValue(BIGINT_MAX_VALUE.add(BigInteger.valueOf(number.longValue())).toString());
+                                    columnBuilder.setValue(BIGINT_MAX_VALUE.add(BigInteger.valueOf(number.longValue()))
+                                        .toString());
                                     javaType = Types.DECIMAL; // 往上加一个量级，避免执行出错
                                     break;
                             }
@@ -374,8 +380,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     case Types.BINARY:
                     case Types.VARBINARY:
                     case Types.LONGVARBINARY:
-                        // fixed text encoding https://github.com/AlibabaTech/canal/issues/18
-                        // mysql binlog中blob/text都处理为blob类型，需要反查table meta，按编码解析text
+                        // fixed text encoding
+                        // https://github.com/AlibabaTech/canal/issues/18
+                        // mysql binlog中blob/text都处理为blob类型，需要反查table
+                        // meta，按编码解析text
                         if (isText(fieldMeta.getColumnType())) {
                             columnBuilder.setValue(new String((byte[]) value, charset));
                             javaType = Types.CLOB;
@@ -400,7 +408,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // 设置是否update的标记位
             columnBuilder.setUpdated(isAfter
                                      && isUpdate(rowDataBuilder.getBeforeColumnsList(),
-                                                 columnBuilder.getIsNull() ? null : columnBuilder.getValue(), i));
+                                         columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
+                                         i));
             if (isAfter) {
                 rowDataBuilder.addAfterColumns(columnBuilder.build());
             } else {
@@ -439,10 +448,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             headerBuilder.setEventType(eventType);
         }
         if (schemaName != null) {
-            headerBuilder.setSchemaName(StringUtils.lowerCase(schemaName));
+            headerBuilder.setSchemaName(schemaName);
         }
         if (tableName != null) {
-            headerBuilder.setTableName(StringUtils.lowerCase(tableName));
+            headerBuilder.setTableName(tableName);
         }
         headerBuilder.setEventLength(logHeader.getEventLen());
         return headerBuilder.build();
