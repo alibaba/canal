@@ -10,7 +10,7 @@ case "`uname`" in
 		;;
 esac
 base=${bin_abs_path}/..
-client_mode="Cluster"
+client_mode="Simple"
 logback_configurationFile=$base/conf/logback.xml
 export LANG=en_US.UTF-8
 export BASE=$base
