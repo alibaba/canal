@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client;
 
+import java.util.concurrent.TimeUnit;
+
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 
@@ -68,7 +70,7 @@ public interface CanalConnector {
     void unsubscribe() throws CanalClientException;
 
     /**
-     * 获取数据，自动进行确认
+     * 获取数据，自动进行确认，该方法返回的条件：尝试拿batchSize条记录，有多少取多少，不会阻塞等待
      * 
      * @param batchSize
      * @return
@@ -77,13 +79,49 @@ public interface CanalConnector {
     Message get(int batchSize) throws CanalClientException;
 
     /**
-     * 不指定 position 获取事件。canal 会记住此 client 最新的 position。 <br/>
+     * 获取数据，自动进行确认
+     * 
+     * <pre>
+     * 该方法返回的条件：
+     *  a. 拿够batchSize条记录或者超过timeout时间
+     *  b. 如果timeout=0，则阻塞至拿到batchSize记录才返回
+     * </pre>
+     * 
+     * @param batchSize
+     * @return
+     * @throws CanalClientException
+     */
+    Message get(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException;
+
+    /**
+     * 不指定 position 获取事件，该方法返回的条件: 尝试拿batchSize条记录，有多少取多少，不会阻塞等待<br/>
+     * canal 会记住此 client 最新的position。 <br/>
      * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
      * 
      * @param batchSize
      * @throws CanalClientException
      */
     Message getWithoutAck(int batchSize) throws CanalClientException;
+
+    /**
+     * 不指定 position 获取事件.
+     * 
+     * <pre>
+     * 该方法返回的条件：
+     *  a. 拿够batchSize条记录或者超过timeout时间
+     *  b. 如果timeout=0，则阻塞至拿到batchSize记录才返回
+     * </pre>
+     * 
+     * canal 会记住此 client 最新的position。 <br/>
+     * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
+     * 
+     * @param batchSize
+     * @param timeout
+     * @param unit
+     * @return
+     * @throws CanalClientException
+     */
+    Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException;
 
     /**
      * 进行 batch id 的确认。确认之后，小于等于此 batchId 的 Message 都会被确认。

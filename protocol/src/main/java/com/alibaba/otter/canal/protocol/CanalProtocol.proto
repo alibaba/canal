@@ -89,6 +89,9 @@ message Get {
     optional string destination = 1;
     optional string client_id = 2;
     optional int32 fetch_size = 3;
+    optional int64 timeout = 4 [default = -1]; // 默认-1时代表不控制
+    optional int32 unit = 5 [default = 2];// 数字类型，0:纳秒,1:毫秒,2:微秒,3:秒,4:分钟,5:小时,6:天
+    optional bool auto_ack = 6 [default = false]; // 是否自动ack
 }
 
 //

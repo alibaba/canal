@@ -4709,6 +4709,18 @@ public final class CanalPacket {
     // optional int32 fetch_size = 3;
     boolean hasFetchSize();
     int getFetchSize();
+    
+    // optional int64 timeout = 4 [default = -1];
+    boolean hasTimeout();
+    long getTimeout();
+    
+    // optional int32 unit = 5 [default = 2];
+    boolean hasUnit();
+    int getUnit();
+    
+    // optional bool auto_ack = 6 [default = false];
+    boolean hasAutoAck();
+    boolean getAutoAck();
   }
   public static final class Get extends
       com.google.protobuf.GeneratedMessage
@@ -4813,10 +4825,43 @@ public final class CanalPacket {
       return fetchSize_;
     }
     
+    // optional int64 timeout = 4 [default = -1];
+    public static final int TIMEOUT_FIELD_NUMBER = 4;
+    private long timeout_;
+    public boolean hasTimeout() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    public long getTimeout() {
+      return timeout_;
+    }
+    
+    // optional int32 unit = 5 [default = 2];
+    public static final int UNIT_FIELD_NUMBER = 5;
+    private int unit_;
+    public boolean hasUnit() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    public int getUnit() {
+      return unit_;
+    }
+    
+    // optional bool auto_ack = 6 [default = false];
+    public static final int AUTO_ACK_FIELD_NUMBER = 6;
+    private boolean autoAck_;
+    public boolean hasAutoAck() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    public boolean getAutoAck() {
+      return autoAck_;
+    }
+    
     private void initFields() {
       destination_ = "";
       clientId_ = "";
       fetchSize_ = 0;
+      timeout_ = -1L;
+      unit_ = 2;
+      autoAck_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4839,6 +4884,15 @@ public final class CanalPacket {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt32(3, fetchSize_);
       }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(4, timeout_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeInt32(5, unit_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeBool(6, autoAck_);
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -4859,6 +4913,18 @@ public final class CanalPacket {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(3, fetchSize_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, timeout_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, unit_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(6, autoAck_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4990,6 +5056,12 @@ public final class CanalPacket {
         bitField0_ = (bitField0_ & ~0x00000002);
         fetchSize_ = 0;
         bitField0_ = (bitField0_ & ~0x00000004);
+        timeout_ = -1L;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        unit_ = 2;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        autoAck_ = false;
+        bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
       
@@ -5040,6 +5112,18 @@ public final class CanalPacket {
           to_bitField0_ |= 0x00000004;
         }
         result.fetchSize_ = fetchSize_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.timeout_ = timeout_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.unit_ = unit_;
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.autoAck_ = autoAck_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -5064,6 +5148,15 @@ public final class CanalPacket {
         }
         if (other.hasFetchSize()) {
           setFetchSize(other.getFetchSize());
+        }
+        if (other.hasTimeout()) {
+          setTimeout(other.getTimeout());
+        }
+        if (other.hasUnit()) {
+          setUnit(other.getUnit());
+        }
+        if (other.hasAutoAck()) {
+          setAutoAck(other.getAutoAck());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5109,6 +5202,21 @@ public final class CanalPacket {
             case 24: {
               bitField0_ |= 0x00000004;
               fetchSize_ = input.readInt32();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              timeout_ = input.readInt64();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              unit_ = input.readInt32();
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              autoAck_ = input.readBool();
               break;
             }
           }
@@ -5206,6 +5314,69 @@ public final class CanalPacket {
       public Builder clearFetchSize() {
         bitField0_ = (bitField0_ & ~0x00000004);
         fetchSize_ = 0;
+        onChanged();
+        return this;
+      }
+      
+      // optional int64 timeout = 4 [default = -1];
+      private long timeout_ = -1L;
+      public boolean hasTimeout() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      public long getTimeout() {
+        return timeout_;
+      }
+      public Builder setTimeout(long value) {
+        bitField0_ |= 0x00000008;
+        timeout_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearTimeout() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        timeout_ = -1L;
+        onChanged();
+        return this;
+      }
+      
+      // optional int32 unit = 5 [default = 2];
+      private int unit_ = 2;
+      public boolean hasUnit() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      public int getUnit() {
+        return unit_;
+      }
+      public Builder setUnit(int value) {
+        bitField0_ |= 0x00000010;
+        unit_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearUnit() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        unit_ = 2;
+        onChanged();
+        return this;
+      }
+      
+      // optional bool auto_ack = 6 [default = false];
+      private boolean autoAck_ ;
+      public boolean hasAutoAck() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      public boolean getAutoAck() {
+        return autoAck_;
+      }
+      public Builder setAutoAck(boolean value) {
+        bitField0_ |= 0x00000020;
+        autoAck_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearAutoAck() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        autoAck_ = false;
         onChanged();
         return this;
       }
@@ -6770,21 +6941,23 @@ public final class CanalPacket {
       "\002 \001(\t\022\020\n\010batch_id\030\003 \001(\003\"=\n\003Sub\022\023\n\013destin",
       "ation\030\001 \001(\t\022\021\n\tclient_id\030\002 \001(\t\022\016\n\006filter" +
       "\030\007 \001(\t\"?\n\005Unsub\022\023\n\013destination\030\001 \001(\t\022\021\n\t" +
-      "client_id\030\002 \001(\t\022\016\n\006filter\030\007 \001(\t\"A\n\003Get\022\023" +
-      "\n\013destination\030\001 \001(\t\022\021\n\tclient_id\030\002 \001(\t\022\022" +
-      "\n\nfetch_size\030\003 \001(\005\".\n\010Messages\022\020\n\010batch_" +
-      "id\030\001 \001(\003\022\020\n\010messages\030\002 \003(\014\"?\n\004Dump\022\017\n\007jo" +
-      "urnal\030\001 \001(\t\022\020\n\010position\030\002 \001(\003\022\024\n\ttimesta" +
-      "mp\030\003 \001(\003:\0010\"J\n\016ClientRollback\022\023\n\013destina" +
-      "tion\030\001 \001(\t\022\021\n\tclient_id\030\002 \001(\t\022\020\n\010batch_i" +
-      "d\030\003 \001(\003*4\n\013Compression\022\010\n\004NONE\020\001\022\010\n\004ZLIB",
-      "\020\002\022\010\n\004GZIP\020\003\022\007\n\003LZF\020\004*\305\001\n\nPacketType\022\r\n\t" +
-      "HANDSHAKE\020\001\022\030\n\024CLIENTAUTHENTICATION\020\002\022\007\n" +
-      "\003ACK\020\003\022\020\n\014SUBSCRIPTION\020\004\022\022\n\016UNSUBSCRIPTI" +
-      "ON\020\005\022\007\n\003GET\020\006\022\014\n\010MESSAGES\020\007\022\r\n\tCLIENTACK" +
-      "\020\010\022\014\n\010SHUTDOWN\020\t\022\010\n\004DUMP\020\n\022\r\n\tHEARTBEAT\020" +
-      "\013\022\022\n\016CLIENTROLLBACK\020\014B1\n com.alibaba.ott" +
-      "er.canal.protocolB\013CanalPacketH\001"
+      "client_id\030\002 \001(\t\022\016\n\006filter\030\007 \001(\t\"\200\001\n\003Get\022" +
+      "\023\n\013destination\030\001 \001(\t\022\021\n\tclient_id\030\002 \001(\t\022" +
+      "\022\n\nfetch_size\030\003 \001(\005\022\023\n\007timeout\030\004 \001(\003:\002-1" +
+      "\022\017\n\004unit\030\005 \001(\005:\0012\022\027\n\010auto_ack\030\006 \001(\010:\005fal" +
+      "se\".\n\010Messages\022\020\n\010batch_id\030\001 \001(\003\022\020\n\010mess" +
+      "ages\030\002 \003(\014\"?\n\004Dump\022\017\n\007journal\030\001 \001(\t\022\020\n\010p" +
+      "osition\030\002 \001(\003\022\024\n\ttimestamp\030\003 \001(\003:\0010\"J\n\016C" +
+      "lientRollback\022\023\n\013destination\030\001 \001(\t\022\021\n\tcl",
+      "ient_id\030\002 \001(\t\022\020\n\010batch_id\030\003 \001(\003*4\n\013Compr" +
+      "ession\022\010\n\004NONE\020\001\022\010\n\004ZLIB\020\002\022\010\n\004GZIP\020\003\022\007\n\003" +
+      "LZF\020\004*\305\001\n\nPacketType\022\r\n\tHANDSHAKE\020\001\022\030\n\024C" +
+      "LIENTAUTHENTICATION\020\002\022\007\n\003ACK\020\003\022\020\n\014SUBSCR" +
+      "IPTION\020\004\022\022\n\016UNSUBSCRIPTION\020\005\022\007\n\003GET\020\006\022\014\n" +
+      "\010MESSAGES\020\007\022\r\n\tCLIENTACK\020\010\022\014\n\010SHUTDOWN\020\t" +
+      "\022\010\n\004DUMP\020\n\022\r\n\tHEARTBEAT\020\013\022\022\n\016CLIENTROLLB" +
+      "ACK\020\014B1\n com.alibaba.otter.canal.protoco" +
+      "lB\013CanalPacketH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6860,7 +7033,7 @@ public final class CanalPacket {
           internal_static_com_alibaba_otter_canal_protocol_Get_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_alibaba_otter_canal_protocol_Get_descriptor,
-              new java.lang.String[] { "Destination", "ClientId", "FetchSize", },
+              new java.lang.String[] { "Destination", "ClientId", "FetchSize", "Timeout", "Unit", "AutoAck", },
               com.alibaba.otter.canal.protocol.CanalPacket.Get.class,
               com.alibaba.otter.canal.protocol.CanalPacket.Get.Builder.class);
           internal_static_com_alibaba_otter_canal_protocol_Messages_descriptor =

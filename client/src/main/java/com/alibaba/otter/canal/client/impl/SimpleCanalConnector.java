@@ -8,6 +8,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +20,6 @@ import com.alibaba.otter.canal.client.impl.running.ClientRunningMonitor;
 import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
-import com.alibaba.otter.canal.protocol.ClientIdentity;
-import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAck;
@@ -34,8 +33,11 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
+import com.alibaba.otter.canal.protocol.ClientIdentity;
+import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * 基于{@linkplain CanalServerWithNetty}定义的网络协议接口，对于canal数据进行get/rollback/ack等操作
@@ -125,11 +127,8 @@ public class SimpleCanalConnector implements CanalConnector {
             Handshake handshake = Handshake.parseFrom(p.getBody());
             supportedCompressions.addAll(handshake.getSupportedCompressionsList());
             //
-            ClientAuth ca = ClientAuth.newBuilder().setUsername(username != null ? username : "").setNetReadTimeout(
-                                                                                                                    soTimeout).setNetWriteTimeout(
-                                                                                                                                                  soTimeout).build();
-            writeWithHeader(
-                            channel,
+            ClientAuth ca = ClientAuth.newBuilder().setUsername(username != null ? username : "").setNetReadTimeout(soTimeout).setNetWriteTimeout(soTimeout).build();
+            writeWithHeader(channel,
                             Packet.newBuilder().setType(PacketType.CLIENTAUTHENTICATION).setBody(ca.toByteString()).build().toByteArray());
             //
             Packet ack = Packet.parseFrom(readNextPacket(channel));
@@ -163,13 +162,8 @@ public class SimpleCanalConnector implements CanalConnector {
     public void subscribe(String filter) throws CanalClientException {
         waitClientRunning();
         try {
-            writeWithHeader(
-                            channel,
-                            Packet.newBuilder().setType(PacketType.SUBSCRIPTION).setBody(
-                                                                                         Sub.newBuilder().setDestination(
-                                                                                                                         clientIdentity.getDestination()).setClientId(
-                                                                                                                                                                      String.valueOf(clientIdentity.getClientId())).setFilter(
-                                                                                                                                                                                                                              filter != null ? filter : "").build().toByteString()).build().toByteArray());
+            writeWithHeader(channel,
+                            Packet.newBuilder().setType(PacketType.SUBSCRIPTION).setBody(Sub.newBuilder().setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFilter(filter != null ? filter : "").build().toByteString()).build().toByteArray());
             //
             Packet p = Packet.parseFrom(readNextPacket(channel));
             Ack ack = Ack.parseFrom(p.getBody());
@@ -186,12 +180,8 @@ public class SimpleCanalConnector implements CanalConnector {
     public void unsubscribe() throws CanalClientException {
         waitClientRunning();
         try {
-            writeWithHeader(
-                            channel,
-                            Packet.newBuilder().setType(PacketType.UNSUBSCRIPTION).setBody(
-                                                                                           Unsub.newBuilder().setDestination(
-                                                                                                                             clientIdentity.getDestination()).setClientId(
-                                                                                                                                                                          String.valueOf(clientIdentity.getClientId())).build().toByteString()).build().toByteArray());
+            writeWithHeader(channel,
+                            Packet.newBuilder().setType(PacketType.UNSUBSCRIPTION).setBody(Unsub.newBuilder().setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).build().toByteString()).build().toByteArray());
             //
             Packet p = Packet.parseFrom(readNextPacket(channel));
             Ack ack = Ack.parseFrom(p.getBody());
@@ -205,58 +195,94 @@ public class SimpleCanalConnector implements CanalConnector {
 
     public Message get(int batchSize) throws CanalClientException {
         waitClientRunning();
-        Message msg = getWithoutAck(batchSize);
-        ack(batchSize);
-        return msg;
+        try {
+            int size = (batchSize <= 0) ? 1000 : batchSize;
+            writeWithHeader(channel,
+                            Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(true).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).build().toByteString()).build().toByteArray());
+            return receiveMessages();
+        } catch (IOException e) {
+            throw new CanalClientException(e);
+        }
+    }
+
+    public Message get(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
+        waitClientRunning();
+        try {
+            int size = (batchSize <= 0) ? 1000 : batchSize;
+            long time = (timeout == null || timeout < 0) ? 0 : timeout;
+            if (unit == null) {
+                unit = TimeUnit.MILLISECONDS;
+            }
+
+            writeWithHeader(channel,
+                            Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(true).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).setTimeout(time).setUnit(unit.ordinal()).build().toByteString()).build().toByteArray());
+
+            return receiveMessages();
+        } catch (IOException e) {
+            throw new CanalClientException(e);
+        }
+    }
+
+    public Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
+        waitClientRunning();
+        try {
+            int size = (batchSize <= 0) ? 1000 : batchSize;
+            long time = (timeout == null || timeout < 0) ? 0 : timeout;
+            if (unit == null) {
+                unit = TimeUnit.MILLISECONDS;
+            }
+
+            writeWithHeader(channel,
+                            Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(false).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).setTimeout(time).setUnit(unit.ordinal()).build().toByteString()).build().toByteArray());
+
+            return receiveMessages();
+        } catch (IOException e) {
+            throw new CanalClientException(e);
+        }
     }
 
     public Message getWithoutAck(int batchSize) throws CanalClientException {
         waitClientRunning();
         try {
             int size = (batchSize <= 0) ? 1000 : batchSize;
-            writeWithHeader(
-                            channel,
-                            Packet.newBuilder().setType(PacketType.GET).setBody(
-                                                                                Get.newBuilder().setDestination(
-                                                                                                                clientIdentity.getDestination()).setClientId(
-                                                                                                                                                             String.valueOf(clientIdentity.getClientId())).setFetchSize(
-                                                                                                                                                                                                                        size).build().toByteString()).build().toByteArray());
-            //
-            Packet p = Packet.parseFrom(readNextPacket(channel));
-            switch (p.getType()) {
-                case MESSAGES: {
-                    if (!p.getCompression().equals(Compression.NONE)) {
-                        throw new CanalClientException("compression is not supported in this connector");
-                    }
-
-                    Messages messages = Messages.parseFrom(p.getBody());
-                    Message result = new Message(messages.getBatchId());
-                    for (ByteString byteString : messages.getMessagesList()) {
-                        result.addEntry(Entry.parseFrom(byteString));
-                    }
-                    return result;
-                }
-                case ACK: {
-                    Ack ack = Ack.parseFrom(p.getBody());
-                    throw new CanalClientException("something goes wrong with reason: " + ack.getErrorMessage());
-                }
-                default: {
-                    throw new CanalClientException("unexpected packet type: " + p.getType());
-                }
-            }
+            writeWithHeader(channel,
+                            Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(false).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).build().toByteString()).build().toByteArray());
+            return receiveMessages();
         } catch (IOException e) {
             throw new CanalClientException(e);
         }
     }
 
+    private Message receiveMessages() throws InvalidProtocolBufferException, IOException {
+        Packet p = Packet.parseFrom(readNextPacket(channel));
+        switch (p.getType()) {
+            case MESSAGES: {
+                if (!p.getCompression().equals(Compression.NONE)) {
+                    throw new CanalClientException("compression is not supported in this connector");
+                }
+
+                Messages messages = Messages.parseFrom(p.getBody());
+                Message result = new Message(messages.getBatchId());
+                for (ByteString byteString : messages.getMessagesList()) {
+                    result.addEntry(Entry.parseFrom(byteString));
+                }
+                return result;
+            }
+            case ACK: {
+                Ack ack = Ack.parseFrom(p.getBody());
+                throw new CanalClientException("something goes wrong with reason: " + ack.getErrorMessage());
+            }
+            default: {
+                throw new CanalClientException("unexpected packet type: " + p.getType());
+            }
+        }
+    }
+
     public void ack(long batchId) throws CanalClientException {
         waitClientRunning();
-        ClientAck ca = ClientAck.newBuilder().setDestination(clientIdentity.getDestination()).setClientId(
-                                                                                                          String.valueOf(clientIdentity.getClientId())).setBatchId(
-                                                                                                                                                                   batchId).build();
+        ClientAck ca = ClientAck.newBuilder().setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setBatchId(batchId).build();
         try {
-            writeWithHeader(
-                            channel,
+            writeWithHeader(channel,
                             Packet.newBuilder().setType(PacketType.CLIENTACK).setBody(ca.toByteString()).build().toByteArray());
         } catch (IOException e) {
             throw new CanalClientException(e);
@@ -265,12 +291,9 @@ public class SimpleCanalConnector implements CanalConnector {
 
     public void rollback(long batchId) throws CanalClientException {
         waitClientRunning();
-        ClientRollback ca = ClientRollback.newBuilder().setDestination(clientIdentity.getDestination()).setClientId(
-                                                                                                                    String.valueOf(clientIdentity.getClientId())).setBatchId(
-                                                                                                                                                                             batchId).build();
+        ClientRollback ca = ClientRollback.newBuilder().setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setBatchId(batchId).build();
         try {
-            writeWithHeader(
-                            channel,
+            writeWithHeader(channel,
                             Packet.newBuilder().setType(PacketType.CLIENTROLLBACK).setBody(ca.toByteString()).build().toByteArray());
         } catch (IOException e) {
             throw new CanalClientException(e);

@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.impl;
 
 import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -128,11 +129,45 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to fetch the data after " + times + " times retry");
     }
 
+    public Message get(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
+        int times = 0;
+        while (times < retryTimes) {
+            try {
+                Message msg = currentConnector.get(batchSize, timeout, unit);
+                return msg;
+            } catch (Throwable t) {
+                logger.warn("something goes wrong when getting data from server:{}\n{}", currentConnector.getAddress(),
+                            ExceptionUtils.getFullStackTrace(t));
+                times++;
+                restart();
+                logger.info("restart the connector for next round retry.");
+            }
+        }
+        throw new CanalClientException("failed to fetch the data after " + times + " times retry");
+    }
+
     public Message getWithoutAck(int batchSize) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
             try {
                 Message msg = currentConnector.getWithoutAck(batchSize);
+                return msg;
+            } catch (Throwable t) {
+                logger.warn("something goes wrong when getWithoutAck data from server:{}\n{}",
+                            currentConnector.getAddress(), ExceptionUtils.getFullStackTrace(t));
+                times++;
+                restart();
+                logger.info("restart the connector for next round retry.");
+            }
+        }
+        throw new CanalClientException("failed to fetch the data after " + times + " times retry");
+    }
+
+    public Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
+        int times = 0;
+        while (times < retryTimes) {
+            try {
+                Message msg = currentConnector.getWithoutAck(batchSize, timeout, unit);
                 return msg;
             } catch (Throwable t) {
                 logger.warn("something goes wrong when getWithoutAck data from server:{}\n{}",
@@ -242,27 +277,22 @@ public class ClusterCanalConnector implements CanalConnector {
         this.retryTimes = retryTimes;
     }
 
-    
     public int getRetryInterval() {
         return retryInterval;
     }
 
-    
     public void setRetryInterval(int retryInterval) {
         this.retryInterval = retryInterval;
     }
 
-    
     public CanalNodeAccessStrategy getAccessStrategy() {
         return accessStrategy;
     }
 
-    
     public void setAccessStrategy(CanalNodeAccessStrategy accessStrategy) {
         this.accessStrategy = accessStrategy;
     }
 
-    
     public SimpleCanalConnector getCurrentConnector() {
         return currentConnector;
     }
