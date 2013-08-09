@@ -16,10 +16,13 @@ public class SocketAddressEditor extends PropertyEditorSupport implements Proper
     public void setAsText(String text) throws IllegalArgumentException {
         String[] addresses = StringUtils.split(text, ":");
         if (addresses.length > 0) {
-            setValue(new InetSocketAddress(addresses[0], Integer.valueOf(addresses[1])));
+            if (addresses.length != 2) {
+                throw new RuntimeException("address[" + text + "] is illegal, eg.127.0.0.1:3306");
+            } else {
+                setValue(new InetSocketAddress(addresses[0], Integer.valueOf(addresses[1])));
+            }
         } else {
             setValue(null);
         }
     }
-
 }
