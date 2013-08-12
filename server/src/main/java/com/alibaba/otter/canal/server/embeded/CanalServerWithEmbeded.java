@@ -205,8 +205,6 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
             } else {
                 // 记录到流式信息
                 Long batchId = canalInstance.getMetaManager().addBatch(clientIdentity, events.getPositionRange());
-                // 直接提交ack
-                ack(clientIdentity, batchId);
                 List<Entry> entrys = Lists.transform(events.getEvents(), new Function<Event, Entry>() {
 
                     public Entry apply(Event input) {
@@ -217,6 +215,8 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
                 logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
                             new Object[] { clientIdentity.getClientId(), batchSize, entrys.size(), batchId,
                                     events.getPositionRange() });
+                // 直接提交ack
+                ack(clientIdentity, batchId);
                 return new Message(batchId, entrys);
             }
         }

@@ -194,40 +194,24 @@ public class SimpleCanalConnector implements CanalConnector {
     }
 
     public Message get(int batchSize) throws CanalClientException {
-        waitClientRunning();
-        try {
-            int size = (batchSize <= 0) ? 1000 : batchSize;
-            writeWithHeader(channel,
-                            Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(true).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).build().toByteString()).build().toByteArray());
-            return receiveMessages();
-        } catch (IOException e) {
-            throw new CanalClientException(e);
-        }
+        return get(batchSize, null, null);
     }
 
     public Message get(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
-        waitClientRunning();
-        try {
-            int size = (batchSize <= 0) ? 1000 : batchSize;
-            long time = (timeout == null || timeout < 0) ? 0 : timeout;
-            if (unit == null) {
-                unit = TimeUnit.MILLISECONDS;
-            }
+        Message message = getWithoutAck(batchSize, timeout, unit);
+        ack(message.getId());
+        return message;
+    }
 
-            writeWithHeader(channel,
-                            Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(true).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).setTimeout(time).setUnit(unit.ordinal()).build().toByteString()).build().toByteArray());
-
-            return receiveMessages();
-        } catch (IOException e) {
-            throw new CanalClientException(e);
-        }
+    public Message getWithoutAck(int batchSize) throws CanalClientException {
+        return getWithoutAck(batchSize, null, null);
     }
 
     public Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         waitClientRunning();
         try {
             int size = (batchSize <= 0) ? 1000 : batchSize;
-            long time = (timeout == null || timeout < 0) ? 0 : timeout;
+            long time = (timeout == null || timeout < 0) ? -1 : timeout; // -1代表不做timeout控制
             if (unit == null) {
                 unit = TimeUnit.MILLISECONDS;
             }
@@ -235,18 +219,6 @@ public class SimpleCanalConnector implements CanalConnector {
             writeWithHeader(channel,
                             Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(false).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).setTimeout(time).setUnit(unit.ordinal()).build().toByteString()).build().toByteArray());
 
-            return receiveMessages();
-        } catch (IOException e) {
-            throw new CanalClientException(e);
-        }
-    }
-
-    public Message getWithoutAck(int batchSize) throws CanalClientException {
-        waitClientRunning();
-        try {
-            int size = (batchSize <= 0) ? 1000 : batchSize;
-            writeWithHeader(channel,
-                            Packet.newBuilder().setType(PacketType.GET).setBody(Get.newBuilder().setAutoAck(false).setDestination(clientIdentity.getDestination()).setClientId(String.valueOf(clientIdentity.getClientId())).setFetchSize(size).build().toByteString()).build().toByteArray());
             return receiveMessages();
         } catch (IOException e) {
             throw new CanalClientException(e);

@@ -106,22 +106,22 @@ public class SessionHandler extends SimpleChannelHandler {
                         MDC.put("destination", clientIdentity.getDestination());
                         Message message = null;
 
-                        if (get.getAutoAck()) {
-                            if (get.getTimeout() == -1) {//是否是初始值
-                                embededServer.get(clientIdentity, get.getFetchSize());
-                            } else {
-                                TimeUnit unit = convertTimeUnit(get.getUnit());
-                                message = embededServer.get(clientIdentity, get.getFetchSize(), get.getTimeout(), unit);
-                            }
+                        //                        if (get.getAutoAck()) {
+                        //                            if (get.getTimeout() == -1) {//是否是初始值
+                        //                                message = embededServer.get(clientIdentity, get.getFetchSize());
+                        //                            } else {
+                        //                                TimeUnit unit = convertTimeUnit(get.getUnit());
+                        //                                message = embededServer.get(clientIdentity, get.getFetchSize(), get.getTimeout(), unit);
+                        //                            }
+                        //                        } else {
+                        if (get.getTimeout() == -1) {//是否是初始值
+                            message = embededServer.getWithoutAck(clientIdentity, get.getFetchSize());
                         } else {
-                            if (get.getTimeout() == -1) {//是否是初始值
-                                embededServer.getWithoutAck(clientIdentity, get.getFetchSize());
-                            } else {
-                                TimeUnit unit = convertTimeUnit(get.getUnit());
-                                message = embededServer.getWithoutAck(clientIdentity, get.getFetchSize(),
-                                                                      get.getTimeout(), unit);
-                            }
+                            TimeUnit unit = convertTimeUnit(get.getUnit());
+                            message = embededServer.getWithoutAck(clientIdentity, get.getFetchSize(), get.getTimeout(),
+                                                                  unit);
                         }
+                        //                        }
 
                         Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
                         packetBuilder.setType(PacketType.MESSAGES);
