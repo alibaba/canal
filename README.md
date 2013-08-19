@@ -1,7 +1,12 @@
 <div class="blog_content">
     <div class="iteye-blog-content-contain">
 
-<h3>最新更新：canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</h3>
+<h3>最新更新</h3>
+<ol>
+<li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
+<li>canal消费端项目开源: Otter(分布式数据库同步系统)，<a href="https://github.com/alibaba/otter">地址：https://github.com/alibaba/otter</a></li>
+</ol>
+
 <h1>背景</h1>
 <p style="font-size: 14px;">   早期，阿里巴巴B2B公司因为存在杭州和美国双机房部署，存在跨机房同步的业务需求。不过早期的数据库同步业务，主要是基于trigger的方式获取增量变更，不过从2010年开始，阿里系公司开始逐步的尝试基于数据库的日志解析，获取增量变更进行同步，由此衍生出了增量订阅&amp;消费的业务，从此开启了一段新纪元。</p>
 <p style="font-size: 14px;">   ps. 目前内部版本已经支持mysql和oracle部分版本的日志解析，当前的canal开源版本支持5.6及以下的版本(阿里内部mysql 5.6.10, mysql 5.5.18和5.1.40/48)</p>
