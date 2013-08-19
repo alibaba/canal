@@ -24,8 +24,9 @@ public class CanalParameter implements Serializable {
     // 相关参数
     private RunMode                  runMode                            = RunMode.EMBEDDED;          // 运行模式：嵌入式/服务式
     private ClusterMode              clusterMode                        = ClusterMode.STANDALONE;    // 集群模式：单机/冷备/热备份
+
+    private Long                     zkClusterId;                                                    // zk集群id，为管理方便
     private List<String>             zkClusters;                                                     // zk集群地址
-    private AreaType                 areaType                           = null;
 
     // meta相关参数
     private MetaMode                 metaMode                           = MetaMode.MEMORY;           // meta机制
@@ -139,22 +140,11 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum HAMode {
-        /** cobar ha控制 */
-        COBAR,
-        /** tddl ha控制 */
-        TDDL,
+
         /** 心跳检测 */
         HEARTBEAT,
         /** otter media */
         MEDIA;
-
-        public boolean isCobar() {
-            return this.equals(HAMode.COBAR);
-        }
-
-        public boolean isTddl() {
-            return this.equals(HAMode.TDDL);
-        }
 
         public boolean isHeartBeat() {
             return this.equals(HAMode.HEARTBEAT);
@@ -172,9 +162,7 @@ public class CanalParameter implements Serializable {
         /** 文件存储模式 */
         FILE,
         /** 混合模式，内存+文件 */
-        MIXED,
-        /** metaq模式 */
-        METAQ;
+        MIXED;
 
         public boolean isMemory() {
             return this.equals(StorageMode.MEMORY);
@@ -188,9 +176,6 @@ public class CanalParameter implements Serializable {
             return this.equals(StorageMode.MIXED);
         }
 
-        public boolean isMetaq() {
-            return this.equals(StorageMode.METAQ);
-        }
     }
 
     public static enum StorageScavengeMode {
@@ -837,12 +822,12 @@ public class CanalParameter implements Serializable {
         this.mediaGroup = mediaGroup;
     }
 
-    public AreaType getAreaType() {
-        return areaType;
+    public Long getZkClusterId() {
+        return zkClusterId;
     }
 
-    public void setAreaType(AreaType areaType) {
-        this.areaType = areaType;
+    public void setZkClusterId(Long zkClusterId) {
+        this.zkClusterId = zkClusterId;
     }
 
     public String toString() {

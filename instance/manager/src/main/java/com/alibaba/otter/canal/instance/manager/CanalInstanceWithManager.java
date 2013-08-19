@@ -46,8 +46,8 @@ import com.alibaba.otter.canal.parse.index.MetaLogPositionManager;
 import com.alibaba.otter.canal.parse.index.PeriodMixedLogPositionManager;
 import com.alibaba.otter.canal.parse.index.ZooKeeperLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
-import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
@@ -252,9 +252,6 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         } else if (mode.isMixed()) {
             // 后续版本支持
             throw new CanalException("unsupport MetaMode for " + mode);
-        } else if (mode.isMetaq()) {
-            // TODO create metaq store
-            throw new CanalException("unsupport MetaMode for " + mode);
         } else {
             throw new CanalException("unsupport MetaMode for " + mode);
         }
@@ -434,10 +431,6 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             haController = new HeartBeatHAController();
             ((HeartBeatHAController) haController).setDetectingRetryTimes(parameters.getDetectingRetryTimes());
             ((HeartBeatHAController) haController).setSwitchEnable(parameters.getHeartbeatHaEnable());
-        } else if (haMode.isTddl()) {
-            throw new CanalException("unsupport HAMode for " + haMode);
-        } else if (haMode.isCobar()) {
-            throw new CanalException("unsupport HAMode for " + haMode);
         } else {
             throw new CanalException("unsupport HAMode for " + haMode);
         }
