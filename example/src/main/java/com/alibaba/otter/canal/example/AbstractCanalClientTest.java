@@ -12,13 +12,16 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
+import com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin;
+import com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd;
+import com.alibaba.otter.canal.protocol.Message;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * 测试基类
@@ -28,20 +31,21 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
  */
 public class AbstractCanalClientTest {
 
-    protected final static Logger             logger         = LoggerFactory.getLogger(AbstractCanalClientTest.class);
-    protected static final String             SEP            = SystemUtils.LINE_SEPARATOR;
-    protected static final String             DATE_FORMAT    = "yyyy-MM-dd HH:mm:ss";
-    protected volatile boolean                running        = false;
-    protected Thread.UncaughtExceptionHandler handler        = new Thread.UncaughtExceptionHandler() {
+    protected final static Logger             logger             = LoggerFactory.getLogger(AbstractCanalClientTest.class);
+    protected static final String             SEP                = SystemUtils.LINE_SEPARATOR;
+    protected static final String             DATE_FORMAT        = "yyyy-MM-dd HH:mm:ss";
+    protected volatile boolean                running            = false;
+    protected Thread.UncaughtExceptionHandler handler            = new Thread.UncaughtExceptionHandler() {
 
-                                                                 public void uncaughtException(Thread t, Throwable e) {
-                                                                     logger.error("parse events has an error", e);
-                                                                 }
-                                                             };
-    protected Thread                          thread         = null;
+                                                                     public void uncaughtException(Thread t, Throwable e) {
+                                                                         logger.error("parse events has an error", e);
+                                                                     }
+                                                                 };
+    protected Thread                          thread             = null;
     protected CanalConnector                  connector;
-    protected static String                   context_format = null;
-    protected static String                   row_format     = null;
+    protected static String                   context_format     = null;
+    protected static String                   row_format         = null;
+    protected static String                   transaction_format = null;
     protected String                          destination;
 
     static {
@@ -52,8 +56,11 @@ public class AbstractCanalClientTest {
         context_format += "****************************************************" + SEP;
 
         row_format = SEP
-                     + "================> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {} , delay : {}ms"
+                     + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {} , delay : {}ms"
                      + SEP;
+
+        transaction_format = SEP + "================> binlog[{}:{}] , executeTime : {} , delay : {}ms" + SEP;
+
     }
 
     public AbstractCanalClientTest(String destination){
@@ -155,7 +162,39 @@ public class AbstractCanalClientTest {
 
     protected void printEntry(List<Entry> entrys) {
         for (Entry entry : entrys) {
+            long executeTime = entry.getHeader().getExecuteTime();
+            long delayTime = new Date().getTime() - executeTime;
+
             if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN || entry.getEntryType() == EntryType.TRANSACTIONEND) {
+                if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN) {
+                    TransactionBegin begin = null;
+                    try {
+                        begin = TransactionBegin.parseFrom(entry.getStoreValue());
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
+                    }
+                    // 打印事务头信息，执行的线程id，事务耗时
+                    logger.info(transaction_format,
+                                new Object[] { entry.getHeader().getLogfileName(),
+                                        String.valueOf(entry.getHeader().getLogfileOffset()),
+                                        String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
+                    logger.info(" BEGIN ----> Thread id: {}", begin.getThreadId());
+                } else if (entry.getEntryType() == EntryType.TRANSACTIONEND) {
+                    TransactionEnd end = null;
+                    try {
+                        end = TransactionEnd.parseFrom(entry.getStoreValue());
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
+                    }
+                    // 打印事务提交信息，事务id
+                    logger.info("----------------\n");
+                    logger.info(" END ----> transaction id: {}", end.getTransactionId());
+                    logger.info(transaction_format,
+                                new Object[] { entry.getHeader().getLogfileName(),
+                                        String.valueOf(entry.getHeader().getLogfileOffset()),
+                                        String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
+                }
+
                 continue;
             }
 
@@ -167,12 +206,12 @@ public class AbstractCanalClientTest {
             }
 
             EventType eventType = rowChage.getEventType();
-            long executeTime = entry.getHeader().getExecuteTime();
-            long delayTime = new Date().getTime() - executeTime;
-            logger.info(row_format, new Object[] { entry.getHeader().getLogfileName(),
-                    String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
-                    entry.getHeader().getTableName(), eventType, String.valueOf(entry.getHeader().getExecuteTime()),
-                    String.valueOf(delayTime) });
+
+            logger.info(row_format,
+                        new Object[] { entry.getHeader().getLogfileName(),
+                                String.valueOf(entry.getHeader().getLogfileOffset()),
+                                entry.getHeader().getSchemaName(), entry.getHeader().getTableName(), eventType,
+                                String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
 
             if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
                 logger.info(" sql ----> " + rowChage.getSql() + SEP);

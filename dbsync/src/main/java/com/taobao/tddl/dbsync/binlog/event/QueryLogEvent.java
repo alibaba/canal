@@ -405,6 +405,7 @@ public class QueryLogEvent extends LogEvent
     protected final String  dbname;
 
     /** The number of seconds the query took to run on the master. */
+    //  The time in seconds that the statement took to execute. Only useful for inspection by the DBA
     private final long      execTime;
     private final int       errorCode;
     private final long      sessionId;                                                                                      /* thread_id */

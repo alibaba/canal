@@ -44,12 +44,12 @@ import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
 import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
 
 /**
  * 基于{@linkplain LogEvent}转化为Entry对象的处理
@@ -127,11 +127,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private Entry parseQueryEvent(QueryLogEvent event) {
         String queryString = event.getQuery();
         if (StringUtils.endsWithIgnoreCase(queryString, BEGIN)) {
-            TransactionBegin transactionBegin = createTransactionBegin(event.getExecTime());
+            TransactionBegin transactionBegin = createTransactionBegin(event.getSessionId());
             Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONBEGIN, transactionBegin.toByteString());
         } else if (StringUtils.endsWithIgnoreCase(queryString, COMMIT)) {
-            TransactionEnd transactionEnd = createTransactionEnd(0L, event.getWhen()); // MyISAM可能不会有xid事件
+            TransactionEnd transactionEnd = createTransactionEnd(0L); // MyISAM可能不会有xid事件
             Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
         } else {
@@ -188,7 +188,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry parseXidEvent(XidLogEvent event) {
-        TransactionEnd transactionEnd = createTransactionEnd(event.getXid(), event.getWhen());
+        TransactionEnd transactionEnd = createTransactionEnd(event.getXid());
         Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
         return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
     }
@@ -219,11 +219,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 throw new CanalParseException("unsupport event type :" + event.getHeader().getType());
             }
 
-            Header header = createHeader(binlogFileName,
-                event.getHeader(),
-                table.getDbName(),
-                table.getTableName(),
-                eventType);
+            Header header = createHeader(binlogFileName, event.getHeader(), table.getDbName(), table.getTableName(),
+                                         eventType);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
@@ -348,8 +345,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                     break;
 
                                 case 8: /* MYSQL_TYPE_LONGLONG */
-                                    columnBuilder.setValue(BIGINT_MAX_VALUE.add(BigInteger.valueOf(number.longValue()))
-                                        .toString());
+                                    columnBuilder.setValue(BIGINT_MAX_VALUE.add(BigInteger.valueOf(number.longValue())).toString());
                                     javaType = Types.DECIMAL; // 往上加一个量级，避免执行出错
                                     break;
                             }
@@ -384,7 +380,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         // https://github.com/AlibabaTech/canal/issues/18
                         // mysql binlog中blob/text都处理为blob类型，需要反查table
                         // meta，按编码解析text
-                        if (isText(fieldMeta.getColumnType())) {
+                        if (fieldMeta != null && isText(fieldMeta.getColumnType())) {
                             columnBuilder.setValue(new String((byte[]) value, charset));
                             javaType = Types.CLOB;
                         } else {
@@ -408,8 +404,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // 设置是否update的标记位
             columnBuilder.setUpdated(isAfter
                                      && isUpdate(rowDataBuilder.getBeforeColumnsList(),
-                                         columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
-                                         i));
+                                                 columnBuilder.getIsNull() ? null : columnBuilder.getValue(), i));
             if (isAfter) {
                 rowDataBuilder.addAfterColumns(columnBuilder.build());
             } else {
@@ -491,16 +486,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                || "TEXT".equalsIgnoreCase(columnType);
     }
 
-    public static TransactionBegin createTransactionBegin(long executeTime) {
+    public static TransactionBegin createTransactionBegin(long threadId) {
         TransactionBegin.Builder beginBuilder = TransactionBegin.newBuilder();
-        beginBuilder.setExecuteTime(executeTime);
+        beginBuilder.setThreadId(threadId);
         return beginBuilder.build();
     }
 
-    public static TransactionEnd createTransactionEnd(long transactionId, long executeTime) {
+    public static TransactionEnd createTransactionEnd(long transactionId) {
         TransactionEnd.Builder endBuilder = TransactionEnd.newBuilder();
         endBuilder.setTransactionId(String.valueOf(transactionId));
-        endBuilder.setExecuteTime(executeTime);
         return endBuilder.build();
     }
 

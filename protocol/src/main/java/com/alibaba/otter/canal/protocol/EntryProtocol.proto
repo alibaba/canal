@@ -126,20 +126,23 @@ message RowChange {
 /**开始事务的一些信息**/
 message TransactionBegin{
 	
-	/**执行时间**/
+	/**已废弃，请使用header里的executeTime**/
 	optional int64			executeTime		=		1;
 	
-	/**事务号**/
+	/**已废弃，Begin里不提供事务id**/
 	optional string			transactionId	=		2;
 	
 	/**预留扩展**/
 	repeated Pair			props			=		3;	
+	
+	/**执行的thread Id**/
+	optional int64			threadId		=		4;
 }
 
 /**结束事务的一些信息**/
 message TransactionEnd{
 	
-	/**执行时间**/
+	/**已废弃，请使用header里的executeTime**/
 	optional int64			executeTime		=		1;
 	
 	/**事务号**/

@@ -5435,6 +5435,10 @@ public final class CanalEntry {
         getPropsOrBuilderList();
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
+    
+    // optional int64 threadId = 4;
+    boolean hasThreadId();
+    long getThreadId();
   }
   public static final class TransactionBegin extends
       com.google.protobuf.GeneratedMessage
@@ -5528,10 +5532,21 @@ public final class CanalEntry {
       return props_.get(index);
     }
     
+    // optional int64 threadId = 4;
+    public static final int THREADID_FIELD_NUMBER = 4;
+    private long threadId_;
+    public boolean hasThreadId() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    public long getThreadId() {
+      return threadId_;
+    }
+    
     private void initFields() {
       executeTime_ = 0L;
       transactionId_ = "";
       props_ = java.util.Collections.emptyList();
+      threadId_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -5554,6 +5569,9 @@ public final class CanalEntry {
       for (int i = 0; i < props_.size(); i++) {
         output.writeMessage(3, props_.get(i));
       }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(4, threadId_);
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -5574,6 +5592,10 @@ public final class CanalEntry {
       for (int i = 0; i < props_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, props_.get(i));
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, threadId_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5710,6 +5732,8 @@ public final class CanalEntry {
         } else {
           propsBuilder_.clear();
         }
+        threadId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
       
@@ -5765,6 +5789,10 @@ public final class CanalEntry {
         } else {
           result.props_ = propsBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.threadId_ = threadId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -5813,6 +5841,9 @@ public final class CanalEntry {
             }
           }
         }
+        if (other.hasThreadId()) {
+          setThreadId(other.getThreadId());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -5858,6 +5889,11 @@ public final class CanalEntry {
               com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder subBuilder = com.alibaba.otter.canal.protocol.CanalEntry.Pair.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addProps(subBuilder.buildPartial());
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              threadId_ = input.readInt64();
               break;
             }
           }
@@ -6107,6 +6143,27 @@ public final class CanalEntry {
           props_ = null;
         }
         return propsBuilder_;
+      }
+      
+      // optional int64 threadId = 4;
+      private long threadId_ ;
+      public boolean hasThreadId() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      public long getThreadId() {
+        return threadId_;
+      }
+      public Builder setThreadId(long value) {
+        bitField0_ |= 0x00000008;
+        threadId_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearThreadId() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        threadId_ = 0L;
+        onChanged();
+        return this;
       }
       
       // @@protoc_insertion_point(builder_scope:com.alibaba.otter.canal.protocol.TransactionBegin)
@@ -7374,20 +7431,20 @@ public final class CanalEntry {
       "false\022\013\n\003sql\030\013 \001(\t\022;\n\010rowDatas\030\014 \003(\0132).c" +
       "om.alibaba.otter.canal.protocol.RowData\022",
       "5\n\005props\030\r \003(\0132&.com.alibaba.otter.canal" +
-      ".protocol.Pair\"u\n\020TransactionBegin\022\023\n\013ex" +
-      "ecuteTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\0225" +
-      "\n\005props\030\003 \003(\0132&.com.alibaba.otter.canal." +
-      "protocol.Pair\"s\n\016TransactionEnd\022\023\n\013execu" +
-      "teTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\0225\n\005p" +
-      "rops\030\003 \003(\0132&.com.alibaba.otter.canal.pro" +
-      "tocol.Pair\"\"\n\004Pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value" +
-      "\030\002 \001(\t*B\n\tEntryType\022\024\n\020TRANSACTIONBEGIN\020" +
-      "\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003*\\\n\tEv",
-      "entType\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELET" +
-      "E\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006\022\t\n" +
-      "\005QUERY\020\007*(\n\004Type\022\n\n\006ORACLE\020\001\022\t\n\005MYSQL\020\002\022" +
-      "\t\n\005PGSQL\020\003B0\n com.alibaba.otter.canal.pr" +
-      "otocolB\nCanalEntryH\001"
+      ".protocol.Pair\"\207\001\n\020TransactionBegin\022\023\n\013e" +
+      "xecuteTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\022" +
+      "5\n\005props\030\003 \003(\0132&.com.alibaba.otter.canal" +
+      ".protocol.Pair\022\020\n\010threadId\030\004 \001(\003\"s\n\016Tran" +
+      "sactionEnd\022\023\n\013executeTime\030\001 \001(\003\022\025\n\rtrans" +
+      "actionId\030\002 \001(\t\0225\n\005props\030\003 \003(\0132&.com.alib" +
+      "aba.otter.canal.protocol.Pair\"\"\n\004Pair\022\013\n" +
+      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t*B\n\tEntryType\022\024" +
+      "\n\020TRANSACTIONBEGIN\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRA",
+      "NSACTIONEND\020\003*\\\n\tEventType\022\n\n\006INSERT\020\001\022\n" +
+      "\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005AL" +
+      "TER\020\005\022\t\n\005ERASE\020\006\022\t\n\005QUERY\020\007*(\n\004Type\022\n\n\006O" +
+      "RACLE\020\001\022\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.ali" +
+      "baba.otter.canal.protocolB\nCanalEntryH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7439,7 +7496,7 @@ public final class CanalEntry {
           internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_descriptor,
-              new java.lang.String[] { "ExecuteTime", "TransactionId", "Props", },
+              new java.lang.String[] { "ExecuteTime", "TransactionId", "Props", "ThreadId", },
               com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin.class,
               com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin.Builder.class);
           internal_static_com_alibaba_otter_canal_protocol_TransactionEnd_descriptor =
