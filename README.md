@@ -57,7 +57,7 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li><a class="internal present" href="https://github.com/alibaba/canal/wiki/DevGuide">DevGuide</a></li>
 <li><a class="internal present" href="https://github.com/alibaba/canal/wiki/BinlogChange%28mysql5.6%29">BinlogChange(Mysql5.6)</a></li>
 <li><a href="http://alibaba.github.com/canal/release.html">ReleaseNotes</a></li>
-<li><a href="https://github.com/alibaba/canal/tree/gh-pages/download">Download</a></li>
+<li><a href="https://github.com/alibaba/canal/releases">Download</a></li>
 </ul>
 
 <h1>问题反馈</h1>
