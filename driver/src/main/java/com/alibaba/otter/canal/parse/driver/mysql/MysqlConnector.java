@@ -66,7 +66,6 @@ public class MysqlConnector {
                 negotiate(channel);
             } catch (Exception e) {
                 disconnect();
-                connected.compareAndSet(true, false);
                 throw new IOException("connect " + this.address + " failure:" + ExceptionUtils.getStackTrace(e));
             }
         } else {
@@ -156,8 +155,8 @@ public class MysqlConnector {
         h.setPacketBodyLength(clientAuthPkgBody.length);
         h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
 
-        PacketManager.write(channel, new ByteBuffer[] { ByteBuffer.wrap(h.toBytes()),
-                ByteBuffer.wrap(clientAuthPkgBody) });
+        PacketManager.write(channel,
+                            new ByteBuffer[] { ByteBuffer.wrap(h.toBytes()), ByteBuffer.wrap(clientAuthPkgBody) });
         logger.info("client authentication packet is sent out.");
 
         // check auth result

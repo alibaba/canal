@@ -79,8 +79,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
         // 开始启动心跳包
         if (detectingEnable && StringUtils.isNotBlank(detectingSQL)) {
-            logger.info("start heart beat.... ");
-            startHeartbeat((MysqlConnection) connection.fork());
+            // fixed issue #56，避免重复创建heartbeat线程
+            if (mysqlHeartBeatTimeTask == null) {
+                logger.info("start heart beat.... ");
+                startHeartbeat((MysqlConnection) connection.fork());
+            }
         }
 
         if (binlogParser != null && binlogParser instanceof LogEventConvert) {
@@ -107,7 +110,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             try {
                 metaConnection.disconnect();
             } catch (IOException e) {
-                logger.error("ERROR # disconnect for address:{}", metaConnection.getConnector().getAddress(), e);
+                logger.error("ERROR # disconnect meta connection for address:{}",
+                             metaConnection.getConnector().getAddress(), e);
             }
         }
     }
@@ -125,7 +129,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             try {
                 metaConnection.disconnect();
             } catch (IOException e) {
-                logger.error("ERROR # disconnect for address:{}", metaConnection.getConnector().getAddress(), e);
+                logger.error("ERROR # disconnect meta connection for address:{}",
+                             metaConnection.getConnector().getAddress(), e);
             }
         }
 
@@ -163,7 +168,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             try {
                 mysqlConnection.disconnect();
             } catch (IOException e) {
-                logger.error("ERROR # disconnect for address:{}", mysqlConnection.getConnector().getAddress(), e);
+                logger.error("ERROR # disconnect heartbeat connection for address:{}",
+                             mysqlConnection.getConnector().getAddress(), e);
             }
 
             mysqlHeartBeatTimeTask = null;
@@ -326,8 +332,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         // 如果指定binlogName + timestamp，但没有指定对应的offest，尝试根据时间找一下offest
                         EntryPosition endPosition = findEndPosition(mysqlConnection);
                         if (endPosition != null) {
-                            specificLogFilePosition = findAsPerTimestampInSpecificLogFile(
-                                                                                          mysqlConnection,
+                            specificLogFilePosition = findAsPerTimestampInSpecificLogFile(mysqlConnection,
                                                                                           entryPosition.getTimestamp(),
                                                                                           endPosition,
                                                                                           entryPosition.getJournalName());
@@ -465,8 +470,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                             shouldBreak = true;
                         } else {
                             int nextBinlogSeqNum = binlogSeqNum - 1;
-                            String binlogFileNamePrefix = startSearchBinlogFile.substring(
-                                                                                          0,
+                            String binlogFileNamePrefix = startSearchBinlogFile.substring(0,
                                                                                           startSearchBinlogFile.indexOf(".") + 1);
                             String binlogFileNameSuffix = String.format("%06d", nextBinlogSeqNum);
                             startSearchBinlogFile = binlogFileNamePrefix + binlogFileNameSuffix;
@@ -477,8 +481,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     return entryPosition;
                 }
             } catch (Exception e) {
-                logger.warn(
-                            "the binlogfile:{} doesn't exist, to continue to search the next binlogfile , caused by {}",
+                logger.warn("the binlogfile:{} doesn't exist, to continue to search the next binlogfile , caused by {}",
                             startSearchBinlogFile, ExceptionUtils.getFullStackTrace(e));
                 int binlogSeqNum = Integer.parseInt(startSearchBinlogFile.substring(startSearchBinlogFile.indexOf(".") + 1));
                 if (binlogSeqNum <= 1) {
@@ -486,8 +489,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     shouldBreak = true;
                 } else {
                     int nextBinlogSeqNum = binlogSeqNum - 1;
-                    String binlogFileNamePrefix = startSearchBinlogFile.substring(
-                                                                                  0,
+                    String binlogFileNamePrefix = startSearchBinlogFile.substring(0,
                                                                                   startSearchBinlogFile.indexOf(".") + 1);
                     String binlogFileNameSuffix = String.format("%06d", nextBinlogSeqNum);
                     startSearchBinlogFile = binlogFileNamePrefix + binlogFileNameSuffix;
