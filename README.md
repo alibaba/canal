@@ -25,6 +25,7 @@
 <p style="font-size: 14px;">   译意： 水道/管道/沟渠 </p>
 <p style="font-size: 14px;">   语言： 纯java开发</p>
 <p style="font-size: 14px;">   定位： 基于数据库增量日志解析，提供增量数据订阅&amp;消费，目前主要支持了mysql</p>
+<p style="font-size: 14px;">   关键词： mysql binlog parser / real-time / queue/topic </p>
 <p style="font-size: 14px;"> </p>
 <h2>工作原理</h2>
 <h3 style="font-size: 14px;">mysql主备复制实现</h3>
