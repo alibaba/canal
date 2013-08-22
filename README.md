@@ -4,7 +4,7 @@
 <h3>最新更新</h3>
 <ol>
 <li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
-<li>canal消费端项目开源: Otter(分布式数据库同步系统)，<a href="https://github.com/alibaba/otter">地址：https://github.com/alibaba/otter</a></li>
+<li>canal消费端项目开源: Otter(分布式数据库同步系统)，地址：<a href="https://github.com/alibaba/otter">https://github.com/alibaba/otter</a></li>
 </ol>
 
 <h1>背景</h1>
@@ -25,7 +25,7 @@
 <p style="font-size: 14px;">   译意： 水道/管道/沟渠 </p>
 <p style="font-size: 14px;">   语言： 纯java开发</p>
 <p style="font-size: 14px;">   定位： 基于数据库增量日志解析，提供增量数据订阅&amp;消费，目前主要支持了mysql</p>
-<p style="font-size: 14px;">   关键词： mysql binlog parser / real-time / queue/topic </p>
+<p style="font-size: 14px;">   关键词： mysql binlog parser / real-time / queue&topic </p>
 <p style="font-size: 14px;"> </p>
 <h2>工作原理</h2>
 <h3 style="font-size: 14px;">mysql主备复制实现</h3>
