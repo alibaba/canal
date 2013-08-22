@@ -89,6 +89,8 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
 
                             Thread.sleep(1000);
                         }
+                    default:
+                        break;
                 }
             }
         } catch (Exception ex) {
@@ -116,11 +118,7 @@ public class OracleErosaServerHandler extends SimpleChannelUpstreamHandler {
                 CanalEntry.Entry oldEntry = CanalEntry.Entry.parseFrom(data);
 
                 // 替换为正确的log file name和log file offset
-                CanalEntry.Entry newEntry = CanalEntry.Entry.newBuilder(oldEntry).setHeader(
-                                                                                            CanalEntry.Header.newBuilder(
-                                                                                                                         oldEntry.getHeader()).setLogfileName(
-                                                                                                                                                              binLogFile.getFilename()).setLogfileOffset(
-                                                                                                                                                                                                         this.binLogFileOffset).build()).build();
+                CanalEntry.Entry newEntry = CanalEntry.Entry.newBuilder(oldEntry).setHeader(CanalEntry.Header.newBuilder(oldEntry.getHeader()).setLogfileName(binLogFile.getFilename()).setLogfileOffset(this.binLogFileOffset).build()).build();
                 Packet packet = Packet.newBuilder().setBody(newEntry.toByteString()).setType(PacketType.MESSAGES).build();
 
                 bufLen.resetWriterIndex();

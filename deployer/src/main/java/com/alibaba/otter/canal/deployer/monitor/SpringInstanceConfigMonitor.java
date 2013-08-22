@@ -41,13 +41,11 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
     private Map<String, InstanceAction>      actions              = new MapMaker().makeMap();
     private Map<String, InstanceConfigFiles> lastFiles            = new MapMaker().makeComputingMap(new Function<String, InstanceConfigFiles>() {
 
-                                                                      public InstanceConfigFiles apply(
-                                                                                                       String destination) {
+                                                                      public InstanceConfigFiles apply(String destination) {
                                                                           return new InstanceConfigFiles(destination);
                                                                       }
                                                                   });
-    private ScheduledExecutorService         executor             = Executors.newScheduledThreadPool(
-                                                                                                     1,
+    private ScheduledExecutorService         executor             = Executors.newScheduledThreadPool(1,
                                                                                                      new NamedThreadFactory(
                                                                                                                             "canal-instance-scan"));
 
@@ -132,7 +130,9 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
             File[] instanceConfigs = instanceDir.listFiles(new FilenameFilter() {
 
                 public boolean accept(File dir, String name) {
-                    return !StringUtils.endsWithIgnoreCase(name, ".dat");
+                    // return !StringUtils.endsWithIgnoreCase(name, ".dat");
+                    //限制一下，只针对instance.properties文件,避免因为.svn或者其他生成的临时文件导致出现reload
+                    return StringUtils.equalsIgnoreCase(name, "instance.properties");
                 }
 
             });

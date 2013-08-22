@@ -39,6 +39,7 @@ public abstract class PacketManager {
      * @throws IOException
      */
     public static void write(SocketChannel ch, ByteBuffer[] srcs) throws IOException {
+        @SuppressWarnings("unused")
         long total = 0;
         for (ByteBuffer buffer : srcs) {
             total += buffer.remaining();
