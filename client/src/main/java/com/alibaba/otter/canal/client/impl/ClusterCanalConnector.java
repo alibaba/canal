@@ -41,12 +41,8 @@ public class ClusterCanalConnector implements CanalConnector {
     public void connect() throws CanalClientException {
         while (currentConnector == null) {
             SocketAddress nextAddress = this.accessStrategy.nextNode();
-
             int times = 0;
-            /**
-             * retry for #retryTimes for each node when trying to connect to it.
-             */
-            while (times < retryTimes) {
+            while (true) {
                 try {
                     currentConnector = new SimpleCanalConnector(nextAddress, username, password, destination);
                     currentConnector.setSoTimeout(soTimeout);
@@ -60,7 +56,18 @@ public class ClusterCanalConnector implements CanalConnector {
                     logger.warn("failed to connect to:{} after retry {} times", nextAddress, times);
                     currentConnector.disconnect();
                     currentConnector = null;
+                    // retry for #retryTimes for each node when trying to connect to it.
                     times = times + 1;
+                    if (times >= retryTimes) {
+                        break;
+                    } else {
+                        // fixed issue #55，增加sleep控制，避免重试connect时cpu使用过高
+                        try {
+                            Thread.sleep(retryInterval);
+                        } catch (InterruptedException e1) {
+                            throw new CanalClientException(e1);
+                        }
+                    }
                 }
             }
         }
