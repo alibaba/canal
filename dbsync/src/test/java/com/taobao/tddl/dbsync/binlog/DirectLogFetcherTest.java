@@ -26,8 +26,8 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
             Connection connection = DriverManager.getConnection("jdbc:mysql://10.20.144.34:3306", "root", "hello");
             Statement statement = connection.createStatement();
             statement.execute("SET @master_binlog_checksum='@@global.binlog_checksum'");
-            
-            fecther.open(connection, "mysql-bin.000010", 4L, 2);
+
+            fecther.open(connection, "mysql-bin.000015", 4L, 2);
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();

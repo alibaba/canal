@@ -82,7 +82,11 @@ public class BaseLogFetcherTest {
                 //
             } else {
                 final Serializable value = buffer.getValue();
-                System.out.println(value);
+                if (value instanceof byte[]) {
+                    System.out.println(new String((byte[]) value));
+                } else {
+                    System.out.println(value);
+                }
             }
         }
 
