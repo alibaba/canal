@@ -20,6 +20,10 @@ if [ -f $base/bin/canal.pid ] ; then
     exit 1
 fi
 
+if [ ! -d $base/logs/canal ] ; then 
+	mkdir -p $base/logs/canal
+fi
+
 ## set java path
 if [ -z "$JAVA" ] ; then
   JAVA=$(which java)
@@ -90,7 +94,7 @@ then
 	echo LOG CONFIGURATION : $logback_configurationFile
 	echo canal conf : $canal_conf 
 	echo CLASSPATH :$CLASSPATH
-	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/bin/nohup.out 2>&1 &
+	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/logs/canal/canal.log 2>&1 &
 	echo $! > $base/bin/canal.pid 
 	
 	echo "cd to $current_path for continue"

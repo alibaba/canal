@@ -27,7 +27,7 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
             Statement statement = connection.createStatement();
             statement.execute("SET @master_binlog_checksum='@@global.binlog_checksum'");
 
-            fecther.open(connection, "mysql-bin.000015", 4L, 2);
+            fecther.open(connection, "mysql-bin.000015", 165327L, 2);
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
@@ -67,6 +67,7 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             Assert.fail(e.getMessage());
         } finally {
             try {

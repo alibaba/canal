@@ -1,11 +1,9 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
 import java.io.Serializable;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.BitSet;
-import java.util.Calendar;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,7 +28,7 @@ public final class RowsLogBuffer
     private final LogBuffer    buffer;
     private final int          columnLen;
     private final String       charsetName;
-    private Calendar           cal;
+    // private Calendar           cal;
 
     private final BitSet       nullBits;
     private int                nullBitIndex;
@@ -375,8 +373,17 @@ public final class RowsLogBuffer
             }
         case LogEvent.MYSQL_TYPE_TIMESTAMP:
             {
+                //MYSQL DataTypes: TIMESTAMP
+                //range is '1970-01-01 00:00:01' UTC to '2038-01-19 03:14:07' UTC
+                // A TIMESTAMP cannot represent the value '1970-01-01 00:00:00' because that is equivalent to 0 seconds from the epoch and
+                // the value 0 is reserved for representing '0000-00-00 00:00:00', the “zero” TIMESTAMP value.
                 final long i32 = buffer.getUint32();
-                value = new Timestamp(i32 * 1000);
+                if (i32 == 0) {
+                    value = "0000-00-00 00:00:00";
+                } else {
+                    String v = new Timestamp(i32 * 1000).toString();
+                    value = v.substring(0, v.length() - 2);
+                }
                 javaType = Types.TIMESTAMP;
                 length = 4;
                 break;
@@ -406,25 +413,36 @@ public final class RowsLogBuffer
                         break;
                 }
                 
-                Timestamp time = new Timestamp(tv_sec * 1000);
-                time.setNanos(tv_usec  * 1000);
-                value = time;
+                if (tv_sec == 0){
+                    value =  "0000-00-00 00:00:00";
+                } else {
+                    Timestamp time = new Timestamp(tv_sec * 1000);
+                    time.setNanos(tv_usec  * 1000);
+                    String v = time.toString();
+                    value = v.substring(0, v.length() - 2);
+                }
                 javaType = Types.TIMESTAMP;
                 length = 4 + (meta + 1) / 2;
                 break;
             }
         case LogEvent.MYSQL_TYPE_DATETIME:
             {
+                //MYSQL DataTypes: DATETIME
+                //range is '0000-01-01 00:00:00' to '9999-12-31 23:59:59'
                 final long i64 = buffer.getLong64(); /* YYYYMMDDhhmmss */
-                final int d = (int) (i64 / 1000000);
-                final int t = (int) (i64 % 1000000);
-                if (cal == null)
-                    cal = Calendar.getInstance();
-                cal.clear();
-                /* month is 0-based, 0 for january. */
-                cal.set(d / 10000, (d % 10000) / 100 - 1, d % 100, t / 10000,
-                        (t % 10000) / 100, t % 100);
-                value = new Timestamp(cal.getTimeInMillis());
+                if (i64 == 0) {
+                    value = "0000-00-00 00:00:00";
+                } else {
+                    final int d = (int) (i64 / 1000000);
+                    final int t = (int) (i64 % 1000000);
+                    // if (cal == null) cal = Calendar.getInstance();
+                    // cal.clear();
+                    /* month is 0-based, 0 for january. */
+                    // cal.set(d / 10000, (d % 10000) / 100 - 1, d % 100, t / 10000, (t % 10000) / 100, t % 100);
+                    // value = new Timestamp(cal.getTimeInMillis());
+                    value = String.format("%04d-%02d-%02d %02d:%02d:%02d", d / 10000, (d % 10000) / 100, d % 100,
+                                          t / 10000, (t % 10000) / 100, t % 100);
+                }
                 javaType = Types.TIMESTAMP;
                 length = 8;
                 break;
@@ -469,29 +487,44 @@ public final class RowsLogBuffer
                         break;
                 }
                 
-                // 构造TimeStamp只处理到秒
-                long ymd= intpart >> 17;
-                long ym= ymd >> 5;
-                long hms= intpart % (1 << 17);
-                
-                if (cal == null)
-                    cal = Calendar.getInstance();
-                cal.clear();
-                cal.set((int) (ym / 13), (int) (ym % 13) - 1, (int) (ymd % (1 << 5)), (int) (hms >> 12),
-                        (int) ((hms >> 6) % (1 << 6)), (int) (hms % (1 << 6)));
-                value = new Timestamp(cal.getTimeInMillis());
+                if (intpart == 0) {
+                    value = "0000-00-00 00:00:00";
+                } else {
+                    // 构造TimeStamp只处理到秒
+                    long ymd = intpart >> 17;
+                    long ym = ymd >> 5;
+                    long hms = intpart % (1 << 17);
+
+                    // if (cal == null) cal = Calendar.getInstance();
+                    // cal.clear();
+                    // cal.set((int) (ym / 13), (int) (ym % 13) - 1, (int) (ymd % (1 << 5)), (int) (hms >> 12),
+                    //        (int) ((hms >> 6) % (1 << 6)), (int) (hms % (1 << 6)));
+                    // value = new Timestamp(cal.getTimeInMillis());
+                    value = String.format("%04d-%02d-%02d %02d:%02d:%02d", (int) (ym / 13), (int) (ym % 13),
+                                          (int) (ymd % (1 << 5)), (int) (hms >> 12), (int) ((hms >> 6) % (1 << 6)),
+                                          (int) (hms % (1 << 6)));
+                }
                 javaType = Types.TIMESTAMP;
                 length = 5 + (meta + 1) / 2;
                 break;
             }
         case LogEvent.MYSQL_TYPE_TIME:
             {
-                final int i32 = buffer.getUint24();
-                if (cal == null)
-                    cal = Calendar.getInstance();
-                cal.clear();
-                cal.set(70, 0, 1, i32 / 10000, (i32 % 10000) / 100, i32 % 100);
-                value = new Time(cal.getTimeInMillis());
+                //MYSQL DataTypes: TIME
+                //The range is '-838:59:59' to '838:59:59'
+                // final int i32 = buffer.getUint24();
+                final int i32 = buffer.getInt24();
+                final int u32 = Math.abs(i32);
+                if (i32 == 0) {
+                    value = "00:00:00";
+                } else {
+                    // if (cal == null) cal = Calendar.getInstance();
+                    // cal.clear();
+                    // cal.set(70, 0, 1, i32 / 10000, (i32 % 10000) / 100, i32 % 100);
+                    // value = new Time(cal.getTimeInMillis());
+                    value = String.format("%s%02d:%02d:%02d", (i32 >= 0) ? "" : "-", u32 / 10000, (u32 % 10000) / 100,
+                                          u32 % 100);
+                }
                 javaType = Types.TIME;
                 length = 3;
                 break;
@@ -514,9 +547,11 @@ public final class RowsLogBuffer
                 */
                 long intpart = 0;
                 int frac = 0;
+                long ltime = 0;
                 switch (meta) {
                     case 0:
                         intpart = buffer.getBeUint24() - TIMEF_INT_OFS; //big-endian
+                        ltime = intpart << 24;
                         break;
                     case 1:
                     case 2:
@@ -544,6 +579,7 @@ public final class RowsLogBuffer
                           frac -= 0x100; /* -(0x100 - frac) */
                           // fraclong = frac * 10000;
                         }
+                        ltime = intpart << 24 + frac * 10000;
                         break;
                     case 3:
                     case 4:
@@ -559,25 +595,35 @@ public final class RowsLogBuffer
                           frac-= 0x10000; /* -(0x10000-frac) */
                           // fraclong = frac * 100;
                         }
+                        ltime = intpart << 24 + frac * 100;
                         break;
                     case 5:
                     case 6:
                         intpart = buffer.getBeUlong48() - TIMEF_INT_OFS;  
+                        ltime = intpart;
                         break;
                     default:
                         intpart = buffer.getBeUint24() - TIMEF_INT_OFS;
+                        ltime = intpart << 24;
                         break;
                 }
                 
-                // 目前只记录秒，不处理us frac
-                if (cal == null)
-                    cal = Calendar.getInstance();
-                cal.clear();
-                cal.set(70, 0, 1, (int) ((intpart >> 12) % (1 << 10)), (int) ((intpart >> 6) % (1 << 6)),
-                        (int) (intpart % (1 << 6)));
-                value = new Time(cal.getTimeInMillis());
-                javaType = Types.TIME;
-                length = 3 + (meta + 1) / 2;
+                if (intpart == 0) {
+                    value = "00:00:00";
+                } else {
+                    // 目前只记录秒，不处理us frac
+                    // if (cal == null) cal = Calendar.getInstance();
+                    // cal.clear();
+                    // cal.set(70, 0, 1, (int) ((intpart >> 12) % (1 << 10)), (int) ((intpart >> 6) % (1 << 6)),
+                    //        (int) (intpart % (1 << 6)));
+                    // value = new Time(cal.getTimeInMillis());
+                    long ultime = Math.abs(ltime);
+                    intpart = ultime >> 24;
+                    value = String.format("%s%02d:%02d:%02d", ltime >=0 ? "" : "-", (int) ((intpart >> 12) % (1 << 10)),
+                                          (int) ((intpart >> 6) % (1 << 6)), (int) (intpart % (1 << 6)));
+                    javaType = Types.TIME;
+                    length = 3 + (meta + 1) / 2;
+                }
                 break;
             }
         case LogEvent.MYSQL_TYPE_NEWDATE:
@@ -595,19 +641,29 @@ public final class RowsLogBuffer
             }
         case LogEvent.MYSQL_TYPE_DATE:
             {
+                //MYSQL DataTypes:
+                //range: 0000-00-00 ~ 9999-12-31
                 final int i32 = buffer.getUint24();
-                if (cal == null)
-                    cal = Calendar.getInstance();
-                cal.clear();
-                /* month is 0-based, 0 for january. */
-                cal.set((i32 / (16 * 32)), (i32 / 32 % 16) - 1, (i32 % 32));
-                value = new java.sql.Date(cal.getTimeInMillis());
+                if (i32 == 0) {
+                    value = "0000-00-00";
+                } else {
+                    // if (cal == null) cal = Calendar.getInstance();
+                    // cal.clear();
+                    /* month is 0-based, 0 for january. */
+                    // cal.set((i32 / (16 * 32)), (i32 / 32 % 16) - 1, (i32 % 32));
+                    // value = new java.sql.Date(cal.getTimeInMillis());
+                    value = String.format("%04d-%02d-%02d", i32 / (16 * 32), i32 / 32 % 16, i32 % 32);
+                }
                 javaType = Types.DATE;
                 length = 3;
                 break;
             }
         case LogEvent.MYSQL_TYPE_YEAR:
             {
+                //MYSQL DataTypes: YEAR[(2|4)]
+                // In four-digit format, values display as 1901 to 2155, and 0000.
+                // In two-digit format, values display as 70 to 69, representing years from 1970 to 2069.
+                
                 final int i32 = buffer.getUint8();
                 // If connection property 'YearIsDateType' has
                 // set, value is java.sql.Date.
@@ -619,7 +675,11 @@ public final class RowsLogBuffer
                 value = new java.sql.Date(cal.getTimeInMillis());
                 */
                 // The else, value is java.lang.Short.
-                value = Short.valueOf((short) (i32 + 1900));
+                if (i32 == 0) {
+                    value = "0000";
+                } else {
+                    value = Short.valueOf((short) (i32 + 1900));
+                }
                 // It might seem more correct to create a java.sql.Types.DATE value
                 // for this date, but it is much simpler to pass the value as an
                 // integer. The MySQL JDBC specification states that one can

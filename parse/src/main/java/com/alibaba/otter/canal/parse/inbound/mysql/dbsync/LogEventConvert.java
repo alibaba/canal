@@ -364,10 +364,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         columnBuilder.setValue(((BigDecimal) value).toPlainString());
                         break;
                     case Types.TIMESTAMP:
-                        String v = value.toString();
-                        v = v.substring(0, v.length() - 2);
-                        columnBuilder.setValue(v);
-                        break;
+                        // 修复时间边界值
+                        // String v = value.toString();
+                        // v = v.substring(0, v.length() - 2);
+                        // columnBuilder.setValue(v);
+                        // break;
                     case Types.TIME:
                     case Types.DATE:
                         // 需要处理year
