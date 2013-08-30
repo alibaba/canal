@@ -25,32 +25,50 @@ public class SimpleDdlParser {
     public static final String DROP_PATTERN   = "^\\s*DROP\\s*TABLE\\s*(.*)$";
     public static final String ALERT_PATTERN  = "^\\s*ALTER\\s*TABLE\\s*(.*)$";
     public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
+    public static final String INSERT_PATTERN = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
+    public static final String UPDATE_PATTERN = "^\\s*UPDATE(.*)$";
+    public static final String DELETE_PATTERN = "^\\s*DELETE(.*)$";
 
     public static DdlResult parse(String queryString, String schmeaName) {
-        DdlResult result = parse(queryString, schmeaName, ALERT_PATTERN);
+        DdlResult result = parseDdl(queryString, schmeaName, ALERT_PATTERN);
         if (result != null) {
             result.setType(EventType.ALTER);
             return result;
         }
 
-        result = parse(queryString, schmeaName, CREATE_PATTERN);
+        result = parseDdl(queryString, schmeaName, CREATE_PATTERN);
         if (result != null) {
             result.setType(EventType.CREATE);
             return result;
         }
 
-        result = parse(queryString, schmeaName, DROP_PATTERN);
+        result = parseDdl(queryString, schmeaName, DROP_PATTERN);
         if (result != null) {
             result.setType(EventType.ERASE);
             return result;
         }
 
         result = new DdlResult(schmeaName);
+        if (isDml(queryString, INSERT_PATTERN)) {
+            result.setType(EventType.INSERT);
+            return result;
+        }
+
+        if (isDml(queryString, UPDATE_PATTERN)) {
+            result.setType(EventType.UPDATE);
+            return result;
+        }
+
+        if (isDml(queryString, DELETE_PATTERN)) {
+            result.setType(EventType.DELETE);
+            return result;
+        }
+
         result.setType(EventType.QUERY);
         return result;
     }
 
-    private static DdlResult parse(String queryString, String schmeaName, String pattern) {
+    private static DdlResult parseDdl(String queryString, String schmeaName, String pattern) {
         Perl5Matcher matcher = new Perl5Matcher();
         if (matcher.matches(queryString, PatternUtils.getPattern(pattern))) {
             Perl5Matcher tableMatcher = new Perl5Matcher();
@@ -92,6 +110,15 @@ public class SimpleDdlParser {
         }
 
         return null;
+    }
+
+    private static boolean isDml(String queryString, String pattern) {
+        Perl5Matcher matcher = new Perl5Matcher();
+        if (matcher.matches(queryString, PatternUtils.getPattern(pattern))) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public static class DdlResult {

@@ -447,7 +447,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private EntryPosition findByStartTimeStamp(MysqlConnection mysqlConnection, Long startTimestamp) {
         EntryPosition endPosition = findEndPosition(mysqlConnection);
         EntryPosition startPosition = findStartPosition(mysqlConnection);
-        String maxBinlogFileName = startPosition.getJournalName();
+        String maxBinlogFileName = endPosition.getJournalName();
         String minBinlogFileName = startPosition.getJournalName();
         logger.info("show master status to set search end condition:{} ", endPosition);
         String startSearchBinlogFile = endPosition.getJournalName();

@@ -75,6 +75,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private TableMetaCache              tableMetaCache;
     private String                      binlogFileName      = "mysql-bin.000001";
     private Charset                     charset             = Charset.defaultCharset();
+    private boolean                     filterQueryDcl      = false;
+    private boolean                     filterQueryDml      = false;
 
     public Entry parse(LogEvent logEvent) throws CanalParseException {
         if (logEvent == null || logEvent instanceof UnknownLogEvent) {
@@ -88,8 +90,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 break;
             case LogEvent.QUERY_EVENT:
                 return parseQueryEvent((QueryLogEvent) logEvent);
-            case LogEvent.ROWS_QUERY_LOG_EVENT:
-                return parseRowsQueryEvent((RowsQueryLogEvent) logEvent);
             case LogEvent.XID_EVENT:
                 return parseXidEvent((XidLogEvent) logEvent);
             case LogEvent.TABLE_MAP_EVENT:
@@ -103,6 +103,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             case LogEvent.DELETE_ROWS_EVENT_V1:
             case LogEvent.DELETE_ROWS_EVENT:
                 return parseRowsEvent((DeleteRowsLogEvent) logEvent);
+            case LogEvent.ROWS_QUERY_LOG_EVENT:
+                return parseRowsQueryEvent((RowsQueryLogEvent) logEvent);
             case LogEvent.USER_VAR_EVENT:
                 return parseUserVarLogEvent((UserVarLogEvent) logEvent);
             case LogEvent.INTVAR_EVENT:
@@ -154,7 +156,34 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
             }
 
-            Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, result.getType());
+            EventType type = EventType.QUERY;
+            // fixed issue https://github.com/alibaba/canal/issues/58
+            if (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE
+                || result.getType() == EventType.CREATE) { //针对DDL类型
+                type = result.getType();
+                if (StringUtils.isNotEmpty(tableName)) {
+                    // check name filter
+                    if (nameFilter != null && !nameFilter.filter(schemaName + "." + tableName)) {
+                        return null;
+                    }
+                } else {
+                    //如果解析不出tableName,记录一下日志，方便bugfix，目前直接抛出异常，中断解析
+                    throw new CanalParseException(
+                                                  "SimpleDdlParser process query failed. pls submit issue with this queryString: "
+                                                          + queryString);
+                    // return null;
+                }
+            } else if (result.getType() == EventType.INSERT || result.getType() == EventType.UPDATE
+                       || result.getType() == EventType.DELETE) {
+                // 对外返回，保证兼容，还是返回QUERY类型，这里暂不解析tableName，所以无法支持过滤
+                if (filterQueryDml) {
+                    return null;
+                }
+            } else if (filterQueryDcl) {
+                return null;
+            }
+
+            Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             if (result.getType() != EventType.QUERY) {
                 rowChangeBuider.setIsDdl(true);
@@ -166,6 +195,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry parseRowsQueryEvent(RowsQueryLogEvent event) {
+        if (filterQueryDml) {
+            return null;
+        }
+        // mysql5.6支持，需要设置binlog-rows-query-log-events=1，可详细打印原始DML语句
         String queryString = null;
         try {
             queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
@@ -176,14 +209,26 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry parseUserVarLogEvent(UserVarLogEvent event) {
+        if (filterQueryDml) {
+            return null;
+        }
+
         return buildQueryEntry(event.getQuery(), event.getHeader());
     }
 
     private Entry parseIntrvarLogEvent(IntvarLogEvent event) {
+        if (filterQueryDml) {
+            return null;
+        }
+
         return buildQueryEntry(event.getQuery(), event.getHeader());
     }
 
     private Entry parseRandLogEvent(RandLogEvent event) {
+        if (filterQueryDml) {
+            return null;
+        }
+
         return buildQueryEntry(event.getQuery(), event.getHeader());
     }
 
@@ -202,9 +247,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             String fullname = getSchemaNameAndTableName(table);
-            if (nameFilter != null && !nameFilter.filter(fullname)) { // check
-                                                                      // name
-                                                                      // filter
+            // check name filter
+            if (nameFilter != null && !nameFilter.filter(fullname)) {
                 return null;
             }
             EventType eventType = null;
@@ -524,6 +568,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setTableMetaCache(TableMetaCache tableMetaCache) {
         this.tableMetaCache = tableMetaCache;
+    }
+
+    public void setFilterQueryDcl(boolean filterQueryDcl) {
+        this.filterQueryDcl = filterQueryDcl;
+    }
+
+    public void setFilterQueryDml(boolean filterQueryDml) {
+        this.filterQueryDml = filterQueryDml;
     }
 
 }

@@ -30,7 +30,6 @@
 			</list>
 		</property>
 	</bean>
-	<bean id="canalInstanceGenerator" class="com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator"/>
 
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
@@ -142,5 +141,7 @@
 				<property name="timestamp" value="${canal.instance.standby.timestamp}" />
 			</bean>
 		</property>
+		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
+		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
 	</bean>
 </beans>

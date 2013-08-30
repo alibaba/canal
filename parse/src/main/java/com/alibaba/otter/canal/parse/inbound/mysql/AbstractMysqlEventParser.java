@@ -19,6 +19,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     // 编码信息
     protected byte              connectionCharsetNumber = (byte) 33;
     protected Charset           connectionCharset       = Charset.forName("UTF-8");
+    protected boolean           filterQueryDcl          = false;
+    protected boolean           filterQueryDml          = false;
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
@@ -27,6 +29,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         }
 
         convert.setCharset(connectionCharset);
+        convert.setFilterQueryDcl(filterQueryDcl);
+        convert.setFilterQueryDml(filterQueryDml);
         return convert;
     }
 
@@ -51,6 +55,14 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setConnectionCharset(String connectionCharset) {
         this.connectionCharset = Charset.forName(connectionCharset);
+    }
+
+    public void setFilterQueryDcl(boolean filterQueryDcl) {
+        this.filterQueryDcl = filterQueryDcl;
+    }
+
+    public void setFilterQueryDml(boolean filterQueryDml) {
+        this.filterQueryDml = filterQueryDml;
     }
 
 }
