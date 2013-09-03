@@ -35,11 +35,17 @@ public class SimpleDdlParserTest {
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
-        
+
         queryString = "CREATE TABLE  `retl`.`retl_mark`(\n  `ID` int(10) unsigned NOT NULL";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
+
+        queryString = "CREATE table `bak591`.`j_order_log_back_201309` like j_order_log";
+        result = SimpleDdlParser.parse(queryString, "bak");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("bak591", result.getSchemaName());
+        Assert.assertEquals("j_order_log_back_201309", result.getTableName());
     }
 
     @Test

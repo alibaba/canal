@@ -82,9 +82,9 @@ public class SimpleDdlParser {
                     schmeaString = StringUtils.removeEnd(schmeaString, "`");
                     schmeaString = StringUtils.removeStart(schmeaString, "`");
 
-                    if (StringUtils.isNotEmpty(schmeaName) && !StringUtils.equalsIgnoreCase(schmeaString, schmeaName)) {
-                        return new DdlResult(schmeaName);
-                    }
+                    // if (StringUtils.isNotEmpty(schmeaName) && !StringUtils.equalsIgnoreCase(schmeaString, schmeaName)) {
+                    //  return new DdlResult(schmeaString);
+                    // }
                 } else {
                     schmeaString = schmeaName;
                 }

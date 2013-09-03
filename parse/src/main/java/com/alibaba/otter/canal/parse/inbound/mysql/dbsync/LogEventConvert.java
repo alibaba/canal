@@ -170,7 +170,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     //如果解析不出tableName,记录一下日志，方便bugfix，目前直接抛出异常，中断解析
                     throw new CanalParseException(
                                                   "SimpleDdlParser process query failed. pls submit issue with this queryString: "
-                                                          + queryString);
+                                                          + queryString + " , and DdlResult: " + result.toString());
                     // return null;
                 }
             } else if (result.getType() == EventType.INSERT || result.getType() == EventType.UPDATE
