@@ -64,7 +64,7 @@ public class MysqlConnection implements ErosaConnection {
     }
 
     public ResultSetPacket query(String cmd) throws IOException {
-        MysqlQueryExecutor exector = new MysqlQueryExecutor(connector);
+        MysqlQueryExecutor exector = new MysqlQueryExecutor(connector, charset.name());
         return exector.query(cmd);
     }
 

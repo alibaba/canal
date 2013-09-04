@@ -6,10 +6,10 @@ import org.apache.commons.lang.ArrayUtils;
 
 public class LengthCodedStringReader {
 
-    public static final String CODE_PAGE_1252 = "Cp1252";
+    public static final String CODE_PAGE_1252 = "UTF-8";
 
     private String             encoding;
-    private int                index          = 0;       // 数组下标
+    private int                index          = 0;      // 数组下标
 
     public LengthCodedStringReader(String encoding, int startIndex){
         this.encoding = encoding;

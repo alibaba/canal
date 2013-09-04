@@ -81,7 +81,6 @@ public class FieldPacket extends PacketWithHeaderPacket {
     }
 
     public byte[] toBytes() throws IOException {
-        // TODO Auto-generated method stub
         return null;
     }
 

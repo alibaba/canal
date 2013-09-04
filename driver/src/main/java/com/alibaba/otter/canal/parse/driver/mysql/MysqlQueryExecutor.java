@@ -14,6 +14,12 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.RowDataPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
+/**
+ * 默认输出的数据编码为UTF-8，如有需要请正确转码
+ * 
+ * @author jianghang 2013-9-4 上午11:50:26
+ * @since 1.0.0
+ */
 public class MysqlQueryExecutor {
 
     private SocketChannel channel;

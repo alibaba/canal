@@ -19,7 +19,7 @@ public class QueryCommandPacket extends CommandPacket {
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(getCommand());
-        out.write(getQueryString().getBytes());
+        out.write(getQueryString().getBytes("UTF-8"));// 链接建立时默认指定编码为UTF-8
         return out.toByteArray();
     }
 
