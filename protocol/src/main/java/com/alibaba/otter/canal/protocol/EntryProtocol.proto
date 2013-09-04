@@ -121,6 +121,8 @@ message RowChange {
 	/**预留扩展**/
 	repeated Pair			props			=		13;	
 	
+	/** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  **/
+	optional string			ddlSchemaName 	= 		14;
 }
 
 /**开始事务的一些信息**/

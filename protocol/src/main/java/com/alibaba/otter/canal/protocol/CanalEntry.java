@@ -4352,6 +4352,10 @@ public final class CanalEntry {
         getPropsOrBuilderList();
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
+    
+    // optional string ddlSchemaName = 14;
+    boolean hasDdlSchemaName();
+    String getDdlSchemaName();
   }
   public static final class RowChange extends
       com.google.protobuf.GeneratedMessage
@@ -4486,6 +4490,38 @@ public final class CanalEntry {
       return props_.get(index);
     }
     
+    // optional string ddlSchemaName = 14;
+    public static final int DDLSCHEMANAME_FIELD_NUMBER = 14;
+    private java.lang.Object ddlSchemaName_;
+    public boolean hasDdlSchemaName() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    public String getDdlSchemaName() {
+      java.lang.Object ref = ddlSchemaName_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          ddlSchemaName_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getDdlSchemaNameBytes() {
+      java.lang.Object ref = ddlSchemaName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        ddlSchemaName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
     private void initFields() {
       tableId_ = 0L;
       eventType_ = com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE;
@@ -4493,6 +4529,7 @@ public final class CanalEntry {
       sql_ = "";
       rowDatas_ = java.util.Collections.emptyList();
       props_ = java.util.Collections.emptyList();
+      ddlSchemaName_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4523,6 +4560,9 @@ public final class CanalEntry {
       }
       for (int i = 0; i < props_.size(); i++) {
         output.writeMessage(13, props_.get(i));
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBytes(14, getDdlSchemaNameBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -4556,6 +4596,10 @@ public final class CanalEntry {
       for (int i = 0; i < props_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(13, props_.get(i));
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(14, getDdlSchemaNameBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4703,6 +4747,8 @@ public final class CanalEntry {
         } else {
           propsBuilder_.clear();
         }
+        ddlSchemaName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
       
@@ -4775,6 +4821,10 @@ public final class CanalEntry {
         } else {
           result.props_ = propsBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.ddlSchemaName_ = ddlSchemaName_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4855,6 +4905,9 @@ public final class CanalEntry {
             }
           }
         }
+        if (other.hasDdlSchemaName()) {
+          setDdlSchemaName(other.getDdlSchemaName());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -4922,6 +4975,11 @@ public final class CanalEntry {
               com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder subBuilder = com.alibaba.otter.canal.protocol.CanalEntry.Pair.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addProps(subBuilder.buildPartial());
+              break;
+            }
+            case 114: {
+              bitField0_ |= 0x00000040;
+              ddlSchemaName_ = input.readBytes();
               break;
             }
           }
@@ -5402,6 +5460,42 @@ public final class CanalEntry {
           props_ = null;
         }
         return propsBuilder_;
+      }
+      
+      // optional string ddlSchemaName = 14;
+      private java.lang.Object ddlSchemaName_ = "";
+      public boolean hasDdlSchemaName() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      public String getDdlSchemaName() {
+        java.lang.Object ref = ddlSchemaName_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          ddlSchemaName_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setDdlSchemaName(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000040;
+        ddlSchemaName_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearDdlSchemaName() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        ddlSchemaName_ = getDefaultInstance().getDdlSchemaName();
+        onChanged();
+        return this;
+      }
+      void setDdlSchemaName(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000040;
+        ddlSchemaName_ = value;
+        onChanged();
       }
       
       // @@protoc_insertion_point(builder_scope:com.alibaba.otter.canal.protocol.RowChange)
@@ -7425,26 +7519,27 @@ public final class CanalEntry {
       "n\022>\n\014afterColumns\030\002 \003(\0132(.com.alibaba.ot" +
       "ter.canal.protocol.Column\0225\n\005props\030\003 \003(\013" +
       "2&.com.alibaba.otter.canal.protocol.Pair" +
-      "\"\373\001\n\tRowChange\022\017\n\007tableId\030\001 \001(\003\022F\n\tevent" +
+      "\"\222\002\n\tRowChange\022\017\n\007tableId\030\001 \001(\003\022F\n\tevent" +
       "Type\030\002 \001(\0162+.com.alibaba.otter.canal.pro" +
       "tocol.EventType:\006UPDATE\022\024\n\005isDdl\030\n \001(\010:\005" +
       "false\022\013\n\003sql\030\013 \001(\t\022;\n\010rowDatas\030\014 \003(\0132).c" +
       "om.alibaba.otter.canal.protocol.RowData\022",
       "5\n\005props\030\r \003(\0132&.com.alibaba.otter.canal" +
-      ".protocol.Pair\"\207\001\n\020TransactionBegin\022\023\n\013e" +
-      "xecuteTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\022" +
-      "5\n\005props\030\003 \003(\0132&.com.alibaba.otter.canal" +
-      ".protocol.Pair\022\020\n\010threadId\030\004 \001(\003\"s\n\016Tran" +
-      "sactionEnd\022\023\n\013executeTime\030\001 \001(\003\022\025\n\rtrans" +
-      "actionId\030\002 \001(\t\0225\n\005props\030\003 \003(\0132&.com.alib" +
-      "aba.otter.canal.protocol.Pair\"\"\n\004Pair\022\013\n" +
-      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t*B\n\tEntryType\022\024" +
-      "\n\020TRANSACTIONBEGIN\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRA",
-      "NSACTIONEND\020\003*\\\n\tEventType\022\n\n\006INSERT\020\001\022\n" +
-      "\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005AL" +
-      "TER\020\005\022\t\n\005ERASE\020\006\022\t\n\005QUERY\020\007*(\n\004Type\022\n\n\006O" +
-      "RACLE\020\001\022\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.ali" +
-      "baba.otter.canal.protocolB\nCanalEntryH\001"
+      ".protocol.Pair\022\025\n\rddlSchemaName\030\016 \001(\t\"\207\001" +
+      "\n\020TransactionBegin\022\023\n\013executeTime\030\001 \001(\003\022" +
+      "\025\n\rtransactionId\030\002 \001(\t\0225\n\005props\030\003 \003(\0132&." +
+      "com.alibaba.otter.canal.protocol.Pair\022\020\n" +
+      "\010threadId\030\004 \001(\003\"s\n\016TransactionEnd\022\023\n\013exe" +
+      "cuteTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\0225\n" +
+      "\005props\030\003 \003(\0132&.com.alibaba.otter.canal.p" +
+      "rotocol.Pair\"\"\n\004Pair\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
+      "ue\030\002 \001(\t*B\n\tEntryType\022\024\n\020TRANSACTIONBEGI",
+      "N\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003*\\\n\t" +
+      "EventType\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DEL" +
+      "ETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006\022" +
+      "\t\n\005QUERY\020\007*(\n\004Type\022\n\n\006ORACLE\020\001\022\t\n\005MYSQL\020" +
+      "\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.otter.canal." +
+      "protocolB\nCanalEntryH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7488,7 +7583,7 @@ public final class CanalEntry {
           internal_static_com_alibaba_otter_canal_protocol_RowChange_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_alibaba_otter_canal_protocol_RowChange_descriptor,
-              new java.lang.String[] { "TableId", "EventType", "IsDdl", "Sql", "RowDatas", "Props", },
+              new java.lang.String[] { "TableId", "EventType", "IsDdl", "Sql", "RowDatas", "Props", "DdlSchemaName", },
               com.alibaba.otter.canal.protocol.CanalEntry.RowChange.class,
               com.alibaba.otter.canal.protocol.CanalEntry.RowChange.Builder.class);
           internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_descriptor =

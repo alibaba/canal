@@ -141,7 +141,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             DdlResult result = SimpleDdlParser.parse(queryString, event.getDbName());
 
             String schemaName = event.getDbName();
-            if (StringUtils.isEmpty(schemaName) && StringUtils.isNotEmpty(result.getSchemaName())) {
+            if (StringUtils.isNotEmpty(result.getSchemaName())) {
                 schemaName = result.getSchemaName();
             }
 
@@ -189,6 +189,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 rowChangeBuider.setIsDdl(true);
             }
             rowChangeBuider.setSql(queryString);
+            if (StringUtils.isNotEmpty(event.getDbName())) {//可能为空
+                rowChangeBuider.setDdlSchemaName(event.getDbName());
+            }
             rowChangeBuider.setEventType(result.getType());
             return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
         }
