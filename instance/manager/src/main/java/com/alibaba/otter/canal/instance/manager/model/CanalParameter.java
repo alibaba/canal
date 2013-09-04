@@ -86,6 +86,9 @@ public class CanalParameter implements Serializable {
     // metaq 存储配置信息
     private String                   metaqStoreUri;
 
+    // ddl同步支持，隔离dml/ddl
+    private Boolean                  ddlIsolation                       = Boolean.FALSE;             // 是否将ddl单条返回
+
     // ================================== 兼容字段处理
     private InetSocketAddress        masterAddress;                                                  // 主库信息
     private String                   masterUsername;                                                 // 帐号
@@ -828,6 +831,14 @@ public class CanalParameter implements Serializable {
 
     public void setZkClusterId(Long zkClusterId) {
         this.zkClusterId = zkClusterId;
+    }
+
+    public Boolean getDdlIsolation() {
+        return ddlIsolation == null ? false : ddlIsolation;
+    }
+
+    public void setDdlIsolation(Boolean ddlIsolation) {
+        this.ddlIsolation = ddlIsolation;
     }
 
     public String toString() {

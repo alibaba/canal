@@ -245,6 +245,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             memoryEventStore.setBufferSize(parameters.getMemoryStorageBufferSize());
             memoryEventStore.setBufferMemUnit(parameters.getMemoryStorageBufferMemUnit());
             memoryEventStore.setBatchMode(BatchMode.valueOf(parameters.getStorageBatchMode().name()));
+            memoryEventStore.setDdlIsolation(parameters.getDdlIsolation());
             eventStore = memoryEventStore;
         } else if (mode.isFile()) {
             // 后续版本支持

@@ -8,6 +8,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
@@ -56,6 +57,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     private Condition         notEmpty      = lock.newCondition();
 
     private BatchMode         batchMode     = BatchMode.ITEMSIZE;           // 默认为内存大小模式
+    private boolean           ddlIsolation  = false;
 
     public MemoryEventStoreWithBuffer(){
 
@@ -274,7 +276,21 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             end = (next + batchSize - 1) < maxAbleSequence ? (next + batchSize - 1) : maxAbleSequence;
             // 提取数据并返回
             for (; next <= end; next++) {
-                entrys.add(entries[getIndex(next)]);
+                Event event = entries[getIndex(next)];
+                if (ddlIsolation && isDdl(event.getEntry().getHeader().getEventType())) {
+                    // 如果是ddl隔离，直接返回
+                    if (entrys.size() == 0) {
+                        entrys.add(event);// 如果没有DML事件，加入当前的DDL事件
+                        end = next; //更新end为当前
+                    } else {
+                        // 如果之前已经有DML事件，直接返回了，因为不包含当前next这记录，需要回退一个位置
+                        end = next - 1; //next-1一定大于current，不需要判断
+                    }
+                    end = next; //更新end为当前
+                    break;
+                } else {
+                    entrys.add(event);
+                }
             }
 
         } else {
@@ -283,9 +299,21 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             for (; memsize <= maxMemSize && next <= maxAbleSequence; next++) {
                 // 永远保证可以取出第一条的记录，避免死锁
                 Event event = entries[getIndex(next)];
-                entrys.add(event);
-                memsize += calculateSize(event);
-                end = next;// 记录end位点
+                if (ddlIsolation && isDdl(event.getEntry().getHeader().getEventType())) {
+                    // 如果是ddl隔离，直接返回
+                    if (entrys.size() == 0) {
+                        entrys.add(event);// 如果没有DML事件，加入当前的DDL事件
+                        end = next; //更新end为当前
+                    } else {
+                        // 如果之前已经有DML事件，直接返回了，因为不包含当前next这记录，需要回退一个位置
+                        end = next - 1; //next-1一定大于current，不需要判断
+                    }
+                    break;
+                } else {
+                    entrys.add(event);
+                    memsize += calculateSize(event);
+                    end = next;// 记录end位点
+                }
             }
 
             getMemSize.addAndGet(memsize);
@@ -507,6 +535,10 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         return (int) sequcnce & indexMask;
     }
 
+    private boolean isDdl(EventType type) {
+        return type == EventType.ALTER || type == EventType.CREATE || type == EventType.ERASE;
+    }
+
     // ================ setter / getter ==================
 
     public void setBufferSize(int bufferSize) {
@@ -519,6 +551,10 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     public void setBatchMode(BatchMode batchMode) {
         this.batchMode = batchMode;
+    }
+
+    public void setDdlIsolation(boolean ddlIsolation) {
+        this.ddlIsolation = ddlIsolation;
     }
 
 }
