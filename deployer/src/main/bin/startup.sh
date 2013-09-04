@@ -61,7 +61,7 @@ in
 	else 
 		if [ "$1" = "debug" ]; then
 			DEBUG_PORT=$2
-			DEBUG_SUSPEND="y"
+			DEBUG_SUSPEND="n"
 			JAVA_DEBUG_OPT="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=$DEBUG_SUSPEND"
 		fi
      fi;;

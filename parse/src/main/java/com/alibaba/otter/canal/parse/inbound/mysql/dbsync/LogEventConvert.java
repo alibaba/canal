@@ -528,7 +528,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private boolean isText(String columnType) {
         return "LONGTEXT".equalsIgnoreCase(columnType) || "MEDIUMTEXT".equalsIgnoreCase(columnType)
-               || "TEXT".equalsIgnoreCase(columnType);
+               || "TEXT".equalsIgnoreCase(columnType) || "TINYTEXT".equalsIgnoreCase(columnType);
     }
 
     public static TransactionBegin createTransactionBegin(long threadId) {
