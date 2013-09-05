@@ -329,7 +329,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         for (int i = entrys.size() - 1; i >= 0; i--) {
             Event event = entrys.get(i);
             if (CanalEntry.EntryType.TRANSACTIONBEGIN == event.getEntry().getEntryType()
-                || CanalEntry.EntryType.TRANSACTIONEND == event.getEntry().getEntryType()) {
+                || CanalEntry.EntryType.TRANSACTIONEND == event.getEntry().getEntryType()
+                || isDdl(event.getEntry().getHeader().getEventType())) {
                 // 将事务头/尾设置可被为ack的点
                 range.setAck(CanalEventUtils.createPosition(event));
                 break;
@@ -536,7 +537,9 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     }
 
     private boolean isDdl(EventType type) {
-        return type == EventType.ALTER || type == EventType.CREATE || type == EventType.ERASE;
+        return type == EventType.ALTER || type == EventType.CREATE || type == EventType.ERASE
+               || type == EventType.RENAME || type == EventType.TRUNCATE || type == EventType.CINDEX
+               || type == EventType.DINDEX;
     }
 
     // ================ setter / getter ==================
