@@ -89,6 +89,10 @@ public final class CanalEntry {
     ALTER(4, 5),
     ERASE(5, 6),
     QUERY(6, 7),
+    TRUNCATE(7, 8),
+    RENAME(8, 9),
+    CINDEX(9, 10),
+    DINDEX(10, 11),
     ;
     
     public static final int INSERT_VALUE = 1;
@@ -98,6 +102,10 @@ public final class CanalEntry {
     public static final int ALTER_VALUE = 5;
     public static final int ERASE_VALUE = 6;
     public static final int QUERY_VALUE = 7;
+    public static final int TRUNCATE_VALUE = 8;
+    public static final int RENAME_VALUE = 9;
+    public static final int CINDEX_VALUE = 10;
+    public static final int DINDEX_VALUE = 11;
     
     
     public final int getNumber() { return value; }
@@ -111,6 +119,10 @@ public final class CanalEntry {
         case 5: return ALTER;
         case 6: return ERASE;
         case 7: return QUERY;
+        case 8: return TRUNCATE;
+        case 9: return RENAME;
+        case 10: return CINDEX;
+        case 11: return DINDEX;
         default: return null;
       }
     }
@@ -141,7 +153,7 @@ public final class CanalEntry {
     }
     
     private static final EventType[] VALUES = {
-      INSERT, UPDATE, DELETE, CREATE, ALTER, ERASE, QUERY, 
+      INSERT, UPDATE, DELETE, CREATE, ALTER, ERASE, QUERY, TRUNCATE, RENAME, CINDEX, DINDEX, 
     };
     
     public static EventType valueOf(
@@ -7534,12 +7546,13 @@ public final class CanalEntry {
       "\005props\030\003 \003(\0132&.com.alibaba.otter.canal.p" +
       "rotocol.Pair\"\"\n\004Pair\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
       "ue\030\002 \001(\t*B\n\tEntryType\022\024\n\020TRANSACTIONBEGI",
-      "N\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003*\\\n\t" +
-      "EventType\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DEL" +
-      "ETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006\022" +
-      "\t\n\005QUERY\020\007*(\n\004Type\022\n\n\006ORACLE\020\001\022\t\n\005MYSQL\020" +
-      "\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.otter.canal." +
-      "protocolB\nCanalEntryH\001"
+      "N\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003*\216\001\n" +
+      "\tEventType\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DE" +
+      "LETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006" +
+      "\022\t\n\005QUERY\020\007\022\014\n\010TRUNCATE\020\010\022\n\n\006RENAME\020\t\022\n\n" +
+      "\006CINDEX\020\n\022\n\n\006DINDEX\020\013*(\n\004Type\022\n\n\006ORACLE\020" +
+      "\001\022\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.o" +
+      "tter.canal.protocolB\nCanalEntryH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {

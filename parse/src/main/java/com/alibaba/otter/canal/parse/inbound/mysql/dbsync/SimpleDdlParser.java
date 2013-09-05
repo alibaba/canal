@@ -16,35 +16,75 @@ import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
  * c. 存在换行符： create table \n `retl.retl_mark`
  * </pre>
  * 
+ * http://dev.mysql.com/doc/refman/5.6/en/sql-syntax-data-definition.html
+ * 
  * @author jianghang 2013-1-22 下午10:03:22
  * @version 1.0.0
  */
 public class SimpleDdlParser {
 
-    public static final String CREATE_PATTERN = "^\\s*CREATE\\s*TABLE\\s*(.*)$";
-    public static final String DROP_PATTERN   = "^\\s*DROP\\s*TABLE\\s*(.*)$";
-    public static final String ALERT_PATTERN  = "^\\s*ALTER\\s*TABLE\\s*(.*)$";
-    public static final String TABLE_PATTERN  = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
-    public static final String INSERT_PATTERN = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
-    public static final String UPDATE_PATTERN = "^\\s*UPDATE(.*)$";
-    public static final String DELETE_PATTERN = "^\\s*DELETE(.*)$";
+    public static final String CREATE_PATTERN       = "^\\s*CREATE\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
+    public static final String DROP_PATTERN         = "^\\s*DROP\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
+    public static final String ALERT_PATTERN        = "^\\s*ALTER\\s*(IGNORE)?\\s*TABLE\\s*(.*)$";
+    public static final String TRUNCATE_PATTERN     = "^\\s*TRUNCATE\\s*(TABLE)?\\s*(.*)$";
+    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
+    public static final String INSERT_PATTERN       = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
+    public static final String UPDATE_PATTERN       = "^\\s*UPDATE(.*)$";
+    public static final String DELETE_PATTERN       = "^\\s*DELETE(.*)$";
+    public static final String RENAME_PATTERN       = "^\\s*RENAME\\s*TABLE\\s*(.*?)\\s*TO\\s*(.*?)$";
+    /**
+     * <pre>
+     * CREATE [UNIQUE|FULLTEXT|SPATIAL] INDEX index_name
+     *         [index_type]
+     *         ON tbl_name (index_col_name,...)
+     *         [algorithm_option | lock_option] ...
+     *         
+     * http://dev.mysql.com/doc/refman/5.6/en/create-index.html
+     * </pre>
+     */
+    public static final String CREATE_INDEX_PATTERN = "^\\s*CREATE\\s*.*?\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
+    public static final String DROP_INDEX_PATTERN   = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
 
     public static DdlResult parse(String queryString, String schmeaName) {
-        DdlResult result = parseDdl(queryString, schmeaName, ALERT_PATTERN);
+        DdlResult result = parseDdl(queryString, schmeaName, ALERT_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.ALTER);
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, CREATE_PATTERN);
+        result = parseDdl(queryString, schmeaName, CREATE_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.CREATE);
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, DROP_PATTERN);
+        result = parseDdl(queryString, schmeaName, DROP_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.ERASE);
+            return result;
+        }
+
+        result = parseDdl(queryString, schmeaName, TRUNCATE_PATTERN, 2);
+        if (result != null) {
+            result.setType(EventType.TRUNCATE);
+            return result;
+        }
+
+        result = parseRename(queryString, schmeaName, RENAME_PATTERN);
+        if (result != null) {
+            result.setType(EventType.RENAME);
+            return result;
+        }
+
+        result = parseDdl(queryString, schmeaName, CREATE_INDEX_PATTERN, 2);
+        if (result != null) {
+            result.setType(EventType.CINDEX);
+            return result;
+        }
+
+        result = parseDdl(queryString, schmeaName, DROP_INDEX_PATTERN, 2);
+        if (result != null) {
+            result.setType(EventType.DINDEX);
             return result;
         }
 
@@ -68,45 +108,11 @@ public class SimpleDdlParser {
         return result;
     }
 
-    private static DdlResult parseDdl(String queryString, String schmeaName, String pattern) {
+    private static DdlResult parseDdl(String queryString, String schmeaName, String pattern, int index) {
         Perl5Matcher matcher = new Perl5Matcher();
         if (matcher.matches(queryString, PatternUtils.getPattern(pattern))) {
-            Perl5Matcher tableMatcher = new Perl5Matcher();
-            String matchString = matcher.getMatch().group(1) + " ";
-            if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
-                String schmeaString = tableMatcher.getMatch().group(3);
-                String tableString = tableMatcher.getMatch().group(4);
-                if (StringUtils.isNotEmpty(schmeaString)) {
-                    // 特殊处理引号`
-                    schmeaString = StringUtils.removeEnd(schmeaString, ".");
-                    schmeaString = StringUtils.removeEnd(schmeaString, "`");
-                    schmeaString = StringUtils.removeStart(schmeaString, "`");
-
-                    // if (StringUtils.isNotEmpty(schmeaName) && !StringUtils.equalsIgnoreCase(schmeaString, schmeaName)) {
-                    //  return new DdlResult(schmeaString);
-                    // }
-                } else {
-                    schmeaString = schmeaName;
-                }
-
-                tableString = StringUtils.removeEnd(tableString, ";");
-                tableString = StringUtils.removeEnd(tableString, "(");
-                tableString = StringUtils.trim(tableString);
-                // 特殊处理引号`
-                tableString = StringUtils.removeEnd(tableString, "`");
-                tableString = StringUtils.removeStart(tableString, "`");
-                // 处理schema.table的写法
-                String names[] = StringUtils.split(tableString, ".");
-                if (names != null && names.length > 1) {
-                    if (StringUtils.equalsIgnoreCase(schmeaString, names[0])) {
-                        return new DdlResult(schmeaString, names[1]);
-                    }
-                } else {
-                    return new DdlResult(schmeaString, names[0]);
-                }
-            }
-
-            return new DdlResult(schmeaName); // 无法解析时，直接返回schmea，进行兼容处理
+            DdlResult result = parseTableName(matcher.getMatch().group(index), schmeaName);
+            return result != null ? result : new DdlResult(schmeaName); // 无法解析时，直接返回schmea，进行兼容处理
         }
 
         return null;
@@ -121,10 +127,65 @@ public class SimpleDdlParser {
         }
     }
 
+    private static DdlResult parseRename(String queryString, String schmeaName, String pattern) {
+        Perl5Matcher matcher = new Perl5Matcher();
+        if (matcher.matches(queryString, PatternUtils.getPattern(pattern))) {
+            DdlResult orign = parseTableName(matcher.getMatch().group(1), schmeaName);
+            DdlResult target = parseTableName(matcher.getMatch().group(2), schmeaName);
+            if (orign != null && target != null) {
+                return new DdlResult(target.getSchemaName(), target.getTableName(), orign.getSchemaName(),
+                                     orign.getTableName());
+            }
+        }
+
+        return null;
+    }
+
+    private static DdlResult parseTableName(String matchString, String schmeaName) {
+        Perl5Matcher tableMatcher = new Perl5Matcher();
+        matchString = matchString + " ";
+        if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
+            String schmeaString = tableMatcher.getMatch().group(3);
+            String tableString = tableMatcher.getMatch().group(4);
+            if (StringUtils.isNotEmpty(schmeaString)) {
+                // 特殊处理引号`
+                schmeaString = StringUtils.removeEnd(schmeaString, ".");
+                schmeaString = StringUtils.removeEnd(schmeaString, "`");
+                schmeaString = StringUtils.removeStart(schmeaString, "`");
+
+                // if (StringUtils.isNotEmpty(schmeaName) && !StringUtils.equalsIgnoreCase(schmeaString, schmeaName)) {
+                //  return new DdlResult(schmeaString);
+                // }
+            } else {
+                schmeaString = schmeaName;
+            }
+
+            tableString = StringUtils.removeEnd(tableString, ";");
+            tableString = StringUtils.removeEnd(tableString, "(");
+            tableString = StringUtils.trim(tableString);
+            // 特殊处理引号`
+            tableString = StringUtils.removeEnd(tableString, "`");
+            tableString = StringUtils.removeStart(tableString, "`");
+            // 处理schema.table的写法
+            String names[] = StringUtils.split(tableString, ".");
+            if (names != null && names.length > 1) {
+                if (StringUtils.equalsIgnoreCase(schmeaString, names[0])) {
+                    return new DdlResult(schmeaString, names[1]);
+                }
+            } else {
+                return new DdlResult(schmeaString, names[0]);
+            }
+        }
+
+        return null;
+    }
+
     public static class DdlResult {
 
         private String    schemaName;
         private String    tableName;
+        private String    oriSchemaName; //rename ddl中的源表
+        private String    oriTableName; //rename ddl中的目标表
         private EventType type;
 
         public DdlResult(){
@@ -137,6 +198,13 @@ public class SimpleDdlParser {
         public DdlResult(String schemaName, String tableName){
             this.schemaName = schemaName;
             this.tableName = tableName;
+        }
+
+        public DdlResult(String schemaName, String tableName, String oriSchemaName, String oriTableName){
+            this.schemaName = schemaName;
+            this.tableName = tableName;
+            this.oriSchemaName = oriSchemaName;
+            this.oriTableName = oriTableName;
         }
 
         public String getSchemaName() {
@@ -163,8 +231,26 @@ public class SimpleDdlParser {
             this.type = type;
         }
 
+        public String getOriSchemaName() {
+            return oriSchemaName;
+        }
+
+        public void setOriSchemaName(String oriSchemaName) {
+            this.oriSchemaName = oriSchemaName;
+        }
+
+        public String getOriTableName() {
+            return oriTableName;
+        }
+
+        public void setOriTableName(String oriTableName) {
+            this.oriTableName = oriTableName;
+        }
+
+        @Override
         public String toString() {
-            return "DdlResult [schemaName=" + schemaName + ", tableName=" + tableName + ", type=" + type + "]";
+            return "DdlResult [schemaName=" + schemaName + ", tableName=" + tableName + ", oriSchemaName="
+                   + oriSchemaName + ", oriTableName=" + oriTableName + ", type=" + type + "]";
         }
 
     }

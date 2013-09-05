@@ -83,4 +83,64 @@ public class SimpleDdlParserTest {
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
     }
+
+    @Test
+    public void testTruncate() {
+        String queryString = "truncate table retl_mark";
+        DdlResult result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl_mark", result.getTableName());
+
+        queryString = "truncate table retl.retl_mark";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl_mark", result.getTableName());
+
+        queryString = "truncate \n  `retl.retl_mark` ";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl_mark", result.getTableName());
+    }
+
+    @Test
+    public void testRename() {
+        String queryString = "rename table retl_mark to retl_mark2";
+        DdlResult result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getOriSchemaName());
+        Assert.assertEquals("retl", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getOriTableName());
+        Assert.assertEquals("retl_mark2", result.getTableName());
+
+        queryString = "rename table retl.retl_mark to retl2.retl_mark2";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getOriSchemaName());
+        Assert.assertEquals("retl2", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getOriTableName());
+        Assert.assertEquals("retl_mark2", result.getTableName());
+
+        queryString = "rename \n table \n `retl`.`retl_mark` to `retl2.retl_mark2`;";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getOriSchemaName());
+        Assert.assertEquals("retl2", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getOriTableName());
+        Assert.assertEquals("retl_mark2", result.getTableName());
+    }
+
+    @Test
+    public void testIndex() {
+        String queryString = "CREATE UNIQUE INDEX index_1 ON retl_mark(id,x)";
+        DdlResult result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getTableName());
+
+        queryString = "DROP INDEX index_str ON retl_mark";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getTableName());
+    }
 }

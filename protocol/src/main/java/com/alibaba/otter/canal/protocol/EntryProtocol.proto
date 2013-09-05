@@ -176,6 +176,11 @@ enum EventType {
     ALTER		= 		5;
     ERASE		= 		6;
     QUERY		=		7;
+    TRUNCATE	=		8;
+    RENAME 		= 		9;
+    /**CREATE INDEX**/
+    CINDEX		= 		10;
+    DINDEX 		= 		11;
 }
 
 /**数据库类型**/

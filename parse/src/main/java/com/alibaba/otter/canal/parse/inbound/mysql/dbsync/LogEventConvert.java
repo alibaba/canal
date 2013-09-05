@@ -159,19 +159,31 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             EventType type = EventType.QUERY;
             // fixed issue https://github.com/alibaba/canal/issues/58
             if (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE
-                || result.getType() == EventType.CREATE) { //针对DDL类型
+                || result.getType() == EventType.CREATE || result.getType() == EventType.TRUNCATE
+                || result.getType() == EventType.RENAME) { //针对DDL类型
                 type = result.getType();
-                if (StringUtils.isNotEmpty(tableName)) {
-                    // check name filter
-                    if (nameFilter != null && !nameFilter.filter(schemaName + "." + tableName)) {
-                        return null;
-                    }
-                } else {
+
+                if (StringUtils.isEmpty(tableName)
+                    || (result.getType() == EventType.RENAME && StringUtils.isEmpty(result.getOriTableName()))) {
                     //如果解析不出tableName,记录一下日志，方便bugfix，目前直接抛出异常，中断解析
                     throw new CanalParseException(
                                                   "SimpleDdlParser process query failed. pls submit issue with this queryString: "
                                                           + queryString + " , and DdlResult: " + result.toString());
                     // return null;
+                } else {
+                    // check name filter
+                    if (nameFilter != null && !nameFilter.filter(schemaName + "." + tableName)) {
+                        if (result.getType() == EventType.RENAME) {
+                            // rename校验只要源和目标满足一个就进行操作
+                            if (nameFilter != null
+                                && !nameFilter.filter(result.getOriSchemaName() + "." + result.getOriTableName())) {
+                                return null;
+                            }
+                        } else {
+                            // 其他情况返回null
+                            return null;
+                        }
+                    }
                 }
             } else if (result.getType() == EventType.INSERT || result.getType() == EventType.UPDATE
                        || result.getType() == EventType.DELETE) {
