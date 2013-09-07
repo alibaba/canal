@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.store.model.Events;
 public class DummyEventStore implements CanalEventStore<Event> {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final String messgae     = "{0} [{1}:{2}:{3}] {4}.{5}";
+    private static final String messgae     = "{0} [{1}:{2}:{3}] {4} {5}.{6}";
 
     public void ack(Position position) throws CanalStoreException {
 
@@ -93,9 +93,12 @@ public class DummyEventStore implements CanalEventStore<Event> {
                 System.out.println(data.getEntry().getEntryType());
 
             } else {
-                System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                        header.getLogfileName(), header.getLogfileOffset(), format.format(date),
-                        header.getSchemaName(), header.getTableName() }));
+                System.out.println(MessageFormat.format(messgae,
+                                                        new Object[] { Thread.currentThread().getName(),
+                                                                header.getLogfileName(),
+                                                                String.valueOf(header.getLogfileOffset()),
+                                                                format.format(date), header.getEventType(),
+                                                                header.getSchemaName(), header.getTableName() }));
             }
         }
     }
@@ -113,9 +116,12 @@ public class DummyEventStore implements CanalEventStore<Event> {
                 System.out.println(data.getEntry().getEntryType());
 
             } else {
-                System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                        header.getLogfileName(), header.getLogfileOffset(), format.format(date),
-                        header.getSchemaName(), header.getTableName() }));
+                System.out.println(MessageFormat.format(messgae,
+                                                        new Object[] { Thread.currentThread().getName(),
+                                                                header.getLogfileName(),
+                                                                String.valueOf(header.getLogfileOffset()),
+                                                                format.format(date), header.getEventType(),
+                                                                header.getSchemaName(), header.getTableName() }));
             }
         }
         return true;
@@ -136,9 +142,12 @@ public class DummyEventStore implements CanalEventStore<Event> {
                 System.out.println(data.getEntry().getEntryType());
 
             } else {
-                System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                        header.getLogfileName(), header.getLogfileOffset(), format.format(date),
-                        header.getSchemaName(), header.getTableName() }));
+                System.out.println(MessageFormat.format(messgae,
+                                                        new Object[] { Thread.currentThread().getName(),
+                                                                header.getLogfileName(),
+                                                                String.valueOf(header.getLogfileOffset()),
+                                                                format.format(date), header.getEventType(),
+                                                                header.getSchemaName(), header.getTableName() }));
             }
 
         }

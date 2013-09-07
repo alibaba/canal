@@ -44,21 +44,23 @@ public class GroupEventSink extends EntryEventSink {
     }
 
     protected boolean doSink(List<Event> events) {
-        for (Event event : events) {
+        int size = events.size();
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
             try {
                 barrier.await(event);// 进行timeline的归并调度处理
                 if (filterTransactionEntry) {
                     return super.doSink(Arrays.asList(event));
+                } else if (i == size - 1) {
+                    // 针对事务数据，只有到最后一条数据都通过后，才进行sink操作，保证原子性
+                    // 同时批量sink，也要保证在最后一条数据释放状态之前写出数据，否则就有并发问题
+                    return super.doSink(events);
                 }
             } catch (InterruptedException e) {
                 return false;
             } finally {
                 barrier.clear(event);
             }
-        }
-
-        if (!filterTransactionEntry) {// 针对事务数据，所有的event都通过后才进行sink操作，保证原子性
-            return super.doSink(events);
         }
 
         return false;
