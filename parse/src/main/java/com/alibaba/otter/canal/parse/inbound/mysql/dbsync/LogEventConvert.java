@@ -146,16 +146,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             String tableName = result.getTableName();
-            if (tableMetaCache != null && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE)) {
-                if (StringUtils.isNotEmpty(tableName)) {
-                    // 如果解析到了正确的表信息，则根据全名进行清除
-                    tableMetaCache.clearTableMetaWithFullName(schemaName + "." + tableName);
-                } else {
-                    // 如果无法解析正确的表信息，则根据schema进行清除
-                    tableMetaCache.clearTableMetaWithSchemaName(schemaName);
-                }
-            }
-
             EventType type = EventType.QUERY;
             // fixed issue https://github.com/alibaba/canal/issues/58
             if (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE
@@ -193,6 +183,18 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
             } else if (filterQueryDcl) {
                 return null;
+            }
+
+            // 更新下table meta cache
+            if (tableMetaCache != null
+                && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE || result.getType() == EventType.RENAME)) {
+                if (StringUtils.isNotEmpty(tableName)) {
+                    // 如果解析到了正确的表信息，则根据全名进行清除
+                    tableMetaCache.clearTableMetaWithFullName(schemaName + "." + tableName);
+                } else {
+                    // 如果无法解析正确的表信息，则根据schema进行清除
+                    tableMetaCache.clearTableMetaWithSchemaName(schemaName);
+                }
             }
 
             Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, type);
