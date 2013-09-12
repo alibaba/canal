@@ -27,7 +27,7 @@ public class SimpleDdlParser {
     public static final String DROP_PATTERN         = "^\\s*DROP\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
     public static final String ALERT_PATTERN        = "^\\s*ALTER\\s*(IGNORE)?\\s*TABLE\\s*(.*)$";
     public static final String TRUNCATE_PATTERN     = "^\\s*TRUNCATE\\s*(TABLE)?\\s*(.*)$";
-    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?\\.)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
+    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
     public static final String INSERT_PATTERN       = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
     public static final String UPDATE_PATTERN       = "^\\s*UPDATE(.*)$";
     public static final String DELETE_PATTERN       = "^\\s*DELETE(.*)$";
@@ -133,8 +133,10 @@ public class SimpleDdlParser {
             DdlResult orign = parseTableName(matcher.getMatch().group(1), schmeaName);
             DdlResult target = parseTableName(matcher.getMatch().group(2), schmeaName);
             if (orign != null && target != null) {
-                return new DdlResult(target.getSchemaName(), target.getTableName(), orign.getSchemaName(),
-                                     orign.getTableName());
+                return new DdlResult(target.getSchemaName(),
+                    target.getTableName(),
+                    orign.getSchemaName(),
+                    orign.getTableName());
             }
         }
 
@@ -145,47 +147,37 @@ public class SimpleDdlParser {
         Perl5Matcher tableMatcher = new Perl5Matcher();
         matchString = matchString + " ";
         if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
-            String schmeaString = tableMatcher.getMatch().group(3);
-            String tableString = tableMatcher.getMatch().group(4);
-            if (StringUtils.isNotEmpty(schmeaString)) {
-                // 特殊处理引号`
-                schmeaString = StringUtils.removeEnd(schmeaString, ".");
-                schmeaString = StringUtils.removeEnd(schmeaString, "`");
-                schmeaString = StringUtils.removeStart(schmeaString, "`");
-
-                // if (StringUtils.isNotEmpty(schmeaName) && !StringUtils.equalsIgnoreCase(schmeaString, schmeaName)) {
-                //  return new DdlResult(schmeaString);
-                // }
-            } else {
-                schmeaString = schmeaName;
-            }
+            String tableString = tableMatcher.getMatch().group(3);
 
             tableString = StringUtils.removeEnd(tableString, ";");
             tableString = StringUtils.removeEnd(tableString, "(");
             tableString = StringUtils.trim(tableString);
             // 特殊处理引号`
-            tableString = StringUtils.removeEnd(tableString, "`");
-            tableString = StringUtils.removeStart(tableString, "`");
+            tableString = removeEscape(tableString);
             // 处理schema.table的写法
             String names[] = StringUtils.split(tableString, ".");
             if (names != null && names.length > 1) {
-                if (StringUtils.equalsIgnoreCase(schmeaString, names[0])) {
-                    return new DdlResult(schmeaString, names[1]);
-                }
+                return new DdlResult(removeEscape(names[0]), removeEscape(names[1]));
             } else {
-                return new DdlResult(schmeaString, names[0]);
+                return new DdlResult(schmeaName, removeEscape(names[0]));
             }
         }
 
         return null;
     }
 
+    private static String removeEscape(String str) {
+        String result = StringUtils.removeEnd(str, "`");
+        result = StringUtils.removeStart(result, "`");
+        return result;
+    }
+
     public static class DdlResult {
 
         private String    schemaName;
         private String    tableName;
-        private String    oriSchemaName; //rename ddl中的源表
-        private String    oriTableName; //rename ddl中的目标表
+        private String    oriSchemaName; // rename ddl中的源表
+        private String    oriTableName; // rename ddl中的目标表
         private EventType type;
 
         public DdlResult(){

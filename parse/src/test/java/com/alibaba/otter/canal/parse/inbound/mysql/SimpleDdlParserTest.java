@@ -46,6 +46,12 @@ public class SimpleDdlParserTest {
         Assert.assertNotNull(result);
         Assert.assertEquals("bak591", result.getSchemaName());
         Assert.assertEquals("j_order_log_back_201309", result.getTableName());
+
+        queryString = "CREATE TABLE `bak591`.`cm_settle_incash` (    `batch_id` bigint(20) NOT NULL  DEFAULT '0.00'";
+        result = SimpleDdlParser.parse(queryString, "bak");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("bak591", result.getSchemaName());
+        Assert.assertEquals("cm_settle_incash", result.getTableName());
     }
 
     @Test
@@ -60,7 +66,7 @@ public class SimpleDdlParserTest {
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
 
-        queryString = "DROP TABLE IF EXIST \n `retl.retl_mark` ;";
+        queryString = "DROP TABLE IF EXIST \n `retl.retl_mark` /;";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
