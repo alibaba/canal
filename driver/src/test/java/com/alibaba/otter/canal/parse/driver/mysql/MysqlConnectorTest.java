@@ -18,10 +18,10 @@ public class MysqlConnectorTest {
                                                       "ottermysql");
         try {
             connector.connect();
-            MysqlQueryExecutor exector = new MysqlQueryExecutor(connector);
-            ResultSetPacket result = exector.query("show variables like '%char%';");
+            MysqlQueryExecutor executor = new MysqlQueryExecutor(connector);
+            ResultSetPacket result = executor.query("show variables like '%char%';");
             System.out.println(result);
-            result = exector.query("select * from test.test1");
+            result = executor.query("select * from test.test1");
             System.out.println(result);
         } catch (IOException e) {
             Assert.fail(e.getMessage());
@@ -41,8 +41,8 @@ public class MysqlConnectorTest {
                                                       "ottermysql");
         try {
             connector.connect();
-            MysqlUpdateExecutor exector = new MysqlUpdateExecutor(connector);
-            exector.update("insert into test.test2(id,name,score,text_value) values(null,'中文1',10,'中文2')");
+            MysqlUpdateExecutor executor = new MysqlUpdateExecutor(connector);
+            executor.update("insert into test.test2(id,name,score,text_value) values(null,'中文1',10,'中文2')");
         } catch (IOException e) {
             Assert.fail(e.getMessage());
         } finally {

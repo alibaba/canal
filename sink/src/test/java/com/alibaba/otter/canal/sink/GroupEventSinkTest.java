@@ -49,7 +49,7 @@ public class GroupEventSinkTest {
                     }
                 }
 
-                System.out.println("one sink finnished!");
+                System.out.println("one sink finished!");
                 latch.countDown();
             }
         });
@@ -74,7 +74,7 @@ public class GroupEventSinkTest {
                         e.printStackTrace();
                     }
                 }
-                System.out.println("tow sink finnished!");
+                System.out.println("tow sink finished!");
                 latch.countDown();
             }
         });
@@ -90,7 +90,7 @@ public class GroupEventSinkTest {
                         e.printStackTrace();
                     }
                 }
-                System.out.println("tow sink finnished!");
+                System.out.println("tow sink finished!");
                 latch.countDown();
             }
         });

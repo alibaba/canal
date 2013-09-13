@@ -14,31 +14,37 @@ public class SimpleDdlParserTest {
         String queryString = "CREATE TABLE retl_mark ( `ID` int(11)";
         DdlResult result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
         queryString = "CREATE TABLE IF NOT EXIST retl.retl_mark ( `ID` int(11)";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
         queryString = "CREATE TABLE IF NOT EXIST `retl_mark` ( `ID` int(11)";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
         queryString = "CREATE TABLE IF NOT EXIST `retl.retl_mark` ( `ID` int(11)";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
         queryString = "CREATE TABLE  `retl`.`retl_mark` (\n  `ID` int(10) unsigned NOT NULL";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
         queryString = "CREATE TABLE  `retl`.`retl_mark`(\n  `ID` int(10) unsigned NOT NULL";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
         queryString = "CREATE table `bak591`.`j_order_log_back_201309` like j_order_log";

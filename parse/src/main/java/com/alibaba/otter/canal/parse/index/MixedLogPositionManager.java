@@ -73,11 +73,11 @@ public class MixedLogPositionManager extends MemoryLogPositionManager implements
     }
 
     public LogPosition getLatestIndexBy(String destination) {
-        LogPosition logPostion = super.getLatestIndexBy(destination);
-        if (logPostion == nullPosition) {
+        LogPosition logPosition = super.getLatestIndexBy(destination);
+        if (logPosition == nullPosition) {
             return null;
         } else {
-            return logPostion;
+            return logPosition;
         }
     }
 

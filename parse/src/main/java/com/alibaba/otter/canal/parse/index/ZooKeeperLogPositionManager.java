@@ -35,8 +35,7 @@ public class ZooKeeperLogPositionManager extends AbstractCanalLifeCycle implemen
             return null;
         }
 
-        LogPosition logPosition = JsonUtils.unmarshalFromByte(data, LogPosition.class);
-        return logPosition;
+        return JsonUtils.unmarshalFromByte(data, LogPosition.class);
     }
 
     public void persistLogPosition(String destination, LogPosition logPosition) {
