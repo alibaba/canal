@@ -47,11 +47,11 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             public void handleDataChange(String dataPath, Object data) throws Exception {
                 MDC.put("destination", destination);
                 ClientRunningData runningData = JsonUtils.unmarshalFromByte((byte[]) data, ClientRunningData.class);
-                if (!isMine(activeData.getAddress())) {
+                if (!isMine(runningData.getAddress())) {
                     mutex.set(false);
                 }
 
-                if (!runningData.isActive() && isMine(activeData.getAddress())) { // 说明出现了主动释放的操作，并且本机之前是active
+                if (!runningData.isActive() && isMine(runningData.getAddress())) { // 说明出现了主动释放的操作，并且本机之前是active
                     release = true;
                     releaseRunning();// 彻底释放mainstem
                 }
@@ -62,7 +62,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             public void handleDataDeleted(String dataPath) throws Exception {
                 MDC.put("destination", destination);
                 mutex.set(false);
-                if (!release && isMine(activeData.getAddress())) {
+                if (!release && activeData != null && isMine(activeData.getAddress())) {
                     // 如果上一次active的状态就是本机，则即时触发一下active抢占
                     initRunning();
                 } else {
@@ -118,9 +118,8 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 activeData = JsonUtils.unmarshalFromByte(bytes, ClientRunningData.class);
             }
         } catch (ZkNoNodeException e) {
-            zkClient.createPersistent(
-                                      ZookeeperPathUtils.getClientIdNodePath(this.destination, clientData.getClientId()),
-                                      true); // 尝试创建父节点
+            zkClient.createPersistent(ZookeeperPathUtils.getClientIdNodePath(this.destination, clientData.getClientId()),
+                true); // 尝试创建父节点
             initRunning();
         }
     }
@@ -147,8 +146,9 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             // 检查下nid是否为自己
             boolean result = isMine(activeData.getAddress());
             if (!result) {
-                logger.warn("canal is running in [{}] , but not in [{}]", activeData.getAddress(),
-                            clientData.getAddress());
+                logger.warn("canal is running in [{}] , but not in [{}]",
+                    activeData.getAddress(),
+                    clientData.getAddress());
             }
             return result;
         } catch (ZkNoNodeException e) {
@@ -191,7 +191,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 this.clientData.setAddress(address);
 
                 String path = ZookeeperPathUtils.getDestinationClientRunning(this.destination,
-                                                                             this.clientData.getClientId());
+                    this.clientData.getClientId());
                 // 序列化
                 byte[] bytes = JsonUtils.marshalToByte(clientData);
                 zkClient.writeData(path, bytes);
