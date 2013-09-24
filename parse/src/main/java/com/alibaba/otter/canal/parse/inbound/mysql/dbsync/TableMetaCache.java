@@ -58,24 +58,25 @@ public class TableMetaCache {
 
     }
 
-    public TableMeta getTableMeta(String fullname) {
-        return getTableMeta(fullname, true);
+    public TableMeta getTableMeta(String schema, String table) {
+        return getTableMeta(schema, table, true);
     }
 
-    public TableMeta getTableMeta(String fullname, boolean useCache) {
+    public TableMeta getTableMeta(String schema, String table, boolean useCache) {
         if (!useCache) {
-            tableMetaCache.remove(fullname);
+            tableMetaCache.remove(getFullName(schema, table));
         }
 
-        return tableMetaCache.get(fullname);
+        return tableMetaCache.get(getFullName(schema, table));
     }
 
-    public void clearTableMetaWithFullName(String fullname) {
-        tableMetaCache.remove(fullname);
+    public void clearTableMeta(String schema, String table) {
+        tableMetaCache.remove(getFullName(schema, table));
     }
 
     public void clearTableMetaWithSchemaName(String schema) {
-        // Set<String> removeNames = new HashSet<String>(); // 存一份临时变量，避免在遍历的时候进行删除
+        // Set<String> removeNames = new HashSet<String>(); //
+        // 存一份临时变量，避免在遍历的时候进行删除
         for (String name : tableMetaCache.keySet()) {
             if (StringUtils.startsWithIgnoreCase(name, schema + ".")) {
                 // removeNames.add(name);
@@ -124,4 +125,15 @@ public class TableMetaCache {
         return result;
     }
 
+    private String getFullName(String schema, String table) {
+        StringBuilder builder = new StringBuilder();
+        return builder.append('`')
+            .append(schema)
+            .append('`')
+            .append('.')
+            .append('`')
+            .append(table)
+            .append('`')
+            .toString();
+    }
 }

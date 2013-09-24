@@ -15,8 +15,9 @@ public class TableMetaCacheTest {
     @Test
     public void testSimple() {
 
-        MysqlConnection connection = new MysqlConnection(new InetSocketAddress("10.20.144.15", 3306), "ottermysql",
-                                                         "ottermysql");
+        MysqlConnection connection = new MysqlConnection(new InetSocketAddress("10.20.144.15", 3306),
+            "ottermysql",
+            "ottermysql");
         try {
             connection.connect();
         } catch (IOException e) {
@@ -24,7 +25,7 @@ public class TableMetaCacheTest {
         }
 
         TableMetaCache cache = new TableMetaCache(connection);
-        TableMeta meta = cache.getTableMeta("otter1.otter_stability1");
+        TableMeta meta = cache.getTableMeta("otter1", "otter_stability1");
         Assert.assertNotNull(meta);
         for (FieldMeta field : meta.getFileds()) {
             System.out.println("filed :" + field.getColumnName() + " , isKey : " + field.isKey() + " , isNull : "
