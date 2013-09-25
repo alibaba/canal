@@ -179,8 +179,11 @@ public final class RowsLogBuffer
 
         case LogEvent.MYSQL_TYPE_NEWDATE:
         case LogEvent.MYSQL_TYPE_DATE:
-        case LogEvent.MYSQL_TYPE_YEAR:
             javaType = Types.DATE;
+            break;
+            
+        case LogEvent.MYSQL_TYPE_YEAR:
+            javaType = Types.INTEGER;
             break;
 
         case LogEvent.MYSQL_TYPE_ENUM:
@@ -218,6 +221,14 @@ public final class RowsLogBuffer
             javaType = Types.BINARY;
             break;
 
+        case LogEvent.MYSQL_TYPE_BINARY:
+            javaType = Types.BINARY;
+            break;
+            
+        case LogEvent.MYSQL_TYPE_VARBINARY:
+            javaType = Types.VARBINARY;
+            break;
+            
         default:
             javaType = Types.OTHER;
         }
@@ -883,6 +894,45 @@ public final class RowsLogBuffer
                         "!! Unsupport column type MYSQL_TYPE_GEOMETRY: meta=%d (%04X), len = %d",
                         meta, meta, len));
                 javaType = Types.BINARY;
+                value = binary;
+                length = len;
+                break;
+            }
+        case LogEvent.MYSQL_TYPE_BINARY: // fixed issue #66 , mysql不存在此类型处理
+            {
+                if (len < 256)
+                {
+                    len = buffer.getUint8();
+                }
+                else
+                {
+                    len = buffer.getUint16();
+                }
+                /* fill binary */
+                byte[] binary = new byte[len];
+                buffer.fillBytes(binary, 0, len);
+                
+                javaType = Types.BINARY; 
+                value = binary;
+                length = len;
+                break;
+            }
+        case LogEvent.MYSQL_TYPE_VARBINARY: // fixed issue #66 , mysql不存在此类型处理
+            {
+                if (len < 256)
+                {
+                    len = buffer.getUint8();
+                }
+                else
+                {
+                    len = buffer.getUint16();
+                }
+                
+                /* fill binary */
+                byte[] binary = new byte[len];
+                buffer.fillBytes(binary, 0, len);
+                
+                javaType = Types.VARBINARY;
                 value = binary;
                 length = len;
                 break;

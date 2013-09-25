@@ -358,18 +358,30 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
         for (int i = 0; i < columnCnt; i++) {
             ColumnInfo info = columnInfo[i];
-            buffer.nextValue(info.type, info.meta);
+            Column.Builder columnBuilder = Column.newBuilder();
 
             FieldMeta fieldMeta = null;
-            Column.Builder columnBuilder = Column.newBuilder();
-            columnBuilder.setIndex(i);
-            columnBuilder.setIsNull(false);
             if (tableMeta != null) {
                 // 处理file meta
                 fieldMeta = tableMeta.getFileds().get(i);
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
             }
+            columnBuilder.setIndex(i);
+            columnBuilder.setIsNull(false);
+
+            // fixed issue
+            // https://github.com/alibaba/canal/issues/66，特殊处理binary/varbinary，不能做编码处理
+            int type = info.type;
+            if (fieldMeta != null) {
+                if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "VARBINARY")) {
+                    type = LogEvent.MYSQL_TYPE_VARBINARY;
+                } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "BINARY")) {
+                    type = LogEvent.MYSQL_TYPE_BINARY;
+                }
+            }
+            buffer.nextValue(type, info.meta);
+
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
@@ -458,7 +470,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         break;
                     case Types.CHAR:
                     case Types.VARCHAR:
-                        // 本身对象为string
                         columnBuilder.setValue(value.toString());
                         break;
                     default:
