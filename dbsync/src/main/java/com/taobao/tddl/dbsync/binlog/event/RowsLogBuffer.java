@@ -183,7 +183,7 @@ public final class RowsLogBuffer
             break;
             
         case LogEvent.MYSQL_TYPE_YEAR:
-            javaType = Types.INTEGER;
+            javaType = Types.VARCHAR;
             break;
 
         case LogEvent.MYSQL_TYPE_ENUM:
@@ -689,14 +689,14 @@ public final class RowsLogBuffer
                 if (i32 == 0) {
                     value = "0000";
                 } else {
-                    value = Short.valueOf((short) (i32 + 1900));
+                    value = String.valueOf((short) (i32 + 1900));
                 }
                 // It might seem more correct to create a java.sql.Types.DATE value
                 // for this date, but it is much simpler to pass the value as an
                 // integer. The MySQL JDBC specification states that one can
                 // pass a java int between 1901 and 2055. Creating a DATE value
                 // causes truncation errors with certain SQL_MODES (e.g."STRICT_TRANS_TABLES").
-                javaType = Types.INTEGER; // Types.INTEGER;
+                javaType = Types.VARCHAR; // Types.INTEGER;
                 length = 1;
                 break;
             }
