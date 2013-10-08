@@ -200,32 +200,34 @@ public class AbstractCanalClientTest {
                 continue;
             }
 
-            RowChange rowChage = null;
-            try {
-                rowChage = RowChange.parseFrom(entry.getStoreValue());
-            } catch (Exception e) {
-                throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
-            }
+            if (entry.getEntryType() == EntryType.ROWDATA) {
+                RowChange rowChage = null;
+                try {
+                    rowChage = RowChange.parseFrom(entry.getStoreValue());
+                } catch (Exception e) {
+                    throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
+                }
 
-            EventType eventType = rowChage.getEventType();
+                EventType eventType = rowChage.getEventType();
 
-            logger.info(row_format,
-                new Object[] { entry.getHeader().getLogfileName(),
-                        String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
-                        entry.getHeader().getTableName(), eventType,
-                        String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
+                logger.info(row_format,
+                    new Object[] { entry.getHeader().getLogfileName(),
+                            String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
+                            entry.getHeader().getTableName(), eventType,
+                            String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
 
-            if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
-                logger.info(" sql ----> " + rowChage.getSql() + SEP);
-            }
+                if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
+                    logger.info(" sql ----> " + rowChage.getSql() + SEP);
+                }
 
-            for (RowData rowData : rowChage.getRowDatasList()) {
-                if (eventType == EventType.DELETE) {
-                    printColumn(rowData.getBeforeColumnsList());
-                } else if (eventType == EventType.INSERT) {
-                    printColumn(rowData.getAfterColumnsList());
-                } else {
-                    printColumn(rowData.getAfterColumnsList());
+                for (RowData rowData : rowChage.getRowDatasList()) {
+                    if (eventType == EventType.DELETE) {
+                        printColumn(rowData.getBeforeColumnsList());
+                    } else if (eventType == EventType.INSERT) {
+                        printColumn(rowData.getAfterColumnsList());
+                    } else {
+                        printColumn(rowData.getAfterColumnsList());
+                    }
                 }
             }
         }

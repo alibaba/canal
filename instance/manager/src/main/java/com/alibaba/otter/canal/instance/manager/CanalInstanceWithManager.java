@@ -90,7 +90,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         this.filter = filter;
 
         logger.info("init CannalInstance for {}-{} with parameters:{}",
-                    new Object[] { canalId, destination, parameters });
+            new Object[] { canalId, destination, parameters });
         // 初始化报警机制
         initAlarmHandler();
         // 初始化metaManager
@@ -225,7 +225,8 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             ((ZooKeeperMetaManager) metaManager).setZkClientx(getZkclientx());
         } else if (mode.isMixed()) {
             // metaManager = new MixedMetaManager();
-            metaManager = new PeriodMixedMetaManager();// 换用优化过的mixed, at 2012-09-11
+            metaManager = new PeriodMixedMetaManager();// 换用优化过的mixed, at
+                                                       // 2012-09-11
             // 设置内嵌的zk metaManager
             ZooKeeperMetaManager zooKeeperMetaManager = new ZooKeeperMetaManager();
             zooKeeperMetaManager.setZkClientx(getZkclientx());
@@ -307,7 +308,8 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
                 for (List<DataSourcing> groupDbAddress : groupDbAddresses) {
                     if (lastType != null && !lastType.equals(groupDbAddress.get(i).getType())) {
                         throw new CanalException(String.format("master/slave Sourcing type is unmatch. %s vs %s",
-                                                               lastType, groupDbAddress.get(i).getType()));
+                            lastType,
+                            groupDbAddress.get(i).getType()));
                     }
 
                     lastType = groupDbAddress.get(i).getType();
@@ -352,27 +354,28 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             // 数据库信息参数
             mysqlEventParser.setSlaveId(parameters.getSlaveId());
             if (!CollectionUtils.isEmpty(dbAddresses)) {
-                mysqlEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0), parameters.getDbUsername(),
-                                                                      parameters.getDbPassword(),
-                                                                      parameters.getDefaultDatabaseName()));
+                mysqlEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
+                    parameters.getDbUsername(),
+                    parameters.getDbPassword(),
+                    parameters.getDefaultDatabaseName()));
 
                 if (dbAddresses.size() > 1) {
                     mysqlEventParser.setStandbyInfo(new AuthenticationInfo(dbAddresses.get(1),
-                                                                           parameters.getDbUsername(),
-                                                                           parameters.getDbPassword(),
-                                                                           parameters.getDefaultDatabaseName()));
+                        parameters.getDbUsername(),
+                        parameters.getDbPassword(),
+                        parameters.getDefaultDatabaseName()));
                 }
             }
 
             if (!CollectionUtils.isEmpty(parameters.getPositions())) {
                 EntryPosition masterPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
-                                                                             EntryPosition.class);
+                    EntryPosition.class);
                 // binlog位置参数
                 mysqlEventParser.setMasterPosition(masterPosition);
 
                 if (parameters.getPositions().size() > 1) {
                     EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
-                                                                                  EntryPosition.class);
+                        EntryPosition.class);
                     mysqlEventParser.setStandbyPosition(standbyPosition);
                 }
             }
@@ -387,12 +390,14 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             localBinlogEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
             localBinlogEventParser.setDirectory(parameters.getLocalBinlogDirectory());
             localBinlogEventParser.setProfilingEnabled(false);
+            localBinlogEventParser.setDetectingEnable(parameters.getDetectingEnable());
+            localBinlogEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
             // 数据库信息，反查表结构时需要
             if (!CollectionUtils.isEmpty(dbAddresses)) {
                 localBinlogEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
-                                                                            parameters.getDbUsername(),
-                                                                            parameters.getDbPassword(),
-                                                                            parameters.getDefaultDatabaseName()));
+                    parameters.getDbUsername(),
+                    parameters.getDbPassword(),
+                    parameters.getDefaultDatabaseName()));
 
             }
             eventParser = localBinlogEventParser;
@@ -402,7 +407,9 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             throw new CanalException("unsupport SourcingType for " + type);
         }
 
-        if (eventParser instanceof AbstractEventParser) { // add transaction support at 2012-12-06
+        if (eventParser instanceof AbstractEventParser) { // add transaction
+                                                          // support at
+                                                          // 2012-12-06
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
             abstractEventParser.setTransactionSize(parameters.getTransactionSize());
             abstractEventParser.setLogPositionManager(initLogPositionManager());
@@ -470,8 +477,8 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             throw new CanalException("unsupport indexMode for " + indexMode);
         }
 
-        logger.info("init logPositionManager end! \n\t load CanalLogPositionManager:{}",
-                    logPositionManager.getClass().getName());
+        logger.info("init logPositionManager end! \n\t load CanalLogPositionManager:{}", logPositionManager.getClass()
+            .getName());
 
         return logPositionManager;
     }

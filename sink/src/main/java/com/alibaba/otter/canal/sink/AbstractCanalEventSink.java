@@ -27,7 +27,7 @@ public abstract class AbstractCanalEventSink<T> extends AbstractCanalLifeCycle i
     }
 
     public void addHandler(CanalEventDownStreamHandler handler, int index) {
-        this.handlers.set(index, handler);
+        this.handlers.add(index, handler);
     }
 
     public void removeHandler(int index) {

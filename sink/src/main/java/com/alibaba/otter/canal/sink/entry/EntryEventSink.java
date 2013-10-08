@@ -40,13 +40,29 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     protected volatile long        lastEmptyTransactionTimestamp = 0L;
     protected AtomicLong           lastEmptyTransactionCount     = new AtomicLong(0L);
 
+    public EntryEventSink(){
+        addHandler(new HeartBeatEntryEventHandler());
+    }
+
     public void start() {
         super.start();
         Assert.notNull(eventStore);
+
+        for (CanalEventDownStreamHandler handler : getHandlers()) {
+            if (!handler.isStart()) {
+                handler.start();
+            }
+        }
     }
 
     public void stop() {
         super.stop();
+
+        for (CanalEventDownStreamHandler handler : getHandlers()) {
+            if (handler.isStart()) {
+                handler.stop();
+            }
+        }
     }
 
     public boolean filter(List<Entry> event, InetSocketAddress remoteAddress, String destination) {
@@ -73,6 +89,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     private boolean sinkData(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress)
                                                                                             throws InterruptedException {
         boolean hasRowData = false;
+        boolean hasHeartBeat = false;
         List<Event> events = new ArrayList<Event>();
         for (CanalEntry.Entry entry : entrys) {
             Event event = new Event(new LogIdentity(remoteAddress, -1L), entry);
@@ -82,10 +99,14 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
 
             events.add(event);
             hasRowData |= (entry.getEntryType() == EntryType.ROWDATA);
+            hasHeartBeat |= (entry.getEntryType() == EntryType.HEARTBEAT);
         }
 
         if (hasRowData) {
             // 存在row记录
+            return doSink(events);
+        } else if (hasHeartBeat) {
+            // 存在heartbeat记录，直接跳给后续处理
             return doSink(events);
         } else {
             // 需要过滤的数据
@@ -111,8 +132,8 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
             boolean need = filter.filter(name);
             if (!need) {
                 logger.debug("filter name[{}] entry : {}:{}",
-                             new Object[] { name, event.getEntry().getHeader().getLogfileName(),
-                                     event.getEntry().getHeader().getLogfileOffset() });
+                    new Object[] { name, event.getEntry().getHeader().getLogfileName(),
+                            event.getEntry().getHeader().getLogfileOffset() });
             }
 
             return need;
@@ -122,23 +143,23 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     }
 
     protected boolean doSink(List<Event> events) {
-        for (CanalEventDownStreamHandler<Event> handler : getHandlers()) {
-            handler.before(events);
+        for (CanalEventDownStreamHandler<List<Event>> handler : getHandlers()) {
+            events = handler.before(events);
         }
 
         int fullTimes = 0;
         do {
             if (eventStore.tryPut(events)) {
-                for (CanalEventDownStreamHandler<Event> handler : getHandlers()) {
-                    handler.after(events);
+                for (CanalEventDownStreamHandler<List<Event>> handler : getHandlers()) {
+                    events = handler.after(events);
                 }
                 return true;
             } else {
                 applyWait(++fullTimes);
             }
 
-            for (CanalEventDownStreamHandler<Event> handler : getHandlers()) {
-                handler.retry(events);
+            for (CanalEventDownStreamHandler<List<Event>> handler : getHandlers()) {
+                events = handler.retry(events);
             }
 
         } while (running && !Thread.interrupted());

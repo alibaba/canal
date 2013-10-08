@@ -13,11 +13,13 @@ public final class CanalEntry {
     TRANSACTIONBEGIN(0, 1),
     ROWDATA(1, 2),
     TRANSACTIONEND(2, 3),
+    HEARTBEAT(3, 4),
     ;
     
     public static final int TRANSACTIONBEGIN_VALUE = 1;
     public static final int ROWDATA_VALUE = 2;
     public static final int TRANSACTIONEND_VALUE = 3;
+    public static final int HEARTBEAT_VALUE = 4;
     
     
     public final int getNumber() { return value; }
@@ -27,6 +29,7 @@ public final class CanalEntry {
         case 1: return TRANSACTIONBEGIN;
         case 2: return ROWDATA;
         case 3: return TRANSACTIONEND;
+        case 4: return HEARTBEAT;
         default: return null;
       }
     }
@@ -57,7 +60,7 @@ public final class CanalEntry {
     }
     
     private static final EntryType[] VALUES = {
-      TRANSACTIONBEGIN, ROWDATA, TRANSACTIONEND, 
+      TRANSACTIONBEGIN, ROWDATA, TRANSACTIONEND, HEARTBEAT, 
     };
     
     public static EntryType valueOf(
@@ -7545,14 +7548,15 @@ public final class CanalEntry {
       "cuteTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\0225\n" +
       "\005props\030\003 \003(\0132&.com.alibaba.otter.canal.p" +
       "rotocol.Pair\"\"\n\004Pair\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
-      "ue\030\002 \001(\t*B\n\tEntryType\022\024\n\020TRANSACTIONBEGI",
-      "N\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003*\216\001\n" +
-      "\tEventType\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DE" +
-      "LETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006" +
-      "\022\t\n\005QUERY\020\007\022\014\n\010TRUNCATE\020\010\022\n\n\006RENAME\020\t\022\n\n" +
-      "\006CINDEX\020\n\022\n\n\006DINDEX\020\013*(\n\004Type\022\n\n\006ORACLE\020" +
-      "\001\022\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.o" +
-      "tter.canal.protocolB\nCanalEntryH\001"
+      "ue\030\002 \001(\t*Q\n\tEntryType\022\024\n\020TRANSACTIONBEGI",
+      "N\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003\022\r\n\t" +
+      "HEARTBEAT\020\004*\216\001\n\tEventType\022\n\n\006INSERT\020\001\022\n\n" +
+      "\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALT" +
+      "ER\020\005\022\t\n\005ERASE\020\006\022\t\n\005QUERY\020\007\022\014\n\010TRUNCATE\020\010" +
+      "\022\n\n\006RENAME\020\t\022\n\n\006CINDEX\020\n\022\n\n\006DINDEX\020\013*(\n\004" +
+      "Type\022\n\n\006ORACLE\020\001\022\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0" +
+      "\n com.alibaba.otter.canal.protocolB\nCana" +
+      "lEntryH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {

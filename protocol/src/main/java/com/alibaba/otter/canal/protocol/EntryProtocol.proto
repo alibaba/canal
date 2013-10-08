@@ -165,6 +165,8 @@ enum EntryType{
 	TRANSACTIONBEGIN 		=		1;
 	ROWDATA					=		2;
 	TRANSACTIONEND			=		3;
+	/** 心跳类型，内部使用，外部暂不可见，可忽略 **/
+	HEARTBEAT				=		4; 
 }
 
 /** 事件类型 **/
