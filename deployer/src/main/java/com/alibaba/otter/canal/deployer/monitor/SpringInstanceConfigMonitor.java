@@ -46,8 +46,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
                                                                       }
                                                                   });
     private ScheduledExecutorService         executor             = Executors.newScheduledThreadPool(1,
-                                                                                                     new NamedThreadFactory(
-                                                                                                                            "canal-instance-scan"));
+                                                                      new NamedThreadFactory("canal-instance-scan"));
 
     public void start() {
         super.start();
@@ -131,26 +130,31 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
 
                 public boolean accept(File dir, String name) {
                     // return !StringUtils.endsWithIgnoreCase(name, ".dat");
-                    //限制一下，只针对instance.properties文件,避免因为.svn或者其他生成的临时文件导致出现reload
+                    // 限制一下，只针对instance.properties文件,避免因为.svn或者其他生成的临时文件导致出现reload
                     return StringUtils.equalsIgnoreCase(name, "instance.properties");
                 }
 
             });
-            InstanceConfigFiles lastFile = lastFiles.get(destination);
-            boolean hasChanged = judgeFileChanged(instanceConfigs, lastFile.getInstanceFiles());
-            // 通知变化
-            if (hasChanged) {
-                notifyReload(destination);
-            }
 
-            if (hasChanged || CollectionUtils.isEmpty(lastFile.getInstanceFiles())) {
-                // 更新内容
-                List<FileInfo> newFileInfo = new ArrayList<FileInfo>();
-                for (File instanceConfig : instanceConfigs) {
-                    newFileInfo.add(new FileInfo(instanceConfig.getName(), instanceConfig.lastModified()));
+            if (instanceConfigs.length == 0) {
+                notifyStop(destination);
+            } else {
+                InstanceConfigFiles lastFile = lastFiles.get(destination);
+                boolean hasChanged = judgeFileChanged(instanceConfigs, lastFile.getInstanceFiles());
+                // 通知变化
+                if (hasChanged) {
+                    notifyReload(destination);
                 }
 
-                lastFile.setInstanceFiles(newFileInfo);
+                if (hasChanged || CollectionUtils.isEmpty(lastFile.getInstanceFiles())) {
+                    // 更新内容
+                    List<FileInfo> newFileInfo = new ArrayList<FileInfo>();
+                    for (File instanceConfig : instanceConfigs) {
+                        newFileInfo.add(new FileInfo(instanceConfig.getName(), instanceConfig.lastModified()));
+                    }
+
+                    lastFile.setInstanceFiles(newFileInfo);
+                }
             }
         }
     }
@@ -183,8 +187,9 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
                 action.reload(destination);
                 logger.info("auto notify reload {} successful.", destination);
             } catch (Throwable e) {
-                logger.error("scan reload found[{}] but reload failed", destination,
-                             ExceptionUtils.getFullStackTrace(e));
+                logger.error("scan reload found[{}] but reload failed",
+                    destination,
+                    ExceptionUtils.getFullStackTrace(e));
             }
         }
     }
@@ -215,8 +220,10 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
 
     public static class InstanceConfigFiles {
 
-        private String         destination;                              // instance name
-        private List<FileInfo> springFile    = new ArrayList<FileInfo>(); // spring的instance xml
+        private String         destination;                              // instance
+                                                                          // name
+        private List<FileInfo> springFile    = new ArrayList<FileInfo>(); // spring的instance
+                                                                          // xml
         private FileInfo       rootFile;                                 // canal.properties
         private List<FileInfo> instanceFiles = new ArrayList<FileInfo>(); // instance对应的配置
 
