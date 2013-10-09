@@ -25,10 +25,10 @@ public class LocalBinlogDumpTest {
 
     @Test
     public void testSimple() {
-        String  directory = "/tmp/binlog";
+        String directory = "/tmp/binlog";
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
         final EntryPosition startPosition = new EntryPosition("mysql-bin.000054", 4L);
-        
+
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("10.20.153.51", 3306), "retl", "retl"));
         controller.setConnectionCharset(Charset.forName("UTF-8"));
         controller.setDirectory(directory);
@@ -45,31 +45,34 @@ public class LocalBinlogDumpTest {
                         continue;
                     }
 
-                    RowChange rowChage = null;
-                    try {
-                        rowChage = RowChange.parseFrom(entry.getStoreValue());
-                    } catch (Exception e) {
-                        throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
-                                                   + entry.toString(), e);
-                    }
+                    if (entry.getEntryType() == EntryType.ROWDATA) {
+                        RowChange rowChage = null;
+                        try {
+                            rowChage = RowChange.parseFrom(entry.getStoreValue());
+                        } catch (Exception e) {
+                            throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
+                                                       + entry.toString(), e);
+                        }
 
-                    EventType eventType = rowChage.getEventType();
-                    System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s] , eventType : %s",
-                                                     entry.getHeader().getLogfileName(),
-                                                     entry.getHeader().getLogfileOffset(),
-                                                     entry.getHeader().getSchemaName(),
-                                                     entry.getHeader().getTableName(), eventType));
+                        EventType eventType = rowChage.getEventType();
+                        System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s] , eventType : %s",
+                            entry.getHeader().getLogfileName(),
+                            entry.getHeader().getLogfileOffset(),
+                            entry.getHeader().getSchemaName(),
+                            entry.getHeader().getTableName(),
+                            eventType));
 
-                    for (RowData rowData : rowChage.getRowDatasList()) {
-                        if (eventType == EventType.DELETE) {
-                            print(rowData.getBeforeColumnsList());
-                        } else if (eventType == EventType.INSERT) {
-                            print(rowData.getAfterColumnsList());
-                        } else {
-                            System.out.println("-------> before");
-                            print(rowData.getBeforeColumnsList());
-                            System.out.println("-------> after");
-                            print(rowData.getAfterColumnsList());
+                        for (RowData rowData : rowChage.getRowDatasList()) {
+                            if (eventType == EventType.DELETE) {
+                                print(rowData.getBeforeColumnsList());
+                            } else if (eventType == EventType.INSERT) {
+                                print(rowData.getAfterColumnsList());
+                            } else {
+                                System.out.println("-------> before");
+                                print(rowData.getBeforeColumnsList());
+                                System.out.println("-------> after");
+                                print(rowData.getAfterColumnsList());
+                            }
                         }
                     }
                 }

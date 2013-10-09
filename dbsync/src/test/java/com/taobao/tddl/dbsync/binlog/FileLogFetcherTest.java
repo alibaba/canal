@@ -24,7 +24,7 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
         URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
         File dummyFile = new File(url.getFile());
         directory = new File(dummyFile.getParent() + "/binlog").getPath();
-        // directory = "/home/jianghang/work/otter-1.0.0/canal/parse/src/test/resources/binlog";
+        // directory = "/home/jianghang/tmp/binlog";
     }
 
     @Test
@@ -34,40 +34,37 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
 
-            File current = new File(directory, "mysql-bin.000001");
+            File current = new File(directory, "mysql-bin.000006");
             fetcher.open(current);
             context.setLogPosition(new LogPosition(current.getName()));
 
             while (fetcher.fetch()) {
                 LogEvent event = null;
                 event = decoder.decode(fetcher, context);
-
-                if (event == null) {
-                    throw new RuntimeException("parse failed");
-                }
-
-                int eventType = event.getHeader().getType();
-                switch (eventType) {
-                    case LogEvent.ROTATE_EVENT:
-                        binlogFileName = ((RotateLogEvent) event).getFilename();
-                        break;
-                    case LogEvent.WRITE_ROWS_EVENT_V1:
-                    case LogEvent.WRITE_ROWS_EVENT:
-                        parseRowsEvent((WriteRowsLogEvent) event);
-                        break;
-                    case LogEvent.UPDATE_ROWS_EVENT_V1:
-                    case LogEvent.UPDATE_ROWS_EVENT:
-                        parseRowsEvent((UpdateRowsLogEvent) event);
-                        break;
-                    case LogEvent.DELETE_ROWS_EVENT_V1:
-                    case LogEvent.DELETE_ROWS_EVENT:
-                        parseRowsEvent((DeleteRowsLogEvent) event);
-                        break;
-                    case LogEvent.QUERY_EVENT:
-                        parseQueryEvent((QueryLogEvent) event);
-                        break;
-                    default:
-                        break;
+                if (event != null) {
+                    int eventType = event.getHeader().getType();
+                    switch (eventType) {
+                        case LogEvent.ROTATE_EVENT:
+                            binlogFileName = ((RotateLogEvent) event).getFilename();
+                            break;
+                        case LogEvent.WRITE_ROWS_EVENT_V1:
+                        case LogEvent.WRITE_ROWS_EVENT:
+                            parseRowsEvent((WriteRowsLogEvent) event);
+                            break;
+                        case LogEvent.UPDATE_ROWS_EVENT_V1:
+                        case LogEvent.UPDATE_ROWS_EVENT:
+                            parseRowsEvent((UpdateRowsLogEvent) event);
+                            break;
+                        case LogEvent.DELETE_ROWS_EVENT_V1:
+                        case LogEvent.DELETE_ROWS_EVENT:
+                            parseRowsEvent((DeleteRowsLogEvent) event);
+                            break;
+                        case LogEvent.QUERY_EVENT:
+                            parseQueryEvent((QueryLogEvent) event);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         } catch (Exception e) {
