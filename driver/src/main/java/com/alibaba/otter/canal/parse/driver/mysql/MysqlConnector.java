@@ -14,6 +14,8 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.HandshakeInitializationPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.Reply323Packet;
+import com.alibaba.otter.canal.parse.driver.mysql.utils.MySQLPasswordEncrypter;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
 /**
@@ -171,10 +173,42 @@ public class MysqlConnector {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
             } else if (body[0] == -2) {
-                throw new IOException("Unexpected EOF packet at Client Authentication.");
+                auth323(channel, header.getPacketSequenceNumber(), handshakePacket.seed);
+                // throw new
+                // IOException("Unexpected EOF packet at Client Authentication.");
             } else {
                 throw new IOException("unpexpected packet with field_count=" + body[0]);
             }
+        }
+    }
+
+    private void auth323(SocketChannel channel, byte packetSequenceNumber, byte[] seed) throws IOException {
+        // auth 323
+        Reply323Packet r323 = new Reply323Packet();
+        byte[] b323Body = r323.toBytes();
+        if (password != null && password.length() > 0) {
+            r323.seed = MySQLPasswordEncrypter.scramble323(password, new String(seed)).getBytes();
+        }
+
+        HeaderPacket h323 = new HeaderPacket();
+        h323.setPacketBodyLength(b323Body.length);
+        h323.setPacketSequenceNumber((byte) (packetSequenceNumber + 1));
+
+        PacketManager.write(channel, new ByteBuffer[] { ByteBuffer.wrap(h323.toBytes()), ByteBuffer.wrap(b323Body) });
+        logger.info("client 323 authentication packet is sent out.");
+        // check auth result
+        HeaderPacket header = PacketManager.readHeader(channel, 4);
+        byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength());
+        assert body != null;
+        switch (body[0]) {
+            case 0:
+                break;
+            case -1:
+                ErrorPacket err = new ErrorPacket();
+                err.fromBytes(body);
+                throw new IOException("Error When doing Client Authentication:" + err.toString());
+            default:
+                throw new IOException("unpexpected packet with field_count=" + body[0]);
         }
     }
 

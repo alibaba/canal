@@ -13,13 +13,12 @@ import com.alibaba.otter.canal.parse.driver.mysql.utils.MySQLPasswordEncrypter;
 
 public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
 
-    public static final MySQLPasswordEncrypter encrypter = new MySQLPasswordEncrypter();
-    private String                             username;
-    private String                             password;
-    private byte                               charsetNumber;
-    private String                             databaseName;
-    private int                                serverCapabilities;
-    private byte[]                             scrumbleBuff;
+    private String username;
+    private String password;
+    private byte   charsetNumber;
+    private String databaseName;
+    private int    serverCapabilities;
+    private byte[] scrumbleBuff;
 
     public void fromBytes(byte[] data) {
         // bypass since nowhere to use.
@@ -46,10 +45,12 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
         // 1. write client_flags
         // 1|4|512|1024|8192|32768
         /**
-         * CLIENT_LONG_PASSWORD CLIENT_LONG_FLAG CLIENT_PROTOCOL_41 CLIENT_INTERACTIVE CLIENT_TRANSACTIONS
-         * CLIENT_SECURE_CONNECTION
+         * CLIENT_LONG_PASSWORD CLIENT_LONG_FLAG CLIENT_PROTOCOL_41
+         * CLIENT_INTERACTIVE CLIENT_TRANSACTIONS CLIENT_SECURE_CONNECTION
          */
-        ByteHelper.writeUnsignedIntLittleEndian(1 | 4 | 512 | 8192 | 32768, out); // remove client_interactive feature
+        ByteHelper.writeUnsignedIntLittleEndian(1 | 4 | 512 | 8192 | 32768, out); // remove
+                                                                                  // client_interactive
+                                                                                  // feature
 
         // 2. write max_packet_size
         ByteHelper.writeUnsignedIntLittleEndian(MSC.MAX_PACKET_LENGTH, out);
@@ -64,7 +65,7 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
             out.write(0x00);
         } else {
             try {
-                byte[] encryptedPassword = encrypter.encrypt(getPassword().getBytes(), scrumbleBuff);
+                byte[] encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), scrumbleBuff);
                 ByteHelper.writeBinaryCodedLengthBytes(encryptedPassword, out);
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
