@@ -647,9 +647,10 @@ public final class RowsLogBuffer {
                         (int) ((intpart >> 12) % (1 << 10)),
                         (int) ((intpart >> 6) % (1 << 6)),
                         (int) (intpart % (1 << 6)));
-                    javaType = Types.TIME;
-                    length = 3 + (meta + 1) / 2;
                 }
+
+                javaType = Types.TIME;
+                length = 3 + (meta + 1) / 2;
                 break;
             }
             case LogEvent.MYSQL_TYPE_NEWDATE: {
