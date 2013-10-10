@@ -25,9 +25,9 @@ public class LocalBinlogDumpTest {
 
     @Test
     public void testSimple() {
-        String directory = "/tmp/binlog";
+        String directory = "/home/jianghang/tmp/binlog";
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
-        final EntryPosition startPosition = new EntryPosition("mysql-bin.000054", 4L);
+        final EntryPosition startPosition = new EntryPosition("mysql-bin.000006", 4L);
 
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("10.20.153.51", 3306), "retl", "retl"));
         controller.setConnectionCharset(Charset.forName("UTF-8"));

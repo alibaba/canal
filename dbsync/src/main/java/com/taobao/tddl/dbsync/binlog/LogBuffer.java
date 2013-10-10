@@ -696,7 +696,7 @@ public class LogBuffer
      * 
      * @see mysql-5.6.10/include/myisampack.h - mi_uint5korr
      */
-    public final long geBeUlong40(final int pos)
+    public final long getBeUlong40(final int pos)
     {
         final int position = origin + pos;
 
@@ -717,7 +717,7 @@ public class LogBuffer
      * 
      * @see mysql-5.6.10/include/myisampack.h - mi_uint5korr
      */
-    public final long geBeUlong40()
+    public final long getBeUlong40()
     {
         if (position + 4 >= origin + limit)
             throw new IllegalArgumentException("limit excceed: "
@@ -892,6 +892,48 @@ public class LogBuffer
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++]) << 40)
+                | ((long) (0xff & buf[position++]) << 32)
+                | ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]));
+    }
+    
+    /**
+     * Return 56-bit unsigned int from buffer. (big-endian)
+     * 
+     */
+    public final long getBeUlong56(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 6 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 6)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position + 6]))
+                | ((long) (0xff & buf[position + 5]) << 8)
+                | ((long) (0xff & buf[position + 4]) << 16)
+                | ((long) (0xff & buf[position + 3]) << 24)
+                | ((long) (0xff & buf[position + 2]) << 32)
+                | ((long) (0xff & buf[position + 1]) << 40)
+                | ((long) (0xff & buf[position]) << 48);
+    }
+
+    /**
+     * Return next 56-bit unsigned int from buffer. (big-endian)
+     * 
+     */
+    public final long getBeUlong56()
+    {
+        if (position + 6 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 6));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position++]) << 48)
+                | ((long) (0xff & buf[position++]) << 40)
                 | ((long) (0xff & buf[position++]) << 32)
                 | ((long) (0xff & buf[position++]) << 24)
                 | ((long) (0xff & buf[position++]) << 16)

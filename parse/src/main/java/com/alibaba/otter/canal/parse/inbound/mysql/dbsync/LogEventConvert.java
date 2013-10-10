@@ -372,15 +372,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             // fixed issue
             // https://github.com/alibaba/canal/issues/66，特殊处理binary/varbinary，不能做编码处理
-            int type = info.type;
+            boolean isBinary = false;
             if (fieldMeta != null) {
                 if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "VARBINARY")) {
-                    type = LogEvent.MYSQL_TYPE_VARBINARY;
+                    isBinary = true;
                 } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "BINARY")) {
-                    type = LogEvent.MYSQL_TYPE_BINARY;
+                    isBinary = true;
                 }
             }
-            buffer.nextValue(type, info.meta);
+            buffer.nextValue(info.type, info.meta, isBinary);
 
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
@@ -434,8 +434,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         break;
                     case Types.REAL: // float
                     case Types.DOUBLE: // double
-                    case Types.BIT:// bit
                         // 对象为number类型，直接valueof即可
+                        columnBuilder.setValue(String.valueOf(value));
+                        break;
+                    case Types.BIT:// bit
+                        // 对象为number类型
                         columnBuilder.setValue(String.valueOf(value));
                         break;
                     case Types.DECIMAL:
