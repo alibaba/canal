@@ -185,10 +185,10 @@ public class MysqlConnector {
     private void auth323(SocketChannel channel, byte packetSequenceNumber, byte[] seed) throws IOException {
         // auth 323
         Reply323Packet r323 = new Reply323Packet();
-        byte[] b323Body = r323.toBytes();
         if (password != null && password.length() > 0) {
             r323.seed = MySQLPasswordEncrypter.scramble323(password, new String(seed)).getBytes();
         }
+        byte[] b323Body = r323.toBytes();
 
         HeaderPacket h323 = new HeaderPacket();
         h323.setPacketBodyLength(b323Body.length);
