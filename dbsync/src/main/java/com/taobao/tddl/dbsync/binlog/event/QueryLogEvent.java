@@ -511,7 +511,7 @@ public class QueryLogEvent extends LogEvent
                         + "\n    ID = " + clientCharset + ", Charset = "
                         + CharsetConversion.getCharset(clientCharset)
                         + ", Collation = "
-                        + CharsetConversion.getCharset(clientCharset));
+                        + CharsetConversion.getCollation(clientCharset));
 
                 query = buffer.getFixString(queryLen);
             }

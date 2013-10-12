@@ -6,7 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * An utility class implements MySQL/Java charsets conversion.
+ * An utility class implements MySQL/Java charsets conversion.  you can see com.mysql.jdbc.CharsetMapping.
  * 
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  */
@@ -68,21 +68,21 @@ public final class CharsetConversion
     {
         putEntry(1, "big5", "big5_chinese_ci", "Big5");
         putEntry(2, "latin2", "latin2_czech_cs", "ISO8859_2");
-        putEntry(3, "dec8", "dec8_swedish_ci");
+        putEntry(3, "dec8", "dec8_swedish_ci", "ISO8859_1");
         putEntry(4, "cp850", "cp850_general_ci", "Cp850");
         putEntry(5, "latin1", "latin1_german1_ci", "ISO8859_1");
-        putEntry(6, "hp8", "hp8_english_ci");
+        putEntry(6, "hp8", "hp8_english_ci", "ISO8859_1");
         putEntry(7, "koi8r", "koi8r_general_ci", "KOI8_R");
         putEntry(8, "latin1", "latin1_swedish_ci", "ISO8859_1");
         putEntry(9, "latin2", "latin2_general_ci", "ISO8859_2");
-        putEntry(10, "swe7", "swe7_swedish_ci");
+        putEntry(10, "swe7", "swe7_swedish_ci", "ISO8859_1");
         putEntry(11, "ascii", "ascii_general_ci", "US-ASCII");
         putEntry(12, "ujis", "ujis_japanese_ci", "EUC_JP");
         putEntry(13, "sjis", "sjis_japanese_ci", "SJIS");
         putEntry(14, "cp1251", "cp1251_bulgarian_ci", "Cp1251");
         putEntry(15, "latin1", "latin1_danish_ci", "ISO8859_1");
         putEntry(16, "hebrew", "hebrew_general_ci", "ISO8859_8");
-        putEntry(17, "filename", "filename");
+        putEntry(17, "filename", "filename", "ISO8859_1");
         putEntry(18, "tis620", "tis620_thai_ci", "TIS620");
         putEntry(19, "euckr", "euckr_korean_ci", "EUC_KR");
         putEntry(20, "latin7", "latin7_estonian_cs", "ISO8859_7");
@@ -97,12 +97,12 @@ public final class CharsetConversion
         putEntry(29, "cp1257", "cp1257_lithuanian_ci", "Cp1257");
         putEntry(30, "latin5", "latin5_turkish_ci", "ISO8859_5");
         putEntry(31, "latin1", "latin1_german2_ci", "ISO8859_1");
-        putEntry(32, "armscii8", "armscii8_general_ci");
+        putEntry(32, "armscii8", "armscii8_general_ci", "ISO8859_1");
         putEntry(33, "utf8", "utf8_general_ci", "UTF-8");
         putEntry(34, "cp1250", "cp1250_czech_cs", "Cp1250");
         putEntry(35, "ucs2", "ucs2_general_ci", "UnicodeBig");
         putEntry(36, "cp866", "cp866_general_ci", "Cp866");
-        putEntry(37, "keybcs2", "keybcs2_general_ci");
+        putEntry(37, "keybcs2", "keybcs2_general_ci", "Cp895");
         putEntry(38, "macce", "macce_general_ci", "MacCentralEurope");
         putEntry(39, "macroman", "macroman_general_ci", "MacRoman");
         putEntry(40, "cp852", "cp852_general_ci", "Cp852");
@@ -110,8 +110,8 @@ public final class CharsetConversion
         putEntry(42, "latin7", "latin7_general_cs", "ISO8859_7");
         putEntry(43, "macce", "macce_bin", "MacCentralEurope");
         putEntry(44, "cp1250", "cp1250_croatian_ci", "Cp1250");
-        putEntry(45, "utf8mb4", "utf8mb4_general_ci", /* XXX: ? */"UTF-8");
-        putEntry(46, "utf8mb4", "utf8mb4_bin", /* XXX: ? */"UTF-8");
+        putEntry(45, "utf8mb4", "utf8mb4_general_ci", "MacCentralEurope");
+        putEntry(46, "utf8mb4", "utf8mb4_bin", "MacCentralEurope");
         putEntry(47, "latin1", "latin1_bin", "ISO8859_1");
         putEntry(48, "latin1", "latin1_general_ci", "ISO8859_1");
         putEntry(49, "latin1", "latin1_general_cs", "ISO8859_1");
@@ -126,17 +126,17 @@ public final class CharsetConversion
         putEntry(59, "cp1257", "cp1257_general_ci", "Cp1257");
         putEntry(60, "utf32", "utf32_general_ci", "UTF-32");
         putEntry(61, "utf32", "utf32_bin", "UTF-32");
-        putEntry(63, "binary", "binary");
-        putEntry(64, "armscii8", "armscii8_bin");
+        putEntry(63, "binary", "binary", "US-ASCII");
+        putEntry(64, "armscii8", "armscii8_bin", "ISO8859_2");
         putEntry(65, "ascii", "ascii_bin", "US-ASCII");
         putEntry(66, "cp1250", "cp1250_bin", "Cp1250");
         putEntry(67, "cp1256", "cp1256_bin", "Cp1256");
         putEntry(68, "cp866", "cp866_bin", "Cp866");
-        putEntry(69, "dec8", "dec8_bin");
+        putEntry(69, "dec8", "dec8_bin", "US-ASCII");
         putEntry(70, "greek", "greek_bin", "ISO8859_7");
         putEntry(71, "hebrew", "hebrew_bin", "ISO8859_8");
-        putEntry(72, "hp8", "hp8_bin");
-        putEntry(73, "keybcs2", "keybcs2_bin");
+        putEntry(72, "hp8", "hp8_bin" , "US-ASCII");
+        putEntry(73, "keybcs2", "keybcs2_bin", "Cp895");
         putEntry(74, "koi8r", "koi8r_bin", "KOI8_R");
         putEntry(75, "koi8u", "koi8u_bin", "KOI8_U");
         putEntry(77, "latin2", "latin2_bin", "ISO8859_2");
@@ -144,7 +144,7 @@ public final class CharsetConversion
         putEntry(79, "latin7", "latin7_bin", "ISO8859_7");
         putEntry(80, "cp850", "cp850_bin", "Cp850");
         putEntry(81, "cp852", "cp852_bin", "Cp852");
-        putEntry(82, "swe7", "swe7_bin");
+        putEntry(82, "swe7", "swe7_bin", "ISO8859_1");
         putEntry(83, "utf8", "utf8_bin", "UTF-8");
         putEntry(84, "big5", "big5_bin", "Big5");
         putEntry(85, "euckr", "euckr_bin", "EUC_KR");
@@ -154,8 +154,8 @@ public final class CharsetConversion
         putEntry(89, "tis620", "tis620_bin", "TIS620");
         putEntry(90, "ucs2", "ucs2_bin", "UnicodeBig");
         putEntry(91, "ujis", "ujis_bin", "EUC_JP");
-        putEntry(92, "geostd8", "geostd8_general_ci");
-        putEntry(93, "geostd8", "geostd8_bin");
+        putEntry(92, "geostd8", "geostd8_general_ci", "US-ASCII");
+        putEntry(93, "geostd8", "geostd8_bin", "US-ASCII");
         putEntry(94, "latin1", "latin1_spanish_ci", "ISO8859_1");
         putEntry(95, "cp932", "cp932_japanese_ci", "Shift_JIS");
         putEntry(96, "cp932", "cp932_bin", "Shift_JIS");
