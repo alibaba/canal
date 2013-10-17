@@ -77,6 +77,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private Charset                     charset             = Charset.defaultCharset();
     private boolean                     filterQueryDcl      = false;
     private boolean                     filterQueryDml      = false;
+    private boolean                     filterQueryDdl      = false;
 
     public Entry parse(LogEvent logEvent) throws CanalParseException {
         if (logEvent == null || logEvent instanceof UnknownLogEvent) {
@@ -151,8 +152,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             if (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE
                 || result.getType() == EventType.CREATE || result.getType() == EventType.TRUNCATE
                 || result.getType() == EventType.RENAME) { // 针对DDL类型
-                type = result.getType();
 
+                if (filterQueryDdl) {
+                    return null;
+                }
+
+                type = result.getType();
                 if (StringUtils.isEmpty(tableName)
                     || (result.getType() == EventType.RENAME && StringUtils.isEmpty(result.getOriTableName()))) {
                     // 如果解析不出tableName,记录一下日志，方便bugfix，目前直接抛出异常，中断解析
@@ -607,6 +612,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setFilterQueryDml(boolean filterQueryDml) {
         this.filterQueryDml = filterQueryDml;
+    }
+
+    public void setFilterQueryDdl(boolean filterQueryDdl) {
+        this.filterQueryDdl = filterQueryDdl;
     }
 
 }

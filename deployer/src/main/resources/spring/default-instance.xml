@@ -170,5 +170,6 @@
 		</property>
 		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
 		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
+		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
 	</bean>
 </beans>
