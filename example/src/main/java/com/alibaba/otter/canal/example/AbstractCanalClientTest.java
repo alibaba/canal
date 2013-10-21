@@ -217,6 +217,7 @@ public class AbstractCanalClientTest {
 
                 if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
                     logger.info(" sql ----> " + rowChage.getSql() + SEP);
+                    continue;
                 }
 
                 for (RowData rowData : rowChage.getRowDatasList()) {
