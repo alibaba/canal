@@ -108,8 +108,7 @@ public class AbstractCanalClientTest {
             try {
                 MDC.put("destination", destination);
                 connector.connect();
-                connector.subscribe("");
-                connector.rollback();
+                connector.subscribe();
                 while (running) {
                     Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
                     long batchId = message.getId();

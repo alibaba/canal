@@ -62,6 +62,14 @@ public interface CanalConnector {
     void subscribe(String filter) throws CanalClientException;
 
     /**
+     * 客户端订阅，不提交客户端filter，以服务端的filter为准
+     * 
+     * @param clientIdentity
+     * @throws CanalClientException
+     */
+    void subscribe() throws CanalClientException;
+
+    /**
      * 取消订阅
      * 
      * @param clientIdentity

@@ -84,6 +84,10 @@ public class ClusterCanalConnector implements CanalConnector {
             currentConnector = null;
         }
     }
+    
+    public void subscribe() throws CanalClientException {
+        subscribe(""); // 传递空字符即可
+    }
 
     public void subscribe(String filter) throws CanalClientException {
         int times = 0;
@@ -314,5 +318,7 @@ public class ClusterCanalConnector implements CanalConnector {
     public SimpleCanalConnector getCurrentConnector() {
         return currentConnector;
     }
+
+    
 
 }

@@ -158,6 +158,10 @@ public class SimpleCanalConnector implements CanalConnector {
             channel = null;
         }
     }
+    
+    public void subscribe() throws CanalClientException {
+        subscribe(""); // 传递空字符即可
+    }
 
     public void subscribe(String filter) throws CanalClientException {
         waitClientRunning();
@@ -391,5 +395,6 @@ public class SimpleCanalConnector implements CanalConnector {
     public void setRollbackOnDisConnect(boolean rollbackOnDisConnect) {
         this.rollbackOnDisConnect = rollbackOnDisConnect;
     }
+
 
 }
