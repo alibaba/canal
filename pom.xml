@@ -47,6 +47,16 @@
 	
 	<repositories>
 		<repository>
+			<id>center</id>
+			<url>repo1.maven.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
 			<id>java.net</id>
 			<url>http://download.java.net/maven/2/</url>
 			<releases>
@@ -64,6 +74,28 @@
 			</releases>
 			<snapshots>
 				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>sonatype</id>
+			<name>sonatype</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>sonatype-release</id>
+			<name>sonatype-release</name>
+			<url>https://oss.sonatype.org/service/local/repositories/releases/content</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
 			</snapshots>
 		</repository>
 	</repositories>
