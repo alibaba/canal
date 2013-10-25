@@ -103,6 +103,10 @@ public class MysqlConnection implements ErosaConnection {
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         updateSettings();
+        BinlogFormat format = getBinlogFormat();
+        if (!format.isRow()) {
+            logger.warn("binlog_format : {} , it will not have rowData before/after columns", format.toString());
+        }
 
         sendBinlogDump(binlogfilename, binlogPosition);
         DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize());
@@ -190,7 +194,8 @@ public class MysqlConnection implements ErosaConnection {
 
         try {
             // mysql5.6针对checksum支持需要设置session变量
-            // 如果不设置会出现错误： Slave can not handle replication events with the checksum that master is configured to log
+            // 如果不设置会出现错误： Slave can not handle replication events with the
+            // checksum that master is configured to log
             // 但也不能乱设置，需要和mysql server的checksum配置一致，不然RotateLogEvent会出现乱码
             update("set @master_binlog_checksum= '@@global.binlog_checksum'");
         } catch (Exception e) {
