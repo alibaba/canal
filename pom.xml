@@ -40,15 +40,15 @@
 	</licenses>
 
 	<scm>
-    <url>git@github.com:alibaba/canal.git</url>
-    <connection>scm:git:git@github.com:alibaba/canal.git</connection>
-    <developerConnection>scm:git:git@github.com:alibaba/canal.git</developerConnection>
+		<url>git@github.com:alibaba/canal.git</url>
+		<connection>scm:git:git@github.com:alibaba/canal.git</connection>
+		<developerConnection>scm:git:git@github.com:alibaba/canal.git</developerConnection>
 	</scm>
 	
 	<repositories>
 		<repository>
-			<id>center</id>
-			<url>repo1.maven.org/maven2</url>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -298,7 +298,7 @@
                 <version>2.5</version>
             </plugin>
             <!-- javadoc -->
-	    <!-- 
+            <!--
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -327,6 +327,7 @@
 				  <keywords>true</keywords>
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>

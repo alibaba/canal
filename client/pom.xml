@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" ">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation=" ">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.alibaba.otter</groupId>
@@ -23,4 +25,61 @@
 			<artifactId>junit</artifactId>
 		</dependency>
 	</dependencies>
+	
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>env</name>
+					<value>!javadoc</value>
+				</property>
+			</activation>
+		</profile>
+
+		<profile>
+			<id>javadoc</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>javadoc</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
+						<configuration>
+							<aggregate>true</aggregate>
+							<show>public</show>
+							<nohelp>true</nohelp>
+							<header>canal, ${project.version}</header>
+							<footer>canal, ${project.version}</footer>
+							<doctitle>canal, ${project.version}</doctitle>
+							<links>
+								<link>https://github.com/alibaba/canal</link>
+							</links>
+							<outputDirectory>${project.build.directory}/apidocs/apidocs/${pom.version}</outputDirectory>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-scm-publish-plugin</artifactId>
+						<version>1.0-beta-2</version>
+						<configuration>
+							<checkoutDirectory>${project.build.directory}/scmpublish</checkoutDirectory>
+							<checkinComment>Publishing javadoc for ${project.artifactId}:${project.version}</checkinComment>
+							<content>${project.build.directory}/apidocs</content>
+							<skipDeletedFiles>true</skipDeletedFiles>
+							<pubScmUrl>scm:git:git@github.com:alibaba/canal.git</pubScmUrl>
+							<scmBranch>gh-pages</scmBranch> <!-- branch with static site -->
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

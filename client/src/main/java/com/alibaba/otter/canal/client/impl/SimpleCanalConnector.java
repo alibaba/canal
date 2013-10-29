@@ -298,7 +298,7 @@ public class SimpleCanalConnector implements CanalConnector {
             readHeader.clear();
             read(channel, readHeader);
             int bodyLen = readHeader.getInt(0);
-            ByteBuffer bodyBuf = ByteBuffer.allocate(bodyLen);
+            ByteBuffer bodyBuf = ByteBuffer.allocate(bodyLen).order(ByteOrder.BIG_ENDIAN);
             read(channel, bodyBuf);
             return bodyBuf.array();
         }
