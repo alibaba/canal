@@ -52,13 +52,22 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
 						<version>2.9.1</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
 						<configuration>
 							<aggregate>true</aggregate>
 							<show>public</show>
 							<nohelp>true</nohelp>
-							<header>canal, ${project.version}</header>
-							<footer>canal, ${project.version}</footer>
-							<doctitle>canal, ${project.version}</doctitle>
+							<header>${project.artifactId}-${project.version}</header>
+							<footer>${project.artifactId}-${project.version}</footer>
+							<doctitle>${project.artifactId}-${project.version}</doctitle>
 							<links>
 								<link>https://github.com/alibaba/canal</link>
 							</links>
@@ -69,13 +78,22 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-scm-publish-plugin</artifactId>
 						<version>1.0-beta-2</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<phase>package</phase>
+								<goals>
+									<goal>publish-scm</goal>
+								</goals>
+							</execution>
+						</executions>
 						<configuration>
 							<checkoutDirectory>${project.build.directory}/scmpublish</checkoutDirectory>
 							<checkinComment>Publishing javadoc for ${project.artifactId}:${project.version}</checkinComment>
 							<content>${project.build.directory}/apidocs</content>
 							<skipDeletedFiles>true</skipDeletedFiles>
 							<pubScmUrl>scm:git:git@github.com:alibaba/canal.git</pubScmUrl>
-							<scmBranch>gh-pages</scmBranch> <!-- branch with static site -->
+							<scmBranch>gh-pages</scmBranch> 
 						</configuration>
 					</plugin>
 				</plugins>
