@@ -80,7 +80,8 @@ public class DirectLogFetcher extends LogFetcher {
             if (mark != 0) {
                 if (mark == 255) // error from master
                 {
-                    // Indicates an error, for example trying to fetch from wrong
+                    // Indicates an error, for example trying to fetch from
+                    // wrong
                     // binlog position.
                     position = NET_HEADER_SIZE + 1;
                     final int errno = getInt16();
@@ -91,7 +92,8 @@ public class DirectLogFetcher extends LogFetcher {
                 } else if (mark == 254) {
                     // Indicates end of stream. It's not clear when this would
                     // be sent.
-                    logger.warn("Received EOF packet from server, apparent" + " master disconnected.");
+                    logger.warn("Received EOF packet from server, apparent"
+                                + " master disconnected. It's may be duplicate slaveId , check instance config");
                     return false;
                 } else {
                     // Should not happen.
