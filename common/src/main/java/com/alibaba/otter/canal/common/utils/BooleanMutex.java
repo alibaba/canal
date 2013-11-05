@@ -72,22 +72,9 @@ public class BooleanMutex {
      */
     public void set(Boolean mutex) {
         if (mutex) {
-            sync.innerSetTrue(true);
+            sync.innerSetTrue();
         } else {
-            sync.innerSetFalse(true);
-        }
-    }
-
-    /**
-     * 重新设置对应的Boolean mutex
-     * 
-     * @param mutex
-     */
-    public void trySet(Boolean mutex) {
-        if (mutex) {
-            sync.innerSetTrue(false);
-        } else {
-            sync.innerSetFalse(false);
+            sync.innerSetFalse();
         }
     }
 
@@ -96,7 +83,8 @@ public class BooleanMutex {
     }
 
     /**
-     * Synchronization control for BooleanMutex. Uses AQS sync state to represent run status
+     * Synchronization control for BooleanMutex. Uses AQS sync state to
+     * represent run status
      */
     private final class Sync extends AbstractQueuedSynchronizer {
 
@@ -139,8 +127,8 @@ public class BooleanMutex {
             if (!tryAcquireSharedNanos(0, nanosTimeout)) throw new TimeoutException();
         }
 
-        void innerSetTrue(boolean lazySet) {
-            while (lazySet) {
+        void innerSetTrue() {
+            for (;;) {
                 int s = getState();
                 if (s == TRUE) {
                     return; // 直接退出
@@ -152,8 +140,8 @@ public class BooleanMutex {
             }
         }
 
-        void innerSetFalse(boolean lazySet) {
-            while (lazySet) {
+        void innerSetFalse() {
+            for (;;) {
                 int s = getState();
                 if (s == FALSE) {
                     return; // 直接退出
@@ -165,4 +153,5 @@ public class BooleanMutex {
         }
 
     }
+
 }
