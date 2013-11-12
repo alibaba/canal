@@ -2192,6 +2192,10 @@ public final class CanalEntry {
     // optional int32 length = 9;
     boolean hasLength();
     int getLength();
+    
+    // optional string mysqlType = 10;
+    boolean hasMysqlType();
+    String getMysqlType();
   }
   public static final class Column extends
       com.google.protobuf.GeneratedMessage
@@ -2367,6 +2371,38 @@ public final class CanalEntry {
       return length_;
     }
     
+    // optional string mysqlType = 10;
+    public static final int MYSQLTYPE_FIELD_NUMBER = 10;
+    private java.lang.Object mysqlType_;
+    public boolean hasMysqlType() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    public String getMysqlType() {
+      java.lang.Object ref = mysqlType_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          mysqlType_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getMysqlTypeBytes() {
+      java.lang.Object ref = mysqlType_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        mysqlType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
     private void initFields() {
       index_ = 0;
       sqlType_ = 0;
@@ -2377,6 +2413,7 @@ public final class CanalEntry {
       props_ = java.util.Collections.emptyList();
       value_ = "";
       length_ = 0;
+      mysqlType_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2416,6 +2453,9 @@ public final class CanalEntry {
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         output.writeInt32(9, length_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        output.writeBytes(10, getMysqlTypeBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -2461,6 +2501,10 @@ public final class CanalEntry {
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(9, length_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(10, getMysqlTypeBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2609,6 +2653,8 @@ public final class CanalEntry {
         bitField0_ = (bitField0_ & ~0x00000080);
         length_ = 0;
         bitField0_ = (bitField0_ & ~0x00000100);
+        mysqlType_ = "";
+        bitField0_ = (bitField0_ & ~0x00000200);
         return this;
       }
       
@@ -2688,6 +2734,10 @@ public final class CanalEntry {
           to_bitField0_ |= 0x00000080;
         }
         result.length_ = length_;
+        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+          to_bitField0_ |= 0x00000100;
+        }
+        result.mysqlType_ = mysqlType_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2753,6 +2803,9 @@ public final class CanalEntry {
         }
         if (other.hasLength()) {
           setLength(other.getLength());
+        }
+        if (other.hasMysqlType()) {
+          setMysqlType(other.getMysqlType());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2829,6 +2882,11 @@ public final class CanalEntry {
             case 72: {
               bitField0_ |= 0x00000100;
               length_ = input.readInt32();
+              break;
+            }
+            case 82: {
+              bitField0_ |= 0x00000200;
+              mysqlType_ = input.readBytes();
               break;
             }
           }
@@ -3219,6 +3277,42 @@ public final class CanalEntry {
         length_ = 0;
         onChanged();
         return this;
+      }
+      
+      // optional string mysqlType = 10;
+      private java.lang.Object mysqlType_ = "";
+      public boolean hasMysqlType() {
+        return ((bitField0_ & 0x00000200) == 0x00000200);
+      }
+      public String getMysqlType() {
+        java.lang.Object ref = mysqlType_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          mysqlType_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setMysqlType(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000200;
+        mysqlType_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearMysqlType() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        mysqlType_ = getDefaultInstance().getMysqlType();
+        onChanged();
+        return this;
+      }
+      void setMysqlType(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000200;
+        mysqlType_ = value;
+        onChanged();
       }
       
       // @@protoc_insertion_point(builder_scope:com.alibaba.otter.canal.protocol.Column)
@@ -7524,39 +7618,39 @@ public final class CanalEntry {
       "F\n\teventType\030\013 \001(\0162+.com.alibaba.otter.c" +
       "anal.protocol.EventType:\006UPDATE\0225\n\005props" +
       "\030\014 \003(\0132&.com.alibaba.otter.canal.protoco" +
-      "l.Pair\"\303\001\n\006Column\022\r\n\005index\030\001 \001(\005\022\017\n\007sqlT" +
+      "l.Pair\"\326\001\n\006Column\022\r\n\005index\030\001 \001(\005\022\017\n\007sqlT" +
       "ype\030\002 \001(\005\022\014\n\004name\030\003 \001(\t\022\r\n\005isKey\030\004 \001(\010\022\017" +
       "\n\007updated\030\005 \001(\010\022\025\n\006isNull\030\006 \001(\010:\005false\0225" +
       "\n\005props\030\007 \003(\0132&.com.alibaba.otter.canal." +
       "protocol.Pair\022\r\n\005value\030\010 \001(\t\022\016\n\006length\030\t",
-      " \001(\005\"\301\001\n\007RowData\022?\n\rbeforeColumns\030\001 \003(\0132" +
-      "(.com.alibaba.otter.canal.protocol.Colum" +
-      "n\022>\n\014afterColumns\030\002 \003(\0132(.com.alibaba.ot" +
-      "ter.canal.protocol.Column\0225\n\005props\030\003 \003(\013" +
-      "2&.com.alibaba.otter.canal.protocol.Pair" +
-      "\"\222\002\n\tRowChange\022\017\n\007tableId\030\001 \001(\003\022F\n\tevent" +
-      "Type\030\002 \001(\0162+.com.alibaba.otter.canal.pro" +
-      "tocol.EventType:\006UPDATE\022\024\n\005isDdl\030\n \001(\010:\005" +
-      "false\022\013\n\003sql\030\013 \001(\t\022;\n\010rowDatas\030\014 \003(\0132).c" +
-      "om.alibaba.otter.canal.protocol.RowData\022",
-      "5\n\005props\030\r \003(\0132&.com.alibaba.otter.canal" +
-      ".protocol.Pair\022\025\n\rddlSchemaName\030\016 \001(\t\"\207\001" +
-      "\n\020TransactionBegin\022\023\n\013executeTime\030\001 \001(\003\022" +
-      "\025\n\rtransactionId\030\002 \001(\t\0225\n\005props\030\003 \003(\0132&." +
-      "com.alibaba.otter.canal.protocol.Pair\022\020\n" +
-      "\010threadId\030\004 \001(\003\"s\n\016TransactionEnd\022\023\n\013exe" +
-      "cuteTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\0225\n" +
-      "\005props\030\003 \003(\0132&.com.alibaba.otter.canal.p" +
-      "rotocol.Pair\"\"\n\004Pair\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
-      "ue\030\002 \001(\t*Q\n\tEntryType\022\024\n\020TRANSACTIONBEGI",
-      "N\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003\022\r\n\t" +
-      "HEARTBEAT\020\004*\216\001\n\tEventType\022\n\n\006INSERT\020\001\022\n\n" +
-      "\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALT" +
-      "ER\020\005\022\t\n\005ERASE\020\006\022\t\n\005QUERY\020\007\022\014\n\010TRUNCATE\020\010" +
-      "\022\n\n\006RENAME\020\t\022\n\n\006CINDEX\020\n\022\n\n\006DINDEX\020\013*(\n\004" +
-      "Type\022\n\n\006ORACLE\020\001\022\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0" +
-      "\n com.alibaba.otter.canal.protocolB\nCana" +
-      "lEntryH\001"
+      " \001(\005\022\021\n\tmysqlType\030\n \001(\t\"\301\001\n\007RowData\022?\n\rb" +
+      "eforeColumns\030\001 \003(\0132(.com.alibaba.otter.c" +
+      "anal.protocol.Column\022>\n\014afterColumns\030\002 \003" +
+      "(\0132(.com.alibaba.otter.canal.protocol.Co" +
+      "lumn\0225\n\005props\030\003 \003(\0132&.com.alibaba.otter." +
+      "canal.protocol.Pair\"\222\002\n\tRowChange\022\017\n\007tab" +
+      "leId\030\001 \001(\003\022F\n\teventType\030\002 \001(\0162+.com.alib" +
+      "aba.otter.canal.protocol.EventType:\006UPDA" +
+      "TE\022\024\n\005isDdl\030\n \001(\010:\005false\022\013\n\003sql\030\013 \001(\t\022;\n" +
+      "\010rowDatas\030\014 \003(\0132).com.alibaba.otter.cana",
+      "l.protocol.RowData\0225\n\005props\030\r \003(\0132&.com." +
+      "alibaba.otter.canal.protocol.Pair\022\025\n\rddl" +
+      "SchemaName\030\016 \001(\t\"\207\001\n\020TransactionBegin\022\023\n" +
+      "\013executeTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(" +
+      "\t\0225\n\005props\030\003 \003(\0132&.com.alibaba.otter.can" +
+      "al.protocol.Pair\022\020\n\010threadId\030\004 \001(\003\"s\n\016Tr" +
+      "ansactionEnd\022\023\n\013executeTime\030\001 \001(\003\022\025\n\rtra" +
+      "nsactionId\030\002 \001(\t\0225\n\005props\030\003 \003(\0132&.com.al" +
+      "ibaba.otter.canal.protocol.Pair\"\"\n\004Pair\022" +
+      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t*Q\n\tEntryType",
+      "\022\024\n\020TRANSACTIONBEGIN\020\001\022\013\n\007ROWDATA\020\002\022\022\n\016T" +
+      "RANSACTIONEND\020\003\022\r\n\tHEARTBEAT\020\004*\216\001\n\tEvent" +
+      "Type\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003" +
+      "\022\n\n\006CREATE\020\004\022\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006\022\t\n\005QU" +
+      "ERY\020\007\022\014\n\010TRUNCATE\020\010\022\n\n\006RENAME\020\t\022\n\n\006CINDE" +
+      "X\020\n\022\n\n\006DINDEX\020\013*(\n\004Type\022\n\n\006ORACLE\020\001\022\t\n\005M" +
+      "YSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.otter.c" +
+      "anal.protocolB\nCanalEntryH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7584,7 +7678,7 @@ public final class CanalEntry {
           internal_static_com_alibaba_otter_canal_protocol_Column_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_alibaba_otter_canal_protocol_Column_descriptor,
-              new java.lang.String[] { "Index", "SqlType", "Name", "IsKey", "Updated", "IsNull", "Props", "Value", "Length", },
+              new java.lang.String[] { "Index", "SqlType", "Name", "IsKey", "Updated", "IsNull", "Props", "Value", "Length", "MysqlType", },
               com.alibaba.otter.canal.protocol.CanalEntry.Column.class,
               com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder.class);
           internal_static_com_alibaba_otter_canal_protocol_RowData_descriptor =

@@ -63,7 +63,7 @@ message Column {
 	/**字段下标**/
 	optional int32		index			= 		1;
 	
-	/**字段类型**/
+	/**字段java中类型**/
 	optional int32 		sqlType			= 		2;
 	
 	/**字段名称(忽略大小写)，在mysql中是没有的**/
@@ -86,6 +86,9 @@ message Column {
 	
 	/** 对应数据对象原始长度 **/
 	optional int32		length			= 		9;
+	
+	/**字段mysql类型**/
+	optional string		mysqlType		= 		10;
 }
 
 message RowData {

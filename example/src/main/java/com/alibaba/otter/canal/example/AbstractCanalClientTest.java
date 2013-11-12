@@ -237,6 +237,7 @@ public class AbstractCanalClientTest {
         for (Column column : columns) {
             StringBuilder builder = new StringBuilder();
             builder.append(column.getName() + " : " + column.getValue());
+            builder.append("    type=" + column.getMysqlType());
             if (column.getUpdated()) {
                 builder.append("    update=" + column.getUpdated());
             }

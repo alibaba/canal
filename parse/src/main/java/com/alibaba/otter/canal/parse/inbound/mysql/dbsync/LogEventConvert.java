@@ -371,6 +371,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 fieldMeta = tableMeta.getFileds().get(i);
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
+                columnBuilder.setMysqlType(fieldMeta.getColumnType()); //增加mysql type类型,issue 73
             }
             columnBuilder.setIndex(i);
             columnBuilder.setIsNull(false);

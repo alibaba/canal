@@ -253,10 +253,6 @@ public abstract class LogEvent
     public static final int    MYSQL_TYPE_VAR_STRING    = 253;
     public static final int    MYSQL_TYPE_STRING        = 254;
     public static final int    MYSQL_TYPE_GEOMETRY      = 255;
-    // add by agapple, fixed issue: https://github.com/alibaba/canal/issues/66
-    // binary/varbinary类型的处理，mysql源码中并无此类型定义(binlog里将其当作String进行解析，会被进行编码导致数据可能丢失)
-    public static final int    MYSQL_TYPE_BINARY        = 256;
-    public static final int    MYSQL_TYPE_VARBINARY     = 257;
 
     public static String getTypeName(final int type)
     {
