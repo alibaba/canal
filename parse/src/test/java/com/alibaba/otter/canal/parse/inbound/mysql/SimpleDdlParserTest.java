@@ -17,19 +17,19 @@ public class SimpleDdlParserTest {
         Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
-        queryString = "CREATE TABLE IF NOT EXIST retl.retl_mark ( `ID` int(11)";
+        queryString = "CREATE TABLE IF NOT EXISTS retl.retl_mark ( `ID` int(11)";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
-        queryString = "CREATE TABLE IF NOT EXIST `retl_mark` ( `ID` int(11)";
+        queryString = "CREATE TABLE IF NOT EXISTS `retl_mark` ( `ID` int(11)";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
-        queryString = "CREATE TABLE IF NOT EXIST `retl.retl_mark` ( `ID` int(11)";
+        queryString = "CREATE TABLE IF NOT EXISTS `retl.retl_mark` ( `ID` int(11)";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl", result.getSchemaName());
@@ -67,12 +67,12 @@ public class SimpleDdlParserTest {
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
 
-        queryString = "DROP TABLE IF EXIST retl.retl_mark;";
+        queryString = "DROP TABLE IF EXISTS retl.retl_mark;";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
 
-        queryString = "DROP TABLE IF EXIST \n `retl.retl_mark` /;";
+        queryString = "DROP TABLE IF EXISTS \n `retl.retl_mark` /;";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());

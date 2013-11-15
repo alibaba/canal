@@ -27,7 +27,7 @@ public class SimpleDdlParser {
     public static final String DROP_PATTERN         = "^\\s*DROP\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
     public static final String ALERT_PATTERN        = "^\\s*ALTER\\s*(IGNORE)?\\s*TABLE\\s*(.*)$";
     public static final String TRUNCATE_PATTERN     = "^\\s*TRUNCATE\\s*(TABLE)?\\s*(.*)$";
-    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXIST\\s*)?(IF\\s*EXIST\\s*)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
+    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXISTS\\s*)?(IF\\s*EXISTS\\s*)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
     public static final String INSERT_PATTERN       = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
     public static final String UPDATE_PATTERN       = "^\\s*UPDATE(.*)$";
     public static final String DELETE_PATTERN       = "^\\s*DELETE(.*)$";
