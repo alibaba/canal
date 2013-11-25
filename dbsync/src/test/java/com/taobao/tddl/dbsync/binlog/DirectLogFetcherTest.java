@@ -9,13 +9,6 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
-
 public class DirectLogFetcherTest extends BaseLogFetcherTest {
 
     @Test
@@ -23,11 +16,13 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
         DirectLogFetcher fecther = new DirectLogFetcher();
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://10.20.144.34:3306", "root", "hello");
+            Connection connection = DriverManager.getConnection("jdbc:mysql://10.20.144.29:3306",
+                "ottermysql",
+                "ottermysql");
             Statement statement = connection.createStatement();
             statement.execute("SET @master_binlog_checksum='@@global.binlog_checksum'");
 
-            fecther.open(connection, "mysql-bin.000015", 165327L, 2);
+            fecther.open(connection, "mysql-bin.001016", 4L, 2);
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
@@ -42,25 +37,26 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
                 int eventType = event.getHeader().getType();
                 switch (eventType) {
                     case LogEvent.ROTATE_EVENT:
-                        binlogFileName = ((RotateLogEvent) event).getFilename();
+                        // binlogFileName = ((RotateLogEvent)
+                        // event).getFilename();
                         break;
                     case LogEvent.WRITE_ROWS_EVENT_V1:
                     case LogEvent.WRITE_ROWS_EVENT:
-                        parseRowsEvent((WriteRowsLogEvent) event);
+                        // parseRowsEvent((WriteRowsLogEvent) event);
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
                     case LogEvent.UPDATE_ROWS_EVENT:
-                        parseRowsEvent((UpdateRowsLogEvent) event);
+                        // parseRowsEvent((UpdateRowsLogEvent) event);
                         break;
                     case LogEvent.DELETE_ROWS_EVENT_V1:
                     case LogEvent.DELETE_ROWS_EVENT:
-                        parseRowsEvent((DeleteRowsLogEvent) event);
+                        // parseRowsEvent((DeleteRowsLogEvent) event);
                         break;
                     case LogEvent.QUERY_EVENT:
-                        parseQueryEvent((QueryLogEvent) event);
+                        // parseQueryEvent((QueryLogEvent) event);
                         break;
                     case LogEvent.ROWS_QUERY_LOG_EVENT:
-                        parseRowsQueryEvent((RowsQueryLogEvent) event);
+                        // parseRowsQueryEvent((RowsQueryLogEvent) event);
                         break;
                     default:
                         break;
@@ -76,5 +72,6 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
                 Assert.fail(e.getMessage());
             }
         }
+
     }
 }

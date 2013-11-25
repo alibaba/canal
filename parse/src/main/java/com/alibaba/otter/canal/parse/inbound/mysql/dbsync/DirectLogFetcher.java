@@ -1,9 +1,9 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.dbsync;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.SocketChannel;
 
@@ -36,7 +36,8 @@ public class DirectLogFetcher extends LogFetcher {
     /** Maximum packet length */
     public static final int       MAX_PACKET_LENGTH = (256 * 256 * 256 - 1);
 
-    private SocketChannel         channel;
+    // private SocketChannel channel;
+    private BufferedInputStream   input;
 
     public DirectLogFetcher(){
         super(DEFAULT_INITIAL_CAPACITY, DEFAULT_GROWTH_FACTOR);
@@ -51,7 +52,9 @@ public class DirectLogFetcher extends LogFetcher {
     }
 
     public void start(SocketChannel channel) throws IOException {
-        this.channel = channel;
+        // this.channel = channel;
+        // 和mysql driver一样，提供buffer机制，提升读取binlog速度
+        this.input = new BufferedInputStream(channel.socket().getInputStream(), 16384);
     }
 
     /**
@@ -144,11 +147,18 @@ public class DirectLogFetcher extends LogFetcher {
     private final boolean fetch0(final int off, final int len) throws IOException {
         ensureCapacity(off + len);
 
-        ByteBuffer buffer = ByteBuffer.wrap(this.buffer, off, len);
-        while (buffer.hasRemaining()) {
-            int readNum = channel.read(buffer);
-            if (readNum == -1) {
-                throw new IOException("Unexpected End Stream");
+        // ByteBuffer buffer = ByteBuffer.wrap(this.buffer, off, len);
+        // while (buffer.hasRemaining()) {
+        // int readNum = channel.read(buffer);
+        // if (readNum == -1) {
+        // throw new IOException("Unexpected End Stream");
+        // }
+        // }
+
+        for (int count, n = 0; n < len; n += count) {
+            if (0 > (count = input.read(buffer, off + n, len - n))) {
+                // Reached end of input stream
+                return false;
             }
         }
 

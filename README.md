@@ -29,14 +29,14 @@
 <p style="font-size: 14px;"> </p>
 <h2>工作原理</h2>
 <h3 style="font-size: 14px;">mysql主备复制实现</h3>
-<p><img src="http://dl.iteye.com/upload/attachment/0080/3086/468c1a14-e7ad-3290-9d3d-44ac501a7227.jpg" alt=""><br> 从上层来看，复制分成三步：</p>
+<p><img src="http://dl.iteye.com/upload/attachment/0080/3086/468c1a14-e7ad-3290-9d3d-44ac501a7227.jpg" alt=""><br> 从上层来看，复制分成三步：
 <ol>
 <li>master将改变记录到二进制日志(binary log)中（这些记录叫做二进制日志事件，binary log events，可以通过show binlog events进行查看）；</li>
 <li>slave将master的binary log events拷贝到它的中继日志(relay log)；</li>
 <li>slave重做中继日志中的事件，将改变反映它自己的数据。</li>
 </ol>
 <h3>canal的工作原理：</h3>
-<p><img width="590" src="http://dl.iteye.com/upload/attachment/0080/3107/c87b67ba-394c-3086-9577-9db05be04c95.jpg" alt="" height="273"></p>
+<p><img width="590" src="http://dl.iteye.com/upload/attachment/0080/3107/c87b67ba-394c-3086-9577-9db05be04c95.jpg" alt="" height="273">
 <p>原理相对比较简单：</p>
 <ol>
 <li>canal模拟mysql slave的交互协议，伪装自己为mysql slave，向mysql master发送dump协议</li>
@@ -46,9 +46,9 @@
 
 <h1>相关文档</h1>
 
-See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文档</href>
+See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文档</a>
 
-<a name="table-of-contents" class="anchor" href="#table-of-contents"><span class="mini-icon mini-icon-link"></span></a>wiki文档列表</h3>
+<h3><a name="table-of-contents" class="anchor" href="#table-of-contents"><span class="mini-icon mini-icon-link"></span></a>wiki文档列表</h3>
 <ul>
 <li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Home">Home</a></li>
 <li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Introduction">Introduction</a></li>
@@ -67,5 +67,5 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li>qq交流群： 161559791 </li>
 <li>邮件交流： jianghang115@gmail.com </li>
 <li>新浪微博： agapple0002 </li>
-<li>报告issue：<a href="https://github.com/alibaba/canal/issues">issues</li>
+<li>报告issue：<a href="https://github.com/alibaba/canal/issues">issues</a></li>
 </ol>
