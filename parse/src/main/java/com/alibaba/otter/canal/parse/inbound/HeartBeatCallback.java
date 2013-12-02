@@ -16,6 +16,6 @@ public interface HeartBeatCallback {
     /**
      * 心跳发送失败
      */
-    public void onFailed(Exception e);
+    public void onFailed(Throwable e);
 
 }

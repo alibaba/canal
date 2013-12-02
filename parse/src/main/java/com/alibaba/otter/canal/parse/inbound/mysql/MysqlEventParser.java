@@ -19,8 +19,8 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
-import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
+import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
@@ -201,6 +201,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 reconnect = true;
                 logger.warn("connect failed by " + ExceptionUtils.getStackTrace(e));
             } catch (IOException e) {
+                if (haController != null && haController instanceof HeartBeatCallback) {
+                    ((HeartBeatCallback) haController).onFailed(e);
+                }
+                reconnect = true;
+                logger.warn("connect failed by " + ExceptionUtils.getStackTrace(e));
+            } catch (Throwable e) {
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onFailed(e);
                 }

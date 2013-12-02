@@ -30,7 +30,7 @@ public class HeartBeatHAController extends AbstractCanalLifeCycle implements Can
         failedTimes = 0;
     }
 
-    public void onFailed(Exception e) {
+    public void onFailed(Throwable e) {
         failedTimes++;
         // 检查一下是否超过失败次数
         synchronized (this) {
@@ -45,7 +45,8 @@ public class HeartBeatHAController extends AbstractCanalLifeCycle implements Can
         }
     }
 
-    // ============================= setter / getter ============================
+    // ============================= setter / getter
+    // ============================
 
     public void setCanalHASwitchable(CanalHASwitchable canalHASwitchable) {
         this.eventParser = canalHASwitchable;
