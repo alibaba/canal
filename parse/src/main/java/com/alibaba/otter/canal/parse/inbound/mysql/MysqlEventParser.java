@@ -184,7 +184,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 Long startTime = System.currentTimeMillis();
 
                 // 可能心跳sql为select 1
-                if (StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "select")) {
+                if (StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "select")
+                    || StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "show")
+                    || StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "explain")
+                    || StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "desc")) {
                     mysqlConnection.query(detectingSQL);
                 } else {
                     mysqlConnection.update(detectingSQL);
