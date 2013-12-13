@@ -184,30 +184,22 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
 
     private void processActiveEnter() {
         if (listener != null) {
-            try {
-                // 触发回调，建立与server的socket链接
-                InetSocketAddress connectAddress = listener.processActiveEnter();
-                String address = connectAddress.getAddress().getHostAddress() + ":" + connectAddress.getPort();
-                this.clientData.setAddress(address);
+            // 触发回调，建立与server的socket链接
+            InetSocketAddress connectAddress = listener.processActiveEnter();
+            String address = connectAddress.getAddress().getHostAddress() + ":" + connectAddress.getPort();
+            this.clientData.setAddress(address);
 
-                String path = ZookeeperPathUtils.getDestinationClientRunning(this.destination,
-                    this.clientData.getClientId());
-                // 序列化
-                byte[] bytes = JsonUtils.marshalToByte(clientData);
-                zkClient.writeData(path, bytes);
-            } catch (Exception e) {
-                logger.error("processActiveEnter failed", e);
-            }
+            String path = ZookeeperPathUtils.getDestinationClientRunning(this.destination,
+                this.clientData.getClientId());
+            // 序列化
+            byte[] bytes = JsonUtils.marshalToByte(clientData);
+            zkClient.writeData(path, bytes);
         }
     }
 
     private void processActiveExit() {
         if (listener != null) {
-            try {
-                listener.processActiveExit();
-            } catch (Exception e) {
-                logger.error("processActiveExit failed", e);
-            }
+            listener.processActiveExit();
         }
     }
 
