@@ -46,6 +46,7 @@ public class SimpleDdlParser {
     public static final String DROP_INDEX_PATTERN   = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
 
     public static DdlResult parse(String queryString, String schmeaName) {
+        queryString = removeComment(queryString); // 去除/* */的sql注释内容
         DdlResult result = parseDdl(queryString, schmeaName, ALERT_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.ALTER);
@@ -170,6 +171,31 @@ public class SimpleDdlParser {
         String result = StringUtils.removeEnd(str, "`");
         result = StringUtils.removeStart(result, "`");
         return result;
+    }
+
+    private static String removeComment(String sql) {
+        if (sql == null) {
+            return null;
+        }
+
+        String start = "/*";
+        String end = "*/";
+        while (true) {
+            // 循环找到所有的注释
+            int index0 = sql.indexOf(start);
+            if (index0 == -1) {
+                return sql;
+            }
+            int index1 = sql.indexOf(end, index0);
+            if (index1 == -1) {
+                return sql;
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append(sql.substring(0, index0));
+            sb.append(" ");
+            sb.append(sql.substring(index1 + end.length()));
+            sql = sb.toString();
+        }
     }
 
     public static class DdlResult {

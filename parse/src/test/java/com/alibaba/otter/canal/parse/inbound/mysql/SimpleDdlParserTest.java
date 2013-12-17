@@ -76,6 +76,12 @@ public class SimpleDdlParserTest {
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
         Assert.assertEquals("retl_mark", result.getTableName());
+
+        queryString = "DROP /*!40005 TEMPORARY */  /*!40005 TEMPORARY */ TABLE IF EXISTS `temp_bond_keys`.`temp_bond_key_id`;";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("temp_bond_keys", result.getSchemaName());
+        Assert.assertEquals("temp_bond_key_id", result.getTableName());
     }
 
     @Test
