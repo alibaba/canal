@@ -16,9 +16,9 @@ import org.slf4j.MDC;
 
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitor;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
-import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
 import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
+import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 
@@ -54,8 +54,8 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                 if (StringUtils.isNotEmpty(clientAuth.getDestination())
                     && StringUtils.isNotEmpty(clientAuth.getClientId())) {
                     ClientIdentity clientIdentity = new ClientIdentity(clientAuth.getDestination(),
-                                                                       Short.valueOf(clientAuth.getClientId()),
-                                                                       clientAuth.getFilter());
+                        Short.valueOf(clientAuth.getClientId()),
+                        clientAuth.getFilter());
                     try {
                         MDC.put("destination", clientIdentity.getDestination());
                         embededServer.subscribe(clientIdentity);
@@ -88,23 +88,25 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                             writeTimeout = clientAuth.getNetWriteTimeout();
                         }
                         IdleStateHandler idleStateHandler = new IdleStateHandler(NettyUtils.hashedWheelTimer,
-                                                                                 readTimeout, writeTimeout, 0);
-                        ctx.getPipeline().addBefore(SessionHandler.class.getName(), IdleStateHandler.class.getName(),
-                                                    idleStateHandler);
+                            readTimeout,
+                            writeTimeout,
+                            0);
+                        ctx.getPipeline().addBefore(SessionHandler.class.getName(),
+                            IdleStateHandler.class.getName(),
+                            idleStateHandler);
 
                         IdleStateAwareChannelHandler idleStateAwareChannelHandler = new IdleStateAwareChannelHandler() {
 
                             public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) throws Exception {
-                                logger.warn(
-                                            "channel:{} idle timeout exceeds, close channel to save server resources...",
-                                            ctx.getChannel());
+                                logger.warn("channel:{} idle timeout exceeds, close channel to save server resources...",
+                                    ctx.getChannel());
                                 ctx.getChannel().close();
                             }
 
                         };
                         ctx.getPipeline().addBefore(SessionHandler.class.getName(),
-                                                    IdleStateAwareChannelHandler.class.getName(),
-                                                    idleStateAwareChannelHandler);
+                            IdleStateAwareChannelHandler.class.getName(),
+                            idleStateAwareChannelHandler);
                     }
 
                 });

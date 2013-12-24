@@ -52,6 +52,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private String               username;
     private String               password;
     private int                  soTimeout             = 60000;                                              // milliseconds
+    private String               filter;                                                                     // 记录上一次的filter提交值,便于自动重试时提交
 
     private final ByteBuffer     readHeader            = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
     private final ByteBuffer     writeHeader           = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
@@ -94,13 +95,14 @@ public class SimpleCanalConnector implements CanalConnector {
         } else {
             waitClientRunning();
             doConnect();
-
+            if (filter != null) { // 如果存在条件，说明是自动切换，基于上一次的条件订阅一次
+                subscribe(filter);
+            }
             if (rollbackOnConnect) {
                 rollback();
             }
         }
 
-        connected = true;
     }
 
     public void disconnect() throws CanalClientException {
@@ -158,6 +160,7 @@ public class SimpleCanalConnector implements CanalConnector {
                                                + ackBody.getErrorMessage());
             }
 
+            connected = true;
             return new InetSocketAddress(channel.socket().getLocalAddress(), channel.socket().getLocalPort());
         } catch (IOException e) {
             throw new CanalClientException(e);
@@ -387,6 +390,10 @@ public class SimpleCanalConnector implements CanalConnector {
                 public InetSocketAddress processActiveEnter() {
                     InetSocketAddress address = doConnect();
                     mutex.set(true);
+                    if (filter != null) { // 如果存在条件，说明是自动切换，基于上一次的条件订阅一次
+                        subscribe(filter);
+                    }
+
                     if (rollbackOnConnect) {
                         rollback();
                     }
@@ -458,6 +465,10 @@ public class SimpleCanalConnector implements CanalConnector {
 
     public void setRollbackOnDisConnect(boolean rollbackOnDisConnect) {
         this.rollbackOnDisConnect = rollbackOnDisConnect;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
     }
 
 }

@@ -29,6 +29,7 @@ public class ClusterCanalConnector implements CanalConnector {
     private CanalNodeAccessStrategy accessStrategy;
     private SimpleCanalConnector    currentConnector;
     private String                  destination;
+    private String                  filter;                                                  // 记录上一次的filter提交值,便于自动重试时提交
 
     public ClusterCanalConnector(String username, String password, String destination,
                                  CanalNodeAccessStrategy accessStrategy){
@@ -46,6 +47,9 @@ public class ClusterCanalConnector implements CanalConnector {
                 try {
                     currentConnector = new SimpleCanalConnector(nextAddress, username, password, destination);
                     currentConnector.setSoTimeout(soTimeout);
+                    if (filter != null) {
+                        currentConnector.setFilter(filter);
+                    }
                     if (accessStrategy instanceof ClusterNodeAccessStrategy) {
                         currentConnector.setZkClientx(((ClusterNodeAccessStrategy) accessStrategy).getZkClient());
                     }
@@ -84,7 +88,7 @@ public class ClusterCanalConnector implements CanalConnector {
             currentConnector = null;
         }
     }
-    
+
     public void subscribe() throws CanalClientException {
         subscribe(""); // 传递空字符即可
     }
@@ -94,6 +98,7 @@ public class ClusterCanalConnector implements CanalConnector {
         while (times < retryTimes) {
             try {
                 currentConnector.subscribe(filter);
+                this.filter = filter;
                 return;
             } catch (Throwable t) {
                 logger.warn("something goes wrong when subscribing from server:{}\n{}",
@@ -213,7 +218,7 @@ public class ClusterCanalConnector implements CanalConnector {
                 logger.info("restart the connector for next round retry.");
             }
         }
-        throw new CanalClientException("failed to fetch the data after " + times + " times retry");
+        throw new CanalClientException("failed to rollback after " + times + " times retry");
     }
 
     public void rollback() throws CanalClientException {
@@ -232,7 +237,7 @@ public class ClusterCanalConnector implements CanalConnector {
             }
         }
 
-        throw new CanalClientException("failed to fetch the data after " + times + " times retry");
+        throw new CanalClientException("failed to rollback after " + times + " times retry");
     }
 
     public void ack(long batchId) throws CanalClientException {
@@ -251,7 +256,7 @@ public class ClusterCanalConnector implements CanalConnector {
             }
         }
 
-        throw new CanalClientException("failed to fetch the data after " + times + " times retry");
+        throw new CanalClientException("failed to ack after " + times + " times retry");
     }
 
     private void restart() throws CanalClientException {
@@ -318,7 +323,5 @@ public class ClusterCanalConnector implements CanalConnector {
     public SimpleCanalConnector getCurrentConnector() {
         return currentConnector;
     }
-
-    
 
 }
