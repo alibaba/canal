@@ -405,11 +405,12 @@ public class SimpleCanalConnector implements CanalConnector {
 
     private void waitClientRunning() {
         try {
-            if (!connected) {// 未调用connect
-                throw new CanalClientException("should connect first");
-            }
 
             if (zkClientx != null) {
+                if (!connected) {// 未调用connect
+                    throw new CanalClientException("should connect first");
+                }
+
                 mutex.get();// 阻塞等待
             }
         } catch (InterruptedException e) {

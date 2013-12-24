@@ -151,7 +151,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // fixed issue https://github.com/alibaba/canal/issues/58
             if (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE
                 || result.getType() == EventType.CREATE || result.getType() == EventType.TRUNCATE
-                || result.getType() == EventType.RENAME) { // 针对DDL类型
+                || result.getType() == EventType.RENAME || result.getType() == EventType.CINDEX
+                || result.getType() == EventType.DINDEX) { // 针对DDL类型
 
                 if (filterQueryDdl) {
                     return null;
@@ -371,7 +372,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 fieldMeta = tableMeta.getFileds().get(i);
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
-                columnBuilder.setMysqlType(fieldMeta.getColumnType()); //增加mysql type类型,issue 73
+                columnBuilder.setMysqlType(fieldMeta.getColumnType()); // 增加mysql
+                                                                       // type类型,issue
+                                                                       // 73
             }
             columnBuilder.setIndex(i);
             columnBuilder.setIsNull(false);

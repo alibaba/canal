@@ -155,6 +155,12 @@ public class SimpleDdlParserTest {
         Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
+        queryString = "create index idx_qca_cid_mcid on q_contract_account (contract_id,main_contract_id)";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getSchemaName());
+        Assert.assertEquals("q_contract_account", result.getTableName());
+
         queryString = "DROP INDEX index_str ON retl_mark";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);
