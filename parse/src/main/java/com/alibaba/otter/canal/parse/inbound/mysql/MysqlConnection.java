@@ -202,6 +202,13 @@ public class MysqlConnection implements ErosaConnection {
             logger.warn(ExceptionUtils.getFullStackTrace(e));
         }
 
+        
+        try {
+            // mariadb针对特殊的类型，需要设置session变量
+            update("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
+        } catch (Exception e) {
+            logger.warn(ExceptionUtils.getFullStackTrace(e));
+        }
     }
 
     /**

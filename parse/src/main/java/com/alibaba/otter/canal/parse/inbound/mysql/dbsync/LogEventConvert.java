@@ -45,6 +45,7 @@ import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
@@ -106,6 +107,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return parseRowsEvent((DeleteRowsLogEvent) logEvent);
             case LogEvent.ROWS_QUERY_LOG_EVENT:
                 return parseRowsQueryEvent((RowsQueryLogEvent) logEvent);
+            case LogEvent.ANNOTATE_ROWS_EVENT:
+                return parseAnnotateRowsEvent((AnnotateRowsEvent) logEvent);
             case LogEvent.USER_VAR_EVENT:
                 return parseUserVarLogEvent((UserVarLogEvent) logEvent);
             case LogEvent.INTVAR_EVENT:
@@ -221,6 +224,20 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             return null;
         }
         // mysql5.6支持，需要设置binlog-rows-query-log-events=1，可详细打印原始DML语句
+        String queryString = null;
+        try {
+            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+            return buildQueryEntry(queryString, event.getHeader());
+        } catch (UnsupportedEncodingException e) {
+            throw new CanalParseException(e);
+        }
+    }
+    
+    private Entry parseAnnotateRowsEvent(AnnotateRowsEvent event) {
+        if (filterQueryDml) {
+            return null;
+        }
+        // mariaDb支持，需要设置binlog_annotate_row_events=true，可详细打印原始DML语句
         String queryString = null;
         try {
             queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());

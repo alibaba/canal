@@ -35,6 +35,10 @@ import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
 
 /**
  * Implements a binary-log decoder.
@@ -154,12 +158,17 @@ public final class LogDecoder
         FormatDescriptionLogEvent descriptionEvent = context.getFormatDescription();
         LogPosition logPosition = context.getLogPosition();
         
+        int checksumAlg = LogEvent.BINLOG_CHECKSUM_ALG_UNDEF;
         if (header.getType() != LogEvent.FORMAT_DESCRIPTION_EVENT) {
-            int checksumAlg = descriptionEvent.header.getChecksumAlg();
-            if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
-                // remove checksum bytes
-                buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
-            }
+            checksumAlg = descriptionEvent.header.getChecksumAlg();
+        }else {
+            // 如果是format事件自己，也需要处理checksum
+            checksumAlg = header.getChecksumAlg();
+        }
+        
+        if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
+            // remove checksum bytes
+            buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
         }
         
         switch (header.getType())
@@ -430,6 +439,34 @@ public final class LogDecoder
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 return event;
+            }
+        case LogEvent.ANNOTATE_ROWS_EVENT:
+            {
+            AnnotateRowsEvent event = new AnnotateRowsEvent(header, buffer, descriptionEvent);
+            /* updating position in context */
+            logPosition.position = header.getLogPos();
+            return event;
+            }
+        case LogEvent.BINLOG_CHECKPOINT_EVENT:
+            {
+            BinlogCheckPointLogEvent event = new BinlogCheckPointLogEvent(header, buffer, descriptionEvent);
+            /* updating position in context */
+            logPosition.position = header.getLogPos();
+            return event;
+            }
+        case LogEvent.GTID_EVENT:
+            {
+            MariaGtidLogEvent event = new MariaGtidLogEvent(header, buffer, descriptionEvent);
+            /* updating position in context */
+            logPosition.position = header.getLogPos();
+            return event;
+            }
+        case LogEvent.GTID_LIST_EVENT:
+            {
+            MariaGtidListLogEvent event = new MariaGtidListLogEvent(header, buffer, descriptionEvent);
+            /* updating position in context */
+            logPosition.position = header.getLogPos();
+            return event;
             }
         default:
             /*

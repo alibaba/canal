@@ -73,6 +73,10 @@ public class DirectLogFetcherTest {
                     case LogEvent.ROWS_QUERY_LOG_EVENT:
                         // parseRowsQueryEvent((RowsQueryLogEvent) event);
                         break;
+                    case LogEvent.ANNOTATE_ROWS_EVENT:
+                        break;
+                    case LogEvent.XID_EVENT:
+                        break;
                     default:
                         break;
                 }

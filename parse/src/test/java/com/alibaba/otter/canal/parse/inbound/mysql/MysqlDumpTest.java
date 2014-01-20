@@ -26,12 +26,12 @@ public class MysqlDumpTest {
     @Test
     public void testSimple() {
         final MysqlEventParser controller = new MysqlEventParser();
-        final EntryPosition startPosition = new EntryPosition("mysql-bin.000011", 4L);
+        final EntryPosition startPosition = new EntryPosition("mysql-bin.000003", 4L);
 
         controller.setConnectionCharset(Charset.forName("UTF-8"));
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
-        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("10.20.144.34", 3306), "root", "hello"));
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("10.20.151.3", 3306), "ottermysql", "ottermysql"));
         controller.setMasterPosition(startPosition);
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
@@ -41,7 +41,8 @@ public class MysqlDumpTest {
 
                 for (Entry entry : entrys) {
                     if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN
-                        || entry.getEntryType() == EntryType.TRANSACTIONEND) {
+                        || entry.getEntryType() == EntryType.TRANSACTIONEND
+                         || entry.getEntryType() == EntryType.HEARTBEAT) {
                         continue;
                     }
 

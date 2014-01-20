@@ -58,6 +58,7 @@ public final class DirectLogFetcher extends LogFetcher
 
     /** BINLOG_DUMP options */
     public static final int    BINLOG_DUMP_NON_BLOCK = 1;
+    public static final int    BINLOG_SEND_ANNOTATE_ROWS_EVENT = 2;
 
     private Connection         conn;
     private OutputStream       mysqlOutput;
@@ -323,7 +324,9 @@ public final class DirectLogFetcher extends LogFetcher
 
         putByte(COM_BINLOG_DUMP);
         putInt32(filePosition);
-        putInt16(nonBlocking ? BINLOG_DUMP_NON_BLOCK : 0); // binlog_flags
+        int binlog_flags = nonBlocking ? BINLOG_DUMP_NON_BLOCK : 0;
+        binlog_flags |= BINLOG_SEND_ANNOTATE_ROWS_EVENT;
+        putInt16(binlog_flags); // binlog_flags
         putInt32(serverId); // slave's server-id 
         putString(fileName);
 

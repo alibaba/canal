@@ -315,22 +315,6 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 public class QueryLogEvent extends LogEvent
 {
     /**
-     * Max number of possible extra bytes in a replication event compared to a
-     * packet (i.e. a query) sent from client to master; First, an auxiliary
-     * log_event status vars estimation:
-     */
-    public static final int MAX_SIZE_LOG_EVENT_STATUS = (1 + 4 /* type, flags2 */
-                                                              + 1 + 8 /* type, sql_mode */
-                                                              + 1 + 1 + 255 /* type, length, catalog */
-                                                              + 1 + 4 /* type, auto_increment */
-                                                              + 1 + 6 /* type, charset */
-                                                              + 1 + 1 + 255 /* type, length, time_zone */
-                                                              + 1 + 2 /* type, lc_time_names_number */
-                                                              + 1 + 2 /* type, charset_database_number */
-                                                              + 1 + 8 /* type, table_map_for_update */
-                                                              + 1 + 4 /* type, master_data_written */
-                                                              + 1 + 16 + 1 + 60/* type, user_len, user, host_len, host */);
-    /**
     The maximum number of updated databases that a status of
     Query-log-event can carry.  It can redefined within a range
     [1.. OVER_MAX_DBS_IN_EVENT_MTS].
@@ -350,6 +334,26 @@ public class QueryLogEvent extends LogEvent
     /* Field/table name length */
     public static final int NAME_LEN                  = (NAME_CHAR_LEN * SYSTEM_CHARSET_MBMAXLEN);
 
+    /**
+     * Max number of possible extra bytes in a replication event compared to a
+     * packet (i.e. a query) sent from client to master; First, an auxiliary
+     * log_event status vars estimation:
+     */
+    public static final int MAX_SIZE_LOG_EVENT_STATUS = (1 + 4 /* type, flags2 */
+            + 1 + 8 /* type, sql_mode */
+            + 1 + 1 + 255 /* type, length, catalog */
+            + 1 + 4 /* type, auto_increment */
+            + 1 + 6 /* type, charset */
+            + 1 + 1 + 255 /* type, length, time_zone */
+            + 1 + 2 /* type, lc_time_names_number */
+            + 1 + 2 /* type, charset_database_number */
+            + 1 + 8 /* type, table_map_for_update */
+            + 1 + 4 /* type, master_data_written */
+            /* type, db_1, db_2, ... */ 
+            /* type, microseconds */
+            /* MariaDb type, sec_part of NOW() */ 
+            + 1 + (MAX_DBS_IN_EVENT_MTS * (1 + NAME_LEN)) + 3
+            + 1 + 16 + 1 + 60/* type, user_len, user, host_len, host */);
     /**
      * Fixed data part:
      * 
@@ -572,6 +576,11 @@ public class QueryLogEvent extends LogEvent
     public static final int Q_UPDATED_DB_NAMES          = 12;
 
     public static final int Q_MICROSECONDS              = 13;
+    
+    /** 
+     *  FROM MariaDB 5.5.34 
+     */
+    public static final int Q_HRNOW                     = 128;
 
     private final void unpackVariables(LogBuffer buffer, final int end)
             throws IOException
@@ -652,6 +661,10 @@ public class QueryLogEvent extends LogEvent
                         int length = end - buffer.position();
                         mtsAccessedDbNames[i] = buffer.getFixString(length < NAME_LEN ? length : NAME_LEN);
                     }
+                    break;
+                case Q_HRNOW: 
+                    // int when_sec_part = buffer.getUint24();
+                    buffer.forward(3);
                     break;
                 default:
                     /* That's why you must write status vars in growing order of code */

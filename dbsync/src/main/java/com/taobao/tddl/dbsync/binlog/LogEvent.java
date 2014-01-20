@@ -181,8 +181,36 @@ public abstract class LogEvent
 
     public static final int    PREVIOUS_GTIDS_LOG_EVENT = 35;
     
+    // mariaDb 5.5.34
+    /* New MySQL/Sun events are to be added right above this comment */
+    public static final int    MYSQL_EVENTS_END         = 36;
+
+    public static final int    MARIA_EVENTS_BEGIN       = 160;
+    /* New Maria event numbers start from here */
+    public static final int    ANNOTATE_ROWS_EVENT      = 160;
+    /*
+    Binlog checkpoint event. Used for XA crash recovery on the master, not used
+    in replication.
+    A binlog checkpoint event specifies a binlog file such that XA crash
+    recovery can start from that file - and it is guaranteed to find all XIDs
+    that are prepared in storage engines but not yet committed.
+     */
+    public static final int     BINLOG_CHECKPOINT_EVENT = 161;
+    /*
+    Gtid event. For global transaction ID, used to start a new event group,
+    instead of the old BEGIN query event, and also to mark stand-alone
+    events.
+     */
+    public static final int    GTID_EVENT               = 162;
+    /*
+    Gtid list event. Logged at the start of every binlog, to record the
+    current replication state. This consists of the last GTID seen for
+    each replication domain.
+     */
+    public static final int    GTID_LIST_EVENT          = 163;
+
     /** end marker */
-    public static final int    ENUM_END_EVENT           = 36;
+    public static final int    ENUM_END_EVENT           = 164;
 
     /**
     1 byte length, 1 byte format
@@ -212,6 +240,24 @@ public abstract class LogEvent
      */
     public static final int    BINLOG_CHECKSUM_LEN          = CHECKSUM_CRC32_SIGNATURE_LEN;
     
+    /* MySQL or old MariaDB slave with no announced capability. */
+    public static final int    MARIA_SLAVE_CAPABILITY_UNKNOWN           = 0;
+
+    /* MariaDB >= 5.3, which understands ANNOTATE_ROWS_EVENT. */
+    public static final int    MARIA_SLAVE_CAPABILITY_ANNOTATE          = 1;
+    /*
+     * MariaDB >= 5.5. This version has the capability to tolerate events
+     * omitted from the binlog stream without breaking replication (MySQL slaves
+     * fail because they mis-compute the offsets into the master's binlog).
+     */
+    public static final int    MARIA_SLAVE_CAPABILITY_TOLERATE_HOLES    = 2;
+    /* MariaDB >= 10.0, which knows about binlog_checkpoint_log_event. */
+    public static final int    MARIA_SLAVE_CAPABILITY_BINLOG_CHECKPOINT = 3;
+    /* MariaDB >= 10.0.1, which knows about global transaction id events. */
+    public static final int    MARIA_SLAVE_CAPABILITY_GTID              = 4;
+
+    /* Our capability. */
+    public static final int    MARIA_SLAVE_CAPABILITY_MINE              = MARIA_SLAVE_CAPABILITY_GTID;
     
     /**
         For an event, 'e', carrying a type code, that a slave,

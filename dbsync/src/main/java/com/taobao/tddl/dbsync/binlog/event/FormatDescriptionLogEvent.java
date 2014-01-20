@@ -58,6 +58,10 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
     public static final int    HEARTBEAT_HEADER_LEN                = 0;
     public static final int    IGNORABLE_HEADER_LEN                = 0;
     public static final int    ROWS_HEADER_LEN_V2                  = 10;
+    public static final int    ANNOTATE_ROWS_HEADER_LEN            = 0;
+    public static final int    BINLOG_CHECKPOINT_HEADER_LEN        = 4;
+    public static final int    GTID_HEADER_LEN                     = 19;
+    public static final int    GTID_LIST_HEADER_LEN                = 4;
 
     public static final int    POST_HEADER_LENGTH                  = 11;
 
@@ -91,9 +95,6 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
 
         numberOfEventTypes = buffer.limit() - (LOG_EVENT_MINIMAL_HEADER_LEN + ST_COMMON_HEADER_LEN_OFFSET + 1);
 
-        if (logger.isInfoEnabled()) logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= "
-                                                + numberOfEventTypes);
-
         // buffer.position(LOG_EVENT_MINIMAL_HEADER_LEN
         // + ST_COMMON_HEADER_LEN_OFFSET + 1);
         postHeaderLen = new short[numberOfEventTypes];
@@ -107,6 +108,9 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
             /* the last bytes are the checksum alg desc and value (or value's room) */
             numberOfEventTypes -= BINLOG_CHECKSUM_ALG_DESC_LEN;
         }
+        
+        if (logger.isInfoEnabled()) logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= "
+                + numberOfEventTypes);
     }
 
     /** MySQL 5.0 format descriptions. */
@@ -182,6 +186,11 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 postHeaderLen[GTID_LOG_EVENT - 1] = POST_HEADER_LENGTH;
                 postHeaderLen[ANONYMOUS_GTID_LOG_EVENT - 1] = POST_HEADER_LENGTH;
                 postHeaderLen[PREVIOUS_GTIDS_LOG_EVENT - 1] = IGNORABLE_HEADER_LEN;
+                // mariadb 10
+                postHeaderLen[ANNOTATE_ROWS_EVENT - 1] = ANNOTATE_ROWS_HEADER_LEN;
+                postHeaderLen[BINLOG_CHECKPOINT_EVENT - 1] = BINLOG_CHECKPOINT_HEADER_LEN;
+                postHeaderLen[GTID_EVENT - 1] = GTID_HEADER_LEN;
+                postHeaderLen[GTID_LIST_EVENT - 1] = GTID_LIST_HEADER_LEN;
                 break;
 
             case 3: /* 4.0.x x>=2 */

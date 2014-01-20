@@ -16,9 +16,12 @@ import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
  */
 public class BinlogDumpCommandPacket extends CommandPacket {
 
-    public long   binlogPosition;
-    public long   slaveServerId;
-    public String binlogFileName;
+    /** BINLOG_DUMP options */
+    public static final int BINLOG_DUMP_NON_BLOCK           = 1;
+    public static final int BINLOG_SEND_ANNOTATE_ROWS_EVENT = 2;
+    public long             binlogPosition;
+    public long             slaveServerId;
+    public String           binlogFileName;
 
     public BinlogDumpCommandPacket(){
         setCommand((byte) 0x12);
@@ -51,7 +54,9 @@ public class BinlogDumpCommandPacket extends CommandPacket {
         // 1. write 4 bytes bin-log position to start at
         ByteHelper.writeUnsignedIntLittleEndian(binlogPosition, out);
         // 2. write 2 bytes bin-log flags
-        out.write(0x00);
+        int binlog_flags = 0;
+        binlog_flags |= BINLOG_SEND_ANNOTATE_ROWS_EVENT;
+        out.write(binlog_flags);
         out.write(0x00);
         // 3. write 4 bytes server id of the slave
         ByteHelper.writeUnsignedIntLittleEndian(this.slaveServerId, out);
