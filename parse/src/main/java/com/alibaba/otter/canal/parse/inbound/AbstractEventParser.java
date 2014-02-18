@@ -408,9 +408,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                 try {
                     if (exception == null || lastEntryTime > 0) {
                         // 如果未出现异常，或者有第一条正常数据
-                        long inteval = (System.currentTimeMillis() - lastEntryTime) / 1000;
+                        long now = System.currentTimeMillis();
+                        long inteval = (now - lastEntryTime) / 1000;
                         if (inteval >= detectingIntervalInSeconds) {
                             Header.Builder headerBuilder = Header.newBuilder();
+                            headerBuilder.setExecuteTime(now);
                             Entry.Builder entryBuilder = Entry.newBuilder();
                             entryBuilder.setHeader(headerBuilder.build());
                             entryBuilder.setEntryType(EntryType.HEARTBEAT);

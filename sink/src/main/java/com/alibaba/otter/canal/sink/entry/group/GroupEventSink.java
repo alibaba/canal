@@ -26,10 +26,11 @@ public class GroupEventSink extends EntryEventSink {
     private GroupBarrier barrier;  // 归并排序需要预先知道组的大小，用于判断是否组内所有的sink都已经开始正常取数据
 
     public GroupEventSink(){
-        this.groupSize = 1;
+        this(1);
     }
 
     public GroupEventSink(int groupSize){
+        super();
         this.groupSize = groupSize;
     }
 
