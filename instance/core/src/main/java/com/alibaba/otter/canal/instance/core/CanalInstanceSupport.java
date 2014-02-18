@@ -3,7 +3,6 @@ package com.alibaba.otter.canal.instance.core;
 import java.util.List;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
-import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.ha.HeartBeatHAController;
@@ -25,10 +24,10 @@ public abstract class CanalInstanceSupport extends AbstractCanalLifeCycle {
             // 处理group的模式
             List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
             for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
-                startEventParserInternal(singleEventParser);
+                startEventParserInternal(singleEventParser, true);
             }
         } else {
-            startEventParserInternal(eventParser);
+            startEventParserInternal(eventParser, false);
         }
     }
 
@@ -59,7 +58,7 @@ public abstract class CanalInstanceSupport extends AbstractCanalLifeCycle {
     /**
      * 初始化单个eventParser，不需要考虑group
      */
-    protected void startEventParserInternal(CanalEventParser eventParser) {
+    protected void startEventParserInternal(CanalEventParser eventParser, boolean isGroup) {
         if (eventParser instanceof AbstractEventParser) {
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
             // 首先启动log position管理器
@@ -75,8 +74,6 @@ public abstract class CanalInstanceSupport extends AbstractCanalLifeCycle {
 
             if (haController instanceof HeartBeatHAController) {
                 ((HeartBeatHAController) haController).setCanalHASwitchable(mysqlEventParser);
-            } else {
-                throw new CanalException("not support group database use " + haController.getClass().getName());
             }
 
             if (!haController.isStart()) {

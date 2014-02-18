@@ -483,13 +483,13 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         return logPositionManager;
     }
 
-    protected void startEventParserInternal(CanalEventParser eventParser) {
+    protected void startEventParserInternal(CanalEventParser eventParser, boolean isGroup) {
         if (eventParser instanceof AbstractEventParser) {
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
             abstractEventParser.setAlarmHandler(getAlarmHandler());
         }
 
-        super.startEventParserInternal(eventParser);
+        super.startEventParserInternal(eventParser, isGroup);
     }
 
     private int getGroupSize() {
