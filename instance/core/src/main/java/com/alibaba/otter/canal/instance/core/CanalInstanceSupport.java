@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.instance.core;
 import java.util.List;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
+import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.ha.HeartBeatHAController;
@@ -71,9 +72,11 @@ public abstract class CanalInstanceSupport extends AbstractCanalLifeCycle {
         if (eventParser instanceof MysqlEventParser) {
             MysqlEventParser mysqlEventParser = (MysqlEventParser) eventParser;
             CanalHAController haController = mysqlEventParser.getHaController();
-            
+
             if (haController instanceof HeartBeatHAController) {
                 ((HeartBeatHAController) haController).setCanalHASwitchable(mysqlEventParser);
+            } else {
+                throw new CanalException("not support group database use " + haController.getClass().getName());
             }
 
             if (!haController.isStart()) {
