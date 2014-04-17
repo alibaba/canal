@@ -411,10 +411,13 @@ public class SimpleCanalConnector implements CanalConnector {
     }
 
     private void waitClientRunning() {
-        try {
+        waitClientRunning(true);
+    }
 
+    private void waitClientRunning(boolean requireConnected) {
+        try {
             if (zkClientx != null) {
-                if (!connected) {// 未调用connect
+                if (!connected && requireConnected) {// 未调用connect
                     throw new CanalClientException("should connect first");
                 }
 
