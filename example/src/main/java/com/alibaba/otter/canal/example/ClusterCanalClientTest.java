@@ -28,7 +28,7 @@ public class ClusterCanalClientTest extends AbstractCanalClientTest {
         // "stability_test", "", "");
 
         // 基于zookeeper动态获取canal server的地址，建立链接，其中一台server发生crash，可以支持failover
-        CanalConnector connector = CanalConnectors.newClusterConnector("10.20.144.34:2181", destination, "", "");
+        CanalConnector connector = CanalConnectors.newClusterConnector("10.20.144.51:2181", destination, "", "");
 
         final ClusterCanalClientTest clientTest = new ClusterCanalClientTest(destination);
         clientTest.setConnector(connector);

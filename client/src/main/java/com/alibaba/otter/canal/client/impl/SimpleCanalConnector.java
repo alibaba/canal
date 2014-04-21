@@ -102,7 +102,8 @@ public class SimpleCanalConnector implements CanalConnector {
                 rollback();
             }
         }
-
+        
+        connected = true;
     }
 
     public void disconnect() throws CanalClientException {
@@ -410,14 +411,11 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
-    private void waitClientRunning() {
-        waitClientRunning(true);
-    }
 
-    private void waitClientRunning(boolean requireConnected) {
+    private void waitClientRunning() {
         try {
             if (zkClientx != null) {
-                if (!connected && requireConnected) {// 未调用connect
+                if (!connected) {// 未调用connect
                     throw new CanalClientException("should connect first");
                 }
 
