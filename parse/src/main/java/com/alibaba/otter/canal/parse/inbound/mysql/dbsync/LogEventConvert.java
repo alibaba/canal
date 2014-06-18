@@ -10,6 +10,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -320,7 +321,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             boolean tableError = false;
             TableMeta tableMeta = null;
             if (tableMetaCache != null) {// 入错存在table meta cache
-                tableMeta = tableMetaCache.getTableMeta(table.getDbName(), table.getTableName());
+                tableMeta = getTableMeta(table.getDbName(), table.getTableName(), true);
                 if (tableMeta == null) {
                     tableError = true;
                     if (!filterTableError) {
@@ -351,11 +352,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
             }
-            Entry entry = createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+
+            RowChange rowChange = rowChangeBuider.build();
             if (tableError) {
-                logger.warn("table parser error : " + entry.toString());
+                Entry entry = createEntry(header, EntryType.ROWDATA, ByteString.EMPTY);
+                logger.warn("table parser error : {}storeValue: {}", entry.toString(), rowChange.toString());
                 return null;
             } else {
+                Entry entry = createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
                 return entry;
             }
         } catch (Exception e) {
@@ -377,9 +381,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // 3. 锁住应用请求，将临时表rename为老表的名字，完成增加字段的操作
             // 尝试做一次reload，可能因为ddl没有正确解析，或者使用了类似online ddl的操作
             // 因为online ddl没有对应表名的alter语法，所以不会有clear cache的操作
-            tableMeta = tableMetaCache.getTableMeta(event.getTable().getDbName(),
-                event.getTable().getTableName(),
-                false);// 强制重新获取一次
+            tableMeta = getTableMeta(event.getTable().getDbName(), event.getTable().getTableName(), false);// 强制重新获取一次
             if (tableMeta == null) {
                 tableError = true;
                 if (!filterTableError) {
@@ -601,6 +603,21 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
         }
         return false;
+    }
+
+    private TableMeta getTableMeta(String dbName, String tbName, boolean useCache) {
+        try {
+            return tableMetaCache.getTableMeta(dbName, tbName, useCache);
+        } catch (Exception e) {
+            String message = ExceptionUtils.getRootCauseMessage(e);
+            if (filterTableError) {
+                if (StringUtils.contains(message, "errorNumber=1146") && StringUtils.contains(message, "doesn't exist")) {
+                    return null;
+                }
+            }
+
+            throw new CanalParseException(e);
+        }
     }
 
     private boolean isText(String columnType) {
