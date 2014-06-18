@@ -45,12 +45,12 @@ import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
-import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 
 /**
  * 基于{@linkplain LogEvent}转化为Entry对象的处理
@@ -79,6 +79,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean                     filterQueryDcl      = false;
     private boolean                     filterQueryDml      = false;
     private boolean                     filterQueryDdl      = false;
+    // 是否跳过table相关的解析异常,比如表不存在或者列数量不匹配,issue 92
+    private boolean                     filterTableError    = false;
 
     public Entry parse(LogEvent logEvent) throws CanalParseException {
         if (logEvent == null || logEvent instanceof UnknownLogEvent) {
@@ -232,7 +234,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             throw new CanalParseException(e);
         }
     }
-    
+
     private Entry parseAnnotateRowsEvent(AnnotateRowsEvent event) {
         if (filterQueryDml) {
             return null;
@@ -315,11 +317,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             RowsLogBuffer buffer = event.getRowsBuf(charset.name());
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getColumns();
+            boolean tableError = false;
             TableMeta tableMeta = null;
             if (tableMetaCache != null) {// 入错存在table meta cache
                 tableMeta = tableMetaCache.getTableMeta(table.getDbName(), table.getTableName());
                 if (tableMeta == null) {
-                    throw new CanalParseException("not found [" + fullname + "] in db , pls check!");
+                    tableError = true;
+                    if (!filterTableError) {
+                        throw new CanalParseException("not found [" + fullname + "] in db , pls check!");
+                    }
                 }
             }
 
@@ -328,34 +334,41 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 RowData.Builder rowDataBuilder = RowData.newBuilder();
                 if (EventType.INSERT == eventType) {
                     // insert的记录放在before字段中
-                    parseOneRow(rowDataBuilder, event, buffer, columns, true, tableMeta);
+                    tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, true, tableMeta);
                 } else if (EventType.DELETE == eventType) {
                     // delete的记录放在before字段中
-                    parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
+                    tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
                 } else {
                     // update需要处理before/after
-                    parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
+                    tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
                     if (!buffer.nextOneRow(changeColumns)) {
                         rowChangeBuider.addRowDatas(rowDataBuilder.build());
                         break;
                     }
 
-                    parseOneRow(rowDataBuilder, event, buffer, event.getChangeColumns(), true, tableMeta);
+                    tableError |= parseOneRow(rowDataBuilder, event, buffer, event.getChangeColumns(), true, tableMeta);
                 }
 
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
             }
-            return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+            Entry entry = createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+            if (tableError) {
+                logger.warn("table parser error : " + entry.toString());
+                return null;
+            } else {
+                return entry;
+            }
         } catch (Exception e) {
             throw new CanalParseException("parse row data failed.", e);
         }
     }
 
-    private void parseOneRow(RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
-                             boolean isAfter, TableMeta tableMeta) throws UnsupportedEncodingException {
+    private boolean parseOneRow(RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
+                                boolean isAfter, TableMeta tableMeta) throws UnsupportedEncodingException {
         final int columnCnt = event.getTable().getColumnCnt();
         final ColumnInfo[] columnInfo = event.getTable().getColumnInfo();
 
+        boolean tableError = false;
         // check table fileds count，只能处理加字段
         if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
             // online ddl增加字段操作步骤：
@@ -368,14 +381,20 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 event.getTable().getTableName(),
                 false);// 强制重新获取一次
             if (tableMeta == null) {
-                throw new CanalParseException("not found [" + event.getTable().getDbName() + "."
-                                              + event.getTable().getTableName() + "] in db , pls check!");
+                tableError = true;
+                if (!filterTableError) {
+                    throw new CanalParseException("not found [" + event.getTable().getDbName() + "."
+                                                  + event.getTable().getTableName() + "] in db , pls check!");
+                }
             }
 
             // 在做一次判断
             if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
-                throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName() + ","
-                                              + columnInfo.length + " vs " + tableMeta.getFileds().size());
+                tableError = true;
+                if (!filterTableError) {
+                    throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName() + ","
+                                                  + columnInfo.length + " vs " + tableMeta.getFileds().size());
+                }
             }
         }
 
@@ -384,14 +403,13 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             Column.Builder columnBuilder = Column.newBuilder();
 
             FieldMeta fieldMeta = null;
-            if (tableMeta != null) {
+            if (tableMeta != null && !tableError) {
                 // 处理file meta
                 fieldMeta = tableMeta.getFileds().get(i);
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
-                columnBuilder.setMysqlType(fieldMeta.getColumnType()); // 增加mysql
-                                                                       // type类型,issue
-                                                                       // 73
+                // 增加mysql type类型,issue 73
+                columnBuilder.setMysqlType(fieldMeta.getColumnType());
             }
             columnBuilder.setIndex(i);
             columnBuilder.setIsNull(false);
@@ -520,6 +538,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
         }
 
+        return tableError;
+
     }
 
     private Entry buildQueryEntry(String queryString, LogHeader logHeader) {
@@ -637,6 +657,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setFilterQueryDdl(boolean filterQueryDdl) {
         this.filterQueryDdl = filterQueryDdl;
+    }
+
+    public void setFilterTableError(boolean filterTableError) {
+        this.filterTableError = filterTableError;
     }
 
 }

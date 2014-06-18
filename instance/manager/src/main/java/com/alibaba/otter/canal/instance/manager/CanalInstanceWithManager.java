@@ -381,6 +381,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             }
             mysqlEventParser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
             mysqlEventParser.setProfilingEnabled(false);
+            mysqlEventParser.setFilterTableError(parameters.getFilterTableError());
             eventParser = mysqlEventParser;
         } else if (type.isLocalBinlog()) {
             LocalBinlogEventParser localBinlogEventParser = new LocalBinlogEventParser();
@@ -392,6 +393,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             localBinlogEventParser.setProfilingEnabled(false);
             localBinlogEventParser.setDetectingEnable(parameters.getDetectingEnable());
             localBinlogEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
+            localBinlogEventParser.setFilterTableError(parameters.getFilterTableError());
             // 数据库信息，反查表结构时需要
             if (!CollectionUtils.isEmpty(dbAddresses)) {
                 localBinlogEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
