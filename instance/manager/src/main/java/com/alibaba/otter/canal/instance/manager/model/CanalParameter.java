@@ -89,6 +89,7 @@ public class CanalParameter implements Serializable {
     // ddl同步支持，隔离dml/ddl
     private Boolean                  ddlIsolation                       = Boolean.FALSE;             // 是否将ddl单条返回
     private Boolean                  filterTableError                   = Boolean.FALSE;             // 是否忽略表解析异常
+    private String                   blackFilter                        = null;                      // 匹配黑名单,忽略解析
 
     // ================================== 兼容字段处理
     private InetSocketAddress        masterAddress;                                                  // 主库信息
@@ -848,6 +849,14 @@ public class CanalParameter implements Serializable {
 
     public void setFilterTableError(Boolean filterTableError) {
         this.filterTableError = filterTableError;
+    }
+
+    public String getBlackFilter() {
+        return blackFilter;
+    }
+
+    public void setBlackFilter(String blackFilter) {
+        this.blackFilter = blackFilter;
     }
 
     public String toString() {

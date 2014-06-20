@@ -409,9 +409,8 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             throw new CanalException("unsupport SourcingType for " + type);
         }
 
-        if (eventParser instanceof AbstractEventParser) { // add transaction
-                                                          // support at
-                                                          // 2012-12-06
+        // add transaction support at 2012-12-06
+        if (eventParser instanceof AbstractEventParser) {
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
             abstractEventParser.setTransactionSize(parameters.getTransactionSize());
             abstractEventParser.setLogPositionManager(initLogPositionManager());
@@ -421,6 +420,12 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
             if (StringUtils.isNotEmpty(filter)) {
                 AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
                 abstractEventParser.setEventFilter(aviaterFilter);
+            }
+
+            // 设置黑名单
+            if (StringUtils.isNotEmpty(parameters.getBlackFilter())) {
+                AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(parameters.getBlackFilter());
+                abstractEventParser.setEventBlackFilter(aviaterFilter);
             }
         }
         if (eventParser instanceof MysqlEventParser) {

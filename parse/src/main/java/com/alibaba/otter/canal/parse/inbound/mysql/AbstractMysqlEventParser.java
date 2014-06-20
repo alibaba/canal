@@ -30,6 +30,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             convert.setNameFilter((AviaterRegexFilter) eventFilter);
         }
 
+        if (eventBlackFilter != null && eventBlackFilter instanceof AviaterRegexFilter) {
+            convert.setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
+        }
+
         convert.setCharset(connectionCharset);
         convert.setFilterQueryDcl(filterQueryDcl);
         convert.setFilterQueryDml(filterQueryDml);
@@ -44,6 +48,16 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         // 触发一下filter变更
         if (eventFilter != null && eventFilter instanceof AviaterRegexFilter && binlogParser instanceof LogEventConvert) {
             ((LogEventConvert) binlogParser).setNameFilter((AviaterRegexFilter) eventFilter);
+        }
+    }
+
+    public void setEventBlackFilter(CanalEventFilter eventBlackFilter) {
+        super.setEventBlackFilter(eventBlackFilter);
+
+        // 触发一下filter变更
+        if (eventBlackFilter != null && eventBlackFilter instanceof AviaterRegexFilter
+            && binlogParser instanceof LogEventConvert) {
+            ((LogEventConvert) binlogParser).setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
     }
 

@@ -48,6 +48,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected CanalLogPositionManager                logPositionManager         = null;
     protected CanalEventSink<List<CanalEntry.Entry>> eventSink                  = null;
     protected CanalEventFilter                       eventFilter                = null;
+    protected CanalEventFilter                       eventBlackFilter           = null;
 
     private CanalAlarmHandler                        alarmHandler               = null;
 
@@ -441,6 +442,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     public void setEventFilter(CanalEventFilter eventFilter) {
         this.eventFilter = eventFilter;
+    }
+
+    public void setEventBlackFilter(CanalEventFilter eventBlackFilter) {
+        this.eventBlackFilter = eventBlackFilter;
     }
 
     public Long getParsedEventCount() {

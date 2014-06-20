@@ -74,6 +74,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public static final Logger          logger              = LoggerFactory.getLogger(LogEventConvert.class);
 
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
+    private volatile AviaterRegexFilter nameBlackFilter;
+
     private TableMetaCache              tableMetaCache;
     private String                      binlogFileName      = "mysql-bin.000001";
     private Charset                     charset             = Charset.defaultCharset();
@@ -173,11 +175,25 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     // return null;
                 } else {
                     // check name filter
-                    if (nameFilter != null && !nameFilter.filter(schemaName + "." + tableName)) {
+                    String name = schemaName + "." + tableName;
+                    if (nameFilter != null && !nameFilter.filter(name)) {
                         if (result.getType() == EventType.RENAME) {
                             // rename校验只要源和目标满足一个就进行操作
                             if (nameFilter != null
                                 && !nameFilter.filter(result.getOriSchemaName() + "." + result.getOriTableName())) {
+                                return null;
+                            }
+                        } else {
+                            // 其他情况返回null
+                            return null;
+                        }
+                    }
+
+                    if (nameBlackFilter != null && nameBlackFilter.filter(name)) {
+                        if (result.getType() == EventType.RENAME) {
+                            // rename校验只要源和目标满足一个就进行操作
+                            if (nameBlackFilter != null
+                                && nameBlackFilter.filter(result.getOriSchemaName() + "." + result.getOriTableName())) {
                                 return null;
                             }
                         } else {
@@ -293,6 +309,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             if (nameFilter != null && !nameFilter.filter(fullname)) {
                 return null;
             }
+            if (nameBlackFilter != null && nameBlackFilter.filter(fullname)) {
+                return null;
+            }
+
             EventType eventType = null;
             int type = event.getHeader().getType();
             if (LogEvent.WRITE_ROWS_EVENT_V1 == type || LogEvent.WRITE_ROWS_EVENT == type) {
@@ -658,6 +678,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setNameFilter(AviaterRegexFilter nameFilter) {
         this.nameFilter = nameFilter;
+    }
+
+    public void setNameBlackFilter(AviaterRegexFilter nameBlackFilter) {
+        this.nameBlackFilter = nameBlackFilter;
     }
 
     public void setTableMetaCache(TableMetaCache tableMetaCache) {
