@@ -95,6 +95,7 @@
 		<property name="eventBlackFilter">
 			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
 				<constructor-arg index="0" value="${canal.instance.filter.black.regex:}" />
+				<constructor-arg index="1" value="false" />
 			</bean>
 		</property>
 		<!-- 最大事务解析大小，超过该大小后事务将被切分为多个事务投递 -->

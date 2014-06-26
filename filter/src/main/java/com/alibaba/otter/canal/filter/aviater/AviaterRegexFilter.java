@@ -34,8 +34,14 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
     private static final Comparator<String> COMPARATOR        = new StringComparator();
 
     final private String                    pattern;
+    final private boolean                   defaultEmptyValue;
 
     public AviaterRegexFilter(String pattern){
+        this(pattern, true);
+    }
+
+    public AviaterRegexFilter(String pattern, boolean defaultEmptyValue){
+        this.defaultEmptyValue = defaultEmptyValue;
         List<String> list = null;
         if (StringUtils.isEmpty(pattern)) {
             list = new ArrayList<String>();
@@ -45,7 +51,8 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
         }
 
         // 对pattern按照从长到短的排序
-        // 因为 foo|foot 匹配 foot 会出错，原因是 foot 匹配了 foo 之后，会返回 foo，但是 foo 的长度和 foot 的长度不一样
+        // 因为 foo|foot 匹配 foot 会出错，原因是 foot 匹配了 foo 之后，会返回 foo，但是 foo 的长度和 foot
+        // 的长度不一样
         Collections.sort(list, COMPARATOR);
         // 对pattern进行头尾完全匹配
         list = completionPattern(list);
@@ -54,11 +61,11 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
 
     public boolean filter(String filtered) throws CanalFilterException {
         if (StringUtils.isEmpty(pattern)) {
-            return true;
+            return defaultEmptyValue;
         }
 
         if (StringUtils.isEmpty(filtered)) {
-            return true;
+            return defaultEmptyValue;
         }
 
         Map<String, Object> env = new HashMap<String, Object>();
@@ -117,5 +124,5 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
         }
         return result;
     }
-    
+
 }

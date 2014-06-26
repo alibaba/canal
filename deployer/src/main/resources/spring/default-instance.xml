@@ -109,6 +109,7 @@
 		<property name="eventBlackFilter">
 			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
 				<constructor-arg index="0" value="${canal.instance.filter.black.regex:}" />
+				<constructor-arg index="1" value="false" />
 			</bean>
 		</property>
 		
