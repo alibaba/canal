@@ -34,8 +34,8 @@ TAOBAO_JAVA="/opt/taobao/java/bin/java"
 if [ -z "$JAVA" ]; then
   if [ -f $ALIBABA_JAVA ] ; then
   	JAVA=$ALIBABA_JAVA
-  elif [ -f $ALIBABA_JAVA ] ; then
-  	JAVA=$TAOBAO_JAVA
+  elif [ -f $TAOBAO_JAVA ] ; then
+  	JAVA=$ALIBABA_JAVA
   else
   	echo "Cannot find a Java JDK. Please set either set JAVA or put java (>=1.5) in your PATH." 2>&2
     exit 1

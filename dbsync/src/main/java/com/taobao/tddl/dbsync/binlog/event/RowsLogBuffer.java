@@ -266,7 +266,9 @@ public final class RowsLogBuffer {
                                 meta));
                     }
                 }
-            } else len = meta;
+            } else {
+                len = meta;
+            }
         }
 
         switch (type) {
@@ -740,16 +742,47 @@ public final class RowsLogBuffer {
                 break;
             }
             case LogEvent.MYSQL_TYPE_SET: {
-                /*
-                 * log_event.h : This enumeration value is only used internally
-                 * and cannot exist in a binlog.
-                 */
-                byte[] nbits = new byte[len];
-                buffer.fillBytes(nbits, 0, len);
-                logger.warn("MYSQL_TYPE_SET : This enumeration value is "
-                            + "only used internally and cannot exist in a binlog!");
-                value = nbits;
-                javaType = Types.BINARY; // Types.INTEGER;
+                final int nbits = (meta & 0xFF) * 8;
+                len = (nbits + 7) / 8;
+                if (nbits > 1) {
+                    // byte[] bits = new byte[len];
+                    // buffer.fillBytes(bits, 0, len);
+                    // 转化为unsign long
+                    switch (len) {
+                        case 1:
+                            value = buffer.getInt8();
+                            break;
+                        case 2:
+                            value = buffer.getUint16();
+                            break;
+                        case 3:
+                            value = buffer.getUint24();
+                            break;
+                        case 4:
+                            value = buffer.getUint32();
+                            break;
+                        case 5:
+                            value = buffer.getUlong40();
+                            break;
+                        case 6:
+                            value = buffer.getUlong48();
+                            break;
+                        case 7:
+                            value = buffer.getUlong56();
+                            break;
+                        case 8:
+                            value = buffer.getUlong64();
+                            break;
+                        default:
+                            throw new IllegalArgumentException("!! Unknown Set len = " + len);
+                    }
+                } else {
+                    final int bit = buffer.getInt8();
+                    // value = (bit != 0) ? Boolean.TRUE : Boolean.FALSE;
+                    value = bit;
+                }
+
+                javaType = Types.BIT;
                 length = len;
                 break;
             }

@@ -692,6 +692,43 @@ public class LogBuffer
     }
     
     /**
+     * Return 40-bit unsigned int from buffer. (little-endian)
+     */
+    public final long getUlong40(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 4 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 4)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position]))
+                | ((long) (0xff & buf[position + 1]) << 8)
+                | ((long) (0xff & buf[position + 2]) << 16)
+                | ((long) (0xff & buf[position + 3]) << 24)
+                | ((long) (0xff & buf[position + 4]) << 32);
+    }
+
+    /**
+     * Return next 40-bit unsigned int from buffer. (little-endian)
+     */
+    public final long getUlong40()
+    {
+        if (position + 4 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 4));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position++]))
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 32);
+    }
+
+    
+    /**
      * Return 40-bit unsigned int from buffer. (big-endian)
      * 
      * @see mysql-5.6.10/include/myisampack.h - mi_uint5korr
@@ -897,6 +934,48 @@ public class LogBuffer
                 | ((long) (0xff & buf[position++]) << 16)
                 | ((long) (0xff & buf[position++]) << 8)
                 | ((long) (0xff & buf[position++]));
+    }
+    
+    /**
+     * Return 56-bit unsigned int from buffer. (little-endian)
+     * 
+     */
+    public final long getUlong56(final int pos)
+    {
+        final int position = origin + pos;
+
+        if (pos + 6 >= limit || pos < 0)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (pos < 0 ? pos : (pos + 6)));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position]))
+                | ((long) (0xff & buf[position + 1]) << 8)
+                | ((long) (0xff & buf[position + 2]) << 16)
+                | ((long) (0xff & buf[position + 3]) << 24)
+                | ((long) (0xff & buf[position + 4]) << 32)
+                | ((long) (0xff & buf[position + 5]) << 40)
+                | ((long) (0xff & buf[position + 6]) << 48);
+    }
+
+    /**
+     * Return next 56-bit unsigned int from buffer. (little-endian)
+     * 
+     */
+    public final long getUlong56()
+    {
+        if (position + 6 >= origin + limit)
+            throw new IllegalArgumentException("limit excceed: "
+                    + (position - origin + 6));
+
+        byte[] buf = buffer;
+        return ((long) (0xff & buf[position++]) )
+                | ((long) (0xff & buf[position++]) << 8)
+                | ((long) (0xff & buf[position++]) << 16)
+                | ((long) (0xff & buf[position++]) << 24)
+                | ((long) (0xff & buf[position++]) << 32)
+                | ((long) (0xff & buf[position++]) << 40)
+                | ((long) (0xff & buf[position++]) << 48);
     }
     
     /**
