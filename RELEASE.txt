@@ -1,0 +1,3 @@
+release link : https://alibaba.github.com/canal/release.html
+
+download link : https://github.com/alibaba/canal/releases

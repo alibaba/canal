@@ -1,0 +1,25 @@
+<configuration scan="true" scanPeriod=" 5 seconds">
+
+	<jmxConfigurator />
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{56} - %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+	
+	<appender name="ENTRY_LOG" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%msg</pattern>
+		</encoder>
+	</appender>
+	
+	<logger name="com.alibaba.otter.canal.example.AbstractCanalClientTest" additivity="false">  
+        <level value="INFO" />  
+        <appender-ref ref="ENTRY_LOG" />
+    </logger>
+	
+	<root level="INFO">
+		<appender-ref ref="STDOUT"/>
+	</root>
+</configuration>
