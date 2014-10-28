@@ -191,6 +191,10 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
         this.filterTransactionEntry = filterTransactionEntry;
     }
 
+    public boolean isFilterTransactionEntry() {
+        return filterTransactionEntry;
+    }
+
     public void setFilterEmtryTransactionEntry(boolean filterEmtryTransactionEntry) {
         this.filterEmtryTransactionEntry = filterEmtryTransactionEntry;
     }

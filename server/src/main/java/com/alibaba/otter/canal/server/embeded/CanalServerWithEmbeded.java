@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.sink.CanalEventSink;
+import com.alibaba.otter.canal.sink.entry.EntryEventSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -345,7 +347,19 @@ public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements Ca
         // }
 
         // 更新cursor
-        if (positionRanges.getAck() != null) {
+        boolean updateCursor = false;
+        if(positionRanges.getAck() == null) {
+            CanalEventSink eventSink = canalInstance.getEventSink();
+            if(eventSink instanceof EntryEventSink ) {
+                if(((EntryEventSink) eventSink).isFilterTransactionEntry()){
+                    updateCursor = true;
+                }
+            }
+        }else{
+            updateCursor = true;
+        }
+        if(updateCursor)
+        {
             canalInstance.getMetaManager().updateCursor(clientIdentity, positionRanges.getAck());
             logger.info("ack successfully, clientId:{} batchId:{} position:{}",
                         new Object[] { clientIdentity.getClientId(), batchId, positionRanges });
