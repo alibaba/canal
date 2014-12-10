@@ -13,7 +13,9 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceSupport;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
+import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.sink.CanalEventSink;
@@ -63,6 +65,7 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
 
     public boolean subscribeChange(ClientIdentity identity) {
         if (StringUtils.isNotEmpty(identity.getFilter())) {
+        	logger.info("subscribe filter change to "+identity.getFilter());
             AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(identity.getFilter());
 
             boolean isGroup = (eventParser instanceof GroupEventParser);
@@ -74,6 +77,11 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
                 }
             } else {
                 ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+                //add by zelin.miao
+                BinlogParser binlogParser=((AbstractEventParser) eventParser).getBinlogParser();
+                if (binlogParser!=null && binlogParser instanceof LogEventConvert) {
+					((LogEventConvert)binlogParser).setNameFilter(aviaterFilter);
+				}
             }
 
         }
