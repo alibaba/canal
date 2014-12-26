@@ -182,7 +182,8 @@ public class CanalController {
                 public void start(String destination) {
                     InstanceConfig config = instanceConfigs.get(destination);
                     if (config == null) {
-                        config = new InstanceConfig(globalInstanceConfig);
+                        // 重新读取一下instance config
+                        config = parseInstanceConfig(properties, destination);
                         instanceConfigs.put(destination, config);
                     }
 
