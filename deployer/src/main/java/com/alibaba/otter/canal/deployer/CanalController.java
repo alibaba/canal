@@ -15,6 +15,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
@@ -284,6 +285,9 @@ public class CanalController {
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, destination);
                             instanceGenerator.setBeanFactory(getBeanFactory(config.getSpringXml()));
                             return instanceGenerator.generate(destination);
+                        } catch (Throwable e) {
+                            logger.error("generator instance failed.", e);
+                            throw new CanalException(e);
                         } finally {
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, "");
                         }
