@@ -129,11 +129,11 @@ public final class FileLogFetcher extends LogFetcher {
             }
         } else if (limit > 0) {
             System.arraycopy(buffer, origin, buffer, 0, limit);
+            position -= origin;
+            origin = 0;
             final int len = fin.read(buffer, limit, buffer.length - limit);
             if (len >= 0) {
                 limit += len;
-                position -= origin;
-                origin = 0;
 
                 /* More binlog to fetch */
                 return true;
