@@ -19,8 +19,9 @@ public class CanalConnectors {
 
     /**
      * 创建单链接的客户端链接
-     * 
+     *
      * @param address
+     * @param destination
      * @param username
      * @param password
      * @return
@@ -34,8 +35,9 @@ public class CanalConnectors {
 
     /**
      * 创建带cluster模式的客户端链接，自动完成failover切换
-     * 
+     *
      * @param addresses
+     * @param destination
      * @param username
      * @param password
      * @return
@@ -50,7 +52,9 @@ public class CanalConnectors {
 
     /**
      * 创建带cluster模式的客户端链接，自动完成failover切换，服务器列表自动扫描
-     * 
+     *
+     * @param zkServers
+     * @param destination
      * @param username
      * @param password
      * @return
