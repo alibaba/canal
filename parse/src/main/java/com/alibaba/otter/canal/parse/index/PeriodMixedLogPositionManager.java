@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.index;
 
+import com.google.common.collect.MigrateMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -43,13 +44,17 @@ public class PeriodMixedLogPositionManager extends MemoryLogPositionManager impl
             zooKeeperLogPositionManager.start();
         }
         executor = Executors.newScheduledThreadPool(1);
-        positions = new MapMaker().makeComputingMap(new Function<String, LogPosition>() {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>()
+        {
 
-            public LogPosition apply(String destination) {
+            public LogPosition apply(String destination)
+            {
                 LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);
-                if (logPosition == null) {
+                if (logPosition == null)
+                {
                     return nullPosition;
-                } else {
+                } else
+                {
                     return logPosition;
                 }
             }

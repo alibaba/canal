@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.server.embedded;
 
+import com.google.common.collect.MigrateMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,9 +48,11 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     public void start() {
         super.start();
 
-        canalInstances = new MapMaker().makeComputingMap(new Function<String, CanalInstance>() {
+        canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>()
+        {
 
-            public CanalInstance apply(String destination) {
+            public CanalInstance apply(String destination)
+            {
                 return canalInstanceGenerator.generate(destination);
             }
         });

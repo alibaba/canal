@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.index;
 
+import com.google.common.collect.MigrateMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,13 +35,17 @@ public class MixedLogPositionManager extends MemoryLogPositionManager implements
             zooKeeperLogPositionManager.start();
         }
         executor = Executors.newFixedThreadPool(1);
-        positions = new MapMaker().makeComputingMap(new Function<String, LogPosition>() {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>()
+        {
 
-            public LogPosition apply(String destination) {
+            public LogPosition apply(String destination)
+            {
                 LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);
-                if (logPosition == null) {
+                if (logPosition == null)
+                {
                     return nullPosition;
-                } else {
+                } else
+                {
                     return logPosition;
                 }
             }

@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.common.zookeeper;
 
+import com.google.common.collect.MigrateMap;
 import java.util.Map;
 
 import org.I0Itec.zkclient.IZkConnection;
@@ -23,12 +24,14 @@ import com.google.common.collect.MapMaker;
 public class ZkClientx extends ZkClient {
 
     // 对于zkclient进行一次缓存，避免一个jvm内部使用多个zk connection
-    private static Map<String, ZkClientx> clients = new MapMaker().makeComputingMap(new Function<String, ZkClientx>() {
+    private static Map<String, ZkClientx> clients = MigrateMap.makeComputingMap(new Function<String, ZkClientx>()
+    {
 
-                                                      public ZkClientx apply(String servers) {
-                                                          return new ZkClientx(servers);
-                                                      }
-                                                  });
+        public ZkClientx apply(String servers)
+        {
+            return new ZkClientx(servers);
+        }
+    });
 
     public static ZkClientx getZkClient(String servers) {
         return clients.get(servers);

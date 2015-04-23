@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.meta;
 
+import com.google.common.collect.MigrateMap;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -69,28 +70,36 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             throw new CanalMetaManagerException("dir[" + dataDir.getPath() + "] can not read/write");
         }
 
-        dataFileCaches = new MapMaker().makeComputingMap(new Function<String, File>() {
+        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>()
+        {
 
-            public File apply(String destination) {
+            public File apply(String destination)
+            {
                 return getDataFile(destination);
             }
         });
 
         executor = Executors.newScheduledThreadPool(1);
-        destinations = new MapMaker().makeComputingMap(new Function<String, List<ClientIdentity>>() {
+        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>()
+        {
 
-            public List<ClientIdentity> apply(String destination) {
+            public List<ClientIdentity> apply(String destination)
+            {
                 return loadClientIdentity(destination);
             }
         });
 
-        cursors = new MapMaker().makeComputingMap(new Function<ClientIdentity, Position>() {
+        cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>()
+        {
 
-            public Position apply(ClientIdentity clientIdentity) {
+            public Position apply(ClientIdentity clientIdentity)
+            {
                 Position position = loadCursor(clientIdentity.getDestination(), clientIdentity);
-                if (position == null) {
+                if (position == null)
+                {
                     return nullCursor; // 返回一个空对象标识，避免出现异常
-                } else {
+                } else
+                {
                     return position;
                 }
             }

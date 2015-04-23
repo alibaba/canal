@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.dbsync;
 
+import com.google.common.collect.MigrateMap;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,17 +39,23 @@ public class TableMetaCache {
 
     public TableMetaCache(MysqlConnection con){
         this.connection = con;
-        tableMetaCache = new MapMaker().makeComputingMap(new Function<String, TableMeta>() {
+        tableMetaCache = MigrateMap.makeComputingMap(new Function<String, TableMeta>()
+        {
 
-            public TableMeta apply(String name) {
-                try {
+            public TableMeta apply(String name)
+            {
+                try
+                {
                     return getTableMeta0(name);
-                } catch (IOException e) {
+                } catch (IOException e)
+                {
                     // 尝试做一次retry操作
-                    try {
+                    try
+                    {
                         connection.reconnect();
                         return getTableMeta0(name);
-                    } catch (IOException e1) {
+                    } catch (IOException e1)
+                    {
                         throw new CanalParseException("fetch failed by table meta:" + name, e1);
                     }
                 }
