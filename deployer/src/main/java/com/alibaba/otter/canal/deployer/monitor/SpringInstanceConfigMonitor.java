@@ -72,7 +72,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         lastFiles.clear();
     }
 
-    public void regeister(String destination, InstanceAction action) {
+    public void register(String destination, InstanceAction action) {
         if (action != null) {
             actions.put(destination, action);
         } else {
@@ -80,7 +80,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         }
     }
 
-    public void unRegeister(String destination) {
+    public void unregister(String destination) {
         actions.remove(destination);
     }
 

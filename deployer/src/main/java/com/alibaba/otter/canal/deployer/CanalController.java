@@ -391,7 +391,7 @@ public class CanalController {
             }
 
             if (autoScan) {
-                instanceConfigMonitors.get(config.getMode()).regeister(destination, defaultAction);
+                instanceConfigMonitors.get(config.getMode()).register(destination, defaultAction);
             }
         }
 

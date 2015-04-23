@@ -16,20 +16,20 @@ import com.alibaba.otter.canal.store.CanalEventStore;
  */
 public interface CanalInstance extends CanalLifeCycle {
 
-    public String getDestination();
+    String getDestination();
 
-    public CanalEventParser getEventParser();
+    CanalEventParser getEventParser();
 
-    public CanalEventSink getEventSink();
+    CanalEventSink getEventSink();
 
-    public CanalEventStore getEventStore();
+    CanalEventStore getEventStore();
 
-    public CanalMetaManager getMetaManager();
+    CanalMetaManager getMetaManager();
 
-    public CanalAlarmHandler getAlarmHandler();
+    CanalAlarmHandler getAlarmHandler();
 
     /**
      * 客户端发生订阅/取消订阅行为
      */
-    public boolean subscribeChange(ClientIdentity identity);
+    boolean subscribeChange(ClientIdentity identity);
 }

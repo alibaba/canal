@@ -50,8 +50,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         canalInstances = new MapMaker().makeComputingMap(new Function<String, CanalInstance>() {
 
             public CanalInstance apply(String destination) {
-                CanalInstance canalInstance = canalInstanceGenerator.generate(destination);
-                return canalInstance;
+                return canalInstanceGenerator.generate(destination);
             }
         });
 
@@ -74,7 +73,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                     }
                 }
             } catch (Exception e) {
-                logger.error(String.format("stop cannalInstance[%s] has an error", entry.getKey()), e);
+                logger.error(String.format("stop CanalInstance[%s] has an error", entry.getKey()), e);
             }
         }
     }
@@ -357,7 +356,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     }
 
     /**
-     * 回滚到未进行 {@link ack} 的地方，下次fetch的时候，可以从最后一个没有 {@link ack} 的地方开始拿
+     * 回滚到未进行 {@link #ack} 的地方，下次fetch的时候，可以从最后一个没有 {@link #ack} 的地方开始拿
      */
     public void rollback(ClientIdentity clientIdentity) throws CanalServerException {
         checkStart(clientIdentity.getDestination());
@@ -378,7 +377,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     }
 
     /**
-     * 回滚到未进行 {@link ack} 的地方，下次fetch的时候，可以从最后一个没有 {@link ack} 的地方开始拿
+     * 回滚到未进行 {@link #ack} 的地方，下次fetch的时候，可以从最后一个没有 {@link #ack} 的地方开始拿
      */
     public void rollback(ClientIdentity clientIdentity, Long batchId) throws CanalServerException {
         checkStart(clientIdentity.getDestination());

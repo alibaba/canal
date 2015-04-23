@@ -49,16 +49,18 @@ public class CanalServerWithNettyTest {
 
     @Before
     public void setUp() {
-        CanalServerWithEmbedded embededServer = new CanalServerWithEmbedded();
-        embededServer.setCanalInstanceGenerator(new CanalInstanceGenerator() {
+        CanalServerWithEmbedded embeddedServer = new CanalServerWithEmbedded();
+        embeddedServer.setCanalInstanceGenerator(new CanalInstanceGenerator()
+        {
 
-            public CanalInstance generate(String destination) {
+            public CanalInstance generate(String destination)
+            {
                 Canal canal = buildCanal();
                 return new CanalInstanceWithManager(canal, FILTER);
             }
         });
 
-        nettyServer = new CanalServerWithNetty(embededServer);
+        nettyServer = new CanalServerWithNetty(embeddedServer);
         nettyServer.setPort(1088);
         nettyServer.start();
     }

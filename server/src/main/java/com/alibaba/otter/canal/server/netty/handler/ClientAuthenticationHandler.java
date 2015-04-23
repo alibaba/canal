@@ -33,14 +33,14 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
     private static final Logger    logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
     private final int              SUPPORTED_VERSION                       = 3;
     private final int              defaultSubscriptorDisconnectIdleTimeout = 5 * 60 * 1000;
-    private CanalServerWithEmbedded embededServer;
+    private CanalServerWithEmbedded embeddedServer;
 
     public ClientAuthenticationHandler(){
 
     }
 
-    public ClientAuthenticationHandler(CanalServerWithEmbedded embededServer){
-        this.embededServer = embededServer;
+    public ClientAuthenticationHandler(CanalServerWithEmbedded embeddedServer){
+        this.embeddedServer = embeddedServer;
     }
 
     public void messageReceived(final ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -58,10 +58,10 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                         clientAuth.getFilter());
                     try {
                         MDC.put("destination", clientIdentity.getDestination());
-                        embededServer.subscribe(clientIdentity);
+                        embeddedServer.subscribe(clientIdentity);
                         ctx.setAttachment(clientIdentity);// 设置状态数据
                         // 尝试启动，如果已经启动，忽略
-                        if (!embededServer.isStart(clientIdentity.getDestination())) {
+                        if (!embeddedServer.isStart(clientIdentity.getDestination())) {
                             ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity
                                     .getDestination());
                             if (!runningMonitor.isStart()) {
@@ -115,8 +115,8 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
         }
     }
 
-    public void setEmbededServer(CanalServerWithEmbedded embededServer) {
-        this.embededServer = embededServer;
+    public void setEmbeddedServer(CanalServerWithEmbedded embeddedServer) {
+        this.embeddedServer = embeddedServer;
     }
 
 }
