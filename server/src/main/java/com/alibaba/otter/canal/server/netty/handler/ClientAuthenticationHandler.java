@@ -19,7 +19,7 @@ import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
 import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
-import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 
 /**
@@ -33,13 +33,13 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
     private static final Logger    logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
     private final int              SUPPORTED_VERSION                       = 3;
     private final int              defaultSubscriptorDisconnectIdleTimeout = 5 * 60 * 1000;
-    private CanalServerWithEmbeded embededServer;
+    private CanalServerWithEmbedded embededServer;
 
     public ClientAuthenticationHandler(){
 
     }
 
-    public ClientAuthenticationHandler(CanalServerWithEmbeded embededServer){
+    public ClientAuthenticationHandler(CanalServerWithEmbedded embededServer){
         this.embededServer = embededServer;
     }
 
@@ -62,7 +62,8 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                         ctx.setAttachment(clientIdentity);// 设置状态数据
                         // 尝试启动，如果已经启动，忽略
                         if (!embededServer.isStart(clientIdentity.getDestination())) {
-                            ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
+                            ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity
+                                    .getDestination());
                             if (!runningMonitor.isStart()) {
                                 runningMonitor.start();
                             }
@@ -114,7 +115,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
         }
     }
 
-    public void setEmbededServer(CanalServerWithEmbeded embededServer) {
+    public void setEmbededServer(CanalServerWithEmbedded embededServer) {
         this.embededServer = embededServer;
     }
 

@@ -31,7 +31,7 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
-import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
 
 public class CanalServerWithNettyTest {
@@ -49,7 +49,7 @@ public class CanalServerWithNettyTest {
 
     @Before
     public void setUp() {
-        CanalServerWithEmbeded embededServer = new CanalServerWithEmbeded();
+        CanalServerWithEmbedded embededServer = new CanalServerWithEmbedded();
         embededServer.setCanalInstanceGenerator(new CanalInstanceGenerator() {
 
             public CanalInstance generate(String destination) {

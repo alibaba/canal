@@ -31,7 +31,7 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 
 /**
@@ -43,13 +43,13 @@ import com.alibaba.otter.canal.server.netty.NettyUtils;
 public class SessionHandler extends SimpleChannelHandler {
 
     private static final Logger    logger = LoggerFactory.getLogger(SessionHandler.class);
-    private CanalServerWithEmbeded embededServer;
+    private CanalServerWithEmbedded embededServer;
 
     public SessionHandler(){
 
     }
 
-    public SessionHandler(CanalServerWithEmbeded embededServer){
+    public SessionHandler(CanalServerWithEmbedded embededServer){
         this.embededServer = embededServer;
     }
 
@@ -242,7 +242,7 @@ public class SessionHandler extends SimpleChannelHandler {
         }
     }
 
-    public void setEmbededServer(CanalServerWithEmbeded embededServer) {
+    public void setEmbededServer(CanalServerWithEmbedded embededServer) {
         this.embededServer = embededServer;
     }
 

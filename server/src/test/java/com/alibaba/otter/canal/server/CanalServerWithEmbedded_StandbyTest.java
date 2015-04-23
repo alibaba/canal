@@ -3,6 +3,10 @@ package com.alibaba.otter.canal.server;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
+import org.I0Itec.zkclient.ZkClient;
+import org.junit.Before;
+
+import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.HAMode;
@@ -11,7 +15,15 @@ import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
 
-public class CanalServerWithEmbeded_StandaloneTest extends BaseCanalServerWithEmbededTest {
+public class CanalServerWithEmbedded_StandbyTest extends BaseCanalServerWithEmbededTest {
+
+    private ZkClient zkClient = new ZkClient(cluster1);
+
+    @Before
+    public void setUp() {
+        zkClient.deleteRecursive(ZookeeperPathUtils.CANAL_ROOT_NODE);
+        super.setUp();
+    }
 
     protected Canal buildCanal() {
         Canal canal = new Canal();
@@ -22,9 +34,9 @@ public class CanalServerWithEmbeded_StandaloneTest extends BaseCanalServerWithEm
         CanalParameter parameter = new CanalParameter();
 
         parameter.setZkClusters(Arrays.asList("127.0.0.1:2188"));
-        parameter.setMetaMode(MetaMode.MEMORY);
+        parameter.setMetaMode(MetaMode.MIXED); // 冷备，可选择混合模式
         parameter.setHaMode(HAMode.HEARTBEAT);
-        parameter.setIndexMode(IndexMode.MEMORY);
+        parameter.setIndexMode(IndexMode.META);// 内存版store，需要选择meta做为index
 
         parameter.setStorageMode(StorageMode.MEMORY);
         parameter.setMemoryStorageBufferSize(32 * 1024);

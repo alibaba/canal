@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.server.embeded;
+package com.alibaba.otter.canal.server.embedded;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,9 +37,9 @@ import com.google.common.collect.Maps;
  * @author zebin.xuzb
  * @version 1.0.0
  */
-public class CanalServerWithEmbeded extends AbstractCanalLifeCycle implements CanalServer {
+public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer {
 
-    private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbeded.class);
+    private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
     private Map<String, CanalInstance> canalInstances;
     // private Map<ClientIdentity, Position> lastRollbackPostions;
     private CanalInstanceGenerator     canalInstanceGenerator;
