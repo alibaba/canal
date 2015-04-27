@@ -6,7 +6,6 @@
 		<version>1.0.20-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
-	<groupId>com.alibaba.otter</groupId>
 	<artifactId>canal.instance.core</artifactId>
 	<packaging>jar</packaging>
 	<name>canal instance core module for otter ${project.version}</name>
