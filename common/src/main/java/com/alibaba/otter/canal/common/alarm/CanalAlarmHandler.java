@@ -14,8 +14,7 @@ public interface CanalAlarmHandler extends CanalLifeCycle {
      * 发送对应destination的报警
      * 
      * @param destination
-     * @param title
      * @param msg
      */
-    public void sendAlarm(String destination, String msg);
+    void sendAlarm(String destination, String msg);
 }

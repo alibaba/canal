@@ -11,15 +11,15 @@ public interface InstanceAction {
     /**
      * 启动destination
      */
-    public void start(String destination);
+    void start(String destination);
 
     /**
      * 停止destination
      */
-    public void stop(String destination);
+    void stop(String destination);
 
     /**
      * 重载destination，可能需要stop,start操作，或者只是更新下内存配置
      */
-    public void reload(String destination);
+    void reload(String destination);
 }

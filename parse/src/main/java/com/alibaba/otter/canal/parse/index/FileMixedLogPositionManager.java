@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.index;
 
+import com.google.common.collect.MigrateMap;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -67,21 +68,27 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
             throw new CanalMetaManagerException("dir[" + dataDir.getPath() + "] can not read/write");
         }
 
-        dataFileCaches = new MapMaker().makeComputingMap(new Function<String, File>() {
+        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>()
+        {
 
-            public File apply(String destination) {
+            public File apply(String destination)
+            {
                 return getDataFile(destination);
             }
         });
 
         executor = Executors.newScheduledThreadPool(1);
-        positions = new MapMaker().makeComputingMap(new Function<String, LogPosition>() {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>()
+        {
 
-            public LogPosition apply(String destination) {
+            public LogPosition apply(String destination)
+            {
                 LogPosition logPosition = loadDataFromFile(dataFileCaches.get(destination));
-                if (logPosition == null) {
+                if (logPosition == null)
+                {
                     return nullPosition;
-                } else {
+                } else
+                {
                     return logPosition;
                 }
             }

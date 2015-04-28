@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.protocol;
 
+import java.io.Serializable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -9,7 +10,8 @@ import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
  * @author zebin.xuzb @ 2012-6-20
  * @version 1.0.0
  */
-public class ClientIdentity {
+public class ClientIdentity implements Serializable
+{
 
     private String destination;
     private short  clientId;

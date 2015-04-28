@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.meta;
 
+import com.google.common.collect.MigrateMap;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +32,11 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
     public void start() {
         super.start();
 
-        batches = new MapMaker().makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
+        batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>()
+        {
 
-            public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
+            public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity)
+            {
                 return MemoryClientIdentityBatch.create(clientIdentity);
             }
 
@@ -41,9 +44,11 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
 
         cursors = new MapMaker().makeMap();
 
-        destinations = new MapMaker().makeComputingMap(new Function<String, List<ClientIdentity>>() {
+        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>()
+        {
 
-            public List<ClientIdentity> apply(String destination) {
+            public List<ClientIdentity> apply(String destination)
+            {
                 return Lists.newArrayList();
             }
         });

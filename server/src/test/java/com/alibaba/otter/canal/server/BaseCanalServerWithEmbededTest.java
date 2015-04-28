@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.CanalHASwitchable;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 
 public abstract class BaseCanalServerWithEmbededTest {
 
@@ -26,12 +26,12 @@ public abstract class BaseCanalServerWithEmbededTest {
     protected static final String  PASSWORD       = "retl";
     protected static final String  FILTER         = "retl\\..*,erosa.zk_complaint_bizdata";
 
-    private CanalServerWithEmbeded server;
+    private CanalServerWithEmbedded server;
     private ClientIdentity         clientIdentity = new ClientIdentity(DESTINATION, (short) 1);                               ;
 
     @Before
     public void setUp() {
-        server = new CanalServerWithEmbeded();
+        server = new CanalServerWithEmbedded();
         server.setCanalInstanceGenerator(new CanalInstanceGenerator() {
 
             public CanalInstance generate(String destination) {

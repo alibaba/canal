@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.meta;
 
+import com.google.common.collect.MigrateMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -52,32 +53,40 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
         }
 
         executor = Executors.newScheduledThreadPool(1);
-        destinations = new MapMaker().makeComputingMap(new Function<String, List<ClientIdentity>>() {
+        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>()
+        {
 
-            public List<ClientIdentity> apply(String destination) {
+            public List<ClientIdentity> apply(String destination)
+            {
                 return zooKeeperMetaManager.listAllSubscribeInfo(destination);
             }
         });
 
-        cursors = new MapMaker().makeComputingMap(new Function<ClientIdentity, Position>() {
+        cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>()
+        {
 
-            public Position apply(ClientIdentity clientIdentity) {
+            public Position apply(ClientIdentity clientIdentity)
+            {
                 Position position = zooKeeperMetaManager.getCursor(clientIdentity);
-                if (position == null) {
+                if (position == null)
+                {
                     return nullCursor; // 返回一个空对象标识，避免出现异常
-                } else {
+                } else
+                {
                     return position;
                 }
             }
         });
 
-        batches = new MapMaker().makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
-
-            public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
+        batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>()
+        {
+            public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity)
+            {
                 // 读取一下zookeeper信息，初始化一次
                 MemoryClientIdentityBatch batches = MemoryClientIdentityBatch.create(clientIdentity);
                 Map<Long, PositionRange> positionRanges = zooKeeperMetaManager.listAllBatchs(clientIdentity);
-                for (Map.Entry<Long, PositionRange> entry : positionRanges.entrySet()) {
+                for (Map.Entry<Long, PositionRange> entry : positionRanges.entrySet())
+                {
                     batches.addPositionRange(entry.getValue(), entry.getKey()); // 添加记录到指定batchId
                 }
                 return batches;

@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.deployer.monitor;
 
+import com.google.common.collect.MigrateMap;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
@@ -39,12 +40,14 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
     private long                             scanIntervalInSecond = 5;
     private InstanceAction                   defaultAction        = null;
     private Map<String, InstanceAction>      actions              = new MapMaker().makeMap();
-    private Map<String, InstanceConfigFiles> lastFiles            = new MapMaker().makeComputingMap(new Function<String, InstanceConfigFiles>() {
+    private Map<String, InstanceConfigFiles> lastFiles            = MigrateMap.makeComputingMap(new Function<String, InstanceConfigFiles>()
+    {
 
-                                                                      public InstanceConfigFiles apply(String destination) {
-                                                                          return new InstanceConfigFiles(destination);
-                                                                      }
-                                                                  });
+        public InstanceConfigFiles apply(String destination)
+        {
+            return new InstanceConfigFiles(destination);
+        }
+    });
     private ScheduledExecutorService         executor             = Executors.newScheduledThreadPool(1,
                                                                       new NamedThreadFactory("canal-instance-scan"));
 
@@ -72,7 +75,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         lastFiles.clear();
     }
 
-    public void regeister(String destination, InstanceAction action) {
+    public void register(String destination, InstanceAction action) {
         if (action != null) {
             actions.put(destination, action);
         } else {
@@ -80,7 +83,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         }
     }
 
-    public void unRegeister(String destination) {
+    public void unregister(String destination) {
         actions.remove(destination);
     }
 
