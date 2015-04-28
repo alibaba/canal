@@ -132,8 +132,9 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
             boolean need = filter.filter(name);
             if (!need) {
                 logger.debug("filter name[{}] entry : {}:{}",
-                        name, event.getEntry().getHeader().getLogfileName(),
-                        event.getEntry().getHeader().getLogfileOffset());
+                    name,
+                    event.getEntry().getHeader().getLogfileName(),
+                    event.getEntry().getHeader().getLogfileOffset());
             }
 
             return need;

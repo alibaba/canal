@@ -27,11 +27,11 @@ import com.alibaba.otter.canal.server.netty.handler.SessionHandler;
  */
 public class CanalServerWithNetty extends AbstractCanalLifeCycle implements CanalServer {
 
-    private CanalServerWithEmbedded embeddedServer;       // 嵌入式server
-    private String                 ip;
-    private int                    port;
-    private Channel                serverChannel = null;
-    private ServerBootstrap        bootstrap     = null;
+    private CanalServerWithEmbedded embeddedServer;      // 嵌入式server
+    private String                  ip;
+    private int                     port;
+    private Channel                 serverChannel = null;
+    private ServerBootstrap         bootstrap     = null;
 
     public CanalServerWithNetty(){
     }
@@ -48,7 +48,7 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
         }
 
         this.bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
-                                                                               Executors.newCachedThreadPool()));
+            Executors.newCachedThreadPool()));
 
         // 构造对应的pipeline
         bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
@@ -58,7 +58,7 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
                 pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
                 pipelines.addLast(HandshakeInitializationHandler.class.getName(), new HandshakeInitializationHandler());
                 pipelines.addLast(ClientAuthenticationHandler.class.getName(),
-                                  new ClientAuthenticationHandler(embeddedServer));
+                    new ClientAuthenticationHandler(embeddedServer));
 
                 SessionHandler sessionHandler = new SessionHandler(embeddedServer);
                 pipelines.addLast(SessionHandler.class.getName(), sessionHandler);

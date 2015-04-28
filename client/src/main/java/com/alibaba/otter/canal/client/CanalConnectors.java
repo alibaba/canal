@@ -44,8 +44,10 @@ public class CanalConnectors {
      */
     public static CanalConnector newClusterConnector(List<? extends SocketAddress> addresses, String destination,
                                                      String username, String password) {
-        ClusterCanalConnector canalConnector = new ClusterCanalConnector(username, password, destination,
-                                                                         new SimpleNodeAccessStrategy(addresses));
+        ClusterCanalConnector canalConnector = new ClusterCanalConnector(username,
+            password,
+            destination,
+            new SimpleNodeAccessStrategy(addresses));
         canalConnector.setSoTimeout(30 * 1000);
         return canalConnector;
     }
@@ -61,13 +63,10 @@ public class CanalConnectors {
      */
     public static CanalConnector newClusterConnector(String zkServers, String destination, String username,
                                                      String password) {
-        ClusterCanalConnector canalConnector = new ClusterCanalConnector(
-                                                                         username,
-                                                                         password,
-                                                                         destination,
-                                                                         new ClusterNodeAccessStrategy(
-                                                                                                       destination,
-                                                                                                       ZkClientx.getZkClient(zkServers)));
+        ClusterCanalConnector canalConnector = new ClusterCanalConnector(username,
+            password,
+            destination,
+            new ClusterNodeAccessStrategy(destination, ZkClientx.getZkClient(zkServers)));
         canalConnector.setSoTimeout(30 * 1000);
         return canalConnector;
     }

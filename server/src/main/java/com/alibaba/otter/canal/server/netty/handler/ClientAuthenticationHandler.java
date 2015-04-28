@@ -30,9 +30,9 @@ import com.alibaba.otter.canal.server.netty.NettyUtils;
  */
 public class ClientAuthenticationHandler extends SimpleChannelHandler {
 
-    private static final Logger    logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
-    private final int              SUPPORTED_VERSION                       = 3;
-    private final int              defaultSubscriptorDisconnectIdleTimeout = 5 * 60 * 1000;
+    private static final Logger     logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
+    private final int               SUPPORTED_VERSION                       = 3;
+    private final int               defaultSubscriptorDisconnectIdleTimeout = 5 * 60 * 1000;
     private CanalServerWithEmbedded embeddedServer;
 
     public ClientAuthenticationHandler(){
@@ -62,8 +62,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                         ctx.setAttachment(clientIdentity);// 设置状态数据
                         // 尝试启动，如果已经启动，忽略
                         if (!embeddedServer.isStart(clientIdentity.getDestination())) {
-                            ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity
-                                    .getDestination());
+                            ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
                             if (!runningMonitor.isStart()) {
                                 runningMonitor.start();
                             }

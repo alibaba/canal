@@ -29,8 +29,8 @@ import java.util.Arrays;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public abstract class LogFetcher extends LogBuffer implements Closeable
-{
+public abstract class LogFetcher extends LogBuffer implements Closeable {
+
     /** Default initial capacity. */
     public static final int   DEFAULT_INITIAL_CAPACITY = 8192;
 
@@ -42,18 +42,15 @@ public abstract class LogFetcher extends LogBuffer implements Closeable
 
     protected final float     factor;
 
-    public LogFetcher()
-    {
+    public LogFetcher(){
         this(DEFAULT_INITIAL_CAPACITY, DEFAULT_GROWTH_FACTOR);
     }
 
-    public LogFetcher(final int initialCapacity)
-    {
+    public LogFetcher(final int initialCapacity){
         this(initialCapacity, DEFAULT_GROWTH_FACTOR);
     }
 
-    public LogFetcher(final int initialCapacity, final float growthFactor)
-    {
+    public LogFetcher(final int initialCapacity, final float growthFactor){
         this.buffer = new byte[initialCapacity];
         this.factor = growthFactor;
     }
@@ -65,15 +62,12 @@ public abstract class LogFetcher extends LogBuffer implements Closeable
      * 
      * @param minCapacity the desired minimum capacity
      */
-    protected final void ensureCapacity(final int minCapacity)
-    {
+    protected final void ensureCapacity(final int minCapacity) {
         final int oldCapacity = buffer.length;
 
-        if (minCapacity > oldCapacity)
-        {
+        if (minCapacity > oldCapacity) {
             int newCapacity = (int) (oldCapacity * factor);
-            if (newCapacity < minCapacity)
-                newCapacity = minCapacity;
+            if (newCapacity < minCapacity) newCapacity = minCapacity;
 
             buffer = Arrays.copyOf(buffer, newCapacity);
         }

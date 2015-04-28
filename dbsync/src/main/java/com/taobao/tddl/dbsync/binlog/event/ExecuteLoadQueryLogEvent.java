@@ -8,7 +8,6 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
  * Event responsible for LOAD DATA execution, it similar to Query_log_event but
  * before executing the query it substitutes original filename in LOAD DATA
  * query with name of temporary file.
- * 
  * <ul>
  * <li>4 bytes. The ID of the file to load.</li>
  * <li>4 bytes. The start position within the statement for filename
@@ -22,8 +21,8 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public final class ExecuteLoadQueryLogEvent extends QueryLogEvent
-{
+public final class ExecuteLoadQueryLogEvent extends QueryLogEvent {
+
     /** file_id of temporary file */
     private long            fileId;
 
@@ -53,9 +52,8 @@ public final class ExecuteLoadQueryLogEvent extends QueryLogEvent
     public static final int ELQ_FN_POS_END_OFFSET   = ELQ_FILE_ID_OFFSET + 8;
     public static final int ELQ_DUP_HANDLING_OFFSET = ELQ_FILE_ID_OFFSET + 12;
 
-    public ExecuteLoadQueryLogEvent(LogHeader header, LogBuffer buffer,
-            FormatDescriptionLogEvent descriptionEvent) throws IOException
-    {
+    public ExecuteLoadQueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent)
+                                                                                                                   throws IOException{
         super(header, buffer, descriptionEvent);
 
         buffer.position(descriptionEvent.commonHeaderLen + ELQ_FILE_ID_OFFSET);
@@ -66,36 +64,27 @@ public final class ExecuteLoadQueryLogEvent extends QueryLogEvent
         dupHandling = buffer.getInt8(); // ELQ_DUP_HANDLING_OFFSET
 
         final int len = query.length();
-        if (fnPosStart > len || fnPosEnd > len
-                || dupHandling > LOAD_DUP_REPLACE)
-        {
-            throw new IOException(String.format(
-                    "Invalid ExecuteLoadQueryLogEvent: fn_pos_start=%d, "
-                            + "fn_pos_end=%d, dup_handling=%d", fnPosStart,
-                    fnPosEnd, dupHandling));
+        if (fnPosStart > len || fnPosEnd > len || dupHandling > LOAD_DUP_REPLACE) {
+            throw new IOException(String.format("Invalid ExecuteLoadQueryLogEvent: fn_pos_start=%d, "
+                                                + "fn_pos_end=%d, dup_handling=%d", fnPosStart, fnPosEnd, dupHandling));
         }
     }
 
-    public final int getFilenamePosStart()
-    {
+    public final int getFilenamePosStart() {
         return fnPosStart;
     }
 
-    public final int getFilenamePosEnd()
-    {
+    public final int getFilenamePosEnd() {
         return fnPosEnd;
     }
 
-    public final String getFilename()
-    {
-        if (query != null)
-            return query.substring(fnPosStart, fnPosEnd).trim();
+    public final String getFilename() {
+        if (query != null) return query.substring(fnPosStart, fnPosEnd).trim();
 
         return null;
     }
 
-    public final long getFileId()
-    {
+    public final long getFileId() {
         return fileId;
     }
 }

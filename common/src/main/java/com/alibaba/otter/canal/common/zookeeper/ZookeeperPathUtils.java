@@ -120,8 +120,10 @@ public class ZookeeperPathUtils {
     }
 
     public static String getBatchMarkWithIdPath(String destinationName, short clientId, Long batchId) {
-        return MessageFormat.format(DESTINATION_CLIENTID_BATCH_MARK_WITH_ID_PATH, destinationName,
-                                    String.valueOf(clientId), getBatchMarkNode(batchId));
+        return MessageFormat.format(DESTINATION_CLIENTID_BATCH_MARK_WITH_ID_PATH,
+            destinationName,
+            String.valueOf(clientId),
+            getBatchMarkNode(batchId));
     }
 
     public static String getCursorPath(String destination, short clientId) {

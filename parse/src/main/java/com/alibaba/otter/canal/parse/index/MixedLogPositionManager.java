@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.parse.index;
 
-import com.google.common.collect.MigrateMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -10,7 +9,7 @@ import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 混合memory + zookeeper的存储模式
@@ -35,17 +34,13 @@ public class MixedLogPositionManager extends MemoryLogPositionManager implements
             zooKeeperLogPositionManager.start();
         }
         executor = Executors.newFixedThreadPool(1);
-        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>()
-        {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
 
-            public LogPosition apply(String destination)
-            {
+            public LogPosition apply(String destination) {
                 LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);
-                if (logPosition == null)
-                {
+                if (logPosition == null) {
                     return nullPosition;
-                } else
-                {
+                } else {
                     return logPosition;
                 }
             }

@@ -87,18 +87,18 @@ public class DummyEventStore implements CanalEventStore<Event> {
             SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
             if (data.getEntry().getEntryType() == EntryType.TRANSACTIONBEGIN
                 || data.getEntry().getEntryType() == EntryType.TRANSACTIONEND) {
-                // System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                // header.getLogfilename(), header.getLogfileoffset(), format.format(date),
+                // System.out.println(MessageFormat.format(messgae, new Object[]
+                // { Thread.currentThread().getName(),
+                // header.getLogfilename(), header.getLogfileoffset(),
+                // format.format(date),
                 // data.getEntry().getEntryType(), "" }));
                 System.out.println(data.getEntry().getEntryType());
 
             } else {
                 System.out.println(MessageFormat.format(messgae,
-                                                        new Object[] { Thread.currentThread().getName(),
-                                                                header.getLogfileName(),
-                                                                String.valueOf(header.getLogfileOffset()),
-                                                                format.format(date), header.getEventType(),
-                                                                header.getSchemaName(), header.getTableName() }));
+                    new Object[] { Thread.currentThread().getName(), header.getLogfileName(),
+                            String.valueOf(header.getLogfileOffset()), format.format(date), header.getEventType(),
+                            header.getSchemaName(), header.getTableName() }));
             }
         }
     }
@@ -110,18 +110,18 @@ public class DummyEventStore implements CanalEventStore<Event> {
             SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
             if (data.getEntry().getEntryType() == EntryType.TRANSACTIONBEGIN
                 || data.getEntry().getEntryType() == EntryType.TRANSACTIONEND) {
-                // System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                // header.getLogfilename(), header.getLogfileoffset(), format.format(date),
+                // System.out.println(MessageFormat.format(messgae, new Object[]
+                // { Thread.currentThread().getName(),
+                // header.getLogfilename(), header.getLogfileoffset(),
+                // format.format(date),
                 // data.getEntry().getEntryType(), "" }));
                 System.out.println(data.getEntry().getEntryType());
 
             } else {
                 System.out.println(MessageFormat.format(messgae,
-                                                        new Object[] { Thread.currentThread().getName(),
-                                                                header.getLogfileName(),
-                                                                String.valueOf(header.getLogfileOffset()),
-                                                                format.format(date), header.getEventType(),
-                                                                header.getSchemaName(), header.getTableName() }));
+                    new Object[] { Thread.currentThread().getName(), header.getLogfileName(),
+                            String.valueOf(header.getLogfileOffset()), format.format(date), header.getEventType(),
+                            header.getSchemaName(), header.getTableName() }));
             }
         }
         return true;
@@ -136,18 +136,18 @@ public class DummyEventStore implements CanalEventStore<Event> {
             SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
             if (data.getEntry().getEntryType() == EntryType.TRANSACTIONBEGIN
                 || data.getEntry().getEntryType() == EntryType.TRANSACTIONEND) {
-                // System.out.println(MessageFormat.format(messgae, new Object[] { Thread.currentThread().getName(),
-                // header.getLogfilename(), header.getLogfileoffset(), format.format(date),
+                // System.out.println(MessageFormat.format(messgae, new Object[]
+                // { Thread.currentThread().getName(),
+                // header.getLogfilename(), header.getLogfileoffset(),
+                // format.format(date),
                 // data.getEntry().getEntryType(), "" }));
                 System.out.println(data.getEntry().getEntryType());
 
             } else {
                 System.out.println(MessageFormat.format(messgae,
-                                                        new Object[] { Thread.currentThread().getName(),
-                                                                header.getLogfileName(),
-                                                                String.valueOf(header.getLogfileOffset()),
-                                                                format.format(date), header.getEventType(),
-                                                                header.getSchemaName(), header.getTableName() }));
+                    new Object[] { Thread.currentThread().getName(), header.getLogfileName(),
+                            String.valueOf(header.getLogfileOffset()), format.format(date), header.getEventType(),
+                            header.getSchemaName(), header.getTableName() }));
             }
 
         }

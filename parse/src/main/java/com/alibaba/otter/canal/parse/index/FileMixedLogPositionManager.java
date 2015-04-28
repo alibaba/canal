@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.parse.index;
 
-import com.google.common.collect.MigrateMap;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -23,7 +22,7 @@ import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 基于文件刷新的log position实现
@@ -68,27 +67,21 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
             throw new CanalMetaManagerException("dir[" + dataDir.getPath() + "] can not read/write");
         }
 
-        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>()
-        {
+        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
 
-            public File apply(String destination)
-            {
+            public File apply(String destination) {
                 return getDataFile(destination);
             }
         });
 
         executor = Executors.newScheduledThreadPool(1);
-        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>()
-        {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
 
-            public LogPosition apply(String destination)
-            {
+            public LogPosition apply(String destination) {
                 LogPosition logPosition = loadDataFromFile(dataFileCaches.get(destination));
-                if (logPosition == null)
-                {
+                if (logPosition == null) {
                     return nullPosition;
-                } else
-                {
+                } else {
                     return logPosition;
                 }
             }

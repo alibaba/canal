@@ -30,8 +30,10 @@ public abstract class PacketManager {
     }
 
     /**
-     * Since We r using blocking IO, so we will just write once and assert the length to simplify the read operation.<br>
-     * If the block write doesn't work as we expected, we will change this implementation as per the result.
+     * Since We r using blocking IO, so we will just write once and assert the
+     * length to simplify the read operation.<br>
+     * If the block write doesn't work as we expected, we will change this
+     * implementation as per the result.
      * 
      * @param ch
      * @param len

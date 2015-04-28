@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.parse.index;
 
-import com.google.common.collect.MigrateMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,7 +15,7 @@ import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 基于定时刷新的策略的mixed实现
@@ -44,17 +43,13 @@ public class PeriodMixedLogPositionManager extends MemoryLogPositionManager impl
             zooKeeperLogPositionManager.start();
         }
         executor = Executors.newScheduledThreadPool(1);
-        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>()
-        {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
 
-            public LogPosition apply(String destination)
-            {
+            public LogPosition apply(String destination) {
                 LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);
-                if (logPosition == null)
-                {
+                if (logPosition == null) {
                     return nullPosition;
-                } else
-                {
+                } else {
                     return logPosition;
                 }
             }

@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.deployer.monitor;
 
-import com.google.common.collect.MigrateMap;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
@@ -25,6 +24,7 @@ import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 监听基于spring配置的instance变化
@@ -40,14 +40,12 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
     private long                             scanIntervalInSecond = 5;
     private InstanceAction                   defaultAction        = null;
     private Map<String, InstanceAction>      actions              = new MapMaker().makeMap();
-    private Map<String, InstanceConfigFiles> lastFiles            = MigrateMap.makeComputingMap(new Function<String, InstanceConfigFiles>()
-    {
+    private Map<String, InstanceConfigFiles> lastFiles            = MigrateMap.makeComputingMap(new Function<String, InstanceConfigFiles>() {
 
-        public InstanceConfigFiles apply(String destination)
-        {
-            return new InstanceConfigFiles(destination);
-        }
-    });
+                                                                      public InstanceConfigFiles apply(String destination) {
+                                                                          return new InstanceConfigFiles(destination);
+                                                                      }
+                                                                  });
     private ScheduledExecutorService         executor             = Executors.newScheduledThreadPool(1,
                                                                       new NamedThreadFactory("canal-instance-scan"));
 

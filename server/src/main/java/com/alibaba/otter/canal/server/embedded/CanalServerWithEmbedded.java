@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.server.embedded;
 
-import com.google.common.collect.MigrateMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +28,7 @@ import com.alibaba.otter.canal.store.model.Events;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 嵌入式版本实现
@@ -37,8 +37,7 @@ import com.google.common.collect.Maps;
  * @author zebin.xuzb
  * @version 1.0.0
  */
-public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer, com.alibaba.otter.canal.server.CanalService
-{
+public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer, com.alibaba.otter.canal.server.CanalService {
 
     private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
     private Map<String, CanalInstance> canalInstances;
@@ -48,11 +47,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     public void start() {
         super.start();
 
-        canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>()
-        {
+        canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
 
-            public CanalInstance apply(String destination)
-            {
+            public CanalInstance apply(String destination) {
                 return canalInstanceGenerator.generate(destination);
             }
         });
@@ -195,9 +192,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             PositionRange<LogPosition> positionRanges = canalInstance.getMetaManager().getLastestBatch(clientIdentity);
 
             if (positionRanges != null) {
-                throw new CanalServerException(
-                                               String.format("clientId:%s has last batch:[%s] isn't ack , maybe loss data",
-                                                             clientIdentity.getClientId(), positionRanges));
+                throw new CanalServerException(String.format("clientId:%s has last batch:[%s] isn't ack , maybe loss data",
+                    clientIdentity.getClientId(),
+                    positionRanges));
             }
 
             Events<Event> events = null;
@@ -219,8 +216,11 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 });
 
                 logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
-                        clientIdentity.getClientId(), batchSize, entrys.size(), batchId,
-                        events.getPositionRange());
+                    clientIdentity.getClientId(),
+                    batchSize,
+                    entrys.size(),
+                    batchId,
+                    events.getPositionRange());
                 // 直接提交ack
                 ack(clientIdentity, batchId);
                 return new Message(batchId, entrys);
@@ -293,8 +293,11 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 });
 
                 logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
-                        clientIdentity.getClientId(), batchSize, entrys.size(), batchId,
-                        events.getPositionRange());
+                    clientIdentity.getClientId(),
+                    batchSize,
+                    entrys.size(),
+                    batchId,
+                    events.getPositionRange());
                 return new Message(batchId, entrys);
             }
 
@@ -331,9 +334,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         PositionRange<LogPosition> positionRanges = null;
         positionRanges = canalInstance.getMetaManager().removeBatch(clientIdentity, batchId); // 更新位置
         if (positionRanges == null) { // 说明是重复的ack/rollback
-            throw new CanalServerException(
-                                           String.format("ack error , clientId:%s batchId:%d is not exist , please check",
-                                                         clientIdentity.getClientId(), batchId));
+            throw new CanalServerException(String.format("ack error , clientId:%s batchId:%d is not exist , please check",
+                clientIdentity.getClientId(),
+                batchId));
         }
 
         // 更新cursor最好严格判断下位置是否有跳跃更新
@@ -357,7 +360,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         if (positionRanges.getAck() != null) {
             canalInstance.getMetaManager().updateCursor(clientIdentity, positionRanges.getAck());
             logger.info("ack successfully, clientId:{} batchId:{} position:{}",
-                    clientIdentity.getClientId(), batchId, positionRanges);
+                clientIdentity.getClientId(),
+                batchId,
+                positionRanges);
         }
 
         // 可定时清理数据
@@ -403,11 +408,11 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         synchronized (canalInstance) {
             // 清除batch信息
             PositionRange<LogPosition> positionRanges = canalInstance.getMetaManager().removeBatch(clientIdentity,
-                                                                                                   batchId);
+                batchId);
             if (positionRanges == null) { // 说明是重复的ack/rollback
-                throw new CanalServerException(
-                                               String.format("rollback error, clientId:%s batchId:%d is not exist , please check",
-                                                             clientIdentity.getClientId(), batchId));
+                throw new CanalServerException(String.format("rollback error, clientId:%s batchId:%d is not exist , please check",
+                    clientIdentity.getClientId(),
+                    batchId));
             }
 
             // lastRollbackPostions.put(clientIdentity,
@@ -416,7 +421,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             canalInstance.getEventStore().rollback();// rollback
                                                      // eventStore中的状态信息
             logger.info("rollback successfully, clientId:{} batchId:{} position:{}",
-                    clientIdentity.getClientId(), batchId, positionRanges);
+                clientIdentity.getClientId(),
+                batchId,
+                positionRanges);
         }
     }
 
@@ -451,7 +458,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         boolean hasSubscribe = canalInstance.getMetaManager().hasSubscribe(clientIdentity);
         if (!hasSubscribe) {
             throw new CanalServerException(String.format("ClientIdentity:%s should subscribe first",
-                                                         clientIdentity.toString()));
+                clientIdentity.toString()));
         }
     }
 

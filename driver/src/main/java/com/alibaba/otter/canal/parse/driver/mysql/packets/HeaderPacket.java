@@ -14,15 +14,17 @@ import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
  * </pre>
  * 
  * <br>
- * The Packet Header will not be shown in the descriptions of packets that follow this section. Think of it as always
- * there. But logically, it "precedes the packet" rather than "is included in the packet".<br>
+ * The Packet Header will not be shown in the descriptions of packets that
+ * follow this section. Think of it as always there. But logically, it
+ * "precedes the packet" rather than "is included in the packet".<br>
  * 
  * @author fujohnwang
  */
 public class HeaderPacket implements IPacket {
 
     /**
-     * this field indicates the packet length that follows the header, with header packet's 4 bytes excluded.
+     * this field indicates the packet length that follows the header, with
+     * header packet's 4 bytes excluded.
      */
     private int  packetBodyLength;
     private byte packetSequenceNumber;

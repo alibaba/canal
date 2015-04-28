@@ -26,7 +26,7 @@ public class LengthCodedStringReader {
 
         try {
             return new String(ArrayUtils.subarray(data, getIndex(), (int) (getIndex() + length)),
-                              encoding == null ? CODE_PAGE_1252 : encoding);
+                encoding == null ? CODE_PAGE_1252 : encoding);
         } finally {
             setIndex((int) (getIndex() + length));
         }

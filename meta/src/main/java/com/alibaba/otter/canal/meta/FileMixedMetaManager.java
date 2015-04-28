@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.meta;
 
-import com.google.common.collect.MigrateMap;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -27,7 +26,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 基于文件刷新的metaManager实现
@@ -70,36 +69,28 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             throw new CanalMetaManagerException("dir[" + dataDir.getPath() + "] can not read/write");
         }
 
-        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>()
-        {
+        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
 
-            public File apply(String destination)
-            {
+            public File apply(String destination) {
                 return getDataFile(destination);
             }
         });
 
         executor = Executors.newScheduledThreadPool(1);
-        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>()
-        {
+        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
 
-            public List<ClientIdentity> apply(String destination)
-            {
+            public List<ClientIdentity> apply(String destination) {
                 return loadClientIdentity(destination);
             }
         });
 
-        cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>()
-        {
+        cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>() {
 
-            public Position apply(ClientIdentity clientIdentity)
-            {
+            public Position apply(ClientIdentity clientIdentity) {
                 Position position = loadCursor(clientIdentity.getDestination(), clientIdentity);
-                if (position == null)
-                {
+                if (position == null) {
                     return nullCursor; // 返回一个空对象标识，避免出现异常
-                } else
-                {
+                } else {
                     return position;
                 }
             }
@@ -118,10 +109,10 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                         // 定时将内存中的最新值刷到file中，多次变更只刷一次
                         if (logger.isInfoEnabled()) {
                             LogPosition cursor = (LogPosition) getCursor(clientIdentity);
-                            logger.info("clientId:{} cursor:[{},{},{}] address[{}]", new Object[] {
-                                    clientIdentity.getClientId(), cursor.getPostion().getJournalName(),
-                                    cursor.getPostion().getPosition(), cursor.getPostion().getTimestamp(),
-                                    cursor.getIdentity().getSourceAddress().toString() });
+                            logger.info("clientId:{} cursor:[{},{},{}] address[{}]",
+                                new Object[] { clientIdentity.getClientId(), cursor.getPostion().getJournalName(),
+                                        cursor.getPostion().getPosition(), cursor.getPostion().getTimestamp(),
+                                        cursor.getIdentity().getSourceAddress().toString() });
                         }
                         flushDataToFile(clientIdentity.getDestination());
                         updateCursorTasks.remove(clientIdentity);
@@ -131,7 +122,10 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                     }
                 }
             }
-        }, period, period, TimeUnit.MILLISECONDS);
+        },
+            period,
+            period,
+            TimeUnit.MILLISECONDS);
     }
 
     public void stop() {

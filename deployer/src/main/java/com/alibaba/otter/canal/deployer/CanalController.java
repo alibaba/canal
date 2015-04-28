@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.deployer;
 
-import com.google.common.collect.MigrateMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -39,6 +38,7 @@ import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * canal调度控制器
@@ -60,7 +60,7 @@ public class CanalController {
     private boolean                                  autoScan = true;
     private InstanceAction                           defaultAction;
     private Map<InstanceMode, InstanceConfigMonitor> instanceConfigMonitors;
-    private CanalServerWithEmbedded embededCanalServer;
+    private CanalServerWithEmbedded                  embededCanalServer;
     private CanalServerWithNetty                     canalServer;
 
     private CanalInstanceGenerator                   instanceGenerator;
@@ -71,11 +71,9 @@ public class CanalController {
     }
 
     public CanalController(final Properties properties){
-        managerClients = MigrateMap.makeComputingMap(new Function<String, CanalConfigClient>()
-        {
+        managerClients = MigrateMap.makeComputingMap(new Function<String, CanalConfigClient>() {
 
-            public CanalConfigClient apply(String managerAddress)
-            {
+            public CanalConfigClient apply(String managerAddress) {
                 return getManagerClient(managerAddress);
             }
         });
@@ -110,88 +108,68 @@ public class CanalController {
 
         final ServerRunningData serverData = new ServerRunningData(cid, ip + ":" + port);
         ServerRunningMonitors.setServerData(serverData);
-        ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>()
-        {
-            public ServerRunningMonitor apply(final String destination)
-            {
+        ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>() {
+
+            public ServerRunningMonitor apply(final String destination) {
                 ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
                 runningMonitor.setDestination(destination);
-                runningMonitor.setListener(new ServerRunningListener()
-                {
+                runningMonitor.setListener(new ServerRunningListener() {
 
-                    public void processActiveEnter()
-                    {
-                        try
-                        {
+                    public void processActiveEnter() {
+                        try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
                             embededCanalServer.start(destination);
-                        } finally
-                        {
+                        } finally {
                             MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
                     }
 
-                    public void processActiveExit()
-                    {
-                        try
-                        {
+                    public void processActiveExit() {
+                        try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
                             embededCanalServer.stop(destination);
-                        } finally
-                        {
+                        } finally {
                             MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
                     }
 
-                    public void processStart()
-                    {
-                        try
-                        {
-                            if (zkclientx != null)
-                            {
+                    public void processStart() {
+                        try {
+                            if (zkclientx != null) {
                                 final String path = ZookeeperPathUtils.getDestinationClusterNode(destination, ip + ":"
-                                        + port);
+                                                                                                              + port);
                                 initCid(path);
-                                zkclientx.subscribeStateChanges(new IZkStateListener()
-                                {
+                                zkclientx.subscribeStateChanges(new IZkStateListener() {
 
-                                    public void handleStateChanged(KeeperState state) throws Exception
-                                    {
+                                    public void handleStateChanged(KeeperState state) throws Exception {
 
                                     }
 
-                                    public void handleNewSession() throws Exception
-                                    {
+                                    public void handleNewSession() throws Exception {
                                         initCid(path);
                                     }
                                 });
                             }
-                        } finally
-                        {
+                        } finally {
                             MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
                     }
 
-                    public void processStop()
-                    {
-                        try
-                        {
+                    public void processStop() {
+                        try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            if (zkclientx != null)
-                            {
+                            if (zkclientx != null) {
                                 final String path = ZookeeperPathUtils.getDestinationClusterNode(destination, ip + ":"
-                                        + port);
+                                                                                                              + port);
                                 releaseCid(path);
                             }
-                        } finally
-                        {
+                        } finally {
                             MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
                     }
 
                 });
-                if (zkclientx != null)
-                {
+                if (zkclientx != null) {
                     runningMonitor.setZkClient(zkclientx);
                 }
                 return runningMonitor;
@@ -239,32 +217,25 @@ public class CanalController {
                 }
             };
 
-            instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>()
-            {
+            instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
 
-                public InstanceConfigMonitor apply(InstanceMode mode)
-                {
-                    int scanInterval = Integer
-                            .valueOf(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
+                public InstanceConfigMonitor apply(InstanceMode mode) {
+                    int scanInterval = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
 
-                    if (mode.isSpring())
-                    {
+                    if (mode.isSpring()) {
                         SpringInstanceConfigMonitor monitor = new SpringInstanceConfigMonitor();
                         monitor.setScanIntervalInSecond(scanInterval);
                         monitor.setDefaultAction(defaultAction);
                         // 设置conf目录，默认是user.dir + conf目录组成
                         String rootDir = getProperty(properties, CanalConstants.CANAL_CONF_DIR);
-                        if (StringUtils.isEmpty(rootDir))
-                        {
+                        if (StringUtils.isEmpty(rootDir)) {
                             rootDir = "../conf";
                         }
                         monitor.setRootConf(rootDir);
                         return monitor;
-                    } else if (mode.isManager())
-                    {
+                    } else if (mode.isManager()) {
                         return new ManagerInstanceConfigMonitor();
-                    } else
-                    {
+                    } else {
                         throw new UnsupportedOperationException("unknow mode :" + mode + " for monitor");
                     }
                 }

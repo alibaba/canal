@@ -50,11 +50,9 @@ public class CanalServerWithNettyTest {
     @Before
     public void setUp() {
         CanalServerWithEmbedded embeddedServer = new CanalServerWithEmbedded();
-        embeddedServer.setCanalInstanceGenerator(new CanalInstanceGenerator()
-        {
+        embeddedServer.setCanalInstanceGenerator(new CanalInstanceGenerator() {
 
-            public CanalInstance generate(String destination)
-            {
+            public CanalInstance generate(String destination) {
                 Canal canal = buildCanal();
                 return new CanalInstanceWithManager(canal, FILTER);
             }

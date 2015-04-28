@@ -115,8 +115,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
     public void start() {
         super.start();
         // 初始化metaManager
-        logger.info("start CannalInstance for {}-{} with parameters:{}", canalId, destination,
-                parameters);
+        logger.info("start CannalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
 
         if (!metaManager.isStart()) {
             metaManager.start();

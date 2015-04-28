@@ -5,8 +5,8 @@ import java.io.IOException;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 
 /**
- * For binlog version 4. This event is saved by threads which read it, as they need it for future use (to decode the
- * ordinary events).
+ * For binlog version 4. This event is saved by threads which read it, as they
+ * need it for future use (to decode the ordinary events).
  * 
  * @see mysql-5.1.60/sql/log_event.cc - Format_description_log_event
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
@@ -15,23 +15,24 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
 public final class FormatDescriptionLogEvent extends StartLogEventV3 {
 
     /**
-     * The number of types we handle in Format_description_log_event (UNKNOWN_EVENT is not to be handled, it does not
-     * exist in binlogs, it does not have a format).
+     * The number of types we handle in Format_description_log_event
+     * (UNKNOWN_EVENT is not to be handled, it does not exist in binlogs, it
+     * does not have a format).
      */
-    public static final int    LOG_EVENT_TYPES                     = (ENUM_END_EVENT - 1);
+    public static final int   LOG_EVENT_TYPES                     = (ENUM_END_EVENT - 1);
 
-    public static final int    ST_COMMON_HEADER_LEN_OFFSET         = (ST_SERVER_VER_OFFSET + ST_SERVER_VER_LEN + 4);
+    public static final int   ST_COMMON_HEADER_LEN_OFFSET         = (ST_SERVER_VER_OFFSET + ST_SERVER_VER_LEN + 4);
 
-    public static final int    OLD_HEADER_LEN                      = 13;
-    public static final int    LOG_EVENT_HEADER_LEN                = 19;
-    public static final int    LOG_EVENT_MINIMAL_HEADER_LEN        = 19;
+    public static final int   OLD_HEADER_LEN                      = 13;
+    public static final int   LOG_EVENT_HEADER_LEN                = 19;
+    public static final int   LOG_EVENT_MINIMAL_HEADER_LEN        = 19;
 
     /* event-specific post-header sizes */
-    public static final int    STOP_HEADER_LEN                     = 0;
-    public static final int    LOAD_HEADER_LEN                     = (4 + 4 + 4 + 1 + 1 + 4);
-    public static final int    SLAVE_HEADER_LEN                    = 0;
-    public static final int    START_V3_HEADER_LEN                 = (2 + ST_SERVER_VER_LEN + 4);
-    public static final int    ROTATE_HEADER_LEN                   = 8;                                                       // this
+    public static final int   STOP_HEADER_LEN                     = 0;
+    public static final int   LOAD_HEADER_LEN                     = (4 + 4 + 4 + 1 + 1 + 4);
+    public static final int   SLAVE_HEADER_LEN                    = 0;
+    public static final int   START_V3_HEADER_LEN                 = (2 + ST_SERVER_VER_LEN + 4);
+    public static final int   ROTATE_HEADER_LEN                   = 8;                                                       // this
     // is
     // FROZEN
     // (the
@@ -39,47 +40,48 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
     // post-header
     // is
     // frozen)
-    public static final int    INTVAR_HEADER_LEN                   = 0;
-    public static final int    CREATE_FILE_HEADER_LEN              = 4;
-    public static final int    APPEND_BLOCK_HEADER_LEN             = 4;
-    public static final int    EXEC_LOAD_HEADER_LEN                = 4;
-    public static final int    DELETE_FILE_HEADER_LEN              = 4;
-    public static final int    NEW_LOAD_HEADER_LEN                 = LOAD_HEADER_LEN;
-    public static final int    RAND_HEADER_LEN                     = 0;
-    public static final int    USER_VAR_HEADER_LEN                 = 0;
-    public static final int    FORMAT_DESCRIPTION_HEADER_LEN       = (START_V3_HEADER_LEN + 1 + LOG_EVENT_TYPES);
-    public static final int    XID_HEADER_LEN                      = 0;
-    public static final int    BEGIN_LOAD_QUERY_HEADER_LEN         = APPEND_BLOCK_HEADER_LEN;
-    public static final int    ROWS_HEADER_LEN_V1                  = 8;
-    public static final int    TABLE_MAP_HEADER_LEN                = 8;
-    public static final int    EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN = (4 + 4 + 4 + 1);
-    public static final int    EXECUTE_LOAD_QUERY_HEADER_LEN       = (QUERY_HEADER_LEN + EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN);
-    public static final int    INCIDENT_HEADER_LEN                 = 2;
-    public static final int    HEARTBEAT_HEADER_LEN                = 0;
-    public static final int    IGNORABLE_HEADER_LEN                = 0;
-    public static final int    ROWS_HEADER_LEN_V2                  = 10;
-    public static final int    ANNOTATE_ROWS_HEADER_LEN            = 0;
-    public static final int    BINLOG_CHECKPOINT_HEADER_LEN        = 4;
-    public static final int    GTID_HEADER_LEN                     = 19;
-    public static final int    GTID_LIST_HEADER_LEN                = 4;
+    public static final int   INTVAR_HEADER_LEN                   = 0;
+    public static final int   CREATE_FILE_HEADER_LEN              = 4;
+    public static final int   APPEND_BLOCK_HEADER_LEN             = 4;
+    public static final int   EXEC_LOAD_HEADER_LEN                = 4;
+    public static final int   DELETE_FILE_HEADER_LEN              = 4;
+    public static final int   NEW_LOAD_HEADER_LEN                 = LOAD_HEADER_LEN;
+    public static final int   RAND_HEADER_LEN                     = 0;
+    public static final int   USER_VAR_HEADER_LEN                 = 0;
+    public static final int   FORMAT_DESCRIPTION_HEADER_LEN       = (START_V3_HEADER_LEN + 1 + LOG_EVENT_TYPES);
+    public static final int   XID_HEADER_LEN                      = 0;
+    public static final int   BEGIN_LOAD_QUERY_HEADER_LEN         = APPEND_BLOCK_HEADER_LEN;
+    public static final int   ROWS_HEADER_LEN_V1                  = 8;
+    public static final int   TABLE_MAP_HEADER_LEN                = 8;
+    public static final int   EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN = (4 + 4 + 4 + 1);
+    public static final int   EXECUTE_LOAD_QUERY_HEADER_LEN       = (QUERY_HEADER_LEN + EXECUTE_LOAD_QUERY_EXTRA_HEADER_LEN);
+    public static final int   INCIDENT_HEADER_LEN                 = 2;
+    public static final int   HEARTBEAT_HEADER_LEN                = 0;
+    public static final int   IGNORABLE_HEADER_LEN                = 0;
+    public static final int   ROWS_HEADER_LEN_V2                  = 10;
+    public static final int   ANNOTATE_ROWS_HEADER_LEN            = 0;
+    public static final int   BINLOG_CHECKPOINT_HEADER_LEN        = 4;
+    public static final int   GTID_HEADER_LEN                     = 19;
+    public static final int   GTID_LIST_HEADER_LEN                = 4;
 
-    public static final int    POST_HEADER_LENGTH                  = 11;
+    public static final int   POST_HEADER_LENGTH                  = 11;
 
     public static final int   BINLOG_CHECKSUM_ALG_DESC_LEN        = 1;
     public static final int[] checksumVersionSplit                = { 5, 6, 1 };
     public static final long  checksumVersionProduct              = (checksumVersionSplit[0] * 256 + checksumVersionSplit[1])
                                                                     * 256 + checksumVersionSplit[2];
     /**
-     * The size of the fixed header which _all_ events have (for binlogs written by this version, this is equal to
-     * LOG_EVENT_HEADER_LEN), except FORMAT_DESCRIPTION_EVENT and ROTATE_EVENT (those have a header of size
+     * The size of the fixed header which _all_ events have (for binlogs written
+     * by this version, this is equal to LOG_EVENT_HEADER_LEN), except
+     * FORMAT_DESCRIPTION_EVENT and ROTATE_EVENT (those have a header of size
      * LOG_EVENT_MINIMAL_HEADER_LEN).
      */
-    protected final int        commonHeaderLen;
-    protected int              numberOfEventTypes;
+    protected final int       commonHeaderLen;
+    protected int             numberOfEventTypes;
 
     /** The list of post-headers' lengthes */
-    protected final short[]    postHeaderLen;
-    protected int[]            serverVersionSplit                  = new int[3];
+    protected final short[]   postHeaderLen;
+    protected int[]           serverVersionSplit                  = new int[3];
 
     public FormatDescriptionLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent)
                                                                                                                     throws IOException{
@@ -105,12 +107,15 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
         calcServerVersionSplit();
         long calc = getVersionProduct();
         if (calc >= checksumVersionProduct) {
-            /* the last bytes are the checksum alg desc and value (or value's room) */
+            /*
+             * the last bytes are the checksum alg desc and value (or value's
+             * room)
+             */
             numberOfEventTypes -= BINLOG_CHECKSUM_ALG_DESC_LEN;
         }
-        
+
         if (logger.isInfoEnabled()) logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= "
-                + numberOfEventTypes);
+                                                + numberOfEventTypes);
     }
 
     /** MySQL 5.0 format descriptions. */
@@ -147,7 +152,10 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 commonHeaderLen = LOG_EVENT_HEADER_LEN;
                 numberOfEventTypes = LOG_EVENT_TYPES;
 
-                /* Note: all event types must explicitly fill in their lengths here. */
+                /*
+                 * Note: all event types must explicitly fill in their lengths
+                 * here.
+                 */
                 postHeaderLen[START_EVENT_V3 - 1] = START_V3_HEADER_LEN;
                 postHeaderLen[QUERY_EVENT - 1] = QUERY_HEADER_LEN;
                 postHeaderLen[STOP_EVENT - 1] = STOP_HEADER_LEN;
@@ -171,11 +179,14 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 postHeaderLen[UPDATE_ROWS_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
                 postHeaderLen[DELETE_ROWS_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
                 /*
-                 * We here have the possibility to simulate a master of before we changed the table map id to be stored
-                 * in 6 bytes: when it was stored in 4 bytes (=> post_header_len was 6). This is used to test backward
-                 * compatibility. This code can be removed after a few months (today is Dec 21st 2005), when we know
-                 * that the 4-byte masters are not deployed anymore (check with Tomas Ulin first!), and the accompanying
-                 * test (rpl_row_4_bytes) too.
+                 * We here have the possibility to simulate a master of before
+                 * we changed the table map id to be stored in 6 bytes: when it
+                 * was stored in 4 bytes (=> post_header_len was 6). This is
+                 * used to test backward compatibility. This code can be removed
+                 * after a few months (today is Dec 21st 2005), when we know
+                 * that the 4-byte masters are not deployed anymore (check with
+                 * Tomas Ulin first!), and the accompanying test
+                 * (rpl_row_4_bytes) too.
                  */
                 postHeaderLen[HEARTBEAT_LOG_EVENT - 1] = 0;
                 postHeaderLen[IGNORABLE_LOG_EVENT - 1] = IGNORABLE_HEADER_LEN;
@@ -195,17 +206,19 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
 
             case 3: /* 4.0.x x>=2 */
                 /*
-                 * We build an artificial (i.e. not sent by the master) event, which describes what those old master
-                 * versions send.
+                 * We build an artificial (i.e. not sent by the master) event,
+                 * which describes what those old master versions send.
                  */
                 serverVersion = "4.0";
                 commonHeaderLen = LOG_EVENT_MINIMAL_HEADER_LEN;
 
                 /*
-                 * The first new event in binlog version 4 is Format_desc. So any event type after that does not exist
-                 * in older versions. We use the events known by version 3, even if version 1 had only a subset of them
-                 * (this is not a problem: it uses a few bytes for nothing but unifies code; it does not make the slave
-                 * detect less corruptions).
+                 * The first new event in binlog version 4 is Format_desc. So
+                 * any event type after that does not exist in older versions.
+                 * We use the events known by version 3, even if version 1 had
+                 * only a subset of them (this is not a problem: it uses a few
+                 * bytes for nothing but unifies code; it does not make the
+                 * slave detect less corruptions).
                  */
                 numberOfEventTypes = FORMAT_DESCRIPTION_EVENT - 1;
 
@@ -222,17 +235,19 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
 
             case 1: /* 3.23 */
                 /*
-                 * We build an artificial (i.e. not sent by the master) event, which describes what those old master
-                 * versions send.
+                 * We build an artificial (i.e. not sent by the master) event,
+                 * which describes what those old master versions send.
                  */
                 serverVersion = "3.23";
                 commonHeaderLen = OLD_HEADER_LEN;
 
                 /*
-                 * The first new event in binlog version 4 is Format_desc. So any event type after that does not exist
-                 * in older versions. We use the events known by version 3, even if version 1 had only a subset of them
-                 * (this is not a problem: it uses a few bytes for nothing but unifies code; it does not make the slave
-                 * detect less corruptions).
+                 * The first new event in binlog version 4 is Format_desc. So
+                 * any event type after that does not exist in older versions.
+                 * We use the events known by version 3, even if version 1 had
+                 * only a subset of them (this is not a problem: it uses a few
+                 * bytes for nothing but unifies code; it does not make the
+                 * slave detect less corruptions).
                  */
                 numberOfEventTypes = FORMAT_DESCRIPTION_EVENT - 1;
 
@@ -251,7 +266,7 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 commonHeaderLen = 0;
         }
     }
-    
+
     public void calcServerVersionSplit() {
         doServerVersionSplit(serverVersion, serverVersionSplit);
     }
