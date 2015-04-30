@@ -20,6 +20,7 @@ import com.google.common.collect.MigrateMap;
  */
 public class PatternUtils {
 
+    @SuppressWarnings("deprecation")
     private static Map<String, Pattern> patterns = MigrateMap.makeComputingMap(new MapMaker().softValues(),
                                                      new Function<String, Pattern>() {
 

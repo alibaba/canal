@@ -3,7 +3,7 @@ package com.alibaba.otter.canal.parse.index;
 import java.net.InetSocketAddress;
 import java.util.Date;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;

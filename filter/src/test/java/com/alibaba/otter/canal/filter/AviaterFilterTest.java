@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.filter;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 

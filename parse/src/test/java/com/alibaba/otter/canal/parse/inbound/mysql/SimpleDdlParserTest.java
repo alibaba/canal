@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.SimpleDdlParser;
@@ -82,6 +81,12 @@ public class SimpleDdlParserTest {
         Assert.assertNotNull(result);
         Assert.assertEquals("temp_bond_keys", result.getSchemaName());
         Assert.assertEquals("temp_bond_key_id", result.getTableName());
+
+        queryString = "CREATE TABLE performance_schema.cond_instances(NAME ";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("performance_schema", result.getSchemaName());
+        Assert.assertEquals("cond_instances", result.getTableName());
     }
 
     @Test
