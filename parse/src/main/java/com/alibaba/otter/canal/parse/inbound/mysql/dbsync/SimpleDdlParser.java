@@ -149,6 +149,9 @@ public class SimpleDdlParser {
         matchString = matchString + " ";
         if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
             String tableString = tableMatcher.getMatch().group(3);
+            if (StringUtils.isEmpty(tableString)) {
+                return null;
+            }
 
             tableString = StringUtils.removeEnd(tableString, ";");
             tableString = StringUtils.removeEnd(tableString, "(");
@@ -157,6 +160,10 @@ public class SimpleDdlParser {
             tableString = removeEscape(tableString);
             // 处理schema.table的写法
             String names[] = StringUtils.split(tableString, ".");
+            if (names.length == 0) {
+                return null;
+            }
+
             if (names != null && names.length > 1) {
                 return new DdlResult(removeEscape(names[0]), removeEscape(names[1]));
             } else {
