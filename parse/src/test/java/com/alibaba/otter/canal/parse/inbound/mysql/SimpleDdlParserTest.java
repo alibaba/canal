@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.SimpleDdlParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.SimpleDdlParser.DdlResult;
+import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 
 public class SimpleDdlParserTest {
 
@@ -52,11 +53,9 @@ public class SimpleDdlParserTest {
         Assert.assertEquals("bak591", result.getSchemaName());
         Assert.assertEquals("j_order_log_back_201309", result.getTableName());
 
-        queryString = "CREATE TABLE `bak591`.`cm_settle_incash` (    `batch_id` bigint(20) NOT NULL  DEFAULT '0.00'";
+        queryString = "CREATE DEFINER=sco*erce@% PROCEDURE SC_CPN_CODES_SAVE_ACTION(IN cosmosPassportId CHAR(32), IN orderId CHAR(32), IN codeIds TEXT) BEGIN SET @orderId = orderId; SET @timeNow = NOW(); START TRANSACTION; DELETE FROMsc_ord_couponWHEREORDER_ID= @orderId; SET @i=1; SET @numbers = FN_GET_ELEMENTS_COUNT(codeIds, '|'); WHILE @i <= @numbers DO SET @codeId = FN_FIND_ELEMENT_BYINDEX(codeIds, '|', @i); SET @orderCodeId = UUID32(); INSERT INTOsc_ord_coupon(ID,CREATE_BY,CREATE_TIME,UPDATE_BY,UPDATE_TIME,ORDER_ID,CODE_ID`) VALUES(@orderCodeId, cosmosPassportId, @timeNow, cosmosPassportId, @timeNow, @orderId, @codeId); SET @i = @i + 1; END WHILE; COMMIT; END";
         result = SimpleDdlParser.parse(queryString, "bak");
-        Assert.assertNotNull(result);
-        Assert.assertEquals("bak591", result.getSchemaName());
-        Assert.assertEquals("cm_settle_incash", result.getTableName());
+        Assert.assertEquals(EventType.QUERY, result.getType());
     }
 
     @Test

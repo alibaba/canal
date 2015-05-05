@@ -27,7 +27,7 @@ public class SimpleDdlParser {
     public static final String DROP_PATTERN         = "^\\s*DROP\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
     public static final String ALERT_PATTERN        = "^\\s*ALTER\\s*(IGNORE)?\\s*TABLE\\s*(.*)$";
     public static final String TRUNCATE_PATTERN     = "^\\s*TRUNCATE\\s*(TABLE)?\\s*(.*)$";
-    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXISTS\\s*)?(IF\\s*EXISTS\\s*)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
+    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXISTS\\s*)?(IF\\s*EXISTS\\s*)?(`?.+?`?[;\\(\\s]+?)?.*$";         // 采用非贪婪模式
     public static final String INSERT_PATTERN       = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
     public static final String UPDATE_PATTERN       = "^\\s*UPDATE(.*)$";
     public static final String DELETE_PATTERN       = "^\\s*DELETE(.*)$";
@@ -42,7 +42,7 @@ public class SimpleDdlParser {
      * http://dev.mysql.com/doc/refman/5.6/en/create-index.html
      * </pre>
      */
-    public static final String CREATE_INDEX_PATTERN = "^\\s*CREATE\\s*.*?\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
+    public static final String CREATE_INDEX_PATTERN = "^\\s*CREATE\\s*(UNIQUE)?(FULLTEXT)?(SPATIAL)?\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
     public static final String DROP_INDEX_PATTERN   = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
 
     public static DdlResult parse(String queryString, String schmeaName) {
@@ -77,7 +77,7 @@ public class SimpleDdlParser {
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, CREATE_INDEX_PATTERN, 2);
+        result = parseDdl(queryString, schmeaName, CREATE_INDEX_PATTERN, 5);
         if (result != null) {
             result.setType(EventType.CINDEX);
             return result;
