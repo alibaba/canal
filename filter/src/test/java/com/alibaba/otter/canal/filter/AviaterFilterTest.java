@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.filter;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 
@@ -67,16 +67,14 @@ public class AviaterFilterTest {
         result = filter3.filter("fooooot");
         Assert.assertEquals(true, result);
 
-        AviaterRegexFilter filter4 = new AviaterRegexFilter(
-                                                            "otter2.otter_stability1|otter1.otter_stability1|retl.retl_mark|retl.retl_buffer|retl.xdual");
+        AviaterRegexFilter filter4 = new AviaterRegexFilter("otter2.otter_stability1|otter1.otter_stability1|retl.retl_mark|retl.retl_buffer|retl.xdual");
         result = filter4.filter("otter1.otter_stability1");
         Assert.assertEquals(true, result);
     }
 
     @Test
     public void testDisordered() {
-        AviaterRegexFilter filter = new AviaterRegexFilter(
-                                                           "u\\..*,uvw\\..*,uv\\..*,a\\.x,a\\.xyz,a\\.xy,abc\\.x,abc\\.xyz,abc\\.xy,ab\\.x,ab\\.xyz,ab\\.xy");
+        AviaterRegexFilter filter = new AviaterRegexFilter("u\\..*,uvw\\..*,uv\\..*,a\\.x,a\\.xyz,a\\.xy,abc\\.x,abc\\.xyz,abc\\.xy,ab\\.x,ab\\.xyz,ab\\.xy");
 
         boolean result = filter.filter("u.abc");
         Assert.assertEquals(true, result);

@@ -54,6 +54,7 @@ public final class UriUtils {
         }
         String query = uri.getRawQuery();
         HashMap<String, String> params = new HashMap<String, String>();
+        @SuppressWarnings("resource")
         Scanner scan = new Scanner(query);
         scan.useDelimiter(SPLIT);
         while (scan.hasNext()) {

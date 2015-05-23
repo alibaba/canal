@@ -10,7 +10,7 @@ import com.alibaba.otter.canal.common.CanalLifeCycle;
  */
 public interface InstanceConfigMonitor extends CanalLifeCycle {
 
-    public void regeister(String destination, InstanceAction action);
+    void register(String destination, InstanceAction action);
 
-    public void unRegeister(String destination);
+    void unregister(String destination);
 }

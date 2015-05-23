@@ -35,12 +35,12 @@ public interface CanalMetaManager extends CanalLifeCycle {
     void unsubscribe(ClientIdentity clientIdentity) throws CanalMetaManagerException;
 
     /**
-     * 获取cuosr游标
+     * 获取 cursor 游标
      */
     Position getCursor(ClientIdentity clientIdentity) throws CanalMetaManagerException;
 
     /**
-     * 更新cuosr游标
+     * 更新 cursor 游标
      */
     void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException;
 

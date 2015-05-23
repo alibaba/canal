@@ -15,8 +15,8 @@ import org.apache.zookeeper.ClientCnxn;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.client.ConnectStringParser;
 import org.apache.zookeeper.client.HostProvider;
@@ -39,7 +39,7 @@ public class ZooKeeperx implements IZkConnection {
     private static final Field  clientCnxnField         = ReflectionUtils.findField(ZooKeeper.class, "cnxn");
     private static final Field  hostProviderField       = ReflectionUtils.findField(ClientCnxn.class, "hostProvider");
     private static final Field  serverAddressesField    = ReflectionUtils.findField(StaticHostProvider.class,
-                                                                                    "serverAddresses");
+                                                            "serverAddresses");
     private static final int    DEFAULT_SESSION_TIMEOUT = 90000;
 
     private ZooKeeper           _zk                     = null;
@@ -159,9 +159,8 @@ public class ZooKeeperx implements IZkConnection {
                     // 强制获取zk中的地址信息
                     ClientCnxn cnxn = (ClientCnxn) ReflectionUtils.getField(clientCnxnField, zk);
                     HostProvider hostProvider = (HostProvider) ReflectionUtils.getField(hostProviderField, cnxn);
-                    List<InetSocketAddress> serverAddrs = (List<InetSocketAddress>) ReflectionUtils.getField(
-                                                                                                             serverAddressesField,
-                                                                                                             hostProvider);
+                    List<InetSocketAddress> serverAddrs = (List<InetSocketAddress>) ReflectionUtils.getField(serverAddressesField,
+                        hostProvider);
                     // 添加第二组集群列表
                     serverAddrs.addAll(new ConnectStringParser(cluster).getServerAddresses());
                 }

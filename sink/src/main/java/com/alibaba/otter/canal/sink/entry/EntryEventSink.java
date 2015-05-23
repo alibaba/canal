@@ -132,8 +132,9 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
             boolean need = filter.filter(name);
             if (!need) {
                 logger.debug("filter name[{}] entry : {}:{}",
-                    new Object[] { name, event.getEntry().getHeader().getLogfileName(),
-                            event.getEntry().getHeader().getLogfileOffset() });
+                    name,
+                    event.getEntry().getHeader().getLogfileName(),
+                    event.getEntry().getHeader().getLogfileOffset());
             }
 
             return need;
@@ -178,9 +179,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     }
 
     private String getSchemaNameAndTableName(CanalEntry.Entry entry) {
-        StringBuilder result = new StringBuilder();
-        result.append(entry.getHeader().getSchemaName()).append(".").append(entry.getHeader().getTableName());
-        return result.toString();
+        return entry.getHeader().getSchemaName() + "." + entry.getHeader().getTableName();
     }
 
     public void setEventStore(CanalEventStore<Event> eventStore) {

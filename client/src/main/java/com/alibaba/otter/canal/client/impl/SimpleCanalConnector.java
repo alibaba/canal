@@ -102,7 +102,7 @@ public class SimpleCanalConnector implements CanalConnector {
                 rollback();
             }
         }
-        
+
         connected = true;
     }
 
@@ -410,7 +410,6 @@ public class SimpleCanalConnector implements CanalConnector {
             });
         }
     }
-
 
     private void waitClientRunning() {
         try {

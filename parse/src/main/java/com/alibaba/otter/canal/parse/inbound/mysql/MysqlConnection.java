@@ -84,6 +84,7 @@ public class MysqlConnection implements ErosaConnection {
         fetcher.start(connector.getChannel());
         LogDecoder decoder = new LogDecoder();
         decoder.handle(LogEvent.ROTATE_EVENT);
+        decoder.handle(LogEvent.FORMAT_DESCRIPTION_EVENT);
         decoder.handle(LogEvent.QUERY_EVENT);
         decoder.handle(LogEvent.XID_EVENT);
         LogContext context = new LogContext();
@@ -202,7 +203,6 @@ public class MysqlConnection implements ErosaConnection {
             logger.warn(ExceptionUtils.getFullStackTrace(e));
         }
 
-        
         try {
             // mariadb针对特殊的类型，需要设置session变量
             update("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");

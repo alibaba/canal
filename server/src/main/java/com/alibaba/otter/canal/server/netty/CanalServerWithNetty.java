@@ -13,7 +13,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.server.CanalServer;
-import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.handler.ClientAuthenticationHandler;
 import com.alibaba.otter.canal.server.netty.handler.FixedHeaderFrameDecoder;
 import com.alibaba.otter.canal.server.netty.handler.HandshakeInitializationHandler;
@@ -27,28 +27,28 @@ import com.alibaba.otter.canal.server.netty.handler.SessionHandler;
  */
 public class CanalServerWithNetty extends AbstractCanalLifeCycle implements CanalServer {
 
-    private CanalServerWithEmbeded embededServer;       // 嵌入式server
-    private String                 ip;
-    private int                    port;
-    private Channel                serverChannel = null;
-    private ServerBootstrap        bootstrap     = null;
+    private CanalServerWithEmbedded embeddedServer;      // 嵌入式server
+    private String                  ip;
+    private int                     port;
+    private Channel                 serverChannel = null;
+    private ServerBootstrap         bootstrap     = null;
 
     public CanalServerWithNetty(){
     }
 
-    public CanalServerWithNetty(CanalServerWithEmbeded embededServer){
-        this.embededServer = embededServer;
+    public CanalServerWithNetty(CanalServerWithEmbedded embeddedServer){
+        this.embeddedServer = embeddedServer;
     }
 
     public void start() {
         super.start();
 
-        if (!embededServer.isStart()) {
-            embededServer.start();
+        if (!embeddedServer.isStart()) {
+            embeddedServer.start();
         }
 
         this.bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
-                                                                               Executors.newCachedThreadPool()));
+            Executors.newCachedThreadPool()));
 
         // 构造对应的pipeline
         bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
@@ -58,9 +58,9 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
                 pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
                 pipelines.addLast(HandshakeInitializationHandler.class.getName(), new HandshakeInitializationHandler());
                 pipelines.addLast(ClientAuthenticationHandler.class.getName(),
-                                  new ClientAuthenticationHandler(embededServer));
+                    new ClientAuthenticationHandler(embeddedServer));
 
-                SessionHandler sessionHandler = new SessionHandler(embededServer);
+                SessionHandler sessionHandler = new SessionHandler(embeddedServer);
                 pipelines.addLast(SessionHandler.class.getName(), sessionHandler);
                 return pipelines;
             }
@@ -85,8 +85,8 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
             this.bootstrap.releaseExternalResources();
         }
 
-        if (embededServer.isStart()) {
-            embededServer.stop();
+        if (embeddedServer.isStart()) {
+            embeddedServer.stop();
         }
     }
 
@@ -98,8 +98,8 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
         this.port = port;
     }
 
-    public void setEmbededServer(CanalServerWithEmbeded embededServer) {
-        this.embededServer = embededServer;
+    public void setEmbeddedServer(CanalServerWithEmbedded embeddedServer) {
+        this.embeddedServer = embeddedServer;
     }
 
 }

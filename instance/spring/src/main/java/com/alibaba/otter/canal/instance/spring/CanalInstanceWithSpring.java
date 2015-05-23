@@ -63,6 +63,7 @@ public class CanalInstanceWithSpring extends CanalInstanceSupport implements Can
 
     public boolean subscribeChange(ClientIdentity identity) {
         if (StringUtils.isNotEmpty(identity.getFilter())) {
+            logger.info("subscribe filter change to " + identity.getFilter());
             AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(identity.getFilter());
 
             boolean isGroup = (eventParser instanceof GroupEventParser);

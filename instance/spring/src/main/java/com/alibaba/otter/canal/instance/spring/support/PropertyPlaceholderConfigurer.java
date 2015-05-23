@@ -11,8 +11,10 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 
 /**
- * 扩展Spring的{@linkplain org.springframework.beans.factory.config.PropertyPlaceholderConfigurer} ，增加默认值的功能。
- * 例如：${placeholder:defaultValue}，假如placeholder的值不存在，则默认取得 defaultValue。
+ * 扩展Spring的
+ * {@linkplain org.springframework.beans.factory.config.PropertyPlaceholderConfigurer}
+ * ，增加默认值的功能。 例如：${placeholder:defaultValue}，假如placeholder的值不存在，则默认取得
+ * defaultValue。
  * 
  * @author jianghang 2013-1-24 下午03:37:56
  * @version 1.0.0

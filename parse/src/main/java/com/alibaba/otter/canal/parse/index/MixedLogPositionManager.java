@@ -9,7 +9,7 @@ import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 混合memory + zookeeper的存储模式
@@ -34,7 +34,7 @@ public class MixedLogPositionManager extends MemoryLogPositionManager implements
             zooKeeperLogPositionManager.start();
         }
         executor = Executors.newFixedThreadPool(1);
-        positions = new MapMaker().makeComputingMap(new Function<String, LogPosition>() {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
 
             public LogPosition apply(String destination) {
                 LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);

@@ -19,14 +19,14 @@ public interface CanalConnector {
      * 
      * @throws CanalClientException
      */
-    public void connect() throws CanalClientException;
+    void connect() throws CanalClientException;
 
     /**
      * 释放链接
      * 
      * @throws CanalClientException
      */
-    public void disconnect() throws CanalClientException;
+    void disconnect() throws CanalClientException;
 
     /**
      * 检查下链接是否合法
@@ -43,7 +43,7 @@ public interface CanalConnector {
      * 
      * @throws CanalClientException
      */
-    public boolean checkValid() throws CanalClientException;
+    boolean checkValid() throws CanalClientException;
 
     /**
      * 客户端订阅，重复订阅时会更新对应的filter信息
@@ -56,7 +56,6 @@ public interface CanalConnector {
      * TODO: 后续可以考虑，如果本次提交的filter不为空，在执行过滤时，是对canal server filter + 本次filter的交集处理，达到只取1份binlog数据，多个客户端消费不同的表
      * </pre>
      * 
-     * @param clientIdentity
      * @throws CanalClientException
      */
     void subscribe(String filter) throws CanalClientException;
@@ -64,7 +63,6 @@ public interface CanalConnector {
     /**
      * 客户端订阅，不提交客户端filter，以服务端的filter为准
      * 
-     * @param clientIdentity
      * @throws CanalClientException
      */
     void subscribe() throws CanalClientException;
@@ -72,7 +70,6 @@ public interface CanalConnector {
     /**
      * 取消订阅
      * 
-     * @param clientIdentity
      * @throws CanalClientException
      */
     void unsubscribe() throws CanalClientException;
@@ -140,14 +137,14 @@ public interface CanalConnector {
     void ack(long batchId) throws CanalClientException;
 
     /**
-     * 回滚到未进行 {@link ack} 的地方，指定回滚具体的batchId
+     * 回滚到未进行 {@link #ack} 的地方，指定回滚具体的batchId
      * 
      * @throws CanalClientException
      */
     void rollback(long batchId) throws CanalClientException;
 
     /**
-     * 回滚到未进行 {@link ack} 的地方，下次fetch的时候，可以从最后一个没有 {@link ack} 的地方开始拿
+     * 回滚到未进行 {@link #ack} 的地方，下次fetch的时候，可以从最后一个没有 {@link #ack} 的地方开始拿
      * 
      * @throws CanalClientException
      */

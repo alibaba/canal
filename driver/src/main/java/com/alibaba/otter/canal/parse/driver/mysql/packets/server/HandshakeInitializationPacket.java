@@ -75,7 +75,8 @@ public class HandshakeInitializationPacket extends PacketWithHeaderPacket {
         // 8. bypass filtered bytes
         index += 13;
         // 9. read rest of scramble_buff
-        this.restOfScrambleBuff = ByteHelper.readFixedLengthBytes(data, index, 12); // 虽然Handshake Initialization
+        this.restOfScrambleBuff = ByteHelper.readFixedLengthBytes(data, index, 12); // 虽然Handshake
+                                                                                    // Initialization
         // Packet规定最后13个byte是剩下的scrumble,
         // 但实际上最后一个字节是0, 不应该包含在scrumble中.
         // end read

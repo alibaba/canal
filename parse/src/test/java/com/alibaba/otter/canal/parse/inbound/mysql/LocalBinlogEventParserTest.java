@@ -1,8 +1,5 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -10,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -93,10 +91,10 @@ public class LocalBinlogEventParserTest {
         }
 
         // check
-        assertTrue(entryCount.get() > 0);
+        Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
-        assertEquals(entryPosition, defaultPosition);
+        Assert.assertEquals(entryPosition, defaultPosition);
     }
 
     @Test
@@ -155,12 +153,12 @@ public class LocalBinlogEventParserTest {
         }
 
         // check
-        assertTrue(entryCount.get() > 0);
+        Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
-        assertEquals(entryPosition.getJournalName(), "mysql-bin.000001");
-        assertTrue(entryPosition.getPosition() <= 6163L);
-        assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
+        Assert.assertEquals(entryPosition.getJournalName(), "mysql-bin.000001");
+        Assert.assertTrue(entryPosition.getPosition() <= 6163L);
+        Assert.assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
     }
 
     @Test
@@ -221,11 +219,11 @@ public class LocalBinlogEventParserTest {
         }
 
         // check
-        assertTrue(entryCount.get() > 0);
+        Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
         // assertEquals(entryPosition.getJournalName(), "mysql-bin.000002");
-        assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
+        Assert.assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
     }
 
     private EntryPosition buildPosition(String binlogFile, Long offest, Long timestamp) {

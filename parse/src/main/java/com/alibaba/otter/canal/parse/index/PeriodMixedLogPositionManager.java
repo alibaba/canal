@@ -15,7 +15,7 @@ import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 基于定时刷新的策略的mixed实现
@@ -43,7 +43,7 @@ public class PeriodMixedLogPositionManager extends MemoryLogPositionManager impl
             zooKeeperLogPositionManager.start();
         }
         executor = Executors.newScheduledThreadPool(1);
-        positions = new MapMaker().makeComputingMap(new Function<String, LogPosition>() {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
 
             public LogPosition apply(String destination) {
                 LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);

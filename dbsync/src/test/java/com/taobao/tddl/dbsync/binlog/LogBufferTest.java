@@ -5,14 +5,11 @@ import java.math.BigInteger;
 
 import junit.framework.TestCase;
 
-import com.taobao.tddl.dbsync.binlog.LogBuffer;
+public class LogBufferTest extends TestCase {
 
-public class LogBufferTest extends TestCase
-{
     public static final int LOOP = 10000;
 
-    public void testSigned()
-    {
+    public void testSigned() {
         byte[] array = { 0, 0, 0, (byte) 0xff };
 
         LogBuffer buffer = new LogBuffer(array, 0, array.length);
@@ -24,17 +21,15 @@ public class LogBufferTest extends TestCase
         System.out.println(buffer.getUint24(1));
     }
 
-    public void testBigInteger()
-    {
-        byte[] array = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+    public void testBigInteger() {
+        byte[] array = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff };
 
         LogBuffer buffer = new LogBuffer(array, 0, array.length);
 
         long tt1 = 0;
         long l1 = 0;
-        for (int i = 0; i < LOOP; i++)
-        {
+        for (int i = 0; i < LOOP; i++) {
             final long t1 = System.nanoTime();
             l1 = buffer.getLong64(0);
             tt1 += System.nanoTime() - t1;
@@ -45,8 +40,7 @@ public class LogBufferTest extends TestCase
 
         long tt2 = 0;
         BigInteger l2 = null;
-        for (int i = 0; i < LOOP; i++)
-        {
+        for (int i = 0; i < LOOP; i++) {
             final long t2 = System.nanoTime();
             l2 = buffer.getUlong64(0);
             tt2 += System.nanoTime() - t2;
@@ -57,18 +51,15 @@ public class LogBufferTest extends TestCase
     }
 
     /* Reads big-endian integer from no more than 4 bytes */
-    private static int convertNBytesToInt(byte[] buffer, int offset, int length)
-    {
+    private static int convertNBytesToInt(byte[] buffer, int offset, int length) {
         int ret = 0;
-        for (int i = offset; i < (offset + length); i++)
-        {
+        for (int i = offset; i < (offset + length); i++) {
             ret = (ret << 8) | (0xff & buffer[i]);
         }
         return ret;
     }
 
-    private static int convert4BytesToInt(byte[] buffer, int offset)
-    {
+    private static int convert4BytesToInt(byte[] buffer, int offset) {
         int value;
         value = (0xff & buffer[offset + 3]);
         value += (0xff & buffer[offset + 2]) << 8;
@@ -77,24 +68,20 @@ public class LogBufferTest extends TestCase
         return value;
     }
 
-    public static short convert1ByteToShort(byte[] buffer, int offset)
-    {
+    public static short convert1ByteToShort(byte[] buffer, int offset) {
         short value;
         value = (short) buffer[offset + 0];
         return value;
     }
 
-    public static short convert2bytesToShort(byte[] buffer, int offset)
-    {
+    public static short convert2bytesToShort(byte[] buffer, int offset) {
         short value;
         value = (short) (buffer[offset + 0] << 8);
         value += (short) (buffer[offset + 1] & 0xff);
         return value;
     }
 
-    public static final BigDecimal extractDecimal(byte[] buffer, int precision,
-            int scale)
-    {
+    public static final BigDecimal extractDecimal(byte[] buffer, int precision, int scale) {
         //
         // Decimal representation in binlog seems to be as follows:
         // 1 byte - 'precision'
@@ -113,7 +100,7 @@ public class LogBufferTest extends TestCase
         // 0x00000005 0x1b38b060 0x00
         // 5 456700000 0
         // 54567000000 / 10^{10} = 5.4567
-        // 
+        //
         // int_size below shows how long is integer part
         //
         // offset = offset + 2; // offset of the number part
@@ -129,34 +116,28 @@ public class LogBufferTest extends TestCase
         int sign = (buffer[offset] & 0x80) == 0x80 ? 1 : -1;
 
         // how many bytes are used to represent given amount of digits?
-        int integerSize = intg0 * LogBuffer.SIZE_OF_INT32
-                + LogBuffer.dig2bytes[intg0x];
-        int decimalSize = frac0 * LogBuffer.SIZE_OF_INT32
-                + LogBuffer.dig2bytes[frac0x];
+        int integerSize = intg0 * LogBuffer.SIZE_OF_INT32 + LogBuffer.dig2bytes[intg0x];
+        int decimalSize = frac0 * LogBuffer.SIZE_OF_INT32 + LogBuffer.dig2bytes[frac0x];
 
         int bin_size = integerSize + decimalSize; // total bytes
         byte[] d_copy = new byte[bin_size];
 
-        if (bin_size > buffer.length)
-        {
-            throw new ArrayIndexOutOfBoundsException("Calculated bin_size: "
-                    + bin_size + ", available bytes: " + buffer.length);
+        if (bin_size > buffer.length) {
+            throw new ArrayIndexOutOfBoundsException("Calculated bin_size: " + bin_size + ", available bytes: "
+                                                     + buffer.length);
         }
 
         // Invert first bit
         d_copy[0] = buffer[0];
         d_copy[0] ^= 0x80;
-        if (sign == -1)
-        {
+        if (sign == -1) {
             // Invert every byte
             d_copy[0] ^= 0xFF;
         }
 
-        for (int i = 1; i < bin_size; i++)
-        {
+        for (int i = 1; i < bin_size; i++) {
             d_copy[i] = buffer[i];
-            if (sign == -1)
-            {
+            if (sign == -1) {
                 // Invert every byte
                 d_copy[i] ^= 0xFF;
             }
@@ -167,62 +148,49 @@ public class LogBufferTest extends TestCase
 
         BigDecimal intPart = new BigDecimal(0);
 
-        if (offset > 0)
-            intPart = BigDecimal.valueOf(convertNBytesToInt(d_copy, 0, offset));
+        if (offset > 0) intPart = BigDecimal.valueOf(convertNBytesToInt(d_copy, 0, offset));
 
-        while (offset < integerSize)
-        {
-            intPart = intPart.movePointRight(LogBuffer.DIG_PER_DEC1).add(
-                    BigDecimal.valueOf(convert4BytesToInt(d_copy, offset)));
+        while (offset < integerSize) {
+            intPart = intPart.movePointRight(LogBuffer.DIG_PER_DEC1).add(BigDecimal.valueOf(convert4BytesToInt(d_copy,
+                offset)));
             offset += 4;
         }
 
         // Decimal part
         BigDecimal fracPart = new BigDecimal(0);
         int shift = 0;
-        for (int i = 0; i < frac0; i++)
-        {
+        for (int i = 0; i < frac0; i++) {
             shift += LogBuffer.DIG_PER_DEC1;
-            fracPart = fracPart.add(BigDecimal.valueOf(
-                    convert4BytesToInt(d_copy, offset)).movePointLeft(shift));
+            fracPart = fracPart.add(BigDecimal.valueOf(convert4BytesToInt(d_copy, offset)).movePointLeft(shift));
             offset += 4;
         }
 
-        if (LogBuffer.dig2bytes[frac0x] > 0)
-        {
-            fracPart = fracPart.add(BigDecimal.valueOf(
-                    convertNBytesToInt(d_copy, offset,
-                            LogBuffer.dig2bytes[frac0x])).movePointLeft(
-                    shift + frac0x));
+        if (LogBuffer.dig2bytes[frac0x] > 0) {
+            fracPart = fracPart.add(BigDecimal.valueOf(convertNBytesToInt(d_copy, offset, LogBuffer.dig2bytes[frac0x]))
+                .movePointLeft(shift + frac0x));
         }
 
         return BigDecimal.valueOf(sign).multiply(intPart.add(fracPart));
     }
 
-    public static final byte[] array1 = { (byte) 0x80, 0x00, 0x00, 0x05, 0x1b,
-            0x38, (byte) 0xb0, 0x60, 0x00 };
+    public static final byte[] array1 = { (byte) 0x80, 0x00, 0x00, 0x05, 0x1b, 0x38, (byte) 0xb0, 0x60, 0x00 };
 
-    public static final byte[] array2 = { (byte) 0x7f, (byte) 0xff,
-            (byte) 0xff, (byte) 0xfb, (byte) 0xe4, (byte) 0xc7, (byte) 0x4f,
-            (byte) 0xa0, (byte) 0xff };
+    public static final byte[] array2 = { (byte) 0x7f, (byte) 0xff, (byte) 0xff, (byte) 0xfb, (byte) 0xe4, (byte) 0xc7,
+            (byte) 0x4f, (byte) 0xa0, (byte) 0xff };
 
     public static final byte[] array3 = { -128, 0, 6, 20, 113, 56, 6, 26, -123 };
 
     public static final byte[] array4 = { -128, 7, 0, 0, 0, 1, 0, 0, 3 };
 
-    public static final byte[] array5 = { -128, 0, 0, 0, 0, 1, 1, -122, -96,
-            -108                     };
+    public static final byte[] array5 = { -128, 0, 0, 0, 0, 1, 1, -122, -96, -108 };
 
-    public void testBigDecimal() throws InterruptedException
-    {
-        do
-        {
+    public void testBigDecimal() throws InterruptedException {
+        do {
             System.out.println("old extract decimal: ");
 
             long tt1 = 0;
             BigDecimal bd1 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t1 = System.nanoTime();
                 bd1 = extractDecimal(array2, 19, 10);
                 tt1 += System.nanoTime() - t1;
@@ -233,8 +201,7 @@ public class LogBufferTest extends TestCase
 
             long tt2 = 0;
             BigDecimal bd2 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t2 = System.nanoTime();
                 bd2 = extractDecimal(array1, 19, 10);
                 tt2 += System.nanoTime() - t2;
@@ -245,8 +212,7 @@ public class LogBufferTest extends TestCase
 
             long tt3 = 0;
             BigDecimal bd3 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t3 = System.nanoTime();
                 bd3 = extractDecimal(array3, 18, 6);
                 tt3 += System.nanoTime() - t3;
@@ -257,8 +223,7 @@ public class LogBufferTest extends TestCase
 
             long tt4 = 0;
             BigDecimal bd4 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t4 = System.nanoTime();
                 bd4 = extractDecimal(array4, 18, 6);
                 tt4 += System.nanoTime() - t4;
@@ -269,8 +234,7 @@ public class LogBufferTest extends TestCase
 
             long tt5 = 0;
             BigDecimal bd5 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t5 = System.nanoTime();
                 bd5 = extractDecimal(array5, 18, 6);
                 tt5 += System.nanoTime() - t5;
@@ -278,11 +242,9 @@ public class LogBufferTest extends TestCase
             System.out.print(tt5 / LOOP);
             System.out.print("ns >> ");
             System.out.println(bd5);
-        }
-        while (false);
+        } while (false);
 
-        do
-        {
+        do {
             System.out.println("new extract decimal: ");
 
             LogBuffer buffer1 = new LogBuffer(array2, 0, array2.length);
@@ -293,8 +255,7 @@ public class LogBufferTest extends TestCase
 
             long tt1 = 0;
             BigDecimal bd1 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t1 = System.nanoTime();
                 bd1 = buffer1.getDecimal(0, 19, 10);
                 tt1 += System.nanoTime() - t1;
@@ -305,8 +266,7 @@ public class LogBufferTest extends TestCase
 
             long tt2 = 0;
             BigDecimal bd2 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t2 = System.nanoTime();
                 bd2 = buffer2.getDecimal(0, 19, 10);
                 tt2 += System.nanoTime() - t2;
@@ -317,8 +277,7 @@ public class LogBufferTest extends TestCase
 
             long tt3 = 0;
             BigDecimal bd3 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t3 = System.nanoTime();
                 bd3 = buffer3.getDecimal(0, 18, 6);
                 tt3 += System.nanoTime() - t3;
@@ -329,8 +288,7 @@ public class LogBufferTest extends TestCase
 
             long tt4 = 0;
             BigDecimal bd4 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t4 = System.nanoTime();
                 bd4 = buffer4.getDecimal(0, 18, 6);
                 tt4 += System.nanoTime() - t4;
@@ -341,8 +299,7 @@ public class LogBufferTest extends TestCase
 
             long tt5 = 0;
             BigDecimal bd5 = null;
-            for (int i = 0; i < LOOP; i++)
-            {
+            for (int i = 0; i < LOOP; i++) {
                 final long t5 = System.nanoTime();
                 bd5 = buffer5.getDecimal(0, 18, 6);
                 tt5 += System.nanoTime() - t5;
@@ -350,7 +307,6 @@ public class LogBufferTest extends TestCase
             System.out.print(tt5 / LOOP);
             System.out.print("ns >> ");
             System.out.println(bd5);
-        }
-        while (false);
+        } while (false);
     }
 }

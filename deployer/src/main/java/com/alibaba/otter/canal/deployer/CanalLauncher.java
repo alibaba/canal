@@ -42,7 +42,7 @@ public class CanalLauncher {
                         controller.stop();
                     } catch (Throwable e) {
                         logger.warn("##something goes wrong when stopping canal Server:\n{}",
-                                    ExceptionUtils.getFullStackTrace(e));
+                            ExceptionUtils.getFullStackTrace(e));
                     } finally {
                         logger.info("## canal server is down.");
                     }
@@ -51,7 +51,7 @@ public class CanalLauncher {
             });
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:\n{}",
-                         ExceptionUtils.getFullStackTrace(e));
+                ExceptionUtils.getFullStackTrace(e));
             System.exit(0);
         }
     }

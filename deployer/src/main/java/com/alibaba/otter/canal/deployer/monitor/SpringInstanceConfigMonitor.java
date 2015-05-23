@@ -24,6 +24,7 @@ import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 监听基于spring配置的instance变化
@@ -39,7 +40,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
     private long                             scanIntervalInSecond = 5;
     private InstanceAction                   defaultAction        = null;
     private Map<String, InstanceAction>      actions              = new MapMaker().makeMap();
-    private Map<String, InstanceConfigFiles> lastFiles            = new MapMaker().makeComputingMap(new Function<String, InstanceConfigFiles>() {
+    private Map<String, InstanceConfigFiles> lastFiles            = MigrateMap.makeComputingMap(new Function<String, InstanceConfigFiles>() {
 
                                                                       public InstanceConfigFiles apply(String destination) {
                                                                           return new InstanceConfigFiles(destination);
@@ -72,7 +73,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         lastFiles.clear();
     }
 
-    public void regeister(String destination, InstanceAction action) {
+    public void register(String destination, InstanceAction action) {
         if (action != null) {
             actions.put(destination, action);
         } else {
@@ -80,7 +81,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         }
     }
 
-    public void unRegeister(String destination) {
+    public void unregister(String destination) {
         actions.remove(destination);
     }
 

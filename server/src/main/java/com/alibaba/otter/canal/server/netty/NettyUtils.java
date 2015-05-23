@@ -32,10 +32,13 @@ public class NettyUtils {
     }
 
     public static void ack(Channel channel, ChannelFutureListener channelFutureListner) {
-        write(
-              channel,
-              Packet.newBuilder().setType(CanalPacket.PacketType.ACK).setBody(Ack.newBuilder().build().toByteString()).build().toByteArray(),
-              channelFutureListner);
+        write(channel,
+            Packet.newBuilder()
+                .setType(CanalPacket.PacketType.ACK)
+                .setBody(Ack.newBuilder().build().toByteString())
+                .build()
+                .toByteArray(),
+            channelFutureListner);
     }
 
     public static void error(int errorCode, String errorMessage, Channel channel,
@@ -45,11 +48,12 @@ public class NettyUtils {
         }
 
         logger.error("ErrotCode:{} , Caused by : \n{}", errorCode, errorMessage);
-        write(
-              channel,
-              Packet.newBuilder().setType(CanalPacket.PacketType.ACK).setBody(
-                                                                              Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(
-                                                                                                                                       errorMessage).build().toByteString()).build().toByteArray(),
-              channelFutureListener);
+        write(channel,
+            Packet.newBuilder()
+                .setType(CanalPacket.PacketType.ACK)
+                .setBody(Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(errorMessage).build().toByteString())
+                .build()
+                .toByteArray(),
+            channelFutureListener);
     }
 }

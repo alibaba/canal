@@ -3,7 +3,7 @@ package com.alibaba.otter.canal.parse.driver.mysql;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 

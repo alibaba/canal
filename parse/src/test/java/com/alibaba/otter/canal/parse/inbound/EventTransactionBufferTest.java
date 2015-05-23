@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 
@@ -86,9 +86,11 @@ public class EventTransactionBufferTest {
                     SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
                     if (data.getEntryType() == EntryType.TRANSACTIONBEGIN
                         || data.getEntryType() == EntryType.TRANSACTIONEND) {
-                        // System.out.println(MessageFormat.format(messgae, new Object[] {
+                        // System.out.println(MessageFormat.format(messgae, new
+                        // Object[] {
                         // Thread.currentThread().getName(),
-                        // header.getLogfilename(), header.getLogfileoffset(), format.format(date),
+                        // header.getLogfilename(), header.getLogfileoffset(),
+                        // format.format(date),
                         // data.getEntry().getEntryType(), "" }));
                         System.out.println(data.getEntryType());
 

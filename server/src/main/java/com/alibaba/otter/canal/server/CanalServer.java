@@ -11,7 +11,7 @@ import com.alibaba.otter.canal.server.exception.CanalServerException;
  */
 public interface CanalServer extends CanalLifeCycle {
 
-    public void start() throws CanalServerException;
+    void start() throws CanalServerException;
 
-    public void stop() throws CanalServerException;
+    void stop() throws CanalServerException;
 }

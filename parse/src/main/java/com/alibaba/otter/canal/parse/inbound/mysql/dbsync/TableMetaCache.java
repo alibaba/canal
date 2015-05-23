@@ -15,7 +15,7 @@ import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 处理table meta解析和缓存
@@ -38,7 +38,7 @@ public class TableMetaCache {
 
     public TableMetaCache(MysqlConnection con){
         this.connection = con;
-        tableMetaCache = new MapMaker().makeComputingMap(new Function<String, TableMeta>() {
+        tableMetaCache = MigrateMap.makeComputingMap(new Function<String, TableMeta>() {
 
             public TableMeta apply(String name) {
                 try {

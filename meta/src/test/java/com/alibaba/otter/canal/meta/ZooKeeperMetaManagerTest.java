@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.meta;
 
 import java.util.Map;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.After;
 import org.junit.Before;

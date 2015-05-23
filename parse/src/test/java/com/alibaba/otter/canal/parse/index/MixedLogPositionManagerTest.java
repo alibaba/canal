@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.parse.index;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.After;
 import org.junit.Before;

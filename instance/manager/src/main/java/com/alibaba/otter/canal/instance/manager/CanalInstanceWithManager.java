@@ -89,8 +89,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         this.destination = canal.getName();
         this.filter = filter;
 
-        logger.info("init CannalInstance for {}-{} with parameters:{}",
-            new Object[] { canalId, destination, parameters });
+        logger.info("init CannalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
         // 初始化报警机制
         initAlarmHandler();
         // 初始化metaManager
@@ -116,8 +115,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
     public void start() {
         super.start();
         // 初始化metaManager
-        logger.info("start CannalInstance for {}-{} with parameters:{}", new Object[] { canalId, destination,
-                parameters });
+        logger.info("start CannalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
 
         if (!metaManager.isStart()) {
             metaManager.start();
@@ -336,7 +334,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
     }
 
     private CanalEventParser doInitEventParser(SourcingType type, List<InetSocketAddress> dbAddresses) {
-        CanalEventParser eventParser = null;
+        CanalEventParser eventParser;
         if (type.isMysql()) {
             MysqlEventParser mysqlEventParser = new MysqlEventParser();
             mysqlEventParser.setDestination(destination);

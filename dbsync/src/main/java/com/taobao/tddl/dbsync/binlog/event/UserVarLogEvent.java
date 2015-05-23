@@ -8,22 +8,19 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
- * User_var_log_event.
- * 
- * Every time a query uses the value of a user variable, a User_var_log_event is
- * written before the Query_log_event, to set the user variable.
+ * User_var_log_event. Every time a query uses the value of a user variable, a
+ * User_var_log_event is written before the Query_log_event, to set the user
+ * variable.
  * 
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public final class UserVarLogEvent extends LogEvent
-{
+public final class UserVarLogEvent extends LogEvent {
+
     /**
      * Fixed data part: Empty
-     * 
      * <p>
      * Variable data part:
-     * 
      * <ul>
      * <li>4 bytes. the size of the user variable name.</li>
      * <li>The user variable name.</li>
@@ -39,7 +36,6 @@ public final class UserVarLogEvent extends LogEvent
      * <li>Variable-sized. For a string variable, this is the string. For a
      * float or integer variable, this is its value in 8 bytes.</li>
      * </ul>
-     * 
      * Source : http://forge.mysql.com/wiki/MySQL_Internals_Binary_Log
      */
     private final String       name;
@@ -66,80 +62,65 @@ public final class UserVarLogEvent extends LogEvent
     public static final int    UV_NAME_LEN_SIZE       = 4;
     public static final int    UV_CHARSET_NUMBER_SIZE = 4;
 
-    public UserVarLogEvent(LogHeader header, LogBuffer buffer,
-            FormatDescriptionLogEvent descriptionEvent) throws IOException
-    {
+    public UserVarLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent)
+                                                                                                          throws IOException{
         super(header);
 
         /* The Post-Header is empty. The Variable Data part begins immediately. */
-        buffer.position(descriptionEvent.commonHeaderLen
-                + descriptionEvent.postHeaderLen[USER_VAR_EVENT - 1]);
+        buffer.position(descriptionEvent.commonHeaderLen + descriptionEvent.postHeaderLen[USER_VAR_EVENT - 1]);
         final int nameLen = (int) buffer.getUint32();
         name = buffer.getFixString(nameLen); // UV_NAME_LEN_SIZE
         isNull = (0 != buffer.getInt8());
 
-        if (isNull)
-        {
+        if (isNull) {
             type = STRING_RESULT;
             charsetNumber = 63; /* binary */
             value = null;
-        }
-        else
-        {
+        } else {
             type = buffer.getInt8(); // UV_VAL_IS_NULL
             charsetNumber = (int) buffer.getUint32(); // buf + UV_VAL_TYPE_SIZE
-            final int valueLen = (int) buffer.getUint32(); // buf +  UV_CHARSET_NUMBER_SIZE
+            final int valueLen = (int) buffer.getUint32(); // buf +
+                                                           // UV_CHARSET_NUMBER_SIZE
             final int limit = buffer.limit(); /* for restore */
             buffer.limit(buffer.position() + valueLen);
 
             /* @see User_var_log_event::print */
-            switch (type)
-            {
-            case REAL_RESULT:
-                value = Double.valueOf(buffer.getDouble64()); // float8get
-                break;
-            case INT_RESULT:
-                if (valueLen == 8)
-                    value = Long.valueOf(buffer.getLong64()); // !uint8korr
-                else if (valueLen == 4)
-                    value = Long.valueOf(buffer.getUint32());
-                else
-                    throw new IOException("Error INT_RESULT length: "
-                            + valueLen);
-                break;
-            case DECIMAL_RESULT:
-                final int precision = buffer.getInt8();
-                final int scale = buffer.getInt8();
-                value = buffer.getDecimal(precision, scale); // bin2decimal
-                break;
-            case STRING_RESULT:
-                String charsetName = CharsetConversion.getJavaCharset(charsetNumber);
-                value = buffer.getFixString(valueLen, charsetName);
-                break;
-            case ROW_RESULT:
-                // this seems to be banned in MySQL altogether
-                throw new IOException("ROW_RESULT is unsupported");
-            default:
-                value = null;
-                break;
+            switch (type) {
+                case REAL_RESULT:
+                    value = Double.valueOf(buffer.getDouble64()); // float8get
+                    break;
+                case INT_RESULT:
+                    if (valueLen == 8) value = Long.valueOf(buffer.getLong64()); // !uint8korr
+                    else if (valueLen == 4) value = Long.valueOf(buffer.getUint32());
+                    else throw new IOException("Error INT_RESULT length: " + valueLen);
+                    break;
+                case DECIMAL_RESULT:
+                    final int precision = buffer.getInt8();
+                    final int scale = buffer.getInt8();
+                    value = buffer.getDecimal(precision, scale); // bin2decimal
+                    break;
+                case STRING_RESULT:
+                    String charsetName = CharsetConversion.getJavaCharset(charsetNumber);
+                    value = buffer.getFixString(valueLen, charsetName);
+                    break;
+                case ROW_RESULT:
+                    // this seems to be banned in MySQL altogether
+                    throw new IOException("ROW_RESULT is unsupported");
+                default:
+                    value = null;
+                    break;
             }
             buffer.limit(limit);
         }
     }
 
-    public final String getQuery()
-    {
-        if (value == null)
-        {
+    public final String getQuery() {
+        if (value == null) {
             return "SET @" + name + " := NULL";
-        }
-        else if (type == STRING_RESULT)
-        {
+        } else if (type == STRING_RESULT) {
             // TODO: do escaping !?
             return "SET @" + name + " := \'" + value + '\'';
-        }
-        else
-        {
+        } else {
             return "SET @" + name + " := " + String.valueOf(value);
         }
     }

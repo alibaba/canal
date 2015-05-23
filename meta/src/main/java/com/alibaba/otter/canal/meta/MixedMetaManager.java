@@ -12,11 +12,11 @@ import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 组合memory + zookeeper的使用模式
- * 
+ *
  * @author jianghang 2012-7-11 下午03:58:00
  * @version 1.0.0
  */
@@ -37,14 +37,14 @@ public class MixedMetaManager extends MemoryMetaManager implements CanalMetaMana
         }
 
         executor = Executors.newFixedThreadPool(1);
-        destinations = new MapMaker().makeComputingMap(new Function<String, List<ClientIdentity>>() {
+        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
 
             public List<ClientIdentity> apply(String destination) {
                 return zooKeeperMetaManager.listAllSubscribeInfo(destination);
             }
         });
 
-        cursors = new MapMaker().makeComputingMap(new Function<ClientIdentity, Position>() {
+        cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>() {
 
             public Position apply(ClientIdentity clientIdentity) {
                 Position position = zooKeeperMetaManager.getCursor(clientIdentity);
@@ -56,7 +56,7 @@ public class MixedMetaManager extends MemoryMetaManager implements CanalMetaMana
             }
         });
 
-        batches = new MapMaker().makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
+        batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
 
             public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
                 // 读取一下zookeeper信息，初始化一次

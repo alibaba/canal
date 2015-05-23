@@ -62,6 +62,12 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li><a href="https://github.com/alibaba/canal/releases">Download</a></li>
 </ul>
 
+<h1>相关资料: </h1>
+
+* ADC阿里技术嘉年华分享ppt (放在google docs上，可能需要翻墙): <a href="https://docs.google.com/presentation/d/1MkszUPYRDkfVPz9IqOT1LLT5d9tuwde_WC8GZvjaDRg/edit?usp=sharing">ppt下载</href>  
+* [与阿里巴巴的RocketMQ配合使用](https://github.com/alibaba/RocketMQ)
+
+
 <h1>问题反馈</h1>
 <ol>
 <li>qq交流群： 161559791 </li>
