@@ -92,6 +92,10 @@ public class BaseLogFetcherTest {
         final ColumnInfo[] columnInfo = map.getColumnInfo();
 
         for (int i = 0; i < columnCnt; i++) {
+            if (!cols.get(i)) {
+                continue;
+            }
+
             ColumnInfo info = columnInfo[i];
             buffer.nextValue(info.type, info.meta);
 

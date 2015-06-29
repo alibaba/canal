@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.junit.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,7 +26,6 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
         URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
         File dummyFile = new File(url.getFile());
         directory = new File(dummyFile.getParent() + "/binlog").getPath();
-        // directory = "/home/jianghang/tmp/binlog";
     }
 
     @Test
@@ -37,8 +35,8 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
 
-            File current = new File(directory, "mysql-bin.000006");
-            fetcher.open(current);
+            File current = new File(directory, "mysql-bin.000001");
+            fetcher.open(current, 2051L);
             context.setLogPosition(new LogPosition(current.getName()));
 
             while (fetcher.fetch()) {

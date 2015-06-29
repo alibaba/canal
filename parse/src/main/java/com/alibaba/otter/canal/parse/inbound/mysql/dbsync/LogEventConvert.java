@@ -422,6 +422,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
         for (int i = 0; i < columnCnt; i++) {
             ColumnInfo info = columnInfo[i];
+            // mysql 5.6开始支持nolob/mininal类型,并不一定记录所有的列,需要进行判断
+            if (!cols.get(i)) {
+                continue;
+            }
+
             Column.Builder columnBuilder = Column.newBuilder();
 
             FieldMeta fieldMeta = null;
@@ -604,25 +609,21 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (index < 0) {
             return false;
         }
-        if ((bfColumns.size() - 1) < index) {
-            return false;
-        }
-        Column column = bfColumns.get(index);
 
-        if (column.getIsNull()) {
-            if (newValue != null) {
-                return true;
-            }
-        } else {
-            if (newValue == null) {
-                return true;
-            } else {
-                if (!column.getValue().equals(newValue)) {
-                    return true;
+        for (Column column : bfColumns) {
+            if (column.getIndex() == index) {// 比较before / after的column index
+                if (column.getIsNull() && newValue == null) {
+                    // 如果全是null
+                    return false;
+                } else if (newValue != null && column.getValue().equals(newValue)) {
+                    // 如果不围null，并且相等
+                    return false;
                 }
             }
         }
-        return false;
+
+        // 比如nolob/minial模式下,可能找不到before记录,认为是有变化
+        return true;
     }
 
     private TableMeta getTableMeta(String dbName, String tbName, boolean useCache) {

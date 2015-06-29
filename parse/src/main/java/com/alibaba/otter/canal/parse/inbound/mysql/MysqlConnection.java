@@ -27,12 +27,13 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class MysqlConnection implements ErosaConnection {
 
-    private static final Logger logger       = LoggerFactory.getLogger(MysqlConnection.class);
+    private static final Logger logger  = LoggerFactory.getLogger(MysqlConnection.class);
 
     private MysqlConnector      connector;
     private long                slaveId;
-    private Charset             charset      = Charset.forName("UTF-8");
-    private BinlogFormat        binlogFormat = BinlogFormat.ROW;
+    private Charset             charset = Charset.forName("UTF-8");
+    private BinlogFormat        binlogFormat;
+    private BinlogImage         binlogImage;
 
     public MysqlConnection(){
     }
@@ -104,11 +105,6 @@ public class MysqlConnection implements ErosaConnection {
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         updateSettings();
-        BinlogFormat format = getBinlogFormat();
-        if (!format.isRow()) {
-            logger.warn("binlog_format : {} , it will not have rowData before/after columns", format.toString());
-        }
-
         sendBinlogDump(binlogfilename, binlogPosition);
         DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize());
         fetcher.start(connector.getChannel());
@@ -212,7 +208,7 @@ public class MysqlConnection implements ErosaConnection {
     }
 
     /**
-     * 判断一下是否采用ROW模式
+     * 获取一下binlog format格式
      */
     private void loadBinlogFormat() {
         ResultSetPacket rs = null;
@@ -231,6 +227,30 @@ public class MysqlConnection implements ErosaConnection {
         binlogFormat = BinlogFormat.valuesOf(columnValues.get(1));
         if (binlogFormat == null) {
             throw new IllegalStateException("unexpected binlog format query result:" + rs.getFieldValues());
+        }
+    }
+
+    /**
+     * 获取一下binlog image格式
+     */
+    private void loadBinlogImage() {
+        ResultSetPacket rs = null;
+        try {
+            rs = query("show variables like 'binlog_row_image'");
+        } catch (IOException e) {
+            throw new CanalParseException(e);
+        }
+
+        List<String> columnValues = rs.getFieldValues();
+        if (columnValues == null || columnValues.size() != 2) {
+            // 可能历时版本没有image特性
+            binlogImage = BinlogImage.FULL;
+        } else {
+            binlogImage = BinlogImage.valuesOf(columnValues.get(1));
+        }
+
+        if (binlogFormat == null) {
+            throw new IllegalStateException("unexpected binlog image query result:" + rs.getFieldValues());
         }
     }
 
@@ -259,6 +279,46 @@ public class MysqlConnection implements ErosaConnection {
         public static BinlogFormat valuesOf(String value) {
             BinlogFormat[] formats = values();
             for (BinlogFormat format : formats) {
+                if (format.value.equalsIgnoreCase(value)) {
+                    return format;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * http://dev.mysql.com/doc/refman/5.6/en/replication-options-binary-log.
+     * html#sysvar_binlog_row_image
+     * 
+     * @author agapple 2015年6月29日 下午10:39:03
+     * @since 1.0.20
+     */
+    public static enum BinlogImage {
+
+        FULL("FULL"), MINIMAL("MINIMAL"), NOBLOB("NOBLOB");
+
+        public boolean isFull() {
+            return this == FULL;
+        }
+
+        public boolean isMinimal() {
+            return this == MINIMAL;
+        }
+
+        public boolean isNoBlob() {
+            return this == NOBLOB;
+        }
+
+        private String value;
+
+        private BinlogImage(String value){
+            this.value = value;
+        }
+
+        public static BinlogImage valuesOf(String value) {
+            BinlogImage[] formats = values();
+            for (BinlogImage format : formats) {
                 if (format.value.equalsIgnoreCase(value)) {
                     return format;
                 }
@@ -301,6 +361,16 @@ public class MysqlConnection implements ErosaConnection {
         }
 
         return binlogFormat;
+    }
+
+    public BinlogImage getBinlogImage() {
+        if (binlogImage == null) {
+            synchronized (this) {
+                loadBinlogImage();
+            }
+        }
+
+        return binlogImage;
     }
 
 }

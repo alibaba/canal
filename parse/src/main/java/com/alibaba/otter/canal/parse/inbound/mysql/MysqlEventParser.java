@@ -22,6 +22,8 @@ import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogFormat;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogImage;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
@@ -62,6 +64,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private TableMetaCache     tableMetaCache;                               // 对应meta
                                                                               // cache
     private int                fallbackIntervalInSeconds         = 60;       // 切换回退时间
+    private BinlogFormat[]     supportBinlogFormats;                         // 支持的binlogFormat,如果设置会执行强校验
+    private BinlogImage[]      supportBinlogImages;                          // 支持的binlogImage,如果设置会执行强校验
 
     // 心跳检查
 
@@ -80,6 +84,34 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 metaConnection.connect();
             } catch (IOException e) {
                 throw new CanalParseException(e);
+            }
+
+            if (supportBinlogFormats != null && supportBinlogFormats.length > 0) {
+                BinlogFormat format = ((MysqlConnection) metaConnection).getBinlogFormat();
+                boolean found = false;
+                for (BinlogFormat supportFormat : supportBinlogFormats) {
+                    if (supportFormat != null && format == supportFormat) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    throw new CanalParseException("Unsupported BinlogFormat " + format);
+                }
+            }
+
+            if (supportBinlogImages != null && supportBinlogImages.length > 0) {
+                BinlogImage image = ((MysqlConnection) metaConnection).getBinlogImage();
+                boolean found = false;
+                for (BinlogImage supportImage : supportBinlogImages) {
+                    if (supportImage != null && image == supportImage) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    throw new CanalParseException("Unsupported BinlogImage " + image);
+                }
             }
 
             tableMetaCache = new TableMetaCache(metaConnection);
@@ -683,6 +715,32 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             parsedEventCount.set(0);
         }
         return event;
+    }
+
+    public void setSupportBinlogFormats(String formatStrs) {
+        String[] formats = StringUtils.split(formatStrs, ',');
+        if (formats != null) {
+            BinlogFormat[] supportBinlogFormats = new BinlogFormat[formats.length];
+            int i = 0;
+            for (String format : formats) {
+                supportBinlogFormats[i++] = BinlogFormat.valuesOf(format);
+            }
+
+            this.supportBinlogFormats = supportBinlogFormats;
+        }
+    }
+
+    public void setSupportBinlogImages(String imageStrs) {
+        String[] images = StringUtils.split(imageStrs, ',');
+        if (images != null) {
+            BinlogImage[] supportBinlogImages = new BinlogImage[images.length];
+            int i = 0;
+            for (String image : images) {
+                supportBinlogImages[i++] = BinlogImage.valuesOf(image);
+            }
+
+            this.supportBinlogImages = supportBinlogImages;
+        }
     }
 
     // ===================== setter / getter ========================

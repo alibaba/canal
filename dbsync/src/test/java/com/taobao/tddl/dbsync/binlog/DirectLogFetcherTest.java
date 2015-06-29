@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
@@ -30,7 +29,7 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
             statement.execute("SET @master_binlog_checksum='@@global.binlog_checksum'");
             statement.execute("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
 
-            fecther.open(connection, "mysql-bin.000010", 4L, 2);
+            fecther.open(connection, "mysql-bin.000001", 4L, 2);
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
