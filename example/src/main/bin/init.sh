@@ -85,5 +85,6 @@ sed -i.bak -e "s/canal\.instance\.master\.address = .*/canal\.instance\.master\.
 
 cat $INSTANCE_CONF_FILE
 
-echo '\n=========================================='
+echo
 echo 'Above is your instance config file, check if the settings are correct'
+echo
