@@ -75,3 +75,4 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li>新浪微博： agapple0002 </li>
 <li>报告issue：<a href="https://github.com/alibaba/canal/issues">issues</a></li>
 </ol>
+t
