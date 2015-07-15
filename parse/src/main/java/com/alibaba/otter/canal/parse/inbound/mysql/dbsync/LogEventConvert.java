@@ -215,12 +215,22 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // 更新下table meta cache
             if (tableMetaCache != null
                 && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE || result.getType() == EventType.RENAME)) {
-                if (StringUtils.isNotEmpty(tableName)) {
-                    // 如果解析到了正确的表信息，则根据全名进行清除
-                    tableMetaCache.clearTableMeta(schemaName, tableName);
-                } else {
-                    // 如果无法解析正确的表信息，则根据schema进行清除
-                    tableMetaCache.clearTableMetaWithSchemaName(schemaName);
+
+                for( ;result!=null; result = result.getRenameTableResult()) {
+                    schemaName = event.getDbName();
+                    if (StringUtils.isNotEmpty(result.getSchemaName())) {
+                        schemaName = result.getSchemaName();
+                    }
+
+                    tableName = result.getTableName();
+
+                    if (StringUtils.isNotEmpty(tableName)) {
+                        // 如果解析到了正确的表信息，则根据全名进行清除
+                        tableMetaCache.clearTableMeta(schemaName, tableName);
+                    } else {
+                        // 如果无法解析正确的表信息，则根据schema进行清除
+                        tableMetaCache.clearTableMetaWithSchemaName(schemaName);
+                    }
                 }
             }
 
