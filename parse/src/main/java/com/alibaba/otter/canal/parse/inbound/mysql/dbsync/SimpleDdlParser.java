@@ -299,11 +299,10 @@ public class SimpleDdlParser {
             DdlResult ddlResult = this;
             StringBuffer sb = new StringBuffer();
             do{
-                String.format("DdlResult [schemaName=%s , tableName=%s , oriSchemaName=%s , oriTableName=%s , type=%s ;",
-                        ddlResult.schemaName, ddlResult.tableName, ddlResult.oriSchemaName, ddlResult.oriTableName, ddlResult.type);
+                sb.append(String.format("DdlResult [schemaName=%s , tableName=%s , oriSchemaName=%s , oriTableName=%s , type=%s ];",
+                        ddlResult.schemaName, ddlResult.tableName, ddlResult.oriSchemaName, ddlResult.oriTableName, ddlResult.type));
                 ddlResult = ddlResult.renameTableResult;
-            }while (ddlResult.renameTableResult!=null);
-            sb.append("]");
+            }while (ddlResult!=null);
 
             return sb.toString();
         }
