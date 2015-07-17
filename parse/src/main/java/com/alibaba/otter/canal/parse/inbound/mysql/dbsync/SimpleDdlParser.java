@@ -32,6 +32,7 @@ public class SimpleDdlParser {
     public static final String UPDATE_PATTERN       = "^\\s*UPDATE(.*)$";
     public static final String DELETE_PATTERN       = "^\\s*DELETE(.*)$";
     public static final String RENAME_PATTERN       = "^\\s*RENAME\\s*TABLE\\s*(.*?)\\s*TO\\s*(.*?)$";
+    public static final String RENAME_REMNANT_PATTERN = "^\\s*(.*?)\\s*TO\\s*(.*?)$";
     /**
      * <pre>
      * CREATE [UNIQUE|FULLTEXT|SPATIAL] INDEX index_name
@@ -74,6 +75,18 @@ public class SimpleDdlParser {
         result = parseRename(queryString, schmeaName, RENAME_PATTERN);
         if (result != null) {
             result.setType(EventType.RENAME);
+
+            String[] renameStrings =  queryString.split(",");
+            if (renameStrings.length > 1){
+                DdlResult lastResult = result;
+                for (int i=1; i<renameStrings.length; i++){
+                    DdlResult ddlResult = parseRename(renameStrings[i], schmeaName, RENAME_REMNANT_PATTERN);
+                    ddlResult.setType(EventType.RENAME);
+                    lastResult.setRenameTableResult(ddlResult);
+                    lastResult = ddlResult;
+                }
+            }
+
             return result;
         }
 
@@ -212,6 +225,14 @@ public class SimpleDdlParser {
         private String    oriSchemaName; // rename ddl中的源表
         private String    oriTableName; // rename ddl中的目标表
         private EventType type;
+        private DdlResult renameTableResult; // 多个rename table的存储
+
+        /*
+        RENAME TABLE tbl_name TO new_tbl_name
+              [, tbl_name2 TO new_tbl_name2] ...
+
+         */
+
 
         public DdlResult(){
         }
@@ -272,10 +293,25 @@ public class SimpleDdlParser {
             this.oriTableName = oriTableName;
         }
 
+        public DdlResult getRenameTableResult() {
+            return renameTableResult;
+        }
+
+        public void setRenameTableResult(DdlResult renameTableResult) {
+            this.renameTableResult = renameTableResult;
+        }
+
         @Override
         public String toString() {
-            return "DdlResult [schemaName=" + schemaName + ", tableName=" + tableName + ", oriSchemaName="
-                   + oriSchemaName + ", oriTableName=" + oriTableName + ", type=" + type + "]";
+            DdlResult ddlResult = this;
+            StringBuffer sb = new StringBuffer();
+            do{
+                sb.append(String.format("DdlResult [schemaName=%s , tableName=%s , oriSchemaName=%s , oriTableName=%s , type=%s ];",
+                        ddlResult.schemaName, ddlResult.tableName, ddlResult.oriSchemaName, ddlResult.oriTableName, ddlResult.type));
+                ddlResult = ddlResult.renameTableResult;
+            }while (ddlResult!=null);
+
+            return sb.toString();
         }
 
     }
