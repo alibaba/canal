@@ -149,6 +149,20 @@ public class SimpleDdlParserTest {
         Assert.assertEquals("retl2", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getOriTableName());
         Assert.assertEquals("retl_mark2", result.getTableName());
+
+        queryString = "rename \n table \n `retl`.`retl_mark` to `retl2.retl_mark2` , `retl1`.`retl_mark1` to `retl3.retl_mark3`;";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getOriSchemaName());
+        Assert.assertEquals("retl2", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getOriTableName());
+        Assert.assertEquals("retl_mark2", result.getTableName());
+        result = result.getRenameTableResult();
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl1", result.getOriSchemaName());
+        Assert.assertEquals("retl3", result.getSchemaName());
+        Assert.assertEquals("retl_mark1", result.getOriTableName());
+        Assert.assertEquals("retl_mark3", result.getTableName());
     }
 
     @Test
