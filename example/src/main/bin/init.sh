@@ -68,7 +68,7 @@ fi
 
 MYSQL_ADDR="$MYSQL_IP:$PORT"
 
-MASTER_STATUS=`mysql -ucanal -pcanal -h192.168.22.89 -e 'show master status' 2>/dev/null | head -n 2 | tail -n 1`
+MASTER_STATUS=`mysql -ucanal -pcanal -h$MYSQL_IP -P$PORT -e 'show master status' 2>/dev/null | head -n 2 | tail -n 1`
 
 LOG_FILE=`echo "$MASTER_STATUS" | cut -f 1`
 LOG_POS=`echo "$MASTER_STATUS" | cut -f 2`
