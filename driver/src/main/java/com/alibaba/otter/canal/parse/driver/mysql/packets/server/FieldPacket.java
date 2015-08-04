@@ -74,6 +74,8 @@ public class FieldPacket extends PacketWithHeaderPacket {
         this.decimals = data[index];
         index++;
         //
+        index += 2;//skip filter
+        //
         if (index < data.length) {
             reader.setIndex(index);
             this.definition = reader.readLengthCodedString(data);
