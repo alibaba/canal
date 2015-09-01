@@ -31,8 +31,9 @@ public class SimpleDdlParser {
     public static final String INSERT_PATTERN         = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
     public static final String UPDATE_PATTERN         = "^\\s*UPDATE(.*)$";
     public static final String DELETE_PATTERN         = "^\\s*DELETE(.*)$";
-    public static final String RENAME_PATTERN         = "^\\s*RENAME\\s*TABLE\\s*(.*?)\\s*TO\\s*(.*?)$";
-    public static final String RENAME_REMNANT_PATTERN = "^\\s*(.*?)\\s*TO\\s*(.*?)$";
+    public static final String RENAME_PATTERN         = "^\\s*RENAME\\s+TABLE\\s+(.+?)\\s+TO\\s+(.+?)$";
+    public static final String RENAME_REMNANT_PATTERN = "^\\s*(.+?)\\s+TO\\s+(.+?)$";
+
     /**
      * <pre>
      * CREATE [UNIQUE|FULLTEXT|SPATIAL] INDEX index_name
