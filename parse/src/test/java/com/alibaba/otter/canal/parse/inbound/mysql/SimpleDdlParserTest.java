@@ -163,6 +163,47 @@ public class SimpleDdlParserTest {
         Assert.assertEquals("retl3", result.getSchemaName());
         Assert.assertEquals("retl_mark1", result.getOriTableName());
         Assert.assertEquals("retl_mark3", result.getTableName());
+
+        //正则匹配test case
+
+        queryString = "rename table totl_mark to totl_mark2";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("retl", result.getOriSchemaName());
+        Assert.assertEquals("retl", result.getSchemaName());
+        Assert.assertEquals("totl_mark", result.getOriTableName());
+        Assert.assertEquals("totl_mark2", result.getTableName());
+
+        queryString = "rename table totl.retl_mark to totl2.retl_mark2";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("totl", result.getOriSchemaName());
+        Assert.assertEquals("totl2", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getOriTableName());
+        Assert.assertEquals("retl_mark2", result.getTableName());
+
+        queryString = "rename \n table \n `totl`.`retl_mark` to `totl2.retl_mark2`;";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("totl", result.getOriSchemaName());
+        Assert.assertEquals("totl2", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getOriTableName());
+        Assert.assertEquals("retl_mark2", result.getTableName());
+
+        queryString = "rename \n table \n `totl`.`retl_mark` to `totl2.retl_mark2` , `totl1`.`retl_mark1` to `totl3.retl_mark3`;";
+        result = SimpleDdlParser.parse(queryString, "retl");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("totl", result.getOriSchemaName());
+        Assert.assertEquals("totl2", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getOriTableName());
+        Assert.assertEquals("retl_mark2", result.getTableName());
+        result = result.getRenameTableResult();
+        Assert.assertNotNull(result);
+        Assert.assertEquals("totl1", result.getOriSchemaName());
+        Assert.assertEquals("totl3", result.getSchemaName());
+        Assert.assertEquals("retl_mark1", result.getOriTableName());
+        Assert.assertEquals("retl_mark3", result.getTableName());
+
     }
 
     @Test
