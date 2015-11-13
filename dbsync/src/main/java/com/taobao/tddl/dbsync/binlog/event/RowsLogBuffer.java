@@ -163,10 +163,13 @@ public final class RowsLogBuffer {
 
             case LogEvent.MYSQL_TYPE_TIMESTAMP:
             case LogEvent.MYSQL_TYPE_DATETIME:
+            case LogEvent.MYSQL_TYPE_TIMESTAMP2:
+            case LogEvent.MYSQL_TYPE_DATETIME2:
                 javaType = Types.TIMESTAMP;
                 break;
 
             case LogEvent.MYSQL_TYPE_TIME:
+            case LogEvent.MYSQL_TYPE_TIME2:
                 javaType = Types.TIME;
                 break;
 
