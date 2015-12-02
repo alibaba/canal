@@ -623,8 +623,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 if (column.getIsNull() && newValue == null) {
                     // 如果全是null
                     return false;
-                } else if (newValue != null && column.getValue().equals(newValue)) {
-                    // 如果不围null，并且相等
+                } else if (newValue != null && (!column.getIsNull() && column.getValue().equals(newValue))) {
+                    // fixed issue #135, old column is Null
+                    // 如果不为null，并且相等
                     return false;
                 }
             }
