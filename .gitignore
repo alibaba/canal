@@ -13,3 +13,4 @@ otter.properties
 jtester.properties
 .idea/
 *.iml
+.DS_Store
