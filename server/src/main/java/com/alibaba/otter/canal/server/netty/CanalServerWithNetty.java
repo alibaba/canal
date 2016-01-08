@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.server.netty;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
+import com.alibaba.otter.canal.instance.core.CanalInstance;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;

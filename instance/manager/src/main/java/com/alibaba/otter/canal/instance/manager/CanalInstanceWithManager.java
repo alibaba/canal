@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.alibaba.otter.canal.instance.core.AbstractCanalInstance;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
-import com.alibaba.otter.canal.instance.core.CanalInstanceSupport;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.DataSourcing;
@@ -64,10 +64,9 @@ import com.alibaba.otter.canal.store.model.Event;
  * @author jianghang 2012-7-11 下午09:26:51
  * @version 1.0.0
  */
-public class CanalInstanceWithManager extends CanalInstanceSupport implements CanalInstance {
+public class CanalInstanceWithManager extends AbstractCanalInstance {
 
     private static final Logger           logger = LoggerFactory.getLogger(CanalInstanceWithManager.class);
-    protected Long                        canalId;                                                         // 和manager交互唯一标示
     protected String                      destination;                                                     // 队列名字
     protected String                      filter;                                                          // 过滤表达式
     protected CanalParameter              parameters;                                                      // 对应参数
@@ -77,11 +76,6 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
     protected CanalEventParser            eventParser;                                                     // 解析对应的数据信息
     protected CanalEventSink<List<Entry>> eventSink;                                                       // 链接parse和store的桥接器
     protected CanalAlarmHandler           alarmHandler;                                                    // alarm报警机制
-    protected ZkClientx                   zkClientx;
-
-    public CanalInstanceWithManager(Canal canal){
-        this(canal, null);
-    }
 
     public CanalInstanceWithManager(Canal canal, String filter){
         this.parameters = canal.getCanalParameter();
@@ -89,7 +83,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         this.destination = canal.getName();
         this.filter = filter;
 
-        logger.info("init CannalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
+        logger.info("init CanalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
         // 初始化报警机制
         initAlarmHandler();
         // 初始化metaManager
@@ -101,7 +95,7 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         // 初始化eventParser;
         initEventParser();
 
-        // 基础工具，需要提前start，会有先订阅再根据filter条件启动paser的需求
+        // 基础工具，需要提前start，会有先订阅再根据filter条件启动parse的需求
         if (!alarmHandler.isStart()) {
             alarmHandler.start();
         }
@@ -113,98 +107,9 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
     }
 
     public void start() {
-        super.start();
         // 初始化metaManager
         logger.info("start CannalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
-
-        if (!metaManager.isStart()) {
-            metaManager.start();
-        }
-
-        if (!alarmHandler.isStart()) {
-            alarmHandler.start();
-        }
-
-        if (!eventStore.isStart()) {
-            eventStore.start();
-        }
-
-        if (!eventSink.isStart()) {
-            eventSink.start();
-        }
-
-        if (!eventParser.isStart()) {
-            beforeStartEventParser(eventParser);
-            eventParser.start();
-        }
-
-        logger.info("start successful....");
-    }
-
-    public void stop() {
-        logger.info("stop CannalInstance for {}-{} ", new Object[] { canalId, destination });
-
-        if (eventParser.isStart()) {
-            eventParser.stop();
-            afterStopEventParser(eventParser);
-        }
-
-        if (eventSink.isStart()) {
-            eventSink.stop();
-        }
-
-        if (eventStore.isStart()) {
-            eventStore.stop();
-        }
-
-        if (metaManager.isStart()) {
-            metaManager.stop();
-        }
-
-        if (alarmHandler.isStart()) {
-            alarmHandler.stop();
-        }
-
-        // if (zkClientx != null) {
-        // zkClientx.close();
-        // }
-
-        super.stop();
-        logger.info("stop successful....");
-    }
-
-    public boolean subscribeChange(ClientIdentity identity) {
-        if (StringUtils.isNotEmpty(identity.getFilter())) {
-            AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(identity.getFilter());
-
-            boolean isGroup = (eventParser instanceof GroupEventParser);
-            if (isGroup) {
-                // 处理group的模式
-                List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
-                for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
-                    ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
-                }
-            } else {
-                ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
-            }
-
-        }
-
-        // filter的处理规则
-        // a. parser处理数据过滤处理
-        // b. sink处理数据的路由&分发,一份parse数据经过sink后可以分发为多份，每份的数据可以根据自己的过滤规则不同而有不同的数据
-        // 后续内存版的一对多分发，可以考虑
-        return true;
-    }
-
-    protected void afterStartEventParser(CanalEventParser eventParser) {
-        super.afterStartEventParser(eventParser);
-
-        // 读取一下历史订阅的filter信息
-        List<ClientIdentity> clientIdentitys = metaManager.listAllSubscribeInfo(destination);
-        for (ClientIdentity clientIdentity : clientIdentitys) {
-            subscribeChange(clientIdentity);
-        }
+        super.start();
     }
 
     protected void initAlarmHandler() {
@@ -513,36 +418,6 @@ public class CanalInstanceWithManager extends CanalInstanceSupport implements Ca
         Collections.sort(zkClusters);
 
         return ZkClientx.getZkClient(StringUtils.join(zkClusters, ";"));
-    }
-
-    // =====================================
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public CanalMetaManager getMetaManager() {
-        return metaManager;
-    }
-
-    public CanalEventStore<Event> getEventStore() {
-        return eventStore;
-    }
-
-    public CanalEventParser getEventParser() {
-        return eventParser;
-    }
-
-    public CanalEventSink<List<Entry>> getEventSink() {
-        return eventSink;
-    }
-
-    public CanalAlarmHandler getAlarmHandler() {
-        return alarmHandler;
-    }
-
-    public void setAlarmHandler(CanalAlarmHandler alarmHandler) {
-        this.alarmHandler = alarmHandler;
     }
 
 }
