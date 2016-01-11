@@ -74,6 +74,10 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
             metaManager.start();
         }
 
+        if (!alarmHandler.isStart()) {
+            alarmHandler.start();
+        }
+
         if (!eventStore.isStart()) {
             eventStore.start();
         }

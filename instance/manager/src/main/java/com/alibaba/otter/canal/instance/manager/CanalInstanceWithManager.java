@@ -18,7 +18,6 @@ import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
-import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.DataSourcing;
@@ -47,7 +46,6 @@ import com.alibaba.otter.canal.parse.index.PeriodMixedLogPositionManager;
 import com.alibaba.otter.canal.parse.index.ZooKeeperLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
-import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
@@ -418,6 +416,10 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         Collections.sort(zkClusters);
 
         return ZkClientx.getZkClient(StringUtils.join(zkClusters, ";"));
+    }
+
+    public void setAlarmHandler(CanalAlarmHandler alarmHandler) {
+        this.alarmHandler = alarmHandler;
     }
 
 }
