@@ -3,7 +3,6 @@ package com.alibaba.otter.canal.server.netty;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
-import com.alibaba.otter.canal.instance.core.CanalInstance;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -35,6 +34,7 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
     private ServerBootstrap         bootstrap     = null;
 
     private static class SingletonHolder {
+
         private static final CanalServerWithNetty CANAL_SERVER_WITH_NETTY = new CanalServerWithNetty();
     }
 

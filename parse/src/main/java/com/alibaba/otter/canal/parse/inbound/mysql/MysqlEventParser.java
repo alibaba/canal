@@ -700,23 +700,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
-//    protected Entry parseAndProfilingIfNecessary(LogEvent bod) throws Exception {
-//        long startTs = -1;
-//        boolean enabled = getProfilingEnabled();
-//        if (enabled) {
-//            startTs = System.currentTimeMillis();
-//        }
-//        CanalEntry.Entry event = binlogParser.parse(bod);
-//        if (enabled) {
-//            this.parsingInterval = System.currentTimeMillis() - startTs;
-//        }
-//
-//        if (parsedEventCount.incrementAndGet() < 0) {
-//            parsedEventCount.set(0);
-//        }
-//        return event;
-//    }
-
     public void setSupportBinlogFormats(String formatStrs) {
         String[] formats = StringUtils.split(formatStrs, ',');
         if (formats != null) {

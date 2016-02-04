@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.alibaba.otter.canal.server.CanalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -22,6 +21,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
 import com.alibaba.otter.canal.server.CanalServer;
+import com.alibaba.otter.canal.server.CanalService;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.model.Event;
@@ -45,13 +45,13 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     // private Map<ClientIdentity, Position> lastRollbackPostions;
     private CanalInstanceGenerator     canalInstanceGenerator;
 
-
     private static class SingletonHolder {
+
         private static final CanalServerWithEmbedded CANAL_SERVER_WITH_EMBEDDED = new CanalServerWithEmbedded();
     }
 
-    private CanalServerWithEmbedded() {
-
+    public CanalServerWithEmbedded(){
+        // 希望也保留用户new单独实例的需求,兼容历史
     }
 
     public static CanalServerWithEmbedded instance() {
