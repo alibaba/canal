@@ -31,7 +31,7 @@ public abstract class BaseCanalServerWithEmbededTest {
 
     @Before
     public void setUp() {
-        server = new CanalServerWithEmbedded();
+        server = CanalServerWithEmbedded.instance();
         server.setCanalInstanceGenerator(new CanalInstanceGenerator() {
 
             public CanalInstance generate(String destination) {

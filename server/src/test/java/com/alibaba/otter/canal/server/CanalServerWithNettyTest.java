@@ -49,7 +49,7 @@ public class CanalServerWithNettyTest {
 
     @Before
     public void setUp() {
-        CanalServerWithEmbedded embeddedServer = new CanalServerWithEmbedded();
+        CanalServerWithEmbedded embeddedServer = CanalServerWithEmbedded.instance();
         embeddedServer.setCanalInstanceGenerator(new CanalInstanceGenerator() {
 
             public CanalInstance generate(String destination) {

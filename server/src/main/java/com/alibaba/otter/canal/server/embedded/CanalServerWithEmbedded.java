@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.server.CanalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -37,24 +38,39 @@ import com.google.common.collect.MigrateMap;
  * @author zebin.xuzb
  * @version 1.0.0
  */
-public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer, com.alibaba.otter.canal.server.CanalService {
+public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer, CanalService {
 
     private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
     private Map<String, CanalInstance> canalInstances;
     // private Map<ClientIdentity, Position> lastRollbackPostions;
     private CanalInstanceGenerator     canalInstanceGenerator;
 
+
+    private static class SingletonHolder {
+        private static final CanalServerWithEmbedded CANAL_SERVER_WITH_EMBEDDED = new CanalServerWithEmbedded();
+    }
+
+    private CanalServerWithEmbedded() {
+
+    }
+
+    public static CanalServerWithEmbedded instance() {
+        return SingletonHolder.CANAL_SERVER_WITH_EMBEDDED;
+    }
+
     public void start() {
-        super.start();
+        if (!isStart()) {
+            super.start();
 
-        canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
+            canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
 
-            public CanalInstance apply(String destination) {
-                return canalInstanceGenerator.generate(destination);
-            }
-        });
+                public CanalInstance apply(String destination) {
+                    return canalInstanceGenerator.generate(destination);
+                }
+            });
 
-        // lastRollbackPostions = new MapMaker().makeMap();
+            // lastRollbackPostions = new MapMaker().makeMap();
+        }
     }
 
     public void stop() {
