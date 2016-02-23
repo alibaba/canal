@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.alibaba.otter.canal.instance.core.AbstractCanalInstance;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +17,7 @@ import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.alibaba.otter.canal.instance.core.AbstractCanalInstance;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.DataSourcing;
@@ -27,7 +27,6 @@ import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageScavengeMode;
-import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.meta.MemoryMetaManager;
 import com.alibaba.otter.canal.meta.PeriodMixedMetaManager;
 import com.alibaba.otter.canal.meta.ZooKeeperMetaManager;
@@ -45,16 +44,12 @@ import com.alibaba.otter.canal.parse.index.MetaLogPositionManager;
 import com.alibaba.otter.canal.parse.index.PeriodMixedLogPositionManager;
 import com.alibaba.otter.canal.parse.index.ZooKeeperLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
-import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
-import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
 import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
 import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
-import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
 import com.alibaba.otter.canal.store.model.BatchMode;
-import com.alibaba.otter.canal.store.model.Event;
 
 /**
  * 单个canal实例，比如一个destination会独立一个实例
@@ -64,16 +59,9 @@ import com.alibaba.otter.canal.store.model.Event;
  */
 public class CanalInstanceWithManager extends AbstractCanalInstance {
 
-    private static final Logger           logger = LoggerFactory.getLogger(CanalInstanceWithManager.class);
-    //protected String                      destination;                                                     // 队列名字
-    protected String                      filter;                                                          // 过滤表达式
-    protected CanalParameter              parameters;                                                      // 对应参数
-    //protected CanalMetaManager            metaManager;                                                     // 消费信息管理器
-    //protected CanalEventStore<Event>      eventStore;                                                      // 有序队列
-
-    //protected CanalEventParser            eventParser;                                                     // 解析对应的数据信息
-    //protected CanalEventSink<List<Entry>> eventSink;                                                       // 链接parse和store的桥接器
-    //protected CanalAlarmHandler           alarmHandler;                                                    // alarm报警机制
+    private static final Logger logger = LoggerFactory.getLogger(CanalInstanceWithManager.class);
+    protected String            filter;                                                          // 过滤表达式
+    protected CanalParameter    parameters;                                                      // 对应参数
 
     public CanalInstanceWithManager(Canal canal, String filter){
         this.parameters = canal.getCanalParameter();
