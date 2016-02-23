@@ -65,15 +65,15 @@ import com.alibaba.otter.canal.store.model.Event;
 public class CanalInstanceWithManager extends AbstractCanalInstance {
 
     private static final Logger           logger = LoggerFactory.getLogger(CanalInstanceWithManager.class);
-    protected String                      destination;                                                     // 队列名字
+    //protected String                      destination;                                                     // 队列名字
     protected String                      filter;                                                          // 过滤表达式
     protected CanalParameter              parameters;                                                      // 对应参数
-    protected CanalMetaManager            metaManager;                                                     // 消费信息管理器
-    protected CanalEventStore<Event>      eventStore;                                                      // 有序队列
+    //protected CanalMetaManager            metaManager;                                                     // 消费信息管理器
+    //protected CanalEventStore<Event>      eventStore;                                                      // 有序队列
 
-    protected CanalEventParser            eventParser;                                                     // 解析对应的数据信息
-    protected CanalEventSink<List<Entry>> eventSink;                                                       // 链接parse和store的桥接器
-    protected CanalAlarmHandler           alarmHandler;                                                    // alarm报警机制
+    //protected CanalEventParser            eventParser;                                                     // 解析对应的数据信息
+    //protected CanalEventSink<List<Entry>> eventSink;                                                       // 链接parse和store的桥接器
+    //protected CanalAlarmHandler           alarmHandler;                                                    // alarm报警机制
 
     public CanalInstanceWithManager(Canal canal, String filter){
         this.parameters = canal.getCanalParameter();
