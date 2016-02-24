@@ -305,6 +305,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry parseRowsEvent(RowsLogEvent event) {
+        if (filterQueryDml) {
+            return null;
+        }
         try {
             TableMapLogEvent table = event.getTable();
             if (table == null) {
