@@ -84,6 +84,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean                     filterQueryDdl      = false;
     // 是否跳过table相关的解析异常,比如表不存在或者列数量不匹配,issue 92
     private boolean                     filterTableError    = false;
+    // 新增rows过滤，用于仅订阅除rows以外的数据
+    private boolean                     filterRows      = false;
 
     public Entry parse(LogEvent logEvent) throws CanalParseException {
         if (logEvent == null || logEvent instanceof UnknownLogEvent) {
@@ -305,6 +307,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry parseRowsEvent(RowsLogEvent event) {
+        if (filterRows) {
+            return null;
+        }
         try {
             TableMapLogEvent table = event.getTable();
             if (table == null) {
@@ -712,6 +717,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setFilterTableError(boolean filterTableError) {
         this.filterTableError = filterTableError;
+    }
+    
+    public void setFilterRows(boolean filterRows) {
+        this.filterRows = filterRows;
     }
 
 }
