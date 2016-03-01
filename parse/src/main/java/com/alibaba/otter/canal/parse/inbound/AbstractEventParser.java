@@ -231,6 +231,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
                         }
                     } finally {
+                        // 重新置为中断状态
+                        Thread.interrupted();
                         // 关闭一下链接
                         afterDump(erosaConnection);
                         try {
