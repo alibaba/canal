@@ -69,7 +69,7 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 
 <h1>相关开源</h1>
 <ol>
-<li>阿里巴巴分布式数据库同步系统(解决中美异地机房)：<a href="http://github.com/alibaba/canal">http://github.com/alibaba/otter</a></li>
+<li>阿里巴巴分布式数据库同步系统(解决中美异地机房)：<a href="http://github.com/alibaba/otter">http://github.com/alibaba/otter</a></li>
 <li>阿里巴巴去Oracle数据迁移同步工具(目标支持MySQL/DRDS)：<a href="http://github.com/alibaba/yugong">http://github.com/alibaba/yugong</a></li>
 </ol>
 
