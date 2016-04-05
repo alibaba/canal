@@ -350,7 +350,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setEventType(eventType);
             RowsLogBuffer buffer = event.getRowsBuf(charset.name());
             BitSet columns = event.getColumns();
-            BitSet changeColumns = event.getColumns();
+            BitSet changeColumns = event.getChangeColumns();
             boolean tableError = false;
             TableMeta tableMeta = null;
             if (tableMetaCache != null) {// 入错存在table meta cache
@@ -380,7 +380,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         break;
                     }
 
-                    tableError |= parseOneRow(rowDataBuilder, event, buffer, event.getChangeColumns(), true, tableMeta);
+                    tableError |= parseOneRow(rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
                 }
 
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
