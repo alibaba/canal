@@ -231,7 +231,13 @@ public class CanalController {
                         if (StringUtils.isEmpty(rootDir)) {
                             rootDir = "../conf";
                         }
-                        monitor.setRootConf(rootDir);
+
+                        if (StringUtils.equals("otter-canal", System.getProperty("appName"))) {
+                            monitor.setRootConf(rootDir);
+                        } else {
+                            // eclipse debug模式
+                            monitor.setRootConf("src/main/resources/");
+                        }
                         return monitor;
                     } else if (mode.isManager()) {
                         return new ManagerInstanceConfigMonitor();
