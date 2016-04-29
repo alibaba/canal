@@ -47,7 +47,7 @@ public class ClusterCanalConnector implements CanalConnector {
                     currentConnector = new SimpleCanalConnector(null, username, password, destination) {
 
                         @Override
-                        public SocketAddress getAddress() {
+                        public SocketAddress getNextAddress() {
                             return accessStrategy.nextNode();
                         }
 
