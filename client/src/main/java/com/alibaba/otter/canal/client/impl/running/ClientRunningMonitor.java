@@ -21,6 +21,7 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
+import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 
 /**
  * clinet running控制
@@ -121,8 +122,9 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 initRunning();
             } else {
                 activeData = JsonUtils.unmarshalFromByte(bytes, ClientRunningData.class);
-                if(activeData.getAddress().contains(":") && isMine(activeData.getAddress())){
-                	mutex.set(true);
+                // 如果发现已经存在,判断一下是否自己,避免活锁
+                if (activeData.getAddress().contains(":") && isMine(activeData.getAddress())) {
+                    mutex.set(true);
                 }
             }
         } catch (ZkNoNodeException e) {
@@ -130,10 +132,13 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 true); // 尝试创建父节点
             initRunning();
         } catch (Throwable t) {
-			logger.error(MessageFormat.format("There is an error when execute initRunning method, with destination [{0}].",destination),t);
-			zkClient.delete(path);
-			throw new RuntimeException("something goes wrong in initRunning method. ",t);
-		}
+            logger.error(MessageFormat.format("There is an error when execute initRunning method, with destination [{0}].",
+                destination),
+                t);
+            // 出现任何异常尝试release
+            releaseRunning();
+            throw new CanalClientException("something goes wrong in initRunning method. ", t);
+        }
     }
 
     /**

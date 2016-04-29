@@ -62,6 +62,11 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
         initRunning(this.zkClient.readData(runningPath, true));
     }
 
+    @Override
+    public SocketAddress currentNode() {
+        return nextNode();
+    }
+
     public SocketAddress nextNode() {
         if (runningAddress != null) {// 如果服务已经启动，直接选择当前正在工作的节点
             return runningAddress;
@@ -108,5 +113,6 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
     public ZkClientx getZkClient() {
         return zkClient;
     }
+
 
 }

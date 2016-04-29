@@ -10,5 +10,7 @@ import java.net.SocketAddress;
  */
 public interface CanalNodeAccessStrategy {
 
+    SocketAddress currentNode();
+
     SocketAddress nextNode();
 }
