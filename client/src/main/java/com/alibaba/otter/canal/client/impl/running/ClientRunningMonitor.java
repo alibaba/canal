@@ -64,6 +64,8 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             public void handleDataDeleted(String dataPath) throws Exception {
                 MDC.put("destination", destination);
                 mutex.set(false);
+                // 触发一下退出,可能是人为干预的释放操作或者网络闪断引起的session expired timeout
+                processActiveExit();
                 if (!release && activeData != null && isMine(activeData.getAddress())) {
                     // 如果上一次active的状态就是本机，则即时触发一下active抢占
                     initRunning();
