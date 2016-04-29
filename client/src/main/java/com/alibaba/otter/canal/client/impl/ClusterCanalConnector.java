@@ -45,7 +45,7 @@ public class ClusterCanalConnector implements CanalConnector {
             int times = 0;
             while (true) {
                 try {
-                    currentConnector = new SimpleCanalConnector(nextAddress, username, password, destination, ,accessStrategy);
+                    currentConnector = new SimpleCanalConnector(nextAddress, username, password, destination, accessStrategy);
                     currentConnector.setSoTimeout(soTimeout);
                     if (filter != null) {
                         currentConnector.setFilter(filter);
