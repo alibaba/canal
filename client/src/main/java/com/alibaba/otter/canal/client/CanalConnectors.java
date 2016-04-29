@@ -28,7 +28,7 @@ public class CanalConnectors {
      */
     public static CanalConnector newSingleConnector(SocketAddress address, String destination, String username,
                                                     String password) {
-        SimpleCanalConnector canalConnector = new SimpleCanalConnector(address, username, password, destination);
+        SimpleCanalConnector canalConnector = new SimpleCanalConnector(address, username, password, destination, null);
         canalConnector.setSoTimeout(30 * 1000);
         return canalConnector;
     }
