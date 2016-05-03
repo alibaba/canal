@@ -322,6 +322,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
         return startPosition;
     }
+    
+	protected EntryPosition findEndPosition(ErosaConnection connection) throws IOException {
+		MysqlConnection mysqlConnection = (MysqlConnection) connection;
+		 EntryPosition endPosition = findEndPosition(mysqlConnection);
+		return endPosition;
+	}
 
     protected EntryPosition findStartPositionInternal(ErosaConnection connection) {
         MysqlConnection mysqlConnection = (MysqlConnection) connection;
