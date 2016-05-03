@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
+import java.io.IOException;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.otter.canal.parse.CanalEventParser;
@@ -52,6 +54,12 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
 
         return connection;
     }
+    
+    @Override
+	protected EntryPosition findEndPosition(ErosaConnection connection) throws IOException {
+		// TODO 没有实现
+		return findStartPosition(connection);
+	}
 
     @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) {
