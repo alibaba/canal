@@ -88,7 +88,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     public void setFilterQueryDdl(boolean filterQueryDdl) {
         this.filterQueryDdl = filterQueryDdl;
     }
-    
+
     public void setFilterRows(boolean filterRows) {
         this.filterRows = filterRows;
     }

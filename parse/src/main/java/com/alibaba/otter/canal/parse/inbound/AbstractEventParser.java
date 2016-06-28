@@ -87,22 +87,12 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected volatile Timer                         timer;
     protected TimerTask                              heartBeatTimerTask;
     protected Throwable                              exception                  = null;
-    
-    //update by yishun.chen
-    //特殊异常处理参数
-    protected int                                    specialExceptionCount = 0;//特殊异常计数
-    protected int                                    specialExceptionCountThreshold = 3;//特殊异常计数阀值
-    protected boolean								 isFindEndPosition = false;//重连时查找数据库最新的位点
 
     protected abstract BinlogParser buildParser();
 
     protected abstract ErosaConnection buildErosaConnection();
 
     protected abstract EntryPosition findStartPosition(ErosaConnection connection) throws IOException;
-    
-    //update by yishun.chen
-    //查找数据库最新的位点
-    protected abstract EntryPosition findEndPosition(ErosaConnection connection) throws IOException;
 
     protected void preDump(ErosaConnection connection) {
     }
@@ -170,17 +160,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         erosaConnection.connect();// 链接
                         // 4. 获取最后的位置信息
                         EntryPosition position = findStartPosition(erosaConnection);
-                        //update by yishun.chen
-                        //获取当前数据库最后一个位置进行消费
-                        //当解析binlog多次失败后跳过当前失败的位点重新到数据库获取新的位点 
-                        if(isFindEndPosition){
-                        	position = findEndPosition(erosaConnection);
-                        	specialExceptionCount = 0;
-                        	isFindEndPosition = false;
-                        	logger.error("special exception count>" + specialExceptionCountThreshold + ", find end position, maybe cause data loss!");
-                        	sendAlarm(destination, "special exception count>" + specialExceptionCountThreshold + ", find end position, maybe cause data loss!");
-                        }
-                        
                         final EntryPosition startPosition = position;
                         if (startPosition == null) {
                             throw new CanalParseException("can't find start position for " + destination);
@@ -212,9 +191,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                     return running;
                                 } catch (TableIdNotFoundException e) {
                                     throw e;
-                                } catch (Exception e) {
+                                } catch (Throwable e) {
                                     // 记录一下，出错的位点信息
-                                    processError(e,
+                                    processSinkError(e,
                                         this.lastPosition,
                                         startPosition.getJournalName(),
                                         startPosition.getPosition());
@@ -241,15 +220,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         logger.error(String.format("dump address %s has an error, retrying. caused by ",
                             runningInfo.getAddress().toString()), e);
                     } catch (Throwable e) {
-                    	//update by yishun.chen
-                    	//dump数据出现IOException累计错误出现3次以上跳过当前位点
-                    	if(e instanceof IOException){
-                    		specialExceptionCount ++;
-                    		if(specialExceptionCount >= specialExceptionCountThreshold){
-                    			isFindEndPosition = true;
-                    		}
-                    	}
-                    	
+                        processDumpError(e);
                         exception = e;
                         if (!running) {
                             if (!(e instanceof java.nio.channels.ClosedByInterruptException || e.getCause() instanceof java.nio.channels.ClosedByInterruptException)) {
@@ -386,6 +357,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         position.setJournalName(entry.getHeader().getLogfileName());
         position.setPosition(entry.getHeader().getLogfileOffset());
         position.setTimestamp(entry.getHeader().getExecuteTime());
+        // add serverId at 2016-06-28
+        position.setServerId(entry.getHeader().getServerId());
         logPosition.setPostion(position);
 
         LogIdentity identity = new LogIdentity(runningInfo.getAddress(), -1L);
@@ -393,7 +366,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return logPosition;
     }
 
-    protected void processError(Exception e, LogPosition lastPosition, String startBinlogFile, long startPosition) {
+    protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, long startPosition) {
         if (lastPosition != null) {
             logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s]",
                 lastPosition.getPostion()),
@@ -403,6 +376,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                 startBinlogFile,
                 startPosition), e);
         }
+    }
+
+    protected void processDumpError(Throwable e) {
+        // do nothing
     }
 
     protected void startHeartBeat(ErosaConnection connection) {

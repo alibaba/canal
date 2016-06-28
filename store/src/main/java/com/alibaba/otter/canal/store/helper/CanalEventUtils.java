@@ -51,6 +51,8 @@ public class CanalEventUtils {
         position.setJournalName(event.getEntry().getHeader().getLogfileName());
         position.setPosition(event.getEntry().getHeader().getLogfileOffset());
         position.setTimestamp(event.getEntry().getHeader().getExecuteTime());
+        // add serverId at 2016-06-28
+        position.setServerId(event.getEntry().getHeader().getServerId());
 
         LogPosition logPosition = new LogPosition();
         logPosition.setPostion(position);
