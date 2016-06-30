@@ -402,6 +402,7 @@ public final class TableMapLogEvent extends LogEvent {
                 case MYSQL_TYPE_DOUBLE:
                 case MYSQL_TYPE_FLOAT:
                 case MYSQL_TYPE_GEOMETRY:
+                case MYSQL_TYPE_JSON:
                     /*
                      * These types store a single byte.
                      */

@@ -8,6 +8,8 @@ import java.util.BitSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.taobao.tddl.dbsync.binlog.JsonConversion;
+import com.taobao.tddl.dbsync.binlog.JsonConversion.Json_Value;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
@@ -25,6 +27,7 @@ public final class RowsLogBuffer {
     public static final long   DATETIMEF_INT_OFS = 0x8000000000L;
     public static final long   TIMEF_INT_OFS     = 0x800000L;
     public static final long   TIMEF_OFS         = 0x800000000000L;
+
     private final LogBuffer    buffer;
     private final int          columnLen;
     private final String       charsetName;
@@ -945,6 +948,23 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
+            case LogEvent.MYSQL_TYPE_JSON: {
+                len = buffer.getUint16();
+                buffer.forward(meta - 2);
+                int position = buffer.position();
+                Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(), buffer, len - 1);
+                StringBuilder builder = new StringBuilder();
+                jsonValue.toJsonString(builder);
+                value = builder.toString();
+                buffer.position(position + len);
+
+                // byte[] binary = new byte[len];
+                // buffer.fillBytes(binary, 0, len);
+                // value = binary;
+                javaType = Types.VARBINARY;
+                length = len;
+                break;
+            }
             case LogEvent.MYSQL_TYPE_GEOMETRY: {
                 /*
                  * MYSQL_TYPE_GEOMETRY: copy from BLOB or TEXT
@@ -1026,4 +1046,5 @@ public final class RowsLogBuffer {
 
         return sec.substring(0, meta);
     }
+
 }
