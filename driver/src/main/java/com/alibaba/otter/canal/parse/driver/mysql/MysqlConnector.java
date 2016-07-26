@@ -27,22 +27,22 @@ import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
  */
 public class MysqlConnector {
 
-    private static final Logger logger            = LoggerFactory.getLogger(MysqlConnector.class);
-    private InetSocketAddress   address;
-    private String              username;
-    private String              password;
+    private static final Logger logger = LoggerFactory.getLogger(MysqlConnector.class);
+    private InetSocketAddress address;
+    private String username;
+    private String password;
 
-    private byte                charsetNumber     = 33;
-    private String              defaultSchema     = "retl";
-    private int                 soTimeout         = 30 * 1000;
-    private int                 receiveBufferSize = 16 * 1024;
-    private int                 sendBufferSize    = 16 * 1024;
+    private byte charsetNumber = 33;
+    private String defaultSchema = "retl";
+    private int soTimeout = 30 * 1000;
+    private int receiveBufferSize = 16 * 1024;
+    private int sendBufferSize = 16 * 1024;
 
-    private SocketChannel       channel;
-    private volatile boolean    dumping           = false;
+    private SocketChannel channel;
+    private volatile boolean dumping = false;
     // mysql connectinnId
-    private long                connectionId      = -1;
-    private AtomicBoolean       connected         = new AtomicBoolean(false);
+    private long connectionId = -1;
+    private AtomicBoolean connected = new AtomicBoolean(false);
 
     public MysqlConnector(){
     }
@@ -103,7 +103,8 @@ public class MysqlConnector {
                     MysqlUpdateExecutor executor = new MysqlUpdateExecutor(connector);
                     executor.update("KILL CONNECTION " + connectionId);
                 } catch (Exception e) {
-                    throw new IOException("KILL DUMP " + connectionId + " failure:" + ExceptionUtils.getStackTrace(e));
+                    // 忽略具体异常
+                    logger.warn("KILL DUMP " + connectionId + " failure:" + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (connector != null) {
                         connector.disconnect();

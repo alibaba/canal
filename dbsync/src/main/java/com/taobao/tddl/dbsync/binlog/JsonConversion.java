@@ -281,7 +281,7 @@ public class JsonConversion {
                             buf.append(", ");
                         }
                         buf.append('"').append(key(i)).append('"');
-                        buf.append(" :");
+                        buf.append(": ");
                         element(i).toJsonString(buf);
                     }
                     buf.append("}");
