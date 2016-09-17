@@ -19,8 +19,9 @@ public class CanalConnectors {
 
     /**
      * 创建单链接的客户端链接
-     * 
+     *
      * @param address
+     * @param destination
      * @param username
      * @param password
      * @return
@@ -34,36 +35,38 @@ public class CanalConnectors {
 
     /**
      * 创建带cluster模式的客户端链接，自动完成failover切换
-     * 
+     *
      * @param addresses
+     * @param destination
      * @param username
      * @param password
      * @return
      */
     public static CanalConnector newClusterConnector(List<? extends SocketAddress> addresses, String destination,
                                                      String username, String password) {
-        ClusterCanalConnector canalConnector = new ClusterCanalConnector(username, password, destination,
-                                                                         new SimpleNodeAccessStrategy(addresses));
+        ClusterCanalConnector canalConnector = new ClusterCanalConnector(username,
+            password,
+            destination,
+            new SimpleNodeAccessStrategy(addresses));
         canalConnector.setSoTimeout(30 * 1000);
         return canalConnector;
     }
 
     /**
      * 创建带cluster模式的客户端链接，自动完成failover切换，服务器列表自动扫描
-     * 
+     *
+     * @param zkServers
+     * @param destination
      * @param username
      * @param password
      * @return
      */
     public static CanalConnector newClusterConnector(String zkServers, String destination, String username,
                                                      String password) {
-        ClusterCanalConnector canalConnector = new ClusterCanalConnector(
-                                                                         username,
-                                                                         password,
-                                                                         destination,
-                                                                         new ClusterNodeAccessStrategy(
-                                                                                                       destination,
-                                                                                                       ZkClientx.getZkClient(zkServers)));
+        ClusterCanalConnector canalConnector = new ClusterCanalConnector(username,
+            password,
+            destination,
+            new ClusterNodeAccessStrategy(destination, ZkClientx.getZkClient(zkServers)));
         canalConnector.setSoTimeout(30 * 1000);
         return canalConnector;
     }

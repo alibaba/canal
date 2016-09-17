@@ -56,24 +56,26 @@ public class FieldPacket extends PacketWithHeaderPacket {
         this.name = reader.readLengthCodedString(data);
         this.originalName = reader.readLengthCodedString(data);
         index = reader.getIndex();
-        // 
+        //
         index++;
-        // 
+        //
         this.character = ByteHelper.readUnsignedShortLittleEndian(data, index);
         index += 2;
         //
         this.length = ByteHelper.readUnsignedIntLittleEndian(data, index);
         index += 4;
-        // 
+        //
         this.type = data[index];
         index++;
-        // 
+        //
         this.flags = ByteHelper.readUnsignedShortLittleEndian(data, index);
         index += 2;
-        // 
+        //
         this.decimals = data[index];
         index++;
-        // 
+        //
+        index += 2;//skip filter
+        //
         if (index < data.length) {
             reader.setIndex(index);
             this.definition = reader.readLengthCodedString(data);

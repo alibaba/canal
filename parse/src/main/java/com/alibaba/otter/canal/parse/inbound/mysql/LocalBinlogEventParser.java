@@ -52,7 +52,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
 
         return connection;
     }
-
+    
     @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) {
         // 处理逻辑

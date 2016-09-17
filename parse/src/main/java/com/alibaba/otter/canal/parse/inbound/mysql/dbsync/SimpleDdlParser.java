@@ -23,15 +23,17 @@ import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
  */
 public class SimpleDdlParser {
 
-    public static final String CREATE_PATTERN       = "^\\s*CREATE\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
-    public static final String DROP_PATTERN         = "^\\s*DROP\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
-    public static final String ALERT_PATTERN        = "^\\s*ALTER\\s*(IGNORE)?\\s*TABLE\\s*(.*)$";
-    public static final String TRUNCATE_PATTERN     = "^\\s*TRUNCATE\\s*(TABLE)?\\s*(.*)$";
-    public static final String TABLE_PATTERN        = "^(IF\\s*NOT\\s*EXISTS\\s*)?(IF\\s*EXISTS\\s*)?(`?.+?`?[;\\(\\s]+?)?.*$"; // 采用非贪婪模式
-    public static final String INSERT_PATTERN       = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
-    public static final String UPDATE_PATTERN       = "^\\s*UPDATE(.*)$";
-    public static final String DELETE_PATTERN       = "^\\s*DELETE(.*)$";
-    public static final String RENAME_PATTERN       = "^\\s*RENAME\\s*TABLE\\s*(.*?)\\s*TO\\s*(.*?)$";
+    public static final String CREATE_PATTERN         = "^\\s*CREATE\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
+    public static final String DROP_PATTERN           = "^\\s*DROP\\s*(TEMPORARY)?\\s*TABLE\\s*(.*)$";
+    public static final String ALERT_PATTERN          = "^\\s*ALTER\\s*(IGNORE)?\\s*TABLE\\s*(.*)$";
+    public static final String TRUNCATE_PATTERN       = "^\\s*TRUNCATE\\s*(TABLE)?\\s*(.*)$";
+    public static final String TABLE_PATTERN          = "^(IF\\s*NOT\\s*EXISTS\\s*)?(IF\\s*EXISTS\\s*)?(`?.+?`?[;\\(\\s]+?)?.*$";         // 采用非贪婪模式
+    public static final String INSERT_PATTERN         = "^\\s*(INSERT|MERGE|REPLACE)(.*)$";
+    public static final String UPDATE_PATTERN         = "^\\s*UPDATE(.*)$";
+    public static final String DELETE_PATTERN         = "^\\s*DELETE(.*)$";
+    public static final String RENAME_PATTERN         = "^\\s*RENAME\\s+TABLE\\s+(.+?)\\s+TO\\s+(.+?)$";
+    public static final String RENAME_REMNANT_PATTERN = "^\\s*(.+?)\\s+TO\\s+(.+?)$";
+
     /**
      * <pre>
      * CREATE [UNIQUE|FULLTEXT|SPATIAL] INDEX index_name
@@ -42,8 +44,8 @@ public class SimpleDdlParser {
      * http://dev.mysql.com/doc/refman/5.6/en/create-index.html
      * </pre>
      */
-    public static final String CREATE_INDEX_PATTERN = "^\\s*CREATE\\s*.*?\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
-    public static final String DROP_INDEX_PATTERN   = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
+    public static final String CREATE_INDEX_PATTERN   = "^\\s*CREATE\\s*(UNIQUE)?(FULLTEXT)?(SPATIAL)?\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
+    public static final String DROP_INDEX_PATTERN     = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
 
     public static DdlResult parse(String queryString, String schmeaName) {
         queryString = removeComment(queryString); // 去除/* */的sql注释内容
@@ -74,10 +76,22 @@ public class SimpleDdlParser {
         result = parseRename(queryString, schmeaName, RENAME_PATTERN);
         if (result != null) {
             result.setType(EventType.RENAME);
+
+            String[] renameStrings = queryString.split(",");
+            if (renameStrings.length > 1) {
+                DdlResult lastResult = result;
+                for (int i = 1; i < renameStrings.length; i++) {
+                    DdlResult ddlResult = parseRename(renameStrings[i], schmeaName, RENAME_REMNANT_PATTERN);
+                    ddlResult.setType(EventType.RENAME);
+                    lastResult.setRenameTableResult(ddlResult);
+                    lastResult = ddlResult;
+                }
+            }
+
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, CREATE_INDEX_PATTERN, 2);
+        result = parseDdl(queryString, schmeaName, CREATE_INDEX_PATTERN, 5);
         if (result != null) {
             result.setType(EventType.CINDEX);
             return result;
@@ -149,6 +163,9 @@ public class SimpleDdlParser {
         matchString = matchString + " ";
         if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
             String tableString = tableMatcher.getMatch().group(3);
+            if (StringUtils.isEmpty(tableString)) {
+                return null;
+            }
 
             tableString = StringUtils.removeEnd(tableString, ";");
             tableString = StringUtils.removeEnd(tableString, "(");
@@ -157,6 +174,10 @@ public class SimpleDdlParser {
             tableString = removeEscape(tableString);
             // 处理schema.table的写法
             String names[] = StringUtils.split(tableString, ".");
+            if (names.length == 0) {
+                return null;
+            }
+
             if (names != null && names.length > 1) {
                 return new DdlResult(removeEscape(names[0]), removeEscape(names[1]));
             } else {
@@ -202,9 +223,15 @@ public class SimpleDdlParser {
 
         private String    schemaName;
         private String    tableName;
-        private String    oriSchemaName; // rename ddl中的源表
-        private String    oriTableName; // rename ddl中的目标表
+        private String    oriSchemaName;    // rename ddl中的源表
+        private String    oriTableName;     // rename ddl中的目标表
         private EventType type;
+        private DdlResult renameTableResult; // 多个rename table的存储
+
+        /*
+         * RENAME TABLE tbl_name TO new_tbl_name [, tbl_name2 TO new_tbl_name2]
+         * ...
+         */
 
         public DdlResult(){
         }
@@ -265,11 +292,28 @@ public class SimpleDdlParser {
             this.oriTableName = oriTableName;
         }
 
-        @Override
-        public String toString() {
-            return "DdlResult [schemaName=" + schemaName + ", tableName=" + tableName + ", oriSchemaName="
-                   + oriSchemaName + ", oriTableName=" + oriTableName + ", type=" + type + "]";
+        public DdlResult getRenameTableResult() {
+            return renameTableResult;
         }
 
+        public void setRenameTableResult(DdlResult renameTableResult) {
+            this.renameTableResult = renameTableResult;
+        }
+
+        @Override
+        public String toString() {
+            DdlResult ddlResult = this;
+            StringBuffer sb = new StringBuffer();
+            do {
+                sb.append(String.format("DdlResult [schemaName=%s , tableName=%s , oriSchemaName=%s , oriTableName=%s , type=%s ];",
+                    ddlResult.schemaName,
+                    ddlResult.tableName,
+                    ddlResult.oriSchemaName,
+                    ddlResult.oriTableName,
+                    ddlResult.type));
+                ddlResult = ddlResult.renameTableResult;
+            } while (ddlResult != null);
+            return sb.toString();
+        }
     }
 }

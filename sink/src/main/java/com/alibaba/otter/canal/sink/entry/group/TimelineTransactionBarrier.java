@@ -64,14 +64,16 @@ public class TimelineTransactionBarrier extends TimelineBarrier {
         if (isTransactionEnd(event)) {
             inTransaction.set(false); // 事务结束并且已经成功写入store，清理标记，进入重新排队判断，允许新的事务进入
             txState.compareAndSet(1, 0);
-            //            if (txState.compareAndSet(1, 0) == false) {
-            //                throw new CanalSinkException("state is not correct in transaction");
-            //            }
-        } else if (txState.intValue() == 2) {//非事务中
+            // if (txState.compareAndSet(1, 0) == false) {
+            // throw new
+            // CanalSinkException("state is not correct in transaction");
+            // }
+        } else if (txState.intValue() == 2) {// 非事务中
             txState.compareAndSet(2, 0);
-            //            if (txState.compareAndSet(2, 0) == false) {
-            //                throw new CanalSinkException("state is not correct in non-transaction");
-            //            }
+            // if (txState.compareAndSet(2, 0) == false) {
+            // throw new
+            // CanalSinkException("state is not correct in non-transaction");
+            // }
         }
     }
 
@@ -85,10 +87,10 @@ public class TimelineTransactionBarrier extends TimelineBarrier {
                 if (isTransactionBegin(event)) {
                     if (txState.compareAndSet(0, 1)) {
                         inTransaction.set(true);
-                        return true; //事务允许通过
+                        return true; // 事务允许通过
                     }
-                } else if (txState.compareAndSet(0, 2)) { //非事务保护中
-                    return true; //DDL/DCL允许通过
+                } else if (txState.compareAndSet(0, 2)) { // 非事务保护中
+                    return true; // DDL/DCL允许通过
                 }
             }
         }
@@ -104,7 +106,7 @@ public class TimelineTransactionBarrier extends TimelineBarrier {
     // 重新设置状态
     private void reset() {
         inTransaction.remove();
-        txState.set(0);//重新置位
+        txState.set(0);// 重新置位
     }
 
     private boolean isTransactionBegin(Event event) {

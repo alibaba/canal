@@ -12,6 +12,7 @@ import java.io.IOException;
  * @see 1.0
  */
 public interface IPacket {
+
     /**
      * un-marshal raw bytes into {@link IPacket} state for application usage.<br>
      * 

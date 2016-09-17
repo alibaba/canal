@@ -1,10 +1,14 @@
 #!/bin/bash
 
 cygwin=false;
+linux=false;
 case "`uname`" in
     CYGWIN*)
         cygwin=true
         ;;
+    Linux*)
+    	linux=true
+    	;;
 esac
 
 get_pid() {	
@@ -15,11 +19,19 @@ get_pid() {
         JAVA_CMD=`cygpath --path --unix $JAVA_CMD`
         JAVA_PID=`ps |grep $JAVA_CMD |awk '{print $1}'`
     else
-        if [ ! -z "$PID" ]; then
-        	JAVA_PID=`ps -C java -f --width 1000|grep "$STR"|grep "$PID"|grep -v grep|awk '{print $2}'`
-	    else 
-	        JAVA_PID=`ps -C java -f --width 1000|grep "$STR"|grep -v grep|awk '{print $2}'`
-        fi
+    	if $linux; then
+	        if [ ! -z "$PID" ]; then
+	        	JAVA_PID=`ps -C java -f --width 1000|grep "$STR"|grep "$PID"|grep -v grep|awk '{print $2}'`
+		    else 
+		        JAVA_PID=`ps -C java -f --width 1000|grep "$STR"|grep -v grep|awk '{print $2}'`
+	        fi
+	    else
+	    	if [ ! -z "$PID" ]; then
+	        	JAVA_PID=`ps aux |grep "$STR"|grep "$PID"|grep -v grep|awk '{print $2}'`
+		    else 
+		        JAVA_PID=`ps aux |grep "$STR"|grep -v grep|awk '{print $2}'`
+	        fi
+	    fi
     fi
     echo $JAVA_PID;
 }

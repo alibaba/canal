@@ -1,15 +1,11 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-
 import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
@@ -88,7 +84,7 @@ public class MysqlEventParserTest {
         }
 
         // check
-        assertTrue(entryCount.get() > 0);
+        Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
         Assert.assertEquals(entryPosition, defaultPosition);
@@ -152,12 +148,12 @@ public class MysqlEventParserTest {
         }
 
         // check
-        assertTrue(entryCount.get() > 0);
+        Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
-        assertEquals(entryPosition.getJournalName(), "mysql-bin.000001");
-        assertTrue(entryPosition.getPosition() <= 6163L);
-        assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
+        Assert.assertEquals(entryPosition.getJournalName(), "mysql-bin.000001");
+        Assert.assertTrue(entryPosition.getPosition() <= 6163L);
+        Assert.assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
     }
 
     @Test
@@ -219,12 +215,12 @@ public class MysqlEventParserTest {
         }
 
         // check
-        assertTrue(entryCount.get() > 0);
+        Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
         Assert.assertEquals(entryPosition.getJournalName(), "mysql-bin.000001");
-        assertTrue(entryPosition.getPosition() <= 6163L);
-        assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
+        Assert.assertTrue(entryPosition.getPosition() <= 6163L);
+        Assert.assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
     }
 
     @Test
@@ -288,12 +284,12 @@ public class MysqlEventParserTest {
         }
 
         // check
-        assertTrue(entryCount.get() > 0);
+        Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
         // Assert.assertEquals(logfilename, "mysql-bin.000001");
         // Assert.assertEquals(106L, logfileoffset);
-        assertTrue(entryPosition.getTimestamp() < defaultPosition.getTimestamp());
+        Assert.assertTrue(entryPosition.getTimestamp() < defaultPosition.getTimestamp());
     }
 
     // ======================== helper method =======================

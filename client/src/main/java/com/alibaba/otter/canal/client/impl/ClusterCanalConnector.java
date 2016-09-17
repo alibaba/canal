@@ -41,11 +41,17 @@ public class ClusterCanalConnector implements CanalConnector {
 
     public void connect() throws CanalClientException {
         while (currentConnector == null) {
-            SocketAddress nextAddress = this.accessStrategy.nextNode();
             int times = 0;
             while (true) {
                 try {
-                    currentConnector = new SimpleCanalConnector(nextAddress, username, password, destination);
+                    currentConnector = new SimpleCanalConnector(null, username, password, destination) {
+
+                        @Override
+                        public SocketAddress getNextAddress() {
+                            return accessStrategy.nextNode();
+                        }
+
+                    };
                     currentConnector.setSoTimeout(soTimeout);
                     if (filter != null) {
                         currentConnector.setFilter(filter);
@@ -57,7 +63,7 @@ public class ClusterCanalConnector implements CanalConnector {
                     currentConnector.connect();
                     break;
                 } catch (Exception e) {
-                    logger.warn("failed to connect to:{} after retry {} times", nextAddress, times);
+                    logger.warn("failed to connect to:{} after retry {} times", accessStrategy.currentNode(), times);
                     currentConnector.disconnect();
                     currentConnector = null;
                     // retry for #retryTimes for each node when trying to

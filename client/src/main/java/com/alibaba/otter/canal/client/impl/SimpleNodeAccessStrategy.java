@@ -32,4 +32,9 @@ public class SimpleNodeAccessStrategy implements CanalNodeAccessStrategy {
         }
     }
 
+    @Override
+    public SocketAddress currentNode() {
+        return nodes.get(index);
+    }
+
 }

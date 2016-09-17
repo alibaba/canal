@@ -10,8 +10,8 @@ import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
+import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 
 public class BaseLogFetcherTest {
@@ -20,36 +20,38 @@ public class BaseLogFetcherTest {
     protected Charset charset        = Charset.forName("utf-8");
 
     protected void parseQueryEvent(QueryLogEvent event) {
-        System.out.println(String.format("================> binlog[%s:%s] , name[%s]", binlogFileName,
-                                         event.getHeader().getLogPos() - event.getHeader().getEventLen(),
-                                         event.getCatalog()));
+        System.out.println(String.format("================> binlog[%s:%s] , name[%s]",
+            binlogFileName,
+            event.getHeader().getLogPos() - event.getHeader().getEventLen(),
+            event.getCatalog()));
         System.out.println("sql : " + event.getQuery());
     }
 
     protected void parseRowsQueryEvent(RowsQueryLogEvent event) throws Exception {
-        System.out.println(String.format("================> binlog[%s:%s]", binlogFileName,
-                                         event.getHeader().getLogPos() - event.getHeader().getEventLen()));
+        System.out.println(String.format("================> binlog[%s:%s]", binlogFileName, event.getHeader()
+            .getLogPos() - event.getHeader().getEventLen()));
         System.out.println("sql : " + new String(event.getRowsQuery().getBytes("ISO-8859-1"), charset.name()));
     }
-    
+
     protected void parseAnnotateRowsEvent(AnnotateRowsEvent event) throws Exception {
-        System.out.println(String.format("================> binlog[%s:%s]", binlogFileName,
-                                         event.getHeader().getLogPos() - event.getHeader().getEventLen()));
+        System.out.println(String.format("================> binlog[%s:%s]", binlogFileName, event.getHeader()
+            .getLogPos() - event.getHeader().getEventLen()));
         System.out.println("sql : " + new String(event.getRowsQuery().getBytes("ISO-8859-1"), charset.name()));
     }
-    
+
     protected void parseXidEvent(XidLogEvent event) throws Exception {
-        System.out.println(String.format("================> binlog[%s:%s]", binlogFileName,
-                                         event.getHeader().getLogPos() - event.getHeader().getEventLen()));
+        System.out.println(String.format("================> binlog[%s:%s]", binlogFileName, event.getHeader()
+            .getLogPos() - event.getHeader().getEventLen()));
         System.out.println("xid : " + event.getXid());
     }
 
-
     protected void parseRowsEvent(RowsLogEvent event) {
         try {
-            System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s]", binlogFileName,
-                                             event.getHeader().getLogPos() - event.getHeader().getEventLen(),
-                                             event.getTable().getDbName(), event.getTable().getTableName()));
+            System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s]",
+                binlogFileName,
+                event.getHeader().getLogPos() - event.getHeader().getEventLen(),
+                event.getTable().getDbName(),
+                event.getTable().getTableName()));
             RowsLogBuffer buffer = event.getRowsBuf(charset.name());
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
@@ -90,6 +92,10 @@ public class BaseLogFetcherTest {
         final ColumnInfo[] columnInfo = map.getColumnInfo();
 
         for (int i = 0; i < columnCnt; i++) {
+            if (!cols.get(i)) {
+                continue;
+            }
+
             ColumnInfo info = columnInfo[i];
             buffer.nextValue(info.type, info.meta);
 

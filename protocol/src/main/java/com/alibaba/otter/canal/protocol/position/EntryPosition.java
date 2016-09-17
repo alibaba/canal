@@ -15,6 +15,8 @@ public class EntryPosition extends TimePosition {
     private boolean           included              = false;
     private String            journalName;
     private Long              position;
+    // add by agapple at 2016-06-28
+    private Long              serverId              = null;              // 记录一下位点对应的serverId
 
     public EntryPosition(){
         super(null);
@@ -32,6 +34,11 @@ public class EntryPosition extends TimePosition {
         super(timestamp);
         this.journalName = journalName;
         this.position = position;
+    }
+
+    public EntryPosition(String journalName, Long position, Long timestamp, Long serverId){
+        this(journalName, position, timestamp);
+        this.serverId = serverId;
     }
 
     public String getJournalName() {
@@ -56,6 +63,14 @@ public class EntryPosition extends TimePosition {
 
     public void setIncluded(boolean included) {
         this.included = included;
+    }
+
+    public Long getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(Long serverId) {
+        this.serverId = serverId;
     }
 
     @Override

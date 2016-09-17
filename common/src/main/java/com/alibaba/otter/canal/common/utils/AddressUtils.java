@@ -38,7 +38,8 @@ public class AddressUtils {
     private static boolean isValidHostAddress(InetAddress address) {
         if (address == null || address.isLoopbackAddress()) return false;
         String name = address.getHostAddress();
-        return (name != null && !EMPTY_IP.equals(name) && !LOCALHOST_IP.equals(name) && IP_PATTERN.matcher(name).matches());
+        return (name != null && !EMPTY_IP.equals(name) && !LOCALHOST_IP.equals(name) && IP_PATTERN.matcher(name)
+            .matches());
     }
 
     public static String getHostIp() {

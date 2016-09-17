@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
@@ -31,7 +31,10 @@ import com.alibaba.otter.canal.store.model.Events;
  */
 public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
 
-    private ExecutorService            executor = Executors.newFixedThreadPool(2); // 1 producer ,1 cousmer
+    private ExecutorService            executor = Executors.newFixedThreadPool(2); // 1
+                                                                                   // producer
+                                                                                   // ,1
+                                                                                   // cousmer
     private MemoryEventStoreWithBuffer eventStore;
 
     @Before
@@ -149,7 +152,8 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
 
                 try {
                     Events<Event> entrys = eventStore.get(first, batchSize, 1000L, TimeUnit.MILLISECONDS);
-                    // Events<Event> entrys = eventStore.tryGet(first, batchSize);
+                    // Events<Event> entrys = eventStore.tryGet(first,
+                    // batchSize);
                     if (!CollectionUtils.isEmpty(entrys.getEvents())) {
                         if (entrys.getEvents().size() != batchSize) {
                             System.out.println("get size:" + entrys.getEvents().size() + " with not full batchSize:"

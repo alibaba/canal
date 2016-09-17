@@ -19,7 +19,7 @@ import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
 import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
-import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 
 /**
@@ -30,17 +30,17 @@ import com.alibaba.otter.canal.server.netty.NettyUtils;
  */
 public class ClientAuthenticationHandler extends SimpleChannelHandler {
 
-    private static final Logger    logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
-    private final int              SUPPORTED_VERSION                       = 3;
-    private final int              defaultSubscriptorDisconnectIdleTimeout = 5 * 60 * 1000;
-    private CanalServerWithEmbeded embededServer;
+    private static final Logger     logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
+    private final int               SUPPORTED_VERSION                       = 3;
+    private final int               defaultSubscriptorDisconnectIdleTimeout = 5 * 60 * 1000;
+    private CanalServerWithEmbedded embeddedServer;
 
     public ClientAuthenticationHandler(){
 
     }
 
-    public ClientAuthenticationHandler(CanalServerWithEmbeded embededServer){
-        this.embededServer = embededServer;
+    public ClientAuthenticationHandler(CanalServerWithEmbedded embeddedServer){
+        this.embeddedServer = embeddedServer;
     }
 
     public void messageReceived(final ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -58,10 +58,10 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                         clientAuth.getFilter());
                     try {
                         MDC.put("destination", clientIdentity.getDestination());
-                        embededServer.subscribe(clientIdentity);
+                        embeddedServer.subscribe(clientIdentity);
                         ctx.setAttachment(clientIdentity);// 设置状态数据
                         // 尝试启动，如果已经启动，忽略
-                        if (!embededServer.isStart(clientIdentity.getDestination())) {
+                        if (!embeddedServer.isStart(clientIdentity.getDestination())) {
                             ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
                             if (!runningMonitor.isStart()) {
                                 runningMonitor.start();
@@ -114,8 +114,8 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
         }
     }
 
-    public void setEmbededServer(CanalServerWithEmbeded embededServer) {
-        this.embededServer = embededServer;
+    public void setEmbeddedServer(CanalServerWithEmbedded embeddedServer) {
+        this.embeddedServer = embeddedServer;
     }
 
 }

@@ -9,7 +9,7 @@
 
 <h1>背景</h1>
 <p style="font-size: 14px;">   早期，阿里巴巴B2B公司因为存在杭州和美国双机房部署，存在跨机房同步的业务需求。不过早期的数据库同步业务，主要是基于trigger的方式获取增量变更，不过从2010年开始，阿里系公司开始逐步的尝试基于数据库的日志解析，获取增量变更进行同步，由此衍生出了增量订阅&amp;消费的业务，从此开启了一段新纪元。</p>
-<p style="font-size: 14px;">   ps. 目前内部版本已经支持mysql和oracle部分版本的日志解析，当前的canal开源版本支持5.6及以下的版本(阿里内部mysql 5.6.10, mysql 5.5.18和5.1.40/48)</p>
+<p style="font-size: 14px;">   ps. 目前内部版本已经支持mysql和oracle部分版本的日志解析，当前的canal开源版本支持5.7及以下的版本(阿里内部mysql 5.7.13, 5.6.10, mysql 5.5.18和5.1.40/48)</p>
 <p style="font-size: 14px;"> </p>
 <p style="font-size: 14px;">基于日志增量订阅&amp;消费支持的业务：</p>
 <ol style="font-size: 14px;">
@@ -36,7 +36,7 @@
 <li>slave重做中继日志中的事件，将改变反映它自己的数据。</li>
 </ol>
 <h3>canal的工作原理：</h3>
-<p><img width="590" src="http://dl.iteye.com/upload/attachment/0080/3107/c87b67ba-394c-3086-9577-9db05be04c95.jpg" alt="" height="273">
+<p><img width="590" src="https://camo.githubusercontent.com/46c626b4cde399db43b2634a7911a04aecf273a0/687474703a2f2f646c2e69746579652e636f6d2f75706c6f61642f6174746163686d656e742f303038302f333130372f63383762363762612d333934632d333038362d393537372d3964623035626530346339352e6a7067" alt="" height="273">
 <p>原理相对比较简单：</p>
 <ol>
 <li>canal模拟mysql slave的交互协议，伪装自己为mysql slave，向mysql master发送dump协议</li>
@@ -62,11 +62,16 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li><a href="https://github.com/alibaba/canal/releases">Download</a></li>
 </ul>
 
-<h1>相关资料: </h1>
+<h1>相关资料</h1>
 
 * ADC阿里技术嘉年华分享ppt (放在google docs上，可能需要翻墙): <a href="https://docs.google.com/presentation/d/1MkszUPYRDkfVPz9IqOT1LLT5d9tuwde_WC8GZvjaDRg/edit?usp=sharing">ppt下载</href>  
 * [与阿里巴巴的RocketMQ配合使用](https://github.com/alibaba/RocketMQ)
 
+<h1>相关开源</h1>
+<ol>
+<li>阿里巴巴分布式数据库同步系统(解决中美异地机房)：<a href="http://github.com/alibaba/otter">http://github.com/alibaba/otter</a></li>
+<li>阿里巴巴去Oracle数据迁移同步工具(目标支持MySQL/DRDS)：<a href="http://github.com/alibaba/yugong">http://github.com/alibaba/yugong</a></li>
+</ol>
 
 <h1>问题反馈</h1>
 <ol>

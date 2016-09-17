@@ -84,6 +84,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean                     filterQueryDdl      = false;
     // 是否跳过table相关的解析异常,比如表不存在或者列数量不匹配,issue 92
     private boolean                     filterTableError    = false;
+    // 新增rows过滤，用于仅订阅除rows以外的数据
+    private boolean                     filterRows      = false;
 
     public Entry parse(LogEvent logEvent) throws CanalParseException {
         if (logEvent == null || logEvent instanceof UnknownLogEvent) {
@@ -215,12 +217,20 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // 更新下table meta cache
             if (tableMetaCache != null
                 && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE || result.getType() == EventType.RENAME)) {
-                if (StringUtils.isNotEmpty(tableName)) {
-                    // 如果解析到了正确的表信息，则根据全名进行清除
-                    tableMetaCache.clearTableMeta(schemaName, tableName);
-                } else {
-                    // 如果无法解析正确的表信息，则根据schema进行清除
-                    tableMetaCache.clearTableMetaWithSchemaName(schemaName);
+                for (DdlResult renameResult = result; renameResult != null; renameResult = renameResult.getRenameTableResult()) {
+                    String schemaName0 = event.getDbName(); // 防止rename语句后产生schema变更带来影响
+                    if (StringUtils.isNotEmpty(renameResult.getSchemaName())) {
+                        schemaName0 = renameResult.getSchemaName();
+                    }
+
+                    tableName = renameResult.getTableName();
+                    if (StringUtils.isNotEmpty(tableName)) {
+                        // 如果解析到了正确的表信息，则根据全名进行清除
+                        tableMetaCache.clearTableMeta(schemaName0, tableName);
+                    } else {
+                        // 如果无法解析正确的表信息，则根据schema进行清除
+                        tableMetaCache.clearTableMetaWithSchemaName(schemaName0);
+                    }
                 }
             }
 
@@ -297,6 +307,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry parseRowsEvent(RowsLogEvent event) {
+        if (filterRows) {
+            return null;
+        }
         try {
             TableMapLogEvent table = event.getTable();
             if (table == null) {
@@ -337,7 +350,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setEventType(eventType);
             RowsLogBuffer buffer = event.getRowsBuf(charset.name());
             BitSet columns = event.getColumns();
-            BitSet changeColumns = event.getColumns();
+            BitSet changeColumns = event.getChangeColumns();
             boolean tableError = false;
             TableMeta tableMeta = null;
             if (tableMetaCache != null) {// 入错存在table meta cache
@@ -367,7 +380,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         break;
                     }
 
-                    tableError |= parseOneRow(rowDataBuilder, event, buffer, event.getChangeColumns(), true, tableMeta);
+                    tableError |= parseOneRow(rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
                 }
 
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
@@ -422,6 +435,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
         for (int i = 0; i < columnCnt; i++) {
             ColumnInfo info = columnInfo[i];
+            // mysql 5.6开始支持nolob/mininal类型,并不一定记录所有的列,需要进行判断
+            if (!cols.get(i)) {
+                continue;
+            }
+
             Column.Builder columnBuilder = Column.newBuilder();
 
             FieldMeta fieldMeta = null;
@@ -604,25 +622,22 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (index < 0) {
             return false;
         }
-        if ((bfColumns.size() - 1) < index) {
-            return false;
-        }
-        Column column = bfColumns.get(index);
 
-        if (column.getIsNull()) {
-            if (newValue != null) {
-                return true;
-            }
-        } else {
-            if (newValue == null) {
-                return true;
-            } else {
-                if (!column.getValue().equals(newValue)) {
-                    return true;
+        for (Column column : bfColumns) {
+            if (column.getIndex() == index) {// 比较before / after的column index
+                if (column.getIsNull() && newValue == null) {
+                    // 如果全是null
+                    return false;
+                } else if (newValue != null && (!column.getIsNull() && column.getValue().equals(newValue))) {
+                    // fixed issue #135, old column is Null
+                    // 如果不为null，并且相等
+                    return false;
                 }
             }
         }
-        return false;
+
+        // 比如nolob/minial模式下,可能找不到before记录,认为是有变化
+        return true;
     }
 
     private TableMeta getTableMeta(String dbName, String tbName, boolean useCache) {
@@ -702,6 +717,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setFilterTableError(boolean filterTableError) {
         this.filterTableError = filterTableError;
+    }
+    
+    public void setFilterRows(boolean filterRows) {
+        this.filterRows = filterRows;
     }
 
 }

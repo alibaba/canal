@@ -33,11 +33,12 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalConfigClient;
 import com.alibaba.otter.canal.instance.manager.ManagerCanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator;
-import com.alibaba.otter.canal.server.embeded.CanalServerWithEmbeded;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * canal调度控制器
@@ -59,7 +60,7 @@ public class CanalController {
     private boolean                                  autoScan = true;
     private InstanceAction                           defaultAction;
     private Map<InstanceMode, InstanceConfigMonitor> instanceConfigMonitors;
-    private CanalServerWithEmbeded                   embededCanalServer;
+    private CanalServerWithEmbedded                  embededCanalServer;
     private CanalServerWithNetty                     canalServer;
 
     private CanalInstanceGenerator                   instanceGenerator;
@@ -70,7 +71,7 @@ public class CanalController {
     }
 
     public CanalController(final Properties properties){
-        managerClients = new MapMaker().makeComputingMap(new Function<String, CanalConfigClient>() {
+        managerClients = MigrateMap.makeComputingMap(new Function<String, CanalConfigClient>() {
 
             public CanalConfigClient apply(String managerAddress) {
                 return getManagerClient(managerAddress);
@@ -87,9 +88,9 @@ public class CanalController {
         cid = Long.valueOf(getProperty(properties, CanalConstants.CANAL_ID));
         ip = getProperty(properties, CanalConstants.CANAL_IP);
         port = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_PORT));
-        embededCanalServer = new CanalServerWithEmbeded();
+        embededCanalServer = CanalServerWithEmbedded.instance();
         embededCanalServer.setCanalInstanceGenerator(instanceGenerator);// 设置自定义的instanceGenerator
-        canalServer = new CanalServerWithNetty(embededCanalServer);
+        canalServer = CanalServerWithNetty.instance();
         canalServer.setIp(ip);
         canalServer.setPort(port);
 
@@ -107,7 +108,7 @@ public class CanalController {
 
         final ServerRunningData serverData = new ServerRunningData(cid, ip + ":" + port);
         ServerRunningMonitors.setServerData(serverData);
-        ServerRunningMonitors.setRunningMonitors(new MapMaker().makeComputingMap(new Function<String, ServerRunningMonitor>() {
+        ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>() {
 
             public ServerRunningMonitor apply(final String destination) {
                 ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
@@ -216,7 +217,7 @@ public class CanalController {
                 }
             };
 
-            instanceConfigMonitors = new MapMaker().makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
+            instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
 
                 public InstanceConfigMonitor apply(InstanceMode mode) {
                     int scanInterval = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
@@ -230,7 +231,13 @@ public class CanalController {
                         if (StringUtils.isEmpty(rootDir)) {
                             rootDir = "../conf";
                         }
-                        monitor.setRootConf(rootDir);
+
+                        if (StringUtils.equals("otter-canal", System.getProperty("appName"))) {
+                            monitor.setRootConf(rootDir);
+                        } else {
+                            // eclipse debug模式
+                            monitor.setRootConf("src/main/resources/");
+                        }
                         return monitor;
                     } else if (mode.isManager()) {
                         return new ManagerInstanceConfigMonitor();
@@ -391,7 +398,7 @@ public class CanalController {
             }
 
             if (autoScan) {
-                instanceConfigMonitors.get(config.getMode()).regeister(destination, defaultAction);
+                instanceConfigMonitors.get(config.getMode()).register(destination, defaultAction);
             }
         }
 

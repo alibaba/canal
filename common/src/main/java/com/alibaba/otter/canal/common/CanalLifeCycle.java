@@ -6,9 +6,9 @@ package com.alibaba.otter.canal.common;
  */
 public interface CanalLifeCycle {
 
-    public void start();
+    void start();
 
-    public void stop();
+    void stop();
 
-    public boolean isStart();
+    boolean isStart();
 }

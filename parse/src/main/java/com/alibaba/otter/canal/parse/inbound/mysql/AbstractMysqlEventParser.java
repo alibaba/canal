@@ -22,6 +22,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean           filterQueryDcl          = false;
     protected boolean           filterQueryDml          = false;
     protected boolean           filterQueryDdl          = false;
+    protected boolean           filterRows              = false;
     protected boolean           filterTableError        = false;
 
     protected BinlogParser buildParser() {
@@ -38,6 +39,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         convert.setFilterQueryDcl(filterQueryDcl);
         convert.setFilterQueryDml(filterQueryDml);
         convert.setFilterQueryDdl(filterQueryDdl);
+        convert.setFilterRows(filterRows);
         convert.setFilterTableError(filterTableError);
         return convert;
     }
@@ -85,6 +87,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setFilterQueryDdl(boolean filterQueryDdl) {
         this.filterQueryDdl = filterQueryDdl;
+    }
+
+    public void setFilterRows(boolean filterRows) {
+        this.filterRows = filterRows;
     }
 
     public void setFilterTableError(boolean filterTableError) {

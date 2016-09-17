@@ -22,8 +22,11 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
     private static final Logger logger = LoggerFactory.getLogger(HandshakeInitializationHandler.class);
 
     public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        byte[] body = Packet.newBuilder().setType(CanalPacket.PacketType.HANDSHAKE).setBody(
-                                                                                            Handshake.newBuilder().build().toByteString()).build().toByteArray();
+        byte[] body = Packet.newBuilder()
+            .setType(CanalPacket.PacketType.HANDSHAKE)
+            .setBody(Handshake.newBuilder().build().toByteString())
+            .build()
+            .toByteArray();
         NettyUtils.write(ctx.getChannel(), body, null);
         logger.info("send handshake initialization packet to : {}", ctx.getChannel());
     }

@@ -10,11 +10,9 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public final class BeginLoadQueryLogEvent extends AppendBlockLogEvent
-{
-    public BeginLoadQueryLogEvent(LogHeader header, LogBuffer buffer,
-            FormatDescriptionLogEvent descriptionEvent)
-    {
+public final class BeginLoadQueryLogEvent extends AppendBlockLogEvent {
+
+    public BeginLoadQueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
         super(header, buffer, descriptionEvent);
     }
 }

@@ -102,7 +102,7 @@ public class SimpleCanalConnector implements CanalConnector {
                 rollback();
             }
         }
-        
+
         connected = true;
     }
 
@@ -125,6 +125,10 @@ public class SimpleCanalConnector implements CanalConnector {
         try {
             channel = SocketChannel.open();
             channel.socket().setSoTimeout(soTimeout);
+            SocketAddress address = getAddress();
+            if (address == null) {
+                address = getNextAddress();
+            }
             channel.connect(address);
             Packet p = Packet.parseFrom(readNextPacket(channel));
             if (p.getVersion() != 1) {
@@ -411,7 +415,6 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
-
     private void waitClientRunning() {
         try {
             if (zkClientx != null) {
@@ -433,6 +436,10 @@ public class SimpleCanalConnector implements CanalConnector {
         } else {
             return true;// 默认都放过
         }
+    }
+
+    public SocketAddress getNextAddress() {
+        return null;
     }
 
     public SocketAddress getAddress() {

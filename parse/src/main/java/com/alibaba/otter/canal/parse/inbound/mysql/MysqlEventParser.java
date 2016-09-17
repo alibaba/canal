@@ -22,11 +22,12 @@ import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogFormat;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogImage;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
@@ -62,8 +63,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private TableMetaCache     tableMetaCache;                               // 对应meta
                                                                               // cache
     private int                fallbackIntervalInSeconds         = 60;       // 切换回退时间
+    private BinlogFormat[]     supportBinlogFormats;                         // 支持的binlogFormat,如果设置会执行强校验
+    private BinlogImage[]      supportBinlogImages;                          // 支持的binlogImage,如果设置会执行强校验
 
-    // 心跳检查
+    // update by yishun.chen,特殊异常处理参数
+    private int                dumpErrorCount                    = 0;        // binlogDump失败异常计数
+    private int                dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -80,6 +85,34 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 metaConnection.connect();
             } catch (IOException e) {
                 throw new CanalParseException(e);
+            }
+
+            if (supportBinlogFormats != null && supportBinlogFormats.length > 0) {
+                BinlogFormat format = ((MysqlConnection) metaConnection).getBinlogFormat();
+                boolean found = false;
+                for (BinlogFormat supportFormat : supportBinlogFormats) {
+                    if (supportFormat != null && format == supportFormat) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    throw new CanalParseException("Unsupported BinlogFormat " + format);
+                }
+            }
+
+            if (supportBinlogImages != null && supportBinlogImages.length > 0) {
+                BinlogImage image = ((MysqlConnection) metaConnection).getBinlogImage();
+                boolean found = false;
+                for (BinlogImage supportImage : supportBinlogImages) {
+                    if (supportImage != null && image == supportImage) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    throw new CanalParseException("Unsupported BinlogImage " + image);
+                }
             }
 
             tableMetaCache = new TableMetaCache(metaConnection);
@@ -292,6 +325,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         return startPosition;
     }
 
+    protected EntryPosition findEndPosition(ErosaConnection connection) throws IOException {
+        MysqlConnection mysqlConnection = (MysqlConnection) connection;
+        EntryPosition endPosition = findEndPosition(mysqlConnection);
+        return endPosition;
+    }
+
     protected EntryPosition findStartPositionInternal(ErosaConnection connection) {
         MysqlConnection mysqlConnection = (MysqlConnection) connection;
         LogPosition logPosition = logPositionManager.getLatestIndexBy(destination);
@@ -352,6 +391,25 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             }
         } else {
             if (logPosition.getIdentity().getSourceAddress().equals(mysqlConnection.getConnector().getAddress())) {
+                if (dumpErrorCountThreshold >= 0 && dumpErrorCount > dumpErrorCountThreshold) {
+                    // binlog定位位点失败,可能有两个原因:
+                    // 1. binlog位点被删除
+                    // 2.vip模式的mysql,发生了主备切换,判断一下serverId是否变化,针对这种模式可以发起一次基于时间戳查找合适的binlog位点
+                    boolean case2 = (standbyInfo == null || standbyInfo.getAddress() == null)
+                                    && logPosition.getPostion().getServerId() != null
+                                    && !logPosition.getPostion().getServerId().equals(findServerId(mysqlConnection));
+                    if (case2) {
+                        long timestamp = logPosition.getPostion().getTimestamp();
+                        long newStartTimestamp = timestamp - fallbackIntervalInSeconds * 1000;
+                        logger.warn("prepare to find start position by last position {}:{}:{}", new Object[] { "", "",
+                                logPosition.getPostion().getTimestamp() });
+                        EntryPosition findPosition = findByStartTimeStamp(mysqlConnection, newStartTimestamp);
+                        // 重新置为一下
+                        dumpErrorCount = 0;
+                        return findPosition;
+                    }
+                }
+                // 其余情况
                 logger.warn("prepare to find start position just last position");
                 return logPosition.getPostion();
             } else {
@@ -394,7 +452,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     }
                 } catch (Exception e) {
                     // 上一次记录的poistion可能为一条update/insert/delete变更事件，直接进行dump的话，会缺少tableMap事件，导致tableId未进行解析
-                    processError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
+                    processSinkError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
                     reDump.set(true);
                     return false;
                 }
@@ -428,7 +486,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
                         lastPosition = buildLastPosition(entry);
                     } catch (Exception e) {
-                        processError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
+                        processSinkError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
                         return false;
                     }
 
@@ -506,6 +564,22 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
         // 找不到
         return null;
+    }
+
+    /**
+     * 查询当前db的serverId信息
+     */
+    private Long findServerId(MysqlConnection mysqlConnection) {
+        try {
+            ResultSetPacket packet = mysqlConnection.query("show variables like 'server_id'");
+            List<String> fields = packet.getFieldValues();
+            if (CollectionUtils.isEmpty(fields)) {
+                throw new CanalParseException("command : show variables like 'server_id' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+            }
+            return Long.valueOf(fields.get(1));
+        } catch (IOException e) {
+            throw new CanalParseException("command : show variables like 'server_id' has an error!", e);
+        }
     }
 
     /**
@@ -649,8 +723,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         }
 
                         lastPosition = buildLastPosition(entry);
-                    } catch (Exception e) {
-                        processError(e, lastPosition, searchBinlogFile, 4L);
+                    } catch (Throwable e) {
+                        processSinkError(e, lastPosition, searchBinlogFile, 4L);
                     }
 
                     return running;
@@ -668,21 +742,43 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
-    protected Entry parseAndProfilingIfNecessary(LogEvent bod) throws Exception {
-        long startTs = -1;
-        boolean enabled = getProfilingEnabled();
-        if (enabled) {
-            startTs = System.currentTimeMillis();
-        }
-        CanalEntry.Entry event = binlogParser.parse(bod);
-        if (enabled) {
-            this.parsingInterval = System.currentTimeMillis() - startTs;
+    @Override
+    protected void processDumpError(Throwable e) {
+        if (e instanceof IOException) {
+            String message = e.getMessage();
+            if (StringUtils.contains(message, "errno = 1236")) {
+                // 1236 errorCode代表ER_MASTER_FATAL_ERROR_READING_BINLOG
+                dumpErrorCount++;
+            }
         }
 
-        if (parsedEventCount.incrementAndGet() < 0) {
-            parsedEventCount.set(0);
+        super.processDumpError(e);
+    }
+
+    public void setSupportBinlogFormats(String formatStrs) {
+        String[] formats = StringUtils.split(formatStrs, ',');
+        if (formats != null) {
+            BinlogFormat[] supportBinlogFormats = new BinlogFormat[formats.length];
+            int i = 0;
+            for (String format : formats) {
+                supportBinlogFormats[i++] = BinlogFormat.valuesOf(format);
+            }
+
+            this.supportBinlogFormats = supportBinlogFormats;
         }
-        return event;
+    }
+
+    public void setSupportBinlogImages(String imageStrs) {
+        String[] images = StringUtils.split(imageStrs, ',');
+        if (images != null) {
+            BinlogImage[] supportBinlogImages = new BinlogImage[images.length];
+            int i = 0;
+            for (String image : images) {
+                supportBinlogImages[i++] = BinlogImage.valuesOf(image);
+            }
+
+            this.supportBinlogImages = supportBinlogImages;
+        }
     }
 
     // ===================== setter / getter ========================
@@ -742,4 +838,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     public void setHaController(CanalHAController haController) {
         this.haController = haController;
     }
+
+    public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
+        this.dumpErrorCountThreshold = dumpErrorCountThreshold;
+    }
+
 }

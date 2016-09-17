@@ -22,7 +22,7 @@ import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 基于文件刷新的log position实现
@@ -67,7 +67,7 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
             throw new CanalMetaManagerException("dir[" + dataDir.getPath() + "] can not read/write");
         }
 
-        dataFileCaches = new MapMaker().makeComputingMap(new Function<String, File>() {
+        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
 
             public File apply(String destination) {
                 return getDataFile(destination);
@@ -75,7 +75,7 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
         });
 
         executor = Executors.newScheduledThreadPool(1);
-        positions = new MapMaker().makeComputingMap(new Function<String, LogPosition>() {
+        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
 
             public LogPosition apply(String destination) {
                 LogPosition logPosition = loadDataFromFile(dataFileCaches.get(destination));

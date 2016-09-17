@@ -3,10 +3,9 @@
 	<parent>
 		<groupId>com.alibaba.otter</groupId>
 		<artifactId>canal</artifactId>
-		<version>1.0.20-SNAPSHOT</version>
+		<version>1.0.23-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<groupId>com.alibaba.otter</groupId>
 	<artifactId>canal.server</artifactId>
 	<packaging>jar</packaging>
 	<name>canal server module for otter ${project.version}</name>

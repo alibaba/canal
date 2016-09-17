@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.impl.running;
 
 import java.net.InetSocketAddress;
+import java.text.MessageFormat;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,7 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
+import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 
 /**
  * clinet running控制
@@ -62,6 +64,8 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             public void handleDataDeleted(String dataPath) throws Exception {
                 MDC.put("destination", destination);
                 mutex.set(false);
+                // 触发一下退出,可能是人为干预的释放操作或者网络闪断引起的session expired timeout
+                processActiveExit();
                 if (!release && activeData != null && isMine(activeData.getAddress())) {
                     // 如果上一次active的状态就是本机，则即时触发一下active抢占
                     initRunning();
@@ -96,7 +100,11 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
         releaseRunning(); // 尝试一下release
     }
 
-    public void initRunning() {
+    // 改动记录：
+    // 1,在方法上加synchronized关键字,保证同步顺序执行;
+    // 2,判断Zk上已经存在的activeData是否是本机，是的话把mutex重置为true，否则会导致死锁
+    // 3,增加异常处理，保证出现异常时，running节点能被删除,否则会导致死锁
+    public synchronized void initRunning() {
         if (!isStart()) {
             return;
         }
@@ -116,11 +124,22 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 initRunning();
             } else {
                 activeData = JsonUtils.unmarshalFromByte(bytes, ClientRunningData.class);
+                // 如果发现已经存在,判断一下是否自己,避免活锁
+                if (activeData.getAddress().contains(":") && isMine(activeData.getAddress())) {
+                    mutex.set(true);
+                }
             }
         } catch (ZkNoNodeException e) {
             zkClient.createPersistent(ZookeeperPathUtils.getClientIdNodePath(this.destination, clientData.getClientId()),
                 true); // 尝试创建父节点
             initRunning();
+        } catch (Throwable t) {
+            logger.error(MessageFormat.format("There is an error when execute initRunning method, with destination [{0}].",
+                destination),
+                t);
+            // 出现任何异常尝试release
+            releaseRunning();
+            throw new CanalClientException("something goes wrong in initRunning method. ", t);
         }
     }
 

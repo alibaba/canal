@@ -15,6 +15,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
+import com.google.common.collect.MigrateMap;
 
 /**
  * 内存版实现
@@ -31,7 +32,7 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
     public void start() {
         super.start();
 
-        batches = new MapMaker().makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
+        batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
 
             public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
                 return MemoryClientIdentityBatch.create(clientIdentity);
@@ -41,7 +42,7 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
 
         cursors = new MapMaker().makeMap();
 
-        destinations = new MapMaker().makeComputingMap(new Function<String, List<ClientIdentity>>() {
+        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
 
             public List<ClientIdentity> apply(String destination) {
                 return Lists.newArrayList();
@@ -65,7 +66,7 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
         if (clientIdentitys.contains(clientIdentity)) {
             clientIdentitys.remove(clientIdentity);
         }
-        
+
         clientIdentitys.add(clientIdentity);
     }
 
@@ -162,8 +163,9 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
                 Long minBatchId = Collections.min(batches.keySet());
                 if (!minBatchId.equals(batchId)) {
                     // 检查一下提交的ack/rollback，必须按batchId分出去的顺序提交，否则容易出现丢数据
-                    throw new CanalMetaManagerException(String.format("batchId:%d is not the firstly:%d", batchId,
-                                                                      minBatchId));
+                    throw new CanalMetaManagerException(String.format("batchId:%d is not the firstly:%d",
+                        batchId,
+                        minBatchId));
                 }
                 return batches.remove(batchId);
             } else {

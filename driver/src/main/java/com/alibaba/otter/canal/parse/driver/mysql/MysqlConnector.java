@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QuitCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.HandshakeInitializationPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.Reply323Packet;
@@ -26,25 +27,27 @@ import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
  */
 public class MysqlConnector {
 
-    private static final Logger logger            = LoggerFactory.getLogger(MysqlConnector.class);
-    private InetSocketAddress   address;
-    private String              username;
-    private String              password;
+    private static final Logger logger = LoggerFactory.getLogger(MysqlConnector.class);
+    private InetSocketAddress address;
+    private String username;
+    private String password;
 
-    private byte                charsetNumber     = 33;
-    private String              defaultSchema     = "retl";
-    private int                 soTimeout         = 30 * 1000;
-    private int                 receiveBufferSize = 16 * 1024;
-    private int                 sendBufferSize    = 16 * 1024;
+    private byte charsetNumber = 33;
+    private String defaultSchema = "retl";
+    private int soTimeout = 30 * 1000;
+    private int receiveBufferSize = 16 * 1024;
+    private int sendBufferSize = 16 * 1024;
 
-    private SocketChannel       channel;
-    private AtomicBoolean       connected         = new AtomicBoolean(false);
+    private SocketChannel channel;
+    private volatile boolean dumping = false;
+    // mysql connectinnId
+    private long connectionId = -1;
+    private AtomicBoolean connected = new AtomicBoolean(false);
 
     public MysqlConnector(){
     }
 
     public MysqlConnector(InetSocketAddress address, String username, String password){
-
         this.address = address;
         this.username = username;
         this.password = password;
@@ -86,10 +89,29 @@ public class MysqlConnector {
                 if (channel != null) {
                     channel.close();
                 }
-
                 logger.info("disConnect MysqlConnection to {}...", address);
             } catch (Exception e) {
                 throw new IOException("disconnect " + this.address + " failure:" + ExceptionUtils.getStackTrace(e));
+            }
+
+            // 执行一次quit
+            if (dumping && connectionId >= 0) {
+                MysqlConnector connector = null;
+                try {
+                    connector = this.fork();
+                    connector.connect();
+                    MysqlUpdateExecutor executor = new MysqlUpdateExecutor(connector);
+                    executor.update("KILL CONNECTION " + connectionId);
+                } catch (Exception e) {
+                    // 忽略具体异常
+                    logger.warn("KILL DUMP " + connectionId + " failure:" + ExceptionUtils.getStackTrace(e));
+                } finally {
+                    if (connector != null) {
+                        connector.disconnect();
+                    }
+                }
+
+                dumping = false;
             }
         } else {
             logger.info("the channel {} is not connected", this.address);
@@ -111,6 +133,17 @@ public class MysqlConnector {
         connector.setSendBufferSize(getSendBufferSize());
         connector.setSoTimeout(getSoTimeout());
         return connector;
+    }
+
+    public void quit() throws IOException {
+        QuitCommandPacket quit = new QuitCommandPacket();
+        byte[] cmdBody = quit.toBytes();
+
+        HeaderPacket quitHeader = new HeaderPacket();
+        quitHeader.setPacketBodyLength(cmdBody.length);
+        quitHeader.setPacketSequenceNumber((byte) 0x00);
+        PacketManager.write(channel,
+            new ByteBuffer[] { ByteBuffer.wrap(quitHeader.toBytes()), ByteBuffer.wrap(cmdBody) });
     }
 
     // ====================== help method ====================
@@ -140,6 +173,7 @@ public class MysqlConnector {
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
         handshakePacket.fromBytes(body);
+        connectionId = handshakePacket.threadId; // 记录一下connection
 
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
 
@@ -289,6 +323,22 @@ public class MysqlConnector {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public long getConnectionId() {
+        return connectionId;
+    }
+
+    public void setConnectionId(long connectionId) {
+        this.connectionId = connectionId;
+    }
+
+    public boolean isDumping() {
+        return dumping;
+    }
+
+    public void setDumping(boolean dumping) {
+        this.dumping = dumping;
     }
 
 }

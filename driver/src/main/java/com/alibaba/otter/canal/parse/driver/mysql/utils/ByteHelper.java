@@ -23,7 +23,7 @@ public abstract class ByteHelper {
         out.write(str.getBytes());
         out.write(MSC.NULL_TERMINATED_STRING_DELIMITER);
     }
-    
+
     public static void writeNullTerminated(byte[] data, ByteArrayOutputStream out) throws IOException {
         out.write(data);
         out.write(MSC.NULL_TERMINATED_STRING_DELIMITER);
