@@ -199,7 +199,8 @@ public class MysqlConnection implements ErosaConnection {
             // 如果不设置会出现错误： Slave can not handle replication events with the
             // checksum that master is configured to log
             // 但也不能乱设置，需要和mysql server的checksum配置一致，不然RotateLogEvent会出现乱码
-            update("set @master_binlog_checksum= '@@global.binlog_checksum'");
+        	// '@@global.binlog_checksum'需要去掉单引号,在mysql 5.6.29下导致master退出
+            update("set @master_binlog_checksum= @@global.binlog_checksum");
         } catch (Exception e) {
             logger.warn(ExceptionUtils.getFullStackTrace(e));
         }
