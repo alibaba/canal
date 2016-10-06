@@ -388,7 +388,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
             String name = String.format("destination = %s , address = %s , HeartBeatTimeTask",
                 destination,
                 runningInfo == null ? null : runningInfo.getAddress().toString());
-//             synchronized(AbstractEventParser.class){
+            synchronized(AbstractEventParser.class){
 //             synchronized (MysqlEventParser.class) {
 //             why use MysqlEventParser.class, u know, MysqlEventParser is the child class 4 AbstractEventParser,
 //             do this is ...
