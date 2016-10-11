@@ -8,7 +8,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.local.BinLogFileQueue;
@@ -18,6 +17,7 @@ import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.LogPosition;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 
 /**
  * local bin log connection (not real connection)
@@ -83,9 +83,9 @@ public class LocalBinLogConnection implements ErosaConnection {
             context.setLogPosition(new LogPosition(binlogfilename, binlogPosition));
             while (running) {
                 boolean needContinue = true;
-                LogEvent event;
-                while (fetcher.fetch()) {
-                    event = decoder.decode(fetcher, context);
+				LogEvent event = null;
+                L:while (fetcher.fetch()) {
+                    /*event = decoder.decode(fetcher, context);
                     if (event == null) {
                         throw new CanalParseException("parse failed");
                     }
@@ -93,15 +93,20 @@ public class LocalBinLogConnection implements ErosaConnection {
                     if (!func.sink(event)) {
                         needContinue = false;
                         break;
-                    }
+                    }*/
 
-                    // do {
-                    // event = decoder.decode(fetcher, context);
-                    // if (event != null && !func.sink(event)) {
-                    // needContinue = false;
-                    // break;
-                    // }
-                    // } while (event != null);
+					do {
+						if (event == null) {
+							event = new RotateLogEvent(context.getLogPosition().getFileName(), context.getLogPosition().getPosition());
+						} else {
+							event = decoder.decode(fetcher, context);
+						}
+												
+						if (event != null && !func.sink(event)) {
+							needContinue = false;
+							break L;
+						}
+					} while (event != null);
                 }
 
                 if (needContinue) {// 读取下一个
@@ -145,6 +150,7 @@ public class LocalBinLogConnection implements ErosaConnection {
 
         FileLogFetcher fetcher = new FileLogFetcher(bufferSize);
         LogDecoder decoder = new LogDecoder();
+        decoder.handle(LogEvent.FORMAT_DESCRIPTION_EVENT);
         decoder.handle(LogEvent.QUERY_EVENT);
         decoder.handle(LogEvent.XID_EVENT);
         LogContext context = new LogContext();

@@ -1,10 +1,14 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
+import java.io.IOException;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
@@ -21,7 +25,9 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     // 数据库信息
     private AuthenticationInfo masterInfo;
     private EntryPosition      masterPosition;        // binlog信息
-
+    private MysqlConnection    metaConnection;        // 查询meta信息的链接
+    private TableMetaCache     tableMetaCache;        // 对应meta
+    
     private String             directory;
     private boolean            needWait   = false;
     private int                bufferSize = 16 * 1024;
@@ -33,23 +39,79 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     @Override
     protected ErosaConnection buildErosaConnection() {
         return buildLocalBinLogConnection();
-    }
+    }   
+    
+    @Override
+	protected void preDump(ErosaConnection connection) {
+    	metaConnection = buildMysqlConnection();
+        try {
+            metaConnection.connect();
+        } catch (IOException e) {
+            throw new CanalParseException(e);
+        }
+        
+        tableMetaCache = new TableMetaCache(metaConnection);
+        ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
+	}
 
-    public void start() throws CanalParseException {
+	@Override
+	protected void afterDump(ErosaConnection connection) {
+		if (metaConnection != null) {
+            try {
+                metaConnection.disconnect();
+            } catch (IOException e) {
+                logger.error("ERROR # disconnect meta connection for address:{}", metaConnection.getConnector()
+                    .getAddress(), e);
+            }
+        }
+	}
+
+	public void start() throws CanalParseException {
         if (runningInfo == null) { // 第一次链接主库
             runningInfo = masterInfo;
         }
 
         super.start();
     }
+	
+    @Override
+	public void stop() {
+    	if (metaConnection != null) {
+            try {
+                metaConnection.disconnect();
+            } catch (IOException e) {
+                logger.error("ERROR # disconnect meta connection for address:{}", metaConnection.getConnector()
+                    .getAddress(), e);
+            }
+        }
 
-    private ErosaConnection buildLocalBinLogConnection() {
+        if (tableMetaCache != null) {
+            tableMetaCache.clearTableMeta();
+        }
+
+        super.stop();
+	}
+
+	private ErosaConnection buildLocalBinLogConnection() {
         LocalBinLogConnection connection = new LocalBinLogConnection();
 
         connection.setBufferSize(this.bufferSize);
         connection.setDirectory(this.directory);
         connection.setNeedWait(this.needWait);
 
+        return connection;
+    }
+
+    private MysqlConnection buildMysqlConnection() {
+        MysqlConnection connection = new MysqlConnection(runningInfo.getAddress(),
+            runningInfo.getUsername(),
+            runningInfo.getPassword(),
+            connectionCharsetNumber,
+            runningInfo.getDefaultDatabaseName());
+        connection.getConnector().setReceiveBufferSize(64 * 1024);
+        connection.getConnector().setSendBufferSize(64 * 1024);
+        connection.getConnector().setSoTimeout(30 * 1000);
+        connection.setCharset(connectionCharset);
         return connection;
     }
     
