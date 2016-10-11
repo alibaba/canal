@@ -87,6 +87,10 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     }
 
+    public void init() {
+        processStart();
+    }
+
     public void start() {
         super.start();
         processStart();
