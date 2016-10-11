@@ -7,6 +7,8 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import com.taobao.tddl.dbsync.binlog.LogPosition;
+import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +37,8 @@ public class MysqlConnection implements ErosaConnection {
     private Charset             charset = Charset.forName("UTF-8");
     private BinlogFormat        binlogFormat;
     private BinlogImage         binlogImage;
-
+    private	int 				binlogChecksum;
+    
     public MysqlConnection(){
     }
 
@@ -107,12 +110,14 @@ public class MysqlConnection implements ErosaConnection {
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         updateSettings();
+        loadBinlogChecksum();
         sendBinlogDump(binlogfilename, binlogPosition);
         DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize());
         fetcher.start(connector.getChannel());
         LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
         LogContext context = new LogContext();
         context.setLogPosition(new LogPosition(binlogfilename));
+        context.setFormatDescription(new FormatDescriptionLogEvent(4,binlogChecksum));
         while (fetcher.fetch()) {
             LogEvent event = null;
             event = decoder.decode(fetcher, context);
@@ -199,7 +204,8 @@ public class MysqlConnection implements ErosaConnection {
             // 如果不设置会出现错误： Slave can not handle replication events with the
             // checksum that master is configured to log
             // 但也不能乱设置，需要和mysql server的checksum配置一致，不然RotateLogEvent会出现乱码
-            update("set @master_binlog_checksum= '@@global.binlog_checksum'");
+        	// '@@global.binlog_checksum'需要去掉单引号,在mysql 5.6.29下导致master退出
+            update("set @master_binlog_checksum= @@global.binlog_checksum");
         } catch (Exception e) {
             logger.warn(ExceptionUtils.getFullStackTrace(e));
         }
@@ -258,7 +264,26 @@ public class MysqlConnection implements ErosaConnection {
             throw new IllegalStateException("unexpected binlog image query result:" + rs.getFieldValues());
         }
     }
+    /**
+     * 获取主库checksum信息
+     * https://dev.mysql.com/doc/refman/5.6/en/replication-options-binary-log.html#option_mysqld_binlog-checksum
+     */
+    private void loadBinlogChecksum(){
+    	ResultSetPacket rs = null;
+        try {
+            rs = query("select @master_binlog_checksum");
+        } catch (IOException e) {
+            throw new CanalParseException(e);
+        }
 
+        List<String> columnValues = rs.getFieldValues();
+        if(columnValues.get(0).toUpperCase().equals("CRC32")){
+        	binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
+        }else{
+        	binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
+        }
+    }
+    
     public static enum BinlogFormat {
 
         STATEMENT("STATEMENT"), ROW("ROW"), MIXED("MIXED");

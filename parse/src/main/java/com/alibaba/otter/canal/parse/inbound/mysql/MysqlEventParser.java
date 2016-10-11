@@ -93,6 +93,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 for (BinlogFormat supportFormat : supportBinlogFormats) {
                     if (supportFormat != null && format == supportFormat) {
                         found = true;
+                        break;
                     }
                 }
 
@@ -107,6 +108,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 for (BinlogImage supportImage : supportBinlogImages) {
                     if (supportImage != null && image == supportImage) {
                         found = true;
+                        break;
                     }
                 }
 

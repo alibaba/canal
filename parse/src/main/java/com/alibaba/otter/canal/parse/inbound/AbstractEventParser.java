@@ -325,7 +325,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
             startTs = System.currentTimeMillis();
         }
         CanalEntry.Entry event = binlogParser.parse(bod);
-
         if (enabled) {
             this.parsingInterval = System.currentTimeMillis() - startTs;
         }

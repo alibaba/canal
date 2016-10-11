@@ -140,10 +140,15 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 throw new IOException("Unknown binlog version: " + binlogVersion);
         }
     }
-
+    
+    public FormatDescriptionLogEvent(final int binlogVersion,int binlogChecksum){
+    	this(binlogVersion);
+    	this.header.checksumAlg = binlogChecksum;
+    }
+    
     public FormatDescriptionLogEvent(final int binlogVersion){
         this.binlogVersion = binlogVersion;
-
+        
         postHeaderLen = new short[ENUM_END_EVENT];
         /* identify binlog format */
         switch (binlogVersion) {
