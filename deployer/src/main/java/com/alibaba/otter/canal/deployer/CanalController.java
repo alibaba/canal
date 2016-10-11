@@ -192,10 +192,10 @@ public class CanalController {
                         instanceConfigs.put(destination, config);
                     }
 
-                    if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
+                    if (!embededCanalServer.isStart(destination)) {
                         // HA机制启动
                         ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
-                        if (!runningMonitor.isStart()) {
+                        if (!config.getLazy() && !runningMonitor.isStart()) {
                             runningMonitor.start();
                         }
                     }
@@ -392,10 +392,10 @@ public class CanalController {
             final String destination = entry.getKey();
             InstanceConfig config = entry.getValue();
             // 创建destination的工作节点
-            if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
+            if (!embededCanalServer.isStart(destination)) {
                 // HA机制启动
                 ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
-                if (!runningMonitor.isStart()) {
+                if (!config.getLazy() && !runningMonitor.isStart()) {
                     runningMonitor.start();
                 }
             }
