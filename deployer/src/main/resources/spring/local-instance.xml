@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+	default-autowire="byName">
+
+	<!-- properties -->
+	<bean class="com.alibaba.otter.canal.instance.spring.support.PropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="ignoreResourceNotFound" value="true" />
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/><!-- 允许system覆盖 -->
+		<property name="locationNames">
+			<list>
+				<value>classpath:canal.properties</value>
+				<value>classpath:${canal.instance.destination:}/instance.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="socketAddressEditor" class="com.alibaba.otter.canal.instance.spring.support.SocketAddressEditor" />
+	<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer"> 
+		<property name="propertyEditorRegistrars">
+			<list>
+				<ref bean="socketAddressEditor" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
+		<property name="destination" value="${canal.instance.destination}" />
+		<property name="eventParser">
+			<ref local="eventParser" />
+		</property>
+		<property name="eventSink">
+			<ref local="eventSink" />
+		</property>
+		<property name="eventStore">
+			<ref local="eventStore" />
+		</property>
+		<property name="metaManager">
+			<ref local="metaManager" />
+		</property>
+		<property name="alarmHandler">
+			<ref local="alarmHandler" />
+		</property>
+		<property name="eventFetcher">
+			<ref local="eventFetcher"/>
+		</property>
+	</bean>
+	
+	<bean id="eventFetcher" class="com.alibaba.otter.canal.mq.fetch.CanalEventFetcherWithMq">
+		<property name="enable" value="${canal.instance.mq.enable}"/>
+		<property name="sendMode" value="${canal.instance.mq.sendMode}"/>
+	</bean>
+	
+	<!-- 报警处理类 -->
+	<bean id="alarmHandler" class="com.alibaba.otter.canal.common.alarm.MsgAlarmHandler">
+		<property name="enabled" value="${canal.alarm.enable}" />
+		<property name="environment" value="${canal.alarm.environment}" />
+		<property name="intercenterApi" value="${canal.alarm.intercenter.api}" />
+		<property name="administrators" value="${canal.alarm.administrators}" />
+	</bean>
+	
+	<bean id="zkClientx" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" >
+		<property name="targetClass" value="com.alibaba.otter.canal.common.zookeeper.ZkClientx" />
+		<property name="targetMethod" value="getZkClient" />
+		<property name="arguments">
+			<list>
+				<value>${canal.zkServers:127.0.0.1:2181}</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="metaManager" class="com.alibaba.otter.canal.meta.PeriodMixedMetaManager">
+		<property name="zooKeeperMetaManager">
+			<bean class="com.alibaba.otter.canal.meta.ZooKeeperMetaManager">
+				<property name="zkClientx" ref="zkClientx" />
+			</bean>
+		</property>
+		<property name="period" value="${canal.zookeeper.flush.period:1000}" />
+	</bean>
+	
+	<bean id="eventStore" class="com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer">
+		<property name="bufferSize" value="${canal.instance.memory.buffer.size:16384}" />
+		<property name="bufferMemUnit" value="${canal.instance.memory.buffer.memunit:1024}" />
+		<property name="batchMode" value="${canal.instance.memory.batch.mode:MEMSIZE}" />
+		<property name="ddlIsolation" value="${canal.instance.get.ddl.isolation:false}" />
+	</bean>
+	
+	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
+		<property name="eventStore" ref="eventStore" />
+	</bean>
+
+	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.LocalBinlogEventParser">
+		<property name="destination" value="${canal.instance.destination}" />			
+		<property name="alarmHandler" ref="alarmHandler" />
+		
+		<!-- 解析过滤处理 -->
+		<property name="eventFilter">
+			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
+				<constructor-arg index="0" value="${canal.instance.filter.regex:.*\..*}" />
+			</bean>
+		</property>
+		
+		<property name="eventBlackFilter">
+			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
+				<constructor-arg index="0" value="${canal.instance.filter.black.regex:}" />
+				<constructor-arg index="1" value="false" />
+			</bean>
+		</property>
+		
+		<!-- 最大事务解析大小，超过该大小后事务将被切分为多个事务投递 -->
+		<property name="transactionSize" value="${canal.instance.transaction.size:1024}" />
+			
+		<!-- 解析编码 -->
+		<property name="connectionCharset" value="${canal.instance.connectionCharset:UTF-8}" />
+	
+		<!-- 解析位点记录 -->
+		<property name="logPositionManager">
+			<bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
+				<property name="primary">
+					<bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
+				</property>
+				<property name="failback">
+					<bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
+						<property name="metaManager" ref="metaManager" />
+					</bean>
+				</property>
+			</bean>
+		</property>
+		
+		<!-- 解析数据库信息 -->
+		<property name="masterInfo">
+			<bean class="com.alibaba.otter.canal.parse.support.AuthenticationInfo">
+				<property name="address" value="${canal.instance.master.address}" />
+				<property name="username" value="${canal.instance.dbUsername:retl}" />
+				<property name="password" value="${canal.instance.dbPassword:retl}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+			</bean>
+		</property>
+		
+		<!-- 解析起始位点 -->
+		<property name="masterPosition">
+			<bean class="com.alibaba.otter.canal.protocol.position.EntryPosition">
+				<property name="journalName" value="${canal.instance.master.journal.name}" />
+				<property name="position" value="${canal.instance.master.position}" />
+				<property name="timestamp" value="${canal.instance.master.timestamp}" />
+			</bean>
+		</property>
+		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
+		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
+		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
+		<property name="filterRows" value="${canal.instance.filter.rows:false}" />
+		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
+		<property name="needWait" value="${canal.instance.parser.needWait:true}"/>
+		<property name="directory" value="${canal.instance.parser.directory}"/>
+	</bean>
+</beans>
