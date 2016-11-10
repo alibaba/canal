@@ -957,11 +957,10 @@ public final class RowsLogBuffer {
                 jsonValue.toJsonString(builder);
                 value = builder.toString();
                 buffer.position(position + len);
-
                 // byte[] binary = new byte[len];
                 // buffer.fillBytes(binary, 0, len);
                 // value = binary;
-                javaType = Types.VARBINARY;
+                javaType = Types.VARCHAR;
                 length = len;
                 break;
             }
