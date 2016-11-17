@@ -104,7 +104,7 @@ public class MysqlConnector {
                     executor.update("KILL CONNECTION " + connectionId);
                 } catch (Exception e) {
                     // 忽略具体异常
-                    logger.warn("KILL DUMP " + connectionId + " failure:" + ExceptionUtils.getStackTrace(e));
+                    logger.info("KILL DUMP " + connectionId + " failure:" + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (connector != null) {
                         connector.disconnect();

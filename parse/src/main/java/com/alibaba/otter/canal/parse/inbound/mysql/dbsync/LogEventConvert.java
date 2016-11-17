@@ -85,7 +85,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     // 是否跳过table相关的解析异常,比如表不存在或者列数量不匹配,issue 92
     private boolean                     filterTableError    = false;
     // 新增rows过滤，用于仅订阅除rows以外的数据
-    private boolean                     filterRows      = false;
+    private boolean                     filterRows          = false;
 
     public Entry parse(LogEvent logEvent) throws CanalParseException {
         if (logEvent == null || logEvent instanceof UnknownLogEvent) {
@@ -326,6 +326,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return null;
             }
 
+            if (tableMetaCache.isOnRDS() && "mysql.ha_health_check".equals(fullname)) {
+                // 忽略rds模式的mysql.ha_health_check心跳数据
+                return null;
+            }
+
             EventType eventType = null;
             int type = event.getHeader().getType();
             if (LogEvent.WRITE_ROWS_EVENT_V1 == type || LogEvent.WRITE_ROWS_EVENT == type) {
@@ -402,34 +407,51 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private boolean parseOneRow(RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
                                 boolean isAfter, TableMeta tableMeta) throws UnsupportedEncodingException {
-        final int columnCnt = event.getTable().getColumnCnt();
-        final ColumnInfo[] columnInfo = event.getTable().getColumnInfo();
+        int columnCnt = event.getTable().getColumnCnt();
+        ColumnInfo[] columnInfo = event.getTable().getColumnInfo();
 
         boolean tableError = false;
         // check table fileds count，只能处理加字段
+        boolean existRDSNoPrimaryKey = false;
         if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
-            // online ddl增加字段操作步骤：
-            // 1. 新增一张临时表，将需要做ddl表的数据全量导入
-            // 2. 在老表上建立I/U/D的trigger，增量的将数据插入到临时表
-            // 3. 锁住应用请求，将临时表rename为老表的名字，完成增加字段的操作
-            // 尝试做一次reload，可能因为ddl没有正确解析，或者使用了类似online ddl的操作
-            // 因为online ddl没有对应表名的alter语法，所以不会有clear cache的操作
-            tableMeta = getTableMeta(event.getTable().getDbName(), event.getTable().getTableName(), false);// 强制重新获取一次
-            if (tableMeta == null) {
-                tableError = true;
-                if (!filterTableError) {
-                    throw new CanalParseException("not found [" + event.getTable().getDbName() + "."
-                                                  + event.getTable().getTableName() + "] in db , pls check!");
+            if (tableMetaCache.isOnRDS()) {
+                // 特殊处理下RDS的场景
+                List<FieldMeta> primaryKeys = tableMeta.getPrimaryFields();
+                if (primaryKeys == null || primaryKeys.isEmpty()) {
+                    if (columnInfo.length == tableMeta.getFileds().size() + 1
+                        && columnInfo[columnInfo.length - 1].type == LogEvent.MYSQL_TYPE_LONGLONG) {
+                        existRDSNoPrimaryKey = true;
+                    }
                 }
             }
 
-            // 在做一次判断
-            if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
-                tableError = true;
-                if (!filterTableError) {
-                    throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName() + ","
-                                                  + columnInfo.length + " vs " + tableMeta.getFileds().size());
+            if (!existRDSNoPrimaryKey) {
+                // online ddl增加字段操作步骤：
+                // 1. 新增一张临时表，将需要做ddl表的数据全量导入
+                // 2. 在老表上建立I/U/D的trigger，增量的将数据插入到临时表
+                // 3. 锁住应用请求，将临时表rename为老表的名字，完成增加字段的操作
+                // 尝试做一次reload，可能因为ddl没有正确解析，或者使用了类似online ddl的操作
+                // 因为online ddl没有对应表名的alter语法，所以不会有clear cache的操作
+                tableMeta = getTableMeta(event.getTable().getDbName(), event.getTable().getTableName(), false);// 强制重新获取一次
+                if (tableMeta == null) {
+                    tableError = true;
+                    if (!filterTableError) {
+                        throw new CanalParseException("not found [" + event.getTable().getDbName() + "."
+                                                      + event.getTable().getTableName() + "] in db , pls check!");
+                    }
                 }
+
+                // 在做一次判断
+                if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
+                    tableError = true;
+                    if (!filterTableError) {
+                        throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName()
+                                                      + "," + columnInfo.length + " vs " + tableMeta.getFileds().size());
+                    }
+                }
+            } else {
+                logger.warn("[" + event.getTable().getDbName() + "." + event.getTable().getTableName()
+                            + "] is no primary key , skip alibaba_rds_row_id column");
             }
         }
 
@@ -437,6 +459,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             ColumnInfo info = columnInfo[i];
             // mysql 5.6开始支持nolob/mininal类型,并不一定记录所有的列,需要进行判断
             if (!cols.get(i)) {
+                continue;
+            }
+
+            if (existRDSNoPrimaryKey && i == columnCnt - 1 && info.type == LogEvent.MYSQL_TYPE_LONGLONG) {
+                // 不解析最后一列
+                buffer.nextValue(info.type, info.meta, false);
                 continue;
             }
 
@@ -465,6 +493,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
             }
             buffer.nextValue(info.type, info.meta, isBinary);
+            if (existRDSNoPrimaryKey && i == columnCnt - 1 && info.type == LogEvent.MYSQL_TYPE_LONGLONG) {
+                // 不解析最后一列
+                continue;
+            }
 
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
@@ -718,7 +750,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public void setFilterTableError(boolean filterTableError) {
         this.filterTableError = filterTableError;
     }
-    
+
     public void setFilterRows(boolean filterRows) {
         this.filterRows = filterRows;
     }

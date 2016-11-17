@@ -32,6 +32,7 @@ public class TableMetaCache {
     public static final String     COLUMN_DEFAULT = "COLUMN_DEFAULT";
     public static final String     EXTRA          = "EXTRA";
     private MysqlConnection        connection;
+    private boolean                isOnRDS        = false;
 
     // 第一层tableId,第二层schema.table,解决tableId重复，对应多张表
     private Map<String, TableMeta> tableMetaCache;
@@ -56,6 +57,13 @@ public class TableMetaCache {
 
         });
 
+        try {
+            ResultSetPacket packet = connection.query("show global variables  like 'rds\\_%'");
+            if (packet.getFieldValues().size() > 0) {
+                isOnRDS = true;
+            }
+        } catch (IOException e) {
+        }
     }
 
     public TableMeta getTableMeta(String schema, String table) {
@@ -136,4 +144,13 @@ public class TableMetaCache {
             .append('`')
             .toString();
     }
+
+    public boolean isOnRDS() {
+        return isOnRDS;
+    }
+
+    public void setOnRDS(boolean isOnRDS) {
+        this.isOnRDS = isOnRDS;
+    }
+
 }
