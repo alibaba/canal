@@ -6,9 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import com.taobao.tddl.dbsync.binlog.LogPosition;
-import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
-
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +25,8 @@ import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
+import com.taobao.tddl.dbsync.binlog.LogPosition;
+import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 
 public class MysqlConnection implements ErosaConnection {
 
@@ -207,7 +207,9 @@ public class MysqlConnection implements ErosaConnection {
         	// '@@global.binlog_checksum'需要去掉单引号,在mysql 5.6.29下导致master退出
             update("set @master_binlog_checksum= @@global.binlog_checksum");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getFullStackTrace(e));
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+                logger.warn(ExceptionUtils.getFullStackTrace(e));
+            }
         }
 
         try {
