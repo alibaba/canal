@@ -8,7 +8,7 @@ if "%OS%" == "Windows_NT" set ENV_PATH=%~dp0%
 set conf_dir=%ENV_PATH%\..\conf
 set logback_configurationFile=%conf_dir%\logback.xml
 set client_mode=Simple
-if "%1" != "" set client_mode=%1
+if "%1" NEQ "" set client_mode=%1
 
 set CLASSPATH=%conf_dir%
 set CLASSPATH=%conf_dir%\..\lib\*;%CLASSPATH%
