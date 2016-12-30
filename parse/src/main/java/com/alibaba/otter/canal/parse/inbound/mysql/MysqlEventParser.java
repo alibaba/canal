@@ -182,9 +182,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     protected void stopHeartBeat() {
         TimerTask heartBeatTimerTask = this.heartBeatTimerTask;
         super.stopHeartBeat();
-
         if (heartBeatTimerTask != null) {
-
             MysqlConnection mysqlConnection = ((MysqlDetectingTimeTask) heartBeatTimerTask).getMysqlConnection();
             try {
                 mysqlConnection.disconnect();
@@ -414,7 +412,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     }
                 }
                 // 其余情况
-                logger.warn("prepare to find start position just last position\n {}",JsonUtils.marshalToString(logPosition));
+                logger.warn("prepare to find start position just last position\n {}",
+                    JsonUtils.marshalToString(logPosition));
                 return logPosition.getPostion();
             } else {
                 // 针对切换的情况，考虑回退时间
