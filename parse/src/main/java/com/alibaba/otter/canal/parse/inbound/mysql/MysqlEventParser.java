@@ -180,6 +180,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     protected void stopHeartBeat() {
+        TimerTask heartBeatTimerTask = this.heartBeatTimerTask;
         super.stopHeartBeat();
 
         if (heartBeatTimerTask != null) {
