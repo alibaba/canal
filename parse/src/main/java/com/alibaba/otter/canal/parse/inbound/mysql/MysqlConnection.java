@@ -139,8 +139,8 @@ public class MysqlConnection implements ErosaConnection {
         HeaderPacket binlogDumpHeader = new HeaderPacket();
         binlogDumpHeader.setPacketBodyLength(cmdBody.length);
         binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
-        PacketManager.write(connector.getChannel(), new ByteBuffer[] { ByteBuffer.wrap(binlogDumpHeader.toBytes()),
-                ByteBuffer.wrap(cmdBody) });
+        PacketManager.write(connector.getChannel(), binlogDumpHeader.toBytes(),
+                cmdBody);
 
         connector.setDumping(true);
     }
