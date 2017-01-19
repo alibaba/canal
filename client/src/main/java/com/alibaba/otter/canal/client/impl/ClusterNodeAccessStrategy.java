@@ -114,5 +114,4 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
         return zkClient;
     }
 
-
 }

@@ -27,7 +27,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     private EntryPosition      masterPosition;        // binlog信息
     private MysqlConnection    metaConnection;        // 查询meta信息的链接
     private TableMetaCache     tableMetaCache;        // 对应meta
-    
+
     private String             directory;
     private boolean            needWait   = false;
     private int                bufferSize = 16 * 1024;
@@ -39,24 +39,24 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     @Override
     protected ErosaConnection buildErosaConnection() {
         return buildLocalBinLogConnection();
-    }   
-    
+    }
+
     @Override
-	protected void preDump(ErosaConnection connection) {
-    	metaConnection = buildMysqlConnection();
+    protected void preDump(ErosaConnection connection) {
+        metaConnection = buildMysqlConnection();
         try {
             metaConnection.connect();
         } catch (IOException e) {
             throw new CanalParseException(e);
         }
-        
+
         tableMetaCache = new TableMetaCache(metaConnection);
         ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
-	}
+    }
 
-	@Override
-	protected void afterDump(ErosaConnection connection) {
-		if (metaConnection != null) {
+    @Override
+    protected void afterDump(ErosaConnection connection) {
+        if (metaConnection != null) {
             try {
                 metaConnection.disconnect();
             } catch (IOException e) {
@@ -64,19 +64,19 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
                     .getAddress(), e);
             }
         }
-	}
+    }
 
-	public void start() throws CanalParseException {
+    public void start() throws CanalParseException {
         if (runningInfo == null) { // 第一次链接主库
             runningInfo = masterInfo;
         }
 
         super.start();
     }
-	
+
     @Override
-	public void stop() {
-    	if (metaConnection != null) {
+    public void stop() {
+        if (metaConnection != null) {
             try {
                 metaConnection.disconnect();
             } catch (IOException e) {
@@ -90,9 +90,9 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
         }
 
         super.stop();
-	}
+    }
 
-	private ErosaConnection buildLocalBinLogConnection() {
+    private ErosaConnection buildLocalBinLogConnection() {
         LocalBinLogConnection connection = new LocalBinLogConnection();
 
         connection.setBufferSize(this.bufferSize);
@@ -114,7 +114,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
         connection.setCharset(connectionCharset);
         return connection;
     }
-    
+
     @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) {
         // 处理逻辑

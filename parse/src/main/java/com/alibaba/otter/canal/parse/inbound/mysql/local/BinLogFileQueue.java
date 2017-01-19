@@ -190,9 +190,9 @@ public class BinLogFileQueue {
         files.addAll(FileUtils.listFiles(directory, new IOFileFilter() {
 
             public boolean accept(File file) {
-				Pattern pattern = Pattern.compile("\\d+$");
-				Matcher matcher = pattern.matcher(file.getName());
-				return file.getName().startsWith(baseName) && matcher.find();
+                Pattern pattern = Pattern.compile("\\d+$");
+                Matcher matcher = pattern.matcher(file.getName());
+                return file.getName().startsWith(baseName) && matcher.find();
             }
 
             public boolean accept(File dir, String name) {

@@ -16,9 +16,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.1.6.Final</version>
 		</dependency>
-
 		<!-- zk -->
 		<dependency>
 			<groupId>org.apache.zookeeper</groupId>
@@ -36,7 +34,6 @@
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

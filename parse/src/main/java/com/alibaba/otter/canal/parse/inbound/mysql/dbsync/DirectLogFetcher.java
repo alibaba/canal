@@ -156,7 +156,7 @@ public class DirectLogFetcher extends LogFetcher {
                 throw new IOException("Unexpected End Stream");
             }
         }
-        
+
         // for (int count, n = 0; n < len; n += count) {
         // if (0 > (count = input.read(buffer, off + n, len - n))) {
         // // Reached end of input stream

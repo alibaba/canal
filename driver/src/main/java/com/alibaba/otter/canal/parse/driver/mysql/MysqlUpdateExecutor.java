@@ -48,7 +48,7 @@ public class MysqlUpdateExecutor {
             packet.fromBytes(body);
             throw new IOException(packet + "\n with command: " + updateString);
         }
-        //channel.lock();//锁定读
+        // channel.lock();//锁定读
 
         OKPacket packet = new OKPacket();
         packet.fromBytes(body);

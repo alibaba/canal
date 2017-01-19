@@ -52,6 +52,6 @@ public abstract class PacketManager {
         HeaderPacket header = new HeaderPacket();
         header.setPacketBodyLength(body.length);
         header.setPacketSequenceNumber(packetSeqNumber);
-        write(ch, header.toBytes(),body);
+        write(ch, header.toBytes(), body);
     }
 }

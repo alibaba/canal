@@ -82,9 +82,9 @@ public class MysqlQueryExecutor {
             rowDataPacket.fromBytes(body);
             rowData.add(rowDataPacket);
         }
-        //未知，不知道是否需要锁定
-        //channel.lock();//锁定读
-        
+        // 未知，不知道是否需要锁定
+        // channel.lock();//锁定读
+
         ResultSetPacket resultSet = new ResultSetPacket();
         resultSet.getFieldDescriptors().addAll(fields);
         for (RowDataPacket r : rowData) {

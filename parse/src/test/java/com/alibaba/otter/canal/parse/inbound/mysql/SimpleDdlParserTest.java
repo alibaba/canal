@@ -164,7 +164,7 @@ public class SimpleDdlParserTest {
         Assert.assertEquals("retl_mark1", result.getOriTableName());
         Assert.assertEquals("retl_mark3", result.getTableName());
 
-        //正则匹配test case
+        // 正则匹配test case
 
         queryString = "rename table totl_mark to totl_mark2";
         result = SimpleDdlParser.parse(queryString, "retl");

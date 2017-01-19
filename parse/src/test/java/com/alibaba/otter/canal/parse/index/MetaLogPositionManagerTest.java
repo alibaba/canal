@@ -3,9 +3,8 @@ package com.alibaba.otter.canal.parse.index;
 import java.net.InetSocketAddress;
 import java.util.Date;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
