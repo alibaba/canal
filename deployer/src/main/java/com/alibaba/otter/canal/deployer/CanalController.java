@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
+import org.I0Itec.zkclient.exception.ZkNodeExistsException;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
@@ -172,6 +173,8 @@ public class CanalController {
                 if (zkclientx != null) {
                     runningMonitor.setZkClient(zkclientx);
                 }
+                // 触发创建一下cid节点
+                runningMonitor.init();
                 return runningMonitor;
             }
         }));
@@ -189,10 +192,10 @@ public class CanalController {
                         instanceConfigs.put(destination, config);
                     }
 
-                    if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
+                    if (!embededCanalServer.isStart(destination)) {
                         // HA机制启动
                         ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
-                        if (!runningMonitor.isStart()) {
+                        if (!config.getLazy() && !runningMonitor.isStart()) {
                             runningMonitor.start();
                         }
                     }
@@ -389,10 +392,10 @@ public class CanalController {
             final String destination = entry.getKey();
             InstanceConfig config = entry.getValue();
             // 创建destination的工作节点
-            if (!config.getLazy() && !embededCanalServer.isStart(destination)) {
+            if (!embededCanalServer.isStart(destination)) {
                 // HA机制启动
                 ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
-                if (!runningMonitor.isStart()) {
+                if (!config.getLazy() && !runningMonitor.isStart()) {
                     runningMonitor.start();
                 }
             }
@@ -448,6 +451,9 @@ public class CanalController {
                 String parentDir = path.substring(0, path.lastIndexOf('/'));
                 zkclientx.createPersistent(parentDir, true);
                 zkclientx.createEphemeral(path);
+            } catch (ZkNodeExistsException e) {
+                // ignore
+                // 因为第一次启动时创建了cid,但在stop/start的时可能会关闭和新建,允许出现NodeExists问题s
             }
 
         }

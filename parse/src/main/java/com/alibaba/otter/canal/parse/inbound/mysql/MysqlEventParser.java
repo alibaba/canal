@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.util.CollectionUtils;
 
+import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.CanalHASwitchable;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
@@ -93,6 +94,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 for (BinlogFormat supportFormat : supportBinlogFormats) {
                     if (supportFormat != null && format == supportFormat) {
                         found = true;
+                        break;
                     }
                 }
 
@@ -107,6 +109,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 for (BinlogImage supportImage : supportBinlogImages) {
                     if (supportImage != null && image == supportImage) {
                         found = true;
+                        break;
                     }
                 }
 
@@ -177,10 +180,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     protected void stopHeartBeat() {
+        TimerTask heartBeatTimerTask = this.heartBeatTimerTask;
         super.stopHeartBeat();
-
-        if (heartBeatTimerTask != null) {
-
+        if (heartBeatTimerTask != null && heartBeatTimerTask instanceof MysqlDetectingTimeTask) {
             MysqlConnection mysqlConnection = ((MysqlDetectingTimeTask) heartBeatTimerTask).getMysqlConnection();
             try {
                 mysqlConnection.disconnect();
@@ -395,7 +397,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     // binlog定位位点失败,可能有两个原因:
                     // 1. binlog位点被删除
                     // 2.vip模式的mysql,发生了主备切换,判断一下serverId是否变化,针对这种模式可以发起一次基于时间戳查找合适的binlog位点
-                    boolean case2 = (standbyInfo.getAddress() == null)
+                    boolean case2 = (standbyInfo == null || standbyInfo.getAddress() == null)
                                     && logPosition.getPostion().getServerId() != null
                                     && !logPosition.getPostion().getServerId().equals(findServerId(mysqlConnection));
                     if (case2) {
@@ -410,7 +412,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     }
                 }
                 // 其余情况
-                logger.warn("prepare to find start position just last position");
+                logger.warn("prepare to find start position just last position\n {}",
+                    JsonUtils.marshalToString(logPosition));
                 return logPosition.getPostion();
             } else {
                 // 针对切换的情况，考虑回退时间

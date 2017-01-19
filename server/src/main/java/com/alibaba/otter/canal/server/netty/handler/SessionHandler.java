@@ -66,7 +66,6 @@ public class SessionHandler extends SimpleChannelHandler {
                             Short.valueOf(sub.getClientId()),
                             sub.getFilter());
                         MDC.put("destination", clientIdentity.getDestination());
-                        embeddedServer.subscribe(clientIdentity);
 
                         // 尝试启动，如果已经启动，忽略
                         if (!embeddedServer.isStart(clientIdentity.getDestination())) {
@@ -76,6 +75,7 @@ public class SessionHandler extends SimpleChannelHandler {
                             }
                         }
 
+                        embeddedServer.subscribe(clientIdentity);
                         ctx.setAttachment(clientIdentity);// 设置状态数据
                         NettyUtils.ack(ctx.getChannel(), null);
                     } else {

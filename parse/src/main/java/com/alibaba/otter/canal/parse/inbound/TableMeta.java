@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -42,6 +43,17 @@ public class TableMeta {
 
     public void setFileds(List<FieldMeta> fileds) {
         this.fileds = fileds;
+    }
+
+    public List<FieldMeta> getPrimaryFields() {
+        List<FieldMeta> primarys = new ArrayList<TableMeta.FieldMeta>();
+        for (FieldMeta meta : fileds) {
+            if (meta.isKey()) {
+                primarys.add(meta);
+            }
+        }
+
+        return primarys;
     }
 
     public static class FieldMeta {

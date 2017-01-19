@@ -131,6 +131,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      */
     @Override
     public void subscribe(ClientIdentity clientIdentity) throws CanalServerException {
+    	checkStart(clientIdentity.getDestination());
+    	
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
         if (!canalInstance.getMetaManager().isStart()) {
             canalInstance.getMetaManager().start();

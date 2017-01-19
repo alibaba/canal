@@ -142,8 +142,8 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
     }
 
     public void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException {
-        updateCursorTasks.add(clientIdentity);// 添加到任务队列中进行触发
         super.updateCursor(clientIdentity, position);
+        updateCursorTasks.add(clientIdentity);// 添加到任务队列中进行触发
     }
 
     public Position getCursor(ClientIdentity clientIdentity) throws CanalMetaManagerException {

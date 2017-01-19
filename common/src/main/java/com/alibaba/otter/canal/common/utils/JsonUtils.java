@@ -1,12 +1,19 @@
 package com.alibaba.otter.canal.common.utils;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.JSONSerializer;
+import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.PropertyFilter;
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializeWriter;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 
@@ -16,6 +23,12 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
  * @author jianghang
  */
 public class JsonUtils {
+
+    static {
+        SerializeConfig.getGlobalInstance().put(InetAddress.class, InetAddressSerializer.instance);
+        SerializeConfig.getGlobalInstance().put(Inet4Address.class, InetAddressSerializer.instance);
+        SerializeConfig.getGlobalInstance().put(Inet6Address.class, InetAddressSerializer.instance);
+    }
 
     public static <T> T unmarshalFromByte(byte[] bytes, Class<T> targetClass) {
         return (T) JSON.parseObject(bytes, targetClass);// 默认为UTF-8
@@ -68,6 +81,23 @@ public class JsonUtils {
             return out.toString();
         } finally {
             out.close();
+        }
+    }
+
+    public static class InetAddressSerializer implements ObjectSerializer {
+
+        public static InetAddressSerializer instance = new InetAddressSerializer();
+
+        public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType)
+                                                                                                     throws IOException {
+            if (object == null) {
+                serializer.writeNull();
+                return;
+            }
+
+            InetAddress address = (InetAddress) object;
+            // 优先使用name
+            serializer.write(address.getHostName());
         }
     }
 }
