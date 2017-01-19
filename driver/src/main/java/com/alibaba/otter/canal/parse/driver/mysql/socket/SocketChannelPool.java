@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author luoyaogui 实现channel的管理（监听连接、读数据、回收） 2016-12-28
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "deprecation" })
 public abstract class SocketChannelPool {
 
     private static EventLoopGroup              group     = new NioEventLoopGroup();                        // 非阻塞IO线程组
@@ -57,7 +57,9 @@ public abstract class SocketChannelPool {
 
             @Override
             public void operationComplete(ChannelFuture arg0) throws Exception {
-                if (arg0.isSuccess()) socket.setChannel(arg0.channel(), false);
+                if (arg0.isSuccess()) {
+                    socket.setChannel(arg0.channel(), false);
+                }
                 synchronized (socket) {
                     socket.notify();
                 }

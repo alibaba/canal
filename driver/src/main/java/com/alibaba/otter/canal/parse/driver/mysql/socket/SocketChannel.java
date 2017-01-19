@@ -10,7 +10,9 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 /**
- * @author luoyaogui 封装netty的通信channel和数据接收缓存，实现读、写、连接校验的功能。 2016-12-28
+ * 封装netty的通信channel和数据接收缓存，实现读、写、连接校验的功能。 2016-12-28
+ * 
+ * @author luoyaogui
  */
 public class SocketChannel {
 
@@ -24,7 +26,7 @@ public class SocketChannel {
 
     public void setChannel(Channel channel, boolean notify) {
         this.channel = channel;
-        if (notify) {// 是否需要通知，主要时channel不可用时
+        if (notify) {// 是否需要通知，主要是channel不可用时
             synchronized (this) {
                 notifyAll();
             }
@@ -50,12 +52,15 @@ public class SocketChannel {
     }
 
     public int read(ByteBuffer buffer) throws IOException {
-        if (null == channel) throw new IOException("socket has Interrupted !");
+        if (null == channel) {
+            throw new IOException("socket has Interrupted !");
+        }
         if (cache.readableBytes() < buffer.remaining()) {
             synchronized (this) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
+                    throw new IOException("socket has Interrupted !");
                 }
             }
         } else {
