@@ -182,7 +182,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     protected void stopHeartBeat() {
         TimerTask heartBeatTimerTask = this.heartBeatTimerTask;
         super.stopHeartBeat();
-        if (heartBeatTimerTask != null) {
+        if (heartBeatTimerTask != null && heartBeatTimerTask instanceof MysqlDetectingTimeTask) {
             MysqlConnection mysqlConnection = ((MysqlDetectingTimeTask) heartBeatTimerTask).getMysqlConnection();
             try {
                 mysqlConnection.disconnect();
