@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +11,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetHeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.RowDataPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
 /**
@@ -82,13 +82,15 @@ public class MysqlQueryExecutor {
             rowDataPacket.fromBytes(body);
             rowData.add(rowDataPacket);
         }
-
+        //未知，不知道是否需要锁定
+        //channel.lock();//锁定读
+        
         ResultSetPacket resultSet = new ResultSetPacket();
         resultSet.getFieldDescriptors().addAll(fields);
         for (RowDataPacket r : rowData) {
             resultSet.getFieldValues().addAll(r.getColumns());
         }
-        resultSet.setSourceAddress(channel.socket().getRemoteSocketAddress());
+        resultSet.setSourceAddress(channel.getRemoteSocketAddress());
 
         return resultSet;
     }
