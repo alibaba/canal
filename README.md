@@ -80,3 +80,10 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li>新浪微博： agapple0002 </li>
 <li>报告issue：<a href="https://github.com/alibaba/canal/issues">issues</a></li>
 </ol>
+
+<pre>
+【招聘】阿里巴巴中间件团队招聘JAVA高级工程师
+岗位主要为技术型内容(非业务部门)，阿里中间件整个体系对于未来想在技术上有所沉淀的同学还是非常有帮助的
+工作地点：杭州、北京均可. ps. 阿里待遇向来都是不错的，有意者可以QQ、微博私聊. 
+具体招聘内容：https://job.alibaba.com/zhaopin/position_detail.htm?positionId=32666
+</pre>
