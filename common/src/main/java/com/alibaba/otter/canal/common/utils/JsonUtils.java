@@ -99,5 +99,17 @@ public class JsonUtils {
             // 优先使用name
             serializer.write(address.getHostName());
         }
+        
+        public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features)
+                                                                                                     throws IOException {
+            if (object == null) {
+                serializer.writeNull();
+                return;
+            }
+
+            InetAddress address = (InetAddress) object;
+            // 优先使用name
+            serializer.write(address.getHostName());
+        }
     }
 }
