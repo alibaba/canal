@@ -23,9 +23,9 @@ public class MysqlUpdateExecutor {
 
     private SocketChannel       channel;
 
-    public MysqlUpdateExecutor(MysqlConnector connector){
+    public MysqlUpdateExecutor(MysqlConnector connector) throws IOException{
         if (!connector.isConnected()) {
-            throw new RuntimeException("should execute connector.connect() first");
+            throw new IOException("should execute connector.connect() first");
         }
 
         this.channel = connector.getChannel();
