@@ -330,17 +330,14 @@ public class QueryLogEvent extends LogEvent {
                                                           * MariaDb type,
                                                           * sec_part of NOW()
                                                           */
-                                                         + 1 + (MAX_DBS_IN_EVENT_MTS * (1 + NAME_LEN)) + 3 + 1 + 16 + 1 + 60/*
-                                                                                                                             * type
-                                                                                                                             * ,
-                                                                                                                             * user_len
-                                                                                                                             * ,
-                                                                                                                             * user
-                                                                                                                             * ,
-                                                                                                                             * host_len
-                                                                                                                             * ,
-                                                                                                                             * host
-                                                                                                                             */);
+                                                         + 1 + (MAX_DBS_IN_EVENT_MTS * (1 + NAME_LEN)) + 3 + 1 + 32 * 3
+                                                         + 1 + 60/*
+                                                                  * type ,
+                                                                  * user_len ,
+                                                                  * user ,
+                                                                  * host_len ,
+                                                                  * host
+                                                                  */);
     /**
      * Fixed data part:
      * <ul>
@@ -397,7 +394,7 @@ public class QueryLogEvent extends LogEvent {
     // inspection by the DBA
     private final long      execTime;
     private final int       errorCode;
-    private final long      sessionId;                                                                                           /* thread_id */
+    private final long      sessionId;                                                            /* thread_id */
 
     /**
      * 'flags2' is a second set of flags (on top of those in Log_event), for
@@ -499,26 +496,26 @@ public class QueryLogEvent extends LogEvent {
     }
 
     /* query event post-header */
-    public static final int Q_THREAD_ID_OFFSET          = 0;
-    public static final int Q_EXEC_TIME_OFFSET          = 4;
-    public static final int Q_DB_LEN_OFFSET             = 8;
-    public static final int Q_ERR_CODE_OFFSET           = 9;
-    public static final int Q_STATUS_VARS_LEN_OFFSET    = 11;
-    public static final int Q_DATA_OFFSET               = QUERY_HEADER_LEN;
+    public static final int Q_THREAD_ID_OFFSET                = 0;
+    public static final int Q_EXEC_TIME_OFFSET                = 4;
+    public static final int Q_DB_LEN_OFFSET                   = 8;
+    public static final int Q_ERR_CODE_OFFSET                 = 9;
+    public static final int Q_STATUS_VARS_LEN_OFFSET          = 11;
+    public static final int Q_DATA_OFFSET                     = QUERY_HEADER_LEN;
 
     /* these are codes, not offsets; not more than 256 values (1 byte). */
-    public static final int Q_FLAGS2_CODE               = 0;
-    public static final int Q_SQL_MODE_CODE             = 1;
+    public static final int Q_FLAGS2_CODE                     = 0;
+    public static final int Q_SQL_MODE_CODE                   = 1;
 
     /**
      * Q_CATALOG_CODE is catalog with end zero stored; it is used only by MySQL
      * 5.0.x where 0<=x<=3. We have to keep it to be able to replicate these old
      * masters.
      */
-    public static final int Q_CATALOG_CODE              = 2;
-    public static final int Q_AUTO_INCREMENT            = 3;
-    public static final int Q_CHARSET_CODE              = 4;
-    public static final int Q_TIME_ZONE_CODE            = 5;
+    public static final int Q_CATALOG_CODE                    = 2;
+    public static final int Q_AUTO_INCREMENT                  = 3;
+    public static final int Q_CHARSET_CODE                    = 4;
+    public static final int Q_TIME_ZONE_CODE                  = 5;
 
     /**
      * Q_CATALOG_NZ_CODE is catalog withOUT end zero stored; it is used by MySQL
@@ -528,31 +525,47 @@ public class QueryLogEvent extends LogEvent {
      * would crash (segfault etc) because it would expect a 0 when there is
      * none.
      */
-    public static final int Q_CATALOG_NZ_CODE           = 6;
+    public static final int Q_CATALOG_NZ_CODE                 = 6;
 
-    public static final int Q_LC_TIME_NAMES_CODE        = 7;
+    public static final int Q_LC_TIME_NAMES_CODE              = 7;
 
-    public static final int Q_CHARSET_DATABASE_CODE     = 8;
+    public static final int Q_CHARSET_DATABASE_CODE           = 8;
 
-    public static final int Q_TABLE_MAP_FOR_UPDATE_CODE = 9;
+    public static final int Q_TABLE_MAP_FOR_UPDATE_CODE       = 9;
 
-    public static final int Q_MASTER_DATA_WRITTEN_CODE  = 10;
+    public static final int Q_MASTER_DATA_WRITTEN_CODE        = 10;
 
-    public static final int Q_INVOKER                   = 11;
+    public static final int Q_INVOKER                         = 11;
 
     /**
      * Q_UPDATED_DB_NAMES status variable collects of the updated databases
      * total number and their names to be propagated to the slave in order to
      * facilitate the parallel applying of the Query events.
      */
-    public static final int Q_UPDATED_DB_NAMES          = 12;
+    public static final int Q_UPDATED_DB_NAMES                = 12;
 
-    public static final int Q_MICROSECONDS              = 13;
+    public static final int Q_MICROSECONDS                    = 13;
+    /**
+     * A old (unused now) code for Query_log_event status similar to
+     * G_COMMIT_TS.
+     */
+    public static final int Q_COMMIT_TS                       = 14;
+    /**
+     * A code for Query_log_event status, similar to G_COMMIT_TS2.
+     */
+    public static final int Q_COMMIT_TS2                      = 15;
+    /**
+     * The master connection @@session.explicit_defaults_for_timestamp which is
+     * recorded for queries, CREATE and ALTER table that is defined with a
+     * TIMESTAMP column, that are dependent on that feature. For pre-WL6292
+     * master's the associated with this code value is zero.
+     */
+    public static final int Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP = 16;
 
     /**
      * FROM MariaDB 5.5.34
      */
-    public static final int Q_HRNOW                     = 128;
+    public static final int Q_HRNOW                           = 128;
 
     private final void unpackVariables(LogBuffer buffer, final int end) throws IOException {
         int code = -1;
@@ -631,6 +644,9 @@ public class QueryLogEvent extends LogEvent {
                             int length = end - buffer.position();
                             mtsAccessedDbNames[i] = buffer.getFixString(length < NAME_LEN ? length : NAME_LEN);
                         }
+                        break;
+                    case Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP:
+                        buffer.forward(1);
                         break;
                     case Q_HRNOW:
                         // int when_sec_part = buffer.getUint24();
