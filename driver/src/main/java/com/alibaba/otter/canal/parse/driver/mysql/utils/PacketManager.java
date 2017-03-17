@@ -2,9 +2,9 @@ package com.alibaba.otter.canal.parse.driver.mysql.utils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 
 public abstract class PacketManager {
 
@@ -40,8 +40,20 @@ public abstract class PacketManager {
      * @return
      * @throws IOException
      */
-    public static void write(SocketChannel ch, byte[]... srcs) throws IOException {
-        ch.writeChannel(srcs);
+    public static void write(SocketChannel ch, ByteBuffer[] srcs) throws IOException {
+        @SuppressWarnings("unused")
+        long total = 0;
+        for (ByteBuffer buffer : srcs) {
+            total += buffer.remaining();
+        }
+
+        ch.write(srcs);
+        // https://github.com/alibaba/canal/issues/24
+        // 部分windows用户会出现size != total的情况，jdk为java7/openjdk，估计和java版本有关，暂时不做检查
+        // long size = ch.write(srcs);
+        // if (size != total) {
+        // throw new IOException("unexpected blocking io behavior");
+        // }
     }
 
     public static void write(SocketChannel ch, byte[] body) throws IOException {
@@ -52,6 +64,6 @@ public abstract class PacketManager {
         HeaderPacket header = new HeaderPacket();
         header.setPacketBodyLength(body.length);
         header.setPacketSequenceNumber(packetSeqNumber);
-        write(ch, header.toBytes(), body);
+        write(ch, new ByteBuffer[] { ByteBuffer.wrap(header.toBytes()), ByteBuffer.wrap(body) });
     }
 }

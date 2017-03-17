@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -93,6 +94,7 @@ public class DirectLogFetcherTest {
         HeaderPacket binlogDumpHeader = new HeaderPacket();
         binlogDumpHeader.setPacketBodyLength(cmdBody.length);
         binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
-        PacketManager.write(connector.getChannel(), binlogDumpHeader.toBytes(), cmdBody);
+        PacketManager.write(connector.getChannel(), new ByteBuffer[] { ByteBuffer.wrap(binlogDumpHeader.toBytes()),
+                ByteBuffer.wrap(cmdBody) });
     }
 }

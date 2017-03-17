@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
+import java.nio.channels.SocketChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QueryCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.OKPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
 /**
@@ -48,7 +48,6 @@ public class MysqlUpdateExecutor {
             packet.fromBytes(body);
             throw new IOException(packet + "\n with command: " + updateString);
         }
-        // channel.lock();//锁定读
 
         OKPacket packet = new OKPacket();
         packet.fromBytes(body);

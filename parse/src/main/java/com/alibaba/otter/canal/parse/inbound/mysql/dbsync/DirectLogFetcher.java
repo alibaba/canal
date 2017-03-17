@@ -5,11 +5,11 @@ import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.SocketChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.taobao.tddl.dbsync.binlog.LogFetcher;
 
 /**
