@@ -1,5 +1,9 @@
 package com.alibaba.otter.canal.common.utils;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.serializer.*;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.Inet4Address;
@@ -7,15 +11,6 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
-import com.alibaba.fastjson.serializer.PropertyFilter;
-import com.alibaba.fastjson.serializer.SerializeConfig;
-import com.alibaba.fastjson.serializer.SerializeWriter;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 
 /**
  * 字节处理相关工具类
@@ -88,8 +83,8 @@ public class JsonUtils {
 
         public static InetAddressSerializer instance = new InetAddressSerializer();
 
-        public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType)
-                                                                                                     throws IOException {
+        @Override
+        public void write(JSONSerializer serializer, Object object, Object fieldName, Type type, int i) throws IOException {
             if (object == null) {
                 serializer.writeNull();
                 return;
