@@ -952,9 +952,9 @@ public final class RowsLogBuffer {
                 len = buffer.getUint16();
                 buffer.forward(meta - 2);
                 int position = buffer.position();
-                Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(), buffer, len - 1);
+                Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(), buffer, len - 1, charsetName);
                 StringBuilder builder = new StringBuilder();
-                jsonValue.toJsonString(builder);
+                jsonValue.toJsonString(builder, charsetName);
                 value = builder.toString();
                 buffer.position(position + len);
                 // byte[] binary = new byte[len];
