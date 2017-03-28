@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.io.IOException;
 
-import com.alibaba.otter.canal.parse.index.LogPositionManager;
+import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.otter.canal.parse.CanalEventParser;
@@ -150,7 +150,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
 
     // ========================= setter / getter =========================
 
-    public void setLogPositionManager(LogPositionManager logPositionManager) {
+    public void setLogPositionManager(CanalLogPositionManager logPositionManager) {
         this.logPositionManager = logPositionManager;
     }
 

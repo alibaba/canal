@@ -338,10 +338,10 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         return haController;
     }
 
-    protected LogPositionManager initLogPositionManager() {
+    protected CanalLogPositionManager initLogPositionManager() {
         logger.info("init logPositionPersistManager begin...");
         IndexMode indexMode = parameters.getIndexMode();
-        LogPositionManager logPositionManager;
+        CanalLogPositionManager logPositionManager;
         if (indexMode.isMemory()) {
             logPositionManager = new MemoryLogPositionManager();
         } else if (indexMode.isZookeeper()) {
@@ -356,7 +356,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             MemoryLogPositionManager primary = new MemoryLogPositionManager();
             MetaLogPositionManager secondary = new MetaLogPositionManager(metaManager);
 
-            logPositionManager = new FailoverLogPositionManager(primary, secondary);
+            logPositionManager = new FailbackLogPositionManager(primary, secondary);
         } else {
             throw new CanalException("unsupport indexMode for " + indexMode);
         }

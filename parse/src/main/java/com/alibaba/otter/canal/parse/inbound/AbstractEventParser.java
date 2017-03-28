@@ -8,7 +8,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.parse.index.LogPositionManager;
+import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -44,7 +44,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     protected final Logger                           logger                     = LoggerFactory.getLogger(this.getClass());
 
-    protected LogPositionManager                logPositionManager         = null;
+    protected CanalLogPositionManager logPositionManager         = null;
     protected CanalEventSink<List<CanalEntry.Entry>> eventSink                  = null;
     protected CanalEventFilter                       eventFilter                = null;
     protected CanalEventFilter                       eventBlackFilter           = null;
@@ -495,7 +495,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return this.alarmHandler;
     }
 
-    public void setLogPositionManager(LogPositionManager logPositionManager) {
+    public void setLogPositionManager(CanalLogPositionManager logPositionManager) {
         this.logPositionManager = logPositionManager;
     }
 
@@ -503,7 +503,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.transactionSize = transactionSize;
     }
 
-    public LogPositionManager getLogPositionManager() {
+    public CanalLogPositionManager getLogPositionManager() {
         return logPositionManager;
     }
 

@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.instance.core;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.parse.index.LogPositionManager;
+import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,7 +171,7 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
         if (eventParser instanceof AbstractEventParser) {
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
             // 首先启动log position管理器
-            LogPositionManager logPositionManager = abstractEventParser.getLogPositionManager();
+            CanalLogPositionManager logPositionManager = abstractEventParser.getLogPositionManager();
             if (!logPositionManager.isStart()) {
                 logPositionManager.start();
             }
@@ -196,7 +196,7 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
         if (eventParser instanceof AbstractEventParser) {
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;
             // 首先启动log position管理器
-            LogPositionManager logPositionManager = abstractEventParser.getLogPositionManager();
+            CanalLogPositionManager logPositionManager = abstractEventParser.getLogPositionManager();
             if (logPositionManager.isStart()) {
                 logPositionManager.stop();
             }

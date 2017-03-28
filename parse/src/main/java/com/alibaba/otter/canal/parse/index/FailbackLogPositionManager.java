@@ -15,14 +15,14 @@ import org.slf4j.LoggerFactory;
  * 应用场景：比如针对内存buffer，出现HA切换，先尝试从内存buffer区中找到lastest position，如果不存在才尝试找一下meta里消费的信息
  * </pre>
  */
-public class FailoverLogPositionManager extends AbstractLogPositionManager {
+public class FailbackLogPositionManager extends AbstractLogPositionManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(FailoverLogPositionManager.class);
+    private final static Logger logger = LoggerFactory.getLogger(FailbackLogPositionManager.class);
 
-    private final LogPositionManager primary;
-    private final LogPositionManager secondary;
+    private final CanalLogPositionManager primary;
+    private final CanalLogPositionManager secondary;
 
-    public FailoverLogPositionManager(LogPositionManager primary, LogPositionManager secondary) {
+    public FailbackLogPositionManager(CanalLogPositionManager primary, CanalLogPositionManager secondary) {
         if (primary == null) {
             throw new NullPointerException("nul primary LogPositionManager");
         }

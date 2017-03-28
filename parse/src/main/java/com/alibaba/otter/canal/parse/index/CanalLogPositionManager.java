@@ -8,7 +8,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  * Created by yinxiu on 17/3/17.
  * Email: marklin.hz@gmail.com
  */
-public interface LogPositionManager extends CanalLifeCycle {
+public interface CanalLogPositionManager extends CanalLifeCycle {
 
     LogPosition getLatestIndexBy(String destination);
 
