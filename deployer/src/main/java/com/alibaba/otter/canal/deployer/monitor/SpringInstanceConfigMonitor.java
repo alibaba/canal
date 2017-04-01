@@ -49,7 +49,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
     private ScheduledExecutorService         executor             = Executors.newScheduledThreadPool(1,
                                                                       new NamedThreadFactory("canal-instance-scan"));
 
-    private volatile boolean isFirst = true;
+    private volatile boolean                 isFirst              = true;
 
     public void start() {
         super.start();
@@ -60,7 +60,9 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
             public void run() {
                 try {
                     scan();
-                    if (isFirst) isFirst = false;
+                    if (isFirst) {
+                        isFirst = false;
+                    }
                 } catch (Throwable e) {
                     logger.error("scan failed", e);
                 }
