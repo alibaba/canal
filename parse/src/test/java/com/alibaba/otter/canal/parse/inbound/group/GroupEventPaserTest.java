@@ -2,13 +2,13 @@ package com.alibaba.otter.canal.parse.inbound.group;
 
 import java.net.InetSocketAddress;
 
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
-import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
@@ -70,14 +70,15 @@ public class GroupEventPaserTest {
         mysqlEventPaser.setMasterPosition(defaultPosition);
         mysqlEventPaser.setBinlogParser(buildParser(buildAuthentication()));
         mysqlEventPaser.setEventSink(new EntryEventSink());
-        mysqlEventPaser.setLogPositionManager(new AbstractCanalLogPositionManager() {
-
-            public void persistLogPosition(String destination, LogPosition logPosition) {
-                // System.out.println(logPosition);
-            }
-
+        mysqlEventPaser.setLogPositionManager(new AbstractLogPositionManager() {
+            @Override
             public LogPosition getLatestIndexBy(String destination) {
                 return null;
+            }
+
+            @Override
+            public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+                System.out.println(logPosition);
             }
         });
         return mysqlEventPaser;
