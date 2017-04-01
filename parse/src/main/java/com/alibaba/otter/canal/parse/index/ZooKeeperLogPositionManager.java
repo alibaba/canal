@@ -1,21 +1,21 @@
 package com.alibaba.otter.canal.parse.index;
 
+import org.I0Itec.zkclient.exception.ZkNoNodeException;
+
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
-import org.I0Itec.zkclient.exception.ZkNoNodeException;
 
 /**
- * Created by yinxiu on 17/3/17.
- * Email: marklin.hz@gmail.com
+ * Created by yinxiu on 17/3/17. Email: marklin.hz@gmail.com
  */
 public class ZooKeeperLogPositionManager extends AbstractLogPositionManager {
 
     private final ZkClientx zkClientx;
 
-    public ZooKeeperLogPositionManager(ZkClientx zkClient) {
+    public ZooKeeperLogPositionManager(ZkClientx zkClient){
         if (zkClient == null) {
             throw new NullPointerException("null zkClient");
         }

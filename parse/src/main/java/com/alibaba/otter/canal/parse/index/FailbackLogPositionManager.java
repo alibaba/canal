@@ -1,14 +1,13 @@
 package com.alibaba.otter.canal.parse.index;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.alibaba.otter.canal.protocol.position.LogPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.protocol.position.LogPosition;
+
 /**
- * Created by yinxiu on 17/3/18.
- * Email: marklin.hz@gmail.com
- *
+ * Created by yinxiu on 17/3/18. Email: marklin.hz@gmail.com
  * 实现基于failover查找的机制完成meta的操作
  *
  * <pre>
@@ -17,12 +16,12 @@ import org.slf4j.LoggerFactory;
  */
 public class FailbackLogPositionManager extends AbstractLogPositionManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(FailbackLogPositionManager.class);
+    private final static Logger           logger = LoggerFactory.getLogger(FailbackLogPositionManager.class);
 
     private final CanalLogPositionManager primary;
     private final CanalLogPositionManager secondary;
 
-    public FailbackLogPositionManager(CanalLogPositionManager primary, CanalLogPositionManager secondary) {
+    public FailbackLogPositionManager(CanalLogPositionManager primary, CanalLogPositionManager secondary){
         if (primary == null) {
             throw new NullPointerException("nul primary LogPositionManager");
         }
@@ -74,7 +73,10 @@ public class FailbackLogPositionManager extends AbstractLogPositionManager {
         try {
             primary.persistLogPosition(destination, logPosition);
         } catch (CanalParseException e) {
-            logger.warn("persistLogPosition use primary log position manager exception. destination: {}, logPosition: {}", destination, logPosition, e);
+            logger.warn("persistLogPosition use primary log position manager exception. destination: {}, logPosition: {}",
+                destination,
+                logPosition,
+                e);
             secondary.persistLogPosition(destination, logPosition);
         }
     }

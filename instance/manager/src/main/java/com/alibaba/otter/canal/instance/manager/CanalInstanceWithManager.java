@@ -349,7 +349,9 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         } else if (indexMode.isMixed()) {
             MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
             ZooKeeperLogPositionManager zooKeeperLogPositionManager = new ZooKeeperLogPositionManager(getZkclientx());
-            logPositionManager = new PeriodMixedLogPositionManager(memoryLogPositionManager, zooKeeperLogPositionManager, 1000L);
+            logPositionManager = new PeriodMixedLogPositionManager(memoryLogPositionManager,
+                zooKeeperLogPositionManager,
+                1000L);
         } else if (indexMode.isMeta()) {
             logPositionManager = new MetaLogPositionManager(metaManager);
         } else if (indexMode.isMemoryMetaFailback()) {

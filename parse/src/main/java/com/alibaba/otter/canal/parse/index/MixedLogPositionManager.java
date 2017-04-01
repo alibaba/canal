@@ -1,31 +1,29 @@
 package com.alibaba.otter.canal.parse.index;
 
-import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.alibaba.otter.canal.protocol.position.LogPosition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.protocol.position.LogPosition;
+
 /**
- * Created by yinxiu on 17/3/17.
- * Email: marklin.hz@gmail.com
- *
- * Memory first.
+ * Created by yinxiu on 17/3/17. Email: marklin.hz@gmail.com Memory first.
  * Asynchronous commit position info to ZK.
  */
 public class MixedLogPositionManager extends AbstractLogPositionManager {
 
-    private final Logger logger = LoggerFactory.getLogger(MixedLogPositionManager.class);
+    private final Logger                      logger = LoggerFactory.getLogger(MixedLogPositionManager.class);
 
-    private final MemoryLogPositionManager memoryLogPositionManager;
+    private final MemoryLogPositionManager    memoryLogPositionManager;
     private final ZooKeeperLogPositionManager zooKeeperLogPositionManager;
 
-    private final ExecutorService executor;
+    private final ExecutorService             executor;
 
-    public MixedLogPositionManager(ZkClientx zkClient) {
+    public MixedLogPositionManager(ZkClientx zkClient){
         if (zkClient == null) {
             throw new NullPointerException("null zkClient");
         }
@@ -71,6 +69,7 @@ public class MixedLogPositionManager extends AbstractLogPositionManager {
     public void persistLogPosition(final String destination, final LogPosition logPosition) throws CanalParseException {
         memoryLogPositionManager.persistLogPosition(destination, logPosition);
         executor.submit(new Runnable() {
+
             public void run() {
                 try {
                     zooKeeperLogPositionManager.persistLogPosition(destination, logPosition);

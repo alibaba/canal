@@ -4,11 +4,11 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
@@ -85,6 +85,7 @@ public class MysqlDumpTest {
 
         });
         controller.setLogPositionManager(new AbstractLogPositionManager() {
+
             @Override
             public LogPosition getLatestIndexBy(String destination) {
                 return null;

@@ -1,33 +1,39 @@
 package com.alibaba.otter.canal.parse.index;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.alibaba.otter.canal.protocol.position.LogPosition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.protocol.position.LogPosition;
+
 /**
- * Created by yinxiu on 17/3/18.
- * Email: marklin.hz@gmail.com
+ * Created by yinxiu on 17/3/18. Email: marklin.hz@gmail.com
  */
 public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(PeriodMixedLogPositionManager.class);
+    private static final Logger         logger       = LoggerFactory.getLogger(PeriodMixedLogPositionManager.class);
 
-    private MemoryLogPositionManager memoryLogPositionManager;
+    private MemoryLogPositionManager    memoryLogPositionManager;
     private ZooKeeperLogPositionManager zooKeeperLogPositionManager;
-    private ScheduledExecutorService executorService;
+    private ScheduledExecutorService    executorService;
 
-    private long period;
-    private Set<String> persistTasks;
+    private long                        period;
+    private Set<String>                 persistTasks;
 
-    private final LogPosition nullPosition = new LogPosition(){};
+    private final LogPosition           nullPosition = new LogPosition() {
+                                                     };
 
-    public PeriodMixedLogPositionManager(MemoryLogPositionManager memoryLogPositionManager, ZooKeeperLogPositionManager zooKeeperLogPositionManager, long period) {
+    public PeriodMixedLogPositionManager(MemoryLogPositionManager memoryLogPositionManager,
+                                         ZooKeeperLogPositionManager zooKeeperLogPositionManager, long period){
         if (memoryLogPositionManager == null) {
             throw new NullPointerException("null memoryLogPositionManager");
         }

@@ -1,28 +1,32 @@
 package com.alibaba.otter.canal.parse.index;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
 import com.google.common.collect.MigrateMap;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Created by yinxiu on 17/3/18.
- * Email: marklin.hz@gmail.com
- *
- * 基于文件刷新的log position实现
+ * Created by yinxiu on 17/3/18. Email: marklin.hz@gmail.com 基于文件刷新的log
+ * position实现
  *
  * <pre>
  * 策略：
@@ -32,23 +36,24 @@ import java.util.concurrent.TimeUnit;
  */
 public class FileMixedLogPositionManager extends AbstractLogPositionManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(FileMixedLogPositionManager.class);
-    private final static Charset charset = Charset.forName("UTF-8");
+    private final static Logger      logger       = LoggerFactory.getLogger(FileMixedLogPositionManager.class);
+    private final static Charset     charset      = Charset.forName("UTF-8");
 
-    private File dataDir;
+    private File                     dataDir;
 
-    private Map<String, File> dataFileCaches;
+    private Map<String, File>        dataFileCaches;
 
     private ScheduledExecutorService executorService;
 
-    private final LogPosition nullPosition = new LogPosition(){};
+    private final LogPosition        nullPosition = new LogPosition() {
+                                                  };
 
     private MemoryLogPositionManager memoryLogPositionManager;
 
-    private long period;
-    private Set<String> persistTasks;
+    private long                     period;
+    private Set<String>              persistTasks;
 
-    public FileMixedLogPositionManager(File dataDir, long period, MemoryLogPositionManager memoryLogPositionManager) {
+    public FileMixedLogPositionManager(File dataDir, long period, MemoryLogPositionManager memoryLogPositionManager){
         if (dataDir == null) {
             throw new NullPointerException("null dataDir");
         }

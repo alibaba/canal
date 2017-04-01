@@ -28,13 +28,17 @@ public class FileMixedLogPositionManagerTest extends AbstractLogPositionManagerT
     public void testAll() {
         MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
 
-        FileMixedLogPositionManager logPositionManager = new FileMixedLogPositionManager(dataDir, 1000, memoryLogPositionManager);
+        FileMixedLogPositionManager logPositionManager = new FileMixedLogPositionManager(dataDir,
+            1000,
+            memoryLogPositionManager);
         logPositionManager.start();
 
         LogPosition position2 = doTest(logPositionManager);
         sleep(1500);
 
-        FileMixedLogPositionManager logPositionManager2 = new FileMixedLogPositionManager(dataDir, 1000, memoryLogPositionManager);
+        FileMixedLogPositionManager logPositionManager2 = new FileMixedLogPositionManager(dataDir,
+            1000,
+            memoryLogPositionManager);
         logPositionManager2.start();
 
         LogPosition getPosition2 = logPositionManager2.getLatestIndexBy(destination);

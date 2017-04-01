@@ -5,12 +5,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
@@ -69,6 +69,7 @@ public class MysqlEventParserTest {
         });
 
         controller.setLogPositionManager(new AbstractLogPositionManager() {
+
             @Override
             public LogPosition getLatestIndexBy(String destination) {
                 return null;

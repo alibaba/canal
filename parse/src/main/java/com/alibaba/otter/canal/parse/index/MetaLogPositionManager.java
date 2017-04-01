@@ -1,27 +1,27 @@
 package com.alibaba.otter.canal.parse.index;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.store.helper.CanalEventUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-
-import java.util.List;
 
 /**
- * Created by yinxiu on 17/3/18.
- * Email: marklin.hz@gmail.com
+ * Created by yinxiu on 17/3/18. Email: marklin.hz@gmail.com
  */
 public class MetaLogPositionManager extends AbstractLogPositionManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(MetaLogPositionManager.class);
+    private final static Logger    logger = LoggerFactory.getLogger(MetaLogPositionManager.class);
 
     private final CanalMetaManager metaManager;
 
-    public MetaLogPositionManager(CanalMetaManager metaManager) {
+    public MetaLogPositionManager(CanalMetaManager metaManager){
         if (metaManager == null) {
             throw new NullPointerException("null metaManager");
         }
