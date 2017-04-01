@@ -4,11 +4,12 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
-import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
@@ -80,17 +81,17 @@ public class LocalBinlogDumpTest {
             }
 
         });
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
+                    @Override
+                    public LogPosition getLatestIndexBy(String destination) {
+                        return null;
+                    }
 
-            public void persistLogPosition(String destination, LogPosition logPosition) {
-                System.out.println(logPosition);
-            }
-
-            @Override
-            public LogPosition getLatestIndexBy(String destination) {
-                return null;
-            }
-        });
+                    @Override
+                    public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+                        System.out.println(logPosition);
+                    }
+                });
 
         controller.start();
 

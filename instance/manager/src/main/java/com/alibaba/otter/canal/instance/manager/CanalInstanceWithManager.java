@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.alibaba.otter.canal.parse.index.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +38,6 @@ import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.LocalBinlogEventParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
-import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
-import com.alibaba.otter.canal.parse.index.FailbackLogPositionManager;
-import com.alibaba.otter.canal.parse.index.MemoryLogPositionManager;
-import com.alibaba.otter.canal.parse.index.MetaLogPositionManager;
-import com.alibaba.otter.canal.parse.index.PeriodMixedLogPositionManager;
-import com.alibaba.otter.canal.parse.index.ZooKeeperLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
@@ -346,29 +341,22 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
     protected CanalLogPositionManager initLogPositionManager() {
         logger.info("init logPositionPersistManager begin...");
         IndexMode indexMode = parameters.getIndexMode();
-        CanalLogPositionManager logPositionManager = null;
+        CanalLogPositionManager logPositionManager;
         if (indexMode.isMemory()) {
             logPositionManager = new MemoryLogPositionManager();
         } else if (indexMode.isZookeeper()) {
-            logPositionManager = new ZooKeeperLogPositionManager();
-            ((ZooKeeperLogPositionManager) logPositionManager).setZkClientx(getZkclientx());
+            logPositionManager = new ZooKeeperLogPositionManager(getZkclientx());
         } else if (indexMode.isMixed()) {
-            logPositionManager = new PeriodMixedLogPositionManager();
-
-            ZooKeeperLogPositionManager zooKeeperLogPositionManager = new ZooKeeperLogPositionManager();
-            zooKeeperLogPositionManager.setZkClientx(getZkclientx());
-            ((PeriodMixedLogPositionManager) logPositionManager).setZooKeeperLogPositionManager(zooKeeperLogPositionManager);
+            MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
+            ZooKeeperLogPositionManager zooKeeperLogPositionManager = new ZooKeeperLogPositionManager(getZkclientx());
+            logPositionManager = new PeriodMixedLogPositionManager(memoryLogPositionManager, zooKeeperLogPositionManager, 1000L);
         } else if (indexMode.isMeta()) {
-            logPositionManager = new MetaLogPositionManager();
-            ((MetaLogPositionManager) logPositionManager).setMetaManager(metaManager);
+            logPositionManager = new MetaLogPositionManager(metaManager);
         } else if (indexMode.isMemoryMetaFailback()) {
-            MemoryLogPositionManager primaryLogPositionManager = new MemoryLogPositionManager();
-            MetaLogPositionManager failbackLogPositionManager = new MetaLogPositionManager();
-            failbackLogPositionManager.setMetaManager(metaManager);
+            MemoryLogPositionManager primary = new MemoryLogPositionManager();
+            MetaLogPositionManager secondary = new MetaLogPositionManager(metaManager);
 
-            logPositionManager = new FailbackLogPositionManager();
-            ((FailbackLogPositionManager) logPositionManager).setPrimary(primaryLogPositionManager);
-            ((FailbackLogPositionManager) logPositionManager).setFailback(failbackLogPositionManager);
+            logPositionManager = new FailbackLogPositionManager(primary, secondary);
         } else {
             throw new CanalException("unsupport indexMode for " + indexMode);
         }
