@@ -214,6 +214,16 @@ public class MysqlConnection implements ErosaConnection {
         }
 
         try {
+            // 参考:https://github.com/alibaba/canal/issues/284
+            // mysql5.6需要设置slave_uuid避免被server kill链接
+            update("set @slave_uuid=uuid()");
+        } catch (Exception e) {
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+                logger.warn(ExceptionUtils.getFullStackTrace(e));
+            }
+        }
+
+        try {
             // mariadb针对特殊的类型，需要设置session变量
             update("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
         } catch (Exception e) {
