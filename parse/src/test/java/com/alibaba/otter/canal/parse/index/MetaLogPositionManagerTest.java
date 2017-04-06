@@ -45,8 +45,7 @@ public class MetaLogPositionManagerTest extends AbstractLogPositionManagerTest {
         metaManager.setZooKeeperMetaManager(zooKeeperMetaManager);
         metaManager.start();
 
-        MetaLogPositionManager logPositionManager = new MetaLogPositionManager();
-        logPositionManager.setMetaManager(metaManager);
+        MetaLogPositionManager logPositionManager = new MetaLogPositionManager(metaManager);
         logPositionManager.start();
         // 构建meta信息
         ClientIdentity client1 = new ClientIdentity(destination, (short) 1);

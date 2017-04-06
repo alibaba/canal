@@ -40,8 +40,13 @@ public class MixedLogPositionManager extends AbstractLogPositionManager {
     public void start() {
         super.start();
 
-        memoryLogPositionManager.start();
-        zooKeeperLogPositionManager.start();
+        if (!memoryLogPositionManager.isStart()) {
+            memoryLogPositionManager.start();
+        }
+
+        if (!zooKeeperLogPositionManager.isStart()) {
+            zooKeeperLogPositionManager.start();
+        }
     }
 
     @Override

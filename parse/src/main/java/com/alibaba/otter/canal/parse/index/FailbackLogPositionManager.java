@@ -43,7 +43,7 @@ public class FailbackLogPositionManager extends AbstractLogPositionManager {
         }
 
         if (!secondary.isStart()) {
-            primary.start();
+            secondary.start();
         }
     }
 
