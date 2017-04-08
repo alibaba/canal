@@ -25,8 +25,7 @@ public class ZooKeeperLogPositionManagerTest extends AbstractLogPositionManagerT
 
     @Test
     public void testAll() {
-        ZooKeeperLogPositionManager logPositionManager = new ZooKeeperLogPositionManager();
-        logPositionManager.setZkClientx(zkclientx);
+        ZooKeeperLogPositionManager logPositionManager = new ZooKeeperLogPositionManager(zkclientx);
         logPositionManager.start();
 
         doTest(logPositionManager);
