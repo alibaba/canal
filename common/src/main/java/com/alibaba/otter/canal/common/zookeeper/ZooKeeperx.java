@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.I0Itec.zkclient.IZkConnection;
+import org.I0Itec.zkclient.ZkConnection;
 import org.I0Itec.zkclient.exception.ZkException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.ClientCnxn;
@@ -32,7 +32,7 @@ import org.springframework.util.ReflectionUtils;
  * @author jianghang 2012-7-10 下午02:31:42
  * @version 1.0.0
  */
-public class ZooKeeperx implements IZkConnection {
+public class ZooKeeperx extends ZkConnection {
 
     private static final String SERVER_COMMA            = ";";
     private static final Logger logger                  = LoggerFactory.getLogger(ZooKeeperx.class);
@@ -53,6 +53,7 @@ public class ZooKeeperx implements IZkConnection {
     }
 
     public ZooKeeperx(String zkServers, int sessionTimeOut){
+        super(zkServers, sessionTimeOut);
         _servers = Arrays.asList(StringUtils.split(zkServers, SERVER_COMMA));
         _sessionTimeOut = sessionTimeOut;
     }
