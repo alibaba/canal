@@ -7,7 +7,6 @@ import io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 
 /**
  * @author luoyaogui
@@ -17,27 +16,19 @@ import java.nio.ByteBuffer;
 public class SocketChannel {
 	private Channel channel = null;
 	private Object lock = new Object();
-	private ByteBuf cache = PooledByteBufAllocator.DEFAULT.directBuffer(1024*1024*5);//缓存大小
+	private ByteBuf cache = PooledByteBufAllocator.DEFAULT.directBuffer(1024*1024);//缓存大小
 
 	public Channel getChannel() {
 		return channel;
 	}
-	public void setChannel(Channel channel,boolean notify) {
+	public void setChannel(Channel channel) {
 		this.channel = channel;
-		if(notify){//是否需要通知，主要时channel不可用时
-			synchronized(this){
-				notifyAll();
-			}
-		}
 	}
 
 	public void writeCache(ByteBuf buf){
 		synchronized (lock) {
 			cache.discardReadBytes();//回收内存
 			cache.writeBytes(buf);
-		}
-		synchronized(this){
-			notifyAll();
 		}
 	}
 	public void writeChannel(byte[]... buf) throws IOException {
@@ -46,19 +37,22 @@ public class SocketChannel {
 		else
 			throw new IOException("write  failed  !  please checking !");
 	}
-	public int read(ByteBuffer buffer) throws IOException {
-		if(null == channel)
-			throw new IOException("socket has Interrupted !");
-		if(cache.readableBytes() <  buffer.remaining()){
-			synchronized(this){
-				try {wait();} catch (InterruptedException e) {}
+	public byte[] read(int readSize) throws IOException {
+		do{
+			if(readSize > cache.readableBytes()){
+				if(null == channel)
+					throw new IOException("socket has Interrupted !");
+				synchronized (this) {
+					try { wait(100); } catch (InterruptedException e) {}
+				}
+			} else {
+				byte[] back = new byte[readSize];
+				synchronized (lock) {
+					cache.readBytes(back);
+				}
+				return back;
 			}
-		}else{
-			synchronized (lock){
-				cache.readBytes(buffer);
-			}
-		}
-		return 0;
+		}while(true);
 	}
 	public boolean isConnected() {
 		return channel!=null?true:false;
