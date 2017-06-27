@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
+import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QueryCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.OKPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
 /**
@@ -21,34 +21,33 @@ public class MysqlUpdateExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(MysqlUpdateExecutor.class);
 
-    private SocketChannel       channel;
+    private MysqlConnector       connector;
 
     public MysqlUpdateExecutor(MysqlConnector connector){
         if (!connector.isConnected()) {
             throw new RuntimeException("should execute connector.connect() first");
         }
 
-        this.channel = connector.getChannel();
+        this.connector = connector;
     }
 
-    public MysqlUpdateExecutor(SocketChannel ch){
+   /* public MysqlUpdateExecutor(SocketChannel ch){
         this.channel = ch;
-    }
+    }*/
 
     public OKPacket update(String updateString) throws IOException {
         QueryCommandPacket cmd = new QueryCommandPacket();
         cmd.setQueryString(updateString);
         byte[] bodyBytes = cmd.toBytes();
-        PacketManager.write(channel, bodyBytes);
+        PacketManager.writeBody(connector.getChannel(), bodyBytes);
 
         logger.debug("read update result...");
-        byte[] body = PacketManager.readBytes(channel, PacketManager.readHeader(channel, 4).getPacketBodyLength());
+        byte[] body = PacketManager.readBytes(connector.getChannel(), PacketManager.readHeader(connector.getChannel(), 4).getPacketBodyLength());
         if (body[0] < 0) {
             ErrorPacket packet = new ErrorPacket();
             packet.fromBytes(body);
             throw new IOException(packet + "\n with command: " + updateString);
         }
-        //channel.lock();//锁定读
 
         OKPacket packet = new OKPacket();
         packet.fromBytes(body);
