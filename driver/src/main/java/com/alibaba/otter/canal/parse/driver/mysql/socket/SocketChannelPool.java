@@ -54,7 +54,7 @@ public abstract class SocketChannelPool {
 			@Override
 			public void operationComplete(ChannelFuture arg0) throws Exception {
 				if(arg0.isSuccess())
-					socket.setChannel(arg0.channel(),false);
+					socket.setChannel(arg0.channel());
 				synchronized (socket) {
 					socket.notify();
 				}
@@ -73,7 +73,7 @@ public abstract class SocketChannelPool {
 		private SocketChannel socket=null;
 		@Override
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			socket.setChannel(null,true);
+			socket.setChannel(null);
 			chManager.remove(ctx.channel());//移除
 		}
 		@Override
