@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
+import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,6 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetHeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.RowDataPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
 /**
@@ -51,7 +51,7 @@ public class MysqlQueryExecutor {
         QueryCommandPacket cmd = new QueryCommandPacket();
         cmd.setQueryString(queryString);
         byte[] bodyBytes = cmd.toBytes();
-        PacketManager.write(channel, bodyBytes);
+        PacketManager.writeBody(channel, bodyBytes);
         byte[] body = readNextPacket();
 
         if (body[0] < 0) {
@@ -82,9 +82,7 @@ public class MysqlQueryExecutor {
             rowDataPacket.fromBytes(body);
             rowData.add(rowDataPacket);
         }
-        //未知，不知道是否需要锁定
-        //channel.lock();//锁定读
-        
+
         ResultSetPacket resultSet = new ResultSetPacket();
         resultSet.getFieldDescriptors().addAll(fields);
         for (RowDataPacket r : rowData) {
