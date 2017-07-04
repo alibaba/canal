@@ -120,14 +120,14 @@
 		<!-- 解析位点记录 -->
 		<property name="logPositionManager">
 			<bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
-				<property name="primary">
+				<constructor-arg>
 					<bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
-				</property>
-				<property name="failback">
+				</constructor-arg>
+				<constructor-arg>
 					<bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
-						<property name="metaManager" ref="metaManager" />
+						<constructor-arg ref="metaManager"/>
 					</bean>
-				</property>
+				</constructor-arg>
 			</bean>
 		</property>
 		

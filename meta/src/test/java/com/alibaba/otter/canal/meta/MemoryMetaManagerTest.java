@@ -3,7 +3,6 @@ package com.alibaba.otter.canal.meta;
 import java.util.Map;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
 import com.alibaba.otter.canal.protocol.position.PositionRange;

@@ -88,8 +88,9 @@ public class JsonUtils {
 
         public static InetAddressSerializer instance = new InetAddressSerializer();
 
-        public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType)
-                                                                                                     throws IOException {
+        @Override
+        public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features)
+                                                                                                                   throws IOException {
             if (object == null) {
                 serializer.writeNull();
                 return;

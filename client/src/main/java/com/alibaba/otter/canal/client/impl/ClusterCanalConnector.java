@@ -108,7 +108,7 @@ public class ClusterCanalConnector implements CanalConnector {
                 return;
             } catch (Throwable t) {
                 logger.warn("something goes wrong when subscribing from server:{}\n{}",
-                    currentConnector.getAddress(),
+                    currentConnector != null ? currentConnector.getAddress() : "null",
                     ExceptionUtils.getFullStackTrace(t));
                 times++;
                 restart();
@@ -127,7 +127,7 @@ public class ClusterCanalConnector implements CanalConnector {
                 return;
             } catch (Throwable t) {
                 logger.warn("something goes wrong when unsubscribing from server:{}\n{}",
-                    currentConnector.getAddress(),
+                    currentConnector != null ? currentConnector.getAddress() : "null",
                     ExceptionUtils.getFullStackTrace(t));
                 times++;
                 restart();
@@ -145,7 +145,7 @@ public class ClusterCanalConnector implements CanalConnector {
                 return msg;
             } catch (Throwable t) {
                 logger.warn("something goes wrong when getting data from server:{}\n{}",
-                    currentConnector.getAddress(),
+                    currentConnector != null ? currentConnector.getAddress() : "null",
                     ExceptionUtils.getFullStackTrace(t));
                 times++;
                 restart();
@@ -163,7 +163,7 @@ public class ClusterCanalConnector implements CanalConnector {
                 return msg;
             } catch (Throwable t) {
                 logger.warn("something goes wrong when getting data from server:{}\n{}",
-                    currentConnector.getAddress(),
+                    currentConnector != null ? currentConnector.getAddress() : "null",
                     ExceptionUtils.getFullStackTrace(t));
                 times++;
                 restart();

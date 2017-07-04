@@ -24,9 +24,9 @@ public class MysqlQueryExecutor {
 
     private SocketChannel channel;
 
-    public MysqlQueryExecutor(MysqlConnector connector){
+    public MysqlQueryExecutor(MysqlConnector connector) throws IOException{
         if (!connector.isConnected()) {
-            throw new RuntimeException("should execute connector.connect() first");
+            throw new IOException("should execute connector.connect() first");
         }
 
         this.channel = connector.getChannel();
@@ -88,7 +88,7 @@ public class MysqlQueryExecutor {
         for (RowDataPacket r : rowData) {
             resultSet.getFieldValues().addAll(r.getColumns());
         }
-        resultSet.setSourceAddress(channel.getRemoteSocketAddress());
+        resultSet.setSourceAddress(channel.socket().getRemoteSocketAddress());
 
         return resultSet;
     }

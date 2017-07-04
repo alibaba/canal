@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.net.SocketAddress;
 
 /**
+ * 封装netty的通信channel和数据接收缓存，实现读、写、连接校验的功能。 2016-12-28
+ * 
  * @author luoyaogui
- * 封装netty的通信channel和数据接收缓存，实现读、写、连接校验的功能。
- * 2016-12-28
  */
 public class SocketChannel {
 	private Channel channel = null;

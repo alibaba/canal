@@ -191,6 +191,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 } catch (TableIdNotFoundException e) {
                                     throw e;
                                 } catch (Throwable e) {
+                                    if (e.getCause() instanceof TableIdNotFoundException) {
+                                        throw (TableIdNotFoundException) e.getCause();
+                                    }
                                     // 记录一下，出错的位点信息
                                     processSinkError(e,
                                         this.lastPosition,

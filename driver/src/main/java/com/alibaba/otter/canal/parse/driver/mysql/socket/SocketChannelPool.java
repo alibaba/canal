@@ -20,12 +20,11 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * @author luoyaogui
- * 实现channel的管理（监听连接、读数据、回收）
- * 2016-12-28
+ * @author luoyaogui 实现channel的管理（监听连接、读数据、回收） 2016-12-28
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "deprecation" })
 public abstract class SocketChannelPool {
 
 	private static EventLoopGroup group = new NioEventLoopGroup();//非阻塞IO线程组

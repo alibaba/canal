@@ -1,9 +1,7 @@
 package com.alibaba.otter.canal.parse.driver.mysql.utils;
 
 import java.io.IOException;
-
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 
 public abstract class PacketManager {
 

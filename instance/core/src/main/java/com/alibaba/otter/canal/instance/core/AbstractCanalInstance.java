@@ -1,5 +1,12 @@
 package com.alibaba.otter.canal.instance.core;
 
+import java.util.List;
+
+import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
@@ -10,36 +17,27 @@ import com.alibaba.otter.canal.parse.ha.HeartBeatHAController;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
-import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.model.Event;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
- * Created with Intellig IDEA.
- * Author: yinxiu
- * Date: 2016-01-07
- * Time: 22:26
+ * Created with Intellig IDEA. Author: yinxiu Date: 2016-01-07 Time: 22:26
  */
 public class AbstractCanalInstance extends AbstractCanalLifeCycle implements CanalInstance {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractCanalInstance.class);
+    private static final Logger                      logger = LoggerFactory.getLogger(AbstractCanalInstance.class);
 
-    protected Long                                   canalId;                               // 和manager交互唯一标示
-    protected String                                 destination;                           // 队列名字
-    protected CanalEventStore<Event>                 eventStore;                            // 有序队列
+    protected Long                                   canalId;                                                      // 和manager交互唯一标示
+    protected String                                 destination;                                                  // 队列名字
+    protected CanalEventStore<Event>                 eventStore;                                                   // 有序队列
 
-    protected CanalEventParser                       eventParser;                           // 解析对应的数据信息
-    protected CanalEventSink<List<CanalEntry.Entry>> eventSink;                             // 链接parse和store的桥接器
-    protected CanalMetaManager                       metaManager;                           // 消费信息管理器
-    protected CanalAlarmHandler                      alarmHandler;                          // alarm报警机制
+    protected CanalEventParser                       eventParser;                                                  // 解析对应的数据信息
+    protected CanalEventSink<List<CanalEntry.Entry>> eventSink;                                                    // 链接parse和store的桥接器
+    protected CanalMetaManager                       metaManager;                                                  // 消费信息管理器
+    protected CanalAlarmHandler                      alarmHandler;                                                 // alarm报警机制
 
     @Override
     public boolean subscribeChange(ClientIdentity identity) {
@@ -120,7 +118,6 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
         if (alarmHandler.isStart()) {
             alarmHandler.stop();
         }
-
 
         logger.info("stop successful....");
     }

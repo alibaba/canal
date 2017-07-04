@@ -65,8 +65,10 @@ public class MysqlConnector {
     public void connect() throws IOException {
         if (connected.compareAndSet(false, true)) {
             try {
-                channel = SocketChannelPool.open(address);
+                channel = SocketChannel.open();
+                configChannel(channel);
                 logger.info("connect MysqlConnection to {}...", address);
+                channel.connect(address);
                 negotiate(channel);
             } catch (Exception e) {
                 disconnect();

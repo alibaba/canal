@@ -139,7 +139,6 @@ public class MysqlConnection implements ErosaConnection {
         binlogDumpHeader.setPacketBodyLength(cmdBody.length);
         binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
         PacketManager.writePkg(connector.getChannel(), binlogDumpHeader.toBytes(),cmdBody);
-
         connector.setDumping(true);
     }
 
@@ -197,6 +196,16 @@ public class MysqlConnection implements ErosaConnection {
             update("set @master_binlog_checksum= '@@global.binlog_checksum'");
         } catch (Exception e) {
             logger.warn(ExceptionUtils.getFullStackTrace(e));
+        }
+
+        try {
+            // 参考:https://github.com/alibaba/canal/issues/284
+            // mysql5.6需要设置slave_uuid避免被server kill链接
+            update("set @slave_uuid=uuid()");
+        } catch (Exception e) {
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+                logger.warn(ExceptionUtils.getFullStackTrace(e));
+            }
         }
 
         try {

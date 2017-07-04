@@ -12,8 +12,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
-import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
@@ -70,7 +70,7 @@ public class LocalBinlogEventParserTest {
 
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -133,7 +133,7 @@ public class LocalBinlogEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -198,7 +198,7 @@ public class LocalBinlogEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);

@@ -1,33 +1,29 @@
 package com.alibaba.otter.canal.parse.index;
 
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
-import org.springframework.util.Assert;
 
-import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 
 /**
- * 基于zk的实现
- * 
- * @author jianghang 2012-7-7 上午10:08:27
- * @version 1.0.0
+ * Created by yinxiu on 17/3/17. Email: marklin.hz@gmail.com
  */
-public class ZooKeeperLogPositionManager extends AbstractCanalLifeCycle implements CanalLogPositionManager {
+public class ZooKeeperLogPositionManager extends AbstractLogPositionManager {
 
-    private ZkClientx zkClientx;
+    private final ZkClientx zkClientx;
 
-    public void start() {
-        super.start();
-        Assert.notNull(zkClientx);
+    public ZooKeeperLogPositionManager(ZkClientx zkClient){
+        if (zkClient == null) {
+            throw new NullPointerException("null zkClient");
+        }
+
+        this.zkClientx = zkClient;
     }
 
-    public void stop() {
-        super.stop();
-    }
-
+    @Override
     public LogPosition getLatestIndexBy(String destination) {
         String path = ZookeeperPathUtils.getParsePath(destination);
         byte[] data = zkClientx.readData(path, true);
@@ -38,7 +34,8 @@ public class ZooKeeperLogPositionManager extends AbstractCanalLifeCycle implemen
         return JsonUtils.unmarshalFromByte(data, LogPosition.class);
     }
 
-    public void persistLogPosition(String destination, LogPosition logPosition) {
+    @Override
+    public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
         String path = ZookeeperPathUtils.getParsePath(destination);
         byte[] data = JsonUtils.marshalToByte(logPosition);
         try {
@@ -46,12 +43,6 @@ public class ZooKeeperLogPositionManager extends AbstractCanalLifeCycle implemen
         } catch (ZkNoNodeException e) {
             zkClientx.createPersistent(path, data, true);
         }
-    }
-
-    // ================== setter / getter =================
-
-    public void setZkClientx(ZkClientx zkClientx) {
-        this.zkClientx = zkClientx;
     }
 
 }
