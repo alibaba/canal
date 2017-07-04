@@ -1,7 +1,7 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
+import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +51,7 @@ public class MysqlQueryExecutor {
         QueryCommandPacket cmd = new QueryCommandPacket();
         cmd.setQueryString(queryString);
         byte[] bodyBytes = cmd.toBytes();
-        PacketManager.write(channel, bodyBytes);
+        PacketManager.writeBody(channel, bodyBytes);
         byte[] body = readNextPacket();
 
         if (body[0] < 0) {
