@@ -195,11 +195,6 @@
                 <version>2.0.8</version>
             </dependency>
             <dependency>
-                <groupId>org.jboss.netty</groupId>
-                <artifactId>netty</artifactId>
-                <version>3.2.5.Final</version>
-            </dependency>
-            <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>4.1.6.Final</version>

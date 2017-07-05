@@ -74,7 +74,7 @@
         <appender-ref ref="CANAL-META" />
     </logger>
     
-	<root level="INFO">
+	<root level="WARN">
 		<!--<appender-ref ref="STDOUT"/>-->
 		<appender-ref ref="CANAL-ROOT" />
 	</root>

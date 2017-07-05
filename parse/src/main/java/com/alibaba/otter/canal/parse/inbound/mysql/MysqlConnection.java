@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,6 @@ public class MysqlConnection implements ErosaConnection {
     }
 
     public MysqlConnection(InetSocketAddress address, String username, String password){
-
         connector = new MysqlConnector(address, username, password);
     }
 
@@ -138,7 +138,7 @@ public class MysqlConnection implements ErosaConnection {
         HeaderPacket binlogDumpHeader = new HeaderPacket();
         binlogDumpHeader.setPacketBodyLength(cmdBody.length);
         binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
-        PacketManager.writePkg(connector.getChannel(), binlogDumpHeader.toBytes(),cmdBody);
+        PacketManager.writePkg(connector.getChannel(), binlogDumpHeader.toBytes(), cmdBody);
         connector.setDumping(true);
     }
 

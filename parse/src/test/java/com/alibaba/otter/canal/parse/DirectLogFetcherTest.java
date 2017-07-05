@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.parse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 
 import org.junit.Assert;
 import org.junit.Test;
