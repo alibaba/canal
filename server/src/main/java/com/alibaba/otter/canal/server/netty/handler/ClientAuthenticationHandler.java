@@ -89,11 +89,13 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                         if (clientAuth.getNetWriteTimeout() > 0) {
                             writeTimeout = clientAuth.getNetWriteTimeout();
                         }
-                        //fix bug: soTimeout parameter's unit from connector is millseconds.
+                        // fix bug: soTimeout parameter's unit from connector is
+                        // millseconds.
                         IdleStateHandler idleStateHandler = new IdleStateHandler(NettyUtils.hashedWheelTimer,
                             readTimeout,
                             writeTimeout,
-                            0, TimeUnit.MILLISECONDS);
+                            0,
+                            TimeUnit.MILLISECONDS);
                         ctx.getPipeline().addBefore(SessionHandler.class.getName(),
                             IdleStateHandler.class.getName(),
                             idleStateHandler);

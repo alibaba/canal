@@ -34,7 +34,10 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
     private int                     port;
     private Channel                 serverChannel = null;
     private ServerBootstrap         bootstrap     = null;
-    private ChannelGroup            childGroups   = null;  //socket channel container, used to close sockets explicitly.
+    private ChannelGroup            childGroups   = null; // socket channel
+                                                          // container, used to
+                                                          // close sockets
+                                                          // explicitly.
 
     private static class SingletonHolder {
 
@@ -60,12 +63,10 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
         this.bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool()));
         /*
-         * enable keep-alive mechanism, handle abnormal network connection scenarios on OS level.
-         * the threshold parameters are depended on OS. 
-         * e.g. On Linux:
-         * net.ipv4.tcp_keepalive_time = 300
-         * net.ipv4.tcp_keepalive_probes = 2 
-         * net.ipv4.tcp_keepalive_intvl = 30 
+         * enable keep-alive mechanism, handle abnormal network connection
+         * scenarios on OS level. the threshold parameters are depended on OS.
+         * e.g. On Linux: net.ipv4.tcp_keepalive_time = 300
+         * net.ipv4.tcp_keepalive_probes = 2 net.ipv4.tcp_keepalive_intvl = 30
          */
         bootstrap.setOption("child.keepAlive", true);
         /*
@@ -79,8 +80,9 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipelines = Channels.pipeline();
                 pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
-                //support to maintain child socket channel.
-                pipelines.addLast(HandshakeInitializationHandler.class.getName(), new HandshakeInitializationHandler(childGroups));
+                // support to maintain child socket channel.
+                pipelines.addLast(HandshakeInitializationHandler.class.getName(),
+                    new HandshakeInitializationHandler(childGroups));
                 pipelines.addLast(ClientAuthenticationHandler.class.getName(),
                     new ClientAuthenticationHandler(embeddedServer));
 
@@ -105,9 +107,10 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
             this.serverChannel.close().awaitUninterruptibly(1000);
         }
 
-        //close sockets explicitly to reduce socket channel hung in complicated network environment.
+        // close sockets explicitly to reduce socket channel hung in complicated
+        // network environment.
         if (this.childGroups != null) {
-        	this.childGroups.close().awaitUninterruptibly(5000);
+            this.childGroups.close().awaitUninterruptibly(5000);
         }
 
         if (this.bootstrap != null) {
