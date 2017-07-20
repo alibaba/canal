@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.0.24-SNAPSHOT</version>
+    <version>1.0.25-SNAPSHOT</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -170,14 +170,14 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>com.github.sgroschupf</groupId>
+                <groupId>com.101tec</groupId>
                 <artifactId>zkclient</artifactId>
-                <version>0.1</version>
+                <version>0.10</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.1.35</version>
+                <version>1.2.28</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -195,9 +195,9 @@
                 <version>2.0.8</version>
             </dependency>
             <dependency>
-                <groupId>org.jboss.netty</groupId>
-                <artifactId>netty</artifactId>
-                <version>3.2.5.Final</version>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>4.1.6.Final</version>
             </dependency>
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -336,7 +336,7 @@
 				  <keywords>true</keywords>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>

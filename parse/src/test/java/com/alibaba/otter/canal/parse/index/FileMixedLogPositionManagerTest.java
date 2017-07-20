@@ -3,9 +3,8 @@ package com.alibaba.otter.canal.parse.index;
 import java.io.File;
 import java.io.IOException;
 
-import org.junit.Assert;
-
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,17 +26,19 @@ public class FileMixedLogPositionManagerTest extends AbstractLogPositionManagerT
 
     @Test
     public void testAll() {
-        FileMixedLogPositionManager logPositionManager = new FileMixedLogPositionManager();
-        logPositionManager.setDataDir(dataDir);
-        logPositionManager.setPeriod(100);
+        MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
+
+        FileMixedLogPositionManager logPositionManager = new FileMixedLogPositionManager(dataDir,
+            1000,
+            memoryLogPositionManager);
         logPositionManager.start();
 
         LogPosition position2 = doTest(logPositionManager);
         sleep(1500);
 
-        FileMixedLogPositionManager logPositionManager2 = new FileMixedLogPositionManager();
-        logPositionManager2.setDataDir(dataDir);
-        logPositionManager2.setPeriod(100);
+        FileMixedLogPositionManager logPositionManager2 = new FileMixedLogPositionManager(dataDir,
+            1000,
+            memoryLogPositionManager);
         logPositionManager2.start();
 
         LogPosition getPosition2 = logPositionManager2.getLatestIndexBy(destination);

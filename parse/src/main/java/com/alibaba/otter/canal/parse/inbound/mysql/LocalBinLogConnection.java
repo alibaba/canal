@@ -83,30 +83,27 @@ public class LocalBinLogConnection implements ErosaConnection {
             context.setLogPosition(new LogPosition(binlogfilename, binlogPosition));
             while (running) {
                 boolean needContinue = true;
-				LogEvent event = null;
-                L:while (fetcher.fetch()) {
-                    /*event = decoder.decode(fetcher, context);
-                    if (event == null) {
-                        throw new CanalParseException("parse failed");
-                    }
+                LogEvent event = null;
+                L: while (fetcher.fetch()) {
+                    /*
+                     * event = decoder.decode(fetcher, context); if (event ==
+                     * null) { throw new CanalParseException("parse failed"); }
+                     * if (!func.sink(event)) { needContinue = false; break; }
+                     */
 
-                    if (!func.sink(event)) {
-                        needContinue = false;
-                        break;
-                    }*/
+                    do {
+                        if (event == null) {
+                            event = new RotateLogEvent(context.getLogPosition().getFileName(), context.getLogPosition()
+                                .getPosition());
+                        } else {
+                            event = decoder.decode(fetcher, context);
+                        }
 
-					do {
-						if (event == null) {
-							event = new RotateLogEvent(context.getLogPosition().getFileName(), context.getLogPosition().getPosition());
-						} else {
-							event = decoder.decode(fetcher, context);
-						}
-												
-						if (event != null && !func.sink(event)) {
-							needContinue = false;
-							break L;
-						}
-					} while (event != null);
+                        if (event != null && !func.sink(event)) {
+                            needContinue = false;
+                            break L;
+                        }
+                    } while (event != null);
                 }
 
                 if (needContinue) {// 读取下一个

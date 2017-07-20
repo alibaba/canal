@@ -8,9 +8,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
-import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
@@ -67,15 +68,16 @@ public class MysqlEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
-
-            public void persistLogPosition(String destination, LogPosition logPosition) {
-                System.out.println(logPosition);
-            }
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             @Override
             public LogPosition getLatestIndexBy(String destination) {
                 return null;
+            }
+
+            @Override
+            public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+                System.out.println(logPosition);
             }
         });
 
@@ -136,7 +138,7 @@ public class MysqlEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -205,7 +207,7 @@ public class MysqlEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -281,7 +283,7 @@ public class MysqlEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);

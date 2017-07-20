@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.filter;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
 import com.alibaba.otter.canal.filter.aviater.AviaterELFilter;

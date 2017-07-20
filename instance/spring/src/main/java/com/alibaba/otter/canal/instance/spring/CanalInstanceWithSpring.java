@@ -2,11 +2,11 @@ package com.alibaba.otter.canal.instance.spring;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.instance.core.AbstractCanalInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
+import com.alibaba.otter.canal.instance.core.AbstractCanalInstance;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
@@ -23,7 +23,7 @@ import com.alibaba.otter.canal.store.model.Event;
  */
 public class CanalInstanceWithSpring extends AbstractCanalInstance {
 
-    private static final Logger                    logger = LoggerFactory.getLogger(CanalInstanceWithSpring.class);
+    private static final Logger logger = LoggerFactory.getLogger(CanalInstanceWithSpring.class);
 
     public void start() {
         logger.info("start CannalInstance for {}-{} ", new Object[] { 1, destination });

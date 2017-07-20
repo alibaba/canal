@@ -346,29 +346,24 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
     protected CanalLogPositionManager initLogPositionManager() {
         logger.info("init logPositionPersistManager begin...");
         IndexMode indexMode = parameters.getIndexMode();
-        CanalLogPositionManager logPositionManager = null;
+        CanalLogPositionManager logPositionManager;
         if (indexMode.isMemory()) {
             logPositionManager = new MemoryLogPositionManager();
         } else if (indexMode.isZookeeper()) {
-            logPositionManager = new ZooKeeperLogPositionManager();
-            ((ZooKeeperLogPositionManager) logPositionManager).setZkClientx(getZkclientx());
+            logPositionManager = new ZooKeeperLogPositionManager(getZkclientx());
         } else if (indexMode.isMixed()) {
-            logPositionManager = new PeriodMixedLogPositionManager();
-
-            ZooKeeperLogPositionManager zooKeeperLogPositionManager = new ZooKeeperLogPositionManager();
-            zooKeeperLogPositionManager.setZkClientx(getZkclientx());
-            ((PeriodMixedLogPositionManager) logPositionManager).setZooKeeperLogPositionManager(zooKeeperLogPositionManager);
+            MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
+            ZooKeeperLogPositionManager zooKeeperLogPositionManager = new ZooKeeperLogPositionManager(getZkclientx());
+            logPositionManager = new PeriodMixedLogPositionManager(memoryLogPositionManager,
+                zooKeeperLogPositionManager,
+                1000L);
         } else if (indexMode.isMeta()) {
-            logPositionManager = new MetaLogPositionManager();
-            ((MetaLogPositionManager) logPositionManager).setMetaManager(metaManager);
+            logPositionManager = new MetaLogPositionManager(metaManager);
         } else if (indexMode.isMemoryMetaFailback()) {
-            MemoryLogPositionManager primaryLogPositionManager = new MemoryLogPositionManager();
-            MetaLogPositionManager failbackLogPositionManager = new MetaLogPositionManager();
-            failbackLogPositionManager.setMetaManager(metaManager);
+            MemoryLogPositionManager primary = new MemoryLogPositionManager();
+            MetaLogPositionManager secondary = new MetaLogPositionManager(metaManager);
 
-            logPositionManager = new FailbackLogPositionManager();
-            ((FailbackLogPositionManager) logPositionManager).setPrimary(primaryLogPositionManager);
-            ((FailbackLogPositionManager) logPositionManager).setFailback(failbackLogPositionManager);
+            logPositionManager = new FailbackLogPositionManager(primary, secondary);
         } else {
             throw new CanalException("unsupport indexMode for " + indexMode);
         }

@@ -4,52 +4,56 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.store.helper.CanalEventUtils;
 
 /**
- * 基于meta信息的实现
- * 
- * @author jianghang 2012-7-10 下午05:02:33
- * @version 1.0.0
+ * Created by yinxiu on 17/3/18. Email: marklin.hz@gmail.com
  */
-public class MetaLogPositionManager extends AbstractCanalLifeCycle implements CanalLogPositionManager {
+public class MetaLogPositionManager extends AbstractLogPositionManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(MetaLogPositionManager.class);
-    private CanalMetaManager    metaManager;
+    private final static Logger    logger = LoggerFactory.getLogger(MetaLogPositionManager.class);
 
-    public void start() {
-        super.start();
-        Assert.notNull(metaManager);
-        if (!metaManager.isStart()) {
-            metaManager.start();
+    private final CanalMetaManager metaManager;
+
+    public MetaLogPositionManager(CanalMetaManager metaManager){
+        if (metaManager == null) {
+            throw new NullPointerException("null metaManager");
         }
+
+        this.metaManager = metaManager;
     }
 
+    @Override
     public void stop() {
         super.stop();
+
         if (metaManager.isStart()) {
             metaManager.stop();
         }
     }
 
-    public void persistLogPosition(String destination, LogPosition logPosition) {
-        // do nothing
-        logger.info("persist LogPosition:{}", destination, logPosition);
+    @Override
+    public void start() {
+        super.start();
+
+        if (!metaManager.isStart()) {
+            metaManager.start();
+        }
     }
 
+    @Override
     public LogPosition getLatestIndexBy(String destination) {
-        List<ClientIdentity> clientIdentitys = metaManager.listAllSubscribeInfo(destination);
+        List<ClientIdentity> clientIdentities = metaManager.listAllSubscribeInfo(destination);
         LogPosition result = null;
-        if (!CollectionUtils.isEmpty(clientIdentitys)) {
+        if (!CollectionUtils.isEmpty(clientIdentities)) {
             // 尝试找到一个最小的logPosition
-            for (ClientIdentity clientIdentity : clientIdentitys) {
+            for (ClientIdentity clientIdentity : clientIdentities) {
                 LogPosition position = (LogPosition) metaManager.getCursor(clientIdentity);
                 if (position == null) {
                     continue;
@@ -66,8 +70,9 @@ public class MetaLogPositionManager extends AbstractCanalLifeCycle implements Ca
         return result;
     }
 
-    public void setMetaManager(CanalMetaManager metaManager) {
-        this.metaManager = metaManager;
+    @Override
+    public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+        // do nothing
+        logger.info("persist LogPosition:{}", destination, logPosition);
     }
-
 }

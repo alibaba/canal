@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;

@@ -1,8 +1,7 @@
 package com.alibaba.otter.canal.parse.index;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,19 +27,16 @@ public class MixedLogPositionManagerTest extends AbstractLogPositionManagerTest 
 
     @Test
     public void testAll() {
-        MixedLogPositionManager logPositionManager = new MixedLogPositionManager();
+        MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
+        ZooKeeperLogPositionManager zookeeperLogPositionManager = new ZooKeeperLogPositionManager(zkclientx);
 
-        ZooKeeperLogPositionManager zookeeperLogPositionManager = new ZooKeeperLogPositionManager();
-        zookeeperLogPositionManager.setZkClientx(zkclientx);
-
-        logPositionManager.setZooKeeperLogPositionManager(zookeeperLogPositionManager);
+        MixedLogPositionManager logPositionManager = new MixedLogPositionManager(zkclientx);
         logPositionManager.start();
 
         LogPosition position2 = doTest(logPositionManager);
         sleep(1000);
 
-        MixedLogPositionManager logPositionManager2 = new MixedLogPositionManager();
-        logPositionManager2.setZooKeeperLogPositionManager(zookeeperLogPositionManager);
+        MixedLogPositionManager logPositionManager2 = new MixedLogPositionManager(zkclientx);
         logPositionManager2.start();
 
         LogPosition getPosition2 = logPositionManager2.getLatestIndexBy(destination);

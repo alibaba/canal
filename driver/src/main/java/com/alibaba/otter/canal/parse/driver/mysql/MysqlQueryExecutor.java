@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +11,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetHeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.RowDataPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
 /**
@@ -24,9 +24,9 @@ public class MysqlQueryExecutor {
 
     private SocketChannel channel;
 
-    public MysqlQueryExecutor(MysqlConnector connector){
+    public MysqlQueryExecutor(MysqlConnector connector) throws IOException{
         if (!connector.isConnected()) {
-            throw new RuntimeException("should execute connector.connect() first");
+            throw new IOException("should execute connector.connect() first");
         }
 
         this.channel = connector.getChannel();
@@ -51,7 +51,7 @@ public class MysqlQueryExecutor {
         QueryCommandPacket cmd = new QueryCommandPacket();
         cmd.setQueryString(queryString);
         byte[] bodyBytes = cmd.toBytes();
-        PacketManager.write(channel, bodyBytes);
+        PacketManager.writeBody(channel, bodyBytes);
         byte[] body = readNextPacket();
 
         if (body[0] < 0) {
@@ -88,7 +88,7 @@ public class MysqlQueryExecutor {
         for (RowDataPacket r : rowData) {
             resultSet.getFieldValues().addAll(r.getColumns());
         }
-        resultSet.setSourceAddress(channel.socket().getRemoteSocketAddress());
+        resultSet.setSourceAddress(channel.getRemoteSocketAddress());
 
         return resultSet;
     }

@@ -3,9 +3,8 @@ package com.alibaba.otter.canal.parse.index;
 import java.net.InetSocketAddress;
 import java.util.Date;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,8 +45,7 @@ public class MetaLogPositionManagerTest extends AbstractLogPositionManagerTest {
         metaManager.setZooKeeperMetaManager(zooKeeperMetaManager);
         metaManager.start();
 
-        MetaLogPositionManager logPositionManager = new MetaLogPositionManager();
-        logPositionManager.setMetaManager(metaManager);
+        MetaLogPositionManager logPositionManager = new MetaLogPositionManager(metaManager);
         logPositionManager.start();
         // 构建meta信息
         ClientIdentity client1 = new ClientIdentity(destination, (short) 1);

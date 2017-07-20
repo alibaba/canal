@@ -1,8 +1,7 @@
 package com.alibaba.otter.canal.parse.index;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,19 +27,21 @@ public class PeriodMixedLogPositionManagerTest extends AbstractLogPositionManage
 
     @Test
     public void testAll() {
-        PeriodMixedLogPositionManager logPositionManager = new PeriodMixedLogPositionManager();
+        MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
+        ZooKeeperLogPositionManager zookeeperLogPositionManager = new ZooKeeperLogPositionManager(zkclientx);
 
-        ZooKeeperLogPositionManager zookeeperLogPositionManager = new ZooKeeperLogPositionManager();
-        zookeeperLogPositionManager.setZkClientx(zkclientx);
+        PeriodMixedLogPositionManager logPositionManager = new PeriodMixedLogPositionManager(memoryLogPositionManager,
+            zookeeperLogPositionManager,
+            1000L);
 
-        logPositionManager.setZooKeeperLogPositionManager(zookeeperLogPositionManager);
         logPositionManager.start();
 
         LogPosition position2 = doTest(logPositionManager);
         sleep(1500);
 
-        PeriodMixedLogPositionManager logPositionManager2 = new PeriodMixedLogPositionManager();
-        logPositionManager2.setZooKeeperLogPositionManager(zookeeperLogPositionManager);
+        PeriodMixedLogPositionManager logPositionManager2 = new PeriodMixedLogPositionManager(memoryLogPositionManager,
+            zookeeperLogPositionManager,
+            1000L);
         logPositionManager2.start();
 
         LogPosition getPosition2 = logPositionManager2.getLatestIndexBy(destination);
