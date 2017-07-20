@@ -158,31 +158,32 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             String tableName = result.getTableName();
             EventType type = EventType.QUERY;
+
+            // 更新下table meta cache
+            if (tableMetaCache != null
+                && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE || result.getType() == EventType.RENAME)) {
+                for (DdlResult renameResult = result; renameResult != null; renameResult = renameResult.getRenameTableResult()) {
+                    String schemaName0 = event.getDbName(); // 防止rename语句后产生schema变更带来影响
+                    if (StringUtils.isNotEmpty(renameResult.getSchemaName())) {
+                        schemaName0 = renameResult.getSchemaName();
+                    }
+
+                    tableName = renameResult.getTableName();
+                    if (StringUtils.isNotEmpty(tableName)) {
+                        // 如果解析到了正确的表信息，则根据全名进行清除
+                        tableMetaCache.clearTableMeta(schemaName0, tableName);
+                    } else {
+                        // 如果无法解析正确的表信息，则根据schema进行清除
+                        tableMetaCache.clearTableMetaWithSchemaName(schemaName0);
+                    }
+                }
+            }
+
             // fixed issue https://github.com/alibaba/canal/issues/58
             if (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE
                 || result.getType() == EventType.CREATE || result.getType() == EventType.TRUNCATE
                 || result.getType() == EventType.RENAME || result.getType() == EventType.CINDEX
                 || result.getType() == EventType.DINDEX) { // 针对DDL类型
-
-                // 更新下table meta cache
-                if (tableMetaCache != null
-                    && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE || result.getType() == EventType.RENAME)) {
-                    for (DdlResult renameResult = result; renameResult != null; renameResult = renameResult.getRenameTableResult()) {
-                        String schemaName0 = event.getDbName(); // 防止rename语句后产生schema变更带来影响
-                        if (StringUtils.isNotEmpty(renameResult.getSchemaName())) {
-                            schemaName0 = renameResult.getSchemaName();
-                        }
-
-                        tableName = renameResult.getTableName();
-                        if (StringUtils.isNotEmpty(tableName)) {
-                            // 如果解析到了正确的表信息，则根据全名进行清除
-                            tableMetaCache.clearTableMeta(schemaName0, tableName);
-                        } else {
-                            // 如果无法解析正确的表信息，则根据schema进行清除
-                            tableMetaCache.clearTableMetaWithSchemaName(schemaName0);
-                        }
-                    }
-                }
 
                 if (filterQueryDdl) {
                     return null;
