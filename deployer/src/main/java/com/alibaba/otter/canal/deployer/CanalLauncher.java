@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +40,7 @@ public class CanalLauncher {
                         logger.info("## stop the canal server");
                         controller.stop();
                     } catch (Throwable e) {
-                        logger.warn("##something goes wrong when stopping canal Server:\n{}",
-                            ExceptionUtils.getFullStackTrace(e));
+                        logger.warn("##something goes wrong when stopping canal Server:", e);
                     } finally {
                         logger.info("## canal server is down.");
                     }
@@ -50,8 +48,7 @@ public class CanalLauncher {
 
             });
         } catch (Throwable e) {
-            logger.error("## Something goes wrong when starting up the canal Server:\n{}",
-                ExceptionUtils.getFullStackTrace(e));
+            logger.error("## Something goes wrong when starting up the canal Server:", e);
             System.exit(0);
         }
     }

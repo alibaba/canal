@@ -2,8 +2,6 @@ package com.alibaba.otter.canal.example;
 
 import java.net.InetSocketAddress;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
 import com.alibaba.otter.canal.common.utils.AddressUtils;
@@ -39,7 +37,7 @@ public class SimpleCanalClientTest extends AbstractCanalClientTest {
                     logger.info("## stop the canal client");
                     clientTest.stop();
                 } catch (Throwable e) {
-                    logger.warn("##something goes wrong when stopping canal:\n{}", ExceptionUtils.getFullStackTrace(e));
+                    logger.warn("##something goes wrong when stopping canal:", e);
                 } finally {
                     logger.info("## canal client is down.");
                 }
