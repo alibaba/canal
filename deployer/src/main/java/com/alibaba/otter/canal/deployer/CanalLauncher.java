@@ -20,6 +20,10 @@ public class CanalLauncher {
 
     public static void main(String[] args) throws Throwable {
         try {
+            logger.info("## set default uncaught exception handler");
+            setGlobalUncaughtExceptionHandler();
+
+            logger.info("## load canal configurations");
             String conf = System.getProperty("canal.conf", "classpath:canal.properties");
             Properties properties = new Properties();
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
@@ -51,5 +55,14 @@ public class CanalLauncher {
             logger.error("## Something goes wrong when starting up the canal Server:", e);
             System.exit(0);
         }
+    }
+
+    private static void setGlobalUncaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                logger.error("UnCaughtException", e);
+            }
+        });
     }
 }
