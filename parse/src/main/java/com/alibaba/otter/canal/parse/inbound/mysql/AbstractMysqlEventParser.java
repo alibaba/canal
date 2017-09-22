@@ -2,6 +2,9 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.nio.charset.Charset;
 
+import javax.annotation.Resource;
+
+import com.taobao.tddl.dbsync.binlog.BinlogPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +13,7 @@ import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaManager;
 
 public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
@@ -24,6 +28,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean           filterQueryDdl          = false;
     protected boolean           filterRows              = false;
     protected boolean           filterTableError        = false;
+
+    @Resource
+    protected TableMetaManager tableMetaManager;
+    protected boolean useDruidDdlFilter = true;
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
@@ -41,6 +49,9 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         convert.setFilterQueryDdl(filterQueryDdl);
         convert.setFilterRows(filterRows);
         convert.setFilterTableError(filterTableError);
+
+        //初始化parser的时候也初始化管理mysql 表结构的管理器
+        tableMetaManager.init();
         return convert;
     }
 
@@ -52,6 +63,20 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             ((LogEventConvert) binlogParser).setNameFilter((AviaterRegexFilter) eventFilter);
         }
     }
+
+    /**
+     * 回滚到指定位点
+     * @param position
+     * @return
+     */
+    protected boolean processTableMeta(BinlogPosition position) {
+        if (tableMetaManager != null) {
+            return tableMetaManager.rollback(position);
+        }
+
+        return true;
+    }
+
 
     public void setEventBlackFilter(CanalEventFilter eventBlackFilter) {
         super.setEventBlackFilter(eventBlackFilter);
@@ -97,4 +122,19 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         this.filterTableError = filterTableError;
     }
 
+    public TableMetaManager getTableMetaManager() {
+        return tableMetaManager;
+    }
+
+    public void setTableMetaManager(TableMetaManager tableMetaManager) {
+        this.tableMetaManager = tableMetaManager;
+    }
+
+    public boolean isUseDruidDdlFilter() {
+        return useDruidDdlFilter;
+    }
+
+    public void setUseDruidDdlFilter(boolean useDruidDdlFilter) {
+        this.useDruidDdlFilter = useDruidDdlFilter;
+    }
 }
