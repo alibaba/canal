@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +68,7 @@ public class MysqlConnector {
                 negotiate(channel);
             } catch (Exception e) {
                 disconnect();
-                throw new IOException("connect " + this.address + " failure:" + ExceptionUtils.getStackTrace(e));
+                throw new IOException("connect " + this.address + " failure", e);
             }
         } else {
             logger.error("the channel can't be connected twice.");
@@ -89,7 +88,7 @@ public class MysqlConnector {
                 }
                 logger.info("disConnect MysqlConnection to {}...", address);
             } catch (Exception e) {
-                throw new IOException("disconnect " + this.address + " failure:" + ExceptionUtils.getStackTrace(e));
+                throw new IOException("disconnect " + this.address + " failure", e);
             }
 
             // 执行一次quit
@@ -101,7 +100,7 @@ public class MysqlConnector {
                     MysqlUpdateExecutor executor = new MysqlUpdateExecutor(connector);
                     executor.update("KILL CONNECTION " + connectionId);
                 } catch (Exception e) {
-                    throw new IOException("KILL DUMP " + connectionId + " failure:" + ExceptionUtils.getStackTrace(e));
+                    throw new IOException("KILL DUMP " + connectionId + " failure", e);
                 } finally {
                     if (connector != null) {
                         connector.disconnect();

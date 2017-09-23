@@ -1,7 +1,5 @@
 package com.alibaba.otter.canal.example;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
 
@@ -41,7 +39,7 @@ public class ClusterCanalClientTest extends AbstractCanalClientTest {
                     logger.info("## stop the canal client");
                     clientTest.stop();
                 } catch (Throwable e) {
-                    logger.warn("##something goes wrong when stopping canal:\n{}", ExceptionUtils.getFullStackTrace(e));
+                    logger.warn("##something goes wrong when stopping canal:", e);
                 } finally {
                     logger.info("## canal client is down.");
                 }

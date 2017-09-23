@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,25 +166,25 @@ public class MysqlConnection implements ErosaConnection {
         try {
             update("set wait_timeout=9999999");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getFullStackTrace(e));
+            logger.warn("update wait_timeout failed", e);
         }
         try {
             update("set net_write_timeout=1800");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getFullStackTrace(e));
+            logger.warn("update net_write_timeout failed", e);
         }
 
         try {
             update("set net_read_timeout=1800");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getFullStackTrace(e));
+            logger.warn("update net_read_timeout failed", e);
         }
 
         try {
             // 设置服务端返回结果时不做编码转化，直接按照数据库的二进制编码进行发送，由客户端自己根据需求进行编码转化
             update("set names 'binary'");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getFullStackTrace(e));
+            logger.warn("update names failed", e);
         }
 
         try {
@@ -195,7 +194,7 @@ public class MysqlConnection implements ErosaConnection {
             // 但也不能乱设置，需要和mysql server的checksum配置一致，不然RotateLogEvent会出现乱码
             update("set @master_binlog_checksum= '@@global.binlog_checksum'");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getFullStackTrace(e));
+            logger.warn("update master_binlog_checksum failed", e);
         }
 
         try {
@@ -204,7 +203,7 @@ public class MysqlConnection implements ErosaConnection {
             update("set @slave_uuid=uuid()");
         } catch (Exception e) {
             if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
-                logger.warn(ExceptionUtils.getFullStackTrace(e));
+                logger.warn("update slave_uuid failed", e);
             }
         }
 
@@ -212,7 +211,7 @@ public class MysqlConnection implements ErosaConnection {
             // mariadb针对特殊的类型，需要设置session变量
             update("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getFullStackTrace(e));
+            logger.warn("update mariadb_slave_capability failed", e);
         }
     }
 

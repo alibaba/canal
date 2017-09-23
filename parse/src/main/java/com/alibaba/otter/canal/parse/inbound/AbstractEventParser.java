@@ -430,7 +430,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     }
 
                 } catch (Throwable e) {
-                    logger.warn("heartBeat run failed " + ExceptionUtils.getStackTrace(e));
+                    logger.warn("heartBeat run failed ", e);
                 }
             }
 
