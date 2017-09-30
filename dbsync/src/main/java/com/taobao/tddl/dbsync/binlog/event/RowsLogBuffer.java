@@ -949,8 +949,28 @@ public final class RowsLogBuffer {
                 break;
             }
             case LogEvent.MYSQL_TYPE_JSON: {
-                len = buffer.getUint16();
-                buffer.forward(meta - 2);
+                switch (meta) {
+                    case 1: {
+                        len = buffer.getUint8();
+                        break;
+                    }
+                    case 2: {
+                        len = buffer.getUint16();
+                        break;
+                    }
+                    case 3: {
+                        len = buffer.getUint24();
+                        break;
+                    }
+                    case 4: {
+                        len = (int) buffer.getUint32();
+                        break;
+                    }
+                    default:
+                        throw new IllegalArgumentException("!! Unknown JSON packlen = " + meta);
+                }
+                // len = buffer.getUint16();
+                // buffer.forward(meta - 4);
                 int position = buffer.position();
                 Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(), buffer, len - 1, charsetName);
                 StringBuilder builder = new StringBuilder();

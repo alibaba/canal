@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.common.utils.JsonUtils;
@@ -243,19 +242,19 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     ((HeartBeatCallback) haController).onFailed(e);
                 }
                 reconnect = true;
-                logger.warn("connect failed by " + ExceptionUtils.getStackTrace(e));
+                logger.warn("connect failed by ", e);
             } catch (IOException e) {
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onFailed(e);
                 }
                 reconnect = true;
-                logger.warn("connect failed by " + ExceptionUtils.getStackTrace(e));
+                logger.warn("connect failed by ", e);
             } catch (Throwable e) {
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onFailed(e);
                 }
                 reconnect = true;
-                logger.warn("connect failed by " + ExceptionUtils.getStackTrace(e));
+                logger.warn("connect failed by ", e);
             }
 
         }
@@ -555,9 +554,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     return entryPosition;
                 }
             } catch (Exception e) {
-                logger.warn("the binlogfile:{} doesn't exist, to continue to search the next binlogfile , caused by {}",
-                    startSearchBinlogFile,
-                    ExceptionUtils.getFullStackTrace(e));
+                logger.warn(String.format("the binlogfile:%s doesn't exist, to continue to search the next binlogfile , caused by",
+                    startSearchBinlogFile), e);
                 int binlogSeqNum = Integer.parseInt(startSearchBinlogFile.substring(startSearchBinlogFile.indexOf(".") + 1));
                 if (binlogSeqNum <= 1) {
                     logger.warn("Didn't find the corresponding binlog files");

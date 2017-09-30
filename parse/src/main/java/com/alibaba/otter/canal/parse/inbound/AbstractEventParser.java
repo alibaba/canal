@@ -275,7 +275,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         parseThread.setUncaughtExceptionHandler(handler);
         parseThread.setName(String.format("destination = %s , address = %s , EventParser",
             destination,
-            runningInfo == null ? null : runningInfo.getAddress().toString()));
+            runningInfo == null ? null : runningInfo.getAddress()));
         parseThread.start();
     }
 
@@ -430,7 +430,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     }
 
                 } catch (Throwable e) {
-                    logger.warn("heartBeat run failed " + ExceptionUtils.getStackTrace(e));
+                    logger.warn("heartBeat run failed ", e);
                 }
             }
 
