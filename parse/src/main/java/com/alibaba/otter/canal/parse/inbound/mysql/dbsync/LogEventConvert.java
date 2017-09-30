@@ -9,6 +9,7 @@ import java.sql.Types;
 import java.util.BitSet;
 import java.util.List;
 
+import com.taobao.tddl.dbsync.binlog.BinlogPosition;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -87,7 +88,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     // 新增rows过滤，用于仅订阅除rows以外的数据
     private boolean                     filterRows          = false;
 
-    public Entry parse(LogEvent logEvent) throws CanalParseException {
+    @Override
+    public Entry parse(LogEvent logEvent, boolean isSeek) throws CanalParseException {
         if (logEvent == null || logEvent instanceof UnknownLogEvent) {
             return null;
         }
@@ -98,7 +100,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 binlogFileName = ((RotateLogEvent) logEvent).getFilename();
                 break;
             case LogEvent.QUERY_EVENT:
-                return parseQueryEvent((QueryLogEvent) logEvent);
+                return parseQueryEvent((QueryLogEvent) logEvent,isSeek);
             case LogEvent.XID_EVENT:
                 return parseXidEvent((XidLogEvent) logEvent);
             case LogEvent.TABLE_MAP_EVENT:
@@ -137,7 +139,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
     }
 
-    private Entry parseQueryEvent(QueryLogEvent event) {
+    private Entry parseQueryEvent(QueryLogEvent event, boolean isSeek) {
         String queryString = event.getQuery();
         if (StringUtils.endsWithIgnoreCase(queryString, BEGIN)) {
             TransactionBegin transactionBegin = createTransactionBegin(event.getSessionId());
@@ -158,27 +160,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             String tableName = result.getTableName();
             EventType type = EventType.QUERY;
-
-            // 更新下table meta cache
-            if (tableMetaCache != null
-                && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE || result.getType() == EventType.RENAME)) {
-                for (DdlResult renameResult = result; renameResult != null; renameResult = renameResult.getRenameTableResult()) {
-                    String schemaName0 = event.getDbName(); // 防止rename语句后产生schema变更带来影响
-                    if (StringUtils.isNotEmpty(renameResult.getSchemaName())) {
-                        schemaName0 = renameResult.getSchemaName();
-                    }
-
-                    tableName = renameResult.getTableName();
-                    if (StringUtils.isNotEmpty(tableName)) {
-                        // 如果解析到了正确的表信息，则根据全名进行清除
-                        tableMetaCache.clearTableMeta(schemaName0, tableName);
-                    } else {
-                        // 如果无法解析正确的表信息，则根据schema进行清除
-                        tableMetaCache.clearTableMetaWithSchemaName(schemaName0);
-                    }
-                }
-            }
-
             // fixed issue https://github.com/alibaba/canal/issues/58
             if (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE
                 || result.getType() == EventType.CREATE || result.getType() == EventType.TRUNCATE
@@ -234,6 +215,30 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             } else if (filterQueryDcl) {
                 return null;
             }
+
+            // 更新下table meta cache
+            //if (tableMetaCache != null
+            //    && (result.getType() == EventType.ALTER || result.getType() == EventType.ERASE || result.getType() == EventType.RENAME)) {
+            //    for (DdlResult renameResult = result; renameResult != null; renameResult = renameResult.getRenameTableResult()) {
+            //        String schemaName0 = event.getDbName(); // 防止rename语句后产生schema变更带来影响
+            //        if (StringUtils.isNotEmpty(renameResult.getSchemaName())) {
+            //            schemaName0 = renameResult.getSchemaName();
+            //        }
+            //
+            //        tableName = renameResult.getTableName();
+            //        if (StringUtils.isNotEmpty(tableName)) {
+            //            // 如果解析到了正确的表信息，则根据全名进行清除
+            //            tableMetaCache.clearTableMeta(schemaName0, tableName);
+            //        } else {
+            //            // 如果无法解析正确的表信息，则根据schema进行清除
+            //            tableMetaCache.clearTableMetaWithSchemaName(schemaName0);
+            //        }
+            //    }
+            //}
+
+            //使用新的表结构元数据管理方式
+            BinlogPosition position = createPosition(event.getHeader());
+            tableMetaCache.apply(position, event.getDbName(), queryString);
 
             Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
@@ -349,6 +354,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 table.getDbName(),
                 table.getTableName(),
                 eventType);
+            BinlogPosition position = createPosition(event.getHeader());
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
@@ -360,7 +366,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             boolean tableError = false;
             TableMeta tableMeta = null;
             if (tableMetaCache != null) {// 入错存在table meta cache
-                tableMeta = getTableMeta(table.getDbName(), table.getTableName(), true);
+                tableMeta = getTableMeta(table.getDbName(), table.getTableName(), true,position);
                 if (tableMeta == null) {
                     tableError = true;
                     if (!filterTableError) {
@@ -406,6 +412,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
     }
 
+    private BinlogPosition createPosition(LogHeader logHeader) {
+        return new BinlogPosition(binlogFileName, logHeader.getLogPos(), logHeader.getServerId(), logHeader.getWhen()); // 记录到秒
+    }
+
     private boolean parseOneRow(RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
                                 boolean isAfter, TableMeta tableMeta) throws UnsupportedEncodingException {
         int columnCnt = event.getTable().getColumnCnt();
@@ -414,18 +424,19 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         boolean tableError = false;
         // check table fileds count，只能处理加字段
         boolean existRDSNoPrimaryKey = false;
-        if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
+        if (tableMeta != null && columnInfo.length > tableMeta.getFields().size()) {
             if (tableMetaCache.isOnRDS()) {
                 // 特殊处理下RDS的场景
                 List<FieldMeta> primaryKeys = tableMeta.getPrimaryFields();
                 if (primaryKeys == null || primaryKeys.isEmpty()) {
-                    if (columnInfo.length == tableMeta.getFileds().size() + 1
+                    if (columnInfo.length == tableMeta.getFields().size() + 1
                         && columnInfo[columnInfo.length - 1].type == LogEvent.MYSQL_TYPE_LONGLONG) {
                         existRDSNoPrimaryKey = true;
                     }
                 }
             }
 
+            BinlogPosition position = createPosition(event.getHeader());
             if (!existRDSNoPrimaryKey) {
                 // online ddl增加字段操作步骤：
                 // 1. 新增一张临时表，将需要做ddl表的数据全量导入
@@ -433,7 +444,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 // 3. 锁住应用请求，将临时表rename为老表的名字，完成增加字段的操作
                 // 尝试做一次reload，可能因为ddl没有正确解析，或者使用了类似online ddl的操作
                 // 因为online ddl没有对应表名的alter语法，所以不会有clear cache的操作
-                tableMeta = getTableMeta(event.getTable().getDbName(), event.getTable().getTableName(), false);// 强制重新获取一次
+                tableMeta = getTableMeta(event.getTable().getDbName(), event.getTable().getTableName(), false,position);// 强制重新获取一次
                 if (tableMeta == null) {
                     tableError = true;
                     if (!filterTableError) {
@@ -443,11 +454,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
 
                 // 在做一次判断
-                if (tableMeta != null && columnInfo.length > tableMeta.getFileds().size()) {
+                if (tableMeta != null && columnInfo.length > tableMeta.getFields().size()) {
                     tableError = true;
                     if (!filterTableError) {
                         throw new CanalParseException("column size is not match for table:" + tableMeta.getFullName()
-                                                      + "," + columnInfo.length + " vs " + tableMeta.getFileds().size());
+                                                      + "," + columnInfo.length + " vs " + tableMeta.getFields().size());
                     }
                 }
             } else {
@@ -474,7 +485,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             FieldMeta fieldMeta = null;
             if (tableMeta != null && !tableError) {
                 // 处理file meta
-                fieldMeta = tableMeta.getFileds().get(i);
+                fieldMeta = tableMeta.getFields().get(i);
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
                 // 增加mysql type类型,issue 73
@@ -673,9 +684,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return true;
     }
 
-    private TableMeta getTableMeta(String dbName, String tbName, boolean useCache) {
+    private TableMeta getTableMeta(String dbName, String tbName, boolean useCache, BinlogPosition position) {
         try {
-            return tableMetaCache.getTableMeta(dbName, tbName, useCache);
+            return tableMetaCache.getTableMeta(dbName, tbName, useCache,position);
         } catch (Exception e) {
             String message = ExceptionUtils.getRootCauseMessage(e);
             if (filterTableError) {

@@ -50,7 +50,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
             throw new CanalParseException(e);
         }
 
-        tableMetaCache = new TableMetaCache(metaConnection);
+        tableMetaCache = new TableMetaCache(metaConnection,tableMetaManager);
         ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
     }
 

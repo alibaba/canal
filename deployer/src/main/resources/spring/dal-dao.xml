@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-2.0.xsd"
+       default-autowire="byName">
+    <tx:annotation-driven/>
+
+    <bean id="dataSource" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DataSourceFactoryTSDB"
+          factory-method="getDataSource">
+        <constructor-arg index="0" value="${canal.instance.tsdb.address}"/>
+        <constructor-arg index="1" value="${canal.instance.tsdb.dbUsername}"/>
+        <constructor-arg index="2" value="${canal.instance.tsdb.dbPassword}"/>
+        <constructor-arg index="3" value="${canal.instance.tsdb.enable:true}"/>
+        <constructor-arg index="4" value="${canal.instance.tsdb.defaultDatabaseName}"/>
+        <constructor-arg index="5" value="${canal.instance.tsdb.url}"/>
+        <constructor-arg index="6" value="${canal.instance.tsdb.driverClassName}"/>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="txTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager"></property>
+        <property name="propagationBehaviorName" value="PROPAGATION_REQUIRED"></property>
+    </bean>
+
+    <bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:sqlmap-config.xml"/>
+    </bean>
+
+    <bean id="metaHistoryDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDAO">
+        <property name="sqlMapClient" ref="sqlMapClient"/>
+    </bean>
+
+    <bean id="metaSnapshotDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDAO">
+        <property name="sqlMapClient" ref="sqlMapClient"/>
+    </bean>
+</beans>
