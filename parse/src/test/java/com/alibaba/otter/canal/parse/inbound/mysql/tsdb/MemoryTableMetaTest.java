@@ -19,7 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author agapple 2017年8月1日 下午7:15:54
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"/dal-dao.xml"})
+@ContextConfiguration(locations = { "/dal-dao.xml" })
 public class MemoryTableMetaTest {
 
     @Test
@@ -33,6 +33,6 @@ public class MemoryTableMetaTest {
 
         TableMeta meta = memoryTableMeta.find("test", "test");
         System.out.println(meta);
-        Assert.assertTrue( meta.getFieldMetaByName("ID").isKey());
+        Assert.assertTrue(meta.getFieldMetaByName("ID").isKey());
     }
 }

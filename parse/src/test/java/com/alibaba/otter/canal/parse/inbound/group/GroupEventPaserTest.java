@@ -88,7 +88,6 @@ public class GroupEventPaserTest {
     private BinlogParser buildParser(AuthenticationInfo info) {
         return new AbstractBinlogParser<LogEvent>() {
 
-
             @Override
             public Entry parse(LogEvent event, boolean isSeek) throws CanalParseException {
                 return null;

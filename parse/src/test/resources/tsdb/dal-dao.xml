@@ -9,13 +9,10 @@
 
     <bean id="dataSource" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DataSourceFactoryTSDB"
           factory-method="getDataSource">
-        <constructor-arg index="0" value="${canal.instance.tsdb.address}"/>
+        <constructor-arg index="0" value="${canal.instance.tsdb.url}"/>
         <constructor-arg index="1" value="${canal.instance.tsdb.dbUsername}"/>
         <constructor-arg index="2" value="${canal.instance.tsdb.dbPassword}"/>
         <constructor-arg index="3" value="${canal.instance.tsdb.enable:true}"/>
-        <constructor-arg index="4" value="${canal.instance.tsdb.defaultDatabaseName}"/>
-        <constructor-arg index="5" value="${canal.instance.tsdb.url}"/>
-        <constructor-arg index="6" value="${canal.instance.tsdb.driverClassName}"/>
     </bean>
 
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">

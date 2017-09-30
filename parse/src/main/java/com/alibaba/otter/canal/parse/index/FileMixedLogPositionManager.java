@@ -45,6 +45,7 @@ public class FileMixedLogPositionManager extends AbstractLogPositionManager {
 
     private ScheduledExecutorService executorService;
 
+    @SuppressWarnings("serial")
     private final LogPosition        nullPosition = new LogPosition() {
                                                   };
 

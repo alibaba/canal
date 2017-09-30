@@ -2,10 +2,10 @@ package com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao;
 
 import java.util.HashMap;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.model.MetaSnapshotDO;
-
-import com.google.common.collect.Maps;
 import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
+
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.model.MetaSnapshotDO;
+import com.google.common.collect.Maps;
 
 /**
  * canal数据的存储
@@ -15,6 +15,7 @@ import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
  */
 
 public class MetaSnapshotDAO extends SqlMapClientDaoSupport {
+
     public Long insert(MetaSnapshotDO snapshotDO) {
         return (Long) getSqlMapClientTemplate().insert("table_meta_snapshot.insert", snapshotDO);
     }
@@ -26,8 +27,7 @@ public class MetaSnapshotDAO extends SqlMapClientDaoSupport {
     public MetaSnapshotDO findByTimestamp(long timestamp) {
         HashMap params = Maps.newHashMapWithExpectedSize(2);
         params.put("timestamp", timestamp);
-        return (MetaSnapshotDO) getSqlMapClientTemplate().queryForObject("table_meta_snapshot.findByTimestamp",
-            params);
+        return (MetaSnapshotDO) getSqlMapClientTemplate().queryForObject("table_meta_snapshot.findByTimestamp", params);
     }
 
     public Integer deleteByTask(String taskName) {

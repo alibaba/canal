@@ -34,7 +34,7 @@ public class MysqlConnector {
     private byte                charsetNumber     = 33;
     private String              defaultSchema     = "retl";
     private int                 soTimeout         = 30 * 1000;
-    private int connTimeout = 5 * 1000;
+    private int                 connTimeout       = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
     private int                 sendBufferSize    = 16 * 1024;
 

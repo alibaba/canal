@@ -45,8 +45,8 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 public class MemoryTableMeta implements TableMetaTSDB {
 
     private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<List<String>, TableMeta>();
-    private SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
-    private Logger logger = LoggerFactory.getLogger(MemoryTableMeta.class);
+    private SchemaRepository             repository = new SchemaRepository(JdbcConstants.MYSQL);
+    private Logger                       logger     = LoggerFactory.getLogger(MemoryTableMeta.class);
 
     public MemoryTableMeta(Logger logger){
         this.logger = logger;
@@ -208,7 +208,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
         if (sqlName instanceof SQLPropertyExpr) {
             SQLIdentifierExpr owner = (SQLIdentifierExpr) ((SQLPropertyExpr) sqlName).getOwner();
             return DruidDdlParser.unescapeName(owner.getName()) + "."
-                + DruidDdlParser.unescapeName(((SQLPropertyExpr) sqlName).getName());
+                   + DruidDdlParser.unescapeName(((SQLPropertyExpr) sqlName).getName());
         } else if (sqlName instanceof SQLIdentifierExpr) {
             return DruidDdlParser.unescapeName(((SQLIdentifierExpr) sqlName).getName());
         } else {

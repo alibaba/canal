@@ -30,8 +30,6 @@ public class TableMetaManagerTest {
     @Test
     public void testSimple() throws FileNotFoundException, IOException {
 
-
-
         URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
         File dummyFile = new File(url.getFile());
         File create = new File(dummyFile.getParent() + "/ddl", "create.sql");

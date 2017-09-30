@@ -6,18 +6,14 @@
 
     <sql id="allColumns">
         <![CDATA[
-
 		gmt_create,gmt_modified,binlog_file,binlog_offest,binlog_master_id,binlog_timestamp,use_schema,`schema`,`table`,`sql`,`type`,`extra`
-
         ]]>
     </sql>
     <sql id="allVOColumns">
         <![CDATA[
-
 		a.id as id,a.gmt_create as gmtCreate,a.gmt_modified as gmtModified,
 		a.binlog_file as binlogFile,a.binlog_offest as binlogOffest,a.binlog_master_id as binlogMasterId,a.binlog_timestamp as binlogTimestamp,
 		a.use_schema as useSchema,a.`schema` as `schema`,a.`table` as `table`,a.`sql` as `sql`,a.`type` as `type`,a.`extra` as `extra`
-
         ]]>
     </sql>
 
@@ -42,10 +38,8 @@
 
     <delete id="deleteByGmtModified" parameterClass="java.util.Map">
         <![CDATA[
-
 		delete from `canal_table_meta_history`
 		where gmt_modified < date_sub(now(),interval #interval# second)
-
         ]]>
     </delete>
 

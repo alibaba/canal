@@ -173,7 +173,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
                             public boolean sink(EVENT event) {
                                 try {
-                                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event,false);
+                                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, false);
 
                                     if (!running) {
                                         return false;
@@ -320,13 +320,13 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return result;
     }
 
-    protected CanalEntry.Entry parseAndProfilingIfNecessary(EVENT bod,boolean isSeek) throws Exception {
+    protected CanalEntry.Entry parseAndProfilingIfNecessary(EVENT bod, boolean isSeek) throws Exception {
         long startTs = -1;
         boolean enabled = getProfilingEnabled();
         if (enabled) {
             startTs = System.currentTimeMillis();
         }
-        CanalEntry.Entry event = binlogParser.parse(bod,isSeek);
+        CanalEntry.Entry event = binlogParser.parse(bod, isSeek);
         if (enabled) {
             this.parsingInterval = System.currentTimeMillis() - startTs;
         }

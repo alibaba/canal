@@ -1,6 +1,5 @@
 package com.taobao.tddl.dbsync.binlog;
 
-import com.taobao.tddl.dbsync.binlog.LogPosition;
 
 /**
  * Position inside binlog file
@@ -35,9 +34,8 @@ public class BinlogPosition extends LogPosition {
     }
 
     private final static long[] pow10 = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000,
-        10000000000L, 100000000000L, 1000000000000L, 10000000000000L,
-        100000000000000L, 1000000000000000L, 10000000000000000L, 100000000000000000L,
-        1000000000000000000L };
+            10000000000L, 100000000000L, 1000000000000L, 10000000000000L, 100000000000000L, 1000000000000000L,
+            10000000000000000L, 100000000000000000L, 1000000000000000000L };
 
     public static String placeHolder(int bit, long number) {
         if (bit > 18) {
@@ -53,9 +51,6 @@ public class BinlogPosition extends LogPosition {
         return String.valueOf(max + number).substring(1);
     }
 
-    /**
-     * Return BinlogPosition in String representation. This serves as EventId for DBMSEvent.
-     */
     public String format2String(final int positionMaxLen) {
         String binlogSuffix = fileName;
         String binlogOffset = placeHolder((int) positionMaxLen, position);
@@ -90,7 +85,8 @@ public class BinlogPosition extends LogPosition {
         if (sharpIndex != -1) {
             binlogPosition = Long.parseLong(source.substring(miscIndex, sharpIndex));
         } else if (semicolonIndex != -1) {
-            binlogPosition = Long.parseLong(source.substring(miscIndex, semicolonIndex)); // NOTE: 向后兼容
+            binlogPosition = Long.parseLong(source.substring(miscIndex, semicolonIndex)); // NOTE:
+                                                                                          // 向后兼容
         } else if (dotIndex != -1) {
             binlogPosition = Long.parseLong(source.substring(miscIndex, dotIndex));
         } else {

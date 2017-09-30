@@ -9,13 +9,10 @@
 
     <bean id="dataSource" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DataSourceFactoryTSDB"
           factory-method="getDataSource">
-        <constructor-arg index="0" value="127.0.0.1"/>
-        <constructor-arg index="1" value="canal"/>
-        <constructor-arg index="2" value="canal"/>
-        <constructor-arg index="3" value="true"/>
-        <constructor-arg index="4" value="tsdb"/>
-        <constructor-arg index="5" value="jdbc:mysql://127.0.0.1:3306/tsdb"/>
-        <constructor-arg index="6" value="com.mysql.jdbc.Driver"/>
+        <constructor-arg index="0" value="${canal.instance.tsdb.url}"/>
+        <constructor-arg index="1" value="${canal.instance.tsdb.dbUsername}"/>
+        <constructor-arg index="2" value="${canal.instance.tsdb.dbPassword}"/>
+        <constructor-arg index="3" value="${canal.instance.tsdb.enable:true}"/>
     </bean>
 
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
@@ -32,15 +29,11 @@
         <property name="configLocation" value="classpath:sqlmap-config.xml"/>
     </bean>
 
-
-    <bean id="MetaHistoryDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDAO">
+    <bean id="metaHistoryDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDAO">
         <property name="sqlMapClient" ref="sqlMapClient"/>
     </bean>
 
-    <bean id="MetaSnapshotDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDAO">
+    <bean id="metaSnapshotDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDAO">
         <property name="sqlMapClient" ref="sqlMapClient"/>
     </bean>
-
-    <bean id="PersistTableMeta" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaManager"></bean>
-
 </beans>

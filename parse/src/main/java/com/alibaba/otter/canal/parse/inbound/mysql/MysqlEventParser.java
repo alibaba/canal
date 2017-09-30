@@ -68,7 +68,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     // update by yishun.chen,特殊异常处理参数
     private int                dumpErrorCount                    = 0;        // binlogDump失败异常计数
-    private int dumpTimeoutCount = 0;// socketTimeout异常
     private int                dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
 
     protected ErosaConnection buildErosaConnection() {
@@ -118,12 +117,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 }
             }
 
-            if(tableMetaManager != null){
+            if (tableMetaManager != null) {
                 tableMetaManager.setConnection(metaConnection);
                 tableMetaManager.setFilter(eventFilter);
             }
 
-            tableMetaCache = new TableMetaCache(metaConnection,tableMetaManager);
+            tableMetaCache = new TableMetaCache(metaConnection, tableMetaManager);
             ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
         }
     }
@@ -443,7 +442,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
             public boolean sink(LogEvent event) {
                 try {
-                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event,true);
+                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, true);
                     if (entry == null) {
                         return true;
                     }
@@ -476,7 +475,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
                 public boolean sink(LogEvent event) {
                     try {
-                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event,true);
+                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, true);
                         if (entry == null) {
                             return true;
                         }
@@ -555,7 +554,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 }
             } catch (Exception e) {
                 logger.warn(String.format("the binlogfile:%s doesn't exist, to continue to search the next binlogfile , caused by",
-                    startSearchBinlogFile), e);
+                    startSearchBinlogFile),
+                    e);
                 int binlogSeqNum = Integer.parseInt(startSearchBinlogFile.substring(startSearchBinlogFile.indexOf(".") + 1));
                 if (binlogSeqNum <= 1) {
                     logger.warn("Didn't find the corresponding binlog files");
@@ -687,7 +687,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 public boolean sink(LogEvent event) {
                     EntryPosition entryPosition = null;
                     try {
-                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event,true);
+                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, true);
                         if (entry == null) {
                             return true;
                         }
@@ -707,7 +707,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         }
 
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
-                            && endPosition.getPosition() <= (logfileoffset + event.getEventLen())) {
+                            && endPosition.getPosition() <= logfileoffset) {
                             return false;
                         }
 
@@ -715,9 +715,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         // position = current +
                         // data.length，代表该事务的下一条offest，避免多余的事务重复
                         if (CanalEntry.EntryType.TRANSACTIONEND.equals(entry.getEntryType())) {
-                            entryPosition = new EntryPosition(logfilename,
-                                logfileoffset + event.getEventLen(),
-                                logposTimestamp);
+                            entryPosition = new EntryPosition(logfilename, logfileoffset, logposTimestamp);
                             logger.debug("set {} to be pending start position before finding another proper one...",
                                 entryPosition);
                             logPosition.setPostion(entryPosition);

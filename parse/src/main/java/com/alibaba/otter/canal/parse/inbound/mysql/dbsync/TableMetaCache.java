@@ -1,24 +1,24 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.dbsync;
 
 import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.taobao.tddl.dbsync.binlog.BinlogPosition;
 import org.apache.commons.lang.StringUtils;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
-import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.ProcessJdbcResult;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaManager;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.taobao.tddl.dbsync.binlog.BinlogPosition;
 
 /**
  * 处理table meta解析和缓存
@@ -28,57 +28,23 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaManager;
  */
 public class TableMetaCache {
 
-    public static final String COLUMN_NAME = "COLUMN_NAME";
-    public static final String COLUMN_TYPE = "COLUMN_TYPE";
-    public static final String IS_NULLABLE = "IS_NULLABLE";
-    public static final String COLUMN_KEY = "COLUMN_KEY";
-    public static final String COLUMN_DEFAULT = "COLUMN_DEFAULT";
-    public static final String EXTRA = "EXTRA";
-    private MysqlConnection connection;
-    private boolean isOnRDS = false;
+    public static final String              COLUMN_NAME    = "COLUMN_NAME";
+    public static final String              COLUMN_TYPE    = "COLUMN_TYPE";
+    public static final String              IS_NULLABLE    = "IS_NULLABLE";
+    public static final String              COLUMN_KEY     = "COLUMN_KEY";
+    public static final String              COLUMN_DEFAULT = "COLUMN_DEFAULT";
+    public static final String              EXTRA          = "EXTRA";
+    private MysqlConnection                 connection;
+    private boolean                         isOnRDS        = false;
 
-    private TableMetaManager tableMetaManager;
+    private TableMetaManager                tableMetaManager;
     // 第一层tableId,第二层schema.table,解决tableId重复，对应多张表
     private LoadingCache<String, TableMeta> tableMetaDB;
 
-
-    // 第一层tableId,第二层schema.table,解决tableId重复，对应多张表
-    private Map<String, TableMeta> tableMetaCache;
-
-    /**
-     * 从db获取表结构
-     * @param fullname
-     * @return
-     */
-    private TableMeta getTableMetaByDB(final String fullname) {
-        return connection.query("desc " + fullname, new ProcessJdbcResult<TableMeta>() {
-
-            @Override
-            public TableMeta process(ResultSet rs) throws SQLException {
-                List<FieldMeta> metas = new ArrayList<FieldMeta>();
-                while (rs.next()) {
-                    FieldMeta meta = new FieldMeta();
-                    // 做一个优化，使用String.intern()，共享String对象，减少内存使用
-                    meta.setColumnName(rs.getString("Field"));
-                    meta.setColumnType(rs.getString("Type"));
-                    meta.setNullable(StringUtils.equalsIgnoreCase(rs.getString("Null"), "YES"));
-                    meta.setKey("PRI".equalsIgnoreCase(rs.getString("Key")));
-                    meta.setDefaultValue(rs.getString("Default"));
-                    metas.add(meta);
-                }
-
-                String[] names = StringUtils.split(fullname, "`.`");
-                String schema = names[0];
-                String table = names[1].substring(0, names[1].length());
-                return new TableMeta(schema, table, metas);
-            }
-        });
-    }
-
-    public TableMetaCache(MysqlConnection con,TableMetaManager tableMetaManager) {
+    public TableMetaCache(MysqlConnection con, TableMetaManager tableMetaManager){
         this.connection = con;
         this.tableMetaManager = tableMetaManager;
-        //如果持久存储的表结构为空，从db里面获取下
+        // 如果持久存储的表结构为空，从db里面获取下
         if (tableMetaManager == null) {
             this.tableMetaDB = CacheBuilder.newBuilder().build(new CacheLoader<String, TableMeta>() {
 
@@ -100,16 +66,62 @@ public class TableMetaCache {
             });
         }
 
-        isOnRDS = connection.query("show global variables  like 'rds\\_%'", new ProcessJdbcResult<Boolean>() {
-
-            @Override
-            public Boolean process(ResultSet rs) throws SQLException {
-                if (rs.next()) {
-                    return true;
-                }
-                return false;
+        try {
+            ResultSetPacket packet = connection.query("show global variables  like 'rds\\_%'");
+            if (packet.getFieldValues().size() > 0) {
+                isOnRDS = true;
             }
-        });
+        } catch (IOException e) {
+        }
+    }
+
+    private TableMeta getTableMetaByDB(String fullname) throws IOException {
+        ResultSetPacket packet = connection.query("desc " + fullname);
+        String[] names = StringUtils.split(fullname, "`.`");
+        String schema = names[0];
+        String table = names[1].substring(0, names[1].length());
+        return new TableMeta(schema, table, parserTableMeta(packet));
+    }
+
+    public static List<FieldMeta> parserTableMeta(ResultSetPacket packet) {
+        Map<String, Integer> nameMaps = new HashMap<String, Integer>(6, 1f);
+
+        int index = 0;
+        for (FieldPacket fieldPacket : packet.getFieldDescriptors()) {
+            nameMaps.put(fieldPacket.getOriginalName(), index++);
+        }
+
+        int size = packet.getFieldDescriptors().size();
+        int count = packet.getFieldValues().size() / packet.getFieldDescriptors().size();
+        List<FieldMeta> result = new ArrayList<FieldMeta>();
+        for (int i = 0; i < count; i++) {
+            FieldMeta meta = new FieldMeta();
+            // 做一个优化，使用String.intern()，共享String对象，减少内存使用
+            meta.setColumnName(packet.getFieldValues().get(nameMaps.get(COLUMN_NAME) + i * size).intern());
+            meta.setColumnType(packet.getFieldValues().get(nameMaps.get(COLUMN_TYPE) + i * size));
+            meta.setNullable(StringUtils.equalsIgnoreCase(packet.getFieldValues().get(nameMaps.get(IS_NULLABLE) + i
+                                                                                      * size),
+                "YES"));
+            meta.setKey("PRI".equalsIgnoreCase(packet.getFieldValues().get(nameMaps.get(COLUMN_KEY) + i * size)));
+            meta.setDefaultValue(packet.getFieldValues().get(nameMaps.get(COLUMN_DEFAULT) + i * size));
+            meta.setExtra(packet.getFieldValues().get(nameMaps.get(EXTRA) + i * size));
+
+            result.add(meta);
+        }
+
+        return result;
+    }
+
+    public TableMeta getTableMeta(String schema, String table) {
+        return getTableMeta(schema, table, true);
+    }
+
+    public TableMeta getTableMeta(String schema, String table, boolean useCache) {
+        if (!useCache) {
+            tableMetaDB.invalidate(getFullName(schema, table));
+        }
+
+        return tableMetaDB.getUnchecked(getFullName(schema, table));
     }
 
     public TableMeta getTableMeta(String schema, String table, BinlogPosition position) {
@@ -122,20 +134,19 @@ public class TableMetaCache {
             tableMeta = tableMetaManager.find(schema, table);
             if (tableMeta == null) {
                 // 因为条件变化，可能第一次的tableMeta没取到，需要从db获取一次，并记录到snapshot中
-                String createDDL = connection.query("show create table " + getFullName(schema, table),
-                    new ProcessJdbcResult<String>() {
-
-                        @Override
-                        public String process(ResultSet rs) throws SQLException {
-                            while (rs.next()) {
-                                return rs.getString(2);
-                            }
-                            return null;
-                        }
-                    });
-                // 强制覆盖掉内存值
-                tableMetaManager.apply(position, schema, createDDL);
-                tableMeta = tableMetaManager.find(schema, table);
+                String fullName = getFullName(schema, table);
+                try {
+                    ResultSetPacket packet = connection.query("show create table " + fullName);
+                    String createDDL = null;
+                    if (packet.getFieldValues().size() > 0) {
+                        createDDL = packet.getFieldValues().get(1);
+                    }
+                    // 强制覆盖掉内存值
+                    tableMetaManager.apply(position, schema, createDDL);
+                    tableMeta = tableMetaManager.find(schema, table);
+                } catch (IOException e) {
+                    throw new CanalParseException("fetch failed by table meta:" + fullName, e);
+                }
             }
             return tableMeta;
         } else {
@@ -146,8 +157,6 @@ public class TableMetaCache {
             return tableMetaDB.getUnchecked(getFullName(schema, table));
         }
     }
-
-
 
     public void clearTableMeta(String schema, String table) {
         if (tableMetaManager != null) {
@@ -194,8 +203,6 @@ public class TableMetaCache {
             return true;
         }
     }
-
-
 
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder();

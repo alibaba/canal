@@ -13,12 +13,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Created by wanshao
- * Date: 2017/9/20
- * Time: 下午5:00
+ * Created by wanshao Date: 2017/9/20 Time: 下午5:00
  **/
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"/dal-dao.xml"})
+@ContextConfiguration(locations = { "/dal-dao.xml" })
 public class MetaHistoryDAOTest {
 
     @Resource
@@ -26,8 +24,7 @@ public class MetaHistoryDAOTest {
 
     @Test
     public void testGetAll() {
-        List<MetaHistoryDO>
-            metaHistoryDOList = metaHistoryDAO.getAll();
+        List<MetaHistoryDO> metaHistoryDOList = metaHistoryDAO.getAll();
         for (MetaHistoryDO metaHistoryDO : metaHistoryDOList) {
             System.out.println(metaHistoryDO.getId());
         }

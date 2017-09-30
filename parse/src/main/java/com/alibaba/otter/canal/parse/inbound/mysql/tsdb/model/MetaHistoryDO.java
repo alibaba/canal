@@ -11,22 +11,22 @@ public class MetaHistoryDO {
     /**
      * 主键
      */
-    private Long id;
+    private Long   id;
 
     /**
      * 创建时间
      */
-    private Date gmtCreate;
+    private Date   gmtCreate;
 
     /**
      * 修改时间
      */
-    private Date gmtModified;
+    private Date   gmtModified;
 
     private String binlogFile;
-    private Long binlogOffest;
+    private Long   binlogOffest;
     private String binlogMasterId;
-    private Long binlogTimestamp;
+    private Long   binlogTimestamp;
     private String useSchema;
     private String schema;
     private String table;

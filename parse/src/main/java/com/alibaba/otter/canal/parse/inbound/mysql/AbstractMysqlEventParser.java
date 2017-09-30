@@ -30,8 +30,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean           filterTableError        = false;
 
     @Resource
-    protected TableMetaManager tableMetaManager;
-    protected boolean useDruidDdlFilter = true;
+    protected TableMetaManager  tableMetaManager;
+    protected boolean           useDruidDdlFilter       = true;
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
@@ -50,7 +50,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         convert.setFilterRows(filterRows);
         convert.setFilterTableError(filterTableError);
 
-        //初始化parser的时候也初始化管理mysql 表结构的管理器
+        // 初始化parser的时候也初始化管理mysql 表结构的管理器
         tableMetaManager.init();
         return convert;
     }
@@ -66,6 +66,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     /**
      * 回滚到指定位点
+     * 
      * @param position
      * @return
      */
@@ -76,7 +77,6 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
         return true;
     }
-
 
     public void setEventBlackFilter(CanalEventFilter eventBlackFilter) {
         super.setEventBlackFilter(eventBlackFilter);
