@@ -68,6 +68,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     // update by yishun.chen,特殊异常处理参数
     private int                dumpErrorCount                    = 0;        // binlogDump失败异常计数
+    private int dumpTimeoutCount = 0;// socketTimeout异常
     private int                dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
 
     protected ErosaConnection buildErosaConnection() {
@@ -117,7 +118,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 }
             }
 
-            tableMetaCache = new TableMetaCache(metaConnection);
+            if(tableMetaManager != null){
+                tableMetaManager.setConnection(metaConnection);
+                tableMetaManager.setFilter(eventFilter);
+            }
+
+            tableMetaCache = new TableMetaCache(metaConnection,tableMetaManager);
             ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
         }
     }
@@ -437,7 +443,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
             public boolean sink(LogEvent event) {
                 try {
-                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                    CanalEntry.Entry entry = parseAndProfilingIfNecessary(event,true);
                     if (entry == null) {
                         return true;
                     }
@@ -470,7 +476,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
                 public boolean sink(LogEvent event) {
                     try {
-                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event,true);
                         if (entry == null) {
                             return true;
                         }
@@ -681,7 +687,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 public boolean sink(LogEvent event) {
                     EntryPosition entryPosition = null;
                     try {
-                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event);
+                        CanalEntry.Entry entry = parseAndProfilingIfNecessary(event,true);
                         if (entry == null) {
                             return true;
                         }

@@ -34,6 +34,7 @@ public class MysqlConnector {
     private byte                charsetNumber     = 33;
     private String              defaultSchema     = "retl";
     private int                 soTimeout         = 30 * 1000;
+    private int connTimeout = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
     private int                 sendBufferSize    = 16 * 1024;
 
@@ -128,6 +129,7 @@ public class MysqlConnector {
         connector.setReceiveBufferSize(getReceiveBufferSize());
         connector.setSendBufferSize(getSendBufferSize());
         connector.setSoTimeout(getSoTimeout());
+        connector.setConnTimeout(connTimeout);
         return connector;
     }
 
@@ -324,4 +326,11 @@ public class MysqlConnector {
         this.dumping = dumping;
     }
 
+    public int getConnTimeout() {
+        return connTimeout;
+    }
+
+    public void setConnTimeout(int connTimeout) {
+        this.connTimeout = connTimeout;
+    }
 }

@@ -3,8 +3,14 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
+import java.util.Properties;
 
+import com.mysql.jdbc.Driver;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +26,8 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher;
+import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
@@ -34,20 +42,59 @@ public class MysqlConnection implements ErosaConnection {
     private BinlogFormat        binlogFormat;
     private BinlogImage         binlogImage;
 
+    // tsdb releated
+    private AuthenticationInfo authInfo;
+    private Connection conn;
+    protected int connTimeout = 5 * 1000; // 5秒
+    protected int soTimeout = 60 * 60 * 1000; // 1小时
+    protected int bufferSize = 16 * 1024;
+
+
     public MysqlConnection(){
     }
 
     public MysqlConnection(InetSocketAddress address, String username, String password){
+        authInfo = new AuthenticationInfo();
+        authInfo.setAddress(address);
+        authInfo.setUsername(username);
+        authInfo.setPassword(password);
         connector = new MysqlConnector(address, username, password);
+        //将connection里面的参数透传下
+        connector.setSoTimeout(soTimeout);
+        connector.setConnTimeout(connTimeout);
     }
 
     public MysqlConnection(InetSocketAddress address, String username, String password, byte charsetNumber,
                            String defaultSchema){
+        authInfo = new AuthenticationInfo();
+        authInfo.setAddress(address);
+        authInfo.setUsername(username);
+        authInfo.setPassword(password);
+        authInfo.setDefaultDatabaseName(defaultSchema);
         connector = new MysqlConnector(address, username, password, charsetNumber, defaultSchema);
+        //将connection里面的参数透传下
+        connector.setSoTimeout(soTimeout);
+        connector.setConnTimeout(connTimeout);
     }
 
     public void connect() throws IOException {
         connector.connect();
+        //准备一个connection连接给tsdb查询用
+        Properties info = new Properties();
+        info.put("user", authInfo.getUsername());
+        info.put("password", authInfo.getPassword());
+        info.put("connectTimeout", String.valueOf(connTimeout));
+        info.put("socketTimeout", String.valueOf(soTimeout));
+        String url = "jdbc:mysql://" + authInfo.getAddress().getHostName() + ":"
+            + String.valueOf(authInfo.getAddress().getPort()) + "?allowMultiQueries=true";
+        try {
+            Driver driver = new com.mysql.jdbc.Driver();
+            conn = driver.connect(url, info);
+            // conn = DriverManager.getConnection(url, info);
+        } catch (SQLException e) {
+            throw new CanalParseException(e);
+        }
+
     }
 
     public void reconnect() throws IOException {
@@ -65,6 +112,25 @@ public class MysqlConnection implements ErosaConnection {
     public ResultSetPacket query(String cmd) throws IOException {
         MysqlQueryExecutor exector = new MysqlQueryExecutor(connector);
         return exector.query(cmd);
+    }
+
+    public <T> T query(String sql, ProcessJdbcResult<T> processor) {
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            return processor.process(rs);
+        } catch (SQLException e) {
+            throw new CanalParseException(e);
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    // ignore
+                }
+            }
+        }
     }
 
     public void update(String cmd) throws IOException {
@@ -146,6 +212,8 @@ public class MysqlConnection implements ErosaConnection {
         connection.setCharset(getCharset());
         connection.setSlaveId(getSlaveId());
         connection.setConnector(connector.fork());
+        //set authInfo
+        connection.setAuthInfo(authInfo);
         return connection;
     }
 
@@ -381,4 +449,35 @@ public class MysqlConnection implements ErosaConnection {
         return binlogImage;
     }
 
+    public Connection getConn() {
+        return conn;
+    }
+    public InetSocketAddress getAddress() {
+        return authInfo.getAddress();
+    }
+
+    public void setConnTimeout(int connTimeout) {
+        this.connTimeout = connTimeout;
+    }
+
+    public void setSoTimeout(int soTimeout) {
+        this.soTimeout = soTimeout;
+    }
+
+    public void setBufferSize(int bufferSize) {
+        this.bufferSize = bufferSize;
+    }
+
+    public AuthenticationInfo getAuthInfo() {
+        return authInfo;
+    }
+
+    public void setAuthInfo(AuthenticationInfo authInfo) {
+        this.authInfo = authInfo;
+    }
+
+    public static interface ProcessJdbcResult<T> {
+
+        public T process(ResultSet rs) throws SQLException;
+    }
 }

@@ -15,8 +15,6 @@ public interface ErosaConnection {
 
     public void disconnect() throws IOException;
 
-    public boolean isConnected();
-
     /**
      * 用于快速数据查找,和dump的区别在于，seek会只给出部分的数据
      */
