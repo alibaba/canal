@@ -6,14 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.taobao.tddl.dbsync.binlog.BinlogPosition;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.sql.ast.SQLDataType;
+import com.alibaba.druid.sql.ast.SQLDataTypeImpl;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLStatement;
+import com.alibaba.druid.sql.ast.expr.SQLCharExpr;
 import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.druid.sql.ast.expr.SQLNullExpr;
 import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
@@ -30,11 +31,10 @@ import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.druid.sql.repository.SchemaObject;
 import com.alibaba.druid.sql.repository.SchemaRepository;
 import com.alibaba.druid.util.JdbcConstants;
-
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
-import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
+import com.alibaba.otter.canal.protocol.position.EntryPosition;
 
 /**
  * 基于DDL维护的内存表结构
@@ -44,15 +44,19 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
  */
 public class MemoryTableMeta implements TableMetaTSDB {
 
+    private Logger                       logger     = LoggerFactory.getLogger(MemoryTableMeta.class);
     private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<List<String>, TableMeta>();
     private SchemaRepository             repository = new SchemaRepository(JdbcConstants.MYSQL);
-    private Logger                       logger     = LoggerFactory.getLogger(MemoryTableMeta.class);
 
-    public MemoryTableMeta(Logger logger){
-        this.logger = logger;
+    public MemoryTableMeta(){
     }
 
-    public boolean apply(BinlogPosition position, String schema, String ddl) {
+    @Override
+    public boolean init(String destination) {
+        return true;
+    }
+
+    public boolean apply(EntryPosition position, String schema, String ddl, String extra) {
         tableMetas.clear();
         synchronized (this) {
             if (StringUtils.isNotEmpty(schema)) {
@@ -116,7 +120,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
     }
 
     @Override
-    public boolean rollback(BinlogPosition position) {
+    public boolean rollback(EntryPosition position) {
         throw new RuntimeException("not support for memory");
     }
 
@@ -169,6 +173,17 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 dataTypStr += ")";
             }
 
+            if (dataType instanceof SQLDataTypeImpl) {
+                SQLDataTypeImpl dataTypeImpl = (SQLDataTypeImpl) dataType;
+                if (dataTypeImpl.isUnsigned()) {
+                    dataTypStr += " unsigned";
+                }
+
+                if (dataTypeImpl.isZerofill()) {
+                    dataTypStr += " zerofill";
+                }
+            }
+
             if (column.getDefaultExpr() == null || column.getDefaultExpr() instanceof SQLNullExpr) {
                 fieldMeta.setDefaultValue(null);
             } else {
@@ -211,6 +226,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
                    + DruidDdlParser.unescapeName(((SQLPropertyExpr) sqlName).getName());
         } else if (sqlName instanceof SQLIdentifierExpr) {
             return DruidDdlParser.unescapeName(((SQLIdentifierExpr) sqlName).getName());
+        } else if (sqlName instanceof SQLCharExpr) {
+            return ((SQLCharExpr) sqlName).getText();
         } else {
             return sqlName.toString();
         }

@@ -1,37 +1,26 @@
-package com.alibaba.otter.canal.parse.inbound.mysql.tsdb.model;
+package com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao;
 
 import java.util.Date;
 
 /**
  * @author agapple 2017年7月27日 下午11:09:41
- * @since 3.2.5
+ * @since 1.0.25
  */
 public class MetaHistoryDO {
 
-    /**
-     * 主键
-     */
     private Long   id;
-
-    /**
-     * 创建时间
-     */
     private Date   gmtCreate;
-
-    /**
-     * 修改时间
-     */
     private Date   gmtModified;
-
+    private String destination;
     private String binlogFile;
     private Long   binlogOffest;
     private String binlogMasterId;
     private Long   binlogTimestamp;
     private String useSchema;
-    private String schema;
-    private String table;
-    private String sql;
-    private String type;
+    private String sqlSchema;
+    private String sqlTable;
+    private String sqlText;
+    private String sqlType;
     private String extra;
 
     public Long getId() {
@@ -98,37 +87,6 @@ public class MetaHistoryDO {
         this.useSchema = useSchema;
     }
 
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public String getSql() {
-        return sql;
-    }
-
-    public void setSql(String sql) {
-        this.sql = sql;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getExtra() {
         return extra;
@@ -136,6 +94,55 @@ public class MetaHistoryDO {
 
     public void setExtra(String extra) {
         this.extra = extra;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public String getSqlSchema() {
+        return sqlSchema;
+    }
+
+    public void setSqlSchema(String sqlSchema) {
+        this.sqlSchema = sqlSchema;
+    }
+
+    public String getSqlTable() {
+        return sqlTable;
+    }
+
+    public void setSqlTable(String sqlTable) {
+        this.sqlTable = sqlTable;
+    }
+
+    public String getSqlText() {
+        return sqlText;
+    }
+
+    public void setSqlText(String sqlText) {
+        this.sqlText = sqlText;
+    }
+
+    public String getSqlType() {
+        return sqlType;
+    }
+
+    public void setSqlType(String sqlType) {
+        this.sqlType = sqlType;
+    }
+
+    @Override
+    public String toString() {
+        return "MetaHistoryDO [id=" + id + ", gmtCreate=" + gmtCreate + ", gmtModified=" + gmtModified
+               + ", destination=" + destination + ", binlogFile=" + binlogFile + ", binlogOffest=" + binlogOffest
+               + ", binlogMasterId=" + binlogMasterId + ", binlogTimestamp=" + binlogTimestamp + ", useSchema="
+               + useSchema + ", sqlSchema=" + sqlSchema + ", sqlTable=" + sqlTable + ", sqlText=" + sqlText
+               + ", sqlType=" + sqlType + ", extra=" + extra + "]";
     }
 
 }

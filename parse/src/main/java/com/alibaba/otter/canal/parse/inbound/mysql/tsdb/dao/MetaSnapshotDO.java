@@ -1,28 +1,17 @@
-package com.alibaba.otter.canal.parse.inbound.mysql.tsdb.model;
+package com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao;
 
 import java.util.Date;
 
 /**
  * @author agapple 2017年7月27日 下午11:09:41
- * @since 3.2.5
+ * @since 1.0.25
  */
 public class MetaSnapshotDO {
 
-    /**
-     * 主键
-     */
     private Long   id;
-
-    /**
-     * 创建时间
-     */
     private Date   gmtCreate;
-
-    /**
-     * 修改时间
-     */
     private Date   gmtModified;
-
+    private String destination;
     private String binlogFile;
     private Long   binlogOffest;
     private String binlogMasterId;
@@ -100,6 +89,22 @@ public class MetaSnapshotDO {
 
     public void setExtra(String extra) {
         this.extra = extra;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    @Override
+    public String toString() {
+        return "MetaSnapshotDO [id=" + id + ", gmtCreate=" + gmtCreate + ", gmtModified=" + gmtModified
+               + ", destination=" + destination + ", binlogFile=" + binlogFile + ", binlogOffest=" + binlogOffest
+               + ", binlogMasterId=" + binlogMasterId + ", binlogTimestamp=" + binlogTimestamp + ", data=" + data
+               + ", extra=" + extra + "]";
     }
 
 }

@@ -35,21 +35,24 @@ public class SocketChannel {
     }
 
     public void writeChannel(byte[]... buf) throws IOException {
-        if (channel != null && channel.isWritable()) channel.writeAndFlush(Unpooled.copiedBuffer(buf));
-        else throw new IOException("write  failed  !  please checking !");
+        if (channel != null && channel.isWritable()) {
+            channel.writeAndFlush(Unpooled.copiedBuffer(buf));
+        } else {
+            throw new IOException("write  failed  !  please checking !");
+        }
     }
 
     public byte[] read(int readSize) throws IOException {
         do {
             if (readSize > cache.readableBytes()) {
                 if (null == channel) {
-                    throw new IOException("socket has Interrupted !");
+                    throw new java.nio.channels.ClosedByInterruptException();
                 }
                 synchronized (this) {
                     try {
                         wait(100);
                     } catch (InterruptedException e) {
-                        throw new IOException("socket has Interrupted !");
+                        throw new java.nio.channels.ClosedByInterruptException();
                     }
                 }
             } else {

@@ -163,48 +163,14 @@
 		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
 		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
 		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
+		<property name="useDruidDdlFilter" value="${canal.instance.filter.druid.ddl:true}" />
 		<property name="filterRows" value="${canal.instance.filter.rows:false}" />
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
 		<property name="supportBinlogFormats" value="${canal.instance.binlog.format}" />
 		<property name="supportBinlogImages" value="${canal.instance.binlog.image}" />
 
 		<!--表结构相关-->
-		<property name="tableMetaManager">
-			<bean class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaManager">
-				<property name="metaHistoryDAO" ref="metaHistoryDAO"/>
-				<property name="metaSnapshotDAO" ref="metaSnapshotDAO"/>
-			</bean>
-		</property>
-	</bean>
-
-	<!--tsdb related-->
-	<bean id="dataSource" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DataSourceFactoryTSDB"
-		  factory-method="getDataSource">
-		<constructor-arg index="0" value="${canal.instance.tsdb.url}"/>
-		<constructor-arg index="1" value="${canal.instance.tsdb.dbUsername}"/>
-		<constructor-arg index="2" value="${canal.instance.tsdb.dbPassword}"/>
-		<constructor-arg index="3" value="${canal.instance.tsdb.enable:true}"/>
-	</bean>
-
-	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-		<property name="dataSource" ref="dataSource"/>
-	</bean>
-
-	<bean id="txTemplate" class="org.springframework.transaction.support.TransactionTemplate">
-		<property name="transactionManager" ref="transactionManager"></property>
-		<property name="propagationBehaviorName" value="PROPAGATION_REQUIRED"></property>
-	</bean>
-
-	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
-		<property name="dataSource" ref="dataSource"/>
-		<property name="configLocation" value="classpath:sqlmap-config.xml"/>
-	</bean>
-
-	<bean id="metaHistoryDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDAO">
-		<property name="sqlMapClient" ref="sqlMapClient"/>
-	</bean>
-
-	<bean id="metaSnapshotDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDAO">
-		<property name="sqlMapClient" ref="sqlMapClient"/>
+		<property name="enableTsdb" value="${canal.instance.tsdb.enable:false}"/>
+		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
 	</bean>
 </beans>

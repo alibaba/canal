@@ -35,8 +35,8 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
 import com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin;
 import com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd;
 import com.alibaba.otter.canal.protocol.CanalEntry.Type;
+import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.google.protobuf.ByteString;
-import com.taobao.tddl.dbsync.binlog.BinlogPosition;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
@@ -189,8 +189,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             if (!isSeek) {
                 // 使用新的表结构元数据管理方式
-                BinlogPosition position = createPosition(event.getHeader());
-                tableMetaCache.apply(position, event.getDbName(), queryString);
+                EntryPosition position = createPosition(event.getHeader());
+                tableMetaCache.apply(position, event.getDbName(), queryString, null);
             }
 
             Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, type);
@@ -386,7 +386,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 table.getDbName(),
                 table.getTableName(),
                 eventType);
-            BinlogPosition position = createPosition(event.getHeader());
+            EntryPosition position = createPosition(event.getHeader());
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
@@ -444,8 +444,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
     }
 
-    private BinlogPosition createPosition(LogHeader logHeader) {
-        return new BinlogPosition(binlogFileName, logHeader.getLogPos(), logHeader.getServerId(), logHeader.getWhen()); // 记录到秒
+    private EntryPosition createPosition(LogHeader logHeader) {
+        return new EntryPosition(binlogFileName,
+            logHeader.getLogPos(),
+            logHeader.getWhen() * 1000L,
+            logHeader.getServerId()); // 记录到秒
     }
 
     private boolean parseOneRow(RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
@@ -468,7 +471,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
             }
 
-            BinlogPosition position = createPosition(event.getHeader());
+            EntryPosition position = createPosition(event.getHeader());
             if (!existRDSNoPrimaryKey) {
                 // online ddl增加字段操作步骤：
                 // 1. 新增一张临时表，将需要做ddl表的数据全量导入
@@ -716,7 +719,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return true;
     }
 
-    private TableMeta getTableMeta(String dbName, String tbName, boolean useCache, BinlogPosition position) {
+    private TableMeta getTableMeta(String dbName, String tbName, boolean useCache, EntryPosition position) {
         try {
             return tableMetaCache.getTableMeta(dbName, tbName, useCache, position);
         } catch (Exception e) {

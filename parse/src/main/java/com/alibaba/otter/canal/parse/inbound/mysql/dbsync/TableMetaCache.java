@@ -14,11 +14,11 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
-import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaManager;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
+import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.taobao.tddl.dbsync.binlog.BinlogPosition;
 
 /**
  * 处理table meta解析和缓存
@@ -37,15 +37,15 @@ public class TableMetaCache {
     private MysqlConnection                 connection;
     private boolean                         isOnRDS        = false;
 
-    private TableMetaManager                tableMetaManager;
+    private TableMetaTSDB                   tableMetaTSDB;
     // 第一层tableId,第二层schema.table,解决tableId重复，对应多张表
     private LoadingCache<String, TableMeta> tableMetaDB;
 
-    public TableMetaCache(MysqlConnection con, TableMetaManager tableMetaManager){
+    public TableMetaCache(MysqlConnection con, TableMetaTSDB tableMetaTSDB){
         this.connection = con;
-        this.tableMetaManager = tableMetaManager;
+        this.tableMetaTSDB = tableMetaTSDB;
         // 如果持久存储的表结构为空，从db里面获取下
-        if (tableMetaManager == null) {
+        if (tableMetaTSDB == null) {
             this.tableMetaDB = CacheBuilder.newBuilder().build(new CacheLoader<String, TableMeta>() {
 
                 @Override
@@ -124,14 +124,14 @@ public class TableMetaCache {
         return tableMetaDB.getUnchecked(getFullName(schema, table));
     }
 
-    public TableMeta getTableMeta(String schema, String table, BinlogPosition position) {
+    public TableMeta getTableMeta(String schema, String table, EntryPosition position) {
         return getTableMeta(schema, table, true, position);
     }
 
-    public TableMeta getTableMeta(String schema, String table, boolean useCache, BinlogPosition position) {
+    public TableMeta getTableMeta(String schema, String table, boolean useCache, EntryPosition position) {
         TableMeta tableMeta = null;
-        if (tableMetaManager != null) {
-            tableMeta = tableMetaManager.find(schema, table);
+        if (tableMetaTSDB != null) {
+            tableMeta = tableMetaTSDB.find(schema, table);
             if (tableMeta == null) {
                 // 因为条件变化，可能第一次的tableMeta没取到，需要从db获取一次，并记录到snapshot中
                 String fullName = getFullName(schema, table);
@@ -142,8 +142,8 @@ public class TableMetaCache {
                         createDDL = packet.getFieldValues().get(1);
                     }
                     // 强制覆盖掉内存值
-                    tableMetaManager.apply(position, schema, createDDL);
-                    tableMeta = tableMetaManager.find(schema, table);
+                    tableMetaTSDB.apply(position, schema, createDDL, "first");
+                    tableMeta = tableMetaTSDB.find(schema, table);
                 } catch (IOException e) {
                     throw new CanalParseException("fetch failed by table meta:" + fullName, e);
                 }
@@ -159,7 +159,7 @@ public class TableMetaCache {
     }
 
     public void clearTableMeta(String schema, String table) {
-        if (tableMetaManager != null) {
+        if (tableMetaTSDB != null) {
             // tsdb不需要做,会基于ddl sql自动清理
         } else {
             tableMetaDB.invalidate(getFullName(schema, table));
@@ -167,7 +167,7 @@ public class TableMetaCache {
     }
 
     public void clearTableMetaWithSchemaName(String schema) {
-        if (tableMetaManager != null) {
+        if (tableMetaTSDB != null) {
             // tsdb不需要做,会基于ddl sql自动清理
         } else {
             for (String name : tableMetaDB.asMap().keySet()) {
@@ -180,7 +180,7 @@ public class TableMetaCache {
     }
 
     public void clearTableMeta() {
-        if (tableMetaManager != null) {
+        if (tableMetaTSDB != null) {
             // tsdb不需要做,会基于ddl sql自动清理
         } else {
             tableMetaDB.invalidateAll();
@@ -195,9 +195,9 @@ public class TableMetaCache {
      * @param ddl
      * @return
      */
-    public boolean apply(BinlogPosition position, String schema, String ddl) {
-        if (tableMetaManager != null) {
-            return tableMetaManager.apply(position, schema, ddl);
+    public boolean apply(EntryPosition position, String schema, String ddl, String extra) {
+        if (tableMetaTSDB != null) {
+            return tableMetaTSDB.apply(position, schema, ddl, extra);
         } else {
             // ignore
             return true;

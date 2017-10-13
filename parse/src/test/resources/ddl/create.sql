@@ -1,5 +1,5 @@
  CREATE TABLE `test` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `id`  bigint(20)  zerofill unsigNed   NOT NULL AUTO_INCREMENT COMMENT 'id',
   `c_tinyint` tinyint(4) DEFAULT '1' COMMENT 'tinyint',
   `c_smallint` smallint(6) DEFAULT 0 COMMENT 'smallint',
   `c_mediumint` mediumint(9) DEFAULT NULL COMMENT 'mediumint',

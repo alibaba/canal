@@ -3,7 +3,6 @@
         "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
 <sqlMapConfig>
     <settings useStatementNamespaces="true"/>
-
-    <sqlMap resource="sql-map/sqlmap_history.xml"/>
-    <sqlMap resource="sql-map/sqlmap_snapshot.xml"/>
+    <sqlMap resource="tsdb/sql-map/sqlmap_history.xml"/>
+    <sqlMap resource="tsdb/sql-map/sqlmap_snapshot.xml"/>
 </sqlMapConfig>

@@ -31,7 +31,7 @@ public class LocalBinlogEventParserTest {
     public void setUp() {
         URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
         File dummyFile = new File(url.getFile());
-        directory = new File("/Users/wanshao/projects/canal/parse/src/test/resources/binlog/tsdb").getPath();
+        directory = new File(dummyFile + "/binlog/tsdb").getPath();
     }
 
     @Test

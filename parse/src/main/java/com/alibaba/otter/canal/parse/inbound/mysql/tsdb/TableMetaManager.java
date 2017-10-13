@@ -11,13 +11,12 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.fastjson.JSON;
@@ -32,10 +31,10 @@ import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDAO;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDO;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDAO;
-import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.model.MetaHistoryDO;
-import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.model.MetaSnapshotDO;
-import com.taobao.tddl.dbsync.binlog.BinlogPosition;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDO;
+import com.alibaba.otter.canal.protocol.position.EntryPosition;
 
 /**
  * 基于console远程管理 see internal class: CanalTableMeta , ConsoleTableMetaTSDB
@@ -45,23 +44,27 @@ import com.taobao.tddl.dbsync.binlog.BinlogPosition;
  */
 public class TableMetaManager implements TableMetaTSDB {
 
-    private static Logger               logger        = LoggerFactory.getLogger(TableMetaManager.class);
-    private static Pattern              pattern       = Pattern.compile("Duplicate entry '.*' for key '*'");
-    private static final BinlogPosition INIT_POSITION = BinlogPosition.parseFromString("0:0#-2.-1");
-    private MemoryTableMeta             memoryTableMeta;
-    private MysqlConnection             connection;                                                         // 查询meta信息的链接
-    private CanalEventFilter            filter;
-    private BinlogPosition              lastPosition;
-    private ScheduledExecutorService    scheduler;
+    private static Logger              logger        = LoggerFactory.getLogger(TableMetaManager.class);
+    private static Pattern             pattern       = Pattern.compile("Duplicate entry '.*' for key '*'");
+    private static final EntryPosition INIT_POSITION = new EntryPosition("0", 0L, -2L, -1L);
+    private String                     destination;
+    private MemoryTableMeta            memoryTableMeta;
+    private MysqlConnection            connection;                                                         // 查询meta信息的链接
+    private CanalEventFilter           filter;
+    private CanalEventFilter           blackFilter;
+    private EntryPosition              lastPosition;
+    private ScheduledExecutorService   scheduler;
+    private MetaHistoryDAO             metaHistoryDAO;
+    private MetaSnapshotDAO            metaSnapshotDAO;
 
-    @Resource
-    private MetaHistoryDAO              metaHistoryDAO;
+    public TableMetaManager(){
 
-    @Resource
-    private MetaSnapshotDAO             metaSnapshotDAO;
+    }
 
-    public void init() {
-        this.memoryTableMeta = new MemoryTableMeta(logger);
+    @Override
+    public boolean init(final String destination) {
+        this.destination = destination;
+        this.memoryTableMeta = new MemoryTableMeta();
         this.scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
 
             @Override
@@ -76,17 +79,14 @@ public class TableMetaManager implements TableMetaTSDB {
             @Override
             public void run() {
                 try {
-                    logger.info("-------- begin to produce snapshot for table meta");
+                    MDC.put("destination", destination);
                     applySnapshotToDB(lastPosition, false);
                 } catch (Throwable e) {
-                    logger.error("scheudle faield", e);
+                    logger.error("scheudle applySnapshotToDB faield", e);
                 }
             }
-        }, 24, 24, TimeUnit.SECONDS);
-    }
-
-    public TableMetaManager(){
-
+        }, 24, 24, TimeUnit.HOURS);
+        return true;
     }
 
     @Override
@@ -97,13 +97,13 @@ public class TableMetaManager implements TableMetaTSDB {
     }
 
     @Override
-    public boolean apply(BinlogPosition position, String schema, String ddl) {
+    public boolean apply(EntryPosition position, String schema, String ddl, String extra) {
         // 首先记录到内存结构
         synchronized (memoryTableMeta) {
-            if (memoryTableMeta.apply(position, schema, ddl)) {
+            if (memoryTableMeta.apply(position, schema, ddl, extra)) {
                 this.lastPosition = position;
                 // 同步每次变更给远程做历史记录
-                return applyHistoryToDB(position, schema, ddl);
+                return applyHistoryToDB(position, schema, ddl, extra);
             } else {
                 throw new RuntimeException("apply to memory is failed");
             }
@@ -111,11 +111,11 @@ public class TableMetaManager implements TableMetaTSDB {
     }
 
     @Override
-    public boolean rollback(BinlogPosition position) {
+    public boolean rollback(EntryPosition position) {
         // 每次rollback需要重新构建一次memory data
-        this.memoryTableMeta = new MemoryTableMeta(logger);
+        this.memoryTableMeta = new MemoryTableMeta();
         boolean flag = false;
-        BinlogPosition snapshotPosition = buildMemFromSnapshot(position);
+        EntryPosition snapshotPosition = buildMemFromSnapshot(position);
         if (snapshotPosition != null) {
             applyHistoryOnMemory(snapshotPosition, position);
             flag = true;
@@ -145,18 +145,23 @@ public class TableMetaManager implements TableMetaTSDB {
             ResultSetPacket packet = connection.query("show databases");
             List<String> schemas = new ArrayList<String>();
             for (String schema : packet.getFieldValues()) {
-                if (!filter.filter(schema)) {
-                    schemas.add(schema);
-                }
+                schemas.add(schema);
             }
 
             for (String schema : schemas) {
                 packet = connection.query("show tables from `" + schema + "`");
                 List<String> tables = new ArrayList<String>();
                 for (String table : packet.getFieldValues()) {
-                    if (!filter.filter(table)) {
-                        tables.add(table);
+                    String fullName = schema + "." + table;
+                    if (blackFilter == null || !blackFilter.filter(fullName)) {
+                        if (filter == null || filter.filter(fullName)) {
+                            tables.add(table);
+                        }
                     }
+                }
+
+                if (tables.isEmpty()) {
+                    continue;
                 }
 
                 StringBuilder sql = new StringBuilder();
@@ -168,7 +173,7 @@ public class TableMetaManager implements TableMetaTSDB {
                 for (ResultSetPacket onePacket : packets) {
                     if (onePacket.getFieldValues().size() > 1) {
                         String oneTableCreateSql = onePacket.getFieldValues().get(1);
-                        memoryTableMeta.apply(INIT_POSITION, schema, oneTableCreateSql);
+                        memoryTableMeta.apply(INIT_POSITION, schema, oneTableCreateSql, null);
                     }
                 }
             }
@@ -179,25 +184,26 @@ public class TableMetaManager implements TableMetaTSDB {
         }
     }
 
-    private boolean applyHistoryToDB(BinlogPosition position, String schema, String ddl) {
+    private boolean applyHistoryToDB(EntryPosition position, String schema, String ddl, String extra) {
         Map<String, String> content = new HashMap<String, String>();
-        content.put("binlogFile", position.getFileName());
+        content.put("destination", destination);
+        content.put("binlogFile", position.getJournalName());
         content.put("binlogOffest", String.valueOf(position.getPosition()));
-        content.put("binlogMasterId", String.valueOf(position.getMasterId()));
+        content.put("binlogMasterId", String.valueOf(position.getServerId()));
         content.put("binlogTimestamp", String.valueOf(position.getTimestamp()));
         content.put("useSchema", schema);
         if (content.isEmpty()) {
             throw new RuntimeException("apply failed caused by content is empty in applyHistoryToDB");
         }
         // 待补充
-        List<DdlResult> ddlResults = DruidDdlParser.parse(schema, ddl);
+        List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, schema);
         if (ddlResults.size() > 0) {
             DdlResult ddlResult = ddlResults.get(0);
-            content.put("schema", ddlResult.getSchemaName());
-            content.put("table", ddlResult.getTableName());
-            content.put("type", ddlResult.getType().name());
-            content.put("sql", ddl);
-            // content.put("extra", "");
+            content.put("sqlSchema", ddlResult.getSchemaName());
+            content.put("sqlTable", ddlResult.getTableName());
+            content.put("sqlType", ddlResult.getType().name());
+            content.put("sqlText", ddl);
+            content.put("extra", extra);
         }
 
         MetaHistoryDO metaDO = new MetaHistoryDO();
@@ -212,7 +218,7 @@ public class TableMetaManager implements TableMetaTSDB {
                 // 忽略掉重复的位点
                 logger.warn("dup apply for sql : " + ddl);
             } else {
-                throw new CanalParseException("apply history to db failed caused by : " + e.getMessage());
+                throw new CanalParseException("apply history to db failed caused by : " + e.getMessage(), e);
             }
 
         }
@@ -222,9 +228,9 @@ public class TableMetaManager implements TableMetaTSDB {
     /**
      * 发布数据到console上
      */
-    private boolean applySnapshotToDB(BinlogPosition position, boolean init) {
+    private boolean applySnapshotToDB(EntryPosition position, boolean init) {
         // 获取一份快照
-        MemoryTableMeta tmpMemoryTableMeta = new MemoryTableMeta(logger);
+        MemoryTableMeta tmpMemoryTableMeta = new MemoryTableMeta();
         Map<String, String> schemaDdls = null;
         synchronized (memoryTableMeta) {
             if (!init && position == null) {
@@ -233,7 +239,7 @@ public class TableMetaManager implements TableMetaTSDB {
             }
             schemaDdls = memoryTableMeta.snapshot();
             for (Map.Entry<String, String> entry : schemaDdls.entrySet()) {
-                tmpMemoryTableMeta.apply(position, entry.getKey(), entry.getValue());
+                tmpMemoryTableMeta.apply(position, entry.getKey(), entry.getValue(), null);
             }
         }
 
@@ -248,9 +254,10 @@ public class TableMetaManager implements TableMetaTSDB {
         }
         if (compareAll) {
             Map<String, String> content = new HashMap<String, String>();
-            content.put("binlogFile", position.getFileName());
+            content.put("destination", destination);
+            content.put("binlogFile", position.getJournalName());
             content.put("binlogOffest", String.valueOf(position.getPosition()));
-            content.put("binlogMasterId", String.valueOf(position.getMasterId()));
+            content.put("binlogMasterId", String.valueOf(position.getServerId()));
             content.put("binlogTimestamp", String.valueOf(position.getTimestamp()));
             content.put("data", JSON.toJSONString(schemaDdls));
             if (content.isEmpty()) {
@@ -264,9 +271,9 @@ public class TableMetaManager implements TableMetaTSDB {
             } catch (Throwable e) {
                 if (isUkDuplicateException(e)) {
                     // 忽略掉重复的位点
-                    logger.warn("dup apply snapshot for data : " + snapshotDO.getData());
+                    logger.info("dup apply snapshot use position : " + position + " , just ignore");
                 } else {
-                    throw new CanalParseException("apply failed caused by : " + e.getMessage());
+                    throw new CanalParseException("apply failed caused by : " + e.getMessage(), e);
                 }
             }
             return true;
@@ -296,18 +303,21 @@ public class TableMetaManager implements TableMetaTSDB {
         return result;
     }
 
-    private BinlogPosition buildMemFromSnapshot(BinlogPosition position) {
+    private EntryPosition buildMemFromSnapshot(EntryPosition position) {
         try {
-            MetaSnapshotDO snapshotDO = metaSnapshotDAO.findByTimestamp(position.getTimestamp());
+            MetaSnapshotDO snapshotDO = metaSnapshotDAO.findByTimestamp(destination, position.getTimestamp());
+            if (snapshotDO == null) {
+                return null;
+            }
             String binlogFile = snapshotDO.getBinlogFile();
             Long binlogOffest = snapshotDO.getBinlogOffest();
             String binlogMasterId = snapshotDO.getBinlogMasterId();
             Long binlogTimestamp = snapshotDO.getBinlogTimestamp();
 
-            BinlogPosition snapshotPosition = new BinlogPosition(binlogFile,
+            EntryPosition snapshotPosition = new EntryPosition(binlogFile,
                 binlogOffest == null ? 0l : binlogOffest,
-                Long.valueOf(binlogMasterId == null ? "-2" : binlogMasterId),
-                binlogTimestamp == null ? 0l : binlogTimestamp);
+                binlogTimestamp == null ? 0l : binlogTimestamp,
+                Long.valueOf(binlogMasterId == null ? "-2" : binlogMasterId));
             // data存储为Map<String,String>，每个分库一套建表
             String sqlData = snapshotDO.getData();
             JSONObject jsonObj = JSON.parseObject(sqlData);
@@ -315,43 +325,49 @@ public class TableMetaManager implements TableMetaTSDB {
                 // 记录到内存
                 if (!memoryTableMeta.apply(snapshotPosition,
                     ObjectUtils.toString(entry.getKey()),
-                    ObjectUtils.toString(entry.getValue()))) {
+                    ObjectUtils.toString(entry.getValue()),
+                    null)) {
                     return null;
                 }
             }
 
             return snapshotPosition;
         } catch (Throwable e) {
-            throw new CanalParseException("apply failed caused by : " + e.getMessage());
+            throw new CanalParseException("apply failed caused by : " + e.getMessage(), e);
         }
     }
 
-    private boolean applyHistoryOnMemory(BinlogPosition position, BinlogPosition rollbackPosition) {
+    private boolean applyHistoryOnMemory(EntryPosition position, EntryPosition rollbackPosition) {
         try {
-            List<MetaHistoryDO> metaHistoryDOList = metaHistoryDAO.findByTimestamp(position.getTimestamp(),
+            List<MetaHistoryDO> metaHistoryDOList = metaHistoryDAO.findByTimestamp(destination,
+                position.getTimestamp(),
                 rollbackPosition.getTimestamp());
+            if (metaHistoryDOList == null) {
+                return true;
+            }
+
             for (MetaHistoryDO metaHistoryDO : metaHistoryDOList) {
                 String binlogFile = metaHistoryDO.getBinlogFile();
                 Long binlogOffest = metaHistoryDO.getBinlogOffest();
                 String binlogMasterId = metaHistoryDO.getBinlogMasterId();
                 Long binlogTimestamp = metaHistoryDO.getBinlogTimestamp();
                 String useSchema = metaHistoryDO.getUseSchema();
-                String sqlData = metaHistoryDO.getSql();
-                BinlogPosition snapshotPosition = new BinlogPosition(binlogFile,
+                String sqlData = metaHistoryDO.getSqlText();
+                EntryPosition snapshotPosition = new EntryPosition(binlogFile,
                     binlogOffest == null ? 0L : binlogOffest,
-                    Long.valueOf(binlogMasterId == null ? "-2" : binlogMasterId),
-                    binlogTimestamp == null ? 0L : binlogTimestamp);
+                    binlogTimestamp == null ? 0L : binlogTimestamp,
+                    Long.valueOf(binlogMasterId == null ? "-2" : binlogMasterId));
 
                 // 如果是同一秒内,对比一下history的位点，如果比期望的位点要大，忽略之
                 if (snapshotPosition.getTimestamp() > rollbackPosition.getTimestamp()) {
                     continue;
-                } else if (rollbackPosition.getMasterId() == snapshotPosition.getMasterId()
+                } else if (rollbackPosition.getServerId() == snapshotPosition.getServerId()
                            && snapshotPosition.compareTo(rollbackPosition) > 0) {
                     continue;
                 }
 
                 // 记录到内存
-                if (!memoryTableMeta.apply(snapshotPosition, useSchema, sqlData)) {
+                if (!memoryTableMeta.apply(snapshotPosition, useSchema, sqlData, null)) {
                     return false;
                 }
 
@@ -439,6 +455,10 @@ public class TableMetaManager implements TableMetaTSDB {
 
     public void setMetaSnapshotDAO(MetaSnapshotDAO metaSnapshotDAO) {
         this.metaSnapshotDAO = metaSnapshotDAO;
+    }
+
+    public void setBlackFilter(CanalEventFilter blackFilter) {
+        this.blackFilter = blackFilter;
     }
 
     public MysqlConnection getConnection() {

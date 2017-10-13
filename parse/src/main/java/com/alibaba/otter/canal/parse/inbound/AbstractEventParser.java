@@ -96,6 +96,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected void preDump(ErosaConnection connection) {
     }
 
+    protected boolean processTableMeta(EntryPosition position) {
+        return true;
+    }
+
     protected void afterDump(ErosaConnection connection) {
     }
 
@@ -145,7 +149,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                 ErosaConnection erosaConnection = null;
                 while (running) {
                     try {
-
                         // 开始执行replication
                         // 1. 构造Erosa连接
                         erosaConnection = buildErosaConnection();
@@ -162,6 +165,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         final EntryPosition startPosition = position;
                         if (startPosition == null) {
                             throw new CanalParseException("can't find start position for " + destination);
+                        }
+
+                        if (!processTableMeta(startPosition)) {
+                            throw new CanalParseException("can't find init table meta for " + destination
+                                                          + " with position : " + startPosition);
                         }
                         logger.info("find start position : {}", startPosition.toString());
                         // 重新链接，因为在找position过程中可能有状态，需要断开后重建
