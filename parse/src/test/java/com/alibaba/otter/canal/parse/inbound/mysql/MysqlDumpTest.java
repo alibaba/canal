@@ -36,7 +36,7 @@ public class MysqlDumpTest {
         controller.setMasterPosition(startPosition);
         controller.setEnableTsdb(true);
         controller.setDestination("example");
-        controller.setTsdbSpringXml("classpath:tsdb/mysql-tsdb.xml");
+        controller.setTsdbSpringXml("classpath:tsdb/h2-tsdb.xml");
         controller.setEventFilter(new AviaterRegexFilter("test\\..*"));
         controller.setEventBlackFilter(new AviaterRegexFilter("canal_tsdb\\..*"));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {

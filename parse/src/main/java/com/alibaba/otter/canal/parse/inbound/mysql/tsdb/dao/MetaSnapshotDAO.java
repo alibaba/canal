@@ -1,17 +1,8 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao;
 
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
 
 import com.google.common.collect.Maps;
 
@@ -22,7 +13,7 @@ import com.google.common.collect.Maps;
  * @since 3.2.5
  */
 @SuppressWarnings("deprecation")
-public class MetaSnapshotDAO extends SqlMapClientDaoSupport {
+public class MetaSnapshotDAO extends MetaBaseDAO {
 
     public Long insert(MetaSnapshotDO snapshotDO) {
         return (Long) getSqlMapClientTemplate().insert("meta_snapshot.insert", snapshotDO);
@@ -59,27 +50,7 @@ public class MetaSnapshotDAO extends SqlMapClientDaoSupport {
     }
 
     protected void initDao() throws Exception {
-        Connection conn = null;
-        InputStream input = null;
-        try {
-            DataSource dataSource = getDataSource();
-            conn = dataSource.getConnection();
-            input = Thread.currentThread().getContextClassLoader().getResourceAsStream("ddl/mysql/meta_snapshot.sql");
-            if (input == null) {
-                return;
-            }
-
-            String sql = StringUtils.join(IOUtils.readLines(input), "\n");
-            Statement stmt = conn.createStatement();
-            stmt.execute(sql);
-            stmt.close();
-        } catch (Throwable e) {
-            logger.warn("init meta_history failed", e);
-        } finally {
-            IOUtils.closeQuietly(input);
-            if (conn != null) {
-                conn.close();
-            }
-        }
+        initTable("meta_snapshot");
     }
+
 }

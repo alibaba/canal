@@ -22,7 +22,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
  * @since 3.2.5
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "/tsdb/mysql-tsdb.xml" })
+@ContextConfiguration(locations = { "/tsdb/h2-tsdb.xml" })
 public class TableMetaManagerTest {
 
     @Resource
@@ -40,8 +40,7 @@ public class TableMetaManagerTest {
         tableMetaManager.apply(position, "tddl5_00", createSql, null);
 
         String alterSql = "alter table `test` add column name varchar(32) after c_varchar";
-        position = new EntryPosition("mysql-bin.001115", 139177334L, 3065927853L, 1501660815000L);
+        position = new EntryPosition("mysql-bin.001115", 139177334L, 3065927854L, 1501660815000L);
         tableMetaManager.apply(position, "tddl5_00", alterSql, null);
-
     }
 }

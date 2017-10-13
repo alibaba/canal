@@ -46,10 +46,11 @@ public class TableMetaManager implements TableMetaTSDB {
 
     private static Logger              logger        = LoggerFactory.getLogger(TableMetaManager.class);
     private static Pattern             pattern       = Pattern.compile("Duplicate entry '.*' for key '*'");
+    private static Pattern             h2Pattern     = Pattern.compile("Unique index or primary key violation");
     private static final EntryPosition INIT_POSITION = new EntryPosition("0", 0L, -2L, -1L);
     private String                     destination;
     private MemoryTableMeta            memoryTableMeta;
-    private MysqlConnection            connection;                                                         // 查询meta信息的链接
+    private MysqlConnection            connection;                                                              // 查询meta信息的链接
     private CanalEventFilter           filter;
     private CanalEventFilter           blackFilter;
     private EntryPosition              lastPosition;
@@ -466,7 +467,7 @@ public class TableMetaManager implements TableMetaTSDB {
     }
 
     public boolean isUkDuplicateException(Throwable t) {
-        if (pattern.matcher(t.getMessage()).find()) {
+        if (pattern.matcher(t.getMessage()).find() || h2Pattern.matcher(t.getMessage()).find()) {
             // 违反外键约束时也抛出这种异常，所以这里还要判断包含字符串Duplicate entry
             return true;
         }
