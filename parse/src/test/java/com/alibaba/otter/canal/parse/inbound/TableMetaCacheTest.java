@@ -14,17 +14,14 @@ public class TableMetaCacheTest {
 
     @Test
     public void testSimple() throws IOException {
-
-        MysqlConnection connection = new MysqlConnection(new InetSocketAddress("100.81.153.8", 3308),
-            "jingwei",
-            "jingwei");
+        MysqlConnection connection = new MysqlConnection(new InetSocketAddress("127.0.0.1", 3306), "root", "hello");
         try {
             connection.connect();
         } catch (IOException e) {
             Assert.fail(e.getMessage());
         }
 
-        List<ResultSetPacket> packets = connection.queryMulti("show create table test.ljh_test; show create table test.user");
+        List<ResultSetPacket> packets = connection.queryMulti("show create table test.ljh_test");
         String createDDL = null;
         if (packets.get(0).getFieldValues().size() > 0) {
             createDDL = packets.get(0).getFieldValues().get(1);

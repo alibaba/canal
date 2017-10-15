@@ -285,6 +285,8 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     }
 
     private boolean compareTableMetaDbAndMemory(MysqlConnection connection, final String schema, final String table) {
+        TableMeta tableMetaFromMem = memoryTableMeta.find(schema, table);
+
         TableMeta tableMetaFromDB = new TableMeta();
         tableMetaFromDB.setSchema(schema);
         tableMetaFromDB.setTable(table);
@@ -292,15 +294,29 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             ResultSetPacket packet = connection.query("desc " + getFullName(schema, table));
             tableMetaFromDB.setFields(TableMetaCache.parserTableMeta(packet));
         } catch (IOException e) {
+            if (e.getMessage().contains("errorNumber=1146")) {
+                logger.error("table not exist in db , pls check :" + getFullName(schema, table) + " , mem : "
+                             + tableMetaFromMem);
+                return false;
+            }
             throw new CanalParseException(e);
         }
 
-        TableMeta tableMetaFromMem = memoryTableMeta.find(schema, table);
         boolean result = compareTableMeta(tableMetaFromMem, tableMetaFromDB);
         if (!result) {
-            logger.error("compare failed . \n db : " + tableMetaFromDB + " \n mem : " + tableMetaFromMem);
-        }
+            String createDDL = null;
+            try {
+                ResultSetPacket packet = connection.query("show create table " + getFullName(schema, table));
+                if (packet.getFieldValues().size() > 1) {
+                    createDDL = packet.getFieldValues().get(1);
+                }
+            } catch (IOException e) {
+                // ignore
+            }
 
+            logger.error("pls submit github issue, show create table ddl:" + createDDL + " , compare failed . \n db : "
+                         + tableMetaFromDB + " \n mem : " + tableMetaFromMem);
+        }
         return result;
     }
 
