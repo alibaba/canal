@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
@@ -294,7 +295,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         String queryString = null;
         try {
             queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
-            return buildQueryEntry(queryString, event.getHeader());
+            String tableName = null;
+            if (useDruidDdlFilter) {
+                List<DdlResult> results = DruidDdlParser.parse(queryString, null);
+                if (results.size() > 0) {
+                    tableName = results.get(0).getTableName();
+                }
+            }
+
+            return buildQueryEntry(queryString, event.getHeader(), tableName);
         } catch (UnsupportedEncodingException e) {
             throw new CanalParseException(e);
         }
@@ -355,6 +364,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
             }
 
+            boolean isRDSHeartBeat = tableMetaCache.isOnRDS()
+                                     && isRDSHeartBeat(table.getDbName(), table.getTableName());
+
             String fullname = table.getDbName() + "." + table.getTableName();
             // check name filter
             if (nameFilter != null && !nameFilter.filter(fullname)) {
@@ -364,9 +376,17 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return null;
             }
 
-            if (tableMetaCache.isOnRDS() && "mysql.ha_health_check".equals(fullname)) {
-                // 忽略rds模式的mysql.ha_health_check心跳数据
-                return null;
+            // if (isHeartBeat || isRDSHeartBeat) {
+            // // 忽略rds模式的mysql.ha_health_check心跳数据
+            // return null;
+            // }
+            TableMeta tableMeta = null;
+            if (isRDSHeartBeat) {
+                // 处理rds模式的mysql.ha_health_check心跳数据
+                // 主要RDS的心跳表基本无权限,需要mock一个tableMeta
+                FieldMeta idMeta = new FieldMeta("id", "bigint(20)", true, false, "0");
+                FieldMeta typeMeta = new FieldMeta("type", "char(1)", false, true, "0");
+                tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
             }
 
             EventType eventType = null;
@@ -396,8 +416,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
             boolean tableError = false;
-            TableMeta tableMeta = null;
-            if (tableMetaCache != null) {// 入错存在table meta cache
+            if (tableMetaCache != null && tableMeta == null) {// 入错存在table meta
+                                                              // cache
                 tableMeta = getTableMeta(table.getDbName(), table.getTableName(), true, position);
                 if (tableMeta == null) {
                     tableError = true;
@@ -661,6 +681,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     }
 
+    private Entry buildQueryEntry(String queryString, LogHeader logHeader, String tableName) {
+        Header header = createHeader(binlogFileName, logHeader, "", tableName, EventType.QUERY);
+        RowChange.Builder rowChangeBuider = RowChange.newBuilder();
+        rowChangeBuider.setSql(queryString);
+        rowChangeBuider.setEventType(EventType.QUERY);
+        return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+    }
+
     private Entry buildQueryEntry(String queryString, LogHeader logHeader) {
         Header header = createHeader(binlogFileName, logHeader, "", "", EventType.QUERY);
         RowChange.Builder rowChangeBuider = RowChange.newBuilder();
@@ -737,6 +765,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean isText(String columnType) {
         return "LONGTEXT".equalsIgnoreCase(columnType) || "MEDIUMTEXT".equalsIgnoreCase(columnType)
                || "TEXT".equalsIgnoreCase(columnType) || "TINYTEXT".equalsIgnoreCase(columnType);
+    }
+
+    private boolean isRDSHeartBeat(String schema, String table) {
+        return "mysql".equalsIgnoreCase(schema) && "ha_health_check".equalsIgnoreCase(table);
     }
 
     public static TransactionBegin createTransactionBegin(long threadId) {

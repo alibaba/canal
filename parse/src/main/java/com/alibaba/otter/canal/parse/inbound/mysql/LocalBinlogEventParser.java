@@ -9,6 +9,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
@@ -23,14 +24,14 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
 public class LocalBinlogEventParser extends AbstractMysqlEventParser implements CanalEventParser {
 
     // 数据库信息
-    private AuthenticationInfo masterInfo;
-    private EntryPosition      masterPosition;        // binlog信息
-    private MysqlConnection    metaConnection;        // 查询meta信息的链接
-    private TableMetaCache     tableMetaCache;        // 对应meta
+    protected AuthenticationInfo masterInfo;
+    protected EntryPosition      masterPosition;        // binlog信息
+    protected MysqlConnection    metaConnection;        // 查询meta信息的链接
+    protected TableMetaCache     tableMetaCache;        // 对应meta
 
-    private String             directory;
-    private boolean            needWait   = false;
-    private int                bufferSize = 16 * 1024;
+    protected String             directory;
+    protected boolean            needWait   = false;
+    protected int                bufferSize = 16 * 1024;
 
     public LocalBinlogEventParser(){
         // this.runningInfo = new AuthenticationInfo();
@@ -48,6 +49,12 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
             metaConnection.connect();
         } catch (IOException e) {
             throw new CanalParseException(e);
+        }
+
+        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            ((DatabaseTableMeta) tableMetaTSDB).setConnection(metaConnection);
+            ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
+            ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
         }
 
         tableMetaCache = new TableMetaCache(metaConnection, tableMetaTSDB);

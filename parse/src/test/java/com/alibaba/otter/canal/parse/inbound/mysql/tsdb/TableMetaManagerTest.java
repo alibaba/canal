@@ -26,7 +26,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 public class TableMetaManagerTest {
 
     @Resource
-    TableMetaManager tableMetaManager;
+    DatabaseTableMeta tableMetaManager;
 
     @Test
     public void testSimple() throws FileNotFoundException, IOException {

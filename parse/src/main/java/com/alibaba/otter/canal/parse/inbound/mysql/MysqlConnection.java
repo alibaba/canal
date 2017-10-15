@@ -156,6 +156,7 @@ public class MysqlConnection implements ErosaConnection {
         BinlogDumpCommandPacket binlogDumpCmd = new BinlogDumpCommandPacket();
         binlogDumpCmd.binlogFileName = binlogfilename;
         binlogDumpCmd.binlogPosition = binlogPosition;
+        // binlogDumpCmd.slaveServerId = this.slaveId;
         binlogDumpCmd.slaveServerId = this.slaveId;
         byte[] cmdBody = binlogDumpCmd.toBytes();
 

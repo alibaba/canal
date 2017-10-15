@@ -1,7 +1,9 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogFormat;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogImage;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
-import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaManager;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
@@ -118,10 +120,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 }
             }
 
-            if (tableMetaTSDB != null && tableMetaTSDB instanceof TableMetaManager) {
-                ((TableMetaManager) tableMetaTSDB).setConnection(metaConnection);
-                ((TableMetaManager) tableMetaTSDB).setFilter(eventFilter);
-                ((TableMetaManager) tableMetaTSDB).setBlackFilter(eventBlackFilter);
+            if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+                ((DatabaseTableMeta) tableMetaTSDB).setConnection(metaConnection);
+                ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
+                ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
             }
 
             tableMetaCache = new TableMetaCache(metaConnection, tableMetaTSDB);
@@ -313,8 +315,33 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         connection.getConnector().setSendBufferSize(sendBufferSize);
         connection.getConnector().setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
         connection.setCharset(connectionCharset);
+        // 随机生成slaveId
+        if (this.slaveId <= 0) {
+            this.slaveId = generateUniqueServerId();
+        }
         connection.setSlaveId(this.slaveId);
         return connection;
+    }
+
+    private final long generateUniqueServerId() {
+        try {
+            // a=`echo $masterip|cut -d\. -f1`
+            // b=`echo $masterip|cut -d\. -f2`
+            // c=`echo $masterip|cut -d\. -f3`
+            // d=`echo $masterip|cut -d\. -f4`
+            // #server_id=`expr $a \* 256 \* 256 \* 256 + $b \* 256 \* 256 + $c
+            // \* 256 + $d `
+            // #server_id=$b$c$d
+            // server_id=`expr $b \* 256 \* 256 + $c \* 256 + $d `
+            InetAddress localHost = InetAddress.getLocalHost();
+            byte[] addr = localHost.getAddress();
+            int salt = (destination != null) ? destination.hashCode() : 0;
+            return ((0x7f & salt) << 24) + ((0xff & (int) addr[1]) << 16) // NL
+                   + ((0xff & (int) addr[2]) << 8) // NL
+                   + (0xff & (int) addr[3]);
+        } catch (UnknownHostException e) {
+            throw new CanalParseException("Unknown host", e);
+        }
     }
 
     protected EntryPosition findStartPosition(ErosaConnection connection) throws IOException {

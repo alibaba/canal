@@ -37,14 +37,14 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDO;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 
 /**
- * 基于console远程管理 see internal class: CanalTableMeta , ConsoleTableMetaTSDB
+ * 基于db远程管理 see internal class: CanalTableMeta , ConsoleTableMetaTSDB
  *
  * @author agapple 2017年7月27日 下午10:47:55
  * @since 3.2.5
  */
-public class TableMetaManager implements TableMetaTSDB {
+public class DatabaseTableMeta implements TableMetaTSDB {
 
-    private static Logger              logger        = LoggerFactory.getLogger(TableMetaManager.class);
+    private static Logger              logger        = LoggerFactory.getLogger(DatabaseTableMeta.class);
     private static Pattern             pattern       = Pattern.compile("Duplicate entry '.*' for key '*'");
     private static Pattern             h2Pattern     = Pattern.compile("Unique index or primary key violation");
     private static final EntryPosition INIT_POSITION = new EntryPosition("0", 0L, -2L, -1L);
@@ -58,7 +58,7 @@ public class TableMetaManager implements TableMetaTSDB {
     private MetaHistoryDAO             metaHistoryDAO;
     private MetaSnapshotDAO            metaSnapshotDAO;
 
-    public TableMetaManager(){
+    public DatabaseTableMeta(){
 
     }
 

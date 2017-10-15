@@ -140,21 +140,21 @@ public class DruidDdlParser {
             } else if (statement instanceof SQLInsertStatement) {
                 DdlResult ddlResult = new DdlResult();
                 SQLInsertStatement insert = (SQLInsertStatement) statement;
-                processName(ddlResult, schmeaName, insert.getTableName(), true);
+                processName(ddlResult, schmeaName, insert.getTableName(), false);
                 ddlResult.setType(EventType.INSERT);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLUpdateStatement) {
                 DdlResult ddlResult = new DdlResult();
                 SQLUpdateStatement update = (SQLUpdateStatement) statement;
                 // 拿到的表名可能为null,比如update a,b set a.id=x
-                processName(ddlResult, schmeaName, update.getTableName(), true);
+                processName(ddlResult, schmeaName, update.getTableName(), false);
                 ddlResult.setType(EventType.UPDATE);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLDeleteStatement) {
                 DdlResult ddlResult = new DdlResult();
                 SQLDeleteStatement delete = (SQLDeleteStatement) statement;
                 // 拿到的表名可能为null,比如delete a,b from a where a.id = b.id
-                processName(ddlResult, schmeaName, delete.getTableName(), true);
+                processName(ddlResult, schmeaName, delete.getTableName(), false);
                 ddlResult.setType(EventType.DELETE);
                 ddlResults.add(ddlResult);
             }
