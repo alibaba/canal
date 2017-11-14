@@ -198,4 +198,16 @@ public class DruidDdlParser {
         return name;
     }
 
+    public static String unescapeQuotaName(String name) {
+        if (name.length() > 2) {
+            char c0 = name.charAt(0);
+            char x0 = name.charAt(name.length() - 1);
+            if (c0 == '\'' && x0 == '\'') {
+                return name.substring(1, name.length() - 1);
+            }
+        }
+
+        return name;
+    }
+
 }

@@ -187,7 +187,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
             if (column.getDefaultExpr() == null || column.getDefaultExpr() instanceof SQLNullExpr) {
                 fieldMeta.setDefaultValue(null);
             } else {
-                fieldMeta.setDefaultValue(getSqlName(column.getDefaultExpr()));
+                fieldMeta.setDefaultValue(DruidDdlParser.unescapeQuotaName(getSqlName(column.getDefaultExpr())));
             }
 
             fieldMeta.setColumnName(name);
@@ -232,6 +232,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
             return sqlName.toString();
         }
     }
+    
 
     public SchemaRepository getRepository() {
         return repository;
