@@ -387,6 +387,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 FieldMeta idMeta = new FieldMeta("id", "bigint(20)", true, false, "0");
                 FieldMeta typeMeta = new FieldMeta("type", "char(1)", false, true, "0");
                 tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
+            } else if (isHeartBeat) {
+                // 处理alisql模式的test.heartbeat心跳数据
+                // 心跳表基本无权限,需要mock一个tableMeta
+                FieldMeta idMeta = new FieldMeta("id", "smallint(6)", false, true, null);
+                FieldMeta typeMeta = new FieldMeta("type", "int(11)", true, false, null);
+                tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
             }
 
             EventType eventType = null;
