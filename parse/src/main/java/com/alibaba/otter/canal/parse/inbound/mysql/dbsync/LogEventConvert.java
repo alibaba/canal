@@ -364,6 +364,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
             }
 
+            boolean isHeartBeat = isAliSQLHeartBeat(table.getDbName(), table.getTableName());
             boolean isRDSHeartBeat = tableMetaCache.isOnRDS()
                                      && isRDSHeartBeat(table.getDbName(), table.getTableName());
 
@@ -771,6 +772,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean isText(String columnType) {
         return "LONGTEXT".equalsIgnoreCase(columnType) || "MEDIUMTEXT".equalsIgnoreCase(columnType)
                || "TEXT".equalsIgnoreCase(columnType) || "TINYTEXT".equalsIgnoreCase(columnType);
+    }
+    
+    private boolean isAliSQLHeartBeat(String schema, String table) {
+        return "test".equalsIgnoreCase(schema) && "heartbeat".equalsIgnoreCase(table);
     }
 
     private boolean isRDSHeartBeat(String schema, String table) {
