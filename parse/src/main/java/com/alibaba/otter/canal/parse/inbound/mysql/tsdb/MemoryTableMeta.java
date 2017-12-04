@@ -64,7 +64,10 @@ public class MemoryTableMeta implements TableMetaTSDB {
             }
 
             try {
-                repository.console(ddl);
+                // druid暂时flush privileges语法解析有问题
+                if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")) {
+                    repository.console(ddl);
+                }
             } catch (Throwable e) {
                 logger.warn("parse faield : " + ddl, e);
             }
