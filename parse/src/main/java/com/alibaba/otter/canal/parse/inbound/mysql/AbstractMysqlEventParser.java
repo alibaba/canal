@@ -159,10 +159,11 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setTsdbSpringXml(String tsdbSpringXml) {
         this.tsdbSpringXml = tsdbSpringXml;
-
-        if (tableMetaTSDB == null) {
-            // 初始化
-            tableMetaTSDB = TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
+        if (this.enableTsdb) {
+            if (tableMetaTSDB == null) {
+                // 初始化
+                tableMetaTSDB = TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
+            }
         }
     }
 
