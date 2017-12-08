@@ -385,10 +385,15 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         if (tableMetaTSDB != null && (fixedPosition.getTimestamp() == null || fixedPosition.getTimestamp() <= 0)) {
             // 使用一个未来极大的时间，基于位点进行定位
             long startTimestamp = System.currentTimeMillis() + 102L * 365 * 24 * 3600 * 1000; // 当前时间的未来102年
-            return findAsPerTimestampInSpecificLogFile(mysqlConnection,
+            EntryPosition entryPosition = findAsPerTimestampInSpecificLogFile(mysqlConnection,
                 startTimestamp,
                 fixedPosition,
                 fixedPosition.getJournalName());
+            if (entryPosition == null) {
+                throw new CanalParseException("[fixed timestamp] can't found begin/commit position before with fixed position"
+                                              + fixedPosition.getJournalName() + ":" + fixedPosition.getPosition());
+            }
+            return entryPosition;
         } else {
             return fixedPosition;
         }
@@ -767,7 +772,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         }
 
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
-                            && endPosition.getPosition() <= logfileoffset) {
+                            && endPosition.getPosition() < logfileoffset) {
                             return false;
                         }
 
