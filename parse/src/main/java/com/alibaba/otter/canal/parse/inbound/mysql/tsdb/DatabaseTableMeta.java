@@ -248,7 +248,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         boolean compareAll = true;
         for (Schema schema : tmpMemoryTableMeta.getRepository().getSchemas()) {
             for (String table : schema.showTables()) {
-                if (!compareTableMetaDbAndMemory(connection, schema.getName(), table)) {
+                if (!compareTableMetaDbAndMemory(connection, tmpMemoryTableMeta, schema.getName(), table)) {
                     compareAll = false;
                 }
             }
@@ -284,7 +284,8 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         return false;
     }
 
-    private boolean compareTableMetaDbAndMemory(MysqlConnection connection, final String schema, final String table) {
+    private boolean compareTableMetaDbAndMemory(MysqlConnection connection, MemoryTableMeta memoryTableMeta,
+                                                final String schema, final String table) {
         TableMeta tableMetaFromMem = memoryTableMeta.find(schema, table);
 
         TableMeta tableMetaFromDB = new TableMeta();
