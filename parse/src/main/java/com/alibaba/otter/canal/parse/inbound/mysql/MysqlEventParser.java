@@ -771,6 +771,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                             }
                         }
 
+                        if (entryPosition == null) {
+                            // 如果啥都找不到，就返回第一条Format Event的位点,一般是116位点
+                            entryPosition = new EntryPosition(logfilename, logfileoffset, logposTimestamp, serverId);
+                            logger.debug("set {} to be pending start position before finding another proper one...",
+                                entryPosition);
+                            logPosition.setPostion(entryPosition);
+                        }
+
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
                             && endPosition.getPosition() < logfileoffset) {
                             return false;
