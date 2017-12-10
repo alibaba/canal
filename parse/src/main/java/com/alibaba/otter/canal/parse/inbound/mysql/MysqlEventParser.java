@@ -761,14 +761,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         Long logposTimestamp = entry.getHeader().getExecuteTime();
                         Long serverId = entry.getHeader().getServerId();
 
-                        if (CanalEntry.EntryType.TRANSACTIONBEGIN.equals(entry.getEntryType())
-                            || CanalEntry.EntryType.TRANSACTIONEND.equals(entry.getEntryType())) {
+                        if (logger.isDebugEnabled()) {
                             logger.debug("compare exit condition:{},{},{}, startTimestamp={}...", new Object[] {
                                     logfilename, logfileoffset, logposTimestamp, startTimestamp });
-                            // 事务头和尾寻找第一条记录时间戳，如果最小的一条记录都不满足条件，可直接退出
-                            if (logposTimestamp >= startTimestamp) {
-                                return false;
-                            }
+                        }
+                        // 事务头和尾寻找第一条记录时间戳，如果最小的一条记录都不满足条件，可直接退出
+                        if (logposTimestamp >= startTimestamp) {
+                            return false;
                         }
 
                         if (entryPosition == null) {
