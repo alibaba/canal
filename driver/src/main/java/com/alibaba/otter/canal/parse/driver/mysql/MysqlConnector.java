@@ -43,6 +43,8 @@ public class MysqlConnector {
     // mysql connectinnId
     private long                connectionId      = -1;
     private AtomicBoolean       connected         = new AtomicBoolean(false);
+    
+    public static final int timeout = 3000; // 3s
 
     public MysqlConnector(){
     }
@@ -144,8 +146,8 @@ public class MysqlConnector {
     }
 
     private void negotiate(SocketChannel channel) throws IOException {
-        HeaderPacket header = PacketManager.readHeader(channel, 4);
-        byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength());
+        HeaderPacket header = PacketManager.readHeader(channel, 4, timeout);
+        byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
         if (body[0] < 0) {// check field_count
             if (body[0] == -1) {
                 ErrorPacket error = new ErrorPacket();
@@ -184,7 +186,7 @@ public class MysqlConnector {
         header = null;
         header = PacketManager.readHeader(channel, 4);
         body = null;
-        body = PacketManager.readBytes(channel, header.getPacketBodyLength());
+        body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
         assert body != null;
         if (body[0] < 0) {
             if (body[0] == -1) {
