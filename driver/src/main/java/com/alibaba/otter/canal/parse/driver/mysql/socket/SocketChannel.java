@@ -64,6 +64,36 @@ public class SocketChannel {
             }
         } while (true);
     }
+    
+    public byte[] read(int readSize, int timeout) throws IOException {
+        int accumulatedWaitTime = 0;
+        do {
+            if (readSize > cache.readableBytes()) {
+                if (null == channel) {
+                    throw new IOException("socket has Interrupted !");
+                }
+
+                accumulatedWaitTime += 100;
+                if (accumulatedWaitTime > timeout) {
+                    throw new IOException("socket read timeout occured !");
+                }
+
+                synchronized (this) {
+                    try {
+                        wait(100);
+                    } catch (InterruptedException e) {
+                        throw new IOException("socket has Interrupted !");
+                    }
+                }
+            } else {
+                byte[] back = new byte[readSize];
+                synchronized (lock) {
+                    cache.readBytes(back);
+                }
+                return back;
+            }
+        } while (true);
+    }
 
     public boolean isConnected() {
         return channel != null ? true : false;
