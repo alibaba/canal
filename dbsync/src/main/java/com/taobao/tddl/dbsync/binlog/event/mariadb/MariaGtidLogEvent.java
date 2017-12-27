@@ -13,9 +13,35 @@ import com.taobao.tddl.dbsync.binlog.event.LogHeader;
  */
 public class MariaGtidLogEvent extends IgnorableLogEvent {
 
+	private long gtid;
+	
+	/**
+	 * mariadb gtidlog event format
+	 * 
+    uint<8> GTID sequence
+    uint<4> Replication Domain ID
+    uint<1> Flags
+
+	if flag & FL_GROUP_COMMIT_ID
+	
+	    uint<8> commit_id
+	
+	else
+	
+	    uint<6> 0
+
+	 * 
+	 */
+	
     public MariaGtidLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
         super(header, buffer, descriptionEvent);
+        gtid=buffer.getUlong64().longValue();
         // do nothing , just ignore log event
     }
 
+	public long getGtid() {
+		return gtid;
+	}
+
+    
 }
