@@ -25,7 +25,6 @@ import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 
 public class MysqlConnection implements ErosaConnection {
 
@@ -37,8 +36,6 @@ public class MysqlConnection implements ErosaConnection {
     private BinlogFormat        binlogFormat;
     private BinlogImage         binlogImage;
 
-    private String binlogfilename;
-    
     // tsdb releated
     private AuthenticationInfo  authInfo;
     protected int               connTimeout = 5 * 1000;                                      // 5秒
@@ -145,18 +142,13 @@ public class MysqlConnection implements ErosaConnection {
             if (event == null) {
                 throw new CanalParseException("parse failed");
             }
-            
-            //binlog日志文件发生变化
-            if(event.getHeader().getType()==LogEvent.ROTATE_EVENT){
-            	binlogfilename=((RotateLogEvent)event).getFilename();
-            }
 
             if (!func.sink(event)) {
                 break;
-            }else{
-            	if(event.getSemival()==1){
-            		sendSemiAck(binlogfilename, binlogPosition);
-            	}
+            }
+
+            if (event.getSemival() == 1) {
+                sendSemiAck(context.getLogPosition().getFileName(), binlogPosition);
             }
         }
     }
@@ -180,12 +172,12 @@ public class MysqlConnection implements ErosaConnection {
         PacketManager.writePkg(connector.getChannel(), binlogDumpHeader.toBytes(), cmdBody);
         connector.setDumping(true);
     }
-    
+
     private void sendSemiAck(String binlogfilename, Long binlogPosition) throws IOException {
         SemiAckCommandPacket semiAckCmd = new SemiAckCommandPacket();
         semiAckCmd.binlogFileName = binlogfilename;
         semiAckCmd.binlogPosition = binlogPosition;
-        
+
         byte[] cmdBody = semiAckCmd.toBytes();
 
         logger.info("SEMI ACK with position:{}", semiAckCmd);
@@ -193,7 +185,7 @@ public class MysqlConnection implements ErosaConnection {
         semiAckHeader.setPacketBodyLength(cmdBody.length);
         semiAckHeader.setPacketSequenceNumber((byte) 0x00);
         PacketManager.writePkg(connector.getChannel(), semiAckHeader.toBytes(), cmdBody);
-        
+
     }
 
     public MysqlConnection fork() {

@@ -20,7 +20,7 @@ public class LogBuffer {
 
     protected int    origin, limit;
     protected int    position;
-    protected int 	 semival;
+    protected int    semival;
 
     protected LogBuffer(){
     }

@@ -361,9 +361,14 @@ public abstract class LogEvent {
     protected final LogHeader  header;
     
     /**
-     * mysql半同步semi标识 0不需要semi ack 给mysql, 1需要semi ack给mysql
+     * mysql半同步semi标识
+     * 
+     * <pre>
+     * 0不需要semi ack 给mysql
+     * 1需要semi ack给mysql
+     * </pre>
      */
-    protected int semival;
+    protected int              semival;
     
     
 
