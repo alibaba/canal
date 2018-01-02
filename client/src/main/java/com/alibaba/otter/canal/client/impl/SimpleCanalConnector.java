@@ -457,7 +457,10 @@ public class SimpleCanalConnector implements CanalConnector {
         if (zkClientx != null) {
             return mutex.state();
         } else {
-            return true;// 默认都放过
+        	if (channel != null) {
+        		return channel.isConnected();
+        	}
+            return false;
         }
     }
 
