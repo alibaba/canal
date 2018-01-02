@@ -363,12 +363,12 @@ public class JsonConversion {
                         buf.append('"').append(text).append('"');
                     } else {
                         text = m_data.getFixString((int) m_length, charsetName);
-                        buf.append('"').append(text).append('"');
+                        buf.append('"').append(escapse(text)).append('"');
                     }
 
                     break;
                 case STRING:
-                    buf.append('"').append(m_string_value).append('"');
+                    buf.append('"').append(escapse(m_string_value)).append('"');
                     break;
                 case ERROR:
                     throw new IllegalArgumentException("illegal json data");
@@ -376,6 +376,21 @@ public class JsonConversion {
 
             return buf;
         }
+    }
+
+    private static StringBuilder escapse(String data) {
+        StringBuilder sb = new StringBuilder(data.length());
+        int endIndex = data.length();
+        for (int i = 0; i < endIndex; ++i) {
+            char c = data.charAt(i);
+            if (c == '"') {
+                sb.append('\\');
+            } else if (c == '\\') {
+                sb.append("\\");
+            }
+            sb.append(c);
+        }
+        return sb;
     }
 
     public static enum Json_enum_type {

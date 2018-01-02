@@ -367,7 +367,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         this.dataDir = new File(dataDir);
     }
 
-    public void setDataDir(File dataDir) {
+    public void setDataDirByFile(File dataDir) {
         this.dataDir = dataDir;
     }
 

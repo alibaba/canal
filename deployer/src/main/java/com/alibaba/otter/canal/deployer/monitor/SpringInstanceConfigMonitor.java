@@ -13,7 +13,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -186,7 +185,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
 
             logger.info("auto notify start {} successful.", destination);
         } catch (Throwable e) {
-            logger.error("scan add found[{}] but start failed", destination, ExceptionUtils.getFullStackTrace(e));
+            logger.error(String.format("scan add found[%s] but start failed", destination), e);
         }
     }
 
@@ -197,7 +196,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
             lastFiles.remove(destination);
             logger.info("auto notify stop {} successful.", destination);
         } catch (Throwable e) {
-            logger.error("scan delete found[{}] but stop failed", destination, ExceptionUtils.getFullStackTrace(e));
+            logger.error(String.format("scan delete found[%s] but stop failed", destination), e);
             actions.put(destination, action);// 再重新加回去，下一次scan时再执行删除
         }
     }
@@ -209,9 +208,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
                 action.reload(destination);
                 logger.info("auto notify reload {} successful.", destination);
             } catch (Throwable e) {
-                logger.error("scan reload found[{}] but reload failed",
-                    destination,
-                    ExceptionUtils.getFullStackTrace(e));
+                logger.error(String.format("scan reload found[%s] but reload failed", destination), e);
             }
         }
     }
@@ -314,5 +311,4 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         }
 
     }
-
 }

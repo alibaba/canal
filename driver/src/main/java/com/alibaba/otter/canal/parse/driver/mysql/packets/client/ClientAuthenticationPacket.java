@@ -47,10 +47,11 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
         /**
          * CLIENT_LONG_PASSWORD CLIENT_LONG_FLAG CLIENT_PROTOCOL_41
          * CLIENT_INTERACTIVE CLIENT_TRANSACTIONS CLIENT_SECURE_CONNECTION
+         * CLIENT_MULTI_STATEMENTS;
          */
-        ByteHelper.writeUnsignedIntLittleEndian(1 | 4 | 512 | 8192 | 32768, out); // remove
-                                                                                  // client_interactive
-                                                                                  // feature
+        ByteHelper.writeUnsignedIntLittleEndian(1 | 4 | 512 | 8192 | 32768 | 0x00010000, out); // remove
+        // client_interactive
+        // feature
 
         // 2. write max_packet_size
         ByteHelper.writeUnsignedIntLittleEndian(MSC.MAX_PACKET_LENGTH, out);

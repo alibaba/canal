@@ -29,6 +29,7 @@ public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
     private long                        period;
     private Set<String>                 persistTasks;
 
+    @SuppressWarnings("serial")
     private final LogPosition           nullPosition = new LogPosition() {
                                                      };
 

@@ -48,41 +48,14 @@
 		<property name="alarmHandler">
 			<ref local="alarmHandler" />
 		</property>
-		<property name="eventFetcher">
-			<ref local="eventFetcher"/>
-		</property>
-	</bean>
-	
-	<bean id="eventFetcher" class="com.alibaba.otter.canal.mq.fetch.CanalEventFetcherWithMq">
-		<property name="enable" value="${canal.instance.mq.enable}"/>
-		<property name="sendMode" value="${canal.instance.mq.sendMode}"/>
 	</bean>
 	
 	<!-- 报警处理类 -->
-	<bean id="alarmHandler" class="com.alibaba.otter.canal.common.alarm.MsgAlarmHandler">
-		<property name="enabled" value="${canal.alarm.enable}" />
-		<property name="environment" value="${canal.alarm.environment}" />
-		<property name="intercenterApi" value="${canal.alarm.intercenter.api}" />
-		<property name="administrators" value="${canal.alarm.administrators}" />
-	</bean>
+	<bean id="alarmHandler" class="com.alibaba.otter.canal.common.alarm.LogAlarmHandler" />
 	
-	<bean id="zkClientx" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" >
-		<property name="targetClass" value="com.alibaba.otter.canal.common.zookeeper.ZkClientx" />
-		<property name="targetMethod" value="getZkClient" />
-		<property name="arguments">
-			<list>
-				<value>${canal.zkServers:127.0.0.1:2181}</value>
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="metaManager" class="com.alibaba.otter.canal.meta.PeriodMixedMetaManager">
-		<property name="zooKeeperMetaManager">
-			<bean class="com.alibaba.otter.canal.meta.ZooKeeperMetaManager">
-				<property name="zkClientx" ref="zkClientx" />
-			</bean>
-		</property>
-		<property name="period" value="${canal.zookeeper.flush.period:1000}" />
+	<bean id="metaManager" class="com.alibaba.otter.canal.meta.FileMixedMetaManager">
+		<property name="dataDir" value="${canal.file.data.dir:../conf}" />
+		<property name="period" value="${canal.file.flush.period:1000}" />
 	</bean>
 	
 	<bean id="eventStore" class="com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer">
@@ -96,10 +69,10 @@
 		<property name="eventStore" ref="eventStore" />
 	</bean>
 
-	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.LocalBinlogEventParser">
+	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsLocalBinlogEventParser">
 		<property name="destination" value="${canal.instance.destination}" />			
 		<property name="alarmHandler" ref="alarmHandler" />
-		
+
 		<!-- 解析过滤处理 -->
 		<property name="eventFilter">
 			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
@@ -144,20 +117,25 @@
 			</bean>
 		</property>
 		
-		<!-- 解析起始位点 -->
-		<property name="masterPosition">
-			<bean class="com.alibaba.otter.canal.protocol.position.EntryPosition">
-				<property name="journalName" value="${canal.instance.master.journal.name}" />
-				<property name="position" value="${canal.instance.master.position}" />
-				<property name="timestamp" value="${canal.instance.master.timestamp}" />
-			</bean>
-		</property>
 		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
 		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
 		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
+		<property name="useDruidDdlFilter" value="${canal.instance.filter.druid.ddl:true}" />
 		<property name="filterRows" value="${canal.instance.filter.rows:false}" />
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
-		<property name="needWait" value="${canal.instance.parser.needWait:true}"/>
-		<property name="directory" value="${canal.instance.parser.directory}"/>
+		<property name="needWait" value="${canal.instance.parser.needWait:false}"/>
+		<property name="directory" value="${canal.instance.parser.directory:}"/>
+		
+		<!-- rds相关 -->
+		<property name="url" value="${canal.instance.rds.open.url:}"/>
+		<property name="accesskey" value="${canal.instance.rds.open.accesskey:}"/>
+		<property name="secretkey" value="${canal.instance.rds.open.secretkey:}"/>
+		<property name="instanceId" value="${canal.instance.rds.instanceId:}"/>
+		<property name="startTime" value="${canal.instance.rds.startTime:}"/>
+		<property name="endTime" value="${canal.instance.rds.endTime:}"/>
+		
+		<!--表结构相关-->
+		<property name="enableTsdb" value="${canal.instance.tsdb.enable:true}"/>
+		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
 	</bean>
 </beans>

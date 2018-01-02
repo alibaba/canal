@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.PropertyFilter;
@@ -28,6 +29,7 @@ public class JsonUtils {
         SerializeConfig.getGlobalInstance().put(InetAddress.class, InetAddressSerializer.instance);
         SerializeConfig.getGlobalInstance().put(Inet4Address.class, InetAddressSerializer.instance);
         SerializeConfig.getGlobalInstance().put(Inet6Address.class, InetAddressSerializer.instance);
+        ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
     }
 
     public static <T> T unmarshalFromByte(byte[] bytes, Class<T> targetClass) {

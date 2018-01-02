@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.0.25-SNAPSHOT</version>
+    <version>1.0.26-SNAPSHOT</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -109,6 +109,7 @@
         <java_source_version>1.6</java_source_version>
         <java_target_version>1.6</java_target_version>
         <file_encoding>UTF-8</file_encoding>
+        <spring_version>3.2.9.RELEASE</spring_version>
     </properties>
 
     <modules>
@@ -131,9 +132,35 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                    <version>${spring_version}</version>
+            </dependency>
+            <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                    <version>${spring_version}</version>
+            </dependency>
+            <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                    <version>${spring_version}</version>
+            </dependency>
+            <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-jdbc</artifactId>
+                    <version>${spring_version}</version>
+            </dependency>
+            <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-orm</artifactId>
+                    <version>${spring_version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework</groupId>
-                <artifactId>spring</artifactId>
-                <version>2.5.6</version>
+                <artifactId>spring-test</artifactId>
+                <version>${spring_version}</version>
+                <scope>test</scope>
             </dependency>
             <!-- external -->
             <dependency>
@@ -145,6 +172,21 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>2.4</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>1.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
@@ -170,9 +212,9 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>com.github.sgroschupf</groupId>
+                <groupId>com.101tec</groupId>
                 <artifactId>zkclient</artifactId>
-                <version>0.1</version>
+                <version>0.10</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -195,11 +237,6 @@
                 <version>2.0.8</version>
             </dependency>
             <dependency>
-                <groupId>org.jboss.netty</groupId>
-                <artifactId>netty</artifactId>
-                <version>3.2.5.Final</version>
-            </dependency>
-            <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>4.1.6.Final</version>
@@ -208,6 +245,16 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>2.6.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ibatis</groupId>
+                <artifactId>ibatis-sqlmap</artifactId>
+                <version>2.3.4.726</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>1.1.7-preview_0</version>
             </dependency>
             <!-- log -->
             <dependency>
@@ -230,6 +277,11 @@
                 <artifactId>slf4j-api</artifactId>
                 <version>1.7.12</version>
             </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>1.4.196</version>
+            </dependency>
             <!-- test dependency -->
             <dependency>
                 <groupId>junit</groupId>
@@ -240,9 +292,10 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.33</version>
-                <scope>test</scope>
+                <version>5.1.40</version>
+                <!--<scope>test</scope>-->
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

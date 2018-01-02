@@ -30,14 +30,18 @@ public class PeriodMixedLogPositionManagerTest extends AbstractLogPositionManage
         MemoryLogPositionManager memoryLogPositionManager = new MemoryLogPositionManager();
         ZooKeeperLogPositionManager zookeeperLogPositionManager = new ZooKeeperLogPositionManager(zkclientx);
 
-        PeriodMixedLogPositionManager logPositionManager = new PeriodMixedLogPositionManager(memoryLogPositionManager, zookeeperLogPositionManager, 1000L);
+        PeriodMixedLogPositionManager logPositionManager = new PeriodMixedLogPositionManager(memoryLogPositionManager,
+            zookeeperLogPositionManager,
+            1000L);
 
         logPositionManager.start();
 
         LogPosition position2 = doTest(logPositionManager);
         sleep(1500);
 
-        PeriodMixedLogPositionManager logPositionManager2 = new PeriodMixedLogPositionManager(memoryLogPositionManager, zookeeperLogPositionManager, 1000L);
+        PeriodMixedLogPositionManager logPositionManager2 = new PeriodMixedLogPositionManager(memoryLogPositionManager,
+            zookeeperLogPositionManager,
+            1000L);
         logPositionManager2.start();
 
         LogPosition getPosition2 = logPositionManager2.getLatestIndexBy(destination);
