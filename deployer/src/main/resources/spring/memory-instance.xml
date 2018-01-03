@@ -68,7 +68,7 @@
 
 	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser">
 		<property name="destination" value="${canal.instance.destination}" />
-		<property name="slaveId" value="${canal.instance.mysql.slaveId:1234}" />
+		<property name="slaveId" value="${canal.instance.mysql.slaveId:0}" />
 		<!-- 心跳配置 -->
 		<property name="detectingEnable" value="${canal.instance.detecting.enable:false}" />
 		<property name="detectingSQL" value="${canal.instance.detecting.sql}" />
@@ -151,9 +151,14 @@
 		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
 		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
 		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
+		<property name="useDruidDdlFilter" value="${canal.instance.filter.druid.ddl:true}" />
 		<property name="filterRows" value="${canal.instance.filter.rows:false}" />
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
 		<property name="supportBinlogFormats" value="${canal.instance.binlog.format}" />
 		<property name="supportBinlogImages" value="${canal.instance.binlog.image}" />
+		
+		<!--表结构相关-->
+		<property name="enableTsdb" value="${canal.instance.tsdb.enable:false}"/>
+		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
 	</bean>
 </beans>

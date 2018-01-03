@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.local.BinLogFileQueue;
@@ -84,26 +85,19 @@ public class LocalBinLogConnection implements ErosaConnection {
             while (running) {
                 boolean needContinue = true;
                 LogEvent event = null;
-                L: while (fetcher.fetch()) {
-                    /*
-                     * event = decoder.decode(fetcher, context); if (event ==
-                     * null) { throw new CanalParseException("parse failed"); }
-                     * if (!func.sink(event)) { needContinue = false; break; }
-                     */
+                // 处理一下binlog文件名
+                event = new RotateLogEvent(context.getLogPosition().getFileName(), 4);
+                func.sink(event);
+                while (fetcher.fetch()) {
+                    event = decoder.decode(fetcher, context);
+                    if (event == null) {
+                        throw new CanalParseException("parse failed");
+                    }
 
-                    do {
-                        if (event == null) {
-                            event = new RotateLogEvent(context.getLogPosition().getFileName(), context.getLogPosition()
-                                .getPosition());
-                        } else {
-                            event = decoder.decode(fetcher, context);
-                        }
-
-                        if (event != null && !func.sink(event)) {
-                            needContinue = false;
-                            break L;
-                        }
-                    } while (event != null);
+                    if (!func.sink(event)) {
+                        needContinue = false;
+                        break;
+                    }
                 }
 
                 if (needContinue) {// 读取下一个
@@ -121,7 +115,6 @@ public class LocalBinLogConnection implements ErosaConnection {
                     }
 
                     current = nextFile;
-
                     fetcher.open(current);
                     context.setLogPosition(new LogPosition(nextFile.getName()));
                 } else {
@@ -161,30 +154,27 @@ public class LocalBinLogConnection implements ErosaConnection {
 
                 binlogFilename = lastXidLogFilename;
                 binlogFileOffset = lastXidLogFileOffset;
-                L: while (fetcher.fetch()) {
-                    LogEvent event;
-                    do {
-                        event = decoder.decode(fetcher, context);
-                        if (event != null) {
-                            if (event.getWhen() > timestampSeconds) {
-                                break L;
-                            }
+                while (fetcher.fetch()) {
+                    LogEvent event = decoder.decode(fetcher, context);
+                    if (event != null) {
+                        if (event.getWhen() > timestampSeconds) {
+                            break;
+                        }
 
-                            needContinue = false;
-                            if (LogEvent.QUERY_EVENT == event.getHeader().getType()) {
-                                if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "BEGIN")) {
-                                    binlogFilename = lastXidLogFilename;
-                                    binlogFileOffset = lastXidLogFileOffset;
-                                } else if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "COMMIT")) {
-                                    lastXidLogFilename = current.getName();
-                                    lastXidLogFileOffset = event.getLogPos();
-                                }
-                            } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
+                        needContinue = false;
+                        if (LogEvent.QUERY_EVENT == event.getHeader().getType()) {
+                            if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "BEGIN")) {
+                                binlogFilename = lastXidLogFilename;
+                                binlogFileOffset = lastXidLogFileOffset;
+                            } else if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "COMMIT")) {
                                 lastXidLogFilename = current.getName();
                                 lastXidLogFileOffset = event.getLogPos();
                             }
+                        } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
+                            lastXidLogFilename = current.getName();
+                            lastXidLogFileOffset = event.getLogPos();
                         }
-                    } while (event != null);
+                    }
                 }
 
                 if (needContinue) {// 读取下一个

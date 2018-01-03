@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,28 +20,29 @@ public class MysqlUpdateExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(MysqlUpdateExecutor.class);
 
-    private SocketChannel       channel;
+    private MysqlConnector      connector;
 
     public MysqlUpdateExecutor(MysqlConnector connector) throws IOException{
         if (!connector.isConnected()) {
             throw new IOException("should execute connector.connect() first");
         }
 
-        this.channel = connector.getChannel();
+        this.connector = connector;
     }
 
-    public MysqlUpdateExecutor(SocketChannel ch){
-        this.channel = ch;
-    }
+    /*
+     * public MysqlUpdateExecutor(SocketChannel ch){ this.channel = ch; }
+     */
 
     public OKPacket update(String updateString) throws IOException {
         QueryCommandPacket cmd = new QueryCommandPacket();
         cmd.setQueryString(updateString);
         byte[] bodyBytes = cmd.toBytes();
-        PacketManager.write(channel, bodyBytes);
+        PacketManager.writeBody(connector.getChannel(), bodyBytes);
 
         logger.debug("read update result...");
-        byte[] body = PacketManager.readBytes(channel, PacketManager.readHeader(channel, 4).getPacketBodyLength());
+        byte[] body = PacketManager.readBytes(connector.getChannel(),
+            PacketManager.readHeader(connector.getChannel(), 4).getPacketBodyLength());
         if (body[0] < 0) {
             ErrorPacket packet = new ErrorPacket();
             packet.fromBytes(body);

@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.protocol.position;
 
+
 /**
  * 数据库对象的唯一标示
  * 
@@ -119,6 +120,20 @@ public class EntryPosition extends TimePosition {
             return false;
         }
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(EntryPosition o) {
+        final int val = journalName.compareTo(o.journalName);
+
+        if (val == 0) {
+            return (int) (position - o.position);
+        }
+        return val;
     }
 
 }

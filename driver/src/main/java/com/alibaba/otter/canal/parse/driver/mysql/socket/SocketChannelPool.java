@@ -21,6 +21,8 @@ import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.alibaba.otter.canal.common.utils.BooleanMutex;
+
 /**
  * @author luoyaogui 实现channel的管理（监听连接、读数据、回收） 2016-12-28
  */
@@ -53,21 +55,20 @@ public abstract class SocketChannelPool {
 
     public static SocketChannel open(SocketAddress address) throws Exception {
         final SocketChannel socket = new SocketChannel();
+        final BooleanMutex mutex = new BooleanMutex(false);
         boot.connect(address).addListener(new ChannelFutureListener() {
 
             @Override
             public void operationComplete(ChannelFuture arg0) throws Exception {
                 if (arg0.isSuccess()) {
-                    socket.setChannel(arg0.channel(), false);
+                    socket.setChannel(arg0.channel());
                 }
-                synchronized (socket) {
-                    socket.notify();
-                }
+
+                mutex.set(true);
             }
         });
-        synchronized (socket) {
-            socket.wait();
-        }
+        // wait for complete
+        mutex.get();
         if (null == socket.getChannel()) {
             throw new IOException("can't create socket!");
         }
@@ -79,21 +80,22 @@ public abstract class SocketChannelPool {
 
         private SocketChannel socket = null;
 
+        @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            socket.setChannel(null, true);
+            socket.setChannel(null);
             chManager.remove(ctx.channel());// 移除
         }
 
+        @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            if (null == socket) {
-                socket = chManager.get(ctx.channel());
-            }
+            if (null == socket) socket = chManager.get(ctx.channel());
             if (socket != null) {
                 socket.writeCache((ByteBuf) msg);
             }
             ReferenceCountUtil.release(msg);// 添加防止内存泄漏的
         }
 
+        @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
             ctx.close();
         }

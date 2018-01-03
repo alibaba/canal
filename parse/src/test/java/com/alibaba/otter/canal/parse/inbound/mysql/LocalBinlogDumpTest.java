@@ -25,11 +25,11 @@ public class LocalBinlogDumpTest {
 
     @Test
     public void testSimple() {
-        String directory = "/home/jianghang/tmp/binlog";
+        String directory = "/Users/wanshao/projects/canal/parse/src/test/resources/binlog/tsdb";
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
-        final EntryPosition startPosition = new EntryPosition("mysql-bin.000006", 4L);
+        final EntryPosition startPosition = new EntryPosition("mysql-bin.000003", 123L);
 
-        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "xxxxx", "xxxxx"));
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "canal", "canal"));
         controller.setConnectionCharset(Charset.forName("UTF-8"));
         controller.setDirectory(directory);
         controller.setMasterPosition(startPosition);
