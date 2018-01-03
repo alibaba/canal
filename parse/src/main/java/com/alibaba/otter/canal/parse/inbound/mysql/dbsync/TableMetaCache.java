@@ -14,6 +14,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.google.common.cache.CacheBuilder;
@@ -103,7 +104,9 @@ public class TableMetaCache {
                                                                                       * size),
                 "YES"));
             meta.setKey("PRI".equalsIgnoreCase(packet.getFieldValues().get(nameMaps.get(COLUMN_KEY) + i * size)));
-            meta.setDefaultValue(packet.getFieldValues().get(nameMaps.get(COLUMN_DEFAULT) + i * size));
+            // 特殊处理引号
+            meta.setDefaultValue(DruidDdlParser.unescapeQuotaName(packet.getFieldValues()
+                .get(nameMaps.get(COLUMN_DEFAULT) + i * size)));
             meta.setExtra(packet.getFieldValues().get(nameMaps.get(EXTRA) + i * size));
 
             result.add(meta);

@@ -364,6 +364,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
             }
 
+            boolean isHeartBeat = isAliSQLHeartBeat(table.getDbName(), table.getTableName());
             boolean isRDSHeartBeat = tableMetaCache.isOnRDS()
                                      && isRDSHeartBeat(table.getDbName(), table.getTableName());
 
@@ -386,6 +387,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 // 主要RDS的心跳表基本无权限,需要mock一个tableMeta
                 FieldMeta idMeta = new FieldMeta("id", "bigint(20)", true, false, "0");
                 FieldMeta typeMeta = new FieldMeta("type", "char(1)", false, true, "0");
+                tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
+            } else if (isHeartBeat) {
+                // 处理alisql模式的test.heartbeat心跳数据
+                // 心跳表基本无权限,需要mock一个tableMeta
+                FieldMeta idMeta = new FieldMeta("id", "smallint(6)", false, true, null);
+                FieldMeta typeMeta = new FieldMeta("type", "int(11)", true, false, null);
                 tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
             }
 
@@ -765,6 +772,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean isText(String columnType) {
         return "LONGTEXT".equalsIgnoreCase(columnType) || "MEDIUMTEXT".equalsIgnoreCase(columnType)
                || "TEXT".equalsIgnoreCase(columnType) || "TINYTEXT".equalsIgnoreCase(columnType);
+    }
+    
+    private boolean isAliSQLHeartBeat(String schema, String table) {
+        return "test".equalsIgnoreCase(schema) && "heartbeat".equalsIgnoreCase(table);
     }
 
     private boolean isRDSHeartBeat(String schema, String table) {

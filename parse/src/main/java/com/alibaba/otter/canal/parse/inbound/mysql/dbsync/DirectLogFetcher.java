@@ -37,6 +37,8 @@ public class DirectLogFetcher extends LogFetcher {
 
     private SocketChannel         channel;
 
+    private boolean               issemi            = false;
+
     // private BufferedInputStream input;
 
     public DirectLogFetcher(){
@@ -53,6 +55,10 @@ public class DirectLogFetcher extends LogFetcher {
 
     public void start(SocketChannel channel) throws IOException {
         this.channel = channel;
+        String dbsemi = System.getProperty("db.semi");
+        if ("1".equals(dbsemi)) {
+            issemi = true;
+        }
         // 和mysql driver一样，提供buffer机制，提升读取binlog速度
         // this.input = new
         // BufferedInputStream(channel.socket().getInputStream(), 16384);
@@ -106,6 +112,14 @@ public class DirectLogFetcher extends LogFetcher {
                 }
             }
 
+            // if mysql is in semi mode
+            if (issemi) {
+                // parse semi mark
+                int semimark = getUint8(NET_HEADER_SIZE + 1);
+                int semival = getUint8(NET_HEADER_SIZE + 2);
+                this.semival = semival;
+            }
+
             // The first packet is a multi-packet, concatenate the packets.
             while (netlen == MAX_PACKET_LENGTH) {
                 if (!fetch0(0, NET_HEADER_SIZE)) {
@@ -122,7 +136,11 @@ public class DirectLogFetcher extends LogFetcher {
             }
 
             // Preparing buffer variables to decoding.
-            origin = NET_HEADER_SIZE + 1;
+            if (issemi) {
+                origin = NET_HEADER_SIZE + 3;
+            } else {
+                origin = NET_HEADER_SIZE + 1;
+            }
             position = origin;
             limit -= origin;
             return true;

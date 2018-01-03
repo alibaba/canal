@@ -64,7 +64,10 @@ public class MemoryTableMeta implements TableMetaTSDB {
             }
 
             try {
-                repository.console(ddl);
+                // druid暂时flush privileges语法解析有问题
+                if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")) {
+                    repository.console(ddl);
+                }
             } catch (Throwable e) {
                 logger.warn("parse faield : " + ddl, e);
             }
@@ -187,7 +190,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
             if (column.getDefaultExpr() == null || column.getDefaultExpr() instanceof SQLNullExpr) {
                 fieldMeta.setDefaultValue(null);
             } else {
-                fieldMeta.setDefaultValue(getSqlName(column.getDefaultExpr()));
+                fieldMeta.setDefaultValue(DruidDdlParser.unescapeQuotaName(getSqlName(column.getDefaultExpr())));
             }
 
             fieldMeta.setColumnName(name);
@@ -232,6 +235,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
             return sqlName.toString();
         }
     }
+    
 
     public SchemaRepository getRepository() {
         return repository;

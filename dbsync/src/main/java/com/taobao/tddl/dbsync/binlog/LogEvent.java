@@ -359,8 +359,28 @@ public abstract class LogEvent {
     protected static final Log logger = LogFactory.getLog(LogEvent.class);
 
     protected final LogHeader  header;
+    
+    /**
+     * mysql半同步semi标识
+     * 
+     * <pre>
+     * 0不需要semi ack 给mysql
+     * 1需要semi ack给mysql
+     * </pre>
+     */
+    protected int              semival;
+    
+    
 
-    protected LogEvent(LogHeader header){
+    public int getSemival() {
+		return semival;
+	}
+
+	public void setSemival(int semival) {
+		this.semival = semival;
+	}
+
+	protected LogEvent(LogHeader header){
         this.header = header;
     }
 

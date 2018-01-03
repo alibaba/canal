@@ -14,6 +14,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlUpdateExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpCommandPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.SemiAckCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -145,6 +146,10 @@ public class MysqlConnection implements ErosaConnection {
             if (!func.sink(event)) {
                 break;
             }
+
+            if (event.getSemival() == 1) {
+                sendSemiAck(context.getLogPosition().getFileName(), binlogPosition);
+            }
         }
     }
 
@@ -166,6 +171,21 @@ public class MysqlConnection implements ErosaConnection {
         binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
         PacketManager.writePkg(connector.getChannel(), binlogDumpHeader.toBytes(), cmdBody);
         connector.setDumping(true);
+    }
+
+    private void sendSemiAck(String binlogfilename, Long binlogPosition) throws IOException {
+        SemiAckCommandPacket semiAckCmd = new SemiAckCommandPacket();
+        semiAckCmd.binlogFileName = binlogfilename;
+        semiAckCmd.binlogPosition = binlogPosition;
+
+        byte[] cmdBody = semiAckCmd.toBytes();
+
+        logger.info("SEMI ACK with position:{}", semiAckCmd);
+        HeaderPacket semiAckHeader = new HeaderPacket();
+        semiAckHeader.setPacketBodyLength(cmdBody.length);
+        semiAckHeader.setPacketSequenceNumber((byte) 0x00);
+        PacketManager.writePkg(connector.getChannel(), semiAckHeader.toBytes(), cmdBody);
+
     }
 
     public MysqlConnection fork() {
