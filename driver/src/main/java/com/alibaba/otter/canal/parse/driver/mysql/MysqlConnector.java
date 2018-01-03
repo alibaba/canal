@@ -44,7 +44,7 @@ public class MysqlConnector {
     private long                connectionId      = -1;
     private AtomicBoolean       connected         = new AtomicBoolean(false);
     
-    public static final int timeout = 3000; // 3s
+    public static final int timeout = 10000; // 10s
 
     public MysqlConnector(){
     }

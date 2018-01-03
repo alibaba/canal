@@ -154,6 +154,25 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
 
         return null;
     }
+    
+	@Override
+	protected EntryPosition clearPosition(ErosaConnection connection) throws IOException {
+		// do nothing
+		return null;
+	}
+
+	@Override
+	protected EntryPosition findStartPositionByStartTimestamp(ErosaConnection connection, Long startTimestamp)
+			throws IOException {
+		// do nothing
+		return null;
+	}
+
+	@Override
+	protected EntryPosition findStartPositionByDefault(ErosaConnection connection) throws IOException {
+		// do nothing
+		return null;
+	}
 
     // ========================= setter / getter =========================
 
@@ -184,4 +203,5 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     public void setNeedWait(boolean needWait) {
         this.needWait = needWait;
     }
+
 }
