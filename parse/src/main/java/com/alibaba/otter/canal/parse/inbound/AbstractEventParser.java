@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +91,15 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected abstract ErosaConnection buildErosaConnection();
 
     protected abstract EntryPosition findStartPosition(ErosaConnection connection) throws IOException;
+    
+    protected abstract EntryPosition findStartPositionByStartTimestamp(ErosaConnection connection, Long startTimestamp) throws IOException;
+    
+    protected abstract EntryPosition findStartPositionByDefault(ErosaConnection connection) throws IOException;
+    
+    /**
+     * 清除记录的position信息
+     */
+    protected abstract EntryPosition clearPosition(ErosaConnection connection) throws IOException;
 
     protected void preDump(ErosaConnection connection) {
     }
@@ -217,9 +225,41 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         if (StringUtils.isEmpty(startPosition.getJournalName()) && startPosition.getTimestamp() != null) {
                             erosaConnection.dump(startPosition.getTimestamp(), sinkHandler);
                         } else {
-                            erosaConnection.dump(startPosition.getJournalName(),
-                                startPosition.getPosition(),
-                                sinkHandler);
+                            try {
+								erosaConnection.dump(startPosition.getJournalName(),
+								    startPosition.getPosition(),
+								    sinkHandler);
+							} catch (Exception e) {
+								logger.error(String.format("Failed to dump from %s, try to dump by startPosition.getTimestamp() again",
+										startPosition.getJournalName()), e);
+								
+		                        try {
+									erosaConnection.reconnect();
+									EntryPosition newPosition = findStartPositionByStartTimestamp(erosaConnection, startPosition.getTimestamp());
+			                        if (newPosition == null) {
+			                        	throw new Exception(String.format("couldn't find new position by timestamp %s", startPosition.getPosition()));
+			                        }
+
+			                        logger.info("found new position : {}", newPosition.toString());
+			                        // 重新链接，因为在找position过程中可能有状态，需要断开后重建
+			                        erosaConnection.reconnect();
+									erosaConnection.dump(newPosition.getJournalName(), newPosition.getPosition(), sinkHandler);
+								} catch (Exception e1) {
+									logger.error("Failed to dump from timestamp, try to dump by default again", e);
+									
+			                        erosaConnection.reconnect();
+			                        EntryPosition newPosition = findStartPositionByDefault(erosaConnection);
+
+			                        if (newPosition == null) {
+			                        	logger.error("couldn't find new position by default timestamp");
+			                        } else {
+				                        logger.info("found new position : {}", newPosition.toString());
+				                        // 重新链接，因为在找position过程中可能有状态，需要断开后重建
+				                        erosaConnection.reconnect();
+										erosaConnection.dump(newPosition.getJournalName(), newPosition.getPosition(), sinkHandler);
+			                        }
+								}
+							}
                         }
 
                     } catch (TableIdNotFoundException e) {
@@ -240,7 +280,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         } else {
                             logger.error(String.format("dump address %s has an error, retrying. caused by ",
                                 runningInfo.getAddress().toString()), e);
-                            sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
+                            // sendAlarm(destination, ExceptionUtils.getFullStackTrace(e)); // 没什么用，注释掉
                         }
                     } finally {
                         // 重新置为中断状态

@@ -358,6 +358,22 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
         return startPosition;
     }
+    
+    protected EntryPosition findStartPositionByDefault(ErosaConnection connection) throws IOException {
+    	MysqlConnection mysqlConnection = (MysqlConnection) connection;
+    	return findEndPositionWithMasterIdAndTimestamp(mysqlConnection);
+    }
+    
+    protected EntryPosition findStartPositionByStartTimestamp(ErosaConnection connection, Long startTimestamp) throws IOException {
+    	MysqlConnection mysqlConnection = (MysqlConnection) connection;
+    	return findByStartTimeStamp(mysqlConnection, startTimestamp);
+    }
+
+	@Override
+	protected EntryPosition clearPosition(ErosaConnection connection) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
     protected EntryPosition findEndPosition(ErosaConnection connection) throws IOException {
         MysqlConnection mysqlConnection = (MysqlConnection) connection;
@@ -365,8 +381,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         return endPosition;
     }
 
-    protected EntryPosition findEndPositionWithMasterIdAndTimestamp(MysqlConnection connection) {
-        MysqlConnection mysqlConnection = (MysqlConnection) connection;
+    protected EntryPosition findEndPositionWithMasterIdAndTimestamp(MysqlConnection mysqlConnection) {
         final EntryPosition endPosition = findEndPosition(mysqlConnection);
         if (tableMetaTSDB != null) {
             long startTimestamp = System.currentTimeMillis();
@@ -895,5 +910,4 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
     }
-
 }
