@@ -7,7 +7,7 @@ import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -71,7 +71,7 @@ public abstract class SocketChannelPool {
         return socket;
     }
 
-    public static class BusinessHandler extends ChannelInboundHandlerAdapter {
+    public static class BusinessHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         private SocketChannel        socket = null;
         private final CountDownLatch latch  = new CountDownLatch(1);
@@ -92,18 +92,19 @@ public abstract class SocketChannelPool {
         }
 
         @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
             if (socket != null) {
-                socket.writeCache((ByteBuf) msg);
+                socket.writeCache(msg);
             } else {
                 // TODO: need graceful error handler.
                 logger.error("no socket available.");
             }
-            ReferenceCountUtil.release(msg);// 添加防止内存泄漏的
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            //need output error for troubeshooting.
+            logger.error("business error.", cause);
             ctx.close();
         }
     }
