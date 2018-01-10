@@ -14,7 +14,9 @@ import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlUpdateExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpCommandPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.RegisterSlaveCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.SemiAckCommandPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -130,6 +132,7 @@ public class MysqlConnection implements ErosaConnection {
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         updateSettings();
+        sendRegisterSlave();
         sendBinlogDump(binlogfilename, binlogPosition);
         DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize());
         fetcher.start(connector.getChannel());
@@ -157,11 +160,40 @@ public class MysqlConnection implements ErosaConnection {
         throw new NullPointerException("Not implement yet");
     }
 
+    private void sendRegisterSlave() throws IOException {
+        RegisterSlaveCommandPacket cmd = new RegisterSlaveCommandPacket();
+        cmd.reportHost = authInfo.getAddress().getAddress().getHostAddress();
+        cmd.reportPasswd = authInfo.getPassword();
+        cmd.reportUser = authInfo.getUsername();
+        cmd.reportPort = authInfo.getAddress().getPort(); // 暂时先用master节点的port
+        cmd.serverId = this.slaveId;
+        byte[] cmdBody = cmd.toBytes();
+
+        logger.info("Register slave {}", cmd);
+
+        HeaderPacket header = new HeaderPacket();
+        header.setPacketBodyLength(cmdBody.length);
+        header.setPacketSequenceNumber((byte) 0x00);
+        PacketManager.writePkg(connector.getChannel(), header.toBytes(), cmdBody);
+
+        header = PacketManager.readHeader(connector.getChannel(), 4);
+        byte[] body = PacketManager.readBytes(connector.getChannel(), header.getPacketBodyLength());
+        assert body != null;
+        if (body[0] < 0) {
+            if (body[0] == -1) {
+                ErrorPacket err = new ErrorPacket();
+                err.fromBytes(body);
+                throw new IOException("Error When doing Register slave:" + err.toString());
+            } else {
+                throw new IOException("unpexpected packet with field_count=" + body[0]);
+            }
+        }
+    }
+
     private void sendBinlogDump(String binlogfilename, Long binlogPosition) throws IOException {
         BinlogDumpCommandPacket binlogDumpCmd = new BinlogDumpCommandPacket();
         binlogDumpCmd.binlogFileName = binlogfilename;
         binlogDumpCmd.binlogPosition = binlogPosition;
-        // binlogDumpCmd.slaveServerId = this.slaveId;
         binlogDumpCmd.slaveServerId = this.slaveId;
         byte[] cmdBody = binlogDumpCmd.toBytes();
 
@@ -185,7 +217,6 @@ public class MysqlConnection implements ErosaConnection {
         semiAckHeader.setPacketBodyLength(cmdBody.length);
         semiAckHeader.setPacketSequenceNumber((byte) 0x00);
         PacketManager.writePkg(connector.getChannel(), semiAckHeader.toBytes(), cmdBody);
-
     }
 
     public MysqlConnection fork() {
