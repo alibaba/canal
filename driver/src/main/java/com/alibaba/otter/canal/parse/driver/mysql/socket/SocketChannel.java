@@ -27,10 +27,22 @@ public class SocketChannel {
         this.channel = channel;
     }
 
-    public void writeCache(ByteBuf buf) {
+    public void writeCache(ByteBuf buf) throws InterruptedException {
         synchronized (lock) {
-            cache.discardReadBytes();// 回收内存
-            cache.writeBytes(buf);
+            while (true) {
+                cache.discardReadBytes();// 回收内存
+                //source buffer is empty.
+                if (!buf.isReadable()) {
+                    break;
+                }
+
+                if (cache.isWritable()) {
+                    cache.writeBytes(buf, Math.min(cache.writableBytes(), buf.readableBytes()));
+                } else {
+                    //dest buffer is full.
+                    lock.wait(100);
+                }
+            }
         }
     }
 
