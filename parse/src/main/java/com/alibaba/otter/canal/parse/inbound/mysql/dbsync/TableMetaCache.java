@@ -53,7 +53,7 @@ public class TableMetaCache {
                 public TableMeta load(String name) throws Exception {
                     try {
                         return getTableMetaByDB(name);
-                    } catch (CanalParseException e) {
+                    } catch (Throwable e) {
                         // 尝试做一次retry操作
                         try {
                             connection.reconnect();

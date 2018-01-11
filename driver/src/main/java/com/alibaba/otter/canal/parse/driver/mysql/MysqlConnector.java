@@ -336,4 +336,9 @@ public class MysqlConnector {
     public void setConnTimeout(int connTimeout) {
         this.connTimeout = connTimeout;
     }
+
+    public String getPassword() {
+        return password;
+    }
+
 }
