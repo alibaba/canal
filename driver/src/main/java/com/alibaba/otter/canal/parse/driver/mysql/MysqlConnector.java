@@ -34,6 +34,7 @@ public class MysqlConnector {
     private byte                charsetNumber     = 33;
     private String              defaultSchema     = "retl";
     private int                 soTimeout         = 30 * 1000;
+    private int                 connTimeout       = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
     private int                 sendBufferSize    = 16 * 1024;
 
@@ -42,6 +43,8 @@ public class MysqlConnector {
     // mysql connectinnId
     private long                connectionId      = -1;
     private AtomicBoolean       connected         = new AtomicBoolean(false);
+    
+    public static final int timeout = 3000; // 3s
 
     public MysqlConnector(){
     }
@@ -100,7 +103,8 @@ public class MysqlConnector {
                     MysqlUpdateExecutor executor = new MysqlUpdateExecutor(connector);
                     executor.update("KILL CONNECTION " + connectionId);
                 } catch (Exception e) {
-                    throw new IOException("KILL DUMP " + connectionId + " failure", e);
+                    // 忽略具体异常
+                    logger.info("KILL DUMP " + connectionId + " failure", e);
                 } finally {
                     if (connector != null) {
                         connector.disconnect();
@@ -128,6 +132,7 @@ public class MysqlConnector {
         connector.setReceiveBufferSize(getReceiveBufferSize());
         connector.setSendBufferSize(getSendBufferSize());
         connector.setSoTimeout(getSoTimeout());
+        connector.setConnTimeout(connTimeout);
         return connector;
     }
 
@@ -142,8 +147,8 @@ public class MysqlConnector {
     }
 
     private void negotiate(SocketChannel channel) throws IOException {
-        HeaderPacket header = PacketManager.readHeader(channel, 4);
-        byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength());
+        HeaderPacket header = PacketManager.readHeader(channel, 4, timeout);
+        byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
         if (body[0] < 0) {// check field_count
             if (body[0] == -1) {
                 ErrorPacket error = new ErrorPacket();
@@ -182,7 +187,7 @@ public class MysqlConnector {
         header = null;
         header = PacketManager.readHeader(channel, 4);
         body = null;
-        body = PacketManager.readBytes(channel, header.getPacketBodyLength());
+        body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
         assert body != null;
         if (body[0] < 0) {
             if (body[0] == -1) {
@@ -322,6 +327,18 @@ public class MysqlConnector {
 
     public void setDumping(boolean dumping) {
         this.dumping = dumping;
+    }
+
+    public int getConnTimeout() {
+        return connTimeout;
+    }
+
+    public void setConnTimeout(int connTimeout) {
+        this.connTimeout = connTimeout;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
 }

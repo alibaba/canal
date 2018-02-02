@@ -6,9 +6,8 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -20,8 +19,10 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
-import com.alibaba.otter.canal.common.utils.BooleanMutex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author luoyaogui 实现channel的管理（监听连接、读数据、回收） 2016-12-28
@@ -29,9 +30,10 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 @SuppressWarnings({ "rawtypes", "deprecation" })
 public abstract class SocketChannelPool {
 
-    private static EventLoopGroup              group     = new NioEventLoopGroup();                        // 非阻塞IO线程组
-    private static Bootstrap                   boot      = new Bootstrap();                                // 主
+    private static EventLoopGroup              group     = new NioEventLoopGroup();                         // 非阻塞IO线程组
+    private static Bootstrap                   boot      = new Bootstrap();                                 // 主
     private static Map<Channel, SocketChannel> chManager = new ConcurrentHashMap<Channel, SocketChannel>();
+    private static final Logger                logger    = LoggerFactory.getLogger(SocketChannelPool.class);
 
     static {
         boot.group(group)
@@ -54,31 +56,25 @@ public abstract class SocketChannelPool {
     }
 
     public static SocketChannel open(SocketAddress address) throws Exception {
-        final SocketChannel socket = new SocketChannel();
-        final BooleanMutex mutex = new BooleanMutex(false);
-        boot.connect(address).addListener(new ChannelFutureListener() {
+        SocketChannel socket = null;
+        ChannelFuture future = boot.connect(address).sync();
 
-            @Override
-            public void operationComplete(ChannelFuture arg0) throws Exception {
-                if (arg0.isSuccess()) {
-                    socket.setChannel(arg0.channel());
-                }
+        if (future.isSuccess()) {
+            future.channel().pipeline().get(BusinessHandler.class).latch.await();
+            socket = chManager.get(future.channel());
+        }
 
-                mutex.set(true);
-            }
-        });
-        // wait for complete
-        mutex.get();
-        if (null == socket.getChannel()) {
+        if (null == socket) {
             throw new IOException("can't create socket!");
         }
-        chManager.put(socket.getChannel(), socket);
+
         return socket;
     }
 
-    public static class BusinessHandler extends ChannelInboundHandlerAdapter {
+    public static class BusinessHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
-        private SocketChannel socket = null;
+        private SocketChannel        socket = null;
+        private final CountDownLatch latch  = new CountDownLatch(1);
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -87,16 +83,28 @@ public abstract class SocketChannelPool {
         }
 
         @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            if (null == socket) socket = chManager.get(ctx.channel());
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            socket = new SocketChannel();
+            socket.setChannel(ctx.channel());
+            chManager.put(ctx.channel(), socket);
+            latch.countDown();
+            super.channelActive(ctx);
+        }
+
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
             if (socket != null) {
-                socket.writeCache((ByteBuf) msg);
+                socket.writeCache(msg);
+            } else {
+                // TODO: need graceful error handler.
+                logger.error("no socket available.");
             }
-            ReferenceCountUtil.release(msg);// 添加防止内存泄漏的
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            //need output error for troubeshooting.
+            logger.error("business error.", cause);
             ctx.close();
         }
     }

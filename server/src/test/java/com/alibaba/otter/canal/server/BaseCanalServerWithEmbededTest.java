@@ -19,12 +19,12 @@ import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 public abstract class BaseCanalServerWithEmbededTest {
 
     protected static final String   cluster1       = "127.0.0.1:2188";
-    protected static final String   DESTINATION    = "ljhtest1";
+    protected static final String   DESTINATION    = "example";
     protected static final String   DETECTING_SQL  = "insert into retl.xdual values(1,now()) on duplicate key update x=now()";
     protected static final String   MYSQL_ADDRESS  = "127.0.0.1";
-    protected static final String   USERNAME       = "retl";
-    protected static final String   PASSWORD       = "retl";
-    protected static final String   FILTER         = "retl\\..*,erosa.zk_complaint_bizdata";
+    protected static final String   USERNAME       = "canal";
+    protected static final String   PASSWORD       = "canal";
+    protected static final String   FILTER         = ".*\\\\..*";
 
     private CanalServerWithEmbedded server;
     private ClientIdentity          clientIdentity = new ClientIdentity(DESTINATION, (short) 1);                               ;

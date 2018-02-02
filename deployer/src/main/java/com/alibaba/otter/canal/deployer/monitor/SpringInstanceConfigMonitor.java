@@ -208,8 +208,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
                 action.reload(destination);
                 logger.info("auto notify reload {} successful.", destination);
             } catch (Throwable e) {
-                logger.error(String.format("scan reload found[%s] but reload failed",
-                    destination), e);
+                logger.error(String.format("scan reload found[%s] but reload failed", destination), e);
             }
         }
     }
@@ -312,5 +311,4 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         }
 
     }
-
 }

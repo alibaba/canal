@@ -3,8 +3,8 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.SimpleDdlParser;
-import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.SimpleDdlParser.DdlResult;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.SimpleDdlParser;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 
 public class SimpleDdlParserTest {

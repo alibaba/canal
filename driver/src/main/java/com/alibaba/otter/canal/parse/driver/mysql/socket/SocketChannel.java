@@ -27,24 +27,69 @@ public class SocketChannel {
         this.channel = channel;
     }
 
-    public void writeCache(ByteBuf buf) {
+    public void writeCache(ByteBuf buf) throws InterruptedException {
         synchronized (lock) {
-            cache.discardReadBytes();// 回收内存
-            cache.writeBytes(buf);
+            while (true) {
+                cache.discardReadBytes();// 回收内存
+                //source buffer is empty.
+                if (!buf.isReadable()) {
+                    break;
+                }
+
+                if (cache.isWritable()) {
+                    cache.writeBytes(buf, Math.min(cache.writableBytes(), buf.readableBytes()));
+                } else {
+                    //dest buffer is full.
+                    lock.wait(100);
+                }
+            }
         }
     }
 
     public void writeChannel(byte[]... buf) throws IOException {
-        if (channel != null && channel.isWritable()) channel.writeAndFlush(Unpooled.copiedBuffer(buf));
-        else throw new IOException("write  failed  !  please checking !");
+        if (channel != null && channel.isWritable()) {
+            channel.writeAndFlush(Unpooled.copiedBuffer(buf));
+        } else {
+            throw new IOException("write  failed  !  please checking !");
+        }
     }
 
     public byte[] read(int readSize) throws IOException {
         do {
             if (readSize > cache.readableBytes()) {
                 if (null == channel) {
+                    throw new java.nio.channels.ClosedByInterruptException();
+                }
+                synchronized (this) {
+                    try {
+                        wait(100);
+                    } catch (InterruptedException e) {
+                        throw new java.nio.channels.ClosedByInterruptException();
+                    }
+                }
+            } else {
+                byte[] back = new byte[readSize];
+                synchronized (lock) {
+                    cache.readBytes(back);
+                }
+                return back;
+            }
+        } while (true);
+    }
+    
+    public byte[] read(int readSize, int timeout) throws IOException {
+        int accumulatedWaitTime = 0;
+        do {
+            if (readSize > cache.readableBytes()) {
+                if (null == channel) {
                     throw new IOException("socket has Interrupted !");
                 }
+
+                accumulatedWaitTime += 100;
+                if (accumulatedWaitTime > timeout) {
+                    throw new IOException("socket read timeout occured !");
+                }
+
                 synchronized (this) {
                     try {
                         wait(100);
