@@ -21,6 +21,11 @@ public class DirectLogFetcher extends LogFetcher {
 
     protected static final Logger logger            = LoggerFactory.getLogger(DirectLogFetcher.class);
 
+    // Master heartbeat interval
+    public static final int MASTER_HEARTBEAT_PERIOD_SECONDS = 15;
+    // +1s 确保 timeout > heartbeat interval
+    private static final int READ_TIMEOUT_MILLISECONDS = (MASTER_HEARTBEAT_PERIOD_SECONDS + 1) * 1000;
+
     /** Command to dump binlog */
     public static final byte      COM_BINLOG_DUMP   = 18;
 
@@ -166,7 +171,7 @@ public class DirectLogFetcher extends LogFetcher {
     private final boolean fetch0(final int off, final int len) throws IOException {
         ensureCapacity(off + len);
 
-        byte[] read = channel.read(len);
+        byte[] read = channel.read(len, READ_TIMEOUT_MILLISECONDS);
         System.arraycopy(read, 0, this.buffer, off, len);
 
         if (limit < off + len) limit = off + len;

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
+
+import static com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher.MASTER_HEARTBEAT_PERIOD_SECONDS;
 
 public class MysqlConnection implements ErosaConnection {
 
@@ -292,6 +295,13 @@ public class MysqlConnection implements ErosaConnection {
             update("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
         } catch (Exception e) {
             logger.warn("update mariadb_slave_capability failed", e);
+        }
+
+        long periodNano = TimeUnit.SECONDS.toNanos(MASTER_HEARTBEAT_PERIOD_SECONDS);
+        try {
+            update("SET @master_heartbeat_period=" + periodNano);
+        } catch (Exception e) {
+            logger.warn("update master_heartbeat_period failed", e);
         }
     }
 
