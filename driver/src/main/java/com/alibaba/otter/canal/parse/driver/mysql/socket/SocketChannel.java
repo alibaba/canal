@@ -15,6 +15,7 @@ import java.net.SocketAddress;
  */
 public class SocketChannel {
 
+    private static final int period  = 10;
     private Channel channel = null;
     private Object  lock    = new Object();
     private ByteBuf cache   = PooledByteBufAllocator.DEFAULT.directBuffer(1024 * 1024); // 缓存大小
@@ -31,7 +32,7 @@ public class SocketChannel {
         synchronized (lock) {
             while (true) {
                 cache.discardReadBytes();// 回收内存
-                //source buffer is empty.
+                // source buffer is empty.
                 if (!buf.isReadable()) {
                     break;
                 }
@@ -39,8 +40,8 @@ public class SocketChannel {
                 if (cache.isWritable()) {
                     cache.writeBytes(buf, Math.min(cache.writableBytes(), buf.readableBytes()));
                 } else {
-                    //dest buffer is full.
-                    lock.wait(100);
+                    // dest buffer is full.
+                    lock.wait(period);
                 }
             }
         }
@@ -62,7 +63,7 @@ public class SocketChannel {
                 }
                 synchronized (this) {
                     try {
-                        wait(100);
+                        wait(period);
                     } catch (InterruptedException e) {
                         throw new java.nio.channels.ClosedByInterruptException();
                     }
@@ -76,7 +77,7 @@ public class SocketChannel {
             }
         } while (true);
     }
-    
+
     public byte[] read(int readSize, int timeout) throws IOException {
         int accumulatedWaitTime = 0;
         do {
@@ -85,14 +86,14 @@ public class SocketChannel {
                     throw new IOException("socket has Interrupted !");
                 }
 
-                accumulatedWaitTime += 100;
+                accumulatedWaitTime += period;
                 if (accumulatedWaitTime > timeout) {
                     throw new IOException("socket read timeout occured !");
                 }
 
                 synchronized (this) {
                     try {
-                        wait(100);
+                        wait(period);
                     } catch (InterruptedException e) {
                         throw new IOException("socket has Interrupted !");
                     }
