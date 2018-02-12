@@ -443,11 +443,10 @@ public class DatabaseTableMeta implements TableMetaTSDB {
                 return false;
             }
 
-            if (sourceField.isKey() != targetField.isKey()) {
-                return false;
-            }
-
-            if (sourceField.isUnique() != targetField.isUnique()) {
+            // mysql会有一种处理,针对show create只有uk没有pk时，会在desc默认将uk当做pk
+            boolean isSourcePkOrUk = sourceField.isKey() || sourceField.isUnique();
+            boolean isTargetPkOrUk = targetField.isKey() || targetField.isUnique();
+            if (isSourcePkOrUk != isTargetPkOrUk) {
                 return false;
             }
         }
