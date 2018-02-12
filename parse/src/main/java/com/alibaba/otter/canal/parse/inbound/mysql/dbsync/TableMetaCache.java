@@ -104,6 +104,7 @@ public class TableMetaCache {
                                                                                       * size),
                 "YES"));
             meta.setKey("PRI".equalsIgnoreCase(packet.getFieldValues().get(nameMaps.get(COLUMN_KEY) + i * size)));
+            meta.setUnique("UNI".equalsIgnoreCase(packet.getFieldValues().get(nameMaps.get(COLUMN_KEY) + i * size)));
             // 特殊处理引号
             meta.setDefaultValue(DruidDdlParser.unescapeQuotaName(packet.getFieldValues()
                 .get(nameMaps.get(COLUMN_DEFAULT) + i * size)));

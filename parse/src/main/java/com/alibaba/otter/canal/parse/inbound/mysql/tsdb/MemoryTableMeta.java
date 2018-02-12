@@ -21,12 +21,14 @@ import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
 import com.alibaba.druid.sql.ast.statement.SQLColumnConstraint;
 import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
 import com.alibaba.druid.sql.ast.statement.SQLColumnPrimaryKey;
+import com.alibaba.druid.sql.ast.statement.SQLColumnUniqueKey;
 import com.alibaba.druid.sql.ast.statement.SQLCreateTableStatement;
 import com.alibaba.druid.sql.ast.statement.SQLNotNullConstraint;
 import com.alibaba.druid.sql.ast.statement.SQLNullConstraint;
 import com.alibaba.druid.sql.ast.statement.SQLSelectOrderByItem;
 import com.alibaba.druid.sql.ast.statement.SQLTableElement;
 import com.alibaba.druid.sql.dialect.mysql.ast.MySqlPrimaryKey;
+import com.alibaba.druid.sql.dialect.mysql.ast.MySqlUnique;
 import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.druid.sql.repository.SchemaObject;
 import com.alibaba.druid.sql.repository.SchemaRepository;
@@ -204,6 +206,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
                     fieldMeta.setNullable(true);
                 } else if (constraint instanceof SQLColumnPrimaryKey) {
                     fieldMeta.setKey(true);
+                } else if (constraint instanceof SQLColumnUniqueKey) {
+                    fieldMeta.setUnique(true);
                 }
             }
             tableMeta.addFieldMeta(fieldMeta);
@@ -214,6 +218,14 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 String name = getSqlName(pk.getExpr());
                 FieldMeta field = tableMeta.getFieldMetaByName(name);
                 field.setKey(true);
+            }
+        } else if (element instanceof MySqlUnique) {
+            MySqlUnique column = (MySqlUnique) element;
+            List<SQLSelectOrderByItem> uks = column.getColumns();
+            for (SQLSelectOrderByItem uk : uks) {
+                String name = getSqlName(uk.getExpr());
+                FieldMeta field = tableMeta.getFieldMetaByName(name);
+                field.setUnique(true);
             }
         }
     }

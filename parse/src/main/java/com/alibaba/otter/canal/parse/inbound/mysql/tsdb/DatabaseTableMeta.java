@@ -446,6 +446,10 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             if (sourceField.isKey() != targetField.isKey()) {
                 return false;
             }
+
+            if (sourceField.isUnique() != targetField.isUnique()) {
+                return false;
+            }
         }
 
         return true;
