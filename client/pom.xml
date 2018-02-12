@@ -69,7 +69,7 @@
 							<links>
 								<link>https://github.com/alibaba/canal</link>
 							</links>
-							<outputDirectory>${project.build.directory}/apidocs/apidocs/${pom.version}</outputDirectory>
+							<outputDirectory>${project.build.directory}/apidocs/apidocs/${project.version}</outputDirectory>
 						</configuration>
 					</plugin>
 					<plugin>
