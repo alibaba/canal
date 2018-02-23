@@ -3,8 +3,9 @@ package com.alibaba.otter.canal.parse.inbound;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 import org.apache.commons.lang.StringUtils;
+
+import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 
 /**
  * 描述数据meta对象,mysql binlog中对应的{@linkplain TableMapLogEvent}包含的信息不全
@@ -127,6 +128,7 @@ public class TableMeta {
         private boolean key;
         private String  defaultValue;
         private String  extra;
+        private boolean unique;
 
         public String getColumnName() {
             return columnName;
@@ -180,10 +182,21 @@ public class TableMeta {
             this.extra = extra;
         }
 
-        public String toString() {
-            return "FieldMeta [columnName=" + columnName + ", columnType=" + columnType + ", defaultValue="
-                   + defaultValue + ", nullable=" + nullable + ", key=" + key + "]";
+        public boolean isUnique() {
+            return unique;
         }
+
+        public void setUnique(boolean unique) {
+            this.unique = unique;
+        }
+
+        @Override
+        public String toString() {
+            return "FieldMeta [columnName=" + columnName + ", columnType=" + columnType + ", nullable=" + nullable
+                   + ", key=" + key + ", defaultValue=" + defaultValue + ", extra=" + extra + ", unique=" + unique
+                   + "]";
+        }
+
     }
 
 }

@@ -56,10 +56,10 @@ public class AbstractCanalClientTest {
         context_format += "****************************************************" + SEP;
 
         row_format = SEP
-                     + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {} , delay : {}ms"
+                     + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {}({}) , delay : {}ms"
                      + SEP;
 
-        transaction_format = SEP + "================> binlog[{}:{}] , executeTime : {} , delay : {}ms" + SEP;
+        transaction_format = SEP + "================> binlog[{}:{}] , executeTime : {}({}) , delay : {}ms" + SEP;
 
     }
 
@@ -165,6 +165,8 @@ public class AbstractCanalClientTest {
         for (Entry entry : entrys) {
             long executeTime = entry.getHeader().getExecuteTime();
             long delayTime = new Date().getTime() - executeTime;
+            Date date = new Date(entry.getHeader().getExecuteTime());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN || entry.getEntryType() == EntryType.TRANSACTIONEND) {
                 if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN) {
@@ -178,7 +180,8 @@ public class AbstractCanalClientTest {
                     logger.info(transaction_format,
                         new Object[] { entry.getHeader().getLogfileName(),
                                 String.valueOf(entry.getHeader().getLogfileOffset()),
-                                String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
+                                String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
+                                String.valueOf(delayTime) });
                     logger.info(" BEGIN ----> Thread id: {}", begin.getThreadId());
                 } else if (entry.getEntryType() == EntryType.TRANSACTIONEND) {
                     TransactionEnd end = null;
@@ -193,7 +196,8 @@ public class AbstractCanalClientTest {
                     logger.info(transaction_format,
                         new Object[] { entry.getHeader().getLogfileName(),
                                 String.valueOf(entry.getHeader().getLogfileOffset()),
-                                String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
+                                String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
+                                String.valueOf(delayTime) });
                 }
 
                 continue;
@@ -213,7 +217,8 @@ public class AbstractCanalClientTest {
                     new Object[] { entry.getHeader().getLogfileName(),
                             String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
                             entry.getHeader().getTableName(), eventType,
-                            String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime) });
+                            String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
+                            String.valueOf(delayTime) });
 
                 if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
                     logger.info(" sql ----> " + rowChage.getSql() + SEP);

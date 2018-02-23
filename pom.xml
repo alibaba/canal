@@ -254,7 +254,7 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid</artifactId>
-                <version>1.1.7-preview_0</version>
+                <version>1.1.8</version>
             </dependency>
             <!-- log -->
             <dependency>
@@ -445,6 +445,14 @@
                 </excludes>
             </testResource>
         </testResources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.0.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <distributionManagement>

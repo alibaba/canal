@@ -220,8 +220,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit);
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
-                logger.debug("get successfully, clientId:{} batchSize:{} but result is null", new Object[] {
-                        clientIdentity.getClientId(), batchSize });
+                logger.debug("get successfully, clientId:{} batchSize:{} but result is null",
+                        clientIdentity.getClientId(), batchSize);
                 return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
             } else {
                 // 记录到流式信息
@@ -232,13 +232,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                         return input.getEntry();
                     }
                 });
-
-                logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
-                    clientIdentity.getClientId(),
-                    batchSize,
-                    entrys.size(),
-                    batchId,
-                    events.getPositionRange());
+                if (logger.isInfoEnabled()) {
+                    logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
+                            clientIdentity.getClientId(),
+                            batchSize,
+                            entrys.size(),
+                            batchId,
+                            events.getPositionRange());
+                }
                 // 直接提交ack
                 ack(clientIdentity, batchId);
                 return new Message(batchId, entrys);
@@ -297,8 +298,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             }
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
-                logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result is null", new Object[] {
-                        clientIdentity.getClientId(), batchSize });
+                logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result is null",
+                        clientIdentity.getClientId(), batchSize);
                 return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
             } else {
                 // 记录到流式信息
@@ -309,13 +310,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                         return input.getEntry();
                     }
                 });
-
-                logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
-                    clientIdentity.getClientId(),
-                    batchSize,
-                    entrys.size(),
-                    batchId,
-                    events.getPositionRange());
+                if (logger.isInfoEnabled()) {
+                    logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
+                            clientIdentity.getClientId(),
+                            batchSize,
+                            entrys.size(),
+                            batchId,
+                            events.getPositionRange());
+                }
                 return new Message(batchId, entrys);
             }
 
@@ -377,10 +379,12 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         // 更新cursor
         if (positionRanges.getAck() != null) {
             canalInstance.getMetaManager().updateCursor(clientIdentity, positionRanges.getAck());
-            logger.info("ack successfully, clientId:{} batchId:{} position:{}",
-                clientIdentity.getClientId(),
-                batchId,
-                positionRanges);
+            if (logger.isInfoEnabled()) {
+                logger.info("ack successfully, clientId:{} batchId:{} position:{}",
+                        clientIdentity.getClientId(),
+                        batchId,
+                        positionRanges);
+            }
         }
 
         // 可定时清理数据
