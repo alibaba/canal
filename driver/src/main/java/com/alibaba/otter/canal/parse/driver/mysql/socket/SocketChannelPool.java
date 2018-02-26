@@ -48,8 +48,8 @@ public abstract class SocketChannelPool {
             .handler(new ChannelInitializer() {
 
                 @Override
-                protected void initChannel(Channel arg0) throws Exception {
-                    arg0.pipeline().addLast(new BusinessHandler());// 命令过滤和handler添加管理
+                protected void initChannel(Channel ch) throws Exception {
+                    ch.pipeline().addLast(new BusinessHandler());// 命令过滤和handler添加管理
                 }
             });
     }
@@ -79,6 +79,7 @@ public abstract class SocketChannelPool {
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             socket.setChannel(null);
             chManager.remove(ctx.channel());// 移除
+            super.channelInactive(ctx);
         }
 
         @Override
