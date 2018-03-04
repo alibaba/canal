@@ -23,8 +23,8 @@ public class DirectLogFetcher extends LogFetcher {
 
     // Master heartbeat interval
     public static final int MASTER_HEARTBEAT_PERIOD_SECONDS = 15;
-    // +1s 确保 timeout > heartbeat interval
-    private static final int READ_TIMEOUT_MILLISECONDS = (MASTER_HEARTBEAT_PERIOD_SECONDS + 1) * 1000;
+    // +10s 确保 timeout > heartbeat interval
+    private static final int READ_TIMEOUT_MILLISECONDS = (MASTER_HEARTBEAT_PERIOD_SECONDS + 10) * 1000;
 
     /** Command to dump binlog */
     public static final byte      COM_BINLOG_DUMP   = 18;
