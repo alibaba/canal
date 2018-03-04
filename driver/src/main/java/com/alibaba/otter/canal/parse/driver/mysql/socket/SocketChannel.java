@@ -1,128 +1,135 @@
 package com.alibaba.otter.canal.parse.driver.mysql.socket;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 /**
- * 封装netty的通信channel和数据接收缓存，实现读、写、连接校验的功能。 2016-12-28
- * 
- * @author luoyaogui
+ * 使用BIO进行dump
+ *
+ * @author chuanyi
  */
 public class SocketChannel {
 
-    private static final int period  = 10;
-    private Channel channel = null;
-    private Object  lock    = new Object();
-    private ByteBuf cache   = PooledByteBufAllocator.DEFAULT.directBuffer(20 * 1024 * 1024); // 设置一个稍大于Mysql maxThreeBytes的capacity，确保能写入一个完整的包。
+    static final int         DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
+    static final int         SO_TIMEOUT              = 1000;
+    private Socket           socket;
+    private InputStream      input;
+    private OutputStream     output;
 
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
-    public void writeCache(ByteBuf buf) throws InterruptedException {
-        synchronized (lock) {
-            while (true) {
-                cache.discardReadBytes();// 回收内存
-                // source buffer is empty.
-                if (!buf.isReadable()) {
-                    break;
-                }
-
-                if (cache.isWritable()) {
-                    cache.writeBytes(buf, Math.min(cache.writableBytes(), buf.readableBytes()));
-                } else {
-                    // dest buffer is full.
-                    lock.wait(period);
-                }
-            }
-        }
+    SocketChannel(Socket socket) throws IOException {
+        this.socket = socket;
+        this.input = socket.getInputStream();
+        this.output = socket.getOutputStream();
     }
 
     public void writeChannel(byte[]... buf) throws IOException {
-        if (channel != null && channel.isWritable()) {
-            channel.writeAndFlush(Unpooled.copiedBuffer(buf));
+        OutputStream output = this.output;
+        if (output != null) {
+            for (byte[] bs : buf) {
+                output.write(bs);
+            }
         } else {
-            throw new IOException("write  failed  !  please checking !");
+            throw new SocketException("Socket already closed.");
         }
     }
 
     public byte[] read(int readSize) throws IOException {
-        do {
-            if (readSize > cache.readableBytes()) {
-                if (null == channel) {
-                    throw new java.nio.channels.ClosedByInterruptException();
+        InputStream input = this.input;
+        byte[] data = new byte[readSize];
+        int remain = readSize;
+        if (input == null) {
+            throw new SocketException("Socket already closed.");
+        }
+        while (remain > 0) {
+            try {
+                int read = input.read(data, readSize - remain, remain);
+                if (read > -1) {
+                    remain -= read;
+                } else {
+                    throw new IOException("EOF encountered.");
                 }
-                synchronized (this) {
-                    try {
-                        wait(period);
-                    } catch (InterruptedException e) {
-                        throw new java.nio.channels.ClosedByInterruptException();
-                    }
+            } catch (SocketTimeoutException te) {
+                if (Thread.interrupted()) {
+                    throw new InterruptedIOException("Interrupted while reading.");
                 }
-            } else {
-                byte[] back = new byte[readSize];
-                synchronized (lock) {
-                    cache.readBytes(back);
-                }
-                return back;
             }
-        } while (true);
+        }
+        return data;
     }
 
     public byte[] read(int readSize, int timeout) throws IOException {
-        int accumulatedWaitTime = 0;
-        do {
-            if (readSize > cache.readableBytes()) {
-                if (null == channel) {
-                    throw new IOException("socket has Interrupted !");
+        InputStream input = this.input;
+        byte[] data = new byte[readSize];
+        int remain = readSize;
+        int accTimeout = 0;
+        if (input == null) {
+            throw new SocketException("Socket already closed.");
+        }
+        while (remain > 0 && accTimeout < timeout) {
+            try {
+                int read = input.read(data, readSize - remain, remain);
+                if (read > -1) {
+                    remain -= read;
+                } else {
+                    throw new IOException("EOF encountered.");
                 }
-
-                accumulatedWaitTime += period;
-                if (accumulatedWaitTime > timeout) {
-                    throw new IOException("socket read timeout occured !");
+            } catch (SocketTimeoutException te) {
+                if (Thread.interrupted()) {
+                    throw new InterruptedIOException("Interrupted while reading.");
                 }
-
-                synchronized (this) {
-                    try {
-                        wait(period);
-                    } catch (InterruptedException e) {
-                        throw new IOException("socket has Interrupted !");
-                    }
-                }
-            } else {
-                byte[] back = new byte[readSize];
-                synchronized (lock) {
-                    cache.readBytes(back);
-                }
-                return back;
+                accTimeout += SO_TIMEOUT;
             }
-        } while (true);
+        }
+        if (remain > 0 && accTimeout >= timeout) {
+            throw new SocketTimeoutException("Timeout occurred, failed to read " + readSize + " bytes in " + timeout + " milliseconds.");
+        }
+        return data;
     }
 
     public boolean isConnected() {
-        return channel != null ? true : false;
+        Socket socket = this.socket;
+        if (socket != null) {
+            return socket.isConnected();
+        }
+        return false;
     }
 
     public SocketAddress getRemoteSocketAddress() {
-        return channel != null ? channel.remoteAddress() : null;
+        Socket socket = this.socket;
+        if (socket != null) {
+            return socket.getRemoteSocketAddress();
+        }
+        return null;
     }
 
     public void close() {
-        if (channel != null) {
-            channel.close();
+        Socket socket = this.socket;
+        if (socket != null) {
+            try {
+                socket.shutdownInput();
+            } catch (IOException e) {
+                //Ignore, could not do anymore
+            }
+            try {
+                socket.shutdownOutput();
+            } catch (IOException e) {
+                //Ignore, could not do anymore
+            }
+            try {
+                socket.close();
+            } catch (IOException e) {
+                //Ignore, could not do anymore
+            }
         }
-        channel = null;
-        cache.discardReadBytes();// 回收已占用的内存
-        cache.release();// 释放整个内存
-        cache = null;
+        this.input = null;
+        this.output = null;
+        this.socket = null;
     }
+
 }
