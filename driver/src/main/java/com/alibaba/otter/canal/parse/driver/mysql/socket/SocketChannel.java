@@ -121,10 +121,12 @@ public class SocketChannel {
                 }
 
                 if (deltaSize != length) {
-                    cache.writeBytes(buf, length);
                     // deltaSize <= 0 可全部写入，deltaSize > 0 只能部分写入
                     if (deltaSize <= 0) {
+                        cache.writeBytes(buf, length);
                         break;
+                    } else {
+                        cache.writeBytes(buf, length - deltaSize);
                     }
                 }
                 // dest buffer is full.
