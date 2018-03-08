@@ -68,8 +68,13 @@ public class SocketChannel {
                             quarter = ((quarter - 1) / DEFAULT_INIT_BUFFER_SIZE + 1) * DEFAULT_INIT_BUFFER_SIZE; // 对齐
                             newCapacity += quarter; // 留空四分之一
                             if (newCapacity < (oldCapacity >> 1)) { // 至少收缩二分之一
-                                cache.capacity(newCapacity);
-                                logger.info("shrink cache capacity: {} - {} = {} bytes", oldCapacity, oldCapacity - newCapacity, newCapacity);
+                                try {
+                                    cache.capacity(newCapacity);
+                                    logger.info("shrink cache capacity: {} - {} = {} bytes", oldCapacity, oldCapacity - newCapacity, newCapacity);
+                                } catch (OutOfMemoryError ignore) {
+                                    maxDirectBuffer = oldCapacity; // 未来不再超过当前容量，记录日志后继续
+                                    logger.warn("cache OutOfMemoryError: {} bytes", newCapacity, ignore);
+                                }
                             }
                         }
                     } else { // 尝试扩容
@@ -95,11 +100,20 @@ public class SocketChannel {
                                     maxDirectBuffer = (int) maxDirectMemory;
                                     newCapacity = maxDirectBuffer;
                                     logger.warn("resize maxDirectBuffer: {} bytes", maxDirectBuffer, e);
-                                    cache.capacity(newCapacity);
-                                    logger.info("expand cache capacity: {} + {} = {} bytes", oldCapacity, newCapacity - oldCapacity, newCapacity);
+                                    try {
+                                        cache.capacity(newCapacity);
+                                        logger.info("expand cache capacity: {} + {} = {} bytes", oldCapacity, newCapacity - oldCapacity, newCapacity);
+                                    } catch (OutOfMemoryError ignore) {
+                                        maxDirectBuffer = oldCapacity; // 未来不再超过当前容量，记录日志后继续
+                                        logger.warn("cache OutOfMemoryError: {} bytes", newCapacity, ignore);
+                                    }
                                 } else {
-                                    logger.warn("out of maxDirectBuffer: {} bytes", maxDirectBuffer, e);
+                                    maxDirectBuffer = oldCapacity; // 未来不再超过当前容量，记录日志后继续
+                                    logger.warn("cache OutOfDirectMemoryError: {} bytes", newCapacity, e);
                                 }
+                            } catch (OutOfMemoryError ignore) {
+                                maxDirectBuffer = oldCapacity; // 未来不再超过当前容量，记录日志后继续
+                                logger.warn("cache OutOfMemoryError: {} bytes", newCapacity, ignore);
                             }
                         }
                     }
