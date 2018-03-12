@@ -296,7 +296,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             ResultSetPacket packet = connection.query("show create table " + getFullName(schema, table));
             if (packet.getFieldValues().size() > 1) {
                 createDDL = packet.getFieldValues().get(1);
-                tableMetaFromDB.setFields(TableMetaCache.parserTableMeta(schema, table, packet));
+                tableMetaFromDB.setFields(TableMetaCache.parseTableMeta(schema, table, packet));
             }
         } catch (IOException e) {
             if (e.getMessage().contains("errorNumber=1146")) {

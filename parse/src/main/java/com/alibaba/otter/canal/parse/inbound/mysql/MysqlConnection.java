@@ -1,10 +1,11 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
+import static com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher.MASTER_HEARTBEAT_PERIOD_SECONDS;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -28,8 +29,6 @@ import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-
-import static com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher.MASTER_HEARTBEAT_PERIOD_SECONDS;
 
 public class MysqlConnection implements ErosaConnection {
 
@@ -298,10 +297,12 @@ public class MysqlConnection implements ErosaConnection {
         }
 
         /**
-         * MASTER_HEARTBEAT_PERIOD sets the interval in seconds between replication heartbeats. 
-         * Whenever the master's binary log is updated with an event, the waiting period for the next heartbeat is reset.
-         * interval is a decimal value having the range 0 to 4294967 seconds and a resolution in milliseconds; 
-         * the smallest nonzero value is 0.001. Heartbeats are sent by the master only if there are no unsent events 
+         * MASTER_HEARTBEAT_PERIOD sets the interval in seconds between
+         * replication heartbeats. Whenever the master's binary log is updated
+         * with an event, the waiting period for the next heartbeat is reset.
+         * interval is a decimal value having the range 0 to 4294967 seconds and
+         * a resolution in milliseconds; the smallest nonzero value is 0.001.
+         * Heartbeats are sent by the master only if there are no unsent events
          * in the binary log file for a period longer than interval.
          */
         try {

@@ -85,6 +85,12 @@ public class CanalController {
         // 初始化instance config
         initInstanceConfig(properties);
 
+        // init socketChannel
+        String socketChannel = getProperty(properties, CanalConstants.CANAL_SOCKETCHANNEL);
+        if (StringUtils.isNotEmpty(socketChannel)) {
+            System.setProperty(CanalConstants.CANAL_SOCKETCHANNEL, socketChannel);
+        }
+
         // 准备canal server
         cid = Long.valueOf(getProperty(properties, CanalConstants.CANAL_ID));
         ip = getProperty(properties, CanalConstants.CANAL_IP);

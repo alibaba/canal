@@ -28,7 +28,7 @@ public abstract class PacketManager {
     }
 
     public static void writePkg(SocketChannel ch, byte[]... srcs) throws IOException {
-        ch.writeChannel(srcs);
+        ch.write(srcs);
     }
 
     public static void writeBody(SocketChannel ch, byte[] body) throws IOException {
@@ -39,6 +39,6 @@ public abstract class PacketManager {
         HeaderPacket header = new HeaderPacket();
         header.setPacketBodyLength(body.length);
         header.setPacketSequenceNumber(packetSeqNumber);
-        ch.writeChannel(header.toBytes(), body);
+        ch.write(header.toBytes(), body);
     }
 }

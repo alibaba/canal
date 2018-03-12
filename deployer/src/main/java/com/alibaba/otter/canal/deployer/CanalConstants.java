@@ -32,6 +32,8 @@ public class CanalConstants {
 
     public static final String CANAL_DESTINATION_PROPERTY        = ROOT + ".instance.destination";
 
+    public static final String CANAL_SOCKETCHANNEL               = ROOT + "." + "socketChannel";
+
     public static String getInstanceModeKey(String destination) {
         return MessageFormat.format(INSTANCE_MODE_TEMPLATE, destination);
     }
