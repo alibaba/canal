@@ -969,17 +969,17 @@ public final class RowsLogBuffer {
                     default:
                         throw new IllegalArgumentException("!! Unknown JSON packlen = " + meta);
                 }
-                // len = buffer.getUint16();
-                // buffer.forward(meta - 4);
-                int position = buffer.position();
-                Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(), buffer, len - 1, charsetName);
-                StringBuilder builder = new StringBuilder();
-                jsonValue.toJsonString(builder, charsetName);
-                value = builder.toString();
-                buffer.position(position + len);
-                // byte[] binary = new byte[len];
-                // buffer.fillBytes(binary, 0, len);
-                // value = binary;
+                if (0 == len) {
+                    // fixed issue #1 by lava, json column of zero length has no value, value parsing should be skipped
+                    value = "";
+                } else {
+                    int position = buffer.position();
+                    Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(), buffer, len - 1, charsetName);
+                    StringBuilder builder = new StringBuilder();
+                    jsonValue.toJsonString(builder, charsetName);
+                    value = builder.toString();
+                    buffer.position(position + len);
+                }
                 javaType = Types.VARCHAR;
                 length = len;
                 break;
