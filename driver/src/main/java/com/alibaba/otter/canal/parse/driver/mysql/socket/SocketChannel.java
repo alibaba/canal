@@ -18,7 +18,7 @@ public class SocketChannel {
     private static final int period  = 10;
     private Channel channel = null;
     private Object  lock    = new Object();
-    private ByteBuf cache   = PooledByteBufAllocator.DEFAULT.directBuffer(1024 * 1024); // 缓存大小
+    private ByteBuf cache   = PooledByteBufAllocator.DEFAULT.directBuffer(20 * 1024 * 1024); // 设置一个稍大于Mysql maxThreeBytes的capacity，确保能写入一个完整的包。
 
     public Channel getChannel() {
         return channel;
