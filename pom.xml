@@ -252,6 +252,11 @@
                 <version>2.3.4.726</version>
             </dependency>
             <dependency>
+                <groupId>com.alibaba.fastsql</groupId>
+                <artifactId>fastsql</artifactId>
+                <version>2.0.0_preview_135</version>
+            </dependency>
+            <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid</artifactId>
                 <version>1.1.9</version>
