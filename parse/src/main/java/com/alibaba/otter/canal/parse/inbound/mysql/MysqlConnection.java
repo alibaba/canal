@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -306,7 +307,8 @@ public class MysqlConnection implements ErosaConnection {
          * in the binary log file for a period longer than interval.
          */
         try {
-            update("SET @master_heartbeat_period=" + MASTER_HEARTBEAT_PERIOD_SECONDS);
+            long periodNano = TimeUnit.SECONDS.toNanos(MASTER_HEARTBEAT_PERIOD_SECONDS);
+            update("SET @master_heartbeat_period=" + periodNano);
         } catch (Exception e) {
             logger.warn("update master_heartbeat_period failed", e);
         }
