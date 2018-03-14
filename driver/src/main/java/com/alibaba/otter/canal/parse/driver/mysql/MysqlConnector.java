@@ -50,7 +50,10 @@ public class MysqlConnector {
     }
 
     public MysqlConnector(InetSocketAddress address, String username, String password){
-        this.address = address;
+        String addr = address.getHostString();
+        int port = address.getPort();
+        this.address = new InetSocketAddress(addr, port);
+        
         this.username = username;
         this.password = password;
     }
