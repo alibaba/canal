@@ -56,7 +56,7 @@ public class AbstractCanalClientTest {
         context_format += "****************************************************" + SEP;
 
         row_format = SEP
-                     + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {}({}) , delay : {}ms"
+                     + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {}({}) , delay : {} ms"
                      + SEP;
 
         transaction_format = SEP + "================> binlog[{}:{}] , executeTime : {}({}) , delay : {}ms" + SEP;

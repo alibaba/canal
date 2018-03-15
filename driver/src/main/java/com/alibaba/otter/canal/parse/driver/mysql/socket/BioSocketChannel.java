@@ -2,12 +2,12 @@ package com.alibaba.otter.canal.parse.driver.mysql.socket;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.channels.ClosedByInterruptException;
 
 /**
  * 使用BIO进行dump
@@ -56,7 +56,7 @@ public class BioSocketChannel implements SocketChannel {
                 }
             } catch (SocketTimeoutException te) {
                 if (Thread.interrupted()) {
-                    throw new InterruptedIOException("Interrupted while reading.");
+                    throw new ClosedByInterruptException("Interrupted while reading.");
                 }
             }
         }
@@ -81,7 +81,7 @@ public class BioSocketChannel implements SocketChannel {
                 }
             } catch (SocketTimeoutException te) {
                 if (Thread.interrupted()) {
-                    throw new InterruptedIOException("Interrupted while reading.");
+                    throw new ClosedByInterruptException();
                 }
                 accTimeout += SO_TIMEOUT;
             }
