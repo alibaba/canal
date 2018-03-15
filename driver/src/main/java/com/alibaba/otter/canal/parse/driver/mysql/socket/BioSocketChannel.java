@@ -56,7 +56,7 @@ public class BioSocketChannel implements SocketChannel {
                 }
             } catch (SocketTimeoutException te) {
                 if (Thread.interrupted()) {
-                    throw new ClosedByInterruptException("Interrupted while reading.");
+                    throw new ClosedByInterruptException();
                 }
             }
         }
