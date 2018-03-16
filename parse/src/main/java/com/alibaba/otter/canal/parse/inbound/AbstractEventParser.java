@@ -171,7 +171,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             throw new CanalParseException("can't find init table meta for " + destination
                                                           + " with position : " + startPosition);
                         }
-                        logger.info("find start position : {}", startPosition.toString());
+                        logger.warn("find start position : {}", startPosition.toString());
                         // 重新链接，因为在找position过程中可能有状态，需要断开后重建
                         erosaConnection.reconnect();
 
