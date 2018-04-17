@@ -531,8 +531,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     }
 
     private long calculateSize(Event event) {
-        // 直接返回binlog中的事件大小
-        return event.getEntry().getHeader().getEventLength();
+        return event.getEntry().getSerializedSize();
     }
 
     private int getIndex(long sequcnce) {
