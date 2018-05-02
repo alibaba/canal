@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,6 +200,11 @@ public class LocalBinLogConnection implements ErosaConnection {
         }
 
         dump(binlogFilename, binlogFileOffset, func);
+    }
+
+    @Override
+    public void dump(GTIDSet gtidSet, SinkFunction func) throws IOException {
+        throw new NotImplementedException();
     }
 
     public ErosaConnection fork() {

@@ -55,7 +55,10 @@ message Header {
 	optional EventType 				eventType			= 11 [default = UPDATE];
 	
 	/**预留扩展**/
-	repeated Pair					props				= 12;		
+	repeated Pair					props				= 12;
+
+    /**当前事务的gitd**/
+	optional string                 gtid                = 13;
 }
 
 /**每个字段的数据结构**/
@@ -169,7 +172,8 @@ enum EntryType{
 	ROWDATA					=		2;
 	TRANSACTIONEND			=		3;
 	/** 心跳类型，内部使用，外部暂不可见，可忽略 **/
-	HEARTBEAT				=		4; 
+	HEARTBEAT				=		4;
+	GTIDLOG                 =       5;
 }
 
 /** 事件类型 **/
@@ -186,6 +190,7 @@ enum EventType {
     /**CREATE INDEX**/
     CINDEX		= 		10;
     DINDEX 		= 		11;
+    GTID        =       12;
 }
 
 /**数据库类型**/

@@ -56,6 +56,7 @@ import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
+import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
 
 /**
  * 基于{@linkplain LogEvent}转化为Entry对象的处理
@@ -128,6 +129,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return parseIntrvarLogEvent((IntvarLogEvent) logEvent);
             case LogEvent.RAND_EVENT:
                 return parseRandLogEvent((RandLogEvent) logEvent);
+            case LogEvent.GTID_LOG_EVENT:
+                return parseGTIDLogEvent((GtidLogEvent) logEvent);
             default:
                 break;
         }
@@ -141,6 +144,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (tableMetaCache != null) {
             tableMetaCache.clearTableMeta();
         }
+    }
+
+    private Entry parseGTIDLogEvent(GtidLogEvent logEvent) {
+        LogHeader logHeader = logEvent.getHeader();
+        Header header = createHeader("", logHeader, "", "", EventType.GTID);
+        Pair.Builder builder = Pair.newBuilder();
+        builder.setKey("gtid");
+        builder.setValue(String.format("%s:%d", logEvent.getSid(), logEvent.getGno()));
+        return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
     }
 
     private Entry parseQueryEvent(QueryLogEvent event, boolean isSeek) {
