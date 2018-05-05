@@ -112,6 +112,7 @@ public class AbstractCanalClientTest {
 
     protected void process() {
         int batchSize = 5 * 1024;
+        while (!running);   //waiting until running == true
         while (running) {
             try {
                 MDC.put("destination", destination);
