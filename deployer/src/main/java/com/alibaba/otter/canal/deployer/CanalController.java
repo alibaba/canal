@@ -454,6 +454,8 @@ public class CanalController {
         // 释放canal的工作节点
         releaseCid(ZookeeperPathUtils.getCanalClusterNode(ip + ":" + port));
         logger.info("## stop the canal server[{}:{}]", ip, port);
+        
+        zkclientx.close();
     }
 
     private void initCid(String path) {
