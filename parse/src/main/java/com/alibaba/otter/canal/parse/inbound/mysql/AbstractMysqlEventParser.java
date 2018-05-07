@@ -1,15 +1,13 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
-import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvertGTID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
@@ -37,20 +35,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean           useDruidDdlFilter       = true;
 
     protected BinlogParser buildParser() {
-        LogEventConvert convert;
-
-        if (isGTIDMode()) {
-            EntryPosition position;
-            try {
-                position = findStartPosition(null);
-            } catch (IOException e) {
-                throw new RuntimeException("findStartPosition failed.", e);
-            }
-            convert = new LogEventConvertGTID(MysqlGTIDSet.parse(position.getGtid()));
-        } else {
-            convert = new LogEventConvert();
-        }
-
+        LogEventConvert convert = new LogEventConvert();
         if (eventFilter != null && eventFilter instanceof AviaterRegexFilter) {
             convert.setNameFilter((AviaterRegexFilter) eventFilter);
         }
@@ -84,7 +69,18 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
      * @return
      */
     protected boolean processTableMeta(EntryPosition position) {
+        if (isGTIDMode()) {
+            if (binlogParser instanceof LogEventConvert) {
+                // 记录gtid
+                ((LogEventConvert) binlogParser).setGtidSet(MysqlGTIDSet.parse(position.getGtid()));
+            }
+        }
+
         if (tableMetaTSDB != null) {
+            if (position.getTimestamp() == null || position.getTimestamp() <= 0) {
+                throw new CanalParseException("use gtid and TableMeta TSDB should be config timestamp > 0");
+            }
+
             return tableMetaTSDB.rollback(position);
         }
 

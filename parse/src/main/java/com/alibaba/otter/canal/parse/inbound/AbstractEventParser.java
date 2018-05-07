@@ -8,8 +8,6 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -21,6 +19,7 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
@@ -90,7 +89,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected Throwable                              exception                  = null;
 
     protected boolean                                isGTIDMode                 = false; // 是否是GTID模式
-    protected String                                 GTIDSetStr                 = null;
 
     protected abstract BinlogParser buildParser();
 
@@ -550,13 +548,4 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     public void setIsGTIDMode(boolean isGTIDMode) {
         this.isGTIDMode = isGTIDMode;
     }
-
-    public String getGTIDSetStr() {
-        return GTIDSetStr;
-    }
-
-    public void setGTIDSetStr(String GTIDSetStr) {
-        this.GTIDSetStr = GTIDSetStr;
-    }
-
 }
