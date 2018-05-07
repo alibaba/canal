@@ -23,7 +23,7 @@ public class ClusterCanalConnector implements CanalConnector {
     private String                  username;
     private String                  password;
     private int                     soTimeout     = 10000;
-    private int                     retryTimes    = 3;
+    private int                     retryTimes    = 3;                                       // 设置-1时可以subscribe阻塞等待时优雅停机
     private int                     retryInterval = 5000;                                    // 重试的时间间隔，默认5秒
     private CanalNodeAccessStrategy accessStrategy;
     private SimpleCanalConnector    currentConnector;
@@ -106,13 +106,19 @@ public class ClusterCanalConnector implements CanalConnector {
                 this.filter = filter;
                 return;
             } catch (Throwable t) {
-                logger.warn(String.format(
-                        "something goes wrong when subscribing from server: %s",
-                        currentConnector != null ? currentConnector.getAddress() : "null"),
-                        t);
-                times++;
-                restart();
-                logger.info("restart the connector for next round retry.");
+                if (retryTimes == -1 && t.getCause() instanceof InterruptedException) {
+                    logger.info("block waiting interrupted by other thread.");
+                    return;
+                } else {
+                    logger.warn(String.format(
+                            "something goes wrong when subscribing from server: %s",
+                            currentConnector != null ? currentConnector.getAddress() : "null"),
+                            t);
+                    times++;
+                    restart();
+                    logger.info("restart the connector for next round retry.");
+                }
+
             }
         }
 

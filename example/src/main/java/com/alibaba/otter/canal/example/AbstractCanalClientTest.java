@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ public class AbstractCanalClientTest {
     protected static final String             SEP                = SystemUtils.LINE_SEPARATOR;
     protected static final String             DATE_FORMAT        = "yyyy-MM-dd HH:mm:ss";
     protected volatile boolean                running            = false;
+    private volatile boolean                  waiting            = true;
     protected Thread.UncaughtExceptionHandler handler            = new Thread.UncaughtExceptionHandler() {
 
                                                                      public void uncaughtException(Thread t, Throwable e) {
@@ -91,6 +93,12 @@ public class AbstractCanalClientTest {
             return;
         }
         running = false;
+        if (waiting) {
+            if (connector instanceof ClusterCanalConnector) {
+                ((ClusterCanalConnector) connector).setRetryTimes(-1);
+            }
+            thread.interrupt();
+        }
         if (thread != null) {
             try {
                 thread.join();
@@ -104,11 +112,13 @@ public class AbstractCanalClientTest {
 
     protected void process() {
         int batchSize = 5 * 1024;
+        while (!running);   //waiting until running == true
         while (running) {
             try {
                 MDC.put("destination", destination);
                 connector.connect();
                 connector.subscribe();
+                waiting = false;
                 while (running) {
                     Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
                     long batchId = message.getId();
