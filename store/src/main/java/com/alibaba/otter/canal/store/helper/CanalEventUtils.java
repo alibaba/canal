@@ -54,6 +54,9 @@ public class CanalEventUtils {
         // add serverId at 2016-06-28
         position.setServerId(event.getEntry().getHeader().getServerId());
 
+        // add gtid
+        position.setGtid(event.getEntry().getHeader().getGtid());
+
         LogPosition logPosition = new LogPosition();
         logPosition.setPostion(position);
         logPosition.setIdentity(event.getLogIdentity());

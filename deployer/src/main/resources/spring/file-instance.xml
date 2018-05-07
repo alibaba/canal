@@ -151,6 +151,7 @@
 				<property name="journalName" value="${canal.instance.master.journal.name}" />
 				<property name="position" value="${canal.instance.master.position}" />
 				<property name="timestamp" value="${canal.instance.master.timestamp}" />
+				<property name="gtid" value="${canal.instance.master.gtid}" />
 			</bean>
 		</property>
 		<property name="standbyPosition">
@@ -158,6 +159,7 @@
 				<property name="journalName" value="${canal.instance.standby.journal.name}" />
 				<property name="position" value="${canal.instance.standby.position}" />
 				<property name="timestamp" value="${canal.instance.standby.timestamp}" />
+				<property name="gtid" value="${canal.instance.standby.gtid}" />
 			</bean>
 		</property>
 		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
@@ -172,5 +174,8 @@
 		<!--表结构相关-->
 		<property name="enableTsdb" value="${canal.instance.tsdb.enable:true}"/>
 		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
+
+		<!--是否启用GTID模式-->
+		<property name="isGTIDMode" value="${canal.instance.gtidon}"/>
 	</bean>
 </beans>

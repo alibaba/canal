@@ -8,6 +8,8 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpGTIDCommandPacket;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,6 +161,29 @@ public class MysqlConnection implements ErosaConnection {
         }
     }
 
+    @Override
+    public void dump(GTIDSet gtidSet, SinkFunction func) throws IOException {
+        updateSettings();
+        sendBinlogDumpGTID(gtidSet);
+
+        DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize());
+        fetcher.start(connector.getChannel());
+        LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
+        LogContext context = new LogContext();
+        while (fetcher.fetch()) {
+            LogEvent event = null;
+            event = decoder.decode(fetcher, context);
+
+            if (event == null) {
+                throw new CanalParseException("parse failed");
+            }
+
+            if (!func.sink(event)) {
+                break;
+            }
+        }
+    }
+
     public void dump(long timestamp, SinkFunction func) throws IOException {
         throw new NullPointerException("Not implement yet");
     }
@@ -220,6 +245,20 @@ public class MysqlConnection implements ErosaConnection {
         semiAckHeader.setPacketBodyLength(cmdBody.length);
         semiAckHeader.setPacketSequenceNumber((byte) 0x00);
         PacketManager.writePkg(connector.getChannel(), semiAckHeader.toBytes(), cmdBody);
+    }
+
+    private void sendBinlogDumpGTID(GTIDSet gtidSet) throws IOException {
+        BinlogDumpGTIDCommandPacket binlogDumpCmd = new BinlogDumpGTIDCommandPacket();
+        binlogDumpCmd.slaveServerId = this.slaveId;
+        binlogDumpCmd.gtidSet = gtidSet;
+        byte[] cmdBody = binlogDumpCmd.toBytes();
+
+        logger.info("COM_BINLOG_DUMP_GTID:{}", binlogDumpCmd);
+        HeaderPacket binlogDumpHeader = new HeaderPacket();
+        binlogDumpHeader.setPacketBodyLength(cmdBody.length);
+        binlogDumpHeader.setPacketSequenceNumber((byte) 0x00);
+        PacketManager.writePkg(connector.getChannel(), binlogDumpHeader.toBytes(), cmdBody);
+        connector.setDumping(true);
     }
 
     public MysqlConnection fork() {

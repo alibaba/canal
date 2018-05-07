@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.parse.inbound;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
+
 import java.io.IOException;
 
 /**
@@ -23,6 +25,15 @@ public interface ErosaConnection {
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException;
 
     public void dump(long timestamp, SinkFunction func) throws IOException;
+
+    /**
+     * 通过GTID同步binlog
+     *
+     * @param gtidSet
+     * @param func
+     * @throws IOException
+     */
+    public void dump(GTIDSet gtidSet, SinkFunction func) throws IOException;
 
     ErosaConnection fork();
 }

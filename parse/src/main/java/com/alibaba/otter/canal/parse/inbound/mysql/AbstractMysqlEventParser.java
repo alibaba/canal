@@ -1,7 +1,10 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
+import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvertGTID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +37,20 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean           useDruidDdlFilter       = true;
 
     protected BinlogParser buildParser() {
-        LogEventConvert convert = new LogEventConvert();
+        LogEventConvert convert;
+
+        if (isGTIDMode()) {
+            EntryPosition position;
+            try {
+                position = findStartPosition(null);
+            } catch (IOException e) {
+                throw new RuntimeException("findStartPosition failed.", e);
+            }
+            convert = new LogEventConvertGTID(MysqlGTIDSet.parse(position.getGtid()));
+        } else {
+            convert = new LogEventConvert();
+        }
+
         if (eventFilter != null && eventFilter instanceof AviaterRegexFilter) {
             convert.setNameFilter((AviaterRegexFilter) eventFilter);
         }
