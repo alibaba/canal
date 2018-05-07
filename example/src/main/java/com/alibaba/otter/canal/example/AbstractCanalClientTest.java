@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +12,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.client.CanalConnector;
+import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
@@ -84,8 +84,8 @@ public class AbstractCanalClientTest {
         });
 
         thread.setUncaughtExceptionHandler(handler);
-        thread.start();
         running = true;
+        thread.start();
     }
 
     protected void stop() {
@@ -112,7 +112,6 @@ public class AbstractCanalClientTest {
 
     protected void process() {
         int batchSize = 5 * 1024;
-        while (!running);   //waiting until running == true
         while (running) {
             try {
                 MDC.put("destination", destination);
