@@ -328,4 +328,8 @@ public class ClusterCanalConnector implements CanalConnector {
         return currentConnector;
     }
 
+    public void stopRunning() {
+        currentConnector.stopRunning();
+    }
+
 }
