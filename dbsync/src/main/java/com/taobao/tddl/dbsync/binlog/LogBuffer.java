@@ -1299,7 +1299,7 @@ public class LogBuffer {
      */
     private final BigDecimal getDecimal0(final int begin, final int intg, final int frac, final int intg0,
                                          final int frac0, final int intg0x, final int frac0x) {
-        final int mask = ((buffer[begin] & 0x80) == 0x80) ? 0 : -1;
+        final int mask = ((buffer[begin] & 0x80) != 0x80) ? 0 : -1;
         int from = begin;
 
         /* max string length */
@@ -1312,7 +1312,7 @@ public class LogBuffer {
         buf[pos++] = ('-');
 
         final byte[] d_copy = buffer;
-        d_copy[begin] ^= 0x80; /* clear sign */
+        //d_copy[begin] ^= 0x80; /* clear sign */
         int mark = pos;
 
         if (intg0x != 0) {
@@ -1444,7 +1444,7 @@ public class LogBuffer {
             buf[pos++] = ('0');
         }
 
-        d_copy[begin] ^= 0x80; /* restore sign */
+        //d_copy[begin] ^= 0x80; /* restore sign */
         String decimal = String.valueOf(buf, 0, pos);
         return new BigDecimal(decimal);
     }
