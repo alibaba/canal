@@ -1278,7 +1278,7 @@ public class LogBuffer {
      * <pre>
      * Decimal representation in binlog seems to be as follows:
      * 
-     * 1st bit - sign such that set == +, unset == -
+     * 1st bit - sign such that unset == +, set == -
      * every 4 bytes represent 9 digits in big-endian order, so that
      * if you print the values of these quads as big-endian integers one after
      * another, you get the whole number string representation in decimal. What
@@ -1286,7 +1286,7 @@ public class LogBuffer {
      * 
      * 80 00 00 05 1b 38 b0 60 00 means:
      * 
-     *   0x80 - positive 
+     *   0x80 - negative
      *   0x00000005 - 5
      *   0x1b38b060 - 456700000
      *   0x00       - 0
