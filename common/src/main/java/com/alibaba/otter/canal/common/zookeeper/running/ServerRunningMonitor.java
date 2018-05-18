@@ -154,6 +154,12 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             if (bytes == null) {// 如果不存在节点，立即尝试一次
                 initRunning();
             } else {
+                // 因为停顿导致的zookeeper会话超时(例如gc), 再次initRunning失败(即使别的canal
+                // server延迟initRunning), 需要停止对binglog的订阅
+                if (null != activeData && isMine(activeData.getAddress())) {
+                    mutex.set(false);
+                    processActiveExit();
+                }
                 activeData = JsonUtils.unmarshalFromByte(bytes, ServerRunningData.class);
             }
         } catch (ZkNoNodeException e) {
