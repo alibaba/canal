@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.0.26-SNAPSHOT</version>
+    <version>1.0.26-GA</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -46,6 +46,11 @@
     </scm>
 
     <repositories>
+        <repository>
+            <id>iflytek-nexus</id>
+            <name>KuYin Central Repo</name>
+            <url>http://maven.iflytek.com:8081/nexus/content/groups/public/</url>
+        </repository>
         <repository>
             <id>central</id>
             <url>http://repo1.maven.org/maven2</url>
@@ -127,6 +132,7 @@
         <module>client</module>
         <module>deployer</module>
         <module>example</module>
+        <module>plumber</module>
     </modules>
 
     <dependencyManagement>
@@ -252,9 +258,14 @@
                 <version>2.3.4.726</version>
             </dependency>
             <dependency>
+                <groupId>com.alibaba.fastsql</groupId>
+                <artifactId>fastsql</artifactId>
+                <version>2.0.0_preview_186</version>
+            </dependency>
+            <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid</artifactId>
-                <version>1.1.6</version>
+                <version>1.1.9</version>
             </dependency>
             <!-- log -->
             <dependency>
@@ -445,6 +456,14 @@
                 </excludes>
             </testResource>
         </testResources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.0.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <distributionManagement>

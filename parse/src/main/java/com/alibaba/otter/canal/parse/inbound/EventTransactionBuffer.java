@@ -80,6 +80,9 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
                     flush();
                 }
                 break;
+            case ROWDATA_CUSTORM_MONGO:
+                put(entry);
+                break;
             default:
                 break;
         }

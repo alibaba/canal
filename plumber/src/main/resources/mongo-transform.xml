@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<events>
+    <event id="kuyin.account" index="kuyin" type="account" pk="" >
+        <includes value="bizid,name,headimg,binds"/>
+        <!--<excludes value="a,b"/>-->
+        <aliases>
+            <alias from="bizid" to="id" />
+            <alias from="b" to="bb" />
+        </aliases>
+        <embed value="copyrings" />
+    </event>
+
+    <event id="kuyin_perf.mv_ring" index="kuyin" type="mvring">
+    </event>
+
+
+</events>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+	default-autowire="byName">
+	
+	<bean id="stageController" class="com.alibaba.canal.plumber.stage.StageController">
+		<property name="processQueue" ref="processQueue" />
+		<property name="batchLoader" ref="batchLoader" />
+		<property name="connector" ref="connector" />
+		<property name="transformService" ref="transformService" />
+		<property name="concurrent" value="true" />
+		<property name="thread" value="3" />
+ 	</bean>
+
+	<bean id="processQueue" class="com.alibaba.canal.plumber.stage.ProcessQueue"></bean>
+
+	<bean id="batchLoader" class="com.alibaba.canal.plumber.tap.es.ElasticSearchBatchLoader">
+		<property name="elasticSearchClient" ref="elasticSearchClient" />
+	</bean>
+
+	<bean id="connector" class="com.alibaba.otter.canal.client.impl.SimpleCanalConnector" init-method="connect" destroy-method="disconnect">
+		<constructor-arg index="0" ref="serverAddress" />
+		<constructor-arg index="1" value="" />
+		<constructor-arg index="2" value="" />
+		<constructor-arg index="3" value="example" />
+	</bean>
+
+	<bean id="serverAddress" class="java.net.InetSocketAddress">
+		<constructor-arg index="0" value="127.0.0.1" />
+		<constructor-arg index="1" value="11111" />
+	</bean>
+
+	<bean id="elasticSearchClient" class="com.alibaba.canal.plumber.tap.es.connection.ElasticSearchClient" init-method="createClient">
+		<constructor-arg value="es://172.31.1.174:9300%40my-application" />
+	</bean>
+
+	<bean id="transformService" class="com.alibaba.canal.plumber.schema.TransformService">
+		<constructor-arg ref="schemaFactory" />
+	</bean>
+
+	<bean id="schemaFactory" class="com.alibaba.canal.plumber.schema.schema.SchemaFactory" init-method="init" />
+</beans>

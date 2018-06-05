@@ -208,7 +208,7 @@ public abstract class LogEvent {
     public static final int    BINLOG_CHECKSUM_ALG_CRC32                = 1;
     // the cut line: valid alg range is [1, 0x7f].
     public static final int    BINLOG_CHECKSUM_ALG_ENUM_END             = 2;
-    // special value to tag undetermined yet checksum
+    // special value to tap undetermined yet checksum
     public static final int    BINLOG_CHECKSUM_ALG_UNDEF                = 255;
     // or events from checksum-unaware servers
 

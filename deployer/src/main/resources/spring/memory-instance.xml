@@ -34,10 +34,10 @@
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
 		<property name="eventParser">
-			<ref local="eventParser" />
+			<ref local="eventParser2" />
 		</property>
 		<property name="eventSink">
-			<ref local="eventSink" />
+			<ref local="eventSink2" />
 		</property>
 		<property name="eventStore">
 			<ref local="eventStore" />
@@ -45,9 +45,9 @@
 		<property name="metaManager">
 			<ref local="metaManager" />
 		</property>
-		<property name="alarmHandler">
-			<ref local="alarmHandler" />
-		</property>
+		<!--<property name="alarmHandler">-->
+			<!--<ref local="alarmHandler" />-->
+		<!--</property>-->
 	</bean>
 	
 	<!-- 报警处理类 -->
@@ -64,6 +64,19 @@
 	
 	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
 		<property name="eventStore" ref="eventStore" />
+	</bean>
+
+	<bean id="eventSink2" class="com.alibaba.otter.canal.sink.mongo.MongoEventSink">
+		<property name="eventStore" ref="eventStore" />
+	</bean>
+
+	<bean id="eventParser2" class="com.alibaba.otter.canal.parse.inbound.mongo.MongoEventParser">
+		<property name="destination" value="${canal.instance.destination}" />
+		<property name="detectingEnable" value="${canal.instance.detecting.enable:false}" />
+		<property name="detectingIntervalInSeconds" value="${canal.instance.detecting.interval.time:5}" />
+
+		<property name="mongoURI" value="mongo://172.31.1.174:27017" />
+		<property name="positionFilePath" value="/Users/dsqin/otter/pos" />
 	</bean>
 
 	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser">
