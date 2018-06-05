@@ -361,22 +361,6 @@ public abstract class LogEvent {
                 return "Anonymous_Gtid";
             case PREVIOUS_GTIDS_LOG_EVENT:
                 return "Previous_gtids";
-            case TRANSACTION_CONTEXT_EVENT:
-                return "Transaction_context";
-            case VIEW_CHANGE_EVENT:
-                return "View_change";
-            case XA_PREPARE_LOG_EVENT:
-                return "XA_prepare";
-            case ANNOTATE_ROWS_EVENT:
-                return "Annotate_rows";
-            case BINLOG_CHECKPOINT_EVENT:
-                return "Binlog_checkpoint";
-            case GTID_EVENT:
-                return "Gtid";
-            case GTID_LIST_EVENT:
-                return "Gtid_list";
-            case START_ENCRYPTION_EVENT:
-                return "Start_encryption";
             default:
                 return "Unknown"; /* impossible */
         }
