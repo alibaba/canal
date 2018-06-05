@@ -457,8 +457,10 @@ public class SimpleCanalConnector implements CanalConnector {
                 }
 
                 running = true;
-
                 mutex.get();// 阻塞等待
+            } else {
+                // 单机模式直接设置为running
+                running = true;
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
