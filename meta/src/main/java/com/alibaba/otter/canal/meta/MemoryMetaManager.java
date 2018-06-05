@@ -83,7 +83,8 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
     }
 
     public synchronized List<ClientIdentity> listAllSubscribeInfo(String destination) throws CanalMetaManagerException {
-        return destinations.get(destination);
+        // fixed issue #657, fixed ConcurrentModificationException
+        return Lists.newArrayList(destinations.get(destination));
     }
 
     public Position getCursor(ClientIdentity clientIdentity) throws CanalMetaManagerException {
