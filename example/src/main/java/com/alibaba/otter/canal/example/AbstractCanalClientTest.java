@@ -18,6 +18,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
+import com.alibaba.otter.canal.protocol.CanalEntry.Pair;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
 import com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin;
@@ -199,6 +200,7 @@ public class AbstractCanalClientTest {
                                 String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
                                 entry.getHeader().getGtid(), String.valueOf(delayTime) });
                     logger.info(" BEGIN ----> Thread id: {}", begin.getThreadId());
+                    printXAInfo(begin.getPropsList());
                 } else if (entry.getEntryType() == EntryType.TRANSACTIONEND) {
                     TransactionEnd end = null;
                     try {
@@ -209,6 +211,7 @@ public class AbstractCanalClientTest {
                     // 打印事务提交信息，事务id
                     logger.info("----------------\n");
                     logger.info(" END ----> transaction id: {}", end.getTransactionId());
+                    printXAInfo(end.getPropsList());
                     logger.info(transaction_format,
                         new Object[] { entry.getHeader().getLogfileName(),
                                 String.valueOf(entry.getHeader().getLogfileOffset()),
@@ -241,6 +244,7 @@ public class AbstractCanalClientTest {
                     continue;
                 }
 
+                printXAInfo(rowChage.getPropsList());
                 for (RowData rowData : rowChage.getRowDatasList()) {
                     if (eventType == EventType.DELETE) {
                         printColumn(rowData.getBeforeColumnsList());
@@ -264,6 +268,27 @@ public class AbstractCanalClientTest {
             }
             builder.append(SEP);
             logger.info(builder.toString());
+        }
+    }
+
+    protected void printXAInfo(List<Pair> pairs) {
+        if (pairs == null) {
+            return;
+        }
+
+        String xaType = null;
+        String xaXid = null;
+        for (Pair pair : pairs) {
+            String key = pair.getKey();
+            if (StringUtils.endsWithIgnoreCase(key, "XA_TYPE")) {
+                xaType = pair.getValue();
+            } else if (StringUtils.endsWithIgnoreCase(key, "XA_XID")) {
+                xaXid = pair.getValue();
+            }
+        }
+
+        if (xaType != null && xaXid != null) {
+            logger.info(" ------> " + xaType + " " + xaXid);
         }
     }
 

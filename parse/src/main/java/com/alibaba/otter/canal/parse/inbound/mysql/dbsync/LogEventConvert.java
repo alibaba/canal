@@ -67,6 +67,12 @@ import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
  */
 public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogParser<LogEvent> {
 
+    public static final String          XA_XID              = "XA_XID";
+    public static final String          XA_TYPE             = "XA_TYPE";
+    public static final String          XA_START            = "XA START";
+    public static final String          XA_END              = "XA END";
+    public static final String          XA_COMMIT           = "XA COMMIT";
+    public static final String          XA_ROLLBACK         = "XA ROLLBACK";
     public static final String          ISO_8859_1          = "ISO-8859-1";
     public static final String          UTF_8               = "UTF-8";
     public static final int             TINYINT_MAX_VALUE   = 256;
@@ -174,7 +180,43 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private Entry parseQueryEvent(QueryLogEvent event, boolean isSeek) {
         String queryString = event.getQuery();
-        if (StringUtils.endsWithIgnoreCase(queryString, BEGIN)) {
+        if (StringUtils.startsWithIgnoreCase(queryString, XA_START)) {
+            // xa start use TransactionBegin
+            TransactionBegin.Builder beginBuilder = TransactionBegin.newBuilder();
+            beginBuilder.setThreadId(event.getSessionId());
+            beginBuilder.addProps(createSpecialPair(XA_TYPE, XA_START));
+            beginBuilder.addProps(createSpecialPair(XA_XID, getXaXid(queryString, XA_START)));
+            TransactionBegin transactionBegin = beginBuilder.build();
+            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
+            return createEntry(header, EntryType.TRANSACTIONBEGIN, transactionBegin.toByteString());
+        } else if (StringUtils.startsWithIgnoreCase(queryString, XA_END)) {
+            // xa start use TransactionEnd
+            TransactionEnd.Builder endBuilder = TransactionEnd.newBuilder();
+            endBuilder.setTransactionId(String.valueOf(0L));
+            endBuilder.addProps(createSpecialPair(XA_TYPE, XA_END));
+            endBuilder.addProps(createSpecialPair(XA_XID, getXaXid(queryString, XA_END)));
+            TransactionEnd transactionEnd = endBuilder.build();
+            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
+            return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
+        } else if (StringUtils.startsWithIgnoreCase(queryString, XA_COMMIT)) {
+            // xa commit
+            Header header = createHeader(binlogFileName, event.getHeader(), "", "", EventType.XACOMMIT);
+            RowChange.Builder rowChangeBuider = RowChange.newBuilder();
+            rowChangeBuider.setSql(queryString);
+            rowChangeBuider.addProps(createSpecialPair(XA_TYPE, XA_COMMIT));
+            rowChangeBuider.addProps(createSpecialPair(XA_XID, getXaXid(queryString, XA_COMMIT)));
+            rowChangeBuider.setEventType(EventType.XACOMMIT);
+            return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+        } else if (StringUtils.startsWithIgnoreCase(queryString, XA_ROLLBACK)) {
+            // xa rollback
+            Header header = createHeader(binlogFileName, event.getHeader(), "", "", EventType.XAROLLBACK);
+            RowChange.Builder rowChangeBuider = RowChange.newBuilder();
+            rowChangeBuider.setSql(queryString);
+            rowChangeBuider.addProps(createSpecialPair(XA_TYPE, XA_ROLLBACK));
+            rowChangeBuider.addProps(createSpecialPair(XA_XID, getXaXid(queryString, XA_ROLLBACK)));
+            rowChangeBuider.setEventType(EventType.XAROLLBACK);
+            return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+        } else if (StringUtils.endsWithIgnoreCase(queryString, BEGIN)) {
             TransactionBegin transactionBegin = createTransactionBegin(event.getSessionId());
             Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONBEGIN, transactionBegin.toByteString());
@@ -235,6 +277,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setEventType(type);
             return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
         }
+    }
+
+    private String getXaXid(String queryString, String type) {
+        return StringUtils.substringAfter(queryString, type);
     }
 
     private boolean processFilter(String queryString, DdlResult result) {
