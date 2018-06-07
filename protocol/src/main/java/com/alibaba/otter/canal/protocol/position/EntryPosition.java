@@ -18,6 +18,7 @@ public class EntryPosition extends TimePosition {
     private Long              position;
     // add by agapple at 2016-06-28
     private Long              serverId              = null;              // 记录一下位点对应的serverId
+    private String            gtid                  = null;
 
     public EntryPosition(){
         super(null);
@@ -72,6 +73,14 @@ public class EntryPosition extends TimePosition {
 
     public void setServerId(Long serverId) {
         this.serverId = serverId;
+    }
+
+    public String getGtid() {
+        return gtid;
+    }
+
+    public void setGtid(String gtid) {
+        this.gtid = gtid;
     }
 
     @Override

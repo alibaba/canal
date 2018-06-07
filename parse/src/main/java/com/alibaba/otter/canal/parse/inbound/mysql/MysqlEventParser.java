@@ -344,6 +344,18 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     protected EntryPosition findStartPosition(ErosaConnection connection) throws IOException {
+        if (isGTIDMode()) {
+            // GTID模式下，CanalLogPositionManager里取最后的gtid，没有则取instanc配置中的
+            LogPosition logPosition = getLogPositionManager().getLatestIndexBy(destination);
+            if (logPosition != null) {
+                return logPosition.getPostion();
+            }
+
+            if (StringUtils.isNotEmpty(masterPosition.getGtid())) {
+                return masterPosition;
+            }
+        }
+
         EntryPosition startPosition = findStartPositionInternal(connection);
         if (needTransactionPosition.get()) {
             logger.warn("prepare to find last position : {}", startPosition.toString());

@@ -16,6 +16,7 @@ import com.alibaba.fastsql.sql.ast.SQLExpr;
 import com.alibaba.fastsql.sql.ast.SQLStatement;
 import com.alibaba.fastsql.sql.ast.expr.SQLCharExpr;
 import com.alibaba.fastsql.sql.ast.expr.SQLIdentifierExpr;
+import com.alibaba.fastsql.sql.ast.expr.SQLMethodInvokeExpr;
 import com.alibaba.fastsql.sql.ast.expr.SQLNullExpr;
 import com.alibaba.fastsql.sql.ast.expr.SQLPropertyExpr;
 import com.alibaba.fastsql.sql.ast.statement.SQLColumnConstraint;
@@ -243,6 +244,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
             return DruidDdlParser.unescapeName(((SQLIdentifierExpr) sqlName).getName());
         } else if (sqlName instanceof SQLCharExpr) {
             return ((SQLCharExpr) sqlName).getText();
+        } else if (sqlName instanceof SQLMethodInvokeExpr) {
+            return DruidDdlParser.unescapeName(((SQLMethodInvokeExpr) sqlName).getMethodName());
         } else {
             return sqlName.toString();
         }

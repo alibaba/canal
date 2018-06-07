@@ -263,7 +263,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                 mysqlEventParser.setMasterPosition(masterPosition);
 
                 if (parameters.getPositions().size() > 1) {
-                    EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
+                    EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(1),
                         EntryPosition.class);
                     mysqlEventParser.setStandbyPosition(standbyPosition);
                 }

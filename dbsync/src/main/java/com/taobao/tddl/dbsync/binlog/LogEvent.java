@@ -161,9 +161,17 @@ public abstract class LogEvent {
 
     public static final int    PREVIOUS_GTIDS_LOG_EVENT                 = 35;
 
+    /* MySQL 5.7 events */
+    public static final int    TRANSACTION_CONTEXT_EVENT                = 36;
+
+    public static final int    VIEW_CHANGE_EVENT                        = 37;
+
+    /* Prepared XA transaction terminal event similar to Xid */
+    public static final int    XA_PREPARE_LOG_EVENT                     = 38;
+
     // mariaDb 5.5.34
     /* New MySQL/Sun events are to be added right above this comment */
-    public static final int    MYSQL_EVENTS_END                         = 36;
+    public static final int    MYSQL_EVENTS_END                         = 39;
 
     public static final int    MARIA_EVENTS_BEGIN                       = 160;
     /* New Maria event numbers start from here */
@@ -189,8 +197,10 @@ public abstract class LogEvent {
      */
     public static final int    GTID_LIST_EVENT                          = 163;
 
+    public static final int    START_ENCRYPTION_EVENT                   = 164;
+
     /** end marker */
-    public static final int    ENUM_END_EVENT                           = 164;
+    public static final int    ENUM_END_EVENT                           = 165;
 
     /**
      * 1 byte length, 1 byte format Length is total length in bytes, including 2
@@ -359,7 +369,7 @@ public abstract class LogEvent {
     protected static final Log logger = LogFactory.getLog(LogEvent.class);
 
     protected final LogHeader  header;
-    
+
     /**
      * mysql半同步semi标识
      * 
@@ -369,18 +379,16 @@ public abstract class LogEvent {
      * </pre>
      */
     protected int              semival;
-    
-    
 
     public int getSemival() {
-		return semival;
-	}
+        return semival;
+    }
 
-	public void setSemival(int semival) {
-		this.semival = semival;
-	}
+    public void setSemival(int semival) {
+        this.semival = semival;
+    }
 
-	protected LogEvent(LogHeader header){
+    protected LogEvent(LogHeader header){
         this.header = header;
     }
 

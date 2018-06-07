@@ -30,15 +30,19 @@ import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.StartLogEventV3;
 import com.taobao.tddl.dbsync.binlog.event.StopLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.TransactionContextLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.ViewChangeEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.XaPrepareLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.StartEncryptionLogEvent;
 
 /**
  * Implements a binary-log decoder.
@@ -366,6 +370,24 @@ public final class LogDecoder {
                 logPosition.position = header.getLogPos();
                 return event;
             }
+            case LogEvent.TRANSACTION_CONTEXT_EVENT: {
+                TransactionContextLogEvent event = new TransactionContextLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.VIEW_CHANGE_EVENT: {
+                ViewChangeEvent event = new ViewChangeEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.XA_PREPARE_LOG_EVENT: {
+                XaPrepareLogEvent event = new XaPrepareLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
             case LogEvent.ANNOTATE_ROWS_EVENT: {
                 AnnotateRowsEvent event = new AnnotateRowsEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
@@ -390,6 +412,12 @@ public final class LogDecoder {
                 logPosition.position = header.getLogPos();
                 return event;
             }
+            case LogEvent.START_ENCRYPTION_EVENT: {
+                StartEncryptionLogEvent event = new StartEncryptionLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
             default:
                 /*
                  * Create an object of Ignorable_log_event for unrecognized
@@ -402,9 +430,10 @@ public final class LogDecoder {
                     logPosition.position = header.getLogPos();
                     return event;
                 } else {
-                    if (logger.isWarnEnabled()) logger.warn("Skipping unrecognized binlog event "
-                                                            + LogEvent.getTypeName(header.getType()) + " from: "
-                                                            + context.getLogPosition());
+                    if (logger.isWarnEnabled()) {
+                        logger.warn("Skipping unrecognized binlog event " + LogEvent.getTypeName(header.getType())
+                                    + " from: " + context.getLogPosition());
+                    }
                 }
         }
 

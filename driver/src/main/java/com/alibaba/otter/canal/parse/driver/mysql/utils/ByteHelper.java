@@ -127,6 +127,17 @@ public abstract class ByteHelper {
         out.write((byte) (data >>> 24));
     }
 
+    public static void writeUnsignedInt64LittleEndian(long data, ByteArrayOutputStream out) {
+        out.write((byte) (data & 0xFF));
+        out.write((byte) (data >>> 8));
+        out.write((byte) (data >>> 16));
+        out.write((byte) (data >>> 24));
+        out.write((byte) (data >>> 32));
+        out.write((byte) (data >>> 40));
+        out.write((byte) (data >>> 48));
+        out.write((byte) (data >>> 56));
+    }
+
     public static void writeUnsignedShortLittleEndian(int data, ByteArrayOutputStream out) {
         out.write((byte) (data & 0xFF));
         out.write((byte) ((data >>> 8) & 0xFF));
