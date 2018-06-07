@@ -65,10 +65,10 @@ public class TableMeta {
     }
 
     public FieldMeta getFieldMetaByName(String name) {
+        if (name.indexOf("(") >= 0) {// 处理形如 `name`(200) -> `name`，因为字段名可能出现(，这里用`处理
+            name = name.substring(name.indexOf("`"), name.lastIndexOf("`") + 1);
+        }
         for (FieldMeta meta : fields) {
-            if (name.indexOf("(") >= 0) {// 处理形如 `name`(200) -> `name`，因为字段名可能出现(，这里用`处理
-                name = name.substring(name.indexOf('`'), name.lastIndexOf('`') + 1);
-            }
             if (meta.getColumnName().equalsIgnoreCase(name)) {
                 return meta;
             }
