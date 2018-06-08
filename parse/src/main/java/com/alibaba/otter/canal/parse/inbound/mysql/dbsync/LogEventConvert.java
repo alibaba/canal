@@ -634,11 +634,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // fixed issue
             // https://github.com/alibaba/canal/issues/66，特殊处理binary/varbinary，不能做编码处理
             boolean isBinary = false;
+            boolean isSingleBit = false;
             if (fieldMeta != null) {
                 if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "VARBINARY")) {
                     isBinary = true;
                 } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "BINARY")) {
                     isBinary = true;
+                } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "tinyint(1)")) {
+                    isSingleBit = true;
                 }
             }
             buffer.nextValue(info.type, info.meta, isBinary);
@@ -648,6 +651,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             int javaType = buffer.getJavaType();
+            if (isSingleBit && javaType == Types.TINYINT) {
+                javaType = Types.BIT;
+            }
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
             } else {

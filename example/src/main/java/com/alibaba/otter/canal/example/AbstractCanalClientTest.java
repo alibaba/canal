@@ -96,13 +96,7 @@ public class AbstractCanalClientTest {
         if (!running) {
             return;
         }
-        running = false;
-        if (waiting) {
-            if (connector instanceof ClusterCanalConnector) {
-                ((ClusterCanalConnector) connector).setRetryTimes(-1);
-            }
-            thread.interrupt();
-        }
+        connector.stopRunning();
         if (thread != null) {
             try {
                 thread.join();
