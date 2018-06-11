@@ -1,12 +1,12 @@
-servers: localhost:6667
+servers: slave1.test.apitops.com:6667,slave2.test.apitops.com:6667,slave3.test.apitops.com:6667
 retries: 0
 batchSize: 16384
 lingerMs: 1
 bufferMemory: 33554432
 
 topics:
-  - topic: exampe
+  - topic: example2
     partition:
-    destination: example
+    destination: example2
 
 
