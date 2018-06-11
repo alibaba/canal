@@ -1,0 +1,12 @@
+servers: localhost:6667
+retries: 0
+batchSize: 16384
+lingerMs: 1
+bufferMemory: 33554432
+
+topics:
+  - topic: exampe
+    partition:
+    destination: example
+
+
