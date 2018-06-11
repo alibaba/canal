@@ -148,6 +148,7 @@
 				<property name="journalName" value="${canal.instance.master1.journal.name}" />
 				<property name="position" value="${canal.instance.master1.position}" />
 				<property name="timestamp" value="${canal.instance.master1.timestamp}" />
+				<property name="gtid" value="${canal.instance.master1.gtid}" />
 			</bean>
 		</property>
 		<property name="standbyPosition">
@@ -155,6 +156,7 @@
 				<property name="journalName" value="${canal.instance.standby1.journal.name}" />
 				<property name="position" value="${canal.instance.standby1.position}" />
 				<property name="timestamp" value="${canal.instance.standby1.timestamp}" />
+				<property name="gtid" value="${canal.instance.standby1.gtid}" />
 			</bean>
 		</property>
 		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />
@@ -239,6 +241,7 @@
 				<property name="journalName" value="${canal.instance.master2.journal.name}" />
 				<property name="position" value="${canal.instance.master2.position}" />
 				<property name="timestamp" value="${canal.instance.master2.timestamp}" />
+				<property name="gtid" value="${canal.instance.master2.gtid}" />
 			</bean>
 		</property>
 		<property name="standbyPosition">
@@ -246,6 +249,7 @@
 				<property name="journalName" value="${canal.instance.standby2.journal.name}" />
 				<property name="position" value="${canal.instance.standby2.position}" />
 				<property name="timestamp" value="${canal.instance.standby2.timestamp}" />
+				<property name="gtid" value="${canal.instance.standby2.gtid}" />
 			</bean>
 		</property>
 		<property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}" />

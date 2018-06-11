@@ -10,10 +10,6 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
-import com.alibaba.otter.canal.parse.inbound.BinlogParser;
-import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvertGTID;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -354,8 +350,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             if (logPosition != null) {
                 return logPosition.getPostion();
             }
-            return masterPosition;
+
+            if (StringUtils.isNotEmpty(masterPosition.getGtid())) {
+                return masterPosition;
+            }
         }
+
         EntryPosition startPosition = findStartPositionInternal(connection);
         if (needTransactionPosition.get()) {
             logger.warn("prepare to find last position : {}", startPosition.toString());

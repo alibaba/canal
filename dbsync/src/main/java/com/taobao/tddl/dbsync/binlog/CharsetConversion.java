@@ -103,8 +103,8 @@ public final class CharsetConversion {
         putEntry(42, "latin7", "latin7_general_cs", "ISO8859_7");
         putEntry(43, "macce", "macce_bin", "MacCentralEurope");
         putEntry(44, "cp1250", "cp1250_croatian_ci", "Cp1250");
-        putEntry(45, "utf8mb4", "utf8mb4_general_ci", "MacCentralEurope");
-        putEntry(46, "utf8mb4", "utf8mb4_bin", "MacCentralEurope");
+        putEntry(45, "utf8mb4", "utf8mb4_general_ci", "UTF-8");
+        putEntry(46, "utf8mb4", "utf8mb4_bin", "UTF-8");
         putEntry(47, "latin1", "latin1_bin", "ISO8859_1");
         putEntry(48, "latin1", "latin1_general_ci", "ISO8859_1");
         putEntry(49, "latin1", "latin1_general_cs", "ISO8859_1");

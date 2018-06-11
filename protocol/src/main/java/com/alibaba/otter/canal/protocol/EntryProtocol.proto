@@ -191,6 +191,9 @@ enum EventType {
     CINDEX		= 		10;
     DINDEX 		= 		11;
     GTID        =       12;
+    /** XA **/
+    XACOMMIT    =       13;
+    XAROLLBACK  =		14;
 }
 
 /**数据库类型**/

@@ -8,13 +8,14 @@ public final class CanalEntry {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  /**
-   * Protobuf enum {@code com.alibaba.otter.canal.protocol.EntryType}
-   *
-   * <pre>
-   **打散后的事件类型，主要用于标识事务的开始，变更数据，结束*
-   * </pre>
-   */
+  
+    /**
+     * Protobuf enum {@code com.alibaba.otter.canal.protocol.EntryType}
+     *
+     * <pre>
+     * *打散后的事件类型，主要用于标识事务的开始，变更数据，结束*
+     * </pre>
+     */
   public enum EntryType
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
@@ -29,13 +30,13 @@ public final class CanalEntry {
      * <code>TRANSACTIONEND = 3;</code>
      */
     TRANSACTIONEND(2, 3),
-    /**
-     * <code>HEARTBEAT = 4;</code>
-     *
-     * <pre>
-     ** 心跳类型，内部使用，外部暂不可见，可忽略 *
-     * </pre>
-     */
+        /**
+         * <code>HEARTBEAT = 4;</code>
+         *
+         * <pre>
+         * * 心跳类型，内部使用，外部暂不可见，可忽略 *
+         * </pre>
+         */
     HEARTBEAT(3, 4),
     /**
      * <code>GTIDLOG = 5;</code>
@@ -55,13 +56,13 @@ public final class CanalEntry {
      * <code>TRANSACTIONEND = 3;</code>
      */
     public static final int TRANSACTIONEND_VALUE = 3;
-    /**
-     * <code>HEARTBEAT = 4;</code>
-     *
-     * <pre>
-     ** 心跳类型，内部使用，外部暂不可见，可忽略 *
-     * </pre>
-     */
+        /**
+         * <code>HEARTBEAT = 4;</code>
+         *
+         * <pre>
+         * * 心跳类型，内部使用，外部暂不可见，可忽略 *
+         * </pre>
+         */
     public static final int HEARTBEAT_VALUE = 4;
     /**
      * <code>GTIDLOG = 5;</code>
@@ -129,13 +130,13 @@ public final class CanalEntry {
     // @@protoc_insertion_point(enum_scope:com.alibaba.otter.canal.protocol.EntryType)
   }
 
-  /**
-   * Protobuf enum {@code com.alibaba.otter.canal.protocol.EventType}
-   *
-   * <pre>
-   ** 事件类型 *
-   * </pre>
-   */
+    /**
+     * Protobuf enum {@code com.alibaba.otter.canal.protocol.EventType}
+     *
+     * <pre>
+     * * 事件类型 *
+     * </pre>
+     */
   public enum EventType
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
@@ -190,6 +191,26 @@ public final class CanalEntry {
      * <code>GTID = 12;</code>
      */
     GTID(11, 12),
+    /**
+     * <code>XASTART = 13;</code>
+     *
+     * <pre>
+     ** XA *
+     * </pre>
+     */
+    XASTART(12, 13),
+    /**
+     * <code>XAEND = 14;</code>
+     */
+    XAEND(13, 14),
+    /**
+     * <code>XACOMMIT = 15;</code>
+     */
+    XACOMMIT(14, 15),
+    /**
+     * <code>XAROLLBACK = 16;</code>
+     */
+    XAROLLBACK(15, 16),
     ;
 
     /**
@@ -244,6 +265,26 @@ public final class CanalEntry {
      * <code>GTID = 12;</code>
      */
     public static final int GTID_VALUE = 12;
+    /**
+     * <code>XASTART = 13;</code>
+     *
+     * <pre>
+     ** XA *
+     * </pre>
+     */
+    public static final int XASTART_VALUE = 13;
+    /**
+     * <code>XAEND = 14;</code>
+     */
+    public static final int XAEND_VALUE = 14;
+    /**
+     * <code>XACOMMIT = 15;</code>
+     */
+    public static final int XACOMMIT_VALUE = 15;
+    /**
+     * <code>XAROLLBACK = 16;</code>
+     */
+    public static final int XAROLLBACK_VALUE = 16;
 
 
     public final int getNumber() { return value; }
@@ -262,6 +303,10 @@ public final class CanalEntry {
         case 10: return CINDEX;
         case 11: return DINDEX;
         case 12: return GTID;
+        case 13: return XASTART;
+        case 14: return XAEND;
+        case 15: return XACOMMIT;
+        case 16: return XAROLLBACK;
         default: return null;
       }
     }
@@ -313,13 +358,13 @@ public final class CanalEntry {
     // @@protoc_insertion_point(enum_scope:com.alibaba.otter.canal.protocol.EventType)
   }
 
-  /**
-   * Protobuf enum {@code com.alibaba.otter.canal.protocol.Type}
-   *
-   * <pre>
-   **数据库类型*
-   * </pre>
-   */
+    /**
+     * Protobuf enum {@code com.alibaba.otter.canal.protocol.Type}
+     *
+     * <pre>
+     * *数据库类型*
+     * </pre>
+     */
   public enum Type
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
@@ -412,75 +457,80 @@ public final class CanalEntry {
       // @@protoc_insertion_point(interface_extends:com.alibaba.otter.canal.protocol.Entry)
       com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-     *
-     * <pre>
-     **协议头部信息*
-     * </pre>
-     */
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+         *
+         * <pre>
+         * *协议头部信息*
+         * </pre>
+         */
     boolean hasHeader();
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-     *
-     * <pre>
-     **协议头部信息*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+         *
+         * <pre>
+         * *协议头部信息*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Header getHeader();
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-     *
-     * <pre>
-     **协议头部信息*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+         *
+         * <pre>
+         * *协议头部信息*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder getHeaderOrBuilder();
 
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-     *
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     */
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+         *
+         * <pre>
+         * *打散后的事件类型*
+         * </pre>
+         */
     boolean hasEntryType();
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-     *
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+         *
+         * <pre>
+         * *打散后的事件类型*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.EntryType getEntryType();
 
-    /**
-     * <code>optional bytes storeValue = 3;</code>
-     *
-     * <pre>
-     **传输的二进制数组*
-     * </pre>
-     */
+        /**
+         * <code>optional bytes storeValue = 3;</code>
+         *
+         * <pre>
+         * *传输的二进制数组*
+         * </pre>
+         */
     boolean hasStoreValue();
-    /**
-     * <code>optional bytes storeValue = 3;</code>
-     *
-     * <pre>
-     **传输的二进制数组*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bytes storeValue = 3;</code>
+         *
+         * <pre>
+         * *传输的二进制数组*
+         * </pre>
+         */
     com.google.protobuf.ByteString getStoreValue();
   }
-  /**
-   * Protobuf type {@code com.alibaba.otter.canal.protocol.Entry}
-   *
-   * <pre>
-   ****************************************************************
-   * message model
-   *如果要在Enum中新增类型，确保以前的类型的下标值不变.
-   ***************************************************************
-   * </pre>
-   */
+  
+    /**
+     * Protobuf type {@code com.alibaba.otter.canal.protocol.Entry}
+     *
+     * <pre>
+     ****************************************************************
+     *  message model
+     * 如果要在Enum中新增类型，确保以前的类型的下标值不变.
+     ***************************************************************
+     * </pre>
+     */
   public static final class Entry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:com.alibaba.otter.canal.protocol.Entry)
@@ -601,79 +651,86 @@ public final class CanalEntry {
     private int bitField0_;
     public static final int HEADER_FIELD_NUMBER = 1;
     private com.alibaba.otter.canal.protocol.CanalEntry.Header header_;
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-     *
-     * <pre>
-     **协议头部信息*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+         *
+         * <pre>
+         * *协议头部信息*
+         * </pre>
+         */
     public boolean hasHeader() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-     *
-     * <pre>
-     **协议头部信息*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+         *
+         * <pre>
+         * *协议头部信息*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Header getHeader() {
       return header_;
     }
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-     *
-     * <pre>
-     **协议头部信息*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+         *
+         * <pre>
+         * *协议头部信息*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder getHeaderOrBuilder() {
       return header_;
     }
 
     public static final int ENTRYTYPE_FIELD_NUMBER = 2;
     private com.alibaba.otter.canal.protocol.CanalEntry.EntryType entryType_;
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-     *
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+         *
+         * <pre>
+         * *打散后的事件类型*
+         * </pre>
+         */
     public boolean hasEntryType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-     *
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+         *
+         * <pre>
+         * *打散后的事件类型*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.EntryType getEntryType() {
       return entryType_;
     }
 
     public static final int STOREVALUE_FIELD_NUMBER = 3;
     private com.google.protobuf.ByteString storeValue_;
-    /**
-     * <code>optional bytes storeValue = 3;</code>
-     *
-     * <pre>
-     **传输的二进制数组*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bytes storeValue = 3;</code>
+         *
+         * <pre>
+         * *传输的二进制数组*
+         * </pre>
+         */
     public boolean hasStoreValue() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    /**
-     * <code>optional bytes storeValue = 3;</code>
-     *
-     * <pre>
-     **传输的二进制数组*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bytes storeValue = 3;</code>
+         *
+         * <pre>
+         * *传输的二进制数组*
+         * </pre>
+         */
     public com.google.protobuf.ByteString getStoreValue() {
       return storeValue_;
     }
@@ -804,16 +861,17 @@ public final class CanalEntry {
       Builder builder = new Builder(parent);
       return builder;
     }
-    /**
-     * Protobuf type {@code com.alibaba.otter.canal.protocol.Entry}
-     *
-     * <pre>
-     ****************************************************************
-     * message model
-     *如果要在Enum中新增类型，确保以前的类型的下标值不变.
-     ***************************************************************
-     * </pre>
-     */
+    
+        /**
+         * Protobuf type {@code com.alibaba.otter.canal.protocol.Entry}
+         *
+         * <pre>
+         ****************************************************************
+         *  message model
+         * 如果要在Enum中新增类型，确保以前的类型的下标值不变.
+         ***************************************************************
+         * </pre>
+         */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:com.alibaba.otter.canal.protocol.Entry)
@@ -960,23 +1018,25 @@ public final class CanalEntry {
       private com.alibaba.otter.canal.protocol.CanalEntry.Header header_ = com.alibaba.otter.canal.protocol.CanalEntry.Header.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Header, com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder, com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder> headerBuilder_;
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public boolean hasHeader() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Header getHeader() {
         if (headerBuilder_ == null) {
           return header_;
@@ -984,13 +1044,14 @@ public final class CanalEntry {
           return headerBuilder_.getMessage();
         }
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public Builder setHeader(com.alibaba.otter.canal.protocol.CanalEntry.Header value) {
         if (headerBuilder_ == null) {
           if (value == null) {
@@ -1004,13 +1065,14 @@ public final class CanalEntry {
         bitField0_ |= 0x00000001;
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public Builder setHeader(
           com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder builderForValue) {
         if (headerBuilder_ == null) {
@@ -1022,13 +1084,14 @@ public final class CanalEntry {
         bitField0_ |= 0x00000001;
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public Builder mergeHeader(com.alibaba.otter.canal.protocol.CanalEntry.Header value) {
         if (headerBuilder_ == null) {
           if (((bitField0_ & 0x00000001) == 0x00000001) &&
@@ -1045,13 +1108,14 @@ public final class CanalEntry {
         bitField0_ |= 0x00000001;
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public Builder clearHeader() {
         if (headerBuilder_ == null) {
           header_ = com.alibaba.otter.canal.protocol.CanalEntry.Header.getDefaultInstance();
@@ -1062,25 +1126,27 @@ public final class CanalEntry {
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder getHeaderBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return getHeaderFieldBuilder().getBuilder();
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder getHeaderOrBuilder() {
         if (headerBuilder_ != null) {
           return headerBuilder_.getMessageOrBuilder();
@@ -1088,13 +1154,14 @@ public final class CanalEntry {
           return header_;
         }
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
-       *
-       * <pre>
-       **协议头部信息*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+             *
+             * <pre>
+             * *协议头部信息*
+             * </pre>
+             */
       private com.google.protobuf.SingleFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Header, com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder, com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder> 
           getHeaderFieldBuilder() {
@@ -1110,33 +1177,36 @@ public final class CanalEntry {
       }
 
       private com.alibaba.otter.canal.protocol.CanalEntry.EntryType entryType_ = com.alibaba.otter.canal.protocol.CanalEntry.EntryType.ROWDATA;
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-       *
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+             *
+             * <pre>
+             * *打散后的事件类型*
+             * </pre>
+             */
       public boolean hasEntryType() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-       *
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+             *
+             * <pre>
+             * *打散后的事件类型*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.EntryType getEntryType() {
         return entryType_;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-       *
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+             *
+             * <pre>
+             * *打散后的事件类型*
+             * </pre>
+             */
       public Builder setEntryType(com.alibaba.otter.canal.protocol.CanalEntry.EntryType value) {
         if (value == null) {
           throw new NullPointerException();
@@ -1146,13 +1216,14 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
-       *
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+             *
+             * <pre>
+             * *打散后的事件类型*
+             * </pre>
+             */
       public Builder clearEntryType() {
         bitField0_ = (bitField0_ & ~0x00000002);
         entryType_ = com.alibaba.otter.canal.protocol.CanalEntry.EntryType.ROWDATA;
@@ -1161,33 +1232,36 @@ public final class CanalEntry {
       }
 
       private com.google.protobuf.ByteString storeValue_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <code>optional bytes storeValue = 3;</code>
-       *
-       * <pre>
-       **传输的二进制数组*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bytes storeValue = 3;</code>
+             *
+             * <pre>
+             * *传输的二进制数组*
+             * </pre>
+             */
       public boolean hasStoreValue() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      /**
-       * <code>optional bytes storeValue = 3;</code>
-       *
-       * <pre>
-       **传输的二进制数组*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bytes storeValue = 3;</code>
+             *
+             * <pre>
+             * *传输的二进制数组*
+             * </pre>
+             */
       public com.google.protobuf.ByteString getStoreValue() {
         return storeValue_;
       }
-      /**
-       * <code>optional bytes storeValue = 3;</code>
-       *
-       * <pre>
-       **传输的二进制数组*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bytes storeValue = 3;</code>
+             *
+             * <pre>
+             * *传输的二进制数组*
+             * </pre>
+             */
       public Builder setStoreValue(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
@@ -1197,13 +1271,14 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional bytes storeValue = 3;</code>
-       *
-       * <pre>
-       **传输的二进制数组*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bytes storeValue = 3;</code>
+             *
+             * <pre>
+             * *传输的二进制数组*
+             * </pre>
+             */
       public Builder clearStoreValue() {
         bitField0_ = (bitField0_ & ~0x00000004);
         storeValue_ = getDefaultInstance().getStoreValue();
@@ -1226,296 +1301,317 @@ public final class CanalEntry {
       // @@protoc_insertion_point(interface_extends:com.alibaba.otter.canal.protocol.Header)
       com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>optional int32 version = 1 [default = 1];</code>
-     *
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     */
+        /**
+         * <code>optional int32 version = 1 [default = 1];</code>
+         *
+         * <pre>
+         * *协议的版本号*
+         * </pre>
+         */
     boolean hasVersion();
-    /**
-     * <code>optional int32 version = 1 [default = 1];</code>
-     *
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 version = 1 [default = 1];</code>
+         *
+         * <pre>
+         * *协议的版本号*
+         * </pre>
+         */
     int getVersion();
 
-    /**
-     * <code>optional string logfileName = 2;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     */
+        /**
+         * <code>optional string logfileName = 2;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件名*
+         * </pre>
+         */
     boolean hasLogfileName();
-    /**
-     * <code>optional string logfileName = 2;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string logfileName = 2;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件名*
+         * </pre>
+         */
     java.lang.String getLogfileName();
-    /**
-     * <code>optional string logfileName = 2;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string logfileName = 2;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件名*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getLogfileNameBytes();
 
-    /**
-     * <code>optional int64 logfileOffset = 3;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件的偏移位置*
-     * </pre>
-     */
+        /**
+         * <code>optional int64 logfileOffset = 3;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件的偏移位置*
+         * </pre>
+         */
     boolean hasLogfileOffset();
-    /**
-     * <code>optional int64 logfileOffset = 3;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件的偏移位置*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 logfileOffset = 3;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件的偏移位置*
+         * </pre>
+         */
     long getLogfileOffset();
 
-    /**
-     * <code>optional int64 serverId = 4;</code>
-     *
-     * <pre>
-     **服务端serverId*
-     * </pre>
-     */
+        /**
+         * <code>optional int64 serverId = 4;</code>
+         *
+         * <pre>
+         * *服务端serverId*
+         * </pre>
+         */
     boolean hasServerId();
-    /**
-     * <code>optional int64 serverId = 4;</code>
-     *
-     * <pre>
-     **服务端serverId*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 serverId = 4;</code>
+         *
+         * <pre>
+         * *服务端serverId*
+         * </pre>
+         */
     long getServerId();
 
-    /**
-     * <code>optional string serverenCode = 5;</code>
-     *
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     */
+        /**
+         * <code>optional string serverenCode = 5;</code>
+         *
+         * <pre>
+         * * 变更数据的编码 *
+         * </pre>
+         */
     boolean hasServerenCode();
-    /**
-     * <code>optional string serverenCode = 5;</code>
-     *
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string serverenCode = 5;</code>
+         *
+         * <pre>
+         * * 变更数据的编码 *
+         * </pre>
+         */
     java.lang.String getServerenCode();
-    /**
-     * <code>optional string serverenCode = 5;</code>
-     *
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string serverenCode = 5;</code>
+         *
+         * <pre>
+         * * 变更数据的编码 *
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getServerenCodeBytes();
 
-    /**
-     * <code>optional int64 executeTime = 6;</code>
-     *
-     * <pre>
-     **变更数据的执行时间 *
-     * </pre>
-     */
+        /**
+         * <code>optional int64 executeTime = 6;</code>
+         *
+         * <pre>
+         * *变更数据的执行时间 *
+         * </pre>
+         */
     boolean hasExecuteTime();
-    /**
-     * <code>optional int64 executeTime = 6;</code>
-     *
-     * <pre>
-     **变更数据的执行时间 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 6;</code>
+         *
+         * <pre>
+         * *变更数据的执行时间 *
+         * </pre>
+         */
     long getExecuteTime();
 
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-     *
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     */
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+         *
+         * <pre>
+         * * 变更数据的来源*
+         * </pre>
+         */
     boolean hasSourceType();
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-     *
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+         *
+         * <pre>
+         * * 变更数据的来源*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Type getSourceType();
 
-    /**
-     * <code>optional string schemaName = 8;</code>
-     *
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     */
+        /**
+         * <code>optional string schemaName = 8;</code>
+         *
+         * <pre>
+         * * 变更数据的schemaname*
+         * </pre>
+         */
     boolean hasSchemaName();
-    /**
-     * <code>optional string schemaName = 8;</code>
-     *
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string schemaName = 8;</code>
+         *
+         * <pre>
+         * * 变更数据的schemaname*
+         * </pre>
+         */
     java.lang.String getSchemaName();
-    /**
-     * <code>optional string schemaName = 8;</code>
-     *
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string schemaName = 8;</code>
+         *
+         * <pre>
+         * * 变更数据的schemaname*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getSchemaNameBytes();
 
-    /**
-     * <code>optional string tableName = 9;</code>
-     *
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     */
+        /**
+         * <code>optional string tableName = 9;</code>
+         *
+         * <pre>
+         * *变更数据的tablename*
+         * </pre>
+         */
     boolean hasTableName();
-    /**
-     * <code>optional string tableName = 9;</code>
-     *
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string tableName = 9;</code>
+         *
+         * <pre>
+         * *变更数据的tablename*
+         * </pre>
+         */
     java.lang.String getTableName();
-    /**
-     * <code>optional string tableName = 9;</code>
-     *
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string tableName = 9;</code>
+         *
+         * <pre>
+         * *变更数据的tablename*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getTableNameBytes();
 
-    /**
-     * <code>optional int64 eventLength = 10;</code>
-     *
-     * <pre>
-     **每个event的长度*
-     * </pre>
-     */
+        /**
+         * <code>optional int64 eventLength = 10;</code>
+         *
+         * <pre>
+         * *每个event的长度*
+         * </pre>
+         */
     boolean hasEventLength();
-    /**
-     * <code>optional int64 eventLength = 10;</code>
-     *
-     * <pre>
-     **每个event的长度*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 eventLength = 10;</code>
+         *
+         * <pre>
+         * *每个event的长度*
+         * </pre>
+         */
     long getEventLength();
 
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     boolean hasEventType();
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType();
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> 
         getPropsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     int getPropsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
 
-    /**
-     * <code>optional string gtid = 13;</code>
-     *
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     */
+        /**
+         * <code>optional string gtid = 13;</code>
+         *
+         * <pre>
+         * *当前事务的gitd*
+         * </pre>
+         */
     boolean hasGtid();
-    /**
-     * <code>optional string gtid = 13;</code>
-     *
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string gtid = 13;</code>
+         *
+         * <pre>
+         * *当前事务的gitd*
+         * </pre>
+         */
     java.lang.String getGtid();
-    /**
-     * <code>optional string gtid = 13;</code>
-     *
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string gtid = 13;</code>
+         *
+         * <pre>
+         * *当前事务的gitd*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getGtidBytes();
   }
@@ -1705,46 +1801,50 @@ public final class CanalEntry {
     private int bitField0_;
     public static final int VERSION_FIELD_NUMBER = 1;
     private int version_;
-    /**
-     * <code>optional int32 version = 1 [default = 1];</code>
-     *
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 version = 1 [default = 1];</code>
+         *
+         * <pre>
+         * *协议的版本号*
+         * </pre>
+         */
     public boolean hasVersion() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    /**
-     * <code>optional int32 version = 1 [default = 1];</code>
-     *
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 version = 1 [default = 1];</code>
+         *
+         * <pre>
+         * *协议的版本号*
+         * </pre>
+         */
     public int getVersion() {
       return version_;
     }
 
     public static final int LOGFILENAME_FIELD_NUMBER = 2;
     private java.lang.Object logfileName_;
-    /**
-     * <code>optional string logfileName = 2;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string logfileName = 2;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件名*
+         * </pre>
+         */
     public boolean hasLogfileName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    /**
-     * <code>optional string logfileName = 2;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string logfileName = 2;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件名*
+         * </pre>
+         */
     public java.lang.String getLogfileName() {
       java.lang.Object ref = logfileName_;
       if (ref instanceof java.lang.String) {
@@ -1759,13 +1859,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string logfileName = 2;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string logfileName = 2;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件名*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getLogfileNameBytes() {
       java.lang.Object ref = logfileName_;
@@ -1782,69 +1883,75 @@ public final class CanalEntry {
 
     public static final int LOGFILEOFFSET_FIELD_NUMBER = 3;
     private long logfileOffset_;
-    /**
-     * <code>optional int64 logfileOffset = 3;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件的偏移位置*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 logfileOffset = 3;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件的偏移位置*
+         * </pre>
+         */
     public boolean hasLogfileOffset() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    /**
-     * <code>optional int64 logfileOffset = 3;</code>
-     *
-     * <pre>
-     **binlog/redolog 文件的偏移位置*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 logfileOffset = 3;</code>
+         *
+         * <pre>
+         * *binlog/redolog 文件的偏移位置*
+         * </pre>
+         */
     public long getLogfileOffset() {
       return logfileOffset_;
     }
 
     public static final int SERVERID_FIELD_NUMBER = 4;
     private long serverId_;
-    /**
-     * <code>optional int64 serverId = 4;</code>
-     *
-     * <pre>
-     **服务端serverId*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 serverId = 4;</code>
+         *
+         * <pre>
+         * *服务端serverId*
+         * </pre>
+         */
     public boolean hasServerId() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
-    /**
-     * <code>optional int64 serverId = 4;</code>
-     *
-     * <pre>
-     **服务端serverId*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 serverId = 4;</code>
+         *
+         * <pre>
+         * *服务端serverId*
+         * </pre>
+         */
     public long getServerId() {
       return serverId_;
     }
 
     public static final int SERVERENCODE_FIELD_NUMBER = 5;
     private java.lang.Object serverenCode_;
-    /**
-     * <code>optional string serverenCode = 5;</code>
-     *
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string serverenCode = 5;</code>
+         *
+         * <pre>
+         * * 变更数据的编码 *
+         * </pre>
+         */
     public boolean hasServerenCode() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
-    /**
-     * <code>optional string serverenCode = 5;</code>
-     *
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string serverenCode = 5;</code>
+         *
+         * <pre>
+         * * 变更数据的编码 *
+         * </pre>
+         */
     public java.lang.String getServerenCode() {
       java.lang.Object ref = serverenCode_;
       if (ref instanceof java.lang.String) {
@@ -1859,13 +1966,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string serverenCode = 5;</code>
-     *
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string serverenCode = 5;</code>
+         *
+         * <pre>
+         * * 变更数据的编码 *
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getServerenCodeBytes() {
       java.lang.Object ref = serverenCode_;
@@ -1882,69 +1990,75 @@ public final class CanalEntry {
 
     public static final int EXECUTETIME_FIELD_NUMBER = 6;
     private long executeTime_;
-    /**
-     * <code>optional int64 executeTime = 6;</code>
-     *
-     * <pre>
-     **变更数据的执行时间 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 6;</code>
+         *
+         * <pre>
+         * *变更数据的执行时间 *
+         * </pre>
+         */
     public boolean hasExecuteTime() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
-    /**
-     * <code>optional int64 executeTime = 6;</code>
-     *
-     * <pre>
-     **变更数据的执行时间 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 6;</code>
+         *
+         * <pre>
+         * *变更数据的执行时间 *
+         * </pre>
+         */
     public long getExecuteTime() {
       return executeTime_;
     }
 
     public static final int SOURCETYPE_FIELD_NUMBER = 7;
     private com.alibaba.otter.canal.protocol.CanalEntry.Type sourceType_;
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-     *
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+         *
+         * <pre>
+         * * 变更数据的来源*
+         * </pre>
+         */
     public boolean hasSourceType() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-     *
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+         *
+         * <pre>
+         * * 变更数据的来源*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Type getSourceType() {
       return sourceType_;
     }
 
     public static final int SCHEMANAME_FIELD_NUMBER = 8;
     private java.lang.Object schemaName_;
-    /**
-     * <code>optional string schemaName = 8;</code>
-     *
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string schemaName = 8;</code>
+         *
+         * <pre>
+         * * 变更数据的schemaname*
+         * </pre>
+         */
     public boolean hasSchemaName() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
-    /**
-     * <code>optional string schemaName = 8;</code>
-     *
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string schemaName = 8;</code>
+         *
+         * <pre>
+         * * 变更数据的schemaname*
+         * </pre>
+         */
     public java.lang.String getSchemaName() {
       java.lang.Object ref = schemaName_;
       if (ref instanceof java.lang.String) {
@@ -1959,13 +2073,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string schemaName = 8;</code>
-     *
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string schemaName = 8;</code>
+         *
+         * <pre>
+         * * 变更数据的schemaname*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getSchemaNameBytes() {
       java.lang.Object ref = schemaName_;
@@ -1982,23 +2097,25 @@ public final class CanalEntry {
 
     public static final int TABLENAME_FIELD_NUMBER = 9;
     private java.lang.Object tableName_;
-    /**
-     * <code>optional string tableName = 9;</code>
-     *
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string tableName = 9;</code>
+         *
+         * <pre>
+         * *变更数据的tablename*
+         * </pre>
+         */
     public boolean hasTableName() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
-    /**
-     * <code>optional string tableName = 9;</code>
-     *
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string tableName = 9;</code>
+         *
+         * <pre>
+         * *变更数据的tablename*
+         * </pre>
+         */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
       if (ref instanceof java.lang.String) {
@@ -2013,13 +2130,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string tableName = 9;</code>
-     *
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string tableName = 9;</code>
+         *
+         * <pre>
+         * *变更数据的tablename*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
       java.lang.Object ref = tableName_;
@@ -2036,100 +2154,109 @@ public final class CanalEntry {
 
     public static final int EVENTLENGTH_FIELD_NUMBER = 10;
     private long eventLength_;
-    /**
-     * <code>optional int64 eventLength = 10;</code>
-     *
-     * <pre>
-     **每个event的长度*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 eventLength = 10;</code>
+         *
+         * <pre>
+         * *每个event的长度*
+         * </pre>
+         */
     public boolean hasEventLength() {
       return ((bitField0_ & 0x00000200) == 0x00000200);
     }
-    /**
-     * <code>optional int64 eventLength = 10;</code>
-     *
-     * <pre>
-     **每个event的长度*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 eventLength = 10;</code>
+         *
+         * <pre>
+         * *每个event的长度*
+         * </pre>
+         */
     public long getEventLength() {
       return eventLength_;
     }
 
     public static final int EVENTTYPE_FIELD_NUMBER = 11;
     private com.alibaba.otter.canal.protocol.CanalEntry.EventType eventType_;
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     public boolean hasEventType() {
       return ((bitField0_ & 0x00000400) == 0x00000400);
     }
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
       return eventType_;
     }
 
     public static final int PROPS_FIELD_NUMBER = 12;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> props_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public int getPropsCount() {
       return props_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
       return props_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -2137,23 +2264,25 @@ public final class CanalEntry {
 
     public static final int GTID_FIELD_NUMBER = 13;
     private java.lang.Object gtid_;
-    /**
-     * <code>optional string gtid = 13;</code>
-     *
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string gtid = 13;</code>
+         *
+         * <pre>
+         * *当前事务的gitd*
+         * </pre>
+         */
     public boolean hasGtid() {
       return ((bitField0_ & 0x00000800) == 0x00000800);
     }
-    /**
-     * <code>optional string gtid = 13;</code>
-     *
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string gtid = 13;</code>
+         *
+         * <pre>
+         * *当前事务的gitd*
+         * </pre>
+         */
     public java.lang.String getGtid() {
       java.lang.Object ref = gtid_;
       if (ref instanceof java.lang.String) {
@@ -2168,13 +2297,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string gtid = 13;</code>
-     *
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string gtid = 13;</code>
+         *
+         * <pre>
+         * *当前事务的gitd*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getGtidBytes() {
       java.lang.Object ref = gtid_;
@@ -2670,46 +2800,50 @@ public final class CanalEntry {
       private int bitField0_;
 
       private int version_ = 1;
-      /**
-       * <code>optional int32 version = 1 [default = 1];</code>
-       *
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 version = 1 [default = 1];</code>
+             *
+             * <pre>
+             * *协议的版本号*
+             * </pre>
+             */
       public boolean hasVersion() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      /**
-       * <code>optional int32 version = 1 [default = 1];</code>
-       *
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 version = 1 [default = 1];</code>
+             *
+             * <pre>
+             * *协议的版本号*
+             * </pre>
+             */
       public int getVersion() {
         return version_;
       }
-      /**
-       * <code>optional int32 version = 1 [default = 1];</code>
-       *
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 version = 1 [default = 1];</code>
+             *
+             * <pre>
+             * *协议的版本号*
+             * </pre>
+             */
       public Builder setVersion(int value) {
         bitField0_ |= 0x00000001;
         version_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int32 version = 1 [default = 1];</code>
-       *
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 version = 1 [default = 1];</code>
+             *
+             * <pre>
+             * *协议的版本号*
+             * </pre>
+             */
       public Builder clearVersion() {
         bitField0_ = (bitField0_ & ~0x00000001);
         version_ = 1;
@@ -2718,23 +2852,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object logfileName_ = "";
-      /**
-       * <code>optional string logfileName = 2;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件名*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string logfileName = 2;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件名*
+             * </pre>
+             */
       public boolean hasLogfileName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      /**
-       * <code>optional string logfileName = 2;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件名*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string logfileName = 2;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件名*
+             * </pre>
+             */
       public java.lang.String getLogfileName() {
         java.lang.Object ref = logfileName_;
         if (!(ref instanceof java.lang.String)) {
@@ -2749,13 +2885,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string logfileName = 2;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件名*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string logfileName = 2;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件名*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getLogfileNameBytes() {
         java.lang.Object ref = logfileName_;
@@ -2769,13 +2906,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string logfileName = 2;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件名*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string logfileName = 2;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件名*
+             * </pre>
+             */
       public Builder setLogfileName(
           java.lang.String value) {
         if (value == null) {
@@ -2786,26 +2924,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string logfileName = 2;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件名*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string logfileName = 2;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件名*
+             * </pre>
+             */
       public Builder clearLogfileName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         logfileName_ = getDefaultInstance().getLogfileName();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string logfileName = 2;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件名*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string logfileName = 2;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件名*
+             * </pre>
+             */
       public Builder setLogfileNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -2818,46 +2958,50 @@ public final class CanalEntry {
       }
 
       private long logfileOffset_ ;
-      /**
-       * <code>optional int64 logfileOffset = 3;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件的偏移位置*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 logfileOffset = 3;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件的偏移位置*
+             * </pre>
+             */
       public boolean hasLogfileOffset() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      /**
-       * <code>optional int64 logfileOffset = 3;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件的偏移位置*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 logfileOffset = 3;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件的偏移位置*
+             * </pre>
+             */
       public long getLogfileOffset() {
         return logfileOffset_;
       }
-      /**
-       * <code>optional int64 logfileOffset = 3;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件的偏移位置*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 logfileOffset = 3;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件的偏移位置*
+             * </pre>
+             */
       public Builder setLogfileOffset(long value) {
         bitField0_ |= 0x00000004;
         logfileOffset_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 logfileOffset = 3;</code>
-       *
-       * <pre>
-       **binlog/redolog 文件的偏移位置*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 logfileOffset = 3;</code>
+             *
+             * <pre>
+             * *binlog/redolog 文件的偏移位置*
+             * </pre>
+             */
       public Builder clearLogfileOffset() {
         bitField0_ = (bitField0_ & ~0x00000004);
         logfileOffset_ = 0L;
@@ -2866,46 +3010,50 @@ public final class CanalEntry {
       }
 
       private long serverId_ ;
-      /**
-       * <code>optional int64 serverId = 4;</code>
-       *
-       * <pre>
-       **服务端serverId*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 serverId = 4;</code>
+             *
+             * <pre>
+             * *服务端serverId*
+             * </pre>
+             */
       public boolean hasServerId() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      /**
-       * <code>optional int64 serverId = 4;</code>
-       *
-       * <pre>
-       **服务端serverId*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 serverId = 4;</code>
+             *
+             * <pre>
+             * *服务端serverId*
+             * </pre>
+             */
       public long getServerId() {
         return serverId_;
       }
-      /**
-       * <code>optional int64 serverId = 4;</code>
-       *
-       * <pre>
-       **服务端serverId*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 serverId = 4;</code>
+             *
+             * <pre>
+             * *服务端serverId*
+             * </pre>
+             */
       public Builder setServerId(long value) {
         bitField0_ |= 0x00000008;
         serverId_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 serverId = 4;</code>
-       *
-       * <pre>
-       **服务端serverId*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 serverId = 4;</code>
+             *
+             * <pre>
+             * *服务端serverId*
+             * </pre>
+             */
       public Builder clearServerId() {
         bitField0_ = (bitField0_ & ~0x00000008);
         serverId_ = 0L;
@@ -2914,23 +3062,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object serverenCode_ = "";
-      /**
-       * <code>optional string serverenCode = 5;</code>
-       *
-       * <pre>
-       ** 变更数据的编码 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string serverenCode = 5;</code>
+             *
+             * <pre>
+             * * 变更数据的编码 *
+             * </pre>
+             */
       public boolean hasServerenCode() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
-      /**
-       * <code>optional string serverenCode = 5;</code>
-       *
-       * <pre>
-       ** 变更数据的编码 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string serverenCode = 5;</code>
+             *
+             * <pre>
+             * * 变更数据的编码 *
+             * </pre>
+             */
       public java.lang.String getServerenCode() {
         java.lang.Object ref = serverenCode_;
         if (!(ref instanceof java.lang.String)) {
@@ -2945,13 +3095,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string serverenCode = 5;</code>
-       *
-       * <pre>
-       ** 变更数据的编码 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string serverenCode = 5;</code>
+             *
+             * <pre>
+             * * 变更数据的编码 *
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getServerenCodeBytes() {
         java.lang.Object ref = serverenCode_;
@@ -2965,13 +3116,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string serverenCode = 5;</code>
-       *
-       * <pre>
-       ** 变更数据的编码 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string serverenCode = 5;</code>
+             *
+             * <pre>
+             * * 变更数据的编码 *
+             * </pre>
+             */
       public Builder setServerenCode(
           java.lang.String value) {
         if (value == null) {
@@ -2982,26 +3134,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string serverenCode = 5;</code>
-       *
-       * <pre>
-       ** 变更数据的编码 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string serverenCode = 5;</code>
+             *
+             * <pre>
+             * * 变更数据的编码 *
+             * </pre>
+             */
       public Builder clearServerenCode() {
         bitField0_ = (bitField0_ & ~0x00000010);
         serverenCode_ = getDefaultInstance().getServerenCode();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string serverenCode = 5;</code>
-       *
-       * <pre>
-       ** 变更数据的编码 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string serverenCode = 5;</code>
+             *
+             * <pre>
+             * * 变更数据的编码 *
+             * </pre>
+             */
       public Builder setServerenCodeBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -3014,46 +3168,50 @@ public final class CanalEntry {
       }
 
       private long executeTime_ ;
-      /**
-       * <code>optional int64 executeTime = 6;</code>
-       *
-       * <pre>
-       **变更数据的执行时间 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 6;</code>
+             *
+             * <pre>
+             * *变更数据的执行时间 *
+             * </pre>
+             */
       public boolean hasExecuteTime() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
-      /**
-       * <code>optional int64 executeTime = 6;</code>
-       *
-       * <pre>
-       **变更数据的执行时间 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 6;</code>
+             *
+             * <pre>
+             * *变更数据的执行时间 *
+             * </pre>
+             */
       public long getExecuteTime() {
         return executeTime_;
       }
-      /**
-       * <code>optional int64 executeTime = 6;</code>
-       *
-       * <pre>
-       **变更数据的执行时间 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 6;</code>
+             *
+             * <pre>
+             * *变更数据的执行时间 *
+             * </pre>
+             */
       public Builder setExecuteTime(long value) {
         bitField0_ |= 0x00000020;
         executeTime_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 executeTime = 6;</code>
-       *
-       * <pre>
-       **变更数据的执行时间 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 6;</code>
+             *
+             * <pre>
+             * *变更数据的执行时间 *
+             * </pre>
+             */
       public Builder clearExecuteTime() {
         bitField0_ = (bitField0_ & ~0x00000020);
         executeTime_ = 0L;
@@ -3062,33 +3220,36 @@ public final class CanalEntry {
       }
 
       private com.alibaba.otter.canal.protocol.CanalEntry.Type sourceType_ = com.alibaba.otter.canal.protocol.CanalEntry.Type.MYSQL;
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-       *
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+             *
+             * <pre>
+             * * 变更数据的来源*
+             * </pre>
+             */
       public boolean hasSourceType() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-       *
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+             *
+             * <pre>
+             * * 变更数据的来源*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Type getSourceType() {
         return sourceType_;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-       *
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+             *
+             * <pre>
+             * * 变更数据的来源*
+             * </pre>
+             */
       public Builder setSourceType(com.alibaba.otter.canal.protocol.CanalEntry.Type value) {
         if (value == null) {
           throw new NullPointerException();
@@ -3098,13 +3259,14 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
-       *
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+             *
+             * <pre>
+             * * 变更数据的来源*
+             * </pre>
+             */
       public Builder clearSourceType() {
         bitField0_ = (bitField0_ & ~0x00000040);
         sourceType_ = com.alibaba.otter.canal.protocol.CanalEntry.Type.MYSQL;
@@ -3113,23 +3275,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object schemaName_ = "";
-      /**
-       * <code>optional string schemaName = 8;</code>
-       *
-       * <pre>
-       ** 变更数据的schemaname*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string schemaName = 8;</code>
+             *
+             * <pre>
+             * * 变更数据的schemaname*
+             * </pre>
+             */
       public boolean hasSchemaName() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
-      /**
-       * <code>optional string schemaName = 8;</code>
-       *
-       * <pre>
-       ** 变更数据的schemaname*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string schemaName = 8;</code>
+             *
+             * <pre>
+             * * 变更数据的schemaname*
+             * </pre>
+             */
       public java.lang.String getSchemaName() {
         java.lang.Object ref = schemaName_;
         if (!(ref instanceof java.lang.String)) {
@@ -3144,13 +3308,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string schemaName = 8;</code>
-       *
-       * <pre>
-       ** 变更数据的schemaname*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string schemaName = 8;</code>
+             *
+             * <pre>
+             * * 变更数据的schemaname*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getSchemaNameBytes() {
         java.lang.Object ref = schemaName_;
@@ -3164,13 +3329,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string schemaName = 8;</code>
-       *
-       * <pre>
-       ** 变更数据的schemaname*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string schemaName = 8;</code>
+             *
+             * <pre>
+             * * 变更数据的schemaname*
+             * </pre>
+             */
       public Builder setSchemaName(
           java.lang.String value) {
         if (value == null) {
@@ -3181,26 +3347,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string schemaName = 8;</code>
-       *
-       * <pre>
-       ** 变更数据的schemaname*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string schemaName = 8;</code>
+             *
+             * <pre>
+             * * 变更数据的schemaname*
+             * </pre>
+             */
       public Builder clearSchemaName() {
         bitField0_ = (bitField0_ & ~0x00000080);
         schemaName_ = getDefaultInstance().getSchemaName();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string schemaName = 8;</code>
-       *
-       * <pre>
-       ** 变更数据的schemaname*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string schemaName = 8;</code>
+             *
+             * <pre>
+             * * 变更数据的schemaname*
+             * </pre>
+             */
       public Builder setSchemaNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -3213,23 +3381,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object tableName_ = "";
-      /**
-       * <code>optional string tableName = 9;</code>
-       *
-       * <pre>
-       **变更数据的tablename*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string tableName = 9;</code>
+             *
+             * <pre>
+             * *变更数据的tablename*
+             * </pre>
+             */
       public boolean hasTableName() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
-      /**
-       * <code>optional string tableName = 9;</code>
-       *
-       * <pre>
-       **变更数据的tablename*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string tableName = 9;</code>
+             *
+             * <pre>
+             * *变更数据的tablename*
+             * </pre>
+             */
       public java.lang.String getTableName() {
         java.lang.Object ref = tableName_;
         if (!(ref instanceof java.lang.String)) {
@@ -3244,13 +3414,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string tableName = 9;</code>
-       *
-       * <pre>
-       **变更数据的tablename*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string tableName = 9;</code>
+             *
+             * <pre>
+             * *变更数据的tablename*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getTableNameBytes() {
         java.lang.Object ref = tableName_;
@@ -3264,13 +3435,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string tableName = 9;</code>
-       *
-       * <pre>
-       **变更数据的tablename*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string tableName = 9;</code>
+             *
+             * <pre>
+             * *变更数据的tablename*
+             * </pre>
+             */
       public Builder setTableName(
           java.lang.String value) {
         if (value == null) {
@@ -3281,26 +3453,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string tableName = 9;</code>
-       *
-       * <pre>
-       **变更数据的tablename*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string tableName = 9;</code>
+             *
+             * <pre>
+             * *变更数据的tablename*
+             * </pre>
+             */
       public Builder clearTableName() {
         bitField0_ = (bitField0_ & ~0x00000100);
         tableName_ = getDefaultInstance().getTableName();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string tableName = 9;</code>
-       *
-       * <pre>
-       **变更数据的tablename*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string tableName = 9;</code>
+             *
+             * <pre>
+             * *变更数据的tablename*
+             * </pre>
+             */
       public Builder setTableNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -3313,46 +3487,50 @@ public final class CanalEntry {
       }
 
       private long eventLength_ ;
-      /**
-       * <code>optional int64 eventLength = 10;</code>
-       *
-       * <pre>
-       **每个event的长度*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 eventLength = 10;</code>
+             *
+             * <pre>
+             * *每个event的长度*
+             * </pre>
+             */
       public boolean hasEventLength() {
         return ((bitField0_ & 0x00000200) == 0x00000200);
       }
-      /**
-       * <code>optional int64 eventLength = 10;</code>
-       *
-       * <pre>
-       **每个event的长度*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 eventLength = 10;</code>
+             *
+             * <pre>
+             * *每个event的长度*
+             * </pre>
+             */
       public long getEventLength() {
         return eventLength_;
       }
-      /**
-       * <code>optional int64 eventLength = 10;</code>
-       *
-       * <pre>
-       **每个event的长度*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 eventLength = 10;</code>
+             *
+             * <pre>
+             * *每个event的长度*
+             * </pre>
+             */
       public Builder setEventLength(long value) {
         bitField0_ |= 0x00000200;
         eventLength_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 eventLength = 10;</code>
-       *
-       * <pre>
-       **每个event的长度*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 eventLength = 10;</code>
+             *
+             * <pre>
+             * *每个event的长度*
+             * </pre>
+             */
       public Builder clearEventLength() {
         bitField0_ = (bitField0_ & ~0x00000200);
         eventLength_ = 0L;
@@ -3361,33 +3539,36 @@ public final class CanalEntry {
       }
 
       private com.alibaba.otter.canal.protocol.CanalEntry.EventType eventType_ = com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE;
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public boolean hasEventType() {
         return ((bitField0_ & 0x00000400) == 0x00000400);
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
         return eventType_;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public Builder setEventType(com.alibaba.otter.canal.protocol.CanalEntry.EventType value) {
         if (value == null) {
           throw new NullPointerException();
@@ -3397,13 +3578,14 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public Builder clearEventType() {
         bitField0_ = (bitField0_ & ~0x00000400);
         eventType_ = com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE;
@@ -3423,13 +3605,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Pair, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder, com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> propsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -3437,13 +3619,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -3451,13 +3634,14 @@ public final class CanalEntry {
           return propsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -3465,13 +3649,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -3486,13 +3671,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -3504,13 +3690,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
           if (value == null) {
@@ -3524,13 +3711,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -3545,13 +3733,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -3563,13 +3752,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -3581,13 +3771,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addAllProps(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Pair> values) {
         if (propsBuilder_ == null) {
@@ -3600,13 +3791,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder clearProps() {
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
@@ -3617,13 +3809,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder removeProps(int index) {
         if (propsBuilder_ == null) {
           ensurePropsIsMutable();
@@ -3634,24 +3827,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder getPropsBuilder(
           int index) {
         return getPropsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -3659,13 +3854,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -3674,36 +3870,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(props_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder() {
         return getPropsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder(
           int index) {
         return getPropsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 12;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder> 
            getPropsBuilderList() {
         return getPropsFieldBuilder().getBuilderList();
@@ -3724,23 +3923,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object gtid_ = "";
-      /**
-       * <code>optional string gtid = 13;</code>
-       *
-       * <pre>
-       **当前事务的gitd*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string gtid = 13;</code>
+             *
+             * <pre>
+             * *当前事务的gitd*
+             * </pre>
+             */
       public boolean hasGtid() {
         return ((bitField0_ & 0x00001000) == 0x00001000);
       }
-      /**
-       * <code>optional string gtid = 13;</code>
-       *
-       * <pre>
-       **当前事务的gitd*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string gtid = 13;</code>
+             *
+             * <pre>
+             * *当前事务的gitd*
+             * </pre>
+             */
       public java.lang.String getGtid() {
         java.lang.Object ref = gtid_;
         if (!(ref instanceof java.lang.String)) {
@@ -3755,13 +3956,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string gtid = 13;</code>
-       *
-       * <pre>
-       **当前事务的gitd*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string gtid = 13;</code>
+             *
+             * <pre>
+             * *当前事务的gitd*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getGtidBytes() {
         java.lang.Object ref = gtid_;
@@ -3775,13 +3977,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string gtid = 13;</code>
-       *
-       * <pre>
-       **当前事务的gitd*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string gtid = 13;</code>
+             *
+             * <pre>
+             * *当前事务的gitd*
+             * </pre>
+             */
       public Builder setGtid(
           java.lang.String value) {
         if (value == null) {
@@ -3792,26 +3995,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string gtid = 13;</code>
-       *
-       * <pre>
-       **当前事务的gitd*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string gtid = 13;</code>
+             *
+             * <pre>
+             * *当前事务的gitd*
+             * </pre>
+             */
       public Builder clearGtid() {
         bitField0_ = (bitField0_ & ~0x00001000);
         gtid_ = getDefaultInstance().getGtid();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string gtid = 13;</code>
-       *
-       * <pre>
-       **当前事务的gitd*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string gtid = 13;</code>
+             *
+             * <pre>
+             * *当前事务的gitd*
+             * </pre>
+             */
       public Builder setGtidBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -3838,237 +4043,254 @@ public final class CanalEntry {
       // @@protoc_insertion_point(interface_extends:com.alibaba.otter.canal.protocol.Column)
       com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>optional int32 index = 1;</code>
-     *
-     * <pre>
-     **字段下标*
-     * </pre>
-     */
+        /**
+         * <code>optional int32 index = 1;</code>
+         *
+         * <pre>
+         * *字段下标*
+         * </pre>
+         */
     boolean hasIndex();
-    /**
-     * <code>optional int32 index = 1;</code>
-     *
-     * <pre>
-     **字段下标*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 index = 1;</code>
+         *
+         * <pre>
+         * *字段下标*
+         * </pre>
+         */
     int getIndex();
 
-    /**
-     * <code>optional int32 sqlType = 2;</code>
-     *
-     * <pre>
-     **字段java中类型*
-     * </pre>
-     */
+        /**
+         * <code>optional int32 sqlType = 2;</code>
+         *
+         * <pre>
+         * *字段java中类型*
+         * </pre>
+         */
     boolean hasSqlType();
-    /**
-     * <code>optional int32 sqlType = 2;</code>
-     *
-     * <pre>
-     **字段java中类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 sqlType = 2;</code>
+         *
+         * <pre>
+         * *字段java中类型*
+         * </pre>
+         */
     int getSqlType();
 
-    /**
-     * <code>optional string name = 3;</code>
-     *
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     */
+        /**
+         * <code>optional string name = 3;</code>
+         *
+         * <pre>
+         * *字段名称(忽略大小写)，在mysql中是没有的*
+         * </pre>
+         */
     boolean hasName();
-    /**
-     * <code>optional string name = 3;</code>
-     *
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string name = 3;</code>
+         *
+         * <pre>
+         * *字段名称(忽略大小写)，在mysql中是没有的*
+         * </pre>
+         */
     java.lang.String getName();
-    /**
-     * <code>optional string name = 3;</code>
-     *
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string name = 3;</code>
+         *
+         * <pre>
+         * *字段名称(忽略大小写)，在mysql中是没有的*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getNameBytes();
 
-    /**
-     * <code>optional bool isKey = 4;</code>
-     *
-     * <pre>
-     **是否是主键*
-     * </pre>
-     */
+        /**
+         * <code>optional bool isKey = 4;</code>
+         *
+         * <pre>
+         * *是否是主键*
+         * </pre>
+         */
     boolean hasIsKey();
-    /**
-     * <code>optional bool isKey = 4;</code>
-     *
-     * <pre>
-     **是否是主键*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isKey = 4;</code>
+         *
+         * <pre>
+         * *是否是主键*
+         * </pre>
+         */
     boolean getIsKey();
 
-    /**
-     * <code>optional bool updated = 5;</code>
-     *
-     * <pre>
-     **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-     * </pre>
-     */
+        /**
+         * <code>optional bool updated = 5;</code>
+         *
+         * <pre>
+         * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+         * </pre>
+         */
     boolean hasUpdated();
-    /**
-     * <code>optional bool updated = 5;</code>
-     *
-     * <pre>
-     **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool updated = 5;</code>
+         *
+         * <pre>
+         * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+         * </pre>
+         */
     boolean getUpdated();
 
-    /**
-     * <code>optional bool isNull = 6 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     */
+        /**
+         * <code>optional bool isNull = 6 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否为空  *
+         * </pre>
+         */
     boolean hasIsNull();
-    /**
-     * <code>optional bool isNull = 6 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isNull = 6 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否为空  *
+         * </pre>
+         */
     boolean getIsNull();
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> 
         getPropsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     int getPropsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
 
-    /**
-     * <code>optional string value = 8;</code>
-     *
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     */
+        /**
+         * <code>optional string value = 8;</code>
+         *
+         * <pre>
+         * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+         * </pre>
+         */
     boolean hasValue();
-    /**
-     * <code>optional string value = 8;</code>
-     *
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string value = 8;</code>
+         *
+         * <pre>
+         * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+         * </pre>
+         */
     java.lang.String getValue();
-    /**
-     * <code>optional string value = 8;</code>
-     *
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string value = 8;</code>
+         *
+         * <pre>
+         * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getValueBytes();
 
-    /**
-     * <code>optional int32 length = 9;</code>
-     *
-     * <pre>
-     ** 对应数据对象原始长度 *
-     * </pre>
-     */
+        /**
+         * <code>optional int32 length = 9;</code>
+         *
+         * <pre>
+         * * 对应数据对象原始长度 *
+         * </pre>
+         */
     boolean hasLength();
-    /**
-     * <code>optional int32 length = 9;</code>
-     *
-     * <pre>
-     ** 对应数据对象原始长度 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 length = 9;</code>
+         *
+         * <pre>
+         * * 对应数据对象原始长度 *
+         * </pre>
+         */
     int getLength();
 
-    /**
-     * <code>optional string mysqlType = 10;</code>
-     *
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     */
+        /**
+         * <code>optional string mysqlType = 10;</code>
+         *
+         * <pre>
+         * *字段mysql类型*
+         * </pre>
+         */
     boolean hasMysqlType();
-    /**
-     * <code>optional string mysqlType = 10;</code>
-     *
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string mysqlType = 10;</code>
+         *
+         * <pre>
+         * *字段mysql类型*
+         * </pre>
+         */
     java.lang.String getMysqlType();
-    /**
-     * <code>optional string mysqlType = 10;</code>
-     *
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string mysqlType = 10;</code>
+         *
+         * <pre>
+         * *字段mysql类型*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getMysqlTypeBytes();
   }
-  /**
-   * Protobuf type {@code com.alibaba.otter.canal.protocol.Column}
-   *
-   * <pre>
-   **每个字段的数据结构*
-   * </pre>
-   */
+  
+    /**
+     * Protobuf type {@code com.alibaba.otter.canal.protocol.Column}
+     *
+     * <pre>
+     * *每个字段的数据结构*
+     * </pre>
+     */
   public static final class Column extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:com.alibaba.otter.canal.protocol.Column)
@@ -4219,69 +4441,75 @@ public final class CanalEntry {
     private int bitField0_;
     public static final int INDEX_FIELD_NUMBER = 1;
     private int index_;
-    /**
-     * <code>optional int32 index = 1;</code>
-     *
-     * <pre>
-     **字段下标*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 index = 1;</code>
+         *
+         * <pre>
+         * *字段下标*
+         * </pre>
+         */
     public boolean hasIndex() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    /**
-     * <code>optional int32 index = 1;</code>
-     *
-     * <pre>
-     **字段下标*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 index = 1;</code>
+         *
+         * <pre>
+         * *字段下标*
+         * </pre>
+         */
     public int getIndex() {
       return index_;
     }
 
     public static final int SQLTYPE_FIELD_NUMBER = 2;
     private int sqlType_;
-    /**
-     * <code>optional int32 sqlType = 2;</code>
-     *
-     * <pre>
-     **字段java中类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 sqlType = 2;</code>
+         *
+         * <pre>
+         * *字段java中类型*
+         * </pre>
+         */
     public boolean hasSqlType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    /**
-     * <code>optional int32 sqlType = 2;</code>
-     *
-     * <pre>
-     **字段java中类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 sqlType = 2;</code>
+         *
+         * <pre>
+         * *字段java中类型*
+         * </pre>
+         */
     public int getSqlType() {
       return sqlType_;
     }
 
     public static final int NAME_FIELD_NUMBER = 3;
     private java.lang.Object name_;
-    /**
-     * <code>optional string name = 3;</code>
-     *
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string name = 3;</code>
+         *
+         * <pre>
+         * *字段名称(忽略大小写)，在mysql中是没有的*
+         * </pre>
+         */
     public boolean hasName() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    /**
-     * <code>optional string name = 3;</code>
-     *
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string name = 3;</code>
+         *
+         * <pre>
+         * *字段名称(忽略大小写)，在mysql中是没有的*
+         * </pre>
+         */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
@@ -4296,13 +4524,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string name = 3;</code>
-     *
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string name = 3;</code>
+         *
+         * <pre>
+         * *字段名称(忽略大小写)，在mysql中是没有的*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getNameBytes() {
       java.lang.Object ref = name_;
@@ -4319,123 +4548,134 @@ public final class CanalEntry {
 
     public static final int ISKEY_FIELD_NUMBER = 4;
     private boolean isKey_;
-    /**
-     * <code>optional bool isKey = 4;</code>
-     *
-     * <pre>
-     **是否是主键*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isKey = 4;</code>
+         *
+         * <pre>
+         * *是否是主键*
+         * </pre>
+         */
     public boolean hasIsKey() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
-    /**
-     * <code>optional bool isKey = 4;</code>
-     *
-     * <pre>
-     **是否是主键*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isKey = 4;</code>
+         *
+         * <pre>
+         * *是否是主键*
+         * </pre>
+         */
     public boolean getIsKey() {
       return isKey_;
     }
 
     public static final int UPDATED_FIELD_NUMBER = 5;
     private boolean updated_;
-    /**
-     * <code>optional bool updated = 5;</code>
-     *
-     * <pre>
-     **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool updated = 5;</code>
+         *
+         * <pre>
+         * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+         * </pre>
+         */
     public boolean hasUpdated() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
-    /**
-     * <code>optional bool updated = 5;</code>
-     *
-     * <pre>
-     **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool updated = 5;</code>
+         *
+         * <pre>
+         * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+         * </pre>
+         */
     public boolean getUpdated() {
       return updated_;
     }
 
     public static final int ISNULL_FIELD_NUMBER = 6;
     private boolean isNull_;
-    /**
-     * <code>optional bool isNull = 6 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isNull = 6 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否为空  *
+         * </pre>
+         */
     public boolean hasIsNull() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
-    /**
-     * <code>optional bool isNull = 6 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isNull = 6 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否为空  *
+         * </pre>
+         */
     public boolean getIsNull() {
       return isNull_;
     }
 
     public static final int PROPS_FIELD_NUMBER = 7;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> props_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public int getPropsCount() {
       return props_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
       return props_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -4443,23 +4683,25 @@ public final class CanalEntry {
 
     public static final int VALUE_FIELD_NUMBER = 8;
     private java.lang.Object value_;
-    /**
-     * <code>optional string value = 8;</code>
-     *
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string value = 8;</code>
+         *
+         * <pre>
+         * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+         * </pre>
+         */
     public boolean hasValue() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
-    /**
-     * <code>optional string value = 8;</code>
-     *
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string value = 8;</code>
+         *
+         * <pre>
+         * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+         * </pre>
+         */
     public java.lang.String getValue() {
       java.lang.Object ref = value_;
       if (ref instanceof java.lang.String) {
@@ -4474,13 +4716,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string value = 8;</code>
-     *
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string value = 8;</code>
+         *
+         * <pre>
+         * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getValueBytes() {
       java.lang.Object ref = value_;
@@ -4497,46 +4740,50 @@ public final class CanalEntry {
 
     public static final int LENGTH_FIELD_NUMBER = 9;
     private int length_;
-    /**
-     * <code>optional int32 length = 9;</code>
-     *
-     * <pre>
-     ** 对应数据对象原始长度 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 length = 9;</code>
+         *
+         * <pre>
+         * * 对应数据对象原始长度 *
+         * </pre>
+         */
     public boolean hasLength() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
-    /**
-     * <code>optional int32 length = 9;</code>
-     *
-     * <pre>
-     ** 对应数据对象原始长度 *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int32 length = 9;</code>
+         *
+         * <pre>
+         * * 对应数据对象原始长度 *
+         * </pre>
+         */
     public int getLength() {
       return length_;
     }
 
     public static final int MYSQLTYPE_FIELD_NUMBER = 10;
     private java.lang.Object mysqlType_;
-    /**
-     * <code>optional string mysqlType = 10;</code>
-     *
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string mysqlType = 10;</code>
+         *
+         * <pre>
+         * *字段mysql类型*
+         * </pre>
+         */
     public boolean hasMysqlType() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
-    /**
-     * <code>optional string mysqlType = 10;</code>
-     *
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string mysqlType = 10;</code>
+         *
+         * <pre>
+         * *字段mysql类型*
+         * </pre>
+         */
     public java.lang.String getMysqlType() {
       java.lang.Object ref = mysqlType_;
       if (ref instanceof java.lang.String) {
@@ -4551,13 +4798,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string mysqlType = 10;</code>
-     *
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string mysqlType = 10;</code>
+         *
+         * <pre>
+         * *字段mysql类型*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getMysqlTypeBytes() {
       java.lang.Object ref = mysqlType_;
@@ -4754,13 +5002,14 @@ public final class CanalEntry {
       Builder builder = new Builder(parent);
       return builder;
     }
-    /**
-     * Protobuf type {@code com.alibaba.otter.canal.protocol.Column}
-     *
-     * <pre>
-     **每个字段的数据结构*
-     * </pre>
-     */
+    
+        /**
+         * Protobuf type {@code com.alibaba.otter.canal.protocol.Column}
+         *
+         * <pre>
+         * *每个字段的数据结构*
+         * </pre>
+         */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:com.alibaba.otter.canal.protocol.Column)
@@ -4998,46 +5247,50 @@ public final class CanalEntry {
       private int bitField0_;
 
       private int index_ ;
-      /**
-       * <code>optional int32 index = 1;</code>
-       *
-       * <pre>
-       **字段下标*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 index = 1;</code>
+             *
+             * <pre>
+             * *字段下标*
+             * </pre>
+             */
       public boolean hasIndex() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      /**
-       * <code>optional int32 index = 1;</code>
-       *
-       * <pre>
-       **字段下标*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 index = 1;</code>
+             *
+             * <pre>
+             * *字段下标*
+             * </pre>
+             */
       public int getIndex() {
         return index_;
       }
-      /**
-       * <code>optional int32 index = 1;</code>
-       *
-       * <pre>
-       **字段下标*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 index = 1;</code>
+             *
+             * <pre>
+             * *字段下标*
+             * </pre>
+             */
       public Builder setIndex(int value) {
         bitField0_ |= 0x00000001;
         index_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int32 index = 1;</code>
-       *
-       * <pre>
-       **字段下标*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 index = 1;</code>
+             *
+             * <pre>
+             * *字段下标*
+             * </pre>
+             */
       public Builder clearIndex() {
         bitField0_ = (bitField0_ & ~0x00000001);
         index_ = 0;
@@ -5046,46 +5299,50 @@ public final class CanalEntry {
       }
 
       private int sqlType_ ;
-      /**
-       * <code>optional int32 sqlType = 2;</code>
-       *
-       * <pre>
-       **字段java中类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 sqlType = 2;</code>
+             *
+             * <pre>
+             * *字段java中类型*
+             * </pre>
+             */
       public boolean hasSqlType() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      /**
-       * <code>optional int32 sqlType = 2;</code>
-       *
-       * <pre>
-       **字段java中类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 sqlType = 2;</code>
+             *
+             * <pre>
+             * *字段java中类型*
+             * </pre>
+             */
       public int getSqlType() {
         return sqlType_;
       }
-      /**
-       * <code>optional int32 sqlType = 2;</code>
-       *
-       * <pre>
-       **字段java中类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 sqlType = 2;</code>
+             *
+             * <pre>
+             * *字段java中类型*
+             * </pre>
+             */
       public Builder setSqlType(int value) {
         bitField0_ |= 0x00000002;
         sqlType_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int32 sqlType = 2;</code>
-       *
-       * <pre>
-       **字段java中类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 sqlType = 2;</code>
+             *
+             * <pre>
+             * *字段java中类型*
+             * </pre>
+             */
       public Builder clearSqlType() {
         bitField0_ = (bitField0_ & ~0x00000002);
         sqlType_ = 0;
@@ -5094,23 +5351,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object name_ = "";
-      /**
-       * <code>optional string name = 3;</code>
-       *
-       * <pre>
-       **字段名称(忽略大小写)，在mysql中是没有的*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string name = 3;</code>
+             *
+             * <pre>
+             * *字段名称(忽略大小写)，在mysql中是没有的*
+             * </pre>
+             */
       public boolean hasName() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      /**
-       * <code>optional string name = 3;</code>
-       *
-       * <pre>
-       **字段名称(忽略大小写)，在mysql中是没有的*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string name = 3;</code>
+             *
+             * <pre>
+             * *字段名称(忽略大小写)，在mysql中是没有的*
+             * </pre>
+             */
       public java.lang.String getName() {
         java.lang.Object ref = name_;
         if (!(ref instanceof java.lang.String)) {
@@ -5125,13 +5384,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string name = 3;</code>
-       *
-       * <pre>
-       **字段名称(忽略大小写)，在mysql中是没有的*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string name = 3;</code>
+             *
+             * <pre>
+             * *字段名称(忽略大小写)，在mysql中是没有的*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getNameBytes() {
         java.lang.Object ref = name_;
@@ -5145,13 +5405,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string name = 3;</code>
-       *
-       * <pre>
-       **字段名称(忽略大小写)，在mysql中是没有的*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string name = 3;</code>
+             *
+             * <pre>
+             * *字段名称(忽略大小写)，在mysql中是没有的*
+             * </pre>
+             */
       public Builder setName(
           java.lang.String value) {
         if (value == null) {
@@ -5162,26 +5423,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string name = 3;</code>
-       *
-       * <pre>
-       **字段名称(忽略大小写)，在mysql中是没有的*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string name = 3;</code>
+             *
+             * <pre>
+             * *字段名称(忽略大小写)，在mysql中是没有的*
+             * </pre>
+             */
       public Builder clearName() {
         bitField0_ = (bitField0_ & ~0x00000004);
         name_ = getDefaultInstance().getName();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string name = 3;</code>
-       *
-       * <pre>
-       **字段名称(忽略大小写)，在mysql中是没有的*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string name = 3;</code>
+             *
+             * <pre>
+             * *字段名称(忽略大小写)，在mysql中是没有的*
+             * </pre>
+             */
       public Builder setNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -5194,46 +5457,50 @@ public final class CanalEntry {
       }
 
       private boolean isKey_ ;
-      /**
-       * <code>optional bool isKey = 4;</code>
-       *
-       * <pre>
-       **是否是主键*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isKey = 4;</code>
+             *
+             * <pre>
+             * *是否是主键*
+             * </pre>
+             */
       public boolean hasIsKey() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      /**
-       * <code>optional bool isKey = 4;</code>
-       *
-       * <pre>
-       **是否是主键*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isKey = 4;</code>
+             *
+             * <pre>
+             * *是否是主键*
+             * </pre>
+             */
       public boolean getIsKey() {
         return isKey_;
       }
-      /**
-       * <code>optional bool isKey = 4;</code>
-       *
-       * <pre>
-       **是否是主键*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isKey = 4;</code>
+             *
+             * <pre>
+             * *是否是主键*
+             * </pre>
+             */
       public Builder setIsKey(boolean value) {
         bitField0_ |= 0x00000008;
         isKey_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional bool isKey = 4;</code>
-       *
-       * <pre>
-       **是否是主键*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isKey = 4;</code>
+             *
+             * <pre>
+             * *是否是主键*
+             * </pre>
+             */
       public Builder clearIsKey() {
         bitField0_ = (bitField0_ & ~0x00000008);
         isKey_ = false;
@@ -5242,46 +5509,50 @@ public final class CanalEntry {
       }
 
       private boolean updated_ ;
-      /**
-       * <code>optional bool updated = 5;</code>
-       *
-       * <pre>
-       **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool updated = 5;</code>
+             *
+             * <pre>
+             * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+             * </pre>
+             */
       public boolean hasUpdated() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
-      /**
-       * <code>optional bool updated = 5;</code>
-       *
-       * <pre>
-       **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool updated = 5;</code>
+             *
+             * <pre>
+             * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+             * </pre>
+             */
       public boolean getUpdated() {
         return updated_;
       }
-      /**
-       * <code>optional bool updated = 5;</code>
-       *
-       * <pre>
-       **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool updated = 5;</code>
+             *
+             * <pre>
+             * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+             * </pre>
+             */
       public Builder setUpdated(boolean value) {
         bitField0_ |= 0x00000010;
         updated_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional bool updated = 5;</code>
-       *
-       * <pre>
-       **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool updated = 5;</code>
+             *
+             * <pre>
+             * *如果EventType=UPDATE,用于标识这个字段值是否有修改*
+             * </pre>
+             */
       public Builder clearUpdated() {
         bitField0_ = (bitField0_ & ~0x00000010);
         updated_ = false;
@@ -5290,46 +5561,50 @@ public final class CanalEntry {
       }
 
       private boolean isNull_ ;
-      /**
-       * <code>optional bool isNull = 6 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isNull = 6 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否为空  *
+             * </pre>
+             */
       public boolean hasIsNull() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
-      /**
-       * <code>optional bool isNull = 6 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isNull = 6 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否为空  *
+             * </pre>
+             */
       public boolean getIsNull() {
         return isNull_;
       }
-      /**
-       * <code>optional bool isNull = 6 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isNull = 6 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否为空  *
+             * </pre>
+             */
       public Builder setIsNull(boolean value) {
         bitField0_ |= 0x00000020;
         isNull_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional bool isNull = 6 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isNull = 6 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否为空  *
+             * </pre>
+             */
       public Builder clearIsNull() {
         bitField0_ = (bitField0_ & ~0x00000020);
         isNull_ = false;
@@ -5349,13 +5624,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Pair, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder, com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> propsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -5363,13 +5638,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -5377,13 +5653,14 @@ public final class CanalEntry {
           return propsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -5391,13 +5668,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -5412,13 +5690,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -5430,13 +5709,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
           if (value == null) {
@@ -5450,13 +5730,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -5471,13 +5752,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -5489,13 +5771,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -5507,13 +5790,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addAllProps(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Pair> values) {
         if (propsBuilder_ == null) {
@@ -5526,13 +5810,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder clearProps() {
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
@@ -5543,13 +5828,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder removeProps(int index) {
         if (propsBuilder_ == null) {
           ensurePropsIsMutable();
@@ -5560,24 +5846,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder getPropsBuilder(
           int index) {
         return getPropsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -5585,13 +5873,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -5600,36 +5889,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(props_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder() {
         return getPropsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder(
           int index) {
         return getPropsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 7;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder> 
            getPropsBuilderList() {
         return getPropsFieldBuilder().getBuilderList();
@@ -5650,23 +5942,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object value_ = "";
-      /**
-       * <code>optional string value = 8;</code>
-       *
-       * <pre>
-       ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string value = 8;</code>
+             *
+             * <pre>
+             * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+             * </pre>
+             */
       public boolean hasValue() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
-      /**
-       * <code>optional string value = 8;</code>
-       *
-       * <pre>
-       ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string value = 8;</code>
+             *
+             * <pre>
+             * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+             * </pre>
+             */
       public java.lang.String getValue() {
         java.lang.Object ref = value_;
         if (!(ref instanceof java.lang.String)) {
@@ -5681,13 +5975,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string value = 8;</code>
-       *
-       * <pre>
-       ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string value = 8;</code>
+             *
+             * <pre>
+             * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getValueBytes() {
         java.lang.Object ref = value_;
@@ -5701,13 +5996,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string value = 8;</code>
-       *
-       * <pre>
-       ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string value = 8;</code>
+             *
+             * <pre>
+             * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+             * </pre>
+             */
       public Builder setValue(
           java.lang.String value) {
         if (value == null) {
@@ -5718,26 +6014,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string value = 8;</code>
-       *
-       * <pre>
-       ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string value = 8;</code>
+             *
+             * <pre>
+             * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+             * </pre>
+             */
       public Builder clearValue() {
         bitField0_ = (bitField0_ & ~0x00000080);
         value_ = getDefaultInstance().getValue();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string value = 8;</code>
-       *
-       * <pre>
-       ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string value = 8;</code>
+             *
+             * <pre>
+             * * 字段值,timestamp,Datetime是一个时间格式的文本 *
+             * </pre>
+             */
       public Builder setValueBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -5750,46 +6048,50 @@ public final class CanalEntry {
       }
 
       private int length_ ;
-      /**
-       * <code>optional int32 length = 9;</code>
-       *
-       * <pre>
-       ** 对应数据对象原始长度 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 length = 9;</code>
+             *
+             * <pre>
+             * * 对应数据对象原始长度 *
+             * </pre>
+             */
       public boolean hasLength() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
-      /**
-       * <code>optional int32 length = 9;</code>
-       *
-       * <pre>
-       ** 对应数据对象原始长度 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 length = 9;</code>
+             *
+             * <pre>
+             * * 对应数据对象原始长度 *
+             * </pre>
+             */
       public int getLength() {
         return length_;
       }
-      /**
-       * <code>optional int32 length = 9;</code>
-       *
-       * <pre>
-       ** 对应数据对象原始长度 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 length = 9;</code>
+             *
+             * <pre>
+             * * 对应数据对象原始长度 *
+             * </pre>
+             */
       public Builder setLength(int value) {
         bitField0_ |= 0x00000100;
         length_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int32 length = 9;</code>
-       *
-       * <pre>
-       ** 对应数据对象原始长度 *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int32 length = 9;</code>
+             *
+             * <pre>
+             * * 对应数据对象原始长度 *
+             * </pre>
+             */
       public Builder clearLength() {
         bitField0_ = (bitField0_ & ~0x00000100);
         length_ = 0;
@@ -5798,23 +6100,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object mysqlType_ = "";
-      /**
-       * <code>optional string mysqlType = 10;</code>
-       *
-       * <pre>
-       **字段mysql类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string mysqlType = 10;</code>
+             *
+             * <pre>
+             * *字段mysql类型*
+             * </pre>
+             */
       public boolean hasMysqlType() {
         return ((bitField0_ & 0x00000200) == 0x00000200);
       }
-      /**
-       * <code>optional string mysqlType = 10;</code>
-       *
-       * <pre>
-       **字段mysql类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string mysqlType = 10;</code>
+             *
+             * <pre>
+             * *字段mysql类型*
+             * </pre>
+             */
       public java.lang.String getMysqlType() {
         java.lang.Object ref = mysqlType_;
         if (!(ref instanceof java.lang.String)) {
@@ -5829,13 +6133,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string mysqlType = 10;</code>
-       *
-       * <pre>
-       **字段mysql类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string mysqlType = 10;</code>
+             *
+             * <pre>
+             * *字段mysql类型*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getMysqlTypeBytes() {
         java.lang.Object ref = mysqlType_;
@@ -5849,13 +6154,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string mysqlType = 10;</code>
-       *
-       * <pre>
-       **字段mysql类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string mysqlType = 10;</code>
+             *
+             * <pre>
+             * *字段mysql类型*
+             * </pre>
+             */
       public Builder setMysqlType(
           java.lang.String value) {
         if (value == null) {
@@ -5866,26 +6172,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string mysqlType = 10;</code>
-       *
-       * <pre>
-       **字段mysql类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string mysqlType = 10;</code>
+             *
+             * <pre>
+             * *字段mysql类型*
+             * </pre>
+             */
       public Builder clearMysqlType() {
         bitField0_ = (bitField0_ & ~0x00000200);
         mysqlType_ = getDefaultInstance().getMysqlType();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string mysqlType = 10;</code>
-       *
-       * <pre>
-       **字段mysql类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string mysqlType = 10;</code>
+             *
+             * <pre>
+             * *字段mysql类型*
+             * </pre>
+             */
       public Builder setMysqlTypeBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -5912,135 +6220,147 @@ public final class CanalEntry {
       // @@protoc_insertion_point(interface_extends:com.alibaba.otter.canal.protocol.RowData)
       com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> 
         getBeforeColumnsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Column getBeforeColumns(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     int getBeforeColumnsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> 
         getBeforeColumnsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder getBeforeColumnsOrBuilder(
         int index);
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> 
         getAfterColumnsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Column getAfterColumns(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     int getAfterColumnsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> 
         getAfterColumnsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder getAfterColumnsOrBuilder(
         int index);
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> 
         getPropsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     int getPropsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
   }
@@ -6170,54 +6490,59 @@ public final class CanalEntry {
 
     public static final int BEFORECOLUMNS_FIELD_NUMBER = 1;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> beforeColumns_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> getBeforeColumnsList() {
       return beforeColumns_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> 
         getBeforeColumnsOrBuilderList() {
       return beforeColumns_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     public int getBeforeColumnsCount() {
       return beforeColumns_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Column getBeforeColumns(int index) {
       return beforeColumns_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改前,删除前) *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改前,删除前) *
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder getBeforeColumnsOrBuilder(
         int index) {
       return beforeColumns_.get(index);
@@ -6225,54 +6550,59 @@ public final class CanalEntry {
 
     public static final int AFTERCOLUMNS_FIELD_NUMBER = 2;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> afterColumns_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> getAfterColumnsList() {
       return afterColumns_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> 
         getAfterColumnsOrBuilderList() {
       return afterColumns_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     public int getAfterColumnsCount() {
       return afterColumns_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Column getAfterColumns(int index) {
       return afterColumns_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-     *
-     * <pre>
-     ** 字段信息，增量数据(修改后,新增后)  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+         *
+         * <pre>
+         * * 字段信息，增量数据(修改后,新增后)  *
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder getAfterColumnsOrBuilder(
         int index) {
       return afterColumns_.get(index);
@@ -6280,54 +6610,59 @@ public final class CanalEntry {
 
     public static final int PROPS_FIELD_NUMBER = 3;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> props_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public int getPropsCount() {
       return props_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
       return props_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -6705,13 +7040,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Column, com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder, com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> beforeColumnsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> getBeforeColumnsList() {
         if (beforeColumnsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(beforeColumns_);
@@ -6719,13 +7054,14 @@ public final class CanalEntry {
           return beforeColumnsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public int getBeforeColumnsCount() {
         if (beforeColumnsBuilder_ == null) {
           return beforeColumns_.size();
@@ -6733,13 +7069,14 @@ public final class CanalEntry {
           return beforeColumnsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column getBeforeColumns(int index) {
         if (beforeColumnsBuilder_ == null) {
           return beforeColumns_.get(index);
@@ -6747,13 +7084,14 @@ public final class CanalEntry {
           return beforeColumnsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder setBeforeColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column value) {
         if (beforeColumnsBuilder_ == null) {
@@ -6768,13 +7106,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder setBeforeColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder builderForValue) {
         if (beforeColumnsBuilder_ == null) {
@@ -6786,13 +7125,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder addBeforeColumns(com.alibaba.otter.canal.protocol.CanalEntry.Column value) {
         if (beforeColumnsBuilder_ == null) {
           if (value == null) {
@@ -6806,13 +7146,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder addBeforeColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column value) {
         if (beforeColumnsBuilder_ == null) {
@@ -6827,13 +7168,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder addBeforeColumns(
           com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder builderForValue) {
         if (beforeColumnsBuilder_ == null) {
@@ -6845,13 +7187,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder addBeforeColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder builderForValue) {
         if (beforeColumnsBuilder_ == null) {
@@ -6863,13 +7206,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder addAllBeforeColumns(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Column> values) {
         if (beforeColumnsBuilder_ == null) {
@@ -6882,13 +7226,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder clearBeforeColumns() {
         if (beforeColumnsBuilder_ == null) {
           beforeColumns_ = java.util.Collections.emptyList();
@@ -6899,13 +7244,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public Builder removeBeforeColumns(int index) {
         if (beforeColumnsBuilder_ == null) {
           ensureBeforeColumnsIsMutable();
@@ -6916,24 +7262,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder getBeforeColumnsBuilder(
           int index) {
         return getBeforeColumnsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder getBeforeColumnsOrBuilder(
           int index) {
         if (beforeColumnsBuilder_ == null) {
@@ -6941,13 +7289,14 @@ public final class CanalEntry {
           return beforeColumnsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> 
            getBeforeColumnsOrBuilderList() {
         if (beforeColumnsBuilder_ != null) {
@@ -6956,36 +7305,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(beforeColumns_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder addBeforeColumnsBuilder() {
         return getBeforeColumnsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Column.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder addBeforeColumnsBuilder(
           int index) {
         return getBeforeColumnsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Column.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改前,删除前) *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column beforeColumns = 1;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改前,删除前) *
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder> 
            getBeforeColumnsBuilderList() {
         return getBeforeColumnsFieldBuilder().getBuilderList();
@@ -7017,13 +7369,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Column, com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder, com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> afterColumnsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column> getAfterColumnsList() {
         if (afterColumnsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(afterColumns_);
@@ -7031,13 +7383,14 @@ public final class CanalEntry {
           return afterColumnsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public int getAfterColumnsCount() {
         if (afterColumnsBuilder_ == null) {
           return afterColumns_.size();
@@ -7045,13 +7398,14 @@ public final class CanalEntry {
           return afterColumnsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column getAfterColumns(int index) {
         if (afterColumnsBuilder_ == null) {
           return afterColumns_.get(index);
@@ -7059,13 +7413,14 @@ public final class CanalEntry {
           return afterColumnsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder setAfterColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column value) {
         if (afterColumnsBuilder_ == null) {
@@ -7080,13 +7435,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder setAfterColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder builderForValue) {
         if (afterColumnsBuilder_ == null) {
@@ -7098,13 +7454,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder addAfterColumns(com.alibaba.otter.canal.protocol.CanalEntry.Column value) {
         if (afterColumnsBuilder_ == null) {
           if (value == null) {
@@ -7118,13 +7475,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder addAfterColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column value) {
         if (afterColumnsBuilder_ == null) {
@@ -7139,13 +7497,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder addAfterColumns(
           com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder builderForValue) {
         if (afterColumnsBuilder_ == null) {
@@ -7157,13 +7516,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder addAfterColumns(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder builderForValue) {
         if (afterColumnsBuilder_ == null) {
@@ -7175,13 +7535,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder addAllAfterColumns(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Column> values) {
         if (afterColumnsBuilder_ == null) {
@@ -7194,13 +7555,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder clearAfterColumns() {
         if (afterColumnsBuilder_ == null) {
           afterColumns_ = java.util.Collections.emptyList();
@@ -7211,13 +7573,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public Builder removeAfterColumns(int index) {
         if (afterColumnsBuilder_ == null) {
           ensureAfterColumnsIsMutable();
@@ -7228,24 +7591,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder getAfterColumnsBuilder(
           int index) {
         return getAfterColumnsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder getAfterColumnsOrBuilder(
           int index) {
         if (afterColumnsBuilder_ == null) {
@@ -7253,13 +7618,14 @@ public final class CanalEntry {
           return afterColumnsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.ColumnOrBuilder> 
            getAfterColumnsOrBuilderList() {
         if (afterColumnsBuilder_ != null) {
@@ -7268,36 +7634,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(afterColumns_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder addAfterColumnsBuilder() {
         return getAfterColumnsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Column.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder addAfterColumnsBuilder(
           int index) {
         return getAfterColumnsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Column.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
-       *
-       * <pre>
-       ** 字段信息，增量数据(修改后,新增后)  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Column afterColumns = 2;</code>
+             *
+             * <pre>
+             * * 字段信息，增量数据(修改后,新增后)  *
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Column.Builder> 
            getAfterColumnsBuilderList() {
         return getAfterColumnsFieldBuilder().getBuilderList();
@@ -7329,13 +7698,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Pair, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder, com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> propsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -7343,13 +7712,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -7357,13 +7727,14 @@ public final class CanalEntry {
           return propsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -7371,13 +7742,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -7392,13 +7764,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -7410,13 +7783,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
           if (value == null) {
@@ -7430,13 +7804,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -7451,13 +7826,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -7469,13 +7845,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -7487,13 +7864,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addAllProps(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Pair> values) {
         if (propsBuilder_ == null) {
@@ -7506,13 +7884,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder clearProps() {
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
@@ -7523,13 +7902,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder removeProps(int index) {
         if (propsBuilder_ == null) {
           ensurePropsIsMutable();
@@ -7540,24 +7920,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder getPropsBuilder(
           int index) {
         return getPropsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -7565,13 +7947,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -7580,36 +7963,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(props_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder() {
         return getPropsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder(
           int index) {
         return getPropsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder> 
            getPropsBuilderList() {
         return getPropsFieldBuilder().getBuilderList();
@@ -7644,204 +8030,220 @@ public final class CanalEntry {
       // @@protoc_insertion_point(interface_extends:com.alibaba.otter.canal.protocol.RowChange)
       com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>optional int64 tableId = 1;</code>
-     *
-     * <pre>
-     **tableId,由数据库产生*
-     * </pre>
-     */
+        /**
+         * <code>optional int64 tableId = 1;</code>
+         *
+         * <pre>
+         * *tableId,由数据库产生*
+         * </pre>
+         */
     boolean hasTableId();
-    /**
-     * <code>optional int64 tableId = 1;</code>
-     *
-     * <pre>
-     **tableId,由数据库产生*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 tableId = 1;</code>
+         *
+         * <pre>
+         * *tableId,由数据库产生*
+         * </pre>
+         */
     long getTableId();
 
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     boolean hasEventType();
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType();
 
-    /**
-     * <code>optional bool isDdl = 10 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     */
+        /**
+         * <code>optional bool isDdl = 10 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否是ddl语句  *
+         * </pre>
+         */
     boolean hasIsDdl();
-    /**
-     * <code>optional bool isDdl = 10 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isDdl = 10 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否是ddl语句  *
+         * </pre>
+         */
     boolean getIsDdl();
 
-    /**
-     * <code>optional string sql = 11;</code>
-     *
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     */
+        /**
+         * <code>optional string sql = 11;</code>
+         *
+         * <pre>
+         * * ddl/query的sql语句  *
+         * </pre>
+         */
     boolean hasSql();
-    /**
-     * <code>optional string sql = 11;</code>
-     *
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string sql = 11;</code>
+         *
+         * <pre>
+         * * ddl/query的sql语句  *
+         * </pre>
+         */
     java.lang.String getSql();
-    /**
-     * <code>optional string sql = 11;</code>
-     *
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string sql = 11;</code>
+         *
+         * <pre>
+         * * ddl/query的sql语句  *
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getSqlBytes();
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.RowData> 
         getRowDatasList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.RowData getRowDatas(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     int getRowDatasCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.RowDataOrBuilder> 
         getRowDatasOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.RowDataOrBuilder getRowDatasOrBuilder(
         int index);
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> 
         getPropsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     int getPropsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
 
-    /**
-     * <code>optional string ddlSchemaName = 14;</code>
-     *
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     */
+        /**
+         * <code>optional string ddlSchemaName = 14;</code>
+         *
+         * <pre>
+         * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+         * </pre>
+         */
     boolean hasDdlSchemaName();
-    /**
-     * <code>optional string ddlSchemaName = 14;</code>
-     *
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string ddlSchemaName = 14;</code>
+         *
+         * <pre>
+         * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+         * </pre>
+         */
     java.lang.String getDdlSchemaName();
-    /**
-     * <code>optional string ddlSchemaName = 14;</code>
-     *
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string ddlSchemaName = 14;</code>
+         *
+         * <pre>
+         * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getDdlSchemaNameBytes();
   }
-  /**
-   * Protobuf type {@code com.alibaba.otter.canal.protocol.RowChange}
-   *
-   * <pre>
-   **message row 每行变更数据的数据结构*
-   * </pre>
-   */
+  
+    /**
+     * Protobuf type {@code com.alibaba.otter.canal.protocol.RowChange}
+     *
+     * <pre>
+     * *message row 每行变更数据的数据结构*
+     * </pre>
+     */
   public static final class RowChange extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:com.alibaba.otter.canal.protocol.RowChange)
@@ -7988,92 +8390,100 @@ public final class CanalEntry {
     private int bitField0_;
     public static final int TABLEID_FIELD_NUMBER = 1;
     private long tableId_;
-    /**
-     * <code>optional int64 tableId = 1;</code>
-     *
-     * <pre>
-     **tableId,由数据库产生*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 tableId = 1;</code>
+         *
+         * <pre>
+         * *tableId,由数据库产生*
+         * </pre>
+         */
     public boolean hasTableId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    /**
-     * <code>optional int64 tableId = 1;</code>
-     *
-     * <pre>
-     **tableId,由数据库产生*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 tableId = 1;</code>
+         *
+         * <pre>
+         * *tableId,由数据库产生*
+         * </pre>
+         */
     public long getTableId() {
       return tableId_;
     }
 
     public static final int EVENTTYPE_FIELD_NUMBER = 2;
     private com.alibaba.otter.canal.protocol.CanalEntry.EventType eventType_;
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     public boolean hasEventType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    /**
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-     *
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+         *
+         * <pre>
+         * *数据变更类型*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
       return eventType_;
     }
 
     public static final int ISDDL_FIELD_NUMBER = 10;
     private boolean isDdl_;
-    /**
-     * <code>optional bool isDdl = 10 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isDdl = 10 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否是ddl语句  *
+         * </pre>
+         */
     public boolean hasIsDdl() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    /**
-     * <code>optional bool isDdl = 10 [default = false];</code>
-     *
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional bool isDdl = 10 [default = false];</code>
+         *
+         * <pre>
+         * * 标识是否是ddl语句  *
+         * </pre>
+         */
     public boolean getIsDdl() {
       return isDdl_;
     }
 
     public static final int SQL_FIELD_NUMBER = 11;
     private java.lang.Object sql_;
-    /**
-     * <code>optional string sql = 11;</code>
-     *
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string sql = 11;</code>
+         *
+         * <pre>
+         * * ddl/query的sql语句  *
+         * </pre>
+         */
     public boolean hasSql() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
-    /**
-     * <code>optional string sql = 11;</code>
-     *
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string sql = 11;</code>
+         *
+         * <pre>
+         * * ddl/query的sql语句  *
+         * </pre>
+         */
     public java.lang.String getSql() {
       java.lang.Object ref = sql_;
       if (ref instanceof java.lang.String) {
@@ -8088,13 +8498,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string sql = 11;</code>
-     *
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string sql = 11;</code>
+         *
+         * <pre>
+         * * ddl/query的sql语句  *
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getSqlBytes() {
       java.lang.Object ref = sql_;
@@ -8111,54 +8522,59 @@ public final class CanalEntry {
 
     public static final int ROWDATAS_FIELD_NUMBER = 12;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.RowData> rowDatas_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.RowData> getRowDatasList() {
       return rowDatas_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.RowDataOrBuilder> 
         getRowDatasOrBuilderList() {
       return rowDatas_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     public int getRowDatasCount() {
       return rowDatas_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.RowData getRowDatas(int index) {
       return rowDatas_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-     *
-     * <pre>
-     ** 一次数据库变更可能存在多行  *
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+         *
+         * <pre>
+         * * 一次数据库变更可能存在多行  *
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.RowDataOrBuilder getRowDatasOrBuilder(
         int index) {
       return rowDatas_.get(index);
@@ -8166,54 +8582,59 @@ public final class CanalEntry {
 
     public static final int PROPS_FIELD_NUMBER = 13;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> props_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public int getPropsCount() {
       return props_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
       return props_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -8221,23 +8642,25 @@ public final class CanalEntry {
 
     public static final int DDLSCHEMANAME_FIELD_NUMBER = 14;
     private java.lang.Object ddlSchemaName_;
-    /**
-     * <code>optional string ddlSchemaName = 14;</code>
-     *
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string ddlSchemaName = 14;</code>
+         *
+         * <pre>
+         * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+         * </pre>
+         */
     public boolean hasDdlSchemaName() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
-    /**
-     * <code>optional string ddlSchemaName = 14;</code>
-     *
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string ddlSchemaName = 14;</code>
+         *
+         * <pre>
+         * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+         * </pre>
+         */
     public java.lang.String getDdlSchemaName() {
       java.lang.Object ref = ddlSchemaName_;
       if (ref instanceof java.lang.String) {
@@ -8252,13 +8675,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string ddlSchemaName = 14;</code>
-     *
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string ddlSchemaName = 14;</code>
+         *
+         * <pre>
+         * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getDdlSchemaNameBytes() {
       java.lang.Object ref = ddlSchemaName_;
@@ -8431,13 +8855,14 @@ public final class CanalEntry {
       Builder builder = new Builder(parent);
       return builder;
     }
-    /**
-     * Protobuf type {@code com.alibaba.otter.canal.protocol.RowChange}
-     *
-     * <pre>
-     **message row 每行变更数据的数据结构*
-     * </pre>
-     */
+    
+        /**
+         * Protobuf type {@code com.alibaba.otter.canal.protocol.RowChange}
+         *
+         * <pre>
+         * *message row 每行变更数据的数据结构*
+         * </pre>
+         */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:com.alibaba.otter.canal.protocol.RowChange)
@@ -8679,46 +9104,50 @@ public final class CanalEntry {
       private int bitField0_;
 
       private long tableId_ ;
-      /**
-       * <code>optional int64 tableId = 1;</code>
-       *
-       * <pre>
-       **tableId,由数据库产生*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 tableId = 1;</code>
+             *
+             * <pre>
+             * *tableId,由数据库产生*
+             * </pre>
+             */
       public boolean hasTableId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      /**
-       * <code>optional int64 tableId = 1;</code>
-       *
-       * <pre>
-       **tableId,由数据库产生*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 tableId = 1;</code>
+             *
+             * <pre>
+             * *tableId,由数据库产生*
+             * </pre>
+             */
       public long getTableId() {
         return tableId_;
       }
-      /**
-       * <code>optional int64 tableId = 1;</code>
-       *
-       * <pre>
-       **tableId,由数据库产生*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 tableId = 1;</code>
+             *
+             * <pre>
+             * *tableId,由数据库产生*
+             * </pre>
+             */
       public Builder setTableId(long value) {
         bitField0_ |= 0x00000001;
         tableId_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 tableId = 1;</code>
-       *
-       * <pre>
-       **tableId,由数据库产生*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 tableId = 1;</code>
+             *
+             * <pre>
+             * *tableId,由数据库产生*
+             * </pre>
+             */
       public Builder clearTableId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         tableId_ = 0L;
@@ -8727,33 +9156,36 @@ public final class CanalEntry {
       }
 
       private com.alibaba.otter.canal.protocol.CanalEntry.EventType eventType_ = com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE;
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public boolean hasEventType() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
         return eventType_;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public Builder setEventType(com.alibaba.otter.canal.protocol.CanalEntry.EventType value) {
         if (value == null) {
           throw new NullPointerException();
@@ -8763,13 +9195,14 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
-       *
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+             *
+             * <pre>
+             * *数据变更类型*
+             * </pre>
+             */
       public Builder clearEventType() {
         bitField0_ = (bitField0_ & ~0x00000002);
         eventType_ = com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE;
@@ -8778,46 +9211,50 @@ public final class CanalEntry {
       }
 
       private boolean isDdl_ ;
-      /**
-       * <code>optional bool isDdl = 10 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isDdl = 10 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否是ddl语句  *
+             * </pre>
+             */
       public boolean hasIsDdl() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      /**
-       * <code>optional bool isDdl = 10 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isDdl = 10 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否是ddl语句  *
+             * </pre>
+             */
       public boolean getIsDdl() {
         return isDdl_;
       }
-      /**
-       * <code>optional bool isDdl = 10 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isDdl = 10 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否是ddl语句  *
+             * </pre>
+             */
       public Builder setIsDdl(boolean value) {
         bitField0_ |= 0x00000004;
         isDdl_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional bool isDdl = 10 [default = false];</code>
-       *
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional bool isDdl = 10 [default = false];</code>
+             *
+             * <pre>
+             * * 标识是否是ddl语句  *
+             * </pre>
+             */
       public Builder clearIsDdl() {
         bitField0_ = (bitField0_ & ~0x00000004);
         isDdl_ = false;
@@ -8826,23 +9263,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object sql_ = "";
-      /**
-       * <code>optional string sql = 11;</code>
-       *
-       * <pre>
-       ** ddl/query的sql语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string sql = 11;</code>
+             *
+             * <pre>
+             * * ddl/query的sql语句  *
+             * </pre>
+             */
       public boolean hasSql() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      /**
-       * <code>optional string sql = 11;</code>
-       *
-       * <pre>
-       ** ddl/query的sql语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string sql = 11;</code>
+             *
+             * <pre>
+             * * ddl/query的sql语句  *
+             * </pre>
+             */
       public java.lang.String getSql() {
         java.lang.Object ref = sql_;
         if (!(ref instanceof java.lang.String)) {
@@ -8857,13 +9296,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string sql = 11;</code>
-       *
-       * <pre>
-       ** ddl/query的sql语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string sql = 11;</code>
+             *
+             * <pre>
+             * * ddl/query的sql语句  *
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getSqlBytes() {
         java.lang.Object ref = sql_;
@@ -8877,13 +9317,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string sql = 11;</code>
-       *
-       * <pre>
-       ** ddl/query的sql语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string sql = 11;</code>
+             *
+             * <pre>
+             * * ddl/query的sql语句  *
+             * </pre>
+             */
       public Builder setSql(
           java.lang.String value) {
         if (value == null) {
@@ -8894,26 +9335,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string sql = 11;</code>
-       *
-       * <pre>
-       ** ddl/query的sql语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string sql = 11;</code>
+             *
+             * <pre>
+             * * ddl/query的sql语句  *
+             * </pre>
+             */
       public Builder clearSql() {
         bitField0_ = (bitField0_ & ~0x00000008);
         sql_ = getDefaultInstance().getSql();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string sql = 11;</code>
-       *
-       * <pre>
-       ** ddl/query的sql语句  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string sql = 11;</code>
+             *
+             * <pre>
+             * * ddl/query的sql语句  *
+             * </pre>
+             */
       public Builder setSqlBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -8937,13 +9380,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.RowData, com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder, com.alibaba.otter.canal.protocol.CanalEntry.RowDataOrBuilder> rowDatasBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.RowData> getRowDatasList() {
         if (rowDatasBuilder_ == null) {
           return java.util.Collections.unmodifiableList(rowDatas_);
@@ -8951,13 +9394,14 @@ public final class CanalEntry {
           return rowDatasBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public int getRowDatasCount() {
         if (rowDatasBuilder_ == null) {
           return rowDatas_.size();
@@ -8965,13 +9409,14 @@ public final class CanalEntry {
           return rowDatasBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.RowData getRowDatas(int index) {
         if (rowDatasBuilder_ == null) {
           return rowDatas_.get(index);
@@ -8979,13 +9424,14 @@ public final class CanalEntry {
           return rowDatasBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder setRowDatas(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.RowData value) {
         if (rowDatasBuilder_ == null) {
@@ -9000,13 +9446,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder setRowDatas(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder builderForValue) {
         if (rowDatasBuilder_ == null) {
@@ -9018,13 +9465,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder addRowDatas(com.alibaba.otter.canal.protocol.CanalEntry.RowData value) {
         if (rowDatasBuilder_ == null) {
           if (value == null) {
@@ -9038,13 +9486,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder addRowDatas(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.RowData value) {
         if (rowDatasBuilder_ == null) {
@@ -9059,13 +9508,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder addRowDatas(
           com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder builderForValue) {
         if (rowDatasBuilder_ == null) {
@@ -9077,13 +9527,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder addRowDatas(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder builderForValue) {
         if (rowDatasBuilder_ == null) {
@@ -9095,13 +9546,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder addAllRowDatas(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.RowData> values) {
         if (rowDatasBuilder_ == null) {
@@ -9114,13 +9566,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder clearRowDatas() {
         if (rowDatasBuilder_ == null) {
           rowDatas_ = java.util.Collections.emptyList();
@@ -9131,13 +9584,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public Builder removeRowDatas(int index) {
         if (rowDatasBuilder_ == null) {
           ensureRowDatasIsMutable();
@@ -9148,24 +9602,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder getRowDatasBuilder(
           int index) {
         return getRowDatasFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.RowDataOrBuilder getRowDatasOrBuilder(
           int index) {
         if (rowDatasBuilder_ == null) {
@@ -9173,13 +9629,14 @@ public final class CanalEntry {
           return rowDatasBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.RowDataOrBuilder> 
            getRowDatasOrBuilderList() {
         if (rowDatasBuilder_ != null) {
@@ -9188,36 +9645,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(rowDatas_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder addRowDatasBuilder() {
         return getRowDatasFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.RowData.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder addRowDatasBuilder(
           int index) {
         return getRowDatasFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.RowData.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
-       *
-       * <pre>
-       ** 一次数据库变更可能存在多行  *
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.RowData rowDatas = 12;</code>
+             *
+             * <pre>
+             * * 一次数据库变更可能存在多行  *
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.RowData.Builder> 
            getRowDatasBuilderList() {
         return getRowDatasFieldBuilder().getBuilderList();
@@ -9249,13 +9709,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Pair, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder, com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> propsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -9263,13 +9723,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -9277,13 +9738,14 @@ public final class CanalEntry {
           return propsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -9291,13 +9753,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -9312,13 +9775,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -9330,13 +9794,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
           if (value == null) {
@@ -9350,13 +9815,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -9371,13 +9837,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -9389,13 +9856,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -9407,13 +9875,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addAllProps(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Pair> values) {
         if (propsBuilder_ == null) {
@@ -9426,13 +9895,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder clearProps() {
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
@@ -9443,13 +9913,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder removeProps(int index) {
         if (propsBuilder_ == null) {
           ensurePropsIsMutable();
@@ -9460,24 +9931,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder getPropsBuilder(
           int index) {
         return getPropsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -9485,13 +9958,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -9500,36 +9974,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(props_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder() {
         return getPropsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder(
           int index) {
         return getPropsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 13;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder> 
            getPropsBuilderList() {
         return getPropsFieldBuilder().getBuilderList();
@@ -9550,23 +10027,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object ddlSchemaName_ = "";
-      /**
-       * <code>optional string ddlSchemaName = 14;</code>
-       *
-       * <pre>
-       ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string ddlSchemaName = 14;</code>
+             *
+             * <pre>
+             * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+             * </pre>
+             */
       public boolean hasDdlSchemaName() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
-      /**
-       * <code>optional string ddlSchemaName = 14;</code>
-       *
-       * <pre>
-       ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string ddlSchemaName = 14;</code>
+             *
+             * <pre>
+             * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+             * </pre>
+             */
       public java.lang.String getDdlSchemaName() {
         java.lang.Object ref = ddlSchemaName_;
         if (!(ref instanceof java.lang.String)) {
@@ -9581,13 +10060,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string ddlSchemaName = 14;</code>
-       *
-       * <pre>
-       ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string ddlSchemaName = 14;</code>
+             *
+             * <pre>
+             * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getDdlSchemaNameBytes() {
         java.lang.Object ref = ddlSchemaName_;
@@ -9601,13 +10081,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string ddlSchemaName = 14;</code>
-       *
-       * <pre>
-       ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string ddlSchemaName = 14;</code>
+             *
+             * <pre>
+             * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+             * </pre>
+             */
       public Builder setDdlSchemaName(
           java.lang.String value) {
         if (value == null) {
@@ -9618,26 +10099,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string ddlSchemaName = 14;</code>
-       *
-       * <pre>
-       ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string ddlSchemaName = 14;</code>
+             *
+             * <pre>
+             * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+             * </pre>
+             */
       public Builder clearDdlSchemaName() {
         bitField0_ = (bitField0_ & ~0x00000040);
         ddlSchemaName_ = getDefaultInstance().getDdlSchemaName();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string ddlSchemaName = 14;</code>
-       *
-       * <pre>
-       ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string ddlSchemaName = 14;</code>
+             *
+             * <pre>
+             * * ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
+             * </pre>
+             */
       public Builder setDdlSchemaNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -9664,117 +10147,126 @@ public final class CanalEntry {
       // @@protoc_insertion_point(interface_extends:com.alibaba.otter.canal.protocol.TransactionBegin)
       com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     boolean hasExecuteTime();
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     long getExecuteTime();
 
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     */
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *已废弃，Begin里不提供事务id*
+         * </pre>
+         */
     boolean hasTransactionId();
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *已废弃，Begin里不提供事务id*
+         * </pre>
+         */
     java.lang.String getTransactionId();
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *已废弃，Begin里不提供事务id*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getTransactionIdBytes();
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> 
         getPropsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     int getPropsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
 
-    /**
-     * <code>optional int64 threadId = 4;</code>
-     *
-     * <pre>
-     **执行的thread Id*
-     * </pre>
-     */
+        /**
+         * <code>optional int64 threadId = 4;</code>
+         *
+         * <pre>
+         * *执行的thread Id*
+         * </pre>
+         */
     boolean hasThreadId();
-    /**
-     * <code>optional int64 threadId = 4;</code>
-     *
-     * <pre>
-     **执行的thread Id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 threadId = 4;</code>
+         *
+         * <pre>
+         * *执行的thread Id*
+         * </pre>
+         */
     long getThreadId();
   }
-  /**
-   * Protobuf type {@code com.alibaba.otter.canal.protocol.TransactionBegin}
-   *
-   * <pre>
-   **开始事务的一些信息*
-   * </pre>
-   */
+  
+    /**
+     * Protobuf type {@code com.alibaba.otter.canal.protocol.TransactionBegin}
+     *
+     * <pre>
+     * *开始事务的一些信息*
+     * </pre>
+     */
   public static final class TransactionBegin extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:com.alibaba.otter.canal.protocol.TransactionBegin)
@@ -9893,46 +10385,50 @@ public final class CanalEntry {
     private int bitField0_;
     public static final int EXECUTETIME_FIELD_NUMBER = 1;
     private long executeTime_;
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     public boolean hasExecuteTime() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     public long getExecuteTime() {
       return executeTime_;
     }
 
     public static final int TRANSACTIONID_FIELD_NUMBER = 2;
     private java.lang.Object transactionId_;
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *已废弃，Begin里不提供事务id*
+         * </pre>
+         */
     public boolean hasTransactionId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *已废弃，Begin里不提供事务id*
+         * </pre>
+         */
     public java.lang.String getTransactionId() {
       java.lang.Object ref = transactionId_;
       if (ref instanceof java.lang.String) {
@@ -9947,13 +10443,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *已废弃，Begin里不提供事务id*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getTransactionIdBytes() {
       java.lang.Object ref = transactionId_;
@@ -9970,54 +10467,59 @@ public final class CanalEntry {
 
     public static final int PROPS_FIELD_NUMBER = 3;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> props_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public int getPropsCount() {
       return props_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
       return props_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -10025,23 +10527,25 @@ public final class CanalEntry {
 
     public static final int THREADID_FIELD_NUMBER = 4;
     private long threadId_;
-    /**
-     * <code>optional int64 threadId = 4;</code>
-     *
-     * <pre>
-     **执行的thread Id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 threadId = 4;</code>
+         *
+         * <pre>
+         * *执行的thread Id*
+         * </pre>
+         */
     public boolean hasThreadId() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    /**
-     * <code>optional int64 threadId = 4;</code>
-     *
-     * <pre>
-     **执行的thread Id*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 threadId = 4;</code>
+         *
+         * <pre>
+         * *执行的thread Id*
+         * </pre>
+         */
     public long getThreadId() {
       return threadId_;
     }
@@ -10180,13 +10684,15 @@ public final class CanalEntry {
       Builder builder = new Builder(parent);
       return builder;
     }
-    /**
-     * Protobuf type {@code com.alibaba.otter.canal.protocol.TransactionBegin}
-     *
-     * <pre>
-     **开始事务的一些信息*
-     * </pre>
-     */
+    
+        /**
+         * Protobuf type
+         * {@code com.alibaba.otter.canal.protocol.TransactionBegin}
+         *
+         * <pre>
+         * *开始事务的一些信息*
+         * </pre>
+         */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:com.alibaba.otter.canal.protocol.TransactionBegin)
@@ -10366,46 +10872,50 @@ public final class CanalEntry {
       private int bitField0_;
 
       private long executeTime_ ;
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public boolean hasExecuteTime() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public long getExecuteTime() {
         return executeTime_;
       }
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public Builder setExecuteTime(long value) {
         bitField0_ |= 0x00000001;
         executeTime_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public Builder clearExecuteTime() {
         bitField0_ = (bitField0_ & ~0x00000001);
         executeTime_ = 0L;
@@ -10414,23 +10924,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object transactionId_ = "";
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **已废弃，Begin里不提供事务id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *已废弃，Begin里不提供事务id*
+             * </pre>
+             */
       public boolean hasTransactionId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **已废弃，Begin里不提供事务id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *已废弃，Begin里不提供事务id*
+             * </pre>
+             */
       public java.lang.String getTransactionId() {
         java.lang.Object ref = transactionId_;
         if (!(ref instanceof java.lang.String)) {
@@ -10445,13 +10957,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **已废弃，Begin里不提供事务id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *已废弃，Begin里不提供事务id*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getTransactionIdBytes() {
         java.lang.Object ref = transactionId_;
@@ -10465,13 +10978,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **已废弃，Begin里不提供事务id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *已废弃，Begin里不提供事务id*
+             * </pre>
+             */
       public Builder setTransactionId(
           java.lang.String value) {
         if (value == null) {
@@ -10482,26 +10996,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **已废弃，Begin里不提供事务id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *已废弃，Begin里不提供事务id*
+             * </pre>
+             */
       public Builder clearTransactionId() {
         bitField0_ = (bitField0_ & ~0x00000002);
         transactionId_ = getDefaultInstance().getTransactionId();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **已废弃，Begin里不提供事务id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *已废弃，Begin里不提供事务id*
+             * </pre>
+             */
       public Builder setTransactionIdBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -10525,13 +11041,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Pair, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder, com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> propsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -10539,13 +11055,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -10553,13 +11070,14 @@ public final class CanalEntry {
           return propsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -10567,13 +11085,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -10588,13 +11107,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -10606,13 +11126,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
           if (value == null) {
@@ -10626,13 +11147,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -10647,13 +11169,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -10665,13 +11188,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -10683,13 +11207,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addAllProps(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Pair> values) {
         if (propsBuilder_ == null) {
@@ -10702,13 +11227,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder clearProps() {
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
@@ -10719,13 +11245,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder removeProps(int index) {
         if (propsBuilder_ == null) {
           ensurePropsIsMutable();
@@ -10736,24 +11263,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder getPropsBuilder(
           int index) {
         return getPropsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -10761,13 +11290,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -10776,36 +11306,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(props_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder() {
         return getPropsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder(
           int index) {
         return getPropsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder> 
            getPropsBuilderList() {
         return getPropsFieldBuilder().getBuilderList();
@@ -10826,46 +11359,50 @@ public final class CanalEntry {
       }
 
       private long threadId_ ;
-      /**
-       * <code>optional int64 threadId = 4;</code>
-       *
-       * <pre>
-       **执行的thread Id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 threadId = 4;</code>
+             *
+             * <pre>
+             * *执行的thread Id*
+             * </pre>
+             */
       public boolean hasThreadId() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      /**
-       * <code>optional int64 threadId = 4;</code>
-       *
-       * <pre>
-       **执行的thread Id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 threadId = 4;</code>
+             *
+             * <pre>
+             * *执行的thread Id*
+             * </pre>
+             */
       public long getThreadId() {
         return threadId_;
       }
-      /**
-       * <code>optional int64 threadId = 4;</code>
-       *
-       * <pre>
-       **执行的thread Id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 threadId = 4;</code>
+             *
+             * <pre>
+             * *执行的thread Id*
+             * </pre>
+             */
       public Builder setThreadId(long value) {
         bitField0_ |= 0x00000008;
         threadId_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 threadId = 4;</code>
-       *
-       * <pre>
-       **执行的thread Id*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 threadId = 4;</code>
+             *
+             * <pre>
+             * *执行的thread Id*
+             * </pre>
+             */
       public Builder clearThreadId() {
         bitField0_ = (bitField0_ & ~0x00000008);
         threadId_ = 0L;
@@ -10888,100 +11425,108 @@ public final class CanalEntry {
       // @@protoc_insertion_point(interface_extends:com.alibaba.otter.canal.protocol.TransactionEnd)
       com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     boolean hasExecuteTime();
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     long getExecuteTime();
 
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **事务号*
-     * </pre>
-     */
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *事务号*
+         * </pre>
+         */
     boolean hasTransactionId();
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **事务号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *事务号*
+         * </pre>
+         */
     java.lang.String getTransactionId();
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **事务号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *事务号*
+         * </pre>
+         */
     com.google.protobuf.ByteString
         getTransactionIdBytes();
 
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> 
         getPropsList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index);
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     int getPropsCount();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList();
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index);
   }
-  /**
-   * Protobuf type {@code com.alibaba.otter.canal.protocol.TransactionEnd}
-   *
-   * <pre>
-   **结束事务的一些信息*
-   * </pre>
-   */
+  
+    /**
+     * Protobuf type {@code com.alibaba.otter.canal.protocol.TransactionEnd}
+     *
+     * <pre>
+     * *结束事务的一些信息*
+     * </pre>
+     */
   public static final class TransactionEnd extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:com.alibaba.otter.canal.protocol.TransactionEnd)
@@ -11095,46 +11640,50 @@ public final class CanalEntry {
     private int bitField0_;
     public static final int EXECUTETIME_FIELD_NUMBER = 1;
     private long executeTime_;
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     public boolean hasExecuteTime() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    /**
-     * <code>optional int64 executeTime = 1;</code>
-     *
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional int64 executeTime = 1;</code>
+         *
+         * <pre>
+         * *已废弃，请使用header里的executeTime*
+         * </pre>
+         */
     public long getExecuteTime() {
       return executeTime_;
     }
 
     public static final int TRANSACTIONID_FIELD_NUMBER = 2;
     private java.lang.Object transactionId_;
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **事务号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *事务号*
+         * </pre>
+         */
     public boolean hasTransactionId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **事务号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *事务号*
+         * </pre>
+         */
     public java.lang.String getTransactionId() {
       java.lang.Object ref = transactionId_;
       if (ref instanceof java.lang.String) {
@@ -11149,13 +11698,14 @@ public final class CanalEntry {
         return s;
       }
     }
-    /**
-     * <code>optional string transactionId = 2;</code>
-     *
-     * <pre>
-     **事务号*
-     * </pre>
-     */
+    
+        /**
+         * <code>optional string transactionId = 2;</code>
+         *
+         * <pre>
+         * *事务号*
+         * </pre>
+         */
     public com.google.protobuf.ByteString
         getTransactionIdBytes() {
       java.lang.Object ref = transactionId_;
@@ -11172,54 +11722,59 @@ public final class CanalEntry {
 
     public static final int PROPS_FIELD_NUMBER = 3;
     private java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> props_;
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
         getPropsOrBuilderList() {
       return props_;
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public int getPropsCount() {
       return props_.size();
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
       return props_.get(index);
     }
-    /**
-     * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -11351,13 +11906,14 @@ public final class CanalEntry {
       Builder builder = new Builder(parent);
       return builder;
     }
-    /**
-     * Protobuf type {@code com.alibaba.otter.canal.protocol.TransactionEnd}
-     *
-     * <pre>
-     **结束事务的一些信息*
-     * </pre>
-     */
+    
+        /**
+         * Protobuf type {@code com.alibaba.otter.canal.protocol.TransactionEnd}
+         *
+         * <pre>
+         * *结束事务的一些信息*
+         * </pre>
+         */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:com.alibaba.otter.canal.protocol.TransactionEnd)
@@ -11528,46 +12084,50 @@ public final class CanalEntry {
       private int bitField0_;
 
       private long executeTime_ ;
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public boolean hasExecuteTime() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public long getExecuteTime() {
         return executeTime_;
       }
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public Builder setExecuteTime(long value) {
         bitField0_ |= 0x00000001;
         executeTime_ = value;
         onChanged();
         return this;
       }
-      /**
-       * <code>optional int64 executeTime = 1;</code>
-       *
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional int64 executeTime = 1;</code>
+             *
+             * <pre>
+             * *已废弃，请使用header里的executeTime*
+             * </pre>
+             */
       public Builder clearExecuteTime() {
         bitField0_ = (bitField0_ & ~0x00000001);
         executeTime_ = 0L;
@@ -11576,23 +12136,25 @@ public final class CanalEntry {
       }
 
       private java.lang.Object transactionId_ = "";
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **事务号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *事务号*
+             * </pre>
+             */
       public boolean hasTransactionId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **事务号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *事务号*
+             * </pre>
+             */
       public java.lang.String getTransactionId() {
         java.lang.Object ref = transactionId_;
         if (!(ref instanceof java.lang.String)) {
@@ -11607,13 +12169,14 @@ public final class CanalEntry {
           return (java.lang.String) ref;
         }
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **事务号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *事务号*
+             * </pre>
+             */
       public com.google.protobuf.ByteString
           getTransactionIdBytes() {
         java.lang.Object ref = transactionId_;
@@ -11627,13 +12190,14 @@ public final class CanalEntry {
           return (com.google.protobuf.ByteString) ref;
         }
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **事务号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *事务号*
+             * </pre>
+             */
       public Builder setTransactionId(
           java.lang.String value) {
         if (value == null) {
@@ -11644,26 +12208,28 @@ public final class CanalEntry {
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **事务号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *事务号*
+             * </pre>
+             */
       public Builder clearTransactionId() {
         bitField0_ = (bitField0_ & ~0x00000002);
         transactionId_ = getDefaultInstance().getTransactionId();
         onChanged();
         return this;
       }
-      /**
-       * <code>optional string transactionId = 2;</code>
-       *
-       * <pre>
-       **事务号*
-       * </pre>
-       */
+      
+            /**
+             * <code>optional string transactionId = 2;</code>
+             *
+             * <pre>
+             * *事务号*
+             * </pre>
+             */
       public Builder setTransactionIdBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -11687,13 +12253,13 @@ public final class CanalEntry {
       private com.google.protobuf.RepeatedFieldBuilder<
           com.alibaba.otter.canal.protocol.CanalEntry.Pair, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder, com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> propsBuilder_;
 
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -11701,13 +12267,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageList();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -11715,13 +12282,14 @@ public final class CanalEntry {
           return propsBuilder_.getCount();
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -11729,13 +12297,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessage(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -11750,13 +12319,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder setProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -11768,13 +12338,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
           if (value == null) {
@@ -11788,13 +12359,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair value) {
         if (propsBuilder_ == null) {
@@ -11809,13 +12381,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -11827,13 +12400,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addProps(
           int index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder builderForValue) {
         if (propsBuilder_ == null) {
@@ -11845,13 +12419,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder addAllProps(
           java.lang.Iterable<? extends com.alibaba.otter.canal.protocol.CanalEntry.Pair> values) {
         if (propsBuilder_ == null) {
@@ -11864,13 +12439,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder clearProps() {
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
@@ -11881,13 +12457,14 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public Builder removeProps(int index) {
         if (propsBuilder_ == null) {
           ensurePropsIsMutable();
@@ -11898,24 +12475,26 @@ public final class CanalEntry {
         }
         return this;
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder getPropsBuilder(
           int index) {
         return getPropsFieldBuilder().getBuilder(index);
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -11923,13 +12502,14 @@ public final class CanalEntry {
           return propsBuilder_.getMessageOrBuilder(index);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<? extends com.alibaba.otter.canal.protocol.CanalEntry.PairOrBuilder> 
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -11938,36 +12518,39 @@ public final class CanalEntry {
           return java.util.Collections.unmodifiableList(props_);
         }
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder() {
         return getPropsFieldBuilder().addBuilder(
             com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder addPropsBuilder(
           int index) {
         return getPropsFieldBuilder().addBuilder(
             index, com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance());
       }
-      /**
-       * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
-       *
-       * <pre>
-       **预留扩展*
-       * </pre>
-       */
+      
+            /**
+             * <code>repeated .com.alibaba.otter.canal.protocol.Pair props = 3;</code>
+             *
+             * <pre>
+             * *预留扩展*
+             * </pre>
+             */
       public java.util.List<com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder> 
            getPropsBuilderList() {
         return getPropsFieldBuilder().getBuilderList();
@@ -12030,13 +12613,14 @@ public final class CanalEntry {
     com.google.protobuf.ByteString
         getValueBytes();
   }
-  /**
-   * Protobuf type {@code com.alibaba.otter.canal.protocol.Pair}
-   *
-   * <pre>
-   **预留扩展*
-   * </pre>
-   */
+  
+    /**
+     * Protobuf type {@code com.alibaba.otter.canal.protocol.Pair}
+     *
+     * <pre>
+     * *预留扩展*
+     * </pre>
+     */
   public static final class Pair extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:com.alibaba.otter.canal.protocol.Pair)
@@ -12340,13 +12924,14 @@ public final class CanalEntry {
       Builder builder = new Builder(parent);
       return builder;
     }
-    /**
-     * Protobuf type {@code com.alibaba.otter.canal.protocol.Pair}
-     *
-     * <pre>
-     **预留扩展*
-     * </pre>
-     */
+    
+        /**
+         * Protobuf type {@code com.alibaba.otter.canal.protocol.Pair}
+         *
+         * <pre>
+         * *预留扩展*
+         * </pre>
+         */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:com.alibaba.otter.canal.protocol.Pair)
@@ -12730,13 +13315,14 @@ public final class CanalEntry {
       ".Pair\"\"\n\004Pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(",
       "\t*^\n\tEntryType\022\024\n\020TRANSACTIONBEGIN\020\001\022\013\n\007" +
       "ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003\022\r\n\tHEARTBE" +
-      "AT\020\004\022\013\n\007GTIDLOG\020\005*\230\001\n\tEventType\022\n\n\006INSER" +
+      "AT\020\004\022\013\n\007GTIDLOG\020\005*\316\001\n\tEventType\022\n\n\006INSER" +
       "T\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006CREATE\020\004\022" +
       "\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006\022\t\n\005QUERY\020\007\022\014\n\010TRUN" +
       "CATE\020\010\022\n\n\006RENAME\020\t\022\n\n\006CINDEX\020\n\022\n\n\006DINDEX" +
-      "\020\013\022\010\n\004GTID\020\014*(\n\004Type\022\n\n\006ORACLE\020\001\022\t\n\005MYSQ" +
-      "L\020\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.otter.cana" +
-      "l.protocolB\nCanalEntryH\001"
+      "\020\013\022\010\n\004GTID\020\014\022\013\n\007XASTART\020\r\022\t\n\005XAEND\020\016\022\014\n\010" +
+      "XACOMMIT\020\017\022\016\n\nXAROLLBACK\020\020*(\n\004Type\022\n\n\006OR" +
+      "ACLE\020\001\022\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.alib" +
+      "aba.otter.canal.protocolB\nCanalEntryH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

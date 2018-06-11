@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
+import com.alibaba.otter.canal.protocol.CanalEntry.Pair;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
 import com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin;
@@ -58,10 +60,12 @@ public class AbstractCanalClientTest {
         context_format += "****************************************************" + SEP;
 
         row_format = SEP
-                     + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {}({}) , delay : {} ms"
+                     + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {}({}) , gtid : ({}) , delay : {} ms"
                      + SEP;
 
-        transaction_format = SEP + "================> binlog[{}:{}] , executeTime : {}({}) , delay : {}ms" + SEP;
+        transaction_format = SEP
+                             + "================> binlog[{}:{}] , executeTime : {}({}) , gtid : ({}) , delay : {}ms"
+                             + SEP;
 
     }
 
@@ -92,13 +96,7 @@ public class AbstractCanalClientTest {
         if (!running) {
             return;
         }
-        running = false;
-        if (waiting) {
-            if (connector instanceof ClusterCanalConnector) {
-                ((ClusterCanalConnector) connector).setRetryTimes(-1);
-            }
-            thread.interrupt();
-        }
+        connector.stopRunning();
         if (thread != null) {
             try {
                 thread.join();
@@ -166,8 +164,12 @@ public class AbstractCanalClientTest {
         long time = entry.getHeader().getExecuteTime();
         Date date = new Date(time);
         SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
-        return entry.getHeader().getLogfileName() + ":" + entry.getHeader().getLogfileOffset() + ":"
-               + entry.getHeader().getExecuteTime() + "(" + format.format(date) + ")";
+        String position = entry.getHeader().getLogfileName() + ":" + entry.getHeader().getLogfileOffset() + ":"
+                          + entry.getHeader().getExecuteTime() + "(" + format.format(date) + ")";
+        if (StringUtils.isNotEmpty(entry.getHeader().getGtid())) {
+            position += " gtid(" + entry.getHeader().getGtid() + ")";
+        }
+        return position;
     }
 
     protected void printEntry(List<Entry> entrys) {
@@ -190,8 +192,9 @@ public class AbstractCanalClientTest {
                         new Object[] { entry.getHeader().getLogfileName(),
                                 String.valueOf(entry.getHeader().getLogfileOffset()),
                                 String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
-                                String.valueOf(delayTime) });
+                                entry.getHeader().getGtid(), String.valueOf(delayTime) });
                     logger.info(" BEGIN ----> Thread id: {}", begin.getThreadId());
+                    printXAInfo(begin.getPropsList());
                 } else if (entry.getEntryType() == EntryType.TRANSACTIONEND) {
                     TransactionEnd end = null;
                     try {
@@ -202,11 +205,12 @@ public class AbstractCanalClientTest {
                     // 打印事务提交信息，事务id
                     logger.info("----------------\n");
                     logger.info(" END ----> transaction id: {}", end.getTransactionId());
+                    printXAInfo(end.getPropsList());
                     logger.info(transaction_format,
                         new Object[] { entry.getHeader().getLogfileName(),
                                 String.valueOf(entry.getHeader().getLogfileOffset()),
                                 String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
-                                String.valueOf(delayTime) });
+                                entry.getHeader().getGtid(), String.valueOf(delayTime) });
                 }
 
                 continue;
@@ -227,13 +231,14 @@ public class AbstractCanalClientTest {
                             String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
                             entry.getHeader().getTableName(), eventType,
                             String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
-                            String.valueOf(delayTime) });
+                            entry.getHeader().getGtid(), String.valueOf(delayTime) });
 
                 if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
                     logger.info(" sql ----> " + rowChage.getSql() + SEP);
                     continue;
                 }
 
+                printXAInfo(rowChage.getPropsList());
                 for (RowData rowData : rowChage.getRowDatasList()) {
                     if (eventType == EventType.DELETE) {
                         printColumn(rowData.getBeforeColumnsList());
@@ -257,6 +262,27 @@ public class AbstractCanalClientTest {
             }
             builder.append(SEP);
             logger.info(builder.toString());
+        }
+    }
+
+    protected void printXAInfo(List<Pair> pairs) {
+        if (pairs == null) {
+            return;
+        }
+
+        String xaType = null;
+        String xaXid = null;
+        for (Pair pair : pairs) {
+            String key = pair.getKey();
+            if (StringUtils.endsWithIgnoreCase(key, "XA_TYPE")) {
+                xaType = pair.getValue();
+            } else if (StringUtils.endsWithIgnoreCase(key, "XA_XID")) {
+                xaXid = pair.getValue();
+            }
+        }
+
+        if (xaType != null && xaXid != null) {
+            logger.info(" ------> " + xaType + " " + xaXid);
         }
     }
 
