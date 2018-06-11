@@ -35,7 +35,7 @@ public class CanalKafkaStarter {
         try {
 
             logger.info("## load kafka configurations");
-            String conf = System.getProperty("canal.conf", "classpath:kafka.yml");
+            String conf = System.getProperty("kafka.conf", "classpath:kafka.yml");
 
             KafkaProperties kafkaProperties;
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
