@@ -30,7 +30,7 @@ public class CanalServerStarter {
             Properties properties = new Properties();
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
-                properties.load(com.alibaba.otter.canal.deployer.CanalLauncher.class.getClassLoader().getResourceAsStream(conf));
+                properties.load(CanalLauncher.class.getClassLoader().getResourceAsStream(conf));
             } else {
                 properties.load(new FileInputStream(conf));
             }

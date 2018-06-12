@@ -98,7 +98,7 @@ public class CanalController {
         embededCanalServer = CanalServerWithEmbedded.instance();
         embededCanalServer.setCanalInstanceGenerator(instanceGenerator);// 设置自定义的instanceGenerator
         String canalWithoutNetty = getProperty(properties, CanalConstants.CANAL_WITHOUT_NETTY);
-        if (canalWithoutNetty == null || "true".equals(canalWithoutNetty)) {
+        if (canalWithoutNetty == null || "false".equals(canalWithoutNetty)) {
             canalServer = CanalServerWithNetty.instance();
             canalServer.setIp(ip);
             canalServer.setPort(port);
