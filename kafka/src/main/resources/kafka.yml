@@ -7,6 +7,6 @@ bufferMemory: 33554432
 topics:
   - topic: example
     partition:
-    destination: example
+    canalDestination: example
 
 

@@ -21,7 +21,7 @@ public class KafkaProperties {
     public static class Topic {
         private String topic;
         private Integer partition;
-        private String destination;
+        private String canalDestination;
 
         public String getTopic() {
             return topic;
@@ -39,12 +39,12 @@ public class KafkaProperties {
             this.partition = partition;
         }
 
-        public String getDestination() {
-            return destination;
+        public String getCanalDestination() {
+            return canalDestination;
         }
 
-        public void setDestination(String destination) {
-            this.destination = destination;
+        public void setCanalDestination(String canalDestination) {
+            this.canalDestination = canalDestination;
         }
     }
 
