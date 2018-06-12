@@ -22,9 +22,9 @@ import java.util.Properties;
 public class CanalKafkaProducer {
     private static final Logger logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
-    private static Producer<String, Message> producer;
+    private Producer<String, Message> producer;
 
-    static void init(KafkaProperties kafkaProperties) {
+    public void init(KafkaProperties kafkaProperties) {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
         properties.put("acks", "all");
@@ -37,7 +37,7 @@ public class CanalKafkaProducer {
         producer = new KafkaProducer<String, Message>(properties);
     }
 
-    static void stop() {
+    public void stop() {
         try {
             logger.info("## stop the kafka producer");
             producer.close();
@@ -48,29 +48,8 @@ public class CanalKafkaProducer {
         }
     }
 
-    static void send(Topic topic, Message message) {
-        try {
-            List<CanalEntry.Entry> entries = message.getEntries();
-            boolean flag = false;
-            if (!entries.isEmpty()) {
-                for (CanalEntry.Entry entry : entries) {
-                    CanalEntry.RowChange rowChage = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                    if (rowChage.getIsDdl()) {
-                        flag = true;
-                        break;
-                    } else {
-                        if (!rowChage.getRowDatasList().isEmpty()) {
-                            flag = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (!flag) {
-                return;
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+    public void send(Topic topic, Message message) {
+        if (message == null || message.getEntries().isEmpty()) {
             return;
         }
 

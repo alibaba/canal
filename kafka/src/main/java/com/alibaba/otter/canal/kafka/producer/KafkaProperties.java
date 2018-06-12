@@ -1,9 +1,7 @@
 package com.alibaba.otter.canal.kafka.producer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * kafka 配置项
@@ -19,7 +17,6 @@ public class KafkaProperties {
     private long bufferMemory = 33554432L;
 
     private List<Topic> topics = new ArrayList<Topic>();
-    private Map<String, Topic> topicMap = new HashMap<String, Topic>();
 
     public static class Topic {
         private String topic;
@@ -97,15 +94,5 @@ public class KafkaProperties {
 
     public void setTopics(List<Topic> topics) {
         this.topics = topics;
-
-        if (topics != null) {
-            for (Topic topic : topics) {
-                this.topicMap.put(topic.destination, topic);
-            }
-        }
-    }
-
-    public Topic getTopicByDestination(String destination) {
-        return this.topicMap.get(destination);
     }
 }

@@ -1,14 +1,7 @@
 package com.alibaba.otter.canal.kafka.producer;
 
-import java.io.FileInputStream;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import com.alibaba.otter.canal.kafka.CanalServerStarter;
 import com.alibaba.otter.canal.kafka.producer.KafkaProperties.Topic;
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
@@ -16,6 +9,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * kafka 启动类
@@ -30,6 +28,8 @@ public class CanalKafkaStarter {
     private volatile static boolean running = false;
 
     private static ExecutorService executorService;
+
+    private static CanalKafkaProducer canalKafkaProducer;
 
     public static void init() {
         try {
@@ -46,7 +46,8 @@ public class CanalKafkaStarter {
             }
 
             //初始化 kafka producer
-            CanalKafkaProducer.init(kafkaProperties);
+            canalKafkaProducer = new CanalKafkaProducer();
+            canalKafkaProducer.init(kafkaProperties);
 
             //对应每个instance启动一个worker线程
             List<Topic> topics = kafkaProperties.getTopics();
@@ -70,7 +71,7 @@ public class CanalKafkaStarter {
                         logger.info("## stop the kafka workers");
                         running = false;
                         executorService.shutdown();
-                        CanalKafkaProducer.stop();
+                        canalKafkaProducer.stop();
                     } catch (Throwable e) {
                         logger.warn("##something goes wrong when stopping kafka workers:", e);
                     } finally {
@@ -118,7 +119,7 @@ public class CanalKafkaStarter {
                                 //ignore
                             }
                         } else {
-                            CanalKafkaProducer.send(topic, message);
+                            canalKafkaProducer.send(topic, message);
                         }
 
                         if (batchId != -1) {

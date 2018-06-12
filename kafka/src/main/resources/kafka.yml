@@ -5,8 +5,8 @@ lingerMs: 1
 bufferMemory: 33554432
 
 topics:
-  - topic: example2
+  - topic: example
     partition:
-    destination: example2
+    destination: example
 
 
