@@ -22,7 +22,8 @@ public class ClusterCanalConnector implements CanalConnector {
     private final Logger            logger        = LoggerFactory.getLogger(this.getClass());
     private String                  username;
     private String                  password;
-    private int                     soTimeout     = 10000;
+    private int                     soTimeout     = 60000;
+    private int                     idleTimeout   = 60 * 60 * 1000;
     private int                     retryTimes    = 3;                                       // 设置-1时可以subscribe阻塞等待时优雅停机
     private int                     retryInterval = 5000;                                    // 重试的时间间隔，默认5秒
     private CanalNodeAccessStrategy accessStrategy;
@@ -52,6 +53,7 @@ public class ClusterCanalConnector implements CanalConnector {
 
                     };
                     currentConnector.setSoTimeout(soTimeout);
+                    currentConnector.setIdleTimeout(idleTimeout);
                     if (filter != null) {
                         currentConnector.setFilter(filter);
                     }
@@ -110,10 +112,8 @@ public class ClusterCanalConnector implements CanalConnector {
                     logger.info("block waiting interrupted by other thread.");
                     return;
                 } else {
-                    logger.warn(String.format(
-                            "something goes wrong when subscribing from server: %s",
-                            currentConnector != null ? currentConnector.getAddress() : "null"),
-                            t);
+                    logger.warn(String.format("something goes wrong when subscribing from server: %s",
+                        currentConnector != null ? currentConnector.getAddress() : "null"), t);
                     times++;
                     restart();
                     logger.info("restart the connector for next round retry.");
@@ -218,7 +218,8 @@ public class ClusterCanalConnector implements CanalConnector {
                 return;
             } catch (Throwable t) {
                 logger.warn(String.format("something goes wrong when rollbacking data from server:%s",
-                    currentConnector.getAddress()), t);
+                    currentConnector.getAddress()),
+                    t);
                 times++;
                 restart();
                 logger.info("restart the connector for next round retry.");
@@ -235,7 +236,8 @@ public class ClusterCanalConnector implements CanalConnector {
                 return;
             } catch (Throwable t) {
                 logger.warn(String.format("something goes wrong when rollbacking data from server:%s",
-                    currentConnector.getAddress()), t);
+                    currentConnector.getAddress()),
+                    t);
                 times++;
                 restart();
                 logger.info("restart the connector for next round retry.");
@@ -253,7 +255,8 @@ public class ClusterCanalConnector implements CanalConnector {
                 return;
             } catch (Throwable t) {
                 logger.warn(String.format("something goes wrong when acking data from server:%s",
-                    currentConnector.getAddress()), t);
+                    currentConnector.getAddress()),
+                    t);
                 times++;
                 restart();
                 logger.info("restart the connector for next round retry.");
@@ -298,6 +301,14 @@ public class ClusterCanalConnector implements CanalConnector {
 
     public void setSoTimeout(int soTimeout) {
         this.soTimeout = soTimeout;
+    }
+
+    public int getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    public void setIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout;
     }
 
     public int getRetryTimes() {
