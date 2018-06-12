@@ -10,7 +10,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -49,9 +48,19 @@ public class CanalKafkaProducer {
     }
 
     public void send(Topic topic, Message message) {
-        if (message == null || message.getEntries().isEmpty()) {
+        boolean valid = false;
+        if (message != null && !message.getEntries().isEmpty()) {
+            for (CanalEntry.Entry entry : message.getEntries()) {
+                if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
+                    valid = true;
+                    break;
+                }
+            }
+        }
+        if (!valid) {
             return;
         }
+
 
         ProducerRecord<String, Message> record;
         if (topic.getPartition() != null) {
