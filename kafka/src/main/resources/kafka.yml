@@ -5,8 +5,11 @@ lingerMs: 1
 bufferMemory: 33554432
 
 topics:
-  - topic: example
+  - topic: expTest
     partition:
     canalDestination: example
+#  - topic: example2
+#    partition:
+#    canalDestination: example
 
 

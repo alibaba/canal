@@ -128,6 +128,7 @@
         <module>deployer</module>
         <module>example</module>
         <module>kafka</module>
+        <module>kafka-client</module>
     </modules>
 
     <dependencyManagement>
