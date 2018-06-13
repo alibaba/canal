@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.kafka.client.running;
 
-import com.alibaba.otter.canal.client.CanalConnector;
+import com.alibaba.otter.canal.kafka.client.KafkaCanalConnector;
 import com.alibaba.otter.canal.kafka.client.KafkaCanalConnectors;
 import com.alibaba.otter.canal.protocol.Message;
 import org.junit.Test;
@@ -16,20 +16,19 @@ public class ClientRunningTest extends AbstractKafkaTest {
     public void testKafkaConsumer() {
         final ExecutorService executor = Executors.newFixedThreadPool(1);
 
-        final CanalConnector kafkaCanalConnector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
-        kafkaCanalConnector.connect();
+        final KafkaCanalConnector kafkaCanalConnector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
         kafkaCanalConnector.subscribe();
 
         executor.submit(new Runnable() {
             @Override
             public void run() {
                 while (running) {
-                    Message message = kafkaCanalConnector.getWithoutAck(1);
+                    Message message = kafkaCanalConnector.getWithoutAck();
                     if (message != null) {
                         System.out.println(message);
                         sleep(40000);
                     }
-                    kafkaCanalConnector.ack(1);
+                    kafkaCanalConnector.ack();
                 }
             }
         });

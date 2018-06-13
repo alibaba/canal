@@ -1,7 +1,5 @@
 package com.alibaba.otter.canal.kafka.client;
 
-import com.alibaba.otter.canal.client.CanalConnector;
-
 public class KafkaCanalConnectors {
     /**
      * 创建kafka客户端链接
@@ -12,7 +10,7 @@ public class KafkaCanalConnectors {
      * @param groupId
      * @return
      */
-    public static CanalConnector newKafkaConnector(String servers, String topic, Integer partition, String groupId) {
+    public static KafkaCanalConnector newKafkaConnector(String servers, String topic, Integer partition, String groupId) {
         return new KafkaCanalConnector(servers, topic, partition, groupId);
     }
 
@@ -24,7 +22,7 @@ public class KafkaCanalConnectors {
      * @param groupId
      * @return
      */
-    public static CanalConnector newKafkaConnector(String servers, String topic,  String groupId) {
+    public static KafkaCanalConnector newKafkaConnector(String servers, String topic,  String groupId) {
         return new KafkaCanalConnector(servers, topic, null, groupId);
     }
 }
