@@ -37,8 +37,8 @@ public class KafkaCanalConnector {
         properties.put("enable.auto.commit", false);
         properties.put("auto.commit.interval.ms", "1000");
         properties.put("auto.offset.reset", "latest"); //earliest //如果没有offset则从最后的offset开始读
-        properties.put("request.timeout.ms", "360000"); //必须大于session.timeout.ms的设置
-        properties.put("session.timeout.ms", "300000"); //默认为5分钟
+        properties.put("request.timeout.ms", "40000"); //必须大于session.timeout.ms的设置
+        properties.put("session.timeout.ms", "30000"); //默认为30秒
         properties.put("max.poll.records", "1"); //所以一次只取一条数据
         properties.put("key.deserializer", StringDeserializer.class.getName());
         properties.put("value.deserializer", MessageDeserializer.class.getName());
