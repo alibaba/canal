@@ -8,12 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
+import java.util.concurrent.TimeUnit;
+
 public class KafkaCanalClientExample {
     protected final static Logger logger = LoggerFactory.getLogger(KafkaCanalClientExample.class);
 
     private KafkaCanalConnector connector;
 
-    private volatile boolean running = false;
+    private static volatile boolean running = false;
 
     private Thread thread = null;
 
@@ -27,6 +29,34 @@ public class KafkaCanalClientExample {
         connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
     }
 
+    public static void main(String[] args) {
+        try {
+            final KafkaCanalClientExample kafkaCanalClientExample = new KafkaCanalClientExample(AbstractKafkaTest.servers,
+                    AbstractKafkaTest.topic, AbstractKafkaTest.partition, AbstractKafkaTest.groupId);
+            logger.info("## start the kafka consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
+            kafkaCanalClientExample.start();
+            logger.info("## the canal kafka consumer is running now ......");
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+
+                public void run() {
+                    try {
+                        logger.info("## stop the kafka consumer");
+                        kafkaCanalClientExample.stop();
+                    } catch (Throwable e) {
+                        logger.warn("##something goes wrong when stopping kafka consumer:", e);
+                    } finally {
+                        logger.info("## kafka consumer is down.");
+                    }
+                }
+
+            });
+            while (running) ;
+        } catch (Throwable e) {
+            logger.error("## Something goes wrong when starting up the kafka consumer:", e);
+            System.exit(0);
+        }
+    }
+
     public void start() {
         Assert.notNull(connector, "connector is null");
         thread = new Thread(new Runnable() {
@@ -35,8 +65,8 @@ public class KafkaCanalClientExample {
                 process();
             }
         });
-
         thread.setUncaughtExceptionHandler(handler);
+        thread.start();
         running = true;
     }
 
@@ -61,7 +91,10 @@ public class KafkaCanalClientExample {
                 connector.subscribe();
                 while (running) {
                     try {
-                        Message message = connector.getWithoutAck(); //获取message
+                        Message message = connector.getWithoutAck(1L, TimeUnit.SECONDS); //获取message
+                        if (message == null) {
+                            continue;
+                        }
                         long batchId = message.getId();
                         int size = message.getEntries().size();
                         if (batchId == -1 || size == 0) {

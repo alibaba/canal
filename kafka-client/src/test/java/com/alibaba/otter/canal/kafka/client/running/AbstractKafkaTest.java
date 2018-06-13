@@ -2,12 +2,12 @@ package com.alibaba.otter.canal.kafka.client.running;
 
 import org.junit.Assert;
 
-public class AbstractKafkaTest {
+public abstract class AbstractKafkaTest {
 
-    protected String topic = "example";
-    protected Integer partition = null;
-    protected String groupId    = "g2";
-    protected String servers    = "slave1.test.apitops.com:6667,slave2.test.apitops.com:6667,slave3.test.apitops.com:6667";
+    public static String topic = "example";
+    public static Integer partition = null;
+    public static String groupId    = "g1";
+    public static String servers    = "slave1.test.apitops.com:6667,slave2.test.apitops.com:6667,slave3.test.apitops.com:6667";
 
     public void sleep(long time) {
         try {
