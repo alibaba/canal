@@ -69,5 +69,6 @@ public class CanalKafkaProducer {
             record = new ProducerRecord<String, Message>(topic.getTopic(), message);
         }
         producer.send(record);
+        logger.debug("send message to kafka topic: {} \n {}", topic.getTopic(), message.toString());
     }
 }

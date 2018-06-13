@@ -34,6 +34,9 @@
 			<includes>
 				<include>**/*</include>
 			</includes>
+			<excludes>
+				<exclude>logback.xml</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>./src/main/resources</directory>
