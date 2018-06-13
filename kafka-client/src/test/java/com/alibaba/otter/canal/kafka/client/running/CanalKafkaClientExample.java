@@ -91,6 +91,7 @@ public class CanalKafkaClientExample {
     }
 
     private void process() {
+        while (!running) ;
         try {
             connector.subscribe();
             while (running) {
