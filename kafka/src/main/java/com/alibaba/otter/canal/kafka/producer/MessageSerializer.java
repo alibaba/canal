@@ -10,7 +10,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.Map;
 
 /**
- * Message类的序列化Kafka实现
+ * Kafka Message类的序列化
  *
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0

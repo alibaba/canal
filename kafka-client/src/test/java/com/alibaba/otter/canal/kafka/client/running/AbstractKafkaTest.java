@@ -2,6 +2,12 @@ package com.alibaba.otter.canal.kafka.client.running;
 
 import org.junit.Assert;
 
+/**
+ * Kafka 测试基类
+ *
+ * @author machengyuan @ 2018-6-12
+ * @version 1.0.0
+ */
 public abstract class AbstractKafkaTest {
 
     public static String topic = "example";

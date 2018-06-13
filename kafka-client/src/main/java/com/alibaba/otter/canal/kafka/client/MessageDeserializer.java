@@ -11,6 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
+/**
+ * Kafka Message类的反序列化
+ *
+ * @author machengyuan @ 2018-6-12
+ * @version 1.0.0
+ */
 public class MessageDeserializer implements Deserializer<Message> {
     private static Logger logger = LoggerFactory.getLogger(MessageDeserializer.class);
 

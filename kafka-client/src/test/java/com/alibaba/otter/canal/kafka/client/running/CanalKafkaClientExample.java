@@ -10,8 +10,14 @@ import org.springframework.util.Assert;
 
 import java.util.concurrent.TimeUnit;
 
-public class KafkaCanalClientExample {
-    protected final static Logger logger = LoggerFactory.getLogger(KafkaCanalClientExample.class);
+/**
+ * Kafka client example
+ *
+ * @author machengyuan @ 2018-6-12
+ * @version 1.0.0
+ */
+public class CanalKafkaClientExample {
+    protected final static Logger logger = LoggerFactory.getLogger(CanalKafkaClientExample.class);
 
     private KafkaCanalConnector connector;
 
@@ -25,13 +31,13 @@ public class KafkaCanalClientExample {
         }
     };
 
-    public KafkaCanalClientExample(String servers, String topic, Integer partition, String groupId) {
+    public CanalKafkaClientExample(String servers, String topic, Integer partition, String groupId) {
         connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
     }
 
     public static void main(String[] args) {
         try {
-            final KafkaCanalClientExample kafkaCanalClientExample = new KafkaCanalClientExample(AbstractKafkaTest.servers,
+            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(AbstractKafkaTest.servers,
                     AbstractKafkaTest.topic, AbstractKafkaTest.partition, AbstractKafkaTest.groupId);
             logger.info("## start the kafka consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
             kafkaCanalClientExample.start();

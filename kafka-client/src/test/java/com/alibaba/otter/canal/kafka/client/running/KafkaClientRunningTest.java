@@ -12,8 +12,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ClientRunningTest extends AbstractKafkaTest {
-    private Logger logger = LoggerFactory.getLogger(ClientRunningTest.class);
+/**
+ * Kafka consumer获取Message的测试例子
+ *
+ * @author machengyuan @ 2018-6-12
+ * @version 1.0.0
+ */
+public class KafkaClientRunningTest extends AbstractKafkaTest {
+    private Logger logger = LoggerFactory.getLogger(KafkaClientRunningTest.class);
 
     private boolean running = true;
 
