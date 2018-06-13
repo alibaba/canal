@@ -48,8 +48,10 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
         });
 
         sleep(60000);
-        connector.disconnect();
         running = false;
+        connector.unsubscribe();
+        connector.close();
+
         executor.shutdown();
         logger.info("shutdown completed");
 
