@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.kafka.producer;
 
 import com.alibaba.otter.canal.kafka.CanalServerStarter;
+import com.alibaba.otter.canal.kafka.producer.KafkaProperties.CanalDestination;
 import com.alibaba.otter.canal.kafka.producer.KafkaProperties.Topic;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
@@ -31,13 +32,15 @@ public class CanalKafkaStarter {
 
     private static CanalKafkaProducer canalKafkaProducer;
 
+    private static KafkaProperties kafkaProperties;
+
     public static void init() {
         try {
 
             logger.info("## load kafka configurations");
             String conf = System.getProperty("kafka.conf", "classpath:kafka.yml");
 
-            KafkaProperties kafkaProperties;
+
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
                 kafkaProperties = new Yaml().loadAs(CanalKafkaStarter.class.getClassLoader().getResourceAsStream(conf), KafkaProperties.class);
@@ -50,16 +53,16 @@ public class CanalKafkaStarter {
             canalKafkaProducer.init(kafkaProperties);
 
             //对应每个instance启动一个worker线程
-            List<Topic> topics = kafkaProperties.getTopics();
+            List<CanalDestination> destinations = kafkaProperties.getCanalDestinations();
 
-            executorService = Executors.newFixedThreadPool(topics.size());
+            executorService = Executors.newFixedThreadPool(destinations.size());
 
             logger.info("## start the kafka workers.");
-            for (final Topic topic : topics) {
+            for (final CanalDestination destination : destinations) {
                 executorService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        worker(topic);
+                        worker(destination);
                     }
                 });
             }
@@ -88,12 +91,12 @@ public class CanalKafkaStarter {
     }
 
 
-    private static void worker(Topic topic) {
+    private static void worker(CanalDestination destination) {
         while (!running) ;
         while (!CanalServerStarter.isRunning()) ; //等待server启动完成
-        logger.info("## start the canal consumer: {}.", topic.getCanalDestination());
+        logger.info("## start the canal consumer: {}.", destination.getCanalDestination());
         CanalServerWithEmbedded server = CanalServerWithEmbedded.instance();
-        ClientIdentity clientIdentity = new ClientIdentity(topic.getCanalDestination(), (short) 1001, "");
+        ClientIdentity clientIdentity = new ClientIdentity(destination.getCanalDestination(), (short) 1001, "");
         while (running) {
             try {
                 if (!server.getCanalInstances().containsKey(clientIdentity.getDestination())) {
@@ -105,21 +108,23 @@ public class CanalKafkaStarter {
                     continue;
                 }
                 server.subscribe(clientIdentity);
-                logger.info("## the canal consumer {} is running now ......", topic.getCanalDestination());
+                logger.info("## the canal consumer {} is running now ......", destination.getCanalDestination());
 
                 while (running) {
-                    Message message = server.getWithoutAck(clientIdentity, 5 * 1024); // 获取指定数量的数据
+                    Message message = server.getWithoutAck(clientIdentity, kafkaProperties.getCanalBatchSize()); // 获取指定数量的数据
                     long batchId = message.getId();
                     try {
                         int size = message.getEntries().size();
-                        if (batchId == -1 || size == 0) {
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                //ignore
+                        if (batchId != -1 && size != 0) {
+                            if (!StringUtils.isEmpty(destination.getTopic())) {
+                                Topic topic = new Topic();
+                                topic.setTopic(destination.getTopic());
+                                topic.setPartition(destination.getPartition());
+                                destination.getTopics().add(topic);
                             }
-                        } else {
-                            canalKafkaProducer.send(topic, message);
+                            for (Topic topic : destination.getTopics()) {
+                                canalKafkaProducer.send(topic, message); //发送message到所有topic
+                            }
                         }
 
                         if (batchId != -1) {
