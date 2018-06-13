@@ -76,7 +76,6 @@
 	<logger name="com.alibaba.otter.canal.kafka" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
-		<appender-ref ref="STDOUT" />
 	</logger>
     
 	<root level="WARN">
