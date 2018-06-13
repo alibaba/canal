@@ -97,6 +97,7 @@ public class AbstractCanalClientTest {
             return;
         }
         connector.stopRunning();
+        running = false;
         if (thread != null) {
             try {
                 thread.join();
