@@ -6,7 +6,7 @@ public class AbstractKafkaTest {
 
     protected String topic = "example";
     protected Integer partition = null;
-    protected String groupId    = "g1";
+    protected String groupId    = "g2";
     protected String servers    = "slave1.test.apitops.com:6667,slave2.test.apitops.com:6667,slave3.test.apitops.com:6667";
 
     public void sleep(long time) {

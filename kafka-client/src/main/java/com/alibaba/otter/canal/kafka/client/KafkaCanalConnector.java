@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.kafka.client;
 
 import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -73,16 +72,13 @@ public class KafkaCanalConnector {
     }
 
     /**
-     * 订阅topic，不能重复订阅
+     * 订阅topic
      */
     public void subscribe() {
         try {
-            if (kafkaConsumer != null) {
-                throw new CanalClientException("resubscribe error");
+            if (kafkaConsumer == null) {
+                kafkaConsumer = new KafkaConsumer<String, Message>(properties);
             }
-
-            kafkaConsumer = new KafkaConsumer<String, Message>(properties);
-
             if (partition == null) {
                 kafkaConsumer.subscribe(Collections.singletonList(topic));
             } else {
