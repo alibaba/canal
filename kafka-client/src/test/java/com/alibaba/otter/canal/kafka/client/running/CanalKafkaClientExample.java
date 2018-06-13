@@ -80,7 +80,6 @@ public class CanalKafkaClientExample {
         if (!running) {
             return;
         }
-        connector.disconnect();
         running = false;
         if (thread != null) {
             try {
@@ -114,20 +113,19 @@ public class CanalKafkaClientExample {
                     }
 
                     connector.ack(); // 提交确认
-                } catch (WakeupException e) {
-                    try {
-                        Thread.sleep(500); //延时确保running状态的改变
-                    } catch (InterruptedException ie) {
-                        //ignore
-                    }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
             }
-        } catch (WakeupException e) {
-            //ignore
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+
+        try {
+            connector.unsubscribe();
+        } catch (WakeupException e) {
+            // No-op. Continue process
+        }
+        connector.close();
     }
 }
