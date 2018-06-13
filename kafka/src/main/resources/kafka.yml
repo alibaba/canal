@@ -1,10 +1,10 @@
-servers: slave1.test.apitops.com:6667,slave2.test.apitops.com:6667,slave3.test.apitops.com:6667
+servers: slave1:6667,slave2:6667,slave3:6667
 retries: 0
 batchSize: 16384
 lingerMs: 1
 bufferMemory: 33554432
 # canal的批次大小，单位 k
-canalBatchSize: 5
+canalBatchSize: 50
 
 canalDestinations:
   - canalDestination: example
