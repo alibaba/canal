@@ -53,7 +53,7 @@ public class MysqlConnector {
         String addr = address.getHostString();
         int port = address.getPort();
         this.address = new InetSocketAddress(addr, port);
-        
+
         this.username = username;
         this.password = password;
     }

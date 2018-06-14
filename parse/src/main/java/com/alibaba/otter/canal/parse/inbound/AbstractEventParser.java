@@ -88,7 +88,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected TimerTask                              heartBeatTimerTask;
     protected Throwable                              exception                  = null;
 
-    protected boolean                                isGTIDMode                 = false; // 是否是GTID模式
+    protected boolean                                isGTIDMode                 = false;                                   // 是否是GTID模式
 
     protected abstract BinlogParser buildParser();
 
@@ -221,12 +221,13 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         if (isGTIDMode()) {
                             erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), sinkHandler);
                         } else {
-                            if (StringUtils.isEmpty(startPosition.getJournalName()) && startPosition.getTimestamp() != null) {
+                            if (StringUtils.isEmpty(startPosition.getJournalName())
+                                && startPosition.getTimestamp() != null) {
                                 erosaConnection.dump(startPosition.getTimestamp(), sinkHandler);
                             } else {
                                 erosaConnection.dump(startPosition.getJournalName(),
-                                        startPosition.getPosition(),
-                                        sinkHandler);
+                                    startPosition.getPosition(),
+                                    sinkHandler);
                             }
                         }
 

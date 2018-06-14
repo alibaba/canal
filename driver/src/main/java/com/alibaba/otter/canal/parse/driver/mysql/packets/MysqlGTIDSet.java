@@ -1,14 +1,14 @@
 package com.alibaba.otter.canal.parse.driver.mysql.packets;
 
-import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
 
 /**
- * Created by hiwjd on 2018/4/23.
- * hiwjd0@gmail.com
+ * Created by hiwjd on 2018/4/23. hiwjd0@gmail.com
  */
 public class MysqlGTIDSet implements GTIDSet {
 
@@ -56,61 +56,26 @@ public class MysqlGTIDSet implements GTIDSet {
     }
 
     /**
-     * 解析如下格式的字符串为MysqlGTIDSet:
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1 =>
-     *   MysqlGTIDSet{
-     *     sets: {
-     *       726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{
-     *         SID: 726757ad-4455-11e8-ae04-0242ac110002,
-     *         intervals: [{start:1, stop:2}]
-     *       }
-     *     }
-     *   }
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1-3 =>
-     *   MysqlGTIDSet{
-     *     sets: {
-     *       726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{
-     *         SID: 726757ad-4455-11e8-ae04-0242ac110002,
-     *         intervals: [{start:1, stop:4}]
-     *       }
-     *     }
-     *   }
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:4 =>
-     *   MysqlGTIDSet{
-     *     sets: {
-     *       726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{
-     *         SID: 726757ad-4455-11e8-ae04-0242ac110002,
-     *         intervals: [{start:1, stop:5}]
-     *       }
-     *     }
-     *   }
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:7-9 =>
-     *   MysqlGTIDSet{
-     *     sets: {
-     *       726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{
-     *         SID: 726757ad-4455-11e8-ae04-0242ac110002,
-     *         intervals: [{start:1, stop:4}, {start:7, stop: 10}]
-     *       }
-     *     }
-     *   }
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1-3,726757ad-4455-11e8-ae04-0242ac110003:4 =>
-     *   MysqlGTIDSet{
-     *     sets: {
-     *       726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{
-     *         SID: 726757ad-4455-11e8-ae04-0242ac110002,
-     *         intervals: [{start:1, stop:4}]
-     *       },
-     *       726757ad-4455-11e8-ae04-0242ac110003: UUIDSet{
-     *         SID: 726757ad-4455-11e8-ae04-0242ac110002,
-     *         intervals: [{start:4, stop:5}]
-     *       }
-     *     }
-     *   }
+     * 解析如下格式的字符串为MysqlGTIDSet: 726757ad-4455-11e8-ae04-0242ac110002:1 =>
+     * MysqlGTIDSet{ sets: { 726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{ SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:2}] } }
+     * } 726757ad-4455-11e8-ae04-0242ac110002:1-3 => MysqlGTIDSet{ sets: {
+     * 726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{ SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4}] } }
+     * } 726757ad-4455-11e8-ae04-0242ac110002:1-3:4 => MysqlGTIDSet{ sets: {
+     * 726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{ SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:5}] } }
+     * } 726757ad-4455-11e8-ae04-0242ac110002:1-3:7-9 => MysqlGTIDSet{ sets: {
+     * 726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{ SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4},
+     * {start:7, stop: 10}] } } }
+     * 726757ad-4455-11e8-ae04-0242ac110002:1-3,726757
+     * ad-4455-11e8-ae04-0242ac110003:4 => MysqlGTIDSet{ sets: {
+     * 726757ad-4455-11e8-ae04-0242ac110002: UUIDSet{ SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4}] },
+     * 726757ad-4455-11e8-ae04-0242ac110003: UUIDSet{ SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:4, stop:5}] } }
+     * }
      *
      * @param gtidData
      * @return

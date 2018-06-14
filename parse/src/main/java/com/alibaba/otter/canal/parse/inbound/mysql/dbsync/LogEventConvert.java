@@ -467,7 +467,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 // 处理alisql模式的test.heartbeat心跳数据
                 // 心跳表基本无权限,需要mock一个tableMeta
                 FieldMeta idMeta = new FieldMeta("id", "smallint(6)", false, true, null);
-                FieldMeta typeMeta = new FieldMeta("type", "int(11)", true, false, null);
+                FieldMeta typeMeta = new FieldMeta("ts", "int(11)", true, false, null);
                 tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
             }
 

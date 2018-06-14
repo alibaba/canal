@@ -55,6 +55,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private String               username;
     private String               password;
     private int                  soTimeout             = 60000;                                              // milliseconds
+    private int                  idleTimeout           = 60 * 60 * 1000;                                     // client和server之间的空闲链接超时的时间,默认为1小时
     private String               filter;                                                                     // 记录上一次的filter提交值,便于自动重试时提交
 
     private final ByteBuffer     readHeader            = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
@@ -78,15 +79,21 @@ public class SimpleCanalConnector implements CanalConnector {
     private boolean              running               = false;
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
-        this(address, username, password, destination, 60000);
+        this(address, username, password, destination, 60000, 60 * 60 * 1000);
     }
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination,
                                 int soTimeout){
+        this(address, username, password, destination, soTimeout, 60 * 60 * 1000);
+    }
+
+    public SimpleCanalConnector(SocketAddress address, String username, String password, String destination,
+                                int soTimeout, int idleTimeout){
         this.address = address;
         this.username = username;
         this.password = password;
         this.soTimeout = soTimeout;
+        this.idleTimeout = idleTimeout;
         this.clientIdentity = new ClientIdentity(destination, (short) 1001);
     }
 
@@ -157,8 +164,8 @@ public class SimpleCanalConnector implements CanalConnector {
             ClientAuth ca = ClientAuth.newBuilder()
                 .setUsername(username != null ? username : "")
                 .setPassword(ByteString.copyFromUtf8(password != null ? password : ""))
-                .setNetReadTimeout(soTimeout)
-                .setNetWriteTimeout(soTimeout)
+                .setNetReadTimeout(idleTimeout)
+                .setNetWriteTimeout(idleTimeout)
                 .build();
             writeWithHeader(Packet.newBuilder()
                 .setType(PacketType.CLIENTAUTHENTICATION)
@@ -500,6 +507,14 @@ public class SimpleCanalConnector implements CanalConnector {
         this.soTimeout = soTimeout;
     }
 
+    public int getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    public void setIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout;
+    }
+
     public void setZkClientx(ZkClientx zkClientx) {
         this.zkClientx = zkClientx;
         initClientRunningMonitor(this.clientIdentity);
@@ -519,9 +534,9 @@ public class SimpleCanalConnector implements CanalConnector {
 
     public void stopRunning() {
         if (running) {
-            running = false;  //设置为非running状态
+            running = false; // 设置为非running状态
             if (!mutex.state()) {
-                mutex.set(true);  //中断阻塞
+                mutex.set(true); // 中断阻塞
             }
         }
     }

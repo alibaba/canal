@@ -191,6 +191,6 @@
 		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
 		
 		<!--是否启用GTID模式-->
-		<property name="isGTIDMode" value="${canal.instance.gtidon}"/>
+		<property name="isGTIDMode" value="${canal.instance.gtidon:false}"/>
 	</bean>
 </beans>

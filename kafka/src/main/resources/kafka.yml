@@ -1,0 +1,18 @@
+servers: slave1:6667,slave2:6667,slave3:6667
+retries: 0
+batchSize: 16384
+lingerMs: 1
+bufferMemory: 33554432
+# canal的批次大小，单位 k
+canalBatchSize: 50
+
+canalDestinations:
+  - canalDestination: example
+    topic: example
+    partition:
+    # 一个destination可以对应多个topic
+#    topics:
+#      - topics: example
+#        partition:
+
+
