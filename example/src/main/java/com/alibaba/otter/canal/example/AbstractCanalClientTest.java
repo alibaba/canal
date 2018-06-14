@@ -38,7 +38,6 @@ public class AbstractCanalClientTest {
     protected static final String             SEP                = SystemUtils.LINE_SEPARATOR;
     protected static final String             DATE_FORMAT        = "yyyy-MM-dd HH:mm:ss";
     protected volatile boolean                running            = false;
-    private volatile boolean                  waiting            = true;
     protected Thread.UncaughtExceptionHandler handler            = new Thread.UncaughtExceptionHandler() {
 
                                                                      public void uncaughtException(Thread t, Throwable e) {
@@ -97,6 +96,7 @@ public class AbstractCanalClientTest {
             return;
         }
         connector.stopRunning();
+        running = false;
         if (thread != null) {
             try {
                 thread.join();
@@ -115,7 +115,6 @@ public class AbstractCanalClientTest {
                 MDC.put("destination", destination);
                 connector.connect();
                 connector.subscribe();
-                waiting = false;
                 while (running) {
                     Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
                     long batchId = message.getId();
