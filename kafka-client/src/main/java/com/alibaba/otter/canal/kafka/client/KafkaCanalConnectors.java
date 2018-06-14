@@ -7,6 +7,7 @@ package com.alibaba.otter.canal.kafka.client;
  * @version 1.0.0
  */
 public class KafkaCanalConnectors {
+
     /**
      * 创建kafka客户端链接
      *
@@ -28,7 +29,7 @@ public class KafkaCanalConnectors {
      * @param groupId
      * @return
      */
-    public static KafkaCanalConnector newKafkaConnector(String servers, String topic,  String groupId) {
+    public static KafkaCanalConnector newKafkaConnector(String servers, String topic, String groupId) {
         return new KafkaCanalConnector(servers, topic, null, groupId);
     }
 }

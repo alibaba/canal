@@ -1,16 +1,17 @@
 package com.alibaba.otter.canal.kafka.client.running;
 
-import com.alibaba.otter.canal.kafka.client.KafkaCanalConnector;
-import com.alibaba.otter.canal.kafka.client.KafkaCanalConnectors;
-import com.alibaba.otter.canal.protocol.Message;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.common.errors.WakeupException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.otter.canal.kafka.client.KafkaCanalConnector;
+import com.alibaba.otter.canal.kafka.client.KafkaCanalConnectors;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * Kafka consumer获取Message的测试例子
@@ -19,7 +20,8 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0.0
  */
 public class KafkaClientRunningTest extends AbstractKafkaTest {
-    private Logger logger = LoggerFactory.getLogger(KafkaClientRunningTest.class);
+
+    private Logger  logger  = LoggerFactory.getLogger(KafkaClientRunningTest.class);
 
     private boolean running = true;
 
@@ -30,6 +32,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
         final KafkaCanalConnector connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
 
         executor.submit(new Runnable() {
+
             @Override
             public void run() {
                 connector.subscribe();
@@ -41,7 +44,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
                         }
                         connector.ack();
                     } catch (WakeupException e) {
-                        //ignore
+                        // ignore
                     }
                 }
                 connector.unsubscribe();

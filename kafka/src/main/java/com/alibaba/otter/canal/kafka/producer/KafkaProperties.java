@@ -12,20 +12,22 @@ import java.util.Set;
  * @version 1.0.0
  */
 public class KafkaProperties {
-    private String servers = "localhost:6667";
-    private int retries = 0;
-    private int batchSize = 16384;
-    private int lingerMs = 1;
-    private long bufferMemory = 33554432L;
 
-    private int canalBatchSize = 5;
+    private String                 servers           = "localhost:6667";
+    private int                    retries           = 0;
+    private int                    batchSize         = 16384;
+    private int                    lingerMs          = 1;
+    private long                   bufferMemory      = 33554432L;
+
+    private int                    canalBatchSize    = 5;
 
     private List<CanalDestination> canalDestinations = new ArrayList<CanalDestination>();
 
     public static class CanalDestination {
-        private String canalDestination;
-        private String topic;
-        private Integer partition;
+
+        private String     canalDestination;
+        private String     topic;
+        private Integer    partition;
         private Set<Topic> topics = new HashSet<Topic>();
 
         public String getCanalDestination() {
@@ -62,7 +64,8 @@ public class KafkaProperties {
     }
 
     public static class Topic {
-        private String topic;
+
+        private String  topic;
         private Integer partition;
 
         public String getTopic() {

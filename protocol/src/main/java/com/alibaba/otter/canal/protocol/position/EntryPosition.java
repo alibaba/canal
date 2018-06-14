@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.protocol.position;
 
-
 /**
  * 数据库对象的唯一标示
  * 

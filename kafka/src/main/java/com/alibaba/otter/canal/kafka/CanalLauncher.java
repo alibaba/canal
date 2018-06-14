@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.kafka;
 
-
 import com.alibaba.otter.canal.kafka.producer.CanalKafkaStarter;
 
 /**
@@ -11,9 +10,8 @@ import com.alibaba.otter.canal.kafka.producer.CanalKafkaStarter;
  */
 public class CanalLauncher {
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) {
         CanalServerStarter.init();
-
         CanalKafkaStarter.init();
     }
 }

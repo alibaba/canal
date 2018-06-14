@@ -1,14 +1,15 @@
 package com.alibaba.otter.canal.kafka.client;
 
-import com.alibaba.otter.canal.protocol.Message;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
-import java.util.Collections;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * canal kafka 数据操作客户端
@@ -20,14 +21,13 @@ public class KafkaCanalConnector {
 
     private KafkaConsumer<String, Message> kafkaConsumer;
 
-    private String topic;
+    private String                         topic;
 
-    private Integer partition;
+    private Integer                        partition;
 
+    private Properties                     properties;
 
-    private Properties properties;
-
-    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId) {
+    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId){
         this.topic = topic;
         this.partition = partition;
 
@@ -36,10 +36,11 @@ public class KafkaCanalConnector {
         properties.put("group.id", groupId);
         properties.put("enable.auto.commit", false);
         properties.put("auto.commit.interval.ms", "1000");
-        properties.put("auto.offset.reset", "latest"); //earliest //如果没有offset则从最后的offset开始读
-        properties.put("request.timeout.ms", "40000"); //必须大于session.timeout.ms的设置
-        properties.put("session.timeout.ms", "30000"); //默认为30秒
-        properties.put("max.poll.records", "1"); //所以一次只取一条数据
+        properties.put("auto.offset.reset", "latest"); // earliest
+                                                       // //如果没有offset则从最后的offset开始读
+        properties.put("request.timeout.ms", "40000"); // 必须大于session.timeout.ms的设置
+        properties.put("session.timeout.ms", "30000"); // 默认为30秒
+        properties.put("max.poll.records", "1"); // 所以一次只取一条数据
         properties.put("key.deserializer", StringDeserializer.class.getName());
         properties.put("value.deserializer", MessageDeserializer.class.getName());
     }
@@ -110,8 +111,7 @@ public class KafkaCanalConnector {
      * @return
      */
     public Message getWithoutAck(Long timeout, TimeUnit unit) {
-        ConsumerRecords<String, Message> records =
-                kafkaConsumer.poll(unit.toMillis(timeout)); //基于配置，最多只能poll到一条数据
+        ConsumerRecords<String, Message> records = kafkaConsumer.poll(unit.toMillis(timeout)); // 基于配置，最多只能poll到一条数据
 
         if (!records.isEmpty()) {
             return records.iterator().next().value();

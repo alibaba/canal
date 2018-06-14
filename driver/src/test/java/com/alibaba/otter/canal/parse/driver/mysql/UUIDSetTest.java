@@ -1,16 +1,16 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
-import com.alibaba.otter.canal.parse.driver.mysql.packets.UUIDSet;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import com.alibaba.otter.canal.parse.driver.mysql.packets.UUIDSet;
 
 /**
- * Created by hiwjd on 2018/4/26.
- * hiwjd0@gmail.com
+ * Created by hiwjd on 2018/4/26. hiwjd0@gmail.com
  */
 public class UUIDSetTest {
 

@@ -59,6 +59,7 @@ public class CanalLauncher {
 
     private static void setGlobalUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
             @Override
             public void uncaughtException(Thread t, Throwable e) {
                 logger.error("UnCaughtException", e);

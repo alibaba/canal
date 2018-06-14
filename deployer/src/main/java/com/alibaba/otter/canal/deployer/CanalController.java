@@ -434,13 +434,13 @@ public class CanalController {
         }
 
         // 启动网络接口
-        if(canalServer!=null) {
+        if (canalServer != null) {
             canalServer.start();
         }
     }
 
     public void stop() throws Throwable {
-        if(canalServer!=null) {
+        if (canalServer != null) {
             canalServer.stop();
         }
 

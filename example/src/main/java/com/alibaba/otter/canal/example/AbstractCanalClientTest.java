@@ -13,7 +13,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;

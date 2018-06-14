@@ -1,8 +1,7 @@
 package com.alibaba.otter.canal.kafka.producer;
 
-import com.alibaba.otter.canal.kafka.producer.KafkaProperties.Topic;
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.Message;
+import java.util.Properties;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -10,7 +9,9 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
+import com.alibaba.otter.canal.kafka.producer.KafkaProperties.Topic;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * kafka producer 主操作类
@@ -19,7 +20,8 @@ import java.util.Properties;
  * @version 1.0.0
  */
 public class CanalKafkaProducer {
-    private static final Logger logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
+
+    private static final Logger       logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
     private Producer<String, Message> producer;
 
@@ -51,7 +53,8 @@ public class CanalKafkaProducer {
         boolean valid = false;
         if (message != null && !message.getEntries().isEmpty()) {
             for (CanalEntry.Entry entry : message.getEntries()) {
-                if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
+                if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
+                    && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
                     valid = true;
                     break;
                 }
@@ -60,7 +63,6 @@ public class CanalKafkaProducer {
         if (!valid) {
             return;
         }
-
 
         ProducerRecord<String, Message> record;
         if (topic.getPartition() != null) {

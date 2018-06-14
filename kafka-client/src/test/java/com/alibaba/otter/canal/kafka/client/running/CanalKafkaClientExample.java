@@ -1,14 +1,15 @@
 package com.alibaba.otter.canal.kafka.client.running;
 
-import com.alibaba.otter.canal.kafka.client.KafkaCanalConnector;
-import com.alibaba.otter.canal.kafka.client.KafkaCanalConnectors;
-import com.alibaba.otter.canal.protocol.Message;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import java.util.concurrent.TimeUnit;
+import com.alibaba.otter.canal.kafka.client.KafkaCanalConnector;
+import com.alibaba.otter.canal.kafka.client.KafkaCanalConnectors;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * Kafka client example
@@ -17,28 +18,32 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0.0
  */
 public class CanalKafkaClientExample {
-    protected final static Logger logger = LoggerFactory.getLogger(CanalKafkaClientExample.class);
 
-    private KafkaCanalConnector connector;
+    protected final static Logger           logger  = LoggerFactory.getLogger(CanalKafkaClientExample.class);
 
-    private static volatile boolean running = false;
+    private KafkaCanalConnector             connector;
 
-    private Thread thread = null;
+    private static volatile boolean         running = false;
+
+    private Thread                          thread  = null;
 
     private Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
-        public void uncaughtException(Thread t, Throwable e) {
-            logger.error("parse events has an error", e);
-        }
-    };
 
-    public CanalKafkaClientExample(String servers, String topic, Integer partition, String groupId) {
+                                                        public void uncaughtException(Thread t, Throwable e) {
+                                                            logger.error("parse events has an error", e);
+                                                        }
+                                                    };
+
+    public CanalKafkaClientExample(String servers, String topic, Integer partition, String groupId){
         connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
     }
 
     public static void main(String[] args) {
         try {
             final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(AbstractKafkaTest.servers,
-                    AbstractKafkaTest.topic, AbstractKafkaTest.partition, AbstractKafkaTest.groupId);
+                AbstractKafkaTest.topic,
+                AbstractKafkaTest.partition,
+                AbstractKafkaTest.groupId);
             logger.info("## start the kafka consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
             kafkaCanalClientExample.start();
             logger.info("## the canal kafka consumer is running now ......");
@@ -56,7 +61,8 @@ public class CanalKafkaClientExample {
                 }
 
             });
-            while (running) ;
+            while (running)
+                ;
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the kafka consumer:", e);
             System.exit(0);
@@ -91,12 +97,13 @@ public class CanalKafkaClientExample {
     }
 
     private void process() {
-        while (!running) ;
+        while (!running)
+            ;
         try {
             connector.subscribe();
             while (running) {
                 try {
-                    Message message = connector.getWithoutAck(1L, TimeUnit.SECONDS); //获取message
+                    Message message = connector.getWithoutAck(1L, TimeUnit.SECONDS); // 获取message
                     if (message == null) {
                         continue;
                     }

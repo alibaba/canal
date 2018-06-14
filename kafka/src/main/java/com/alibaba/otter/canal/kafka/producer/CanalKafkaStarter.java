@@ -1,20 +1,21 @@
 package com.alibaba.otter.canal.kafka.producer;
 
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
+
 import com.alibaba.otter.canal.kafka.CanalServerStarter;
 import com.alibaba.otter.canal.kafka.producer.KafkaProperties.CanalDestination;
 import com.alibaba.otter.canal.kafka.producer.KafkaProperties.Topic;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
-
-import java.io.FileInputStream;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * kafka 启动类
@@ -23,36 +24,36 @@ import java.util.concurrent.Executors;
  * @version 1.0.0
  */
 public class CanalKafkaStarter {
-    private static final String CLASSPATH_URL_PREFIX = "classpath:";
-    private static final Logger logger = LoggerFactory.getLogger(CanalKafkaStarter.class);
 
-    private volatile static boolean running = false;
+    private static final String       CLASSPATH_URL_PREFIX = "classpath:";
+    private static final Logger       logger               = LoggerFactory.getLogger(CanalKafkaStarter.class);
 
-    private static ExecutorService executorService;
+    private volatile static boolean   running              = false;
+
+    private static ExecutorService    executorService;
 
     private static CanalKafkaProducer canalKafkaProducer;
 
-    private static KafkaProperties kafkaProperties;
+    private static KafkaProperties    kafkaProperties;
 
     public static void init() {
         try {
-
             logger.info("## load kafka configurations");
             String conf = System.getProperty("kafka.conf", "classpath:kafka.yml");
 
-
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
-                kafkaProperties = new Yaml().loadAs(CanalKafkaStarter.class.getClassLoader().getResourceAsStream(conf), KafkaProperties.class);
+                kafkaProperties = new Yaml().loadAs(CanalKafkaStarter.class.getClassLoader().getResourceAsStream(conf),
+                    KafkaProperties.class);
             } else {
                 kafkaProperties = new Yaml().loadAs(new FileInputStream(conf), KafkaProperties.class);
             }
 
-            //初始化 kafka producer
+            // 初始化 kafka producer
             canalKafkaProducer = new CanalKafkaProducer();
             canalKafkaProducer.init(kafkaProperties);
 
-            //对应每个instance启动一个worker线程
+            // 对应每个instance启动一个worker线程
             List<CanalDestination> destinations = kafkaProperties.getCanalDestinations();
 
             executorService = Executors.newFixedThreadPool(destinations.size());
@@ -60,6 +61,7 @@ public class CanalKafkaStarter {
             logger.info("## start the kafka workers.");
             for (final CanalDestination destination : destinations) {
                 executorService.execute(new Runnable() {
+
                     @Override
                     public void run() {
                         worker(destination);
@@ -69,6 +71,7 @@ public class CanalKafkaStarter {
             running = true;
             logger.info("## the kafka workers is running now ......");
             Runtime.getRuntime().addShutdownHook(new Thread() {
+
                 public void run() {
                     try {
                         logger.info("## stop the kafka workers");
@@ -90,10 +93,11 @@ public class CanalKafkaStarter {
         }
     }
 
-
     private static void worker(CanalDestination destination) {
-        while (!running) ;
-        while (!CanalServerStarter.isRunning()) ; //等待server启动完成
+        while (!running)
+            ;
+        while (!CanalServerStarter.isRunning())
+            ; // 等待server启动完成
         logger.info("## start the canal consumer: {}.", destination.getCanalDestination());
         CanalServerWithEmbedded server = CanalServerWithEmbedded.instance();
         ClientIdentity clientIdentity = new ClientIdentity(destination.getCanalDestination(), (short) 1001, "");
@@ -103,7 +107,7 @@ public class CanalKafkaStarter {
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
-                        //ignore
+                        // ignore
                     }
                     continue;
                 }
@@ -123,7 +127,7 @@ public class CanalKafkaStarter {
                                 destination.getTopics().add(topic);
                             }
                             for (Topic topic : destination.getTopics()) {
-                                canalKafkaProducer.send(topic, message); //发送message到所有topic
+                                canalKafkaProducer.send(topic, message); // 发送message到所有topic
                             }
                         }
 

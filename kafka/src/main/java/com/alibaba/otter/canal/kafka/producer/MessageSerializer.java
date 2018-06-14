@@ -1,13 +1,14 @@
 package com.alibaba.otter.canal.kafka.producer;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.CanalPacket;
-import com.alibaba.otter.canal.protocol.Message;
+import java.util.Map;
+
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Map;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalPacket;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * Kafka Message类的序列化
@@ -16,6 +17,7 @@ import java.util.Map;
  * @version 1.0.0
  */
 public class MessageSerializer implements Serializer<Message> {
+
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
     }
@@ -23,8 +25,7 @@ public class MessageSerializer implements Serializer<Message> {
     @Override
     public byte[] serialize(String topic, Message data) {
         try {
-            if (data == null)
-                return null;
+            if (data == null) return null;
             else {
                 CanalPacket.Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
                 if (data.getId() != -1 && !CollectionUtils.isEmpty(data.getEntries())) {

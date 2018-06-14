@@ -1,12 +1,13 @@
 package com.alibaba.otter.canal.kafka;
 
-import com.alibaba.otter.canal.deployer.CanalController;
+import java.io.FileInputStream;
+import java.util.Properties;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.util.Properties;
+import com.alibaba.otter.canal.deployer.CanalController;
 
 /**
  * canal server 启动类
@@ -15,10 +16,10 @@ import java.util.Properties;
  * @version 1.0.0
  */
 public class CanalServerStarter {
-    private static final String CLASSPATH_URL_PREFIX = "classpath:";
-    private static final Logger logger = LoggerFactory.getLogger(CanalServerStarter.class);
 
-    private static boolean running = false;
+    private static final String CLASSPATH_URL_PREFIX = "classpath:";
+    private static final Logger logger               = LoggerFactory.getLogger(CanalServerStarter.class);
+    private static boolean      running              = false;
 
     public static void init() {
         try {
@@ -61,12 +62,13 @@ public class CanalServerStarter {
         }
     }
 
-    public static boolean isRunning(){
+    public static boolean isRunning() {
         return running;
     }
 
     private static void setGlobalUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
             @Override
             public void uncaughtException(Thread t, Throwable e) {
                 logger.error("UnCaughtException", e);
