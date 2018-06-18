@@ -19,7 +19,7 @@ public class CanalServerStarter {
 
     private static final String CLASSPATH_URL_PREFIX = "classpath:";
     private static final Logger logger               = LoggerFactory.getLogger(CanalServerStarter.class);
-    private static boolean      running              = false;
+    private volatile static boolean running          = false;
 
     public static void init() {
         try {
