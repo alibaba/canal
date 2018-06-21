@@ -19,31 +19,32 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class CanalKafkaClientExample {
 
-    protected final static Logger           logger  = LoggerFactory.getLogger(CanalKafkaClientExample.class);
+    protected final static Logger logger = LoggerFactory.getLogger(CanalKafkaClientExample.class);
 
-    private KafkaCanalConnector             connector;
+    private KafkaCanalConnector connector;
 
-    private static volatile boolean         running = false;
+    private static volatile boolean running = false;
 
-    private Thread                          thread  = null;
+    private Thread thread = null;
 
     private Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
 
-                                                        public void uncaughtException(Thread t, Throwable e) {
-                                                            logger.error("parse events has an error", e);
-                                                        }
-                                                    };
+        public void uncaughtException(Thread t, Throwable e) {
+            logger.error("parse events has an error", e);
+        }
+    };
 
-    public CanalKafkaClientExample(String servers, String topic, Integer partition, String groupId){
-        connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
+    public CanalKafkaClientExample(String zkServers, String servers, String topic, Integer partition, String groupId) {
+        connector = KafkaCanalConnectors.newKafkaConnector(zkServers, servers, topic, partition, groupId);
     }
 
     public static void main(String[] args) {
         try {
-            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(AbstractKafkaTest.servers,
-                AbstractKafkaTest.topic,
-                AbstractKafkaTest.partition,
-                AbstractKafkaTest.groupId);
+            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(AbstractKafkaTest.zkServers,
+                    AbstractKafkaTest.servers,
+                    AbstractKafkaTest.topic,
+                    AbstractKafkaTest.partition,
+                    AbstractKafkaTest.groupId);
             logger.info("## start the kafka consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
             kafkaCanalClientExample.start();
             logger.info("## the canal kafka consumer is running now ......");
@@ -86,6 +87,7 @@ public class CanalKafkaClientExample {
         if (!running) {
             return;
         }
+        connector.stopRunning();
         running = false;
         if (thread != null) {
             try {
@@ -99,34 +101,37 @@ public class CanalKafkaClientExample {
     private void process() {
         while (!running)
             ;
-        try {
-            connector.subscribe();
-            while (running) {
-                try {
-                    Message message = connector.getWithoutAck(1L, TimeUnit.SECONDS); // 获取message
-                    if (message == null) {
-                        continue;
-                    }
-                    long batchId = message.getId();
-                    int size = message.getEntries().size();
-                    if (batchId == -1 || size == 0) {
-                        // try {
-                        // Thread.sleep(1000);
-                        // } catch (InterruptedException e) {
-                        // }
-                    } else {
-                        // printSummary(message, batchId, size);
-                        // printEntry(message.getEntries());
-                        logger.info(message.toString());
-                    }
+        while (running) {
+            try {
+                connector.connect();
+                connector.subscribe();
+                while (running) {
+                    try {
+                        Message message = connector.getWithoutAck(1L, TimeUnit.SECONDS); // 获取message
+                        if (message == null) {
+                            continue;
+                        }
+                        long batchId = message.getId();
+                        int size = message.getEntries().size();
+                        if (batchId == -1 || size == 0) {
+                            // try {
+                            // Thread.sleep(1000);
+                            // } catch (InterruptedException e) {
+                            // }
+                        } else {
+                            // printSummary(message, batchId, size);
+                            // printEntry(message.getEntries());
+                            logger.info(message.toString());
+                        }
 
-                    connector.ack(); // 提交确认
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
+                        connector.ack(); // 提交确认
+                    } catch (Exception e) {
+                        logger.error(e.getMessage(), e);
+                    }
                 }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
             }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
         }
 
         try {
@@ -134,6 +139,6 @@ public class CanalKafkaClientExample {
         } catch (WakeupException e) {
             // No-op. Continue process
         }
-        connector.close();
+        connector.disconnnect();
     }
 }

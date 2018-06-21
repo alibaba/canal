@@ -35,6 +35,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
 
             @Override
             public void run() {
+                connector.connect();
                 connector.subscribe();
                 while (running) {
                     try {
@@ -48,7 +49,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
                     }
                 }
                 connector.unsubscribe();
-                connector.close();
+                connector.disconnnect();
             }
         });
 
