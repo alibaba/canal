@@ -76,7 +76,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private Object               readDataLock          = new Object();
     private Object               writeDataLock         = new Object();
 
-    private boolean              running               = false;
+    private volatile boolean     running               = false;
 
     public SimpleCanalConnector(SocketAddress address, String username, String password, String destination){
         this(address, username, password, destination, 60000, 60 * 60 * 1000);
@@ -289,6 +289,9 @@ public class SimpleCanalConnector implements CanalConnector {
 
     public Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         waitClientRunning();
+        if (!running) {
+            return null;
+        }
         try {
             int size = (batchSize <= 0) ? 1000 : batchSize;
             long time = (timeout == null || timeout < 0) ? -1 : timeout; // -1代表不做timeout控制
@@ -342,6 +345,9 @@ public class SimpleCanalConnector implements CanalConnector {
 
     public void ack(long batchId) throws CanalClientException {
         waitClientRunning();
+        if (!running) {
+            return;
+        }
         ClientAck ca = ClientAck.newBuilder()
             .setDestination(clientIdentity.getDestination())
             .setClientId(String.valueOf(clientIdentity.getClientId()))
