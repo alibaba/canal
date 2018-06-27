@@ -763,7 +763,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         }
 
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
-                            && endPosition.getPosition() < logfileoffset) {
+                            && endPosition.getPosition() <= logfileoffset) {
                             return false;
                         }
 
