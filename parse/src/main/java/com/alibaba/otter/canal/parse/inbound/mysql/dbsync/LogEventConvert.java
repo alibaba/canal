@@ -267,7 +267,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
-            if (type != EventType.QUERY) {
+            if (type != EventType.QUERY && type != EventType.INSERT && type != EventType.UPDATE
+                && type != EventType.DELETE) {
                 rowChangeBuider.setIsDdl(true);
             }
             rowChangeBuider.setSql(queryString);
