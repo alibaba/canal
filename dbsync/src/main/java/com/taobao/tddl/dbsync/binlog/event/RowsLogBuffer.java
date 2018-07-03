@@ -27,6 +27,7 @@ public final class RowsLogBuffer {
     public static final long   DATETIMEF_INT_OFS = 0x8000000000L;
     public static final long   TIMEF_INT_OFS     = 0x800000L;
     public static final long   TIMEF_OFS         = 0x800000000000L;
+    private static char[]      digits            = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
     private final LogBuffer    buffer;
     private final int          columnLen;
@@ -489,17 +490,18 @@ public final class RowsLogBuffer {
                     // t % 100);
 
                     StringBuilder builder = new StringBuilder();
-                    builder.append(formatNumber(d / 10000, 4))
-                        .append('-')
-                        .append(formatNumber((d % 10000) / 100, 2))
-                        .append('-')
-                        .append(formatNumber(d % 100, 2))
-                        .append(' ')
-                        .append(formatNumber(t / 10000, 2))
-                        .append(':')
-                        .append(formatNumber((t % 10000) / 100, 2))
-                        .append(':')
-                        .append(formatNumber(t % 100, 2));
+                    builder.append(26);
+                    appendNumber4(builder, d / 10000);
+                    builder.append('-');
+                    appendNumber2(builder, (d % 10000) / 100);
+                    builder.append('-');
+                    appendNumber2(builder, d % 100);
+                    builder.append(' ');
+                    appendNumber2(builder, t / 10000);
+                    builder.append(':');
+                    appendNumber2(builder, (t % 10000) / 100);
+                    builder.append(':');
+                    appendNumber2(builder, t % 100);
                     value = builder.toString();
                 }
                 javaType = Types.TIMESTAMP;
@@ -562,18 +564,18 @@ public final class RowsLogBuffer {
                     // (int) ((hms >> 6) % (1 << 6)),
                     // (int) (hms % (1 << 6)));
 
-                    StringBuilder builder = new StringBuilder();
-                    builder.append(formatNumber((int) (ym / 13), 4))
-                        .append('-')
-                        .append(formatNumber((int) (ym % 13), 2))
-                        .append('-')
-                        .append(formatNumber((int) (ymd % (1 << 5)), 2))
-                        .append(' ')
-                        .append(formatNumber((int) (hms >> 12), 2))
-                        .append(':')
-                        .append(formatNumber((int) ((hms >> 6) % (1 << 6)), 2))
-                        .append(':')
-                        .append(formatNumber((int) (hms % (1 << 6)), 2));
+                    StringBuilder builder = new StringBuilder(26);
+                    appendNumber4(builder, (int) (ym / 13));
+                    builder.append('-');
+                    appendNumber2(builder, (int) (ym % 13));
+                    builder.append('-');
+                    appendNumber2(builder, (int) (ymd % (1 << 5)));
+                    builder.append(' ');
+                    appendNumber2(builder, (int) (hms >> 12));
+                    builder.append(':');
+                    appendNumber2(builder, (int) ((hms >> 6) % (1 << 6)));
+                    builder.append(':');
+                    appendNumber2(builder, (int) (hms % (1 << 6)));
                     second = builder.toString();
                 }
 
@@ -609,15 +611,15 @@ public final class RowsLogBuffer {
                     // (u32 % 10000) / 100,
                     // u32 % 100);
 
-                    StringBuilder builder = new StringBuilder();
+                    StringBuilder builder = new StringBuilder(12);
                     if (i32 < 0) {
                         builder.append('-');
                     }
-                    builder.append(formatNumber(u32 / 10000, 2))
-                        .append(':')
-                        .append(formatNumber((u32 % 10000) / 100, 2))
-                        .append(':')
-                        .append(formatNumber(u32 % 100, 2));
+                    appendNumber2(builder, u32 / 10000);
+                    builder.append(':');
+                    appendNumber2(builder, (u32 % 10000) / 100);
+                    builder.append(':');
+                    appendNumber2(builder, u32 % 100);
                     value = builder.toString();
                 }
                 javaType = Types.TIME;
@@ -718,15 +720,15 @@ public final class RowsLogBuffer {
                     // (int) ((intpart >> 6) % (1 << 6)),
                     // (int) (intpart % (1 << 6)));
 
-                    StringBuilder builder = new StringBuilder();
+                    StringBuilder builder = new StringBuilder(12);
                     if (ltime < 0) {
                         builder.append('-');
                     }
-                    builder.append(formatNumber((int) ((intpart >> 12) % (1 << 10)), 2))
-                        .append(':')
-                        .append(formatNumber((int) ((intpart >> 6) % (1 << 6)), 2))
-                        .append(':')
-                        .append(formatNumber((int) (intpart % (1 << 6)), 2));
+                    appendNumber2(builder, (int) ((intpart >> 12) % (1 << 10)));
+                    builder.append(':');
+                    appendNumber2(builder, (int) ((intpart >> 6) % (1 << 6)));
+                    builder.append(':');
+                    appendNumber2(builder, (int) (intpart % (1 << 6)));
                     second = builder.toString();
                 }
 
@@ -770,12 +772,12 @@ public final class RowsLogBuffer {
                     // value = String.format("%04d-%02d-%02d", i32 / (16 * 32),
                     // i32 / 32 % 16, i32 % 32);
 
-                    StringBuilder builder = new StringBuilder();
-                    builder.append(formatNumber(i32 / (16 * 32), 4))
-                        .append('-')
-                        .append(formatNumber(i32 / 32 % 16, 2))
-                        .append('-')
-                        .append(formatNumber(i32 % 32, 2));
+                    StringBuilder builder = new StringBuilder(12);
+                    appendNumber4(builder, i32 / (16 * 32));
+                    builder.append('-');
+                    appendNumber2(builder, i32 / 32 % 16);
+                    builder.append('-');
+                    appendNumber2(builder, i32 % 32);
                     value = builder.toString();
                 }
                 javaType = Types.DATE;
@@ -1126,29 +1128,34 @@ public final class RowsLogBuffer {
         return sec.substring(0, meta);
     }
 
-    private String formatNumber(int d, int size) {
-        return leftPad(String.valueOf(d), size, '0');
+    private void appendNumber4(StringBuilder builder, int d) {
+        if (d >= 1000) {
+            builder.append(digits[d / 1000])
+                .append(digits[(d / 100) % 10])
+                .append(digits[(d / 10) % 10])
+                .append(digits[d % 10]);
+        } else if (d >= 100) {
+            builder.append('0');
+            appendNumber3(builder, d);
+        }
     }
 
-    private String leftPad(String str, int size, char padChar) {
-        if (str == null) {
-            return null;
+    private void appendNumber3(StringBuilder builder, int d) {
+        if (d >= 100) {
+            builder.append(digits[d / 100])
+                .append(digits[(d / 10) % 10])
+                .append(digits[d % 10]);
+        } else {
+            builder.append('0');
+            appendNumber2(builder, d);
         }
-        int pads = size - str.length();
-        if (pads <= 0) {
-            return str; // returns original String when possible
-        }
-        return padding(pads, padChar).concat(str);
     }
 
-    private String padding(int repeat, char padChar) throws IndexOutOfBoundsException {
-        if (repeat < 0) {
-            throw new IndexOutOfBoundsException("Cannot pad a negative amount: " + repeat);
+    private void appendNumber2(StringBuilder builder, int d) {
+        if (d >= 10) {
+            builder.append(digits[(d / 10) % 10]).append(digits[d % 10]);
+        } else {
+            builder.append('0').append(digits[d]);
         }
-        final char[] buf = new char[repeat];
-        for (int i = 0; i < buf.length; i++) {
-            buf[i] = padChar;
-        }
-        return new String(buf);
     }
 }
