@@ -9,26 +9,7 @@ import com.alibaba.fastsql.sql.ast.SQLExpr;
 import com.alibaba.fastsql.sql.ast.SQLStatement;
 import com.alibaba.fastsql.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.fastsql.sql.ast.expr.SQLPropertyExpr;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableAddConstraint;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableAddIndex;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableDropConstraint;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableDropIndex;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableDropKey;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableItem;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableRename;
-import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLConstraint;
-import com.alibaba.fastsql.sql.ast.statement.SQLCreateIndexStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLCreateTableStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLDeleteStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLDropIndexStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLDropTableStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLExprTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLInsertStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLTruncateStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLUnique;
-import com.alibaba.fastsql.sql.ast.statement.SQLUpdateStatement;
+import com.alibaba.fastsql.sql.ast.statement.*;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlRenameTableStatement;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlRenameTableStatement.Item;
 import com.alibaba.fastsql.sql.parser.ParserException;
@@ -156,6 +137,13 @@ public class DruidDdlParser {
                 // 拿到的表名可能为null,比如delete a,b from a where a.id = b.id
                 processName(ddlResult, schmeaName, delete.getTableName(), false);
                 ddlResult.setType(EventType.DELETE);
+                ddlResults.add(ddlResult);
+            } else if (statement instanceof SQLCreateDatabaseStatement){
+                // add create database support
+                DdlResult ddlResult = new DdlResult();
+                SQLCreateDatabaseStatement createDatabase= (SQLCreateDatabaseStatement) statement;
+                ddlResult.setType(EventType.QUERY);
+                processName(ddlResult,schmeaName,null,false);
                 ddlResults.add(ddlResult);
             }
         }
