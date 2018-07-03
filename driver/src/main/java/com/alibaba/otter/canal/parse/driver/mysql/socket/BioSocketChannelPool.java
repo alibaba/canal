@@ -11,8 +11,6 @@ public abstract class BioSocketChannelPool {
 
     public static BioSocketChannel open(SocketAddress address) throws Exception {
         Socket socket = new Socket();
-        socket.setReceiveBufferSize(32 * 1024);
-        socket.setSendBufferSize(32 * 1024);
         socket.setSoTimeout(BioSocketChannel.SO_TIMEOUT);
         socket.setTcpNoDelay(true);
         socket.setKeepAlive(true);
