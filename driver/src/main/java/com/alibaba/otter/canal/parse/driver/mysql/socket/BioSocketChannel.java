@@ -93,6 +93,37 @@ public class BioSocketChannel implements SocketChannel {
         return data;
     }
 
+    @Override
+    public void read(byte[] data, int off, int len, int timeout) throws IOException {
+        InputStream input = this.input;
+        int accTimeout = 0;
+        if (input == null) {
+            throw new SocketException("Socket already closed.");
+        }
+
+        int n = 0;
+        while (n < len && accTimeout < timeout) {
+            try {
+                int read = input.read(data, off + n, len - n);
+                if (read > -1) {
+                    n += read;
+                } else {
+                    throw new IOException("EOF encountered.");
+                }
+            } catch (SocketTimeoutException te) {
+                if (Thread.interrupted()) {
+                    throw new ClosedByInterruptException();
+                }
+                accTimeout += SO_TIMEOUT;
+            }
+        }
+
+        if (n < len && accTimeout >= timeout) {
+            throw new SocketTimeoutException("Timeout occurred, failed to read " + len + " bytes in " + timeout
+                                             + " milliseconds.");
+        }
+    }
+
     public boolean isConnected() {
         Socket socket = this.socket;
         if (socket != null) {
@@ -132,5 +163,6 @@ public class BioSocketChannel implements SocketChannel {
         this.output = null;
         this.socket = null;
     }
+
 
 }

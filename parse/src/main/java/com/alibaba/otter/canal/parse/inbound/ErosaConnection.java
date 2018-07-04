@@ -28,12 +28,16 @@ public interface ErosaConnection {
 
     /**
      * 通过GTID同步binlog
-     *
-     * @param gtidSet
-     * @param func
-     * @throws IOException
      */
     public void dump(GTIDSet gtidSet, SinkFunction func) throws IOException;
+
+    // -------------
+
+    public void dump(String binlogfilename, Long binlogPosition, MultiStageCoprocessor coprocessor) throws IOException;
+
+    public void dump(long timestamp, MultiStageCoprocessor coprocessor) throws IOException;
+
+    public void dump(GTIDSet gtidSet, MultiStageCoprocessor coprocessor) throws IOException;
 
     ErosaConnection fork();
 }

@@ -171,10 +171,13 @@ public class DirectLogFetcher extends LogFetcher {
     private final boolean fetch0(final int off, final int len) throws IOException {
         ensureCapacity(off + len);
 
-        byte[] read = channel.read(len, READ_TIMEOUT_MILLISECONDS);
-        System.arraycopy(read, 0, this.buffer, off, len);
+        // byte[] read = channel.read(len, READ_TIMEOUT_MILLISECONDS);
+        // System.arraycopy(read, 0, this.buffer, off, len);
 
-        if (limit < off + len) limit = off + len;
+        channel.read(buffer, off, len, READ_TIMEOUT_MILLISECONDS);
+        if (limit < off + len) {
+            limit = off + len;
+        }
         return true;
     }
 

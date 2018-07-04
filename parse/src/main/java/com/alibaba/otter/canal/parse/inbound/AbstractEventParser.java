@@ -89,10 +89,17 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected Throwable                              exception                  = null;
 
     protected boolean                                isGTIDMode                 = false;                                   // 是否是GTID模式
+    protected boolean                                parallel                   = true;                                    // 是否开启并行解析模式
+    protected int                                    parallelThreadSize         = Runtime.getRuntime()
+                                                                                    .availableProcessors() * 60 / 100;     // 60%的能力跑解析,剩余部分处理网络
+    protected int                                    parallelBufferSize         = 16 * parallelThreadSize;
+    protected MultiStageCoprocessor                  multiStageCoprocessor;
 
     protected abstract BinlogParser buildParser();
 
     protected abstract ErosaConnection buildErosaConnection();
+
+    protected abstract MultiStageCoprocessor buildMultiStageCoprocessor();
 
     protected abstract EntryPosition findStartPosition(ErosaConnection connection) throws IOException;
 
@@ -217,20 +224,39 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         };
 
                         // 4. 开始dump数据
-                        // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
-                        if (isGTIDMode()) {
-                            erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), sinkHandler);
-                        } else {
-                            if (StringUtils.isEmpty(startPosition.getJournalName())
-                                && startPosition.getTimestamp() != null) {
-                                erosaConnection.dump(startPosition.getTimestamp(), sinkHandler);
+                        if (parallel) {
+                            // build stage processor
+                            multiStageCoprocessor = buildMultiStageCoprocessor();
+                            multiStageCoprocessor.start();
+
+                            if (isGTIDMode()) {
+                                // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
+                                erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), multiStageCoprocessor);
                             } else {
-                                erosaConnection.dump(startPosition.getJournalName(),
-                                    startPosition.getPosition(),
-                                    sinkHandler);
+                                if (StringUtils.isEmpty(startPosition.getJournalName())
+                                    && startPosition.getTimestamp() != null) {
+                                    erosaConnection.dump(startPosition.getTimestamp(), multiStageCoprocessor);
+                                } else {
+                                    erosaConnection.dump(startPosition.getJournalName(),
+                                        startPosition.getPosition(),
+                                        multiStageCoprocessor);
+                                }
+                            }
+                        } else {
+                            if (isGTIDMode()) {
+                                // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
+                                erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), sinkHandler);
+                            } else {
+                                if (StringUtils.isEmpty(startPosition.getJournalName())
+                                    && startPosition.getTimestamp() != null) {
+                                    erosaConnection.dump(startPosition.getTimestamp(), sinkHandler);
+                                } else {
+                                    erosaConnection.dump(startPosition.getJournalName(),
+                                        startPosition.getPosition(),
+                                        sinkHandler);
+                                }
                             }
                         }
-
                     } catch (TableIdNotFoundException e) {
                         exception = e;
                         // 特殊处理TableIdNotFound异常,出现这样的异常，一种可能就是起始的position是一个事务当中，导致tablemap
@@ -276,6 +302,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     eventSink.interrupt();
                     transactionBuffer.reset();// 重置一下缓冲队列，重新记录数据
                     binlogParser.reset();// 重新置位
+                    if (multiStageCoprocessor != null) {
+                        multiStageCoprocessor.reset();
+                    }
 
                     if (running) {
                         // sleep一段时间再进行重试
@@ -313,6 +342,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         }
         if (transactionBuffer.isStart()) {
             transactionBuffer.stop();
+        }
+
+        if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
+            multiStageCoprocessor.stop();
         }
     }
 
@@ -549,4 +582,29 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     public void setIsGTIDMode(boolean isGTIDMode) {
         this.isGTIDMode = isGTIDMode;
     }
+
+    public boolean isParallel() {
+        return parallel;
+    }
+
+    public void setParallel(boolean parallel) {
+        this.parallel = parallel;
+    }
+
+    public int getParallelThreadSize() {
+        return parallelThreadSize;
+    }
+
+    public void setParallelThreadSize(int parallelThreadSize) {
+        this.parallelThreadSize = parallelThreadSize;
+    }
+
+    public int getParallelBufferSize() {
+        return parallelBufferSize;
+    }
+
+    public void setParallelBufferSize(int parallelBufferSize) {
+        this.parallelBufferSize = parallelBufferSize;
+    }
+
 }

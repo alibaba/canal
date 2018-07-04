@@ -137,5 +137,10 @@
 		<!--表结构相关-->
 		<property name="enableTsdb" value="${canal.instance.tsdb.enable:true}"/>
 		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
+		
+		<!-- parallel parser -->
+		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
+		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize:16}" />
+		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 	</bean>
 </beans>

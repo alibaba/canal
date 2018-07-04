@@ -11,6 +11,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
+import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBBuilder;
@@ -115,6 +116,14 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             && binlogParser instanceof LogEventConvert) {
             ((LogEventConvert) binlogParser).setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
+    }
+
+    protected MultiStageCoprocessor buildMultiStageCoprocessor() {
+        return new MysqlMultiStageCoprocessor(parallelBufferSize,
+            parallelThreadSize,
+            (LogEventConvert) binlogParser,
+            transactionBuffer,
+            destination);
     }
 
     // ============================ setter / getter =========================

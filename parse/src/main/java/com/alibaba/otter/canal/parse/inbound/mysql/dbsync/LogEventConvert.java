@@ -46,7 +46,6 @@ import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LogHeader;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RandLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
@@ -89,7 +88,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private volatile AviaterRegexFilter nameBlackFilter;
 
     private TableMetaCache              tableMetaCache;
-    private String                      binlogFileName      = "mysql-bin.000001";
     private Charset                     charset             = Charset.defaultCharset();
     private boolean                     filterQueryDcl      = false;
     private boolean                     filterQueryDml      = false;
@@ -119,9 +117,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
         int eventType = logEvent.getHeader().getType();
         switch (eventType) {
-            case LogEvent.ROTATE_EVENT:
-                binlogFileName = ((RotateLogEvent) logEvent).getFilename();
-                break;
             case LogEvent.QUERY_EVENT:
                 return parseQueryEvent((QueryLogEvent) logEvent, isSeek);
             case LogEvent.XID_EVENT:
@@ -158,7 +153,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void reset() {
         // do nothing
-        binlogFileName = "mysql-bin.000001";
         if (tableMetaCache != null) {
             tableMetaCache.clearTableMeta();
         }
@@ -174,7 +168,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             gtidSet.update(value);
         }
 
-        Header header = createHeader("", logHeader, "", "", EventType.GTID);
+        Header header = createHeader(logHeader, "", "", EventType.GTID);
         return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
     }
 
@@ -187,7 +181,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             beginBuilder.addProps(createSpecialPair(XA_TYPE, XA_START));
             beginBuilder.addProps(createSpecialPair(XA_XID, getXaXid(queryString, XA_START)));
             TransactionBegin transactionBegin = beginBuilder.build();
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
+            Header header = createHeader(event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONBEGIN, transactionBegin.toByteString());
         } else if (StringUtils.startsWithIgnoreCase(queryString, XA_END)) {
             // xa start use TransactionEnd
@@ -196,11 +190,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             endBuilder.addProps(createSpecialPair(XA_TYPE, XA_END));
             endBuilder.addProps(createSpecialPair(XA_XID, getXaXid(queryString, XA_END)));
             TransactionEnd transactionEnd = endBuilder.build();
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
+            Header header = createHeader(event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
         } else if (StringUtils.startsWithIgnoreCase(queryString, XA_COMMIT)) {
             // xa commit
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "", EventType.XACOMMIT);
+            Header header = createHeader(event.getHeader(), "", "", EventType.XACOMMIT);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setSql(queryString);
             rowChangeBuider.addProps(createSpecialPair(XA_TYPE, XA_COMMIT));
@@ -209,7 +203,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
         } else if (StringUtils.startsWithIgnoreCase(queryString, XA_ROLLBACK)) {
             // xa rollback
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "", EventType.XAROLLBACK);
+            Header header = createHeader(event.getHeader(), "", "", EventType.XAROLLBACK);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setSql(queryString);
             rowChangeBuider.addProps(createSpecialPair(XA_TYPE, XA_ROLLBACK));
@@ -218,11 +212,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
         } else if (StringUtils.endsWithIgnoreCase(queryString, BEGIN)) {
             TransactionBegin transactionBegin = createTransactionBegin(event.getSessionId());
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
+            Header header = createHeader(event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONBEGIN, transactionBegin.toByteString());
         } else if (StringUtils.endsWithIgnoreCase(queryString, COMMIT)) {
             TransactionEnd transactionEnd = createTransactionEnd(0L); // MyISAM可能不会有xid事件
-            Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
+            Header header = createHeader(event.getHeader(), "", "", null);
             return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
         } else {
             boolean notFilter = false;
@@ -265,7 +259,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 tableMetaCache.apply(position, event.getDbName(), queryString, null);
             }
 
-            Header header = createHeader(binlogFileName, event.getHeader(), schemaName, tableName, type);
+            Header header = createHeader(event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             if (type != EventType.QUERY && type != EventType.INSERT && type != EventType.UPDATE
                 && type != EventType.DELETE) {
@@ -425,51 +419,77 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private Entry parseXidEvent(XidLogEvent event) {
         TransactionEnd transactionEnd = createTransactionEnd(event.getXid());
-        Header header = createHeader(binlogFileName, event.getHeader(), "", "", null);
+        Header header = createHeader(event.getHeader(), "", "", null);
         return createEntry(header, EntryType.TRANSACTIONEND, transactionEnd.toByteString());
     }
 
-    private Entry parseRowsEvent(RowsLogEvent event) {
+    public TableMeta parseRowsEventForTableMeta(RowsLogEvent event) {
+        TableMapLogEvent table = event.getTable();
+        if (table == null) {
+            // tableId对应的记录不存在
+            throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
+        }
+
+        boolean isHeartBeat = isAliSQLHeartBeat(table.getDbName(), table.getTableName());
+        boolean isRDSHeartBeat = tableMetaCache.isOnRDS() && isRDSHeartBeat(table.getDbName(), table.getTableName());
+
+        String fullname = table.getDbName() + "." + table.getTableName();
+        // check name filter
+        if (nameFilter != null && !nameFilter.filter(fullname)) {
+            return null;
+        }
+        if (nameBlackFilter != null && nameBlackFilter.filter(fullname)) {
+            return null;
+        }
+
+        // if (isHeartBeat || isRDSHeartBeat) {
+        // // 忽略rds模式的mysql.ha_health_check心跳数据
+        // return null;
+        // }
+        TableMeta tableMeta = null;
+        if (isRDSHeartBeat) {
+            // 处理rds模式的mysql.ha_health_check心跳数据
+            // 主要RDS的心跳表基本无权限,需要mock一个tableMeta
+            FieldMeta idMeta = new FieldMeta("id", "bigint(20)", true, false, "0");
+            FieldMeta typeMeta = new FieldMeta("type", "char(1)", false, true, "0");
+            tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
+        } else if (isHeartBeat) {
+            // 处理alisql模式的test.heartbeat心跳数据
+            // 心跳表基本无权限,需要mock一个tableMeta
+            FieldMeta idMeta = new FieldMeta("id", "smallint(6)", false, true, null);
+            FieldMeta typeMeta = new FieldMeta("ts", "int(11)", true, false, null);
+            tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
+        }
+
+        EntryPosition position = createPosition(event.getHeader());
+        if (tableMetaCache != null && tableMeta == null) {// 入错存在table meta
+            tableMeta = getTableMeta(table.getDbName(), table.getTableName(), true, position);
+            if (tableMeta == null) {
+                if (!filterTableError) {
+                    throw new CanalParseException("not found [" + fullname + "] in db , pls check!");
+                }
+            }
+        }
+
+        return tableMeta;
+    }
+
+    public Entry parseRowsEvent(RowsLogEvent event) {
+        return parseRowsEvent(event, null);
+    }
+
+    public Entry parseRowsEvent(RowsLogEvent event, TableMeta tableMeta) {
         if (filterRows) {
             return null;
         }
         try {
-            TableMapLogEvent table = event.getTable();
-            if (table == null) {
-                // tableId对应的记录不存在
-                throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
+            if (tableMeta == null) { // 如果没有外部指定
+                tableMeta = parseRowsEventForTableMeta(event);
             }
 
-            boolean isHeartBeat = isAliSQLHeartBeat(table.getDbName(), table.getTableName());
-            boolean isRDSHeartBeat = tableMetaCache.isOnRDS()
-                                     && isRDSHeartBeat(table.getDbName(), table.getTableName());
-
-            String fullname = table.getDbName() + "." + table.getTableName();
-            // check name filter
-            if (nameFilter != null && !nameFilter.filter(fullname)) {
+            if (tableMeta == null) {
+                // 拿不到表结构,执行忽略
                 return null;
-            }
-            if (nameBlackFilter != null && nameBlackFilter.filter(fullname)) {
-                return null;
-            }
-
-            // if (isHeartBeat || isRDSHeartBeat) {
-            // // 忽略rds模式的mysql.ha_health_check心跳数据
-            // return null;
-            // }
-            TableMeta tableMeta = null;
-            if (isRDSHeartBeat) {
-                // 处理rds模式的mysql.ha_health_check心跳数据
-                // 主要RDS的心跳表基本无权限,需要mock一个tableMeta
-                FieldMeta idMeta = new FieldMeta("id", "bigint(20)", true, false, "0");
-                FieldMeta typeMeta = new FieldMeta("type", "char(1)", false, true, "0");
-                tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
-            } else if (isHeartBeat) {
-                // 处理alisql模式的test.heartbeat心跳数据
-                // 心跳表基本无权限,需要mock一个tableMeta
-                FieldMeta idMeta = new FieldMeta("id", "smallint(6)", false, true, null);
-                FieldMeta typeMeta = new FieldMeta("ts", "int(11)", true, false, null);
-                tableMeta = new TableMeta(table.getDbName(), table.getTableName(), Arrays.asList(idMeta, typeMeta));
             }
 
             EventType eventType = null;
@@ -484,12 +504,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 throw new CanalParseException("unsupport event type :" + event.getHeader().getType());
             }
 
-            Header header = createHeader(binlogFileName,
-                event.getHeader(),
-                table.getDbName(),
-                table.getTableName(),
-                eventType);
-            EntryPosition position = createPosition(event.getHeader());
+            TableMapLogEvent table = event.getTable();
+            Header header = createHeader(event.getHeader(), table.getDbName(), table.getTableName(), eventType);
+
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
             rowChangeBuider.setTableId(event.getTableId());
             rowChangeBuider.setIsDdl(false);
@@ -498,18 +515,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             RowsLogBuffer buffer = event.getRowsBuf(charset.name());
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
-            boolean tableError = false;
-            if (tableMetaCache != null && tableMeta == null) {// 入错存在table meta
-                                                              // cache
-                tableMeta = getTableMeta(table.getDbName(), table.getTableName(), true, position);
-                if (tableMeta == null) {
-                    tableError = true;
-                    if (!filterTableError) {
-                        throw new CanalParseException("not found [" + fullname + "] in db , pls check!");
-                    }
-                }
-            }
 
+            boolean tableError = false;
             while (buffer.nextOneRow(columns)) {
                 // 处理row记录
                 RowData.Builder rowDataBuilder = RowData.newBuilder();
@@ -539,7 +546,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 logger.warn("table parser error : {}storeValue: {}", entry.toString(), rowChange.toString());
                 return null;
             } else {
-                Entry entry = createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+                Entry entry = createEntry(header, EntryType.ROWDATA, rowChange.toByteString());
                 return entry;
             }
         } catch (Exception e) {
@@ -548,7 +555,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private EntryPosition createPosition(LogHeader logHeader) {
-        return new EntryPosition(binlogFileName,
+        return new EntryPosition(logHeader.getLogFileName(),
             logHeader.getLogPos(),
             logHeader.getWhen() * 1000L,
             logHeader.getServerId()); // 记录到秒
@@ -641,7 +648,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     isBinary = true;
                 } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "BINARY")) {
                     isBinary = true;
-                } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "tinyint(1)")) {
+                } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "TINYINT(1)")) {
                     isSingleBit = true;
                 }
             }
@@ -771,7 +778,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry buildQueryEntry(String queryString, LogHeader logHeader, String tableName) {
-        Header header = createHeader(binlogFileName, logHeader, "", tableName, EventType.QUERY);
+        Header header = createHeader(logHeader, "", tableName, EventType.QUERY);
         RowChange.Builder rowChangeBuider = RowChange.newBuilder();
         rowChangeBuider.setSql(queryString);
         rowChangeBuider.setEventType(EventType.QUERY);
@@ -779,19 +786,18 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private Entry buildQueryEntry(String queryString, LogHeader logHeader) {
-        Header header = createHeader(binlogFileName, logHeader, "", "", EventType.QUERY);
+        Header header = createHeader(logHeader, "", "", EventType.QUERY);
         RowChange.Builder rowChangeBuider = RowChange.newBuilder();
         rowChangeBuider.setSql(queryString);
         rowChangeBuider.setEventType(EventType.QUERY);
         return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
     }
 
-    private Header createHeader(String binlogFile, LogHeader logHeader, String schemaName, String tableName,
-                                EventType eventType) {
+    private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType) {
         // header会做信息冗余,方便以后做检索或者过滤
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setVersion(version);
-        headerBuilder.setLogfileName(binlogFile);
+        headerBuilder.setLogfileName(logHeader.getLogFileName());
         headerBuilder.setLogfileOffset(logHeader.getLogPos() - logHeader.getEventLen());
         headerBuilder.setServerId(logHeader.getServerId());
         headerBuilder.setServerenCode(UTF_8);// 经过java输出后所有的编码为unicode

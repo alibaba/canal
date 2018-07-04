@@ -166,6 +166,11 @@
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
 		<property name="supportBinlogFormats" value="${canal.instance.binlog.format}" />
 		<property name="supportBinlogImages" value="${canal.instance.binlog.image}" />
+		
+		<!-- parallel parser -->
+		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
+		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize:16}" />
+		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 	</bean>
 	
 	<bean id="eventParser2" class="com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser">
@@ -260,5 +265,10 @@
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
 		<property name="supportBinlogFormats" value="${canal.instance.binlog.format}" />
 		<property name="supportBinlogImages" value="${canal.instance.binlog.image}" />
+		
+		<!-- parallel parser -->
+		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
+		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize:16}" />
+		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 	</bean>
 </beans>
