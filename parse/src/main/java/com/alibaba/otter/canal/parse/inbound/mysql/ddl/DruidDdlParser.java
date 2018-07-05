@@ -15,6 +15,7 @@ import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlRenameTableState
 import com.alibaba.fastsql.sql.parser.ParserException;
 import com.alibaba.fastsql.util.JdbcConstants;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author agapple 2017年7月27日 下午4:05:34
@@ -139,12 +140,16 @@ public class DruidDdlParser {
                 ddlResult.setType(EventType.DELETE);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLCreateDatabaseStatement){
-                // add create database support
                 DdlResult ddlResult = new DdlResult();
-                SQLCreateDatabaseStatement createDatabase= (SQLCreateDatabaseStatement) statement;
                 ddlResult.setType(EventType.QUERY);
+                //只设置schema
                 processName(ddlResult,schmeaName,null,false);
                 ddlResults.add(ddlResult);
+            } else if(statement instanceof SQLDropDatabaseStatement){
+                DdlResult ddlResult = new DdlResult();
+                ddlResult.setType(EventType.QUERY);
+                //只设置schema
+                processName(ddlResult,schmeaName,null,false);
             }
         }
 
@@ -153,6 +158,9 @@ public class DruidDdlParser {
 
     private static void processName(DdlResult ddlResult, String schema, SQLExpr sqlName, boolean isOri) {
         if (sqlName == null) {
+            if (StringUtils.isNotBlank(schema)){
+                ddlResult.setSchemaName(schema);
+            }
             return;
         }
 
