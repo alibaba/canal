@@ -90,9 +90,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     protected boolean                                isGTIDMode                 = false;                                   // 是否是GTID模式
     protected boolean                                parallel                   = true;                                    // 是否开启并行解析模式
-    protected int                                    parallelThreadSize         = Runtime.getRuntime()
+    protected Integer                                parallelThreadSize         = Runtime.getRuntime()
                                                                                     .availableProcessors() * 60 / 100;     // 60%的能力跑解析,剩余部分处理网络
-    protected int                                    parallelBufferSize         = 16 * parallelThreadSize;
+    protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
 
     protected abstract BinlogParser buildParser();
@@ -595,11 +595,13 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return parallelThreadSize;
     }
 
-    public void setParallelThreadSize(int parallelThreadSize) {
-        this.parallelThreadSize = parallelThreadSize;
+    public void setParallelThreadSize(Integer parallelThreadSize) {
+        if (parallelThreadSize != null) {
+            this.parallelThreadSize = parallelThreadSize;
+        }
     }
 
-    public int getParallelBufferSize() {
+    public Integer getParallelBufferSize() {
         return parallelBufferSize;
     }
 

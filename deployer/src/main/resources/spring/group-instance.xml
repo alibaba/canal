@@ -169,7 +169,7 @@
 		
 		<!-- parallel parser -->
 		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
-		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize:16}" />
+		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 	</bean>
 	
@@ -268,7 +268,7 @@
 		
 		<!-- parallel parser -->
 		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
-		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize:16}" />
+		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 	</bean>
 </beans>
