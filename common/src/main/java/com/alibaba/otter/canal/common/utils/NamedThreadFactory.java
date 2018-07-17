@@ -23,6 +23,11 @@ public class NamedThreadFactory implements ThreadFactory {
 
                                                                        public void uncaughtException(Thread t,
                                                                                                      Throwable e) {
+                                                                           if (e instanceof InterruptedException
+                                                                               || (e.getCause() != null && e.getCause() instanceof InterruptedException)) {
+                                                                               return;
+                                                                           }
+
                                                                            logger.error("from " + t.getName(), e);
                                                                        }
                                                                    };
