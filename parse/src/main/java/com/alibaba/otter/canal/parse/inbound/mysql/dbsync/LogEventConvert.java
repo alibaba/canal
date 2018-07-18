@@ -167,6 +167,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (gtidSet != null) {
             gtidSet.update(value);
         }
+        if (logEvent.getLastCommitted() != null) {
+            builder.setKey("lastCommitted");
+            builder.setValue(String.valueOf(logEvent.getLastCommitted()));
+            builder.setKey("sequenceNumber");
+            builder.setValue(String.valueOf(logEvent.getSequenceNumber()));
+        }
 
         Header header = createHeader(logHeader, "", "", EventType.GTID);
         return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
