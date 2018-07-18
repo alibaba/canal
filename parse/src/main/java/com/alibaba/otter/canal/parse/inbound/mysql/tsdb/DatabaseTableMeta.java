@@ -70,7 +70,9 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
             @Override
             public Thread newThread(Runnable r) {
-                return new Thread(r, "[scheduler-table-meta-snapshot]");
+                Thread thread = new Thread(r, "[scheduler-table-meta-snapshot]");
+                thread.setDaemon(true);
+                return thread;
             }
         });
 

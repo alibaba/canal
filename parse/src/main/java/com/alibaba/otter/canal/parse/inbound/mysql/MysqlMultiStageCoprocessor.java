@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.LockSupport;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -19,6 +20,7 @@ import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.ExceptionHandler;
+import com.lmax.disruptor.InsufficientCapacityException;
 import com.lmax.disruptor.LifecycleAware;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.Sequence;
@@ -141,24 +143,35 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
      * 网络数据投递
      */
     public void publish(LogBuffer buffer) {
-        if (!isStart() && exception != null) {
-            throw exception;
-        }
-        long next = disruptorMsgBuffer.next();
-        MessageEvent event = disruptorMsgBuffer.get(next);
-        event.setBuffer(buffer);
-        disruptorMsgBuffer.publish(next);
+        publish(buffer, null);
     }
 
     public void publish(LogBuffer buffer, String binlogFileName) {
         if (!isStart() && exception != null) {
             throw exception;
         }
-        long next = disruptorMsgBuffer.next();
-        MessageEvent event = disruptorMsgBuffer.get(next);
-        event.setBuffer(buffer);
-        event.setBinlogFileName(binlogFileName);
-        disruptorMsgBuffer.publish(next);
+
+        boolean interupted = false;
+        do {
+            try {
+                long next = disruptorMsgBuffer.tryNext();
+                MessageEvent event = disruptorMsgBuffer.get(next);
+                event.setBuffer(buffer);
+                if (binlogFileName != null) {
+                    event.setBinlogFileName(binlogFileName);
+                }
+                disruptorMsgBuffer.publish(next);
+                break;
+            } catch (InsufficientCapacityException e) {
+                // park
+                LockSupport.parkNanos(1L);
+                interupted = Thread.interrupted();
+            }
+        } while (!interupted && isStart());
+
+        if (exception != null) {
+            throw exception;
+        }
     }
 
     @Override

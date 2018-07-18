@@ -278,7 +278,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             // 提取数据并返回
             for (; next <= end; next++) {
                 Event event = entries[getIndex(next)];
-                if (ddlIsolation && isDdl(event.getEntry().getHeader().getEventType())) {
+                if (ddlIsolation && isDdl(event.getEventType())) {
                     // 如果是ddl隔离，直接返回
                     if (entrys.size() == 0) {
                         entrys.add(event);// 如果没有DML事件，加入当前的DDL事件
@@ -297,7 +297,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             for (; memsize <= maxMemSize && next <= maxAbleSequence; next++) {
                 // 永远保证可以取出第一条的记录，避免死锁
                 Event event = entries[getIndex(next)];
-                if (ddlIsolation && isDdl(event.getEntry().getHeader().getEventType())) {
+                if (ddlIsolation && isDdl(event.getEventType())) {
                     // 如果是ddl隔离，直接返回
                     if (entrys.size() == 0) {
                         entrys.add(event);// 如果没有DML事件，加入当前的DDL事件
@@ -325,9 +325,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
         for (int i = entrys.size() - 1; i >= 0; i--) {
             Event event = entrys.get(i);
-            if (CanalEntry.EntryType.TRANSACTIONBEGIN == event.getEntry().getEntryType()
-                || CanalEntry.EntryType.TRANSACTIONEND == event.getEntry().getEntryType()
-                || isDdl(event.getEntry().getHeader().getEventType())) {
+            if (CanalEntry.EntryType.TRANSACTIONBEGIN == event.getEntryType()
+                || CanalEntry.EntryType.TRANSACTIONEND == event.getEntryType() || isDdl(event.getEventType())) {
                 // 将事务头/尾设置可被为ack的点
                 range.setAck(CanalEventUtils.createPosition(event));
                 break;
@@ -532,7 +531,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     private long calculateSize(Event event) {
         // 直接返回binlog中的事件大小
-        return event.getEntry().getHeader().getEventLength();
+        return event.getRawLength();
     }
 
     private int getIndex(long sequcnce) {

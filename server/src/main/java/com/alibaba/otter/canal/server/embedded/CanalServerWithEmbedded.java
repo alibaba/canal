@@ -14,7 +14,6 @@ import org.springframework.util.CollectionUtils;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
-import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
@@ -30,6 +29,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MigrateMap;
+import com.google.protobuf.ByteString;
 
 /**
  * 嵌入式版本实现
@@ -223,14 +223,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 logger.debug("get successfully, clientId:{} batchSize:{} but result is null",
                     clientIdentity.getClientId(),
                     batchSize);
-                return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
+                return new Message(-1, true, new ArrayList()); // 返回空包，避免生成batchId，浪费性能
             } else {
                 // 记录到流式信息
                 Long batchId = canalInstance.getMetaManager().addBatch(clientIdentity, events.getPositionRange());
-                List<Entry> entrys = Lists.transform(events.getEvents(), new Function<Event, Entry>() {
+                List<ByteString> entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
 
-                    public Entry apply(Event input) {
-                        return input.getEntry();
+                    public ByteString apply(Event input) {
+                        return input.getRawEntry();
                     }
                 });
                 if (logger.isInfoEnabled()) {
@@ -243,7 +243,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 }
                 // 直接提交ack
                 ack(clientIdentity, batchId);
-                return new Message(batchId, entrys);
+                return new Message(batchId, true, entrys);
             }
         }
     }
@@ -302,14 +302,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result is null",
                     clientIdentity.getClientId(),
                     batchSize);
-                return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
+                return new Message(-1, true, new ArrayList()); // 返回空包，避免生成batchId，浪费性能
             } else {
                 // 记录到流式信息
                 Long batchId = canalInstance.getMetaManager().addBatch(clientIdentity, events.getPositionRange());
-                List<Entry> entrys = Lists.transform(events.getEvents(), new Function<Event, Entry>() {
+                List<ByteString> entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
 
-                    public Entry apply(Event input) {
-                        return input.getEntry();
+                    public ByteString apply(Event input) {
+                        return input.getRawEntry();
                     }
                 });
                 if (logger.isInfoEnabled()) {
@@ -320,7 +320,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                         batchId,
                         events.getPositionRange());
                 }
-                return new Message(batchId, entrys);
+                return new Message(batchId, true, entrys);
             }
 
         }

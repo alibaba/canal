@@ -135,9 +135,18 @@ public class SessionHandler extends SimpleChannelHandler {
 
                         Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
                         messageBuilder.setBatchId(message.getId());
-                        if (message.getId() != -1 && !CollectionUtils.isEmpty(message.getEntries())) {
-                            for (Entry entry : message.getEntries()) {
-                                messageBuilder.addMessages(entry.toByteString());
+                        if (message.getId() != -1) {
+                            if (message.isRaw()) {
+                                // for performance
+                                if (!CollectionUtils.isEmpty(message.getRawEntries())) {
+                                    messageBuilder.addAllMessages(message.getRawEntries());
+                                }
+                            } else {
+                                if (!CollectionUtils.isEmpty(message.getEntries())) {
+                                    for (Entry entry : message.getEntries()) {
+                                        messageBuilder.addMessages(entry.toByteString());
+                                    }
+                                }
                             }
                         }
                         packetBuilder.setBody(messageBuilder.build().toByteString());
