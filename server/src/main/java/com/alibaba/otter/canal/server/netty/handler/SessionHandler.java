@@ -73,7 +73,7 @@ public class SessionHandler extends SimpleChannelHandler {
                         }
 
                         embeddedServer.subscribe(clientIdentity);
-                        ctx.setAttachment(clientIdentity);// 设置状态数据
+                        // ctx.setAttachment(clientIdentity);// 设置状态数据
                         NettyUtils.ack(ctx.getChannel(), null);
                     } else {
                         NettyUtils.error(401,
@@ -146,7 +146,19 @@ public class SessionHandler extends SimpleChannelHandler {
                             size += com.google.protobuf.CodedOutputStream.computeTagSize(5)
                                     + com.google.protobuf.CodedOutputStream.computeRawVarint32Size(messageSize)
                                     + messageSize;
-                            // TODO recyle bytes[]
+                            // recyle bytes
+                            // ByteBuffer byteBuffer = (ByteBuffer)
+                            // ctx.getAttachment();
+                            // if (byteBuffer != null && size <=
+                            // byteBuffer.capacity()) {
+                            // byteBuffer.clear();
+                            // } else {
+                            // byteBuffer =
+                            // ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN);
+                            // ctx.setAttachment(byteBuffer);
+                            // }
+                            // CodedOutputStream output =
+                            // CodedOutputStream.newInstance(byteBuffer);
                             byte[] body = new byte[size];
                             CodedOutputStream output = CodedOutputStream.newInstance(body);
                             output.writeEnum(3, PacketType.MESSAGES.getNumber());
@@ -160,6 +172,11 @@ public class SessionHandler extends SimpleChannelHandler {
                             }
                             output.checkNoSpaceLeft();
                             NettyUtils.write(ctx.getChannel(), body, null);
+                            
+                            // output.flush();
+                            // byteBuffer.flip();
+                            // NettyUtils.write(ctx.getChannel(), byteBuffer,
+                            // null);
                         } else {
                             Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
                             packetBuilder.setType(PacketType.MESSAGES);
