@@ -5,7 +5,7 @@
 <ol>
 <li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
 <li>canal消费端项目开源: Otter(分布式数据库同步系统)，地址：<a href="https://github.com/alibaba/otter">https://github.com/alibaba/otter</a></li>
-<li>Canal已在阿里云推出商业化版本 <a href="数据传输服务DTS">https://www.aliyun.com/product/dts?spm=a2c4g.11186623.cloudEssentials.80.srdwr7</a>， 开通即用，免去部署维护的昂贵使用成本。DTS针对阿里云RDS、DRDS等产品进行了适配，解决了Binlog日志回收，主备切换、VPC网络切换等场景下的订阅高可用问题。同时，针对RDS进行了针对性的性能优化。出于稳定性、性能及成本的考虑，强烈推荐阿里云用户使用DTS产品。<a href="DTS产品使用文档">https://help.aliyun.com/document_detail/26592.html?spm=a2c4g.11174283.6.539.t1Y91E</a></li>
+<li>Canal已在阿里云推出商业化版本 <a href="https://www.aliyun.com/product/dts?spm=a2c4g.11186623.cloudEssentials.80.srdwr7">数据传输服务DTS</a>， 开通即用，免去部署维护的昂贵使用成本。DTS针对阿里云RDS、DRDS等产品进行了适配，解决了Binlog日志回收，主备切换、VPC网络切换等场景下的订阅高可用问题。同时，针对RDS进行了针对性的性能优化。出于稳定性、性能及成本的考虑，强烈推荐阿里云用户使用DTS产品。<a href="https://help.aliyun.com/document_detail/26592.html?spm=a2c4g.11174283.6.539.t1Y91E">DTS产品使用文档</a></li>
 </ol>
 
 <h1>背景</h1>
