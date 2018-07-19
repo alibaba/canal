@@ -19,7 +19,7 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 public class NettyUtils {
 
     private static final Logger logger           = LoggerFactory.getLogger(NettyUtils.class);
-    private static int          HEADER_LENGTH    = 4;
+    public static int           HEADER_LENGTH    = 4;
     public static Timer         hashedWheelTimer = new HashedWheelTimer();
 
     public static void write(Channel channel, byte[] body, ChannelFutureListener channelFutureListner) {

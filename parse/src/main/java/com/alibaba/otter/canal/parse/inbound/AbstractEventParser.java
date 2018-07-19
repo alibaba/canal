@@ -331,6 +331,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         stopHeartBeat(); // 先停止心跳
         parseThread.interrupt(); // 尝试中断
         eventSink.interrupt();
+
+        if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
+            multiStageCoprocessor.stop();
+        }
+
         try {
             parseThread.join();// 等待其结束
         } catch (InterruptedException e) {
@@ -342,10 +347,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         }
         if (transactionBuffer.isStart()) {
             transactionBuffer.stop();
-        }
-
-        if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
-            multiStageCoprocessor.stop();
         }
     }
 

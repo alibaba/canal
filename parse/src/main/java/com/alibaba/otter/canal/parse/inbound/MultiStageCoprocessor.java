@@ -21,9 +21,9 @@ public interface MultiStageCoprocessor extends CanalLifeCycle {
     /**
      * 网络数据投递
      */
-    public void publish(LogBuffer buffer);
+    public boolean publish(LogBuffer buffer);
 
-    public void publish(LogBuffer buffer, String binlogFileName);
+    public boolean publish(LogBuffer buffer, String binlogFileName);
 
     public void reset();
 }

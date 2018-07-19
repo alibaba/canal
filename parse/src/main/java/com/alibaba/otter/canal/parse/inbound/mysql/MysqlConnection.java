@@ -206,7 +206,9 @@ public class MysqlConnection implements ErosaConnection {
             while (fetcher.fetch()) {
                 LogBuffer buffer = fetcher.duplicate();
                 fetcher.consume(fetcher.limit());
-                coprocessor.publish(buffer);
+                if (!coprocessor.publish(buffer)) {
+                    break;
+                }
             }
         } finally {
             fetcher.close();
@@ -230,7 +232,9 @@ public class MysqlConnection implements ErosaConnection {
             while (fetcher.fetch()) {
                 LogBuffer buffer = fetcher.duplicate();
                 fetcher.consume(fetcher.limit());
-                coprocessor.publish(buffer);
+                if (!coprocessor.publish(buffer)) {
+                    break;
+                }
             }
         } finally {
             fetcher.close();

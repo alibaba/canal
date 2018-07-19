@@ -135,20 +135,22 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         } catch (Throwable e) {
             // ignore
         }
-        disruptorMsgBuffer = null;
         super.stop();
     }
 
     /**
      * 网络数据投递
      */
-    public void publish(LogBuffer buffer) {
-        publish(buffer, null);
+    public boolean publish(LogBuffer buffer) {
+        return publish(buffer, null);
     }
 
-    public void publish(LogBuffer buffer, String binlogFileName) {
-        if (!isStart() && exception != null) {
-            throw exception;
+    public boolean publish(LogBuffer buffer, String binlogFileName) {
+        if (!isStart()) {
+            if (exception != null) {
+                throw exception;
+            }
+            return false;
         }
 
         boolean interupted = false;
@@ -172,6 +174,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         if (exception != null) {
             throw exception;
         }
+
+        return isStart();
     }
 
     @Override

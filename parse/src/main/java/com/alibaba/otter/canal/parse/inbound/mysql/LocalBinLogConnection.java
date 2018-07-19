@@ -221,7 +221,11 @@ public class LocalBinLogConnection implements ErosaConnection {
                 while (fetcher.fetch()) {
                     LogBuffer buffer = fetcher.duplicate();
                     fetcher.consume(fetcher.limit());
-                    coprocessor.publish(buffer, binlogfilename); // set filename
+                    // set filename
+                    if (!coprocessor.publish(buffer, binlogfilename)) {
+                        needContinue = false;
+                        break;
+                    }
                 }
 
                 if (needContinue) {// 读取下一个
