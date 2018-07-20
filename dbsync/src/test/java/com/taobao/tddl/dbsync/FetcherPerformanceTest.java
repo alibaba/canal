@@ -7,8 +7,6 @@ import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.taobao.tddl.dbsync.binlog.DirectLogFetcher;
-import com.taobao.tddl.dbsync.binlog.LogContext;
-import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class FetcherPerformanceTest {
@@ -31,10 +29,7 @@ public class FetcherPerformanceTest {
             long last = 0;
             long end = 0;
 
-            LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
-            LogContext context = new LogContext();
             while (fetcher.fetch()) {
-                decoder.decode(fetcher, context);
                 sum.incrementAndGet();
                 long current = sum.get();
                 if (current - last >= 100000) {
