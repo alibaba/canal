@@ -16,6 +16,8 @@ public abstract class BioSocketChannelPool {
         socket.setKeepAlive(true);
         socket.setReuseAddress(true);
         socket.connect(address, BioSocketChannel.DEFAULT_CONNECT_TIMEOUT);
+        System.out.println(socket.getReceiveBufferSize());
+        System.out.println(socket.getSendBufferSize());
         return new BioSocketChannel(socket);
     }
 
