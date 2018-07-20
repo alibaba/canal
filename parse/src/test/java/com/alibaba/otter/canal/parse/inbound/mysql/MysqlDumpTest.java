@@ -42,8 +42,8 @@ public class MysqlDumpTest {
         controller.setEventFilter(new AviaterRegexFilter("test\\..*"));
         controller.setEventBlackFilter(new AviaterRegexFilter("canal_tsdb\\..*"));
         controller.setParallel(true);
-        controller.setParallelBufferSize(4096);
-        controller.setParallelThreadSize(16);
+        controller.setParallelBufferSize(256);
+        controller.setParallelThreadSize(2);
         controller.setIsGTIDMode(false);
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 
