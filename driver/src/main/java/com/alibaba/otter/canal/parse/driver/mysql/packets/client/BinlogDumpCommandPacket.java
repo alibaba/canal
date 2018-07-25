@@ -54,7 +54,7 @@ public class BinlogDumpCommandPacket extends CommandPacket {
         // 1. write 4 bytes bin-log position to start at
         ByteHelper.writeUnsignedIntLittleEndian(binlogPosition, out);
         // 2. write 2 bytes bin-log flags
-        int binlog_flags = BINLOG_DUMP_NON_BLOCK;
+        int binlog_flags = 0;
         binlog_flags |= BINLOG_SEND_ANNOTATE_ROWS_EVENT;
         out.write(binlog_flags);
         out.write(0x00);
