@@ -303,7 +303,12 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     transactionBuffer.reset();// 重置一下缓冲队列，重新记录数据
                     binlogParser.reset();// 重新置位
                     if (multiStageCoprocessor != null) {
-                        multiStageCoprocessor.reset();
+                        // 处理 RejectedExecutionException
+                        try {
+                            multiStageCoprocessor.reset();
+                        } catch (Throwable t) {
+                            logger.debug("multi processor rejected:", t);
+                        }
                     }
 
                     if (running) {
