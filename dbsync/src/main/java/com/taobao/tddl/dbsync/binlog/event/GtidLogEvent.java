@@ -44,11 +44,12 @@ public class GtidLogEvent extends LogEvent {
         gno = buffer.getLong64();
 
         // support gtid lastCommitted and sequenceNumber
-        // 42 = 1+16+8+1+8+8
-        if (buffer.capacity() > 42 && buffer.getUint8() == LOGICAL_TIMESTAMP_TYPE_CODE) {
+        // fix bug #776
+        if (buffer.hasRemaining() && buffer.remaining() > 16 && buffer.getUint8() == LOGICAL_TIMESTAMP_TYPE_CODE) {
             lastCommitted = buffer.getLong64();
             sequenceNumber = buffer.getLong64();
         }
+
 
 
         // ignore gtid info read
