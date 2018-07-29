@@ -1,11 +1,11 @@
 package com.alibaba.otter.canal.server.embedded;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.spi.CanalMetricsProvider;
+import com.alibaba.otter.canal.spi.CanalMetricsService;
+import com.alibaba.otter.canal.spi.NopCanalMetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -33,17 +33,18 @@ import com.google.protobuf.ByteString;
 
 /**
  * 嵌入式版本实现
- * 
+ *
  * @author jianghang 2012-7-12 下午01:34:00
  * @author zebin.xuzb
  * @version 1.0.0
  */
 public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer, CanalService {
 
-    private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
+    private static final Logger        logger           = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
     private Map<String, CanalInstance> canalInstances;
     // private Map<ClientIdentity, Position> lastRollbackPostions;
     private CanalInstanceGenerator     canalInstanceGenerator;
+    private CanalMetricsService        metrics          = NopCanalMetricsService.NOP;
 
     private static class SingletonHolder {
 
@@ -61,7 +62,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     public void start() {
         if (!isStart()) {
             super.start();
-
+            // 如果存在provider,则启动metrics service
+            loadCanalMetrics();
+            metrics.initialize();
             canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
 
                 public CanalInstance apply(String destination) {
@@ -92,6 +95,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 logger.error(String.format("stop CanalInstance[%s] has an error", entry.getKey()), e);
             }
         }
+        metrics.terminate();
     }
 
     public void start(final String destination) {
@@ -99,6 +103,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         if (!canalInstance.isStart()) {
             try {
                 MDC.put("destination", destination);
+                if (metrics.isRunning()) {
+                    metrics.register(canalInstance);
+                }
                 canalInstance.start();
                 logger.info("start CanalInstances[{}] successfully", destination);
             } finally {
@@ -114,6 +121,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 try {
                     MDC.put("destination", destination);
                     canalInstance.stop();
+                    if (metrics.isRunning()) {
+                        metrics.unregister(canalInstance);
+                    }
                     logger.info("stop CanalInstances[{}] successfully", destination);
                 } finally {
                     MDC.remove("destination");
@@ -176,7 +186,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 获取数据
-     * 
+     *
      * <pre>
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
@@ -188,14 +198,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 获取数据，可以指定超时时间.
-     * 
+     *
      * <pre>
      * 几种case:
      * a. 如果timeout为null，则采用tryGet方式，即时获取
      * b. 如果timeout不为null
      *    1. timeout为0，则采用get阻塞方式，获取数据，不设置超时，直到有足够的batchSize数据才返回
      *    2. timeout不为0，则采用get+timeout方式，获取数据，超时还没有batchSize足够的数据，有多少返回多少
-     * 
+     *
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
      */
@@ -251,7 +261,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     /**
      * 不指定 position 获取事件。canal 会记住此 client 最新的 position。 <br/>
      * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
-     * 
+     *
      * <pre>
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
@@ -264,14 +274,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     /**
      * 不指定 position 获取事件。canal 会记住此 client 最新的 position。 <br/>
      * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
-     * 
+     *
      * <pre>
      * 几种case:
      * a. 如果timeout为null，则采用tryGet方式，即时获取
      * b. 如果timeout不为null
      *    1. timeout为0，则采用get阻塞方式，获取数据，不设置超时，直到有足够的batchSize数据才返回
      *    2. timeout不为0，则采用get+timeout方式，获取数据，超时还没有batchSize足够的数据，有多少返回多少
-     *    
+     *
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
      */
@@ -342,7 +352,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 进行 batch id 的确认。确认之后，小于等于此 batchId 的 Message 都会被确认。
-     * 
+     *
      * <pre>
      * 注意：进行反馈时必须按照batchId的顺序进行ack(需有客户端保证)
      * </pre>
@@ -489,6 +499,27 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     private void checkStart(String destination) {
         if (!isStart(destination)) {
             throw new CanalServerException(String.format("destination:%s should start first", destination));
+        }
+    }
+
+    private void loadCanalMetrics() {
+        ServiceLoader<CanalMetricsProvider> providers = ServiceLoader.load(CanalMetricsProvider.class);
+        List<CanalMetricsProvider> list = new ArrayList<CanalMetricsProvider>();
+        for (CanalMetricsProvider provider : providers) {
+            list.add(provider);
+        }
+        if (!list.isEmpty()) {
+            // 发现provider, 进行初始化
+            if (list.size() > 1) {
+                logger.warn("Found more than one CanalMetricsProvider, use the first one.");
+                //报告冲突
+                for (CanalMetricsProvider p : list) {
+                    logger.warn("Found CanalMetricsProvider: {}.", p.getClass().getName());
+                }
+            }
+            //默认使用第一个
+            CanalMetricsProvider provider = list.get(0);
+            this.metrics = provider.getService();
         }
     }
 

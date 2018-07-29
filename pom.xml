@@ -129,6 +129,7 @@
         <module>example</module>
         <module>kafka</module>
         <module>kafka-client</module>
+        <module>prometheus</module>
     </modules>
 
     <dependencyManagement>
