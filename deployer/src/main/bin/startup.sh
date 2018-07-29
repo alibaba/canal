@@ -94,7 +94,12 @@ then
 	echo LOG CONFIGURATION : $logback_configurationFile
 	echo canal conf : $canal_conf 
 	echo CLASSPATH :$CLASSPATH
-	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/logs/canal/canal.log 2>&1 &
+#   metrics support options
+#	if [ -x $base/bin/metrics_env.sh ]; then
+#	    . $base/bin/metrics_env.sh
+#	    echo METRICS_OPTS $METRICS_OPTS
+#	fi
+	$JAVA $JAVA_OPTS $METRICS_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/logs/canal/canal.log 2>&1 &
 	echo $! > $base/bin/canal.pid 
 	
 	echo "cd to $current_path for continue"
