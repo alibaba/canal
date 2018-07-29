@@ -116,7 +116,7 @@ public class AbstractCanalClientTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    Message message = connector.getWithoutAck(batchSize, 1000L, TimeUnit.MILLISECONDS); // 获取指定数量的数据
+                    Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
                     long batchId = message.getId();
                     int size = message.getEntries().size();
                     if (batchId == -1 || size == 0) {
