@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.HistoryTableMetaCache;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,6 +243,13 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             mysqlEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
             // 数据库信息参数
             mysqlEventParser.setSlaveId(parameters.getSlaveId());
+            mysqlEventParser.setTableMetaStorageFactory(parameters.getTableMetaStorageFactory());
+            // Ctrip callback
+//            mysqlEventParser.setCallback(parameters.getCallback());
+//            HistoryTableMetaCache cache = new HistoryTableMetaCache();
+//            cache.init(parameters.getEntries());
+//            mysqlEventParser.setHistoryTableMetaCache(cache);
+
             if (!CollectionUtils.isEmpty(dbAddresses)) {
                 mysqlEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
                     parameters.getDbUsername(),

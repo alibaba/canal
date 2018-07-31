@@ -10,6 +10,11 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.alibaba.otter.canal.parse.inbound.*;
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaCacheInterface;
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaCacheWithStorage;
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorage;
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorageFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -20,9 +25,6 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
-import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
-import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
-import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogFormat;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogImage;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
@@ -62,7 +64,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     // 心跳检查信息
     private String             detectingSQL;                                 // 心跳sql
     private MysqlConnection    metaConnection;                               // 查询meta信息的链接
-    private TableMetaCache     tableMetaCache;                               // 对应meta
+    private TableMetaCacheInterface tableMetaCache;                               // 对应meta
                                                                               // cache
     private int                fallbackIntervalInSeconds         = 60;       // 切换回退时间
     private BinlogFormat[]     supportBinlogFormats;                         // 支持的binlogFormat,如果设置会执行强校验
@@ -71,6 +73,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     // update by yishun.chen,特殊异常处理参数
     private int                dumpErrorCount                    = 0;        // binlogDump失败异常计数
     private int                dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
+
+    private TableMetaStorageFactory tableMetaStorageFactory;
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -125,7 +129,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
             }
 
-            tableMetaCache = new TableMetaCache(metaConnection, tableMetaTSDB);
+
+            TableMetaStorage storage = null;
+            if (tableMetaStorageFactory != null) {
+                storage = tableMetaStorageFactory.getTableMetaStorage();
+            }
+
+            tableMetaCache = new TableMetaCacheWithStorage(metaConnection, storage);
             ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
         }
     }
@@ -908,4 +918,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
     }
 
+    public TableMetaStorageFactory getTableMetaStorageFactory() {
+        return tableMetaStorageFactory;
+    }
+
+    public void setTableMetaStorageFactory(TableMetaStorageFactory tableMetaStorageFactory) {
+        this.tableMetaStorageFactory = tableMetaStorageFactory;
+    }
 }
