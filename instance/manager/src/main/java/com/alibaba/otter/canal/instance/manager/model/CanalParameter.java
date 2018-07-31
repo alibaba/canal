@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorageFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -111,6 +112,9 @@ public class CanalParameter implements Serializable {
     private String                   standbyLogfileName                 = null;                      // standby起始位置
     private Long                     standbyLogfileOffest               = null;
     private Long                     standbyTimestamp                   = null;
+
+    // Ctrip Table Meta
+    TableMetaStorageFactory tableMetaStorageFactory;
 
     public static enum RunMode {
 
@@ -887,6 +891,7 @@ public class CanalParameter implements Serializable {
         this.blackFilter = blackFilter;
     }
 
+<<<<<<< HEAD
     public Boolean getTsdbEnable() {
         return tsdbEnable;
     }
@@ -917,6 +922,14 @@ public class CanalParameter implements Serializable {
 
     public void setTsdbJdbcPassword(String tsdbJdbcPassword) {
         this.tsdbJdbcPassword = tsdbJdbcPassword;
+=======
+    public TableMetaStorageFactory getTableMetaStorageFactory() {
+        return tableMetaStorageFactory;
+    }
+
+    public void setTableMetaStorageFactory(TableMetaStorageFactory tableMetaStorageFactory) {
+        this.tableMetaStorageFactory = tableMetaStorageFactory;
+>>>>>>> 6751538... 为了解决回追数据时Rowdata与当前schema不匹配
     }
 
     public String toString() {
