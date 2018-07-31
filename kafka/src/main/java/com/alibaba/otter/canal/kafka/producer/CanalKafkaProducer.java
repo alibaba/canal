@@ -1,7 +1,9 @@
 package com.alibaba.otter.canal.kafka.producer;
 
+import java.io.IOException;
 import java.util.Properties;
 
+import com.google.protobuf.ByteString;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -49,14 +51,25 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(Topic topic, Message message) {
+    public void send(Topic topic, Message message) throws IOException {
         boolean valid = false;
-        if (message != null && !message.getEntries().isEmpty()) {
-            for (CanalEntry.Entry entry : message.getEntries()) {
-                if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-                    && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-                    valid = true;
-                    break;
+        if (message != null) {
+            if (message.isRaw() && !message.getRawEntries().isEmpty()) {
+                for (ByteString byteString : message.getRawEntries()) {
+                    CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(byteString);
+                    if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
+                            && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
+                        valid = true;
+                        break;
+                    }
+                }
+            } else if (!message.getEntries().isEmpty()){
+                for (CanalEntry.Entry entry : message.getEntries()) {
+                    if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
+                            && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
+                        valid = true;
+                        break;
+                    }
                 }
             }
         }

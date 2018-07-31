@@ -1,14 +1,13 @@
 package com.alibaba.otter.canal.kafka.producer;
 
-import java.util.Map;
-
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalPacket;
+import com.alibaba.otter.canal.protocol.Message;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.CanalPacket;
-import com.alibaba.otter.canal.protocol.Message;
+import java.util.Map;
 
 /**
  * Kafka Message类的序列化
@@ -25,12 +24,15 @@ public class MessageSerializer implements Serializer<Message> {
     @Override
     public byte[] serialize(String topic, Message data) {
         try {
-            if (data == null) return null;
-            else {
+            if (data != null) {
                 CanalPacket.Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
-                if (data.getId() != -1 && !CollectionUtils.isEmpty(data.getEntries())) {
-                    for (CanalEntry.Entry entry : data.getEntries()) {
-                        messageBuilder.addMessages(entry.toByteString());
+                if (data.getId() != -1) {
+                    if (data.isRaw() && !CollectionUtils.isEmpty(data.getRawEntries())) {
+                        messageBuilder.addAllMessages(data.getRawEntries());
+                    } else if (!CollectionUtils.isEmpty(data.getEntries())) {
+                        for (CanalEntry.Entry entry : data.getEntries()) {
+                            messageBuilder.addMessages(entry.toByteString());
+                        }
                     }
                 }
                 CanalPacket.Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
@@ -41,6 +43,7 @@ public class MessageSerializer implements Serializer<Message> {
         } catch (Exception e) {
             throw new SerializationException("Error when serializing message to byte[] ");
         }
+        return null;
     }
 
     @Override
