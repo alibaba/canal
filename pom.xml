@@ -67,16 +67,6 @@
             </snapshots>
         </repository>
         <repository>
-            <id>alibaba</id>
-            <url>http://code.alibabatech.com/mvn/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
             <id>sonatype</id>
             <name>sonatype</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
