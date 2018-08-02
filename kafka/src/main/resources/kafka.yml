@@ -5,6 +5,7 @@ lingerMs: 1
 bufferMemory: 33554432
 # canal的批次大小，单位 k
 canalBatchSize: 50
+filterTransactionEntry: true
 
 canalDestinations:
   - canalDestination: example

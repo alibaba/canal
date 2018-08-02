@@ -67,6 +67,7 @@
 	
 	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
 		<property name="eventStore" ref="eventStore" />
+		<property name="filterTransactionEntry" value="${canal.instance.filter.transaction.entry:false}"/>
 	</bean>
 
 	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser">
