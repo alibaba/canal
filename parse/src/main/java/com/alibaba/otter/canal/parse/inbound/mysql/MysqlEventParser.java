@@ -643,6 +643,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 throw new CanalParseException("command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
             }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
+            if (isGTIDMode && fields.size() > 4) {
+                endPosition.setGtid(fields.get(4));
+            }
             return endPosition;
         } catch (IOException e) {
             throw new CanalParseException("command : 'show master status' has an error!", e);
