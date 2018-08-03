@@ -10,12 +10,9 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class CanalServerWithNettyProfiler {
 
-    private static final ClientInstanceProfilerFactory          DISABLED     = new DefaultClientInstanceProfilerFactory();
-
+    private static final ClientInstanceProfilerFactory          DISABLED = new DefaultClientInstanceProfilerFactory();
     private volatile ClientInstanceProfilerFactory              factory;
-
     private final ConcurrentMap<String, ClientInstanceProfiler> cliPfs;
-
     private final CanalServerWithEmbedded                       server;
 
     private static class SingletonHolder {
