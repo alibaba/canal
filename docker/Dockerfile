@@ -45,9 +45,7 @@ RUN \
 
     echo "export JAVA_HOME=/usr/java/latest" >> /etc/profile && \
     echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile && \
-    /bin/mv /home/admin/bin/canal-check /etc/cron.d && \
     /bin/mv /home/admin/bin/clean_log /etc/cron.d && \
-    chmod +x /home/admin/bin/canal-process-check.py && \
 
     mkdir -p /home/admin/canal-server && \
     tar -xzvf /home/admin/canal.deployer-*.tar.gz -C /home/admin/canal-server && \
