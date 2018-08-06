@@ -67,7 +67,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
         private ClientRequestResult(Builder builder) {
             this.destination = Preconditions.checkNotNull(builder.destination);
             this.type = Preconditions.checkNotNull(builder.type);
-            this.request = Preconditions.checkNotNull(builder.request);
+            this.request = builder.request;
             this.amount = builder.amount;
             this.latency = builder.latency;
             this.errorCode = builder.errorCode;

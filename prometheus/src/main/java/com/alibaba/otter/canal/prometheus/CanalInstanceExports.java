@@ -21,9 +21,9 @@ import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.
 public class CanalInstanceExports {
 
     private static final Logger      logger          = LoggerFactory.getLogger(CanalInstanceExports.class);
-    public static final String       DESTINATION     = "destination";
-    public static final String[]     DEST_LABELS     = {DESTINATION};
-    public static final List<String> DEST_LABEL_LIST = Collections.singletonList(DESTINATION);
+    public static final String       DEST            = "destination";
+    public static final String[]     DEST_LABELS     = {DEST};
+    public static final List<String> DEST_LABEL_LIST = Collections.singletonList(DEST);
     private final String             destination;
     private Collector                storeCollector;
     private Collector                delayCollector;

@@ -22,11 +22,8 @@ import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.
 public class PrometheusService implements CanalMetricsService {
 
     private static final Logger                           logger  = LoggerFactory.getLogger(PrometheusService.class);
-
     private final Map<String, CanalInstanceExports>       exports = new ConcurrentHashMap<String, CanalInstanceExports>();
-
     private volatile boolean                              running = false;
-
     private HTTPServer                                    server;
 
     private PrometheusService() {
@@ -69,8 +66,8 @@ public class PrometheusService implements CanalMetricsService {
         // Normally, service should be terminated at canal shutdown.
         // No need to unregister instance exports explicitly.
         // But for the sake of safety, unregister them.
-        for (CanalInstanceExports ie : exports.values()) {
-            ie.unregister();
+        for (CanalInstanceExports cie : exports.values()) {
+            cie.unregister();
         }
         profiler().setInstanceProfilerFactory(DISABLED);
         if (server != null) {
