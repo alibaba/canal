@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.server.netty.handler;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.server.netty.listener.ChannelFutureAggregator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jboss.netty.buffer.ChannelBuffer;

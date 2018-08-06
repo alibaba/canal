@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.nio.charset.Charset;
 
+import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean              filterRows              = false;
     protected boolean              filterTableError        = false;
     protected boolean              useDruidDdlFilter       = true;
+    private final SerializedLongAdder eventsPublishBlockingTime = new SerializedLongAdder(0L);
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
@@ -131,11 +133,13 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     }
 
     protected MultiStageCoprocessor buildMultiStageCoprocessor() {
-        return new MysqlMultiStageCoprocessor(parallelBufferSize,
-            parallelThreadSize,
-            (LogEventConvert) binlogParser,
-            transactionBuffer,
-            destination);
+        MysqlMultiStageCoprocessor mysqlMultiStageCoprocessor = new MysqlMultiStageCoprocessor(parallelBufferSize,
+                parallelThreadSize,
+                (LogEventConvert) binlogParser,
+                transactionBuffer,
+                destination);
+        mysqlMultiStageCoprocessor.setEventsPublishBlockingTime(eventsPublishBlockingTime);
+        return mysqlMultiStageCoprocessor;
     }
 
     // ============================ setter / getter =========================
@@ -202,6 +206,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setTableMetaTSDBFactory(TableMetaTSDBFactory tableMetaTSDBFactory) {
         this.tableMetaTSDBFactory = tableMetaTSDBFactory;
+    }
+    
+    public SerializedLongAdder getEventsPublishBlockingTime() {
+        return this.eventsPublishBlockingTime;
     }
 
 }

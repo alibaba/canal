@@ -39,6 +39,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     protected long                 emptyTransctionThresold       = 8192;                                         // 超过1024个事务头，输出一个
     protected volatile long        lastEmptyTransactionTimestamp = 0L;
     protected AtomicLong           lastEmptyTransactionCount     = new AtomicLong(0L);
+    private AtomicLong             eventsSinkBlockingTime        = new AtomicLong(0L);
 
     public EntryEventSink(){
         addHandler(new HeartBeatEntryEventHandler());
@@ -147,15 +148,21 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
         for (CanalEventDownStreamHandler<List<Event>> handler : getHandlers()) {
             events = handler.before(events);
         }
-
+        long blockingStart = 0L;
         int fullTimes = 0;
         do {
             if (eventStore.tryPut(events)) {
+                if (fullTimes > 0) {
+                    eventsSinkBlockingTime.addAndGet(System.nanoTime() - blockingStart);
+                }
                 for (CanalEventDownStreamHandler<List<Event>> handler : getHandlers()) {
                     events = handler.after(events);
                 }
                 return true;
             } else {
+                if (fullTimes == 0) {
+                    blockingStart = System.nanoTime();
+                }
                 applyWait(++fullTimes);
             }
 
@@ -200,6 +207,10 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
 
     public void setEmptyTransctionThresold(long emptyTransctionThresold) {
         this.emptyTransctionThresold = emptyTransctionThresold;
+    }
+
+    public AtomicLong getEventsSinkBlockingTime() {
+        return eventsSinkBlockingTime;
     }
 
 }

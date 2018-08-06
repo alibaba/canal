@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.prometheus;
 
 import com.alibaba.otter.canal.instance.core.CanalInstance;
+import com.alibaba.otter.canal.prometheus.impl.PrometheusClientInstanceProfilerFactory;
+import com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler;
 import com.alibaba.otter.canal.spi.CanalMetricsService;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -10,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.DISABLED;
+import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.profiler;
 
 /**
  * @author Chuanyi Li
@@ -50,6 +55,7 @@ public class PrometheusService implements CanalMetricsService {
             DefaultExports.initialize();
             // Canal server level exports
             CanalServerExports.initialize();
+            profiler().setInstanceProfilerFactory(new PrometheusClientInstanceProfilerFactory());
         } catch (Throwable t) {
             logger.warn("Unable to initialize server exports.", t);
         }
@@ -66,6 +72,7 @@ public class PrometheusService implements CanalMetricsService {
         for (CanalInstanceExports ie : exports.values()) {
             ie.unregister();
         }
+        profiler().setInstanceProfilerFactory(DISABLED);
         if (server != null) {
             server.stop();
         }

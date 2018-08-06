@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -68,8 +69,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private BinlogImage[]      supportBinlogImages;                          // 支持的binlogImage,如果设置会执行强校验
 
     // update by yishun.chen,特殊异常处理参数
-    private int                dumpErrorCount                    = 0;        // binlogDump失败异常计数
-    private int                dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
+    private       int                 dumpErrorCount            = 0;        // binlogDump失败异常计数
+    private       int                 dumpErrorCountThreshold   = 2;        // binlogDump失败异常计数阀值
+
+    // instance received binlog bytes
+    private final SerializedLongAdder receivedBinlogBytes       = new SerializedLongAdder(0L);
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -313,6 +317,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         connection.getConnector().setSendBufferSize(sendBufferSize);
         connection.getConnector().setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
         connection.setCharset(connectionCharset);
+        connection.setReceivedBinlogBytes(receivedBinlogBytes);
         // 随机生成slaveId
         if (this.slaveId <= 0) {
             this.slaveId = generateUniqueServerId();
@@ -908,6 +913,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
+    }
+
+
+
+    public SerializedLongAdder getReceivedBinlogBytes() {
+        return this.receivedBinlogBytes;
     }
 
 }

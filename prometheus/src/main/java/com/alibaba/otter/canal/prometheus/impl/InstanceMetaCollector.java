@@ -55,7 +55,7 @@ public class InstanceMetaCollector extends Collector {
             List<ClientIdentity> subs = metaManager.listAllSubscribeInfo(destination);
             GaugeMetricFamily subscriptions = new GaugeMetricFamily(
                     "canal_instance_subscription",
-                    subsHelp, CanalInstanceExports.labelList);
+                    subsHelp, CanalInstanceExports.DEST_LABEL_LIST);
             subscriptions.addMetric(Arrays.asList(destination), subs.size());
             mfs.add(subscriptions);
         }

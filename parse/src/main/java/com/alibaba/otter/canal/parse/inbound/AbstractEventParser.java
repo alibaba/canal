@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
+import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -97,6 +98,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected MultiStageCoprocessor                  multiStageCoprocessor;
     protected ParserExceptionHandler                 parserExceptionHandler;
     protected long serverId;
+
 
 
 
@@ -643,4 +645,5 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     public void setServerId(long serverId) {
         this.serverId = serverId;
     }
+
 }

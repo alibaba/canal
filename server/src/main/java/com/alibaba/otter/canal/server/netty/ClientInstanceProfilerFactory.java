@@ -5,6 +5,6 @@ package com.alibaba.otter.canal.server.netty;
  */
 public interface ClientInstanceProfilerFactory {
 
-    ClientInstanceProfiler create();
+    ClientInstanceProfiler create(String destination);
 
 }
