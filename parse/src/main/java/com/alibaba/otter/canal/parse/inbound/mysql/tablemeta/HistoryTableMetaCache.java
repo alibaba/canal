@@ -51,6 +51,9 @@ public class HistoryTableMetaCache {
     }
 
     public void init(List<TableMetaEntry> entries) throws IOException {
+        if (entries == null) {
+            return;
+        }
         for (TableMetaEntry entry : entries) {
             try {
                 put(entry.getSchema(), entry.getTable(), entry.getDdl(), entry.getTimestamp());
