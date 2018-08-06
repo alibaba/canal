@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -94,6 +95,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                                                                     .availableProcessors() * 60 / 100;     // 60%的能力跑解析,剩余部分处理网络
     protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
+
 
     protected abstract BinlogParser buildParser();
 
@@ -614,5 +616,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     public void setParallelBufferSize(int parallelBufferSize) {
         this.parallelBufferSize = parallelBufferSize;
     }
+
 
 }

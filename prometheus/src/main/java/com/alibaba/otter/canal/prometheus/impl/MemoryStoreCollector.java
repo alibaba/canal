@@ -20,15 +20,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MemoryStoreCollector extends Collector {
 
     private static final Class<MemoryEventStoreWithBuffer> clazz  = MemoryEventStoreWithBuffer.class;
-
     private final String                                   destination;
-
     private final AtomicLong                               putSequence;
-
     private final AtomicLong                               ackSequence;
-
     private final String                                   putHelp;
-
     private final String                                   ackHelp;
 
     public MemoryStoreCollector(CanalEventStore store, String destination) {
@@ -47,11 +42,11 @@ public class MemoryStoreCollector extends Collector {
     public List<MetricFamilySamples> collect() {
         List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
         CounterMetricFamily put = new CounterMetricFamily("canal_instance_store_produce_seq",
-                putHelp, Arrays.asList(CanalInstanceExports.labels));
+                putHelp, Arrays.asList(CanalInstanceExports.DEST_LABELS));
         put.addMetric(Collections.singletonList(destination), putSequence.doubleValue());
         mfs.add(put);
         CounterMetricFamily ack = new CounterMetricFamily("canal_instance_store_consume_seq",
-                ackHelp, Arrays.asList(CanalInstanceExports.labels));
+                ackHelp, Arrays.asList(CanalInstanceExports.DEST_LABELS));
         ack.addMetric(Collections.singletonList(destination), ackSequence.doubleValue());
         mfs.add(ack);
         return mfs;

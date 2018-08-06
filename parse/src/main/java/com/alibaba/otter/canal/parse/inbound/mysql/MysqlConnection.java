@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,18 +38,19 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class MysqlConnection implements ErosaConnection {
 
-    private static final Logger logger      = LoggerFactory.getLogger(MysqlConnection.class);
+    private static final Logger       logger                    = LoggerFactory.getLogger(MysqlConnection.class);
 
-    private MysqlConnector      connector;
-    private long                slaveId;
-    private Charset             charset     = Charset.forName("UTF-8");
-    private BinlogFormat        binlogFormat;
-    private BinlogImage         binlogImage;
+    private MysqlConnector            connector;
+    private long                      slaveId;
+    private Charset                   charset                   = Charset.forName("UTF-8");
+    private BinlogFormat              binlogFormat;
+    private BinlogImage               binlogImage;
 
     // tsdb releated
-    private AuthenticationInfo  authInfo;
-    protected int               connTimeout = 5 * 1000;                                      // 5秒
-    protected int               soTimeout   = 60 * 60 * 1000;                                // 1小时
+    private AuthenticationInfo        authInfo;
+    protected     int                 connTimeout               = 5 * 1000;                                      // 5秒
+    protected     int                 soTimeout                 = 60 * 60 * 1000;                                // 1小时
+    private       SerializedLongAdder receivedBinlogBytes;
 
     public MysqlConnection(){
     }
@@ -124,6 +126,7 @@ public class MysqlConnection implements ErosaConnection {
         decoder.handle(LogEvent.XID_EVENT);
         LogContext context = new LogContext();
         while (fetcher.fetch()) {
+            accumulateReceivedBytes(fetcher.limit());
             LogEvent event = null;
             event = decoder.decode(fetcher, context);
 
@@ -146,6 +149,7 @@ public class MysqlConnection implements ErosaConnection {
         LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
         LogContext context = new LogContext();
         while (fetcher.fetch()) {
+            accumulateReceivedBytes(fetcher.limit());
             LogEvent event = null;
             event = decoder.decode(fetcher, context);
 
@@ -174,6 +178,7 @@ public class MysqlConnection implements ErosaConnection {
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
             while (fetcher.fetch()) {
+                accumulateReceivedBytes(fetcher.limit());
                 LogEvent event = null;
                 event = decoder.decode(fetcher, context);
 
@@ -204,6 +209,7 @@ public class MysqlConnection implements ErosaConnection {
         try {
             fetcher.start(connector.getChannel());
             while (fetcher.fetch()) {
+                accumulateReceivedBytes(fetcher.limit());
                 LogBuffer buffer = fetcher.duplicate();
                 fetcher.consume(fetcher.limit());
                 if (!coprocessor.publish(buffer)) {
@@ -230,6 +236,7 @@ public class MysqlConnection implements ErosaConnection {
         try {
             fetcher.start(connector.getChannel());
             while (fetcher.fetch()) {
+                accumulateReceivedBytes(fetcher.limit());
                 LogBuffer buffer = fetcher.duplicate();
                 fetcher.consume(fetcher.limit());
                 if (!coprocessor.publish(buffer)) {
@@ -334,7 +341,6 @@ public class MysqlConnection implements ErosaConnection {
      * <li>net_read_timeout</li>
      * </ol>
      * 
-     * @param channel
      * @throws IOException
      */
     private void updateSettings() throws IOException {
@@ -452,6 +458,14 @@ public class MysqlConnection implements ErosaConnection {
             throw new IllegalStateException("unexpected binlog image query result:" + rs.getFieldValues());
         }
     }
+
+    private void accumulateReceivedBytes(long x) {
+        if (receivedBinlogBytes != null) {
+            receivedBinlogBytes.add(x);
+        }
+    }
+
+
 
     public static enum BinlogFormat {
 
@@ -590,6 +604,10 @@ public class MysqlConnection implements ErosaConnection {
 
     public void setAuthInfo(AuthenticationInfo authInfo) {
         this.authInfo = authInfo;
+    }
+
+    public void setReceivedBinlogBytes(SerializedLongAdder receivedBinlogBytes) {
+        this.receivedBinlogBytes = receivedBinlogBytes;
     }
 
 }

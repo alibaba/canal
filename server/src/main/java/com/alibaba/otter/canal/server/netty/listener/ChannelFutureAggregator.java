@@ -15,18 +15,27 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
 
     private ClientRequestResult result;
 
-    public ChannelFutureAggregator(String dest, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency) {
-        this(dest, request, type, amount, latency, 0);
+    public ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency, boolean empty) {
+        this(destination, request, type, amount, latency, empty, (short) 0);
     }
 
-    private ChannelFutureAggregator(String dest, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency, int errorCode) {
+    public ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency) {
+        this(destination, request, type, amount, latency, false, (short) 0);
+    }
+
+    public ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency, short errorCode) {
+        this(destination, request, type, amount, latency, false, errorCode);
+    }
+
+    private ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency, boolean empty, short errorCode) {
         this.result = new ClientRequestResult.Builder()
-                .dest(dest)
+                .destination(destination)
                 .type(type)
                 .request(request)
                 .amount(amount)
                 .latency(latency)
                 .errorCode(errorCode)
+                .empty(empty)
                 .build();
     }
 
@@ -36,7 +45,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
         if (future.getCause() != null) {
             result.channelError = future.getCause();
         }
-        profiler().profiling(result.dest, result);
+        profiler().profiling(result.destination, result);
     }
 
     /**
@@ -44,39 +53,42 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
      */
     public static class ClientRequestResult {
 
-        private String                 dest;
+        private String                 destination;
         private CanalPacket.PacketType type;
         private GeneratedMessage       request;
-        private int       amount;
-        private long      latency;
-        private int       errorCode;
-        private Throwable channelError;
+        private int                    amount;
+        private long                   latency;
+        private short                  errorCode;
+        private boolean                empty;
+        private Throwable              channelError;
 
         private ClientRequestResult() {}
 
         private ClientRequestResult(Builder builder) {
-            this.dest = Preconditions.checkNotNull(builder.dest);
+            this.destination = Preconditions.checkNotNull(builder.destination);
             this.type = Preconditions.checkNotNull(builder.type);
             this.request = Preconditions.checkNotNull(builder.request);
             this.amount = builder.amount;
             this.latency = builder.latency;
             this.errorCode = builder.errorCode;
+            this.empty = builder.empty;
             this.channelError = builder.channelError;
         }
 
         // auto-generated
         public static class Builder {
 
-            private String                 dest;
+            private String                 destination;
             private CanalPacket.PacketType type;
             private GeneratedMessage       request;
             private int                    amount;
             private long                   latency;
-            private int                    errorCode;
+            private short                  errorCode;
+            private boolean                empty;
             private Throwable              channelError;
 
-            Builder dest(String dest) {
-                this.dest = dest;
+            Builder destination(String destination) {
+                this.destination = destination;
                 return this;
             }
 
@@ -100,8 +112,13 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
                 return this;
             }
 
-            Builder errorCode(int errorCode) {
+            Builder errorCode(short errorCode) {
                 this.errorCode = errorCode;
+                return this;
+            }
+
+            Builder empty(boolean empty) {
+                this.empty = empty;
                 return this;
             }
 
@@ -111,12 +128,13 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
             }
 
             public Builder fromPrototype(ClientRequestResult prototype) {
-                dest = prototype.dest;
+                destination = prototype.destination;
                 type = prototype.type;
                 request = prototype.request;
                 amount = prototype.amount;
                 latency = prototype.latency;
                 errorCode = prototype.errorCode;
+                empty = prototype.empty;
                 channelError = prototype.channelError;
                 return this;
             }
@@ -126,8 +144,8 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
             }
         }
         // getters
-        public String getDest() {
-            return dest;
+        public String getDestination() {
+            return destination;
         }
 
         public CanalPacket.PacketType getType() {
@@ -146,8 +164,12 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
             return latency;
         }
 
-        public int getErrorCode() {
+        public short getErrorCode() {
             return errorCode;
+        }
+
+        public boolean getEmpty() {
+            return empty;
         }
 
         public Throwable getChannelError() {

@@ -36,7 +36,7 @@ public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDow
                 GaugeMetricFamily delay = new GaugeMetricFamily(
                         DELAY_NAME,
                         delayHelpName,
-                        CanalInstanceExports.labelList);
+                        CanalInstanceExports.DEST_LABEL_LIST);
                 double d = 0.0;
                 if (latestExecuteTime > 0) {
                     d = now - latestExecuteTime;
