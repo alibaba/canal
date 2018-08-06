@@ -1,17 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.alibaba.otter</groupId>
+    <groupId>com.ctrip.framework</groupId>
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
     <version>1.0.26-SNAPSHOT</version>
     <url>https://github.com/alibaba/canal</url>
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
-    <developers>
+    <!--<parent>-->
+        <!--<groupId>org.sonatype.oss</groupId>-->
+        <!--<artifactId>oss-parent</artifactId>-->
+        <!--<version>7</version>-->
+    <!--</parent>-->
+    <!--<developers>
         <developer>
             <name>agapple</name>
             <url>http://agapple.iteye.com</url>
@@ -30,7 +30,7 @@
             <email>in355hz@gmail.com</email>
             <timezone>8</timezone>
         </developer>
-    </developers>
+    </developers>-->
 
     <licenses>
         <license>
@@ -39,11 +39,11 @@
         </license>
     </licenses>
 
-    <scm>
+    <!--<scm>
         <url>git@github.com:alibaba/canal.git</url>
         <connection>scm:git:git@github.com:alibaba/canal.git</connection>
         <developerConnection>scm:git:git@github.com:alibaba/canal.git</developerConnection>
-    </scm>
+    </scm>-->
 
     <repositories>
         <repository>
@@ -66,7 +66,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
+        <!--<repository>
             <id>alibaba</id>
             <url>http://code.alibabatech.com/mvn/releases/</url>
             <releases>
@@ -75,8 +75,8 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-        </repository>
-        <repository>
+        </repository>-->
+        <!--<repository>
             <id>sonatype</id>
             <name>sonatype</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -84,7 +84,7 @@
                 <enabled>false</enabled>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
         <repository>
@@ -95,9 +95,9 @@
                 <enabled>false</enabled>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
-        </repository>
+        </repository>-->
     </repositories>
 
     <properties>
@@ -461,15 +461,17 @@
     </build>
 
     <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>releases</id>
+            <url>
+                http://maven.release.ctripcorp.com/nexus/content/repositories/fxrelease
+            </url>
         </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>
+                http://maven.release.ctripcorp.com/nexus/content/repositories/fxsnapshot
+            </url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
