@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 public class CanalServerWithNettyProfiler {
 
     public static final ClientInstanceProfilerFactory           DISABLED = new DefaultClientInstanceProfilerFactory();
-    private volatile ClientInstanceProfilerFactory              factory;
+    private volatile ClientInstanceProfilerFactory              clientInstanceProfilerFactory;
     private final ConcurrentMap<String, ClientInstanceProfiler> cliPfs;
     private final CanalServerWithEmbedded                       server;
 
@@ -20,7 +20,7 @@ public class CanalServerWithNettyProfiler {
     }
 
     private CanalServerWithNettyProfiler() {
-        this.factory = DISABLED;
+        this.clientInstanceProfilerFactory = DISABLED;
         this.cliPfs = new ConcurrentHashMap<String, ClientInstanceProfiler>();
         this.server = CanalServerWithEmbedded.instance();
     }
@@ -46,7 +46,7 @@ public class CanalServerWithNettyProfiler {
         if (server.isStart(destination)) {
             throw new IllegalStateException("Instance profiler should not be start while running.");
         }
-        ClientInstanceProfiler profiler = factory.create(destination);
+        ClientInstanceProfiler profiler = clientInstanceProfilerFactory.create(destination);
         profiler.start();
         cliPfs.put(destination, profiler);
     }
@@ -70,11 +70,11 @@ public class CanalServerWithNettyProfiler {
     }
 
     public void setInstanceProfilerFactory(ClientInstanceProfilerFactory factory) {
-        this.factory = factory;
+        this.clientInstanceProfilerFactory = factory;
     }
 
     private boolean isDisabled() {
-        return factory == DISABLED || factory == null;
+        return clientInstanceProfilerFactory == DISABLED || clientInstanceProfilerFactory == null;
     }
 
     private ClientInstanceProfiler tryGet(String destination) {
@@ -84,7 +84,7 @@ public class CanalServerWithNettyProfiler {
             synchronized (cliPfs) {
                 if (server.isStart(destination)) {
                     // avoid overwriting
-                    cliPfs.putIfAbsent(destination, factory.create(destination));
+                    cliPfs.putIfAbsent(destination, clientInstanceProfilerFactory.create(destination));
                     profiler = cliPfs.get(destination);
                     if (!profiler.isStart()) {
                         profiler.start();

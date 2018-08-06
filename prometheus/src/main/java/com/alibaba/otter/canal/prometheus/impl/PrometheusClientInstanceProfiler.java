@@ -7,7 +7,7 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
 
-import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DESTINATION;
+import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
 import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABELS;
 
 /**
@@ -38,7 +38,7 @@ public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler 
                 .help("Send bytes to client of instance " + destination)
                 .create();
         this.packetsCounter = Counter.build()
-                .labelNames(new String[]{DESTINATION, "packetType"})
+                .labelNames(new String[]{DEST, "packetType"})
                 .name(PACKET_TYPE)
                 .help("Send packets to client of instance " + destination)
                 .create();
@@ -48,7 +48,7 @@ public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler 
                 .help("Send empty batches to client of instance " + destination)
                 .create();
         this.errorsCounter = Counter.build()
-                .labelNames(new String[]{DESTINATION, "errorCode"})
+                .labelNames(new String[]{DEST, "errorCode"})
                 .name(ERRORS)
                 .help("Client request errors of instance " + destination)
                 .create();

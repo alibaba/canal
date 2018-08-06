@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DESTINATION;
+import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
 import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABEL_LIST;
 
 /**
@@ -45,7 +45,7 @@ public class MysqlParserCollector extends Collector {
         this.receivedBinlogBytesHelp = "Received binlog bytes of instance" + destination;
         this.isParallel = ((MysqlEventParser)parser).isParallel();
         this.modeHelp = "Parser mode of instance" + destination;
-        this.modeLabels = Arrays.asList(DESTINATION, MODE_LABEL);
+        this.modeLabels = Arrays.asList(DEST, MODE_LABEL);
         this.modeLabelValues = Arrays.asList(destination, isParallel.toString());
     }
 
