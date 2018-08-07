@@ -23,18 +23,28 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class MetaCollector extends Collector implements InstanceRegistry {
 
-    private static final List<String>                      InfoLabel        = Arrays.asList("destination", "mode");
-    private static final Logger                            logger           = LoggerFactory.getLogger(MetaCollector.class);
-    private static final String                            SUBSCRIPTION     = "canal_instance";
-    private static final String                            subscriptionHelp = "Canal instance";
-    private final ConcurrentMap<String, MetaMetricsHolder> instances        = new ConcurrentHashMap<String, MetaMetricsHolder>();
+    private static final List<String>                      InfoLabel         = Arrays.asList("destination", "mode");
+    private static final Logger                            logger            = LoggerFactory.getLogger(MetaCollector.class);
+    private static final String                            SUBSCRIPTION      = "canal_instance";
+    private static final String                            SUBSCRIPTION_HELP = "Canal instance";
+    private final ConcurrentMap<String, MetaMetricsHolder> instances         = new ConcurrentHashMap<String, MetaMetricsHolder>();
+
+    private MetaCollector() {}
+
+    private static class SingletonHolder {
+        private static final MetaCollector SINGLETON = new MetaCollector();
+    }
+
+    public static MetaCollector instance() {
+        return SingletonHolder.SINGLETON;
+    }
 
     @Override
     public List<MetricFamilySamples> collect() {
         List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
         GaugeMetricFamily instanceInfo = new GaugeMetricFamily(
                 SUBSCRIPTION,
-                subscriptionHelp,
+                SUBSCRIPTION_HELP,
                 InfoLabel);
         for (Map.Entry<String, MetaMetricsHolder> nme : instances.entrySet()) {
             final String destination = nme.getKey();
@@ -54,11 +64,10 @@ public class MetaCollector extends Collector implements InstanceRegistry {
         String mode = (instance instanceof CanalInstanceWithSpring) ? "spring" : "manager";
         holder.infoLabelValues = Arrays.asList(destination, mode);
         holder.metaManager = instance.getMetaManager();
-        Preconditions.checkNotNull(holder.infoLabelValues);
         Preconditions.checkNotNull(holder.metaManager);
-        MetaMetricsHolder old = instances.putIfAbsent(destination, holder);
+        MetaMetricsHolder old = instances.put(destination, holder);
         if (old != null) {
-            logger.warn("Ignore repeated MetaCollector register for instance {}.", destination);
+            logger.warn("Remove stale MetaCollector for instance {}.", destination);
         }
     }
 

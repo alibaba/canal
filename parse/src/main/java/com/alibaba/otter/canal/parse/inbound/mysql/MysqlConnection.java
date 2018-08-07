@@ -7,8 +7,8 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ public class MysqlConnection implements ErosaConnection {
     private AuthenticationInfo        authInfo;
     protected     int                 connTimeout               = 5 * 1000;                                      // 5秒
     protected     int                 soTimeout                 = 60 * 60 * 1000;                                // 1小时
-    private       SerializedLongAdder receivedBinlogBytes;
+    private AtomicLong receivedBinlogBytes;
 
     public MysqlConnection(){
     }
@@ -473,7 +473,7 @@ public class MysqlConnection implements ErosaConnection {
 
     private void accumulateReceivedBytes(long x) {
         if (receivedBinlogBytes != null) {
-            receivedBinlogBytes.add(x);
+            receivedBinlogBytes.addAndGet(x);
         }
     }
 
@@ -618,7 +618,7 @@ public class MysqlConnection implements ErosaConnection {
         this.authInfo = authInfo;
     }
 
-    public void setReceivedBinlogBytes(SerializedLongAdder receivedBinlogBytes) {
+    public void setReceivedBinlogBytes(AtomicLong receivedBinlogBytes) {
         this.receivedBinlogBytes = receivedBinlogBytes;
     }
 

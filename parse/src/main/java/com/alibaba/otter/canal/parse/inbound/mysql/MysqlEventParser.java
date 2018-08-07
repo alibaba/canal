@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -73,7 +72,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private       int                 dumpErrorCountThreshold   = 2;        // binlogDump失败异常计数阀值
 
     // instance received binlog bytes
-    private final SerializedLongAdder receivedBinlogBytes       = new SerializedLongAdder(0L);
+    private final AtomicLong          receivedBinlogBytes       = new AtomicLong(0L);
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -516,7 +515,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private Long findTransactionBeginPosition(ErosaConnection mysqlConnection, final EntryPosition entryPosition)
                                                                                                                  throws IOException {
         // 针对开始的第一条为非Begin记录，需要从该binlog扫描
-        final AtomicLong preTransactionStartPosition = new AtomicLong(0L);
+        final java.util.concurrent.atomic.AtomicLong preTransactionStartPosition = new java.util.concurrent.atomic.AtomicLong(0L);
         mysqlConnection.reconnect();
         mysqlConnection.seek(entryPosition.getJournalName(), 4L, new SinkFunction<LogEvent>() {
 
@@ -917,7 +916,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
 
 
-    public SerializedLongAdder getReceivedBinlogBytes() {
+    public AtomicLong getReceivedBinlogBytes() {
         return this.receivedBinlogBytes;
     }
 
