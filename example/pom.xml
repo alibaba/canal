@@ -22,11 +22,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.instance.spring</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.ddlutils</groupId>
 			<artifactId>ddlutils</artifactId>
 			<version>1.0</version>
@@ -133,14 +128,6 @@
 				<configuration>
 					<appendAssemblyId>false</appendAssemblyId>
 					<attach>false</attach>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>7</source>
-					<target>7</target>
 				</configuration>
 			</plugin>
 		</plugins>
