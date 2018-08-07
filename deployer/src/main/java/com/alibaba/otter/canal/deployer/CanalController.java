@@ -379,7 +379,18 @@ public class CanalController {
     }
 
     private String getProperty(Properties properties, String key) {
-        return StringUtils.trim(properties.getProperty(StringUtils.trim(key)));
+        key = StringUtils.trim(key);
+        String value = System.getProperty(key);
+
+        if (value == null) {
+            value = System.getenv(key);
+        }
+
+        if (value == null) {
+            value = properties.getProperty(key);
+        }
+
+        return StringUtils.trim(value);
     }
 
     public void start() throws Throwable {

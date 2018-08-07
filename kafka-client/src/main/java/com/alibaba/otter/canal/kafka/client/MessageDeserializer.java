@@ -29,7 +29,9 @@ public class MessageDeserializer implements Deserializer<Message> {
     @Override
     public Message deserialize(String topic, byte[] data) {
         try {
-            if (data == null) return null;
+            if (data == null) {
+                return null;
+            }
             else {
                 CanalPacket.Packet p = CanalPacket.Packet.parseFrom(data);
                 switch (p.getType()) {

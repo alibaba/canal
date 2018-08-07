@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
 import org.apache.commons.lang.StringUtils;
@@ -52,6 +53,7 @@ import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
  */
 public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implements MultiStageCoprocessor {
 
+    private static final int             maxFullTimes               = 10;
     private LogEventConvert              logEventConvert;
     private EventTransactionBuffer       transactionBuffer;
     private ErosaConnection              connection;
@@ -63,6 +65,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private ExecutorService              stageExecutor;
     private String                       destination;
     private volatile CanalParseException exception;
+    private AtomicLong                   eventsPublishBlockingTime;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination){
@@ -161,6 +164,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             throw exception;
         }
         boolean interupted = false;
+        long blockingStart = 0L;
+        int fullTimes = 0;
         do {
             try {
                 long next = disruptorMsgBuffer.tryNext();
@@ -170,14 +175,37 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     event.setBinlogFileName(binlogFileName);
                 }
                 disruptorMsgBuffer.publish(next);
+                if (fullTimes > 0) {
+                    eventsPublishBlockingTime.addAndGet(System.nanoTime() - blockingStart);
+                }
                 break;
             } catch (InsufficientCapacityException e) {
+                if (fullTimes == 0) {
+                    blockingStart = System.nanoTime();
+                }
                 // park
-                LockSupport.parkNanos(1L);
+                //LockSupport.parkNanos(1L);
+                applyWait(++fullTimes);
                 interupted = Thread.interrupted();
+                if (fullTimes % 1000 == 0) {
+                    long nextStart = System.nanoTime();
+                    eventsPublishBlockingTime.addAndGet(nextStart - blockingStart);
+                    blockingStart = nextStart;
+                }
             }
         } while (!interupted && isStart());
         return isStart();
+    }
+
+    // 处理无数据的情况，避免空循环挂死
+    private void applyWait(int fullTimes) {
+        int newFullTimes = fullTimes > maxFullTimes ? maxFullTimes : fullTimes;
+        if (fullTimes <= 3) { // 3次以内
+            Thread.yield();
+        } else { // 超过3次，最多只sleep 1ms
+            LockSupport.parkNanos(100 * 1000L * newFullTimes);
+        }
+
     }
 
     @Override
@@ -188,6 +216,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         start();
     }
+
 
     private class SimpleParserStage implements EventHandler<MessageEvent>, LifecycleAware {
 
@@ -425,6 +454,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     public void setConnection(ErosaConnection connection) {
         this.connection = connection;
+    }
+
+    public void setEventsPublishBlockingTime(AtomicLong eventsPublishBlockingTime) {
+        this.eventsPublishBlockingTime = eventsPublishBlockingTime;
     }
 
 }

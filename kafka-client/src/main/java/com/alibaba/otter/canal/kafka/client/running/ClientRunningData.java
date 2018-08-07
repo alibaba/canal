@@ -8,8 +8,8 @@ package com.alibaba.otter.canal.kafka.client.running;
  */
 public class ClientRunningData {
 
-    private String groupId;
-    private String address;
+    private String  groupId;
+    private String  address;
     private boolean active = true;
 
     public String getGroupId() {

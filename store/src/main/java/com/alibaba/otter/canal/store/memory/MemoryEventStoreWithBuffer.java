@@ -562,4 +562,23 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         this.ddlIsolation = ddlIsolation;
     }
 
+    public AtomicLong getPutSequence() {
+        return putSequence;
+    }
+
+    public AtomicLong getAckSequence() {
+        return ackSequence;
+    }
+
+    public AtomicLong getPutMemSize() {
+        return putMemSize;
+    }
+
+    public AtomicLong getAckMemSize() {
+        return ackMemSize;
+    }
+
+    public BatchMode getBatchMode() {
+        return batchMode;
+    }
 }

@@ -74,4 +74,20 @@ public class NettyUtils {
                 .toByteArray(),
             channelFutureListener);
     }
+
+    public static byte[] ackPacket() {
+        return Packet.newBuilder()
+                .setType(CanalPacket.PacketType.ACK)
+                .setBody(Ack.newBuilder().build().toByteString())
+                .build()
+                .toByteArray();
+    }
+
+    public static byte[] errorPacket(int errorCode, String errorMessage) {
+        return Packet.newBuilder()
+                .setType(CanalPacket.PacketType.ACK)
+                .setBody(Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(errorMessage).build().toByteString())
+                .build()
+                .toByteArray();
+    }
 }

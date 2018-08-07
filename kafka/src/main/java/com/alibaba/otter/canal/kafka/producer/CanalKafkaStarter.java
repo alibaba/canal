@@ -52,7 +52,10 @@ public class CanalKafkaStarter {
             // 初始化 kafka producer
             canalKafkaProducer = new CanalKafkaProducer();
             canalKafkaProducer.init(kafkaProperties);
-
+            // set filterTransactionEntry
+            if (kafkaProperties.isFilterTransactionEntry()) {
+                System.setProperty("canal.instance.filter.transaction.entry", "true");
+            }
             // 对应每个instance启动一个worker线程
             List<CanalDestination> destinations = kafkaProperties.getCanalDestinations();
 
@@ -118,7 +121,7 @@ public class CanalKafkaStarter {
                     Message message = server.getWithoutAck(clientIdentity, kafkaProperties.getCanalBatchSize()); // 获取指定数量的数据
                     long batchId = message.getId();
                     try {
-                        int size = message.getEntries().size();
+                        int size = message.isRaw() ?  message.getRawEntries().size() : message.getEntries().size();
                         if (batchId != -1 && size != 0) {
                             if (!StringUtils.isEmpty(destination.getTopic())) {
                                 Topic topic = new Topic();

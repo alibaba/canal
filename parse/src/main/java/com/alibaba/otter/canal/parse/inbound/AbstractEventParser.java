@@ -95,6 +95,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
 
+
     protected abstract BinlogParser buildParser();
 
     protected abstract ErosaConnection buildErosaConnection();
@@ -614,5 +615,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     public void setParallelBufferSize(int parallelBufferSize) {
         this.parallelBufferSize = parallelBufferSize;
     }
+
 
 }
