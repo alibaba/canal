@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.prometheus.impl;
 
+import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.prometheus.CanalInstanceExports;
+import com.alibaba.otter.canal.prometheus.InstanceRegistry;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.CanalStoreException;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
@@ -12,21 +14,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Chuanyi Li
  */
-public class MemoryStoreCollector extends Collector {
+public class StoreCollector extends Collector implements InstanceRegistry {
 
     private static final Class<MemoryEventStoreWithBuffer> clazz  = MemoryEventStoreWithBuffer.class;
-    private final String                                   destination;
-    private final AtomicLong                               putSequence;
-    private final AtomicLong                               ackSequence;
-    private final String                                   putHelp;
-    private final String                                   ackHelp;
+    private static final String                             PRODUCE     = "canal_instance_store_produce_seq";
+    private static final String                             CONSUME     = "canal_instance_store_consume_seq";
+    private static final String                             produceHelp = "Produced sequence of canal instance";
+    private static final String                             consumeHelp = "Consumed sequence of canal instance";
+    private final ConcurrentMap<String, StoreMetricsHolder> instances   = new ConcurrentHashMap<String, StoreMetricsHolder>();
 
-    public MemoryStoreCollector(CanalEventStore store, String destination) {
+
+    public StoreCollector(CanalEventStore store, String destination) {
         this.destination = destination;
         if (!(store instanceof MemoryEventStoreWithBuffer)) {
             throw new IllegalArgumentException("EventStore must be MemoryEventStoreWithBuffer");
@@ -34,8 +39,6 @@ public class MemoryStoreCollector extends Collector {
         MemoryEventStoreWithBuffer ms = (MemoryEventStoreWithBuffer) store;
         putSequence = getDeclaredValue(ms, "putSequence");
         ackSequence = getDeclaredValue(ms, "ackSequence");
-        putHelp = "Produced sequence of canal instance " + destination;
-        ackHelp = "Consumed sequence of canal instance " + destination;
     }
 
     @Override
@@ -67,4 +70,16 @@ public class MemoryStoreCollector extends Collector {
         return value;
     }
 
+    @Override public void register(CanalInstance instance) {
+
+    }
+
+    @Override public void unregister(CanalInstance instance) {
+
+    }
+
+    private class StoreMetricsHolder {
+        private AtomicLong putSeq;
+        private AtomicLong ackSeq;
+    }
 }

@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 
-import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.profiler;
-
 /**
  * @author Chuanyi Li
  */
@@ -24,30 +22,29 @@ public class CanalInstanceExports {
     public static final String       DEST            = "destination";
     public static final String[]     DEST_LABELS     = {DEST};
     public static final List<String> DEST_LABEL_LIST = Collections.singletonList(DEST);
-    private final String             destination;
+//    private final String             destination;
     private Collector                storeCollector;
     private Collector                delayCollector;
     private Collector                metaCollector;
     private Collector                sinkCollector;
     private Collector                parserCollector;
 
-    private CanalInstanceExports(CanalInstance instance) {
-        this.destination = instance.getDestination();
-        initEventsMetrics(instance);
-        initStoreCollector(instance);
-        initMetaCollector(instance);
-        initSinkCollector(instance);
-        initParserCollector(instance);
+    public CanalInstanceExports() {
+//        this.destination = instance.getDestination();
+//        initEventsMetrics(instance);
+//        initStoreCollector(instance);
+//        initMetaCollector(instance);
+//        initSinkCollector(instance);
+//        initParserCollector(instance);
     }
 
 
 
-    static CanalInstanceExports forInstance(CanalInstance instance) {
-        return new CanalInstanceExports(instance);
-    }
+//    static CanalInstanceExports forInstance(CanalInstance instance) {
+//        return new CanalInstanceExports(instance);
+//    }
 
-    void register() {
-        profiler().start(destination);
+    void register(CanalInstance instance) {
         if (delayCollector != null) {
             delayCollector.register();
         }
@@ -65,8 +62,7 @@ public class CanalInstanceExports {
         }
     }
 
-    void unregister() {
-        profiler().stop(destination);
+    void unregister(CanalInstance instance) {
         if (delayCollector != null) {
             CollectorRegistry.defaultRegistry.unregister(delayCollector);
         }
@@ -89,28 +85,28 @@ public class CanalInstanceExports {
         if (sink instanceof EntryEventSink) {
             EntryEventSink entryEventSink = (EntryEventSink) sink;
             // TODO ensure not to add handler again
-            PrometheusCanalEventDownStreamHandler handler = new PrometheusCanalEventDownStreamHandler(destination);
-            entryEventSink.addHandler(handler);
-            delayCollector = handler.getCollector();
+//            PrometheusCanalEventDownStreamHandler handler = new PrometheusCanalEventDownStreamHandler(destination);
+//            entryEventSink.addHandler(handler);
+//            delayCollector = handler.getCollector();
         } else {
             logger.warn("This impl register metrics for only EntryEventSink, skip.");
         }
     }
 
-    private void initStoreCollector(CanalInstance instance) {
-        try {
-            storeCollector = new MemoryStoreCollector(instance.getEventStore(), destination);
-        } catch (CanalStoreException cse) {
-            logger.warn("Failed to register metrics for destination {}.", destination, cse);
-        }
-    }
+//    private void initStoreCollector(CanalInstance instance) {
+//        try {
+//            storeCollector = new StoreCollector(instance.getEventStore(), destination);
+//        } catch (CanalStoreException cse) {
+//            logger.warn("Failed to register metrics for destination {}.", destination, cse);
+//        }
+//    }
 
     private void initMetaCollector(CanalInstance instance) {
-        metaCollector = new InstanceMetaCollector(instance);
+        metaCollector = new MetaCollector(instance);
     }
 
     private void initSinkCollector(CanalInstance instance) {
-        sinkCollector = new EntrySinkCollector(instance.getEventSink(), instance.getDestination());
+//        sinkCollector = new EntryCollector(instance.getEventSink(), instance.getDestination());
     }
 
     private void initParserCollector(CanalInstance instance) {

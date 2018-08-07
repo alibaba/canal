@@ -1,105 +1,39 @@
 package com.alibaba.otter.canal.server.netty;
 
-import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
+import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.server.netty.listener.ChannelFutureAggregator.ClientRequestResult;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Chuanyi Li
  */
 public class CanalServerWithNettyProfiler {
 
-    public static final ClientInstanceProfilerFactory           DISABLED = new DefaultClientInstanceProfilerFactory();
-    private volatile ClientInstanceProfilerFactory              clientInstanceProfilerFactory;
-    private final ConcurrentMap<String, ClientInstanceProfiler> cliPfs;
-    private final CanalServerWithEmbedded                       server;
+    public static final ClientInstanceProfiler NOP               = new DefaultClientInstanceProfiler();
+    private ClientInstanceProfiler             instanceProfiler;
 
     private static class SingletonHolder {
         private static CanalServerWithNettyProfiler SINGLETON = new CanalServerWithNettyProfiler();
     }
 
     private CanalServerWithNettyProfiler() {
-        this.clientInstanceProfilerFactory = DISABLED;
-        this.cliPfs = new ConcurrentHashMap<String, ClientInstanceProfiler>();
-        this.server = CanalServerWithEmbedded.instance();
+        this.instanceProfiler = NOP;
     }
 
     public static CanalServerWithNettyProfiler profiler() {
         return SingletonHolder.SINGLETON;
     }
 
-    public void profiling(String destination, ClientRequestResult result) {
-        if (isDisabled()) {
-            return;
-        }
-        ClientInstanceProfiler profiler = cliPfs.get(destination);
-        if (profiler != null) {
-            profiler.profiling(result);
-        }
+    public void profiling(ClientRequestResult result) {
+        instanceProfiler.profiling(result);
     }
 
-    public void start(String destination) {
-        if (isDisabled()) {
-            return;
-        }
-        if (server.isStart(destination)) {
-            throw new IllegalStateException("Instance profiler should not be start while running.");
-        }
-        ClientInstanceProfiler profiler = clientInstanceProfilerFactory.create(destination);
-        profiler.start();
-        cliPfs.put(destination, profiler);
+    public void setInstanceProfiler(ClientInstanceProfiler instanceProfiler) {
+        this.instanceProfiler = instanceProfiler;
     }
 
-    /**
-     * Remove instance profiler for specified instance.
-     * Only accepted while instance is not running.
-     * @param destination canal instance destination
-     */
-    public void stop(String destination) {
-        if (isDisabled()) {
-            return;
-        }
-        if (server.isStart(destination)) {
-            throw new IllegalStateException("Instance profiler should not be stop while running.");
-        }
-        ClientInstanceProfiler profiler = cliPfs.remove(destination);
-        if (profiler != null && profiler.isStart()) {
-            profiler.stop();
-        }
-    }
-
-    public void setInstanceProfilerFactory(ClientInstanceProfilerFactory factory) {
-        this.clientInstanceProfilerFactory = factory;
-    }
-
-    private boolean isDisabled() {
-        return clientInstanceProfilerFactory == DISABLED || clientInstanceProfilerFactory == null;
-    }
-
-    private ClientInstanceProfiler tryGet(String destination) {
-        //try fast get
-        ClientInstanceProfiler profiler = cliPfs.get(destination);
-        if (profiler == null) {
-            synchronized (cliPfs) {
-                if (server.isStart(destination)) {
-                    // avoid overwriting
-                    cliPfs.putIfAbsent(destination, clientInstanceProfilerFactory.create(destination));
-                    profiler = cliPfs.get(destination);
-                    if (!profiler.isStart()) {
-                        profiler.start();
-                    }
-                }
-            }
-        }
-        return profiler;
-    }
-
-    private static class DefaultClientInstanceProfilerFactory implements ClientInstanceProfilerFactory {
+    private static class DefaultClientInstanceProfiler extends AbstractCanalLifeCycle implements ClientInstanceProfiler {
         @Override
-        public ClientInstanceProfiler create(String destination) {
-            throw new UnsupportedOperationException();
-        }
+        public void profiling(ClientRequestResult result) {}
     }
 
 }
