@@ -70,7 +70,9 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
             @Override
             public Thread newThread(Runnable r) {
-                return new Thread(r, "[scheduler-table-meta-snapshot]");
+                Thread thread = new Thread(r, "[scheduler-table-meta-snapshot]");
+                thread.setDaemon(true);
+                return thread;
             }
         });
 
@@ -298,13 +300,24 @@ public class DatabaseTableMeta implements TableMetaTSDB {
                 createDDL = packet.getFieldValues().get(1);
                 tableMetaFromDB.setFields(TableMetaCache.parseTableMeta(schema, table, packet));
             }
-        } catch (IOException e) {
-            if (e.getMessage().contains("errorNumber=1146")) {
-                logger.error("table not exist in db , pls check :" + getFullName(schema, table) + " , mem : "
-                             + tableMetaFromMem);
-                return false;
+        } catch (Throwable e) {
+            try {
+                // retry for broke pipe, see:
+                // https://github.com/alibaba/canal/issues/724
+                connection.reconnect();
+                ResultSetPacket packet = connection.query("show create table " + getFullName(schema, table));
+                if (packet.getFieldValues().size() > 1) {
+                    createDDL = packet.getFieldValues().get(1);
+                    tableMetaFromDB.setFields(TableMetaCache.parseTableMeta(schema, table, packet));
+                }
+            } catch (IOException e1) {
+                if (e.getMessage().contains("errorNumber=1146")) {
+                    logger.error("table not exist in db , pls check :" + getFullName(schema, table) + " , mem : "
+                                 + tableMetaFromMem);
+                    return false;
+                }
+                throw new CanalParseException(e);
             }
-            throw new CanalParseException(e);
         }
 
         boolean result = compareTableMeta(tableMetaFromMem, tableMetaFromDB);

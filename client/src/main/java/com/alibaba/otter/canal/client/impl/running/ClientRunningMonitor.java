@@ -98,6 +98,10 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
         String path = ZookeeperPathUtils.getDestinationClientRunning(this.destination, clientData.getClientId());
         zkClient.unsubscribeDataChanges(path, dataListener);
         releaseRunning(); // 尝试一下release
+        //Fix issue #697
+        if (delayExector != null) {
+            delayExector.shutdown();
+        }
     }
 
     // 改动记录：

@@ -60,11 +60,11 @@ public class TimelineTransactionBarrier extends TimelineBarrier {
     }
 
     public void clear(Event event) {
-       super.clear(event);
+        super.clear(event);
 
-       //应该先判断2，再判断是否是事务尾，因为事务尾也可以导致txState的状态为2
-       //如果先判断事务尾，那么2的状态可能永远没机会被修改了，系统出现死锁
-       //CanalSinkException被注释的代码是不是可以放开？？我们内部使用的时候已经放开了，从代码逻辑的分析上以及实践效果来看，应该抛异常
+        // 应该先判断2，再判断是否是事务尾，因为事务尾也可以导致txState的状态为2
+        // 如果先判断事务尾，那么2的状态可能永远没机会被修改了，系统出现死锁
+        // CanalSinkException被注释的代码是不是可以放开？？我们内部使用的时候已经放开了，从代码逻辑的分析上以及实践效果来看，应该抛异常
         if (txState.intValue() == 2) {// 非事务中
             boolean result = txState.compareAndSet(2, 0);
             if (result == false) {
@@ -92,7 +92,7 @@ public class TimelineTransactionBarrier extends TimelineBarrier {
                         return true; // 事务允许通过
                     }
                 } else if (txState.compareAndSet(0, 2)) { // 非事务保护中
-                    //当基于zk-cursor启动的时候，拿到的第一个Event是TransactionEnd
+                    // 当基于zk-cursor启动的时候，拿到的第一个Event是TransactionEnd
                     return true; // DDL/DCL/TransactionEnd允许通过
                 }
             }
@@ -113,11 +113,11 @@ public class TimelineTransactionBarrier extends TimelineBarrier {
     }
 
     private boolean isTransactionBegin(Event event) {
-        return event.getEntry().getEntryType() == EntryType.TRANSACTIONBEGIN;
+        return event.getEntryType() == EntryType.TRANSACTIONBEGIN;
     }
 
     private boolean isTransactionEnd(Event event) {
-        return event.getEntry().getEntryType() == EntryType.TRANSACTIONEND;
+        return event.getEntryType() == EntryType.TRANSACTIONEND;
     }
 
 }

@@ -139,7 +139,7 @@ public class TimelineBarrier implements GroupBarrier<Event> {
     }
 
     private Long getTimestamp(Event event) {
-        return event.getEntry().getHeader().getExecuteTime();
+        return event.getExecuteTime();
     }
 
 }

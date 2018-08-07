@@ -7,10 +7,12 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
+import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBBuilder;
@@ -90,8 +92,16 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     public void start() throws CanalParseException {
         if (enableTsdb) {
             if (tableMetaTSDB == null) {
-                // 初始化
-                tableMetaTSDB = TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
+                synchronized (CanalEventParser.class) {
+                    try {
+                        // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
+                        System.setProperty("canal.instance.destination", destination);
+                        // 初始化
+                        tableMetaTSDB = TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
+                    } finally {
+                        System.setProperty("canal.instance.destination", "");
+                    }
+                }
             }
         }
 
@@ -115,6 +125,14 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             && binlogParser instanceof LogEventConvert) {
             ((LogEventConvert) binlogParser).setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
+    }
+
+    protected MultiStageCoprocessor buildMultiStageCoprocessor() {
+        return new MysqlMultiStageCoprocessor(parallelBufferSize,
+            parallelThreadSize,
+            (LogEventConvert) binlogParser,
+            transactionBuffer,
+            destination);
     }
 
     // ============================ setter / getter =========================

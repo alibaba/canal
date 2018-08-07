@@ -16,6 +16,7 @@ public class CanalConstants {
     public static final String CANAL_IP                          = ROOT + "." + "ip";
     public static final String CANAL_PORT                        = ROOT + "." + "port";
     public static final String CANAL_ZKSERVERS                   = ROOT + "." + "zkServers";
+    public static final String CANAL_WITHOUT_NETTY               = ROOT + "." + "withoutNetty";
 
     public static final String CANAL_DESTINATIONS                = ROOT + "." + "destinations";
     public static final String CANAL_AUTO_SCAN                   = ROOT + "." + "auto.scan";

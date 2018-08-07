@@ -81,6 +81,7 @@
 	
 	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
 		<property name="eventStore" ref="eventStore" />
+		<property name="filterTransactionEntry" value="${canal.instance.filter.transaction.entry:false}"/>
 	</bean>
 
 	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser">
@@ -148,7 +149,7 @@
 				<property name="address" value="${canal.instance.master.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
 			</bean>
 		</property>
 		<property name="standbyInfo">
@@ -156,7 +157,7 @@
 				<property name="address" value="${canal.instance.standby.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
 			</bean>
 		</property>
 		
@@ -191,6 +192,11 @@
 		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
 		
 		<!--是否启用GTID模式-->
-		<property name="isGTIDMode" value="${canal.instance.gtidon}"/>
+		<property name="isGTIDMode" value="${canal.instance.gtidon:false}"/>
+		
+		<!-- parallel parser -->
+		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
+		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
+		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 	</bean>
 </beans>

@@ -1,7 +1,5 @@
 package com.alibaba.otter.canal.parse.driver.mysql.packets;
 
-import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,13 +8,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
+
 /**
- * Created by hiwjd on 2018/4/23.
- * hiwjd0@gmail.com
+ * Created by hiwjd on 2018/4/23. hiwjd0@gmail.com
  */
 public class UUIDSet {
 
-    public UUID SID;
+    public UUID           SID;
     public List<Interval> intervals;
 
     public byte[] encode() throws IOException {
@@ -54,6 +53,7 @@ public class UUIDSet {
     }
 
     public static class Interval implements Comparable<Interval> {
+
         public long start;
         public long stop;
 
@@ -85,19 +85,15 @@ public class UUIDSet {
     }
 
     /**
-     * 解析如下格式字符串为UUIDSet:
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1 =>
-     *   UUIDSet{SID: 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:2}]}
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1-3 =>
-     *   UUIDSet{SID: 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4}]}
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:4
-     *   UUIDSet{SID: 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:5}]}
-     *
-     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:7-9
-     *   UUIDSet{SID: 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4}, {start:7, stop:10}]}
+     * 解析如下格式字符串为UUIDSet: 726757ad-4455-11e8-ae04-0242ac110002:1 => UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:2}]}
+     * 726757ad-4455-11e8-ae04-0242ac110002:1-3 => UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4}]}
+     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:4 UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:5}]}
+     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:7-9 UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4},
+     * {start:7, stop:10}]}
      *
      * @param str
      * @return
@@ -110,7 +106,7 @@ public class UUIDSet {
         }
 
         List<Interval> intervals = new ArrayList<Interval>();
-        for (int i=1; i<ss.length; i++) {
+        for (int i = 1; i < ss.length; i++) {
             intervals.add(parseInterval(ss[i]));
         }
 
@@ -134,7 +130,7 @@ public class UUIDSet {
                 sb.append(":");
                 sb.append(interval.start);
                 sb.append("-");
-                sb.append(interval.stop-1);
+                sb.append(interval.stop - 1);
             }
         }
 
@@ -142,12 +138,8 @@ public class UUIDSet {
     }
 
     /**
-     * 解析如下格式字符串为Interval:
-     *
-     * 1 => Interval{start:1, stop:2}
-     * 1-3 => Interval{start:1, stop:4}
-     *
-     * 注意！字符串格式表达时[n,m]是两侧都包含的，Interval表达时[n,m)右侧开
+     * 解析如下格式字符串为Interval: 1 => Interval{start:1, stop:2} 1-3 =>
+     * Interval{start:1, stop:4} 注意！字符串格式表达时[n,m]是两侧都包含的，Interval表达时[n,m)右侧开
      *
      * @param str
      * @return
@@ -173,8 +165,8 @@ public class UUIDSet {
     }
 
     /**
-     * 把{start,stop}连续的合并掉:
-     * [{start:1, stop:4},{start:4, stop:5}] => [{start:1, stop:5}]
+     * 把{start,stop}连续的合并掉: [{start:1, stop:4},{start:4, stop:5}] => [{start:1,
+     * stop:5}]
      *
      * @param intervals
      * @return
@@ -183,11 +175,11 @@ public class UUIDSet {
         List<Interval> combined = new ArrayList<Interval>();
         Collections.sort(intervals);
         int len = intervals.size();
-        for (int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             combined.add(intervals.get(i));
 
             int j;
-            for (j=i+1; j<len; j++) {
+            for (j = i + 1; j < len; j++) {
                 if (intervals.get(i).stop >= intervals.get(j).start) {
                     intervals.get(i).stop = intervals.get(j).stop;
                 } else {

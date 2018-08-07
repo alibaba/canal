@@ -194,7 +194,7 @@ public abstract class RowsLogEvent extends LogEvent {
     }
 
     public final RowsLogBuffer getRowsBuf(String charsetName) {
-        return new RowsLogBuffer(rowsBuf.duplicate(), columnLen, charsetName);
+        return new RowsLogBuffer(rowsBuf, columnLen, charsetName);
     }
 
     public final int getFlags(final int flags) {

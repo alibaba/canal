@@ -33,13 +33,10 @@ import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.CodedOutputStream;
+import com.google.protobuf.WireFormat;
 
-/**
- * 处理具体的客户端请求
- * 
- * @author jianghang 2012-10-24 下午02:21:13
- * @version 1.0.0
- */
 public class SessionHandler extends SimpleChannelHandler {
 
     private static final Logger     logger = LoggerFactory.getLogger(SessionHandler.class);
@@ -76,7 +73,7 @@ public class SessionHandler extends SimpleChannelHandler {
                         }
 
                         embeddedServer.subscribe(clientIdentity);
-                        ctx.setAttachment(clientIdentity);// 设置状态数据
+                        // ctx.setAttachment(clientIdentity);// 设置状态数据
                         NettyUtils.ack(ctx.getChannel(), null);
                     } else {
                         NettyUtils.error(401,
@@ -130,18 +127,74 @@ public class SessionHandler extends SimpleChannelHandler {
                         }
                         // }
 
-                        Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
-                        packetBuilder.setType(PacketType.MESSAGES);
+                        if (message.getId() != -1 && message.isRaw()) {
+                            List<ByteString> rowEntries = message.getRawEntries();
+                            // message size
+                            int messageSize = 0;
+                            messageSize += com.google.protobuf.CodedOutputStream.computeInt64Size(1, message.getId());
 
-                        Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
-                        messageBuilder.setBatchId(message.getId());
-                        if (message.getId() != -1 && !CollectionUtils.isEmpty(message.getEntries())) {
-                            for (Entry entry : message.getEntries()) {
-                                messageBuilder.addMessages(entry.toByteString());
+                            int dataSize = 0;
+                            for (int i = 0; i < rowEntries.size(); i++) {
+                                dataSize += com.google.protobuf.CodedOutputStream.computeBytesSizeNoTag(rowEntries.get(i));
                             }
+                            messageSize += dataSize;
+                            messageSize += 1 * rowEntries.size();
+                            // packet size
+                            int size = 0;
+                            size += com.google.protobuf.CodedOutputStream.computeEnumSize(3,
+                                PacketType.MESSAGES.getNumber());
+                            size += com.google.protobuf.CodedOutputStream.computeTagSize(5)
+                                    + com.google.protobuf.CodedOutputStream.computeRawVarint32Size(messageSize)
+                                    + messageSize;
+                            // recyle bytes
+                            // ByteBuffer byteBuffer = (ByteBuffer)
+                            // ctx.getAttachment();
+                            // if (byteBuffer != null && size <=
+                            // byteBuffer.capacity()) {
+                            // byteBuffer.clear();
+                            // } else {
+                            // byteBuffer =
+                            // ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN);
+                            // ctx.setAttachment(byteBuffer);
+                            // }
+                            // CodedOutputStream output =
+                            // CodedOutputStream.newInstance(byteBuffer);
+                            byte[] body = new byte[size];
+                            CodedOutputStream output = CodedOutputStream.newInstance(body);
+                            output.writeEnum(3, PacketType.MESSAGES.getNumber());
+
+                            output.writeTag(5, WireFormat.WIRETYPE_LENGTH_DELIMITED);
+                            output.writeRawVarint32(messageSize);
+                            // message
+                            output.writeInt64(1, message.getId());
+                            for (int i = 0; i < rowEntries.size(); i++) {
+                                output.writeBytes(2, rowEntries.get(i));
+                            }
+                            output.checkNoSpaceLeft();
+                            NettyUtils.write(ctx.getChannel(), body, null);
+                            
+                            // output.flush();
+                            // byteBuffer.flip();
+                            // NettyUtils.write(ctx.getChannel(), byteBuffer,
+                            // null);
+                        } else {
+                            Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
+                            packetBuilder.setType(PacketType.MESSAGES);
+
+                            Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
+                            messageBuilder.setBatchId(message.getId());
+                            if (message.getId() != -1) {
+                                if (message.isRaw() && !CollectionUtils.isEmpty(message.getRawEntries())) {
+                                    messageBuilder.addAllMessages(message.getRawEntries());
+                                } else if (!CollectionUtils.isEmpty(message.getEntries())) {
+                                    for (Entry entry : message.getEntries()) {
+                                        messageBuilder.addMessages(entry.toByteString());
+                                    }
+                                }
+                            }
+                            packetBuilder.setBody(messageBuilder.build().toByteString());
+                            NettyUtils.write(ctx.getChannel(), packetBuilder.build().toByteArray(), null);// 输出数据
                         }
-                        packetBuilder.setBody(messageBuilder.build().toByteString());
-                        NettyUtils.write(ctx.getChannel(), packetBuilder.build().toByteArray(), null);// 输出数据
                     } else {
                         NettyUtils.error(401,
                             MessageFormatter.format("destination or clientId is null", get.toString()).getMessage(),

@@ -19,30 +19,30 @@ import com.taobao.tddl.dbsync.binlog.LogFetcher;
  */
 public class DirectLogFetcher extends LogFetcher {
 
-    protected static final Logger logger            = LoggerFactory.getLogger(DirectLogFetcher.class);
+    protected static final Logger logger                          = LoggerFactory.getLogger(DirectLogFetcher.class);
 
     // Master heartbeat interval
-    public static final int MASTER_HEARTBEAT_PERIOD_SECONDS = 15;
+    public static final int       MASTER_HEARTBEAT_PERIOD_SECONDS = 15;
     // +10s 确保 timeout > heartbeat interval
-    private static final int READ_TIMEOUT_MILLISECONDS = (MASTER_HEARTBEAT_PERIOD_SECONDS + 10) * 1000;
+    private static final int      READ_TIMEOUT_MILLISECONDS       = (MASTER_HEARTBEAT_PERIOD_SECONDS + 10) * 1000;
 
     /** Command to dump binlog */
-    public static final byte      COM_BINLOG_DUMP   = 18;
+    public static final byte      COM_BINLOG_DUMP                 = 18;
 
     /** Packet header sizes */
-    public static final int       NET_HEADER_SIZE   = 4;
-    public static final int       SQLSTATE_LENGTH   = 5;
+    public static final int       NET_HEADER_SIZE                 = 4;
+    public static final int       SQLSTATE_LENGTH                 = 5;
 
     /** Packet offsets */
-    public static final int       PACKET_LEN_OFFSET = 0;
-    public static final int       PACKET_SEQ_OFFSET = 3;
+    public static final int       PACKET_LEN_OFFSET               = 0;
+    public static final int       PACKET_SEQ_OFFSET               = 3;
 
     /** Maximum packet length */
-    public static final int       MAX_PACKET_LENGTH = (256 * 256 * 256 - 1);
+    public static final int       MAX_PACKET_LENGTH               = (256 * 256 * 256 - 1);
 
     private SocketChannel         channel;
 
-    private boolean               issemi            = false;
+    private boolean               issemi                          = false;
 
     // private BufferedInputStream input;
 
@@ -64,9 +64,6 @@ public class DirectLogFetcher extends LogFetcher {
         if ("1".equals(dbsemi)) {
             issemi = true;
         }
-        // 和mysql driver一样，提供buffer机制，提升读取binlog速度
-        // this.input = new
-        // BufferedInputStream(channel.socket().getInputStream(), 16384);
     }
 
     /**
@@ -171,10 +168,13 @@ public class DirectLogFetcher extends LogFetcher {
     private final boolean fetch0(final int off, final int len) throws IOException {
         ensureCapacity(off + len);
 
-        byte[] read = channel.read(len, READ_TIMEOUT_MILLISECONDS);
-        System.arraycopy(read, 0, this.buffer, off, len);
+        // byte[] read = channel.read(len, READ_TIMEOUT_MILLISECONDS);
+        // System.arraycopy(read, 0, this.buffer, off, len);
 
-        if (limit < off + len) limit = off + len;
+        channel.read(buffer, off, len, READ_TIMEOUT_MILLISECONDS);
+        if (limit < off + len) {
+            limit = off + len;
+        }
         return true;
     }
 

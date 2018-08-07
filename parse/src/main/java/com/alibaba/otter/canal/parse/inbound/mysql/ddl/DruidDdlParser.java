@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.fastsql.sql.SQLUtils;
 import com.alibaba.fastsql.sql.ast.SQLExpr;
 import com.alibaba.fastsql.sql.ast.SQLStatement;
@@ -18,9 +20,11 @@ import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableItem;
 import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableRename;
 import com.alibaba.fastsql.sql.ast.statement.SQLAlterTableStatement;
 import com.alibaba.fastsql.sql.ast.statement.SQLConstraint;
+import com.alibaba.fastsql.sql.ast.statement.SQLCreateDatabaseStatement;
 import com.alibaba.fastsql.sql.ast.statement.SQLCreateIndexStatement;
 import com.alibaba.fastsql.sql.ast.statement.SQLCreateTableStatement;
 import com.alibaba.fastsql.sql.ast.statement.SQLDeleteStatement;
+import com.alibaba.fastsql.sql.ast.statement.SQLDropDatabaseStatement;
 import com.alibaba.fastsql.sql.ast.statement.SQLDropIndexStatement;
 import com.alibaba.fastsql.sql.ast.statement.SQLDropTableStatement;
 import com.alibaba.fastsql.sql.ast.statement.SQLExprTableSource;
@@ -157,6 +161,17 @@ public class DruidDdlParser {
                 processName(ddlResult, schmeaName, delete.getTableName(), false);
                 ddlResult.setType(EventType.DELETE);
                 ddlResults.add(ddlResult);
+            } else if (statement instanceof SQLCreateDatabaseStatement) {
+                DdlResult ddlResult = new DdlResult();
+                ddlResult.setType(EventType.QUERY);
+                // 只设置schema
+                processName(ddlResult, schmeaName, null, false);
+                ddlResults.add(ddlResult);
+            } else if (statement instanceof SQLDropDatabaseStatement) {
+                DdlResult ddlResult = new DdlResult();
+                ddlResult.setType(EventType.QUERY);
+                // 只设置schema
+                processName(ddlResult, schmeaName, null, false);
             }
         }
 
@@ -165,6 +180,9 @@ public class DruidDdlParser {
 
     private static void processName(DdlResult ddlResult, String schema, SQLExpr sqlName, boolean isOri) {
         if (sqlName == null) {
+            if (StringUtils.isNotBlank(schema)) {
+                ddlResult.setSchemaName(schema);
+            }
             return;
         }
 

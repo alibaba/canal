@@ -32,7 +32,7 @@ public class MysqlConnector {
     private String              password;
 
     private byte                charsetNumber     = 33;
-    private String              defaultSchema     = "retl";
+    private String              defaultSchema     = "test";
     private int                 soTimeout         = 30 * 1000;
     private int                 connTimeout       = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
@@ -53,7 +53,7 @@ public class MysqlConnector {
         String addr = address.getHostString();
         int port = address.getPort();
         this.address = new InetSocketAddress(addr, port);
-        
+
         this.username = username;
         this.password = password;
     }

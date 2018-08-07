@@ -34,6 +34,7 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalConfigClient;
 import com.alibaba.otter.canal.instance.manager.ManagerCanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator;
+import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
@@ -43,7 +44,7 @@ import com.google.common.collect.MigrateMap;
 
 /**
  * canal调度控制器
- * 
+ *
  * @author jianghang 2012-11-8 下午12:03:11
  * @version 1.0.0
  */
@@ -97,9 +98,12 @@ public class CanalController {
         port = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_PORT));
         embededCanalServer = CanalServerWithEmbedded.instance();
         embededCanalServer.setCanalInstanceGenerator(instanceGenerator);// 设置自定义的instanceGenerator
-        canalServer = CanalServerWithNetty.instance();
-        canalServer.setIp(ip);
-        canalServer.setPort(port);
+        String canalWithoutNetty = getProperty(properties, CanalConstants.CANAL_WITHOUT_NETTY);
+        if (canalWithoutNetty == null || "false".equals(canalWithoutNetty)) {
+            canalServer = CanalServerWithNetty.instance();
+            canalServer.setIp(ip);
+            canalServer.setPort(port);
+        }
 
         // 处理下ip为空，默认使用hostIp暴露到zk中
         if (StringUtils.isEmpty(ip)) {
@@ -300,7 +304,7 @@ public class CanalController {
                     return instanceGenerator.generate(destination);
                 } else if (config.getMode().isSpring()) {
                     SpringCanalInstanceGenerator instanceGenerator = new SpringCanalInstanceGenerator();
-                    synchronized (this) {
+                    synchronized (CanalEventParser.class) {
                         try {
                             // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, destination);
@@ -376,7 +380,18 @@ public class CanalController {
     }
 
     private String getProperty(Properties properties, String key) {
-        return StringUtils.trim(properties.getProperty(StringUtils.trim(key)));
+        key = StringUtils.trim(key);
+        String value = System.getProperty(key);
+
+        if (value == null) {
+            value = System.getenv(key);
+        }
+
+        if (value == null) {
+            value = properties.getProperty(key);
+        }
+
+        return StringUtils.trim(value);
     }
 
     public void start() throws Throwable {
@@ -431,11 +446,15 @@ public class CanalController {
         }
 
         // 启动网络接口
-        canalServer.start();
+        if (canalServer != null) {
+            canalServer.start();
+        }
     }
 
     public void stop() throws Throwable {
-        canalServer.stop();
+        if (canalServer != null) {
+            canalServer.stop();
+        }
 
         if (autoScan) {
             for (InstanceConfigMonitor monitor : instanceConfigMonitors.values()) {
@@ -454,7 +473,7 @@ public class CanalController {
         // 释放canal的工作节点
         releaseCid(ZookeeperPathUtils.getCanalClusterNode(ip + ":" + port));
         logger.info("## stop the canal server[{}:{}]", ip, port);
-        
+
         if (zkclientx != null) {
             zkclientx.close();
         }

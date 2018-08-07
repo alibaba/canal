@@ -108,7 +108,7 @@ public abstract class ByteHelper {
 
         return out.toByteArray();
     }
-    
+
     public static void write8ByteUnsignedIntLittleEndian(long data, ByteArrayOutputStream out) {
         out.write((byte) (data & 0xFF));
         out.write((byte) (data >>> 8));
@@ -119,7 +119,7 @@ public abstract class ByteHelper {
         out.write((byte) (data >>> 48));
         out.write((byte) (data >>> 56));
     }
-    
+
     public static void writeUnsignedIntLittleEndian(long data, ByteArrayOutputStream out) {
         out.write((byte) (data & 0xFF));
         out.write((byte) (data >>> 8));

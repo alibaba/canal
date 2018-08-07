@@ -4,16 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
+import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.local.BinLogFileQueue;
 import com.taobao.tddl.dbsync.binlog.FileLogFetcher;
+import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
@@ -204,6 +206,132 @@ public class LocalBinLogConnection implements ErosaConnection {
 
     @Override
     public void dump(GTIDSet gtidSet, SinkFunction func) throws IOException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void dump(String binlogfilename, Long binlogPosition, MultiStageCoprocessor coprocessor) throws IOException {
+        File current = new File(directory, binlogfilename);
+
+        FileLogFetcher fetcher = new FileLogFetcher(bufferSize);
+        try {
+            fetcher.open(current, binlogPosition);
+            while (running) {
+                boolean needContinue = true;
+                while (fetcher.fetch()) {
+                    LogBuffer buffer = fetcher.duplicate();
+                    fetcher.consume(fetcher.limit());
+                    // set filename
+                    if (!coprocessor.publish(buffer, binlogfilename)) {
+                        needContinue = false;
+                        break;
+                    }
+                }
+
+                if (needContinue) {// 读取下一个
+                    fetcher.close(); // 关闭上一个文件
+
+                    File nextFile;
+                    if (needWait) {
+                        nextFile = binlogs.waitForNextFile(current);
+                    } else {
+                        nextFile = binlogs.getNextFile(current);
+                    }
+
+                    if (nextFile == null) {
+                        break;
+                    }
+
+                    current = nextFile;
+                    fetcher.open(current);
+                    binlogfilename = nextFile.getName();
+                } else {
+                    break;// 跳出
+                }
+            }
+        } catch (InterruptedException e) {
+            logger.warn("LocalBinLogConnection dump interrupted");
+        } finally {
+            if (fetcher != null) {
+                fetcher.close();
+            }
+        }
+    }
+
+    @Override
+    public void dump(long timestampMills, MultiStageCoprocessor coprocessor) throws IOException {
+        List<File> currentBinlogs = binlogs.currentBinlogs();
+        File current = currentBinlogs.get(currentBinlogs.size() - 1);
+        long timestampSeconds = timestampMills / 1000;
+
+        String binlogFilename = null;
+        long binlogFileOffset = 0;
+
+        FileLogFetcher fetcher = new FileLogFetcher(bufferSize);
+        LogDecoder decoder = new LogDecoder();
+        decoder.handle(LogEvent.FORMAT_DESCRIPTION_EVENT);
+        decoder.handle(LogEvent.QUERY_EVENT);
+        decoder.handle(LogEvent.XID_EVENT);
+        LogContext context = new LogContext();
+        try {
+            fetcher.open(current);
+            context.setLogPosition(new LogPosition(current.getName()));
+            while (running) {
+                boolean needContinue = true;
+                String lastXidLogFilename = current.getName();
+                long lastXidLogFileOffset = 0;
+
+                binlogFilename = lastXidLogFilename;
+                binlogFileOffset = lastXidLogFileOffset;
+                while (fetcher.fetch()) {
+                    LogEvent event = decoder.decode(fetcher, context);
+                    if (event != null) {
+                        if (event.getWhen() > timestampSeconds) {
+                            break;
+                        }
+
+                        needContinue = false;
+                        if (LogEvent.QUERY_EVENT == event.getHeader().getType()) {
+                            if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "BEGIN")) {
+                                binlogFilename = lastXidLogFilename;
+                                binlogFileOffset = lastXidLogFileOffset;
+                            } else if (StringUtils.endsWithIgnoreCase(((QueryLogEvent) event).getQuery(), "COMMIT")) {
+                                lastXidLogFilename = current.getName();
+                                lastXidLogFileOffset = event.getLogPos();
+                            }
+                        } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
+                            lastXidLogFilename = current.getName();
+                            lastXidLogFileOffset = event.getLogPos();
+                        }
+                    }
+                }
+
+                if (needContinue) {// 读取下一个
+                    fetcher.close(); // 关闭上一个文件
+
+                    File nextFile = binlogs.getBefore(current);
+                    if (nextFile == null) {
+                        break;
+                    }
+
+                    current = nextFile;
+                    fetcher.open(current);
+                    context.setLogPosition(new LogPosition(current.getName()));
+                } else {
+                    break;// 跳出
+                }
+            }
+        } finally {
+            if (fetcher != null) {
+                fetcher.close();
+            }
+        }
+
+        dump(binlogFilename, binlogFileOffset, coprocessor);
+    }
+
+    @Override
+    public void dump(GTIDSet gtidSet, MultiStageCoprocessor coprocessor) throws IOException {
         throw new NotImplementedException();
     }
 
