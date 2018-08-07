@@ -32,6 +32,7 @@ public class TableMetaCacheWithStorage implements TableMetaCacheInterface {
 
     @Override
     public boolean apply(EntryPosition position, String fullTableName, String ddl, String extra) {
+        ddl = removeComment(ddl);
         String[] strs = fullTableName.split("\\.");
         String schema = strs[0];
         if (schema.equalsIgnoreCase("null")) { // ddl schema为null，放弃处理
@@ -101,5 +102,9 @@ public class TableMetaCacheWithStorage implements TableMetaCacheInterface {
 
     private Long calTimestamp(Long timestamp) {
         return timestamp;
+    }
+
+    private String removeComment(String ddl) {
+        return ddl.replaceAll(" COMMENT\\s+(\'.*?\')+", "");
     }
 }

@@ -30,6 +30,7 @@ public class HistoryTableMetaCache {
                 }
                 ResultSetPacket resultSetPacket = connectionQuery("show create table " + tableName); // 获取当前ddl
                 String currentDdl = resultSetPacket.getFieldValues().get(1);
+                currentDdl = removeComment(currentDdl);
                 if (cache.asMap().containsKey(tableName)) {
                     Map<Long, TableMeta> tableMetaMap = cache.getUnchecked(tableName);
                     if (tableMetaMap.isEmpty()) {
@@ -68,6 +69,7 @@ public class HistoryTableMetaCache {
         if (!(ddl.contains("CREATE TABLE") || ddl.contains("create table"))) { // 尝试直接从数据库拉取CREATE TABLE的DDL
             resultSetPacket = connectionQuery("show create table " + table);
             ddl = resultSetPacket.getFieldValues().get(1);
+            ddl = removeComment(ddl);
         } else { // CREATE TABLE 的 DDL
             resultSetPacket = new ResultSetPacket();
             List<String> fields = new ArrayList<String>();
@@ -95,12 +97,12 @@ public class HistoryTableMetaCache {
         } else {
             tableMetaMap = cache.getUnchecked(table);
         }
-        eliminate(tableMetaMap); // 淘汰旧的TableMeta
         TableMeta tableMeta = new TableMeta(schema, table, TableMetaCache.parseTableMeta(schema, table, resultSetPacket));
         if (tableMeta.getDdl() == null) { // 生成的TableMeta有时DDL为null
             tableMeta.setDdl(ddl);
         }
         tableMetaMap.put(timestamp, tableMeta);
+        eliminate(tableMetaMap); // 淘汰旧的TableMeta
         return tableMeta;
     }
 
@@ -179,6 +181,10 @@ public class HistoryTableMetaCache {
                 throw e1;
             }
         }
+    }
+
+    private String removeComment(String ddl) {
+        return ddl.replaceAll(" COMMENT\\s+(\'.*?\')+", "");
     }
 
     public void setMetaConnection(MysqlConnection metaConnection) {
