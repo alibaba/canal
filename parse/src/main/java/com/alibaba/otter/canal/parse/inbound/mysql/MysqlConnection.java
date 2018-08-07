@@ -52,7 +52,8 @@ public class MysqlConnection implements ErosaConnection {
     private AuthenticationInfo        authInfo;
     protected     int                 connTimeout               = 5 * 1000;                                      // 5秒
     protected     int                 soTimeout                 = 60 * 60 * 1000;                                // 1小时
-    private AtomicLong receivedBinlogBytes;
+    // dump binlog bytes, 暂不包括meta与TSDB
+    private AtomicLong                receivedBinlogBytes;
 
     public MysqlConnection(){
     }

@@ -29,7 +29,7 @@ public class EntryCollector extends Collector implements InstanceRegistry {
     private static final Logger                             logger           = LoggerFactory.getLogger(SinkCollector.class);
     private static final String                             DELAY            = "canal_instance_traffic_delay";
     private static final String                             TRANSACTION      = "canal_instance_transactions";
-    private static final String                             DELAY_HELP       = "Traffic delay of canal instance";
+    private static final String                             DELAY_HELP       = "Traffic delay of canal instance in milliseconds";
     private static final String                             TRANSACTION_HELP = "Transactions counter of canal instance";
     private final ConcurrentMap<String, EntryMetricsHolder> instances        = new ConcurrentHashMap<String, EntryMetricsHolder>();
 
@@ -51,7 +51,11 @@ public class EntryCollector extends Collector implements InstanceRegistry {
         CounterMetricFamily transactions = new CounterMetricFamily(TRANSACTION,
                 TRANSACTION_HELP, DEST_LABELS_LIST);
         for (EntryMetricsHolder emh : instances.values()) {
-            delay.addMetric(emh.destLabelValues, emh.latestExecTime.doubleValue());
+            long now = System.currentTimeMillis();
+            long latest = emh.latestExecTime.get();
+            if (now > latest) {
+                delay.addMetric(emh.destLabelValues, (now - latest));
+            }
             transactions.addMetric(emh.destLabelValues, emh.transactionCounter.doubleValue());
         }
         mfs.add(delay);

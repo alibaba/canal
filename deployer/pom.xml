@@ -18,12 +18,12 @@
 		</dependency>
 
 		<!-- 这里指定runtime的metrics provider-->
-		<!--<dependency>-->
-			<!--<groupId>com.alibaba.otter</groupId>-->
-			<!--<artifactId>canal.prometheus</artifactId>-->
-			<!--<version>${project.version}</version>-->
-			<!--<scope>runtime</scope>-->
-		<!--</dependency>-->
+		<dependency>
+			<groupId>com.alibaba.otter</groupId>
+			<artifactId>canal.prometheus</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 	
 	<build>

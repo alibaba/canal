@@ -187,6 +187,11 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                 //LockSupport.parkNanos(1L);
                 applyWait(++fullTimes);
                 interupted = Thread.interrupted();
+                if (fullTimes % 1000 == 0) {
+                    long nextStart = System.nanoTime();
+                    eventsPublishBlockingTime.addAndGet(nextStart - blockingStart);
+                    blockingStart = nextStart;
+                }
             }
         } while (!interupted && isStart());
         return isStart();

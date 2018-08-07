@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
 import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABELS_LIST;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * @author Chuanyi Li
@@ -28,11 +29,12 @@ import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABEL
 public class ParserCollector extends Collector implements InstanceRegistry {
 
     private static final Logger                              logger                = LoggerFactory.getLogger(ParserCollector.class);
+    private static final long                                NANO_PER_MILLI        = 1000 * 1000L;
     private static final String                              PUBLISH_BLOCKING      = "canal_instance_publish_blocking_time";
     private static final String                              RECEIVED_BINLOG       = "canal_instance_received_binlog_bytes";
     private static final String                              PARSER_MODE           = "canal_instance_parser_mode";
     private static final String                              MODE_LABEL            = "parallel";
-    private static final String                              PUBLISH_BLOCKING_HELP = "Publish blocking time of dump thread";
+    private static final String                              PUBLISH_BLOCKING_HELP = "Publish blocking time of dump thread in milliseconds";
     private static final String                              RECEIVED_BINLOG_HELP  = "Received binlog bytes";
     private static final String                              MODE_HELP             = "Parser mode(parallel/serial) of instance";
     private final List<String>                               modeLabels            = Arrays.asList(DEST, MODE_LABEL);
@@ -60,7 +62,7 @@ public class ParserCollector extends Collector implements InstanceRegistry {
                 PUBLISH_BLOCKING_HELP, DEST_LABELS_LIST);
         for (ParserMetricsHolder emh : instances.values()) {
             if (emh.isParallel) {
-                blockingCounter.addMetric(emh.destLabelValues, emh.eventsPublishBlockingTime.doubleValue());
+                blockingCounter.addMetric(emh.destLabelValues, (emh.eventsPublishBlockingTime.doubleValue() / NANO_PER_MILLI));
                 hasParallel = true;
             }
             modeGauge.addMetric(emh.modeLabelValues, 1);
