@@ -1,8 +1,8 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean                 filterRows                = false;
     protected boolean                 filterTableError          = false;
     protected boolean                 useDruidDdlFilter         = true;
-    private final SerializedLongAdder eventsPublishBlockingTime = new SerializedLongAdder(0L);
+    private final AtomicLong          eventsPublishBlockingTime = new AtomicLong(0L);
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
@@ -192,7 +192,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         }
     }
 
-    public SerializedLongAdder getEventsPublishBlockingTime() {
+    public AtomicLong getEventsPublishBlockingTime() {
         return this.eventsPublishBlockingTime;
     }
 

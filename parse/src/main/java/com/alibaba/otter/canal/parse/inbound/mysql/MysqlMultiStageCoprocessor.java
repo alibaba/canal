@@ -2,9 +2,9 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
-import com.alibaba.otter.canal.common.utils.SerializedLongAdder;
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
@@ -65,7 +65,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private ExecutorService              stageExecutor;
     private String                       destination;
     private volatile CanalParseException exception;
-    private SerializedLongAdder          eventsPublishBlockingTime;
+    private AtomicLong                   eventsPublishBlockingTime;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination){
@@ -176,7 +176,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                 }
                 disruptorMsgBuffer.publish(next);
                 if (fullTimes > 0) {
-                    eventsPublishBlockingTime.add(System.nanoTime() - blockingStart);
+                    eventsPublishBlockingTime.addAndGet(System.nanoTime() - blockingStart);
                 }
                 break;
             } catch (InsufficientCapacityException e) {
@@ -451,7 +451,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         this.connection = connection;
     }
 
-    public void setEventsPublishBlockingTime(SerializedLongAdder eventsPublishBlockingTime) {
+    public void setEventsPublishBlockingTime(AtomicLong eventsPublishBlockingTime) {
         this.eventsPublishBlockingTime = eventsPublishBlockingTime;
     }
 

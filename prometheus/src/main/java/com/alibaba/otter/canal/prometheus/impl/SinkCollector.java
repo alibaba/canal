@@ -17,23 +17,33 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABEL_LIST;
+import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABELS_LIST;
 
 /**
  * @author Chuanyi Li
  */
 public class SinkCollector extends Collector implements InstanceRegistry {
 
-    private static final Logger                            logger             = LoggerFactory.getLogger(SinkCollector.class);
-    private static final String                            SINK_BLOCKING_TIME = "canal_instance_sink_blocking_time";
-    private static final String                            sinkBlockTimeHelp  = "Total sink blocking time";
-    private final ConcurrentMap<String, SinkMetricsHolder> instances          = new ConcurrentHashMap<String, SinkMetricsHolder>();
+    private static final Logger                            logger               = LoggerFactory.getLogger(SinkCollector.class);
+    private static final String                            SINK_BLOCKING_TIME   = "canal_instance_sink_blocking_time";
+    private static final String                            SINK_BLOCK_TIME_HELP = "Total sink blocking time";
+    private final ConcurrentMap<String, SinkMetricsHolder> instances            = new ConcurrentHashMap<String, SinkMetricsHolder>();
+
+    private SinkCollector() {}
+
+    private static class SingletonHolder {
+        private static final SinkCollector SINGLETON = new SinkCollector();
+    }
+
+    public static SinkCollector instance() {
+        return SingletonHolder.SINGLETON;
+    }
 
     @Override
     public List<MetricFamilySamples> collect() {
         List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
         CounterMetricFamily blockingCounter = new CounterMetricFamily(SINK_BLOCKING_TIME,
-                sinkBlockTimeHelp, DEST_LABEL_LIST);
+                SINK_BLOCK_TIME_HELP, DEST_LABELS_LIST);
         for (SinkMetricsHolder smh : instances.values()) {
             blockingCounter.addMetric(smh.destLabelValues, smh.eventsSinkBlockingTime.doubleValue());
         }
@@ -52,11 +62,10 @@ public class SinkCollector extends Collector implements InstanceRegistry {
         }
         EntryEventSink entrySink = (EntryEventSink) sink;
         holder.eventsSinkBlockingTime = entrySink.getEventsSinkBlockingTime();
-        Preconditions.checkNotNull(holder.destLabelValues);
         Preconditions.checkNotNull(holder.eventsSinkBlockingTime);
-        SinkMetricsHolder old = instances.putIfAbsent(destination, holder);
+        SinkMetricsHolder old = instances.put(destination, holder);
         if (old != null) {
-            logger.warn("Ignore repeated SinkCollector register for instance {}.", destination);
+            logger.warn("Remote stale SinkCollector for instance {}.", destination);
         }
     }
 

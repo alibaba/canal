@@ -20,12 +20,13 @@ import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.
 public class PrometheusService implements CanalMetricsService {
 
     private static final Logger                           logger          = LoggerFactory.getLogger(PrometheusService.class);
-    private final CanalInstanceExports                    instanceExports = new CanalInstanceExports();
+    private final CanalInstanceExports                    instanceExports;
     private volatile boolean                              running         = false;
     private HTTPServer                                    server;
     private ClientInstanceProfiler                        clientProfiler  = new PrometheusClientInstanceProfiler();
 
     private PrometheusService() {
+        this.instanceExports = CanalInstanceExports.instance();
     }
 
     private static class SingletonHolder {
@@ -49,8 +50,7 @@ public class PrometheusService implements CanalMetricsService {
         try {
             // JVM exports
             DefaultExports.initialize();
-            // Canal server level exports
-            CanalServerExports.initialize();
+            instanceExports.initialize();
             if (!clientProfiler.isStart()) {
                 clientProfiler.start();
             }
@@ -65,13 +65,17 @@ public class PrometheusService implements CanalMetricsService {
     @Override
     public void terminate() {
         running = false;
-        instanceExports.unregister();
-        if (clientProfiler.isStart()) {
-            clientProfiler.stop();
-        }
-        profiler().setInstanceProfiler(NOP);
-        if (server != null) {
-            server.stop();
+        try {
+            instanceExports.terminate();
+            if (clientProfiler.isStart()) {
+                clientProfiler.stop();
+            }
+            profiler().setInstanceProfiler(NOP);
+            if (server != null) {
+                server.stop();
+            }
+        } catch (Throwable t) {
+            logger.warn("Something happened while terminating.", t);
         }
     }
 
@@ -87,9 +91,7 @@ public class PrometheusService implements CanalMetricsService {
             return;
         }
         try {
-            CanalInstanceExports export = CanalInstanceExports.forInstance(instance);
-            export.register();
-            exports.put(instance.getDestination(), export);
+            instanceExports.register(instance);
         } catch (Throwable t) {
             logger.warn("Unable to register instance exports for {}.", instance.getDestination(), t);
         }
@@ -102,10 +104,7 @@ public class PrometheusService implements CanalMetricsService {
             logger.warn("Try unregister metrics after destination {} is stopped.", instance.getDestination());
         }
         try {
-            CanalInstanceExports export = exports.remove(instance.getDestination());
-            if (export != null) {
-                export.unregister();
-            }
+            instanceExports.unregister(instance);
         } catch (Throwable t) {
             logger.warn("Unable to unregister instance exports for {}.", instance.getDestination(), t);
         }
