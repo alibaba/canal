@@ -11,12 +11,12 @@
 	<name>canal meta module for otter ${project.version}</name>
 	<dependencies>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.protocol</artifactId>
 			<version>${project.version}</version>
 		</dependency>
