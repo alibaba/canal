@@ -45,7 +45,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
         if (future.getCause() != null) {
             result.channelError = future.getCause();
         }
-        profiler().profiling(result.destination, result);
+        profiler().profiling(result);
     }
 
     /**

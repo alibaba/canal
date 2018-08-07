@@ -1,8 +1,8 @@
 package com.alibaba.otter.canal.prometheus;
 
 import com.alibaba.otter.canal.instance.core.CanalInstance;
-import com.alibaba.otter.canal.prometheus.impl.PrometheusClientInstanceProfilerFactory;
-import com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler;
+import com.alibaba.otter.canal.prometheus.impl.PrometheusClientInstanceProfiler;
+import com.alibaba.otter.canal.server.netty.ClientInstanceProfiler;
 import com.alibaba.otter.canal.spi.CanalMetricsService;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -10,10 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.DISABLED;
+import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.NOP;
 import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.profiler;
 
 /**
@@ -21,10 +19,11 @@ import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.
  */
 public class PrometheusService implements CanalMetricsService {
 
-    private static final Logger                           logger  = LoggerFactory.getLogger(PrometheusService.class);
-    private final Map<String, CanalInstanceExports>       exports = new ConcurrentHashMap<String, CanalInstanceExports>();
-    private volatile boolean                              running = false;
+    private static final Logger                           logger          = LoggerFactory.getLogger(PrometheusService.class);
+    private final CanalInstanceExports                    instanceExports = new CanalInstanceExports();
+    private volatile boolean                              running         = false;
     private HTTPServer                                    server;
+    private ClientInstanceProfiler                        clientProfiler  = new PrometheusClientInstanceProfiler();
 
     private PrometheusService() {
     }
@@ -52,7 +51,10 @@ public class PrometheusService implements CanalMetricsService {
             DefaultExports.initialize();
             // Canal server level exports
             CanalServerExports.initialize();
-            profiler().setInstanceProfilerFactory(new PrometheusClientInstanceProfilerFactory());
+            if (!clientProfiler.isStart()) {
+                clientProfiler.start();
+            }
+            profiler().setInstanceProfiler(clientProfiler);
         } catch (Throwable t) {
             logger.warn("Unable to initialize server exports.", t);
         }
@@ -63,13 +65,11 @@ public class PrometheusService implements CanalMetricsService {
     @Override
     public void terminate() {
         running = false;
-        // Normally, service should be terminated at canal shutdown.
-        // No need to unregister instance exports explicitly.
-        // But for the sake of safety, unregister them.
-        for (CanalInstanceExports cie : exports.values()) {
-            cie.unregister();
+        instanceExports.unregister();
+        if (clientProfiler.isStart()) {
+            clientProfiler.stop();
         }
-        profiler().setInstanceProfilerFactory(DISABLED);
+        profiler().setInstanceProfiler(NOP);
         if (server != null) {
             server.stop();
         }
@@ -111,4 +111,5 @@ public class PrometheusService implements CanalMetricsService {
         }
         logger.info("Unregister metrics for destination {}.", instance.getDestination());
     }
+
 }

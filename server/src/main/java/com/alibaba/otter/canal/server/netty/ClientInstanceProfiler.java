@@ -1,15 +1,13 @@
 package com.alibaba.otter.canal.server.netty;
 
 import com.alibaba.otter.canal.common.CanalLifeCycle;
-import com.alibaba.otter.canal.server.netty.listener.ChannelFutureAggregator;
+import com.alibaba.otter.canal.server.netty.listener.ChannelFutureAggregator.ClientRequestResult;
 
 /**
  * @author Chuanyi Li
  */
 public interface ClientInstanceProfiler extends CanalLifeCycle {
 
-    String getDestination();
-
-    void profiling(ChannelFutureAggregator.ClientRequestResult result);
+    void profiling(ClientRequestResult result);
 
 }
