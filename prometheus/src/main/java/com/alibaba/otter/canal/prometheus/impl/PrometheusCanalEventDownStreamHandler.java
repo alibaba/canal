@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.prometheus.impl;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.sink.AbstractCanalEventDownStreamHandler;
 import com.alibaba.otter.canal.store.model.Event;
@@ -24,18 +25,28 @@ public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDow
             for (Event e : events) {
                 EntryType type = e.getEntryType();
                 if (type == null) continue;
-                long exec = e.getExecuteTime();
-                if (exec > 0) localExecTime = exec;
                 switch (type) {
-                    case ROWDATA:
+                    case TRANSACTIONBEGIN: {
+                        long exec = e.getExecuteTime();
+                        if (exec > 0) localExecTime = exec;
+                        break;
+                    }
+                    case ROWDATA: {
+                        long exec = e.getExecuteTime();
+                        if (exec > 0) localExecTime = exec;
                         // TODO 当前proto无法直接获得荣威change的变更行数（需要parse），可考虑放到header里面
                         break;
-                    case TRANSACTIONEND:
+                    }
+                    case TRANSACTIONEND: {
+                        long exec = e.getExecuteTime();
+                        if (exec > 0) localExecTime = exec;
                         transactionCounter.incrementAndGet();
                         break;
+                    }
                     case HEARTBEAT:
+                        // 发现canal自己的heartbeat是带有execTime的
                         // TODO 确认一下不是canal自己产生的
-                        // EventType eventType = e.getEventType();
+                        CanalEntry.EventType eventType = e.getEventType();
                         // TODO utilize MySQL master heartbeat packet to refresh delay if always no more events coming
                         // see: https://dev.mysql.com/worklog/task/?id=342
                         // heartbeats are sent by the master only if there is no

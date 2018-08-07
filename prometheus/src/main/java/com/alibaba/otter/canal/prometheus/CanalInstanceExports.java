@@ -77,7 +77,7 @@ public class CanalInstanceExports {
 
     private InstanceRegistry requiredInstanceRegistry(Collector collector) {
         if (!(collector instanceof InstanceRegistry)) {
-            throw new IllegalArgumentException("Canal collector need to implement InstanceRegistry.");
+            throw new IllegalArgumentException("Canal prometheus collector need to implement InstanceRegistry.");
         }
         return (InstanceRegistry) collector;
     }

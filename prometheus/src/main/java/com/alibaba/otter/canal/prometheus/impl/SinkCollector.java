@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABELS_LIST;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * @author Chuanyi Li
@@ -25,8 +26,9 @@ import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABEL
 public class SinkCollector extends Collector implements InstanceRegistry {
 
     private static final Logger                            logger               = LoggerFactory.getLogger(SinkCollector.class);
+    private static final long                              NANO_PER_MILLI       = 1000 * 1000L;
     private static final String                            SINK_BLOCKING_TIME   = "canal_instance_sink_blocking_time";
-    private static final String                            SINK_BLOCK_TIME_HELP = "Total sink blocking time";
+    private static final String                            SINK_BLOCK_TIME_HELP = "Total sink blocking time in milliseconds";
     private final ConcurrentMap<String, SinkMetricsHolder> instances            = new ConcurrentHashMap<String, SinkMetricsHolder>();
 
     private SinkCollector() {}
@@ -45,7 +47,7 @@ public class SinkCollector extends Collector implements InstanceRegistry {
         CounterMetricFamily blockingCounter = new CounterMetricFamily(SINK_BLOCKING_TIME,
                 SINK_BLOCK_TIME_HELP, DEST_LABELS_LIST);
         for (SinkMetricsHolder smh : instances.values()) {
-            blockingCounter.addMetric(smh.destLabelValues, smh.eventsSinkBlockingTime.doubleValue());
+            blockingCounter.addMetric(smh.destLabelValues, (smh.eventsSinkBlockingTime.doubleValue() / NANO_PER_MILLI));
         }
         mfs.add(blockingCounter);
         return mfs;

@@ -15,6 +15,7 @@ import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABEL
  */
 public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler {
 
+    private static final long   NANO_PER_MILLI = 1000 * 1000L;
     private static final String PACKET_TYPE    = "canal_instance_client_packets";
     private static final String OUTBOUND_BYTES = "canal_instance_client_bytes";
     private static final String EMPTY_BATCHES  = "canal_instance_client_empty_batches";
@@ -27,7 +28,15 @@ public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler 
     private final Histogram     responseLatency;
     private volatile boolean    running        = false;
 
-    public PrometheusClientInstanceProfiler() {
+    private static class SingletonHolder {
+        private static final PrometheusClientInstanceProfiler SINGLETON = new PrometheusClientInstanceProfiler();
+    }
+
+    public static PrometheusClientInstanceProfiler instance() {
+        return SingletonHolder.SINGLETON;
+    }
+
+    private PrometheusClientInstanceProfiler() {
         this.outboundCounter = Counter.build()
                 .labelNames(DEST_LABELS)
                 .name(OUTBOUND_BYTES)
@@ -53,7 +62,7 @@ public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler 
                 .name(LATENCY)
                 .help("Client request latency.")
                 // buckets in milliseconds
-                .buckets(1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0)
+                .buckets(2.5, 10.0, 25.0, 100.0)
                 .create();
     }
 
@@ -68,7 +77,7 @@ public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler 
             errorsCounter.labels(destination, Short.toString(errorCode)).inc();
         }
         long latency = result.getLatency();
-        responseLatency.labels(destination).observe(latency / 1000000);
+        responseLatency.labels(destination).observe(((double) latency) / NANO_PER_MILLI);
         switch (type) {
             case GET:
                 boolean empty = result.getEmpty();
