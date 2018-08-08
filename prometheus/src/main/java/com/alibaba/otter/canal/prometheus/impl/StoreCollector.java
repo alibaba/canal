@@ -87,7 +87,8 @@ public class StoreCollector extends Collector implements InstanceRegistry {
         return mfs;
     }
 
-    @Override public void register(CanalInstance instance) {
+    @Override
+    public void register(CanalInstance instance) {
         final String destination = instance.getDestination();
         StoreMetricsHolder holder = new StoreMetricsHolder();
         CanalEventStore store = instance.getEventStore();
@@ -115,7 +116,8 @@ public class StoreCollector extends Collector implements InstanceRegistry {
         }
     }
 
-    @Override public void unregister(CanalInstance instance) {
+    @Override
+    public void unregister(CanalInstance instance) {
         final String destination = instance.getDestination();
         instances.remove(destination);
     }
