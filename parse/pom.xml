@@ -11,37 +11,37 @@
 	<name>canal parse module for otter ${project.version}</name>
 	<dependencies>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.protocol</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.meta</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.sink</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.parse.dbsync</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.filter</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.parse.driver</artifactId>
 			<version>${project.version}</version>
 		</dependency>

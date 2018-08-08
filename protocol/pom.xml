@@ -13,7 +13,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.alibaba.otter</groupId>
+			<groupId>com.ctrip.framework</groupId>
 			<artifactId>canal.common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
