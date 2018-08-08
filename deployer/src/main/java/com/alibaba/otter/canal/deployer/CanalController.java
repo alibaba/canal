@@ -34,6 +34,7 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalConfigClient;
 import com.alibaba.otter.canal.instance.manager.ManagerCanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator;
+import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
@@ -303,7 +304,7 @@ public class CanalController {
                     return instanceGenerator.generate(destination);
                 } else if (config.getMode().isSpring()) {
                     SpringCanalInstanceGenerator instanceGenerator = new SpringCanalInstanceGenerator();
-                    synchronized (this) {
+                    synchronized (CanalEventParser.class) {
                         try {
                             // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, destination);

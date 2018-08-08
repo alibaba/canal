@@ -63,7 +63,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private String             detectingSQL;                                 // 心跳sql
     private MysqlConnection    metaConnection;                               // 查询meta信息的链接
     private TableMetaCache     tableMetaCache;                               // 对应meta
-                                                                              // cache
     private int                fallbackIntervalInSeconds         = 60;       // 切换回退时间
     private BinlogFormat[]     supportBinlogFormats;                         // 支持的binlogFormat,如果设置会执行强校验
     private BinlogImage[]      supportBinlogImages;                          // 支持的binlogImage,如果设置会执行强校验

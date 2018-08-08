@@ -541,12 +541,16 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     tableError |= parseOneRow(rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
                 }
 
-                rowsCount ++;
+                rowsCount++;
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
             }
 
             TableMapLogEvent table = event.getTable();
-            Header header = createHeader(event.getHeader(), table.getDbName(), table.getTableName(), eventType, rowsCount);
+            Header header = createHeader(event.getHeader(),
+                table.getDbName(),
+                table.getTableName(),
+                eventType,
+                rowsCount);
 
             RowChange rowChange = rowChangeBuider.build();
             if (tableError) {
@@ -801,12 +805,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
     }
 
-
     private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType) {
         return createHeader(logHeader, schemaName, tableName, eventType, -1);
     }
 
-    private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType, Integer rowsCount) {
+    private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType,
+                                Integer rowsCount) {
         // header会做信息冗余,方便以后做检索或者过滤
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setVersion(version);
@@ -960,5 +964,4 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public void setGtidSet(GTIDSet gtidSet) {
         this.gtidSet = gtidSet;
     }
-
 }
