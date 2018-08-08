@@ -80,6 +80,11 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
                     flush();
                 }
                 break;
+            case HEARTBEAT:
+                // master过来的heartbeat，说明binlog已经读完了，是idle状态
+                put(entry);
+                flush();
+                break;
             default:
                 break;
         }
