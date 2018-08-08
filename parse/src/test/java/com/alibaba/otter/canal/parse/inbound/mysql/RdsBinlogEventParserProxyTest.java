@@ -58,36 +58,6 @@ public class RdsBinlogEventParserProxyTest {
         controller.setSecretkey("");
         controller.setBatchSize(4);
 //        controller.setRdsOpenApiUrl("https://rds.aliyuncs.com/");
-        controller.setTableMetaStorageFactory(new MySqlTableMetaStorageFactory(new MySqlTableMetaCallback() {
-            @Override
-            public void save(String dbAddress, String schema, String table, String ddl, Long timestamp) {
-
-            }
-
-            @Override
-            public List<TableMetaEntry> fetch(String dbAddress, String dbName) {
-                TableMetaEntry tableMeta = new TableMetaEntry();
-                tableMeta.setSchema(DBNAME);
-                tableMeta.setTable(TBNAME);
-                tableMeta.setDdl(DDL);
-                tableMeta.setTimestamp(new Date().getTime());
-                List<TableMetaEntry> entries = new ArrayList<TableMetaEntry>();
-                entries.add(tableMeta);
-                return entries;
-            }
-
-            @Override
-            public List<TableMetaEntry> fetch(String dbAddress, String dbName, String tableName) {
-                TableMetaEntry tableMeta = new TableMetaEntry();
-                tableMeta.setSchema(DBNAME);
-                tableMeta.setTable(TBNAME);
-                tableMeta.setDdl(DDL);
-                tableMeta.setTimestamp(new Date().getTime());
-                List<TableMetaEntry> entries = new ArrayList<TableMetaEntry>();
-                entries.add(tableMeta);
-                return entries;
-            }
-        }, DBNAME));
         controller.setEventSink(new AbstractCanalEventSinkTest<List<CanalEntry.Entry>>() {
 
             @Override
