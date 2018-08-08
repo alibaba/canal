@@ -52,17 +52,17 @@ import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
  */
 public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implements MultiStageCoprocessor {
 
-    private LogEventConvert          logEventConvert;
-    private EventTransactionBuffer   transactionBuffer;
-    private ErosaConnection          connection;
+    private LogEventConvert              logEventConvert;
+    private EventTransactionBuffer       transactionBuffer;
+    private ErosaConnection              connection;
 
-    private int                      parserThreadCount;
-    private int                      ringBufferSize;
-    private RingBuffer<MessageEvent> disruptorMsgBuffer;
-    private ExecutorService          parserExecutor;
-    private ExecutorService          stageExecutor;
-    private String                   destination;
-    private CanalParseException      exception;
+    private int                          parserThreadCount;
+    private int                          ringBufferSize;
+    private RingBuffer<MessageEvent>     disruptorMsgBuffer;
+    private ExecutorService              parserExecutor;
+    private ExecutorService              stageExecutor;
+    private String                       destination;
+    private volatile CanalParseException exception;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination){
@@ -135,22 +135,31 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         } catch (Throwable e) {
             // ignore
         }
-        disruptorMsgBuffer = null;
         super.stop();
     }
 
     /**
      * 网络数据投递
      */
-    public void publish(LogBuffer buffer) {
-        publish(buffer, null);
+    public boolean publish(LogBuffer buffer) {
+        return publish(buffer, null);
     }
 
-    public void publish(LogBuffer buffer, String binlogFileName) {
-        if (!isStart() && exception != null) {
-            throw exception;
+    public boolean publish(LogBuffer buffer, String binlogFileName) {
+        if (!isStart()) {
+            if (exception != null) {
+                throw exception;
+            }
+            return false;
         }
 
+        /**
+         * 由于改为processor仅终止自身stage而不是stop，那么需要由incident标识coprocessor是否正常工作。
+         * 让dump线程能够及时感知
+         */
+        if (exception != null) {
+            throw exception;
+        }
         boolean interupted = false;
         do {
             try {
@@ -168,10 +177,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                 interupted = Thread.interrupted();
             }
         } while (!interupted && isStart());
-
-        if (exception != null) {
-            throw exception;
-        }
+        return isStart();
     }
 
     @Override
@@ -197,10 +203,15 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             try {
                 LogBuffer buffer = event.getBuffer();
                 if (StringUtils.isNotEmpty(event.getBinlogFileName())
-                    && !context.getLogPosition().getFileName().equals(event.getBinlogFileName())) {
+                    && (context.getLogPosition() == null
+                    || !context.getLogPosition().getFileName().equals(event.getBinlogFileName()))) {
                     // set roate binlog file name
-                    context.setLogPosition(new LogPosition(event.getBinlogFileName(), context.getLogPosition()
-                        .getPosition()));
+                    if (context.getLogPosition() == null){
+                        context.setLogPosition(new LogPosition(event.getBinlogFileName(), 0));
+                    }else{
+                        context.setLogPosition(new LogPosition(event.getBinlogFileName(), context.getLogPosition()
+                                .getPosition()));
+                    }
                 }
 
                 LogEvent logEvent = decoder.decode(buffer, context);
@@ -249,9 +260,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         @Override
         public void onShutdown() {
-            if (isStart()) {
-                stop();
-            }
+
         }
     }
 
@@ -287,9 +296,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         @Override
         public void onShutdown() {
-            if (isStart()) {
-                stop();
-            }
+
         }
     }
 
@@ -328,9 +335,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         @Override
         public void onShutdown() {
-            if (isStart()) {
-                stop();
-            }
+
         }
     }
 
@@ -397,7 +402,6 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         @Override
         public void handleEventException(final Throwable ex, final long sequence, final Object event) {
-            throw new RuntimeException(ex);
         }
 
         @Override

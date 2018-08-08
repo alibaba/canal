@@ -1,0 +1,11 @@
+<aspectj>
+
+    <aspects>
+        <aspect name="com.alibaba.otter.canal.prometheus.impl.InboundThroughputAspect"/>
+        <aspect name="com.alibaba.otter.canal.prometheus.impl.OutboundThroughputAspect"/>
+    </aspects>
+    <weaver options="-verbose -showWeaveInfo">
+        <include within="com.alibaba.otter.canal..*"/>
+    </weaver>
+
+</aspectj>

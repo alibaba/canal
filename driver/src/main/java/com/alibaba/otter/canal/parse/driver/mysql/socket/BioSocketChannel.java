@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.driver.mysql.socket;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,7 +25,7 @@ public class BioSocketChannel implements SocketChannel {
 
     BioSocketChannel(Socket socket) throws IOException{
         this.socket = socket;
-        this.input = socket.getInputStream();
+        this.input = new BufferedInputStream(socket.getInputStream(), 16384);
         this.output = socket.getOutputStream();
     }
 
@@ -163,6 +164,5 @@ public class BioSocketChannel implements SocketChannel {
         this.output = null;
         this.socket = null;
     }
-
 
 }

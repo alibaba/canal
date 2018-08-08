@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -94,6 +95,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                                                                     .availableProcessors() * 60 / 100;     // 60%的能力跑解析,剩余部分处理网络
     protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
+    protected ParserExceptionHandler                 parserExceptionHandler;
+    protected long serverId;
+
+
 
     protected abstract BinlogParser buildParser();
 
@@ -170,11 +175,16 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         preDump(erosaConnection);
 
                         erosaConnection.connect();// 链接
+
+                        long queryServerId = erosaConnection.queryServerId();
+                        if (queryServerId != 0){
+                            serverId = queryServerId;
+                        }
                         // 4. 获取最后的位置信息
                         EntryPosition position = findStartPosition(erosaConnection);
                         final EntryPosition startPosition = position;
                         if (startPosition == null) {
-                            throw new CanalParseException("can't find start position for " + destination);
+                            throw new PositionNotFoundException("can't find start position for " + destination);
                         }
 
                         if (!processTableMeta(startPosition)) {
@@ -277,6 +287,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 runningInfo.getAddress().toString()), e);
                             sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
                         }
+                        if (parserExceptionHandler!=null){
+                            parserExceptionHandler.handle(e);
+                        }
                     } finally {
                         // 重新置为中断状态
                         Thread.interrupted();
@@ -303,7 +316,12 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     transactionBuffer.reset();// 重置一下缓冲队列，重新记录数据
                     binlogParser.reset();// 重新置位
                     if (multiStageCoprocessor != null) {
-                        multiStageCoprocessor.reset();
+                        // 处理 RejectedExecutionException
+                        try {
+                            multiStageCoprocessor.reset();
+                        } catch (Throwable t) {
+                            logger.debug("multi processor rejected:", t);
+                        }
                     }
 
                     if (running) {
@@ -331,6 +349,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         stopHeartBeat(); // 先停止心跳
         parseThread.interrupt(); // 尝试中断
         eventSink.interrupt();
+
+        if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
+            multiStageCoprocessor.stop();
+        }
+
         try {
             parseThread.join();// 等待其结束
         } catch (InterruptedException e) {
@@ -342,10 +365,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         }
         if (transactionBuffer.isStart()) {
             transactionBuffer.stop();
-        }
-
-        if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
-            multiStageCoprocessor.stop();
         }
     }
 
@@ -609,4 +628,19 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.parallelBufferSize = parallelBufferSize;
     }
 
+    public ParserExceptionHandler getParserExceptionHandler() {
+        return parserExceptionHandler;
+    }
+
+    public void setParserExceptionHandler(ParserExceptionHandler parserExceptionHandler) {
+        this.parserExceptionHandler = parserExceptionHandler;
+    }
+
+    public long getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(long serverId) {
+        this.serverId = serverId;
+    }
 }

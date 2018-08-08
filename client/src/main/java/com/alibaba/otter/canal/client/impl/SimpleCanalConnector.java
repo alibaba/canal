@@ -319,7 +319,8 @@ public class SimpleCanalConnector implements CanalConnector {
     }
 
     private Message receiveMessages() throws IOException {
-        Packet p = Packet.parseFrom(readNextPacket());
+        byte[] data = readNextPacket();
+        Packet p = Packet.parseFrom(data);
         switch (p.getType()) {
             case MESSAGES: {
                 if (!p.getCompression().equals(Compression.NONE)) {

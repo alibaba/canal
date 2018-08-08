@@ -41,6 +41,9 @@ public class MysqlDumpTest {
         controller.setTsdbSpringXml("classpath:tsdb/h2-tsdb.xml");
         controller.setEventFilter(new AviaterRegexFilter("test\\..*"));
         controller.setEventBlackFilter(new AviaterRegexFilter("canal_tsdb\\..*"));
+        controller.setParallel(true);
+        controller.setParallelBufferSize(256);
+        controller.setParallelThreadSize(2);
         controller.setIsGTIDMode(false);
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
 

@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorageFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -28,8 +29,10 @@ public class CanalParameter implements Serializable {
     private Long                     zkClusterId;                                                    // zk集群id，为管理方便
     private List<String>             zkClusters;                                                     // zk集群地址
 
+    private String                   dataDir                            = "../conf";                 // 默认本地文件数据的目录默认是conf
     // meta相关参数
     private MetaMode                 metaMode                           = MetaMode.MEMORY;           // meta机制
+    private Integer                  metaFileFlushPeriod                = 1000;                      // meta刷新间隔
 
     // storage存储
     private Integer                  transactionSize                    = 1024;                      // 支持处理的transaction事务大小
@@ -105,6 +108,9 @@ public class CanalParameter implements Serializable {
     private String                   standbyLogfileName                 = null;                      // standby起始位置
     private Long                     standbyLogfileOffest               = null;
     private Long                     standbyTimestamp                   = null;
+
+    // Ctrip Table Meta
+    TableMetaStorageFactory tableMetaStorageFactory;
 
     public static enum RunMode {
 
@@ -243,7 +249,9 @@ public class CanalParameter implements Serializable {
         /** 文件存储模式 */
         ZOOKEEPER,
         /** 混合模式，内存+文件 */
-        MIXED;
+        MIXED,
+        /** 本地文件存储模式*/
+        LOCAL_FILE;
 
         public boolean isMemory() {
             return this.equals(MetaMode.MEMORY);
@@ -255,6 +263,10 @@ public class CanalParameter implements Serializable {
 
         public boolean isMixed() {
             return this.equals(MetaMode.MIXED);
+        }
+
+        public boolean isLocalFile(){
+            return this.equals(MetaMode.LOCAL_FILE);
         }
     }
 
@@ -388,6 +400,22 @@ public class CanalParameter implements Serializable {
 
     public StorageMode getStorageMode() {
         return storageMode;
+    }
+
+    public String getDataDir() {
+        return dataDir;
+    }
+
+    public void setDataDir(String dataDir) {
+        this.dataDir = dataDir;
+    }
+
+    public Integer getMetaFileFlushPeriod() {
+        return metaFileFlushPeriod;
+    }
+
+    public void setMetaFileFlushPeriod(Integer metaFileFlushPeriod) {
+        this.metaFileFlushPeriod = metaFileFlushPeriod;
     }
 
     public void setStorageMode(StorageMode storageMode) {
@@ -857,6 +885,14 @@ public class CanalParameter implements Serializable {
 
     public void setBlackFilter(String blackFilter) {
         this.blackFilter = blackFilter;
+    }
+
+    public TableMetaStorageFactory getTableMetaStorageFactory() {
+        return tableMetaStorageFactory;
+    }
+
+    public void setTableMetaStorageFactory(TableMetaStorageFactory tableMetaStorageFactory) {
+        this.tableMetaStorageFactory = tableMetaStorageFactory;
     }
 
     public String toString() {

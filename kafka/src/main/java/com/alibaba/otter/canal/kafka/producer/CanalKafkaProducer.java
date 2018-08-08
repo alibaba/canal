@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.kafka.producer;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -10,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.kafka.producer.KafkaProperties.Topic;
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -49,21 +49,33 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(Topic topic, Message message) {
-        boolean valid = false;
-        if (message != null && !message.getEntries().isEmpty()) {
-            for (CanalEntry.Entry entry : message.getEntries()) {
-                if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-                    && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-                    valid = true;
-                    break;
-                }
-            }
-        }
-        if (!valid) {
-            return;
-        }
+    public void send(Topic topic, Message message) throws IOException {
+        // set canal.instance.filter.transaction.entry = true
 
+        // boolean valid = false;
+        // if (message != null) {
+        // if (message.isRaw() && !message.getRawEntries().isEmpty()) {
+        // for (ByteString byteString : message.getRawEntries()) {
+        // CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(byteString);
+        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
+        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
+        // valid = true;
+        // break;
+        // }
+        // }
+        // } else if (!message.getEntries().isEmpty()){
+        // for (CanalEntry.Entry entry : message.getEntries()) {
+        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
+        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
+        // valid = true;
+        // break;
+        // }
+        // }
+        // }
+        // }
+        // if (!valid) {
+        // return;
+        // }
         ProducerRecord<String, Message> record;
         if (topic.getPartition() != null) {
             record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);

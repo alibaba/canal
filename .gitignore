@@ -14,3 +14,5 @@ jtester.properties
 .idea/
 *.iml
 .DS_Store
+*.tar.gz
+*.rpm

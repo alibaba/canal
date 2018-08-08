@@ -13,15 +13,15 @@ import java.util.Set;
  */
 public class KafkaProperties {
 
-    private String                 servers           = "localhost:6667";
-    private int                    retries           = 0;
-    private int                    batchSize         = 16384;
-    private int                    lingerMs          = 1;
-    private long                   bufferMemory      = 33554432L;
+    private String                 servers                = "localhost:6667";
+    private int                    retries                = 0;
+    private int                    batchSize              = 16384;
+    private int                    lingerMs               = 1;
+    private long                   bufferMemory           = 33554432L;
+    private boolean                filterTransactionEntry = true;
+    private int                    canalBatchSize         = 5;
 
-    private int                    canalBatchSize    = 5;
-
-    private List<CanalDestination> canalDestinations = new ArrayList<CanalDestination>();
+    private List<CanalDestination> canalDestinations      = new ArrayList<CanalDestination>();
 
     public static class CanalDestination {
 
@@ -158,4 +158,13 @@ public class KafkaProperties {
     public void setCanalDestinations(List<CanalDestination> canalDestinations) {
         this.canalDestinations = canalDestinations;
     }
+
+    public boolean isFilterTransactionEntry() {
+        return filterTransactionEntry;
+    }
+
+    public void setFilterTransactionEntry(boolean filterTransactionEntry) {
+        this.filterTransactionEntry = filterTransactionEntry;
+    }
+
 }
