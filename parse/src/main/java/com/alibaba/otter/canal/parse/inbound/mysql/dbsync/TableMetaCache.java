@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaCacheInterface;
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
@@ -30,7 +29,7 @@ import com.google.common.cache.LoadingCache;
  * @author jianghang 2013-1-17 下午10:15:16
  * @version 1.0.0
  */
-public class TableMetaCache implements TableMetaCacheInterface {
+public class TableMetaCache {
 
     public static final String              COLUMN_NAME    = "COLUMN_NAME";
     public static final String              COLUMN_TYPE    = "COLUMN_TYPE";
@@ -100,10 +99,6 @@ public class TableMetaCache implements TableMetaCacheInterface {
             String createDDL = packet.getFieldValues().get(1);
             MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
             memoryTableMeta.apply(DatabaseTableMeta.INIT_POSITION, schema, createDDL, null);
-            String[] strings = table.split("\\.");
-            if (strings.length > 1) {
-                table = strings[1];
-            }
             TableMeta tableMeta = memoryTableMeta.find(schema, table);
             return tableMeta.getFields();
         } else {

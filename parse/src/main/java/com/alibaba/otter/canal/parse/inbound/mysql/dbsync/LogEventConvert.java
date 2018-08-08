@@ -10,9 +10,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaCacheInterface;
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorage;
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.exception.NoHistoryException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -90,10 +87,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
 
-
-    private TableMetaCacheInterface tableMetaCache;
-    private String                      binlogFileName      = "mysql-bin.000001";
-
+    private TableMetaCache              tableMetaCache;
     private Charset                     charset             = Charset.defaultCharset();
     private boolean                     filterQueryDcl      = false;
     private boolean                     filterQueryDml      = false;
@@ -268,8 +262,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             if (!isSeek) {
                 // 使用新的表结构元数据管理方式
                 EntryPosition position = createPosition(event.getHeader());
-                String fulltbName = schemaName+"."+tableName;
-                tableMetaCache.apply(position, fulltbName, queryString, null);
+                tableMetaCache.apply(position, event.getDbName(), queryString, null);
             }
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
@@ -548,12 +541,16 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     tableError |= parseOneRow(rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
                 }
 
-                rowsCount ++;
+                rowsCount++;
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
             }
 
             TableMapLogEvent table = event.getTable();
-            Header header = createHeader(event.getHeader(), table.getDbName(), table.getTableName(), eventType, rowsCount);
+            Header header = createHeader(event.getHeader(),
+                table.getDbName(),
+                table.getTableName(),
+                eventType,
+                rowsCount);
 
             RowChange rowChange = rowChangeBuider.build();
             if (tableError) {
@@ -808,12 +805,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
     }
 
-
     private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType) {
         return createHeader(logHeader, schemaName, tableName, eventType, -1);
     }
 
-    private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType, Integer rowsCount) {
+    private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType,
+                                Integer rowsCount) {
         // header会做信息冗余,方便以后做检索或者过滤
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setVersion(version);
@@ -940,7 +937,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         this.nameBlackFilter = nameBlackFilter;
     }
 
-    public void setTableMetaCache(TableMetaCacheInterface tableMetaCache) {
+    public void setTableMetaCache(TableMetaCache tableMetaCache) {
         this.tableMetaCache = tableMetaCache;
     }
 
