@@ -490,7 +490,6 @@ public final class RowsLogBuffer {
                     // t % 100);
 
                     StringBuilder builder = new StringBuilder();
-                    builder.append(26);
                     appendNumber4(builder, d / 10000);
                     builder.append('-');
                     appendNumber2(builder, (d % 10000) / 100);
@@ -615,7 +614,13 @@ public final class RowsLogBuffer {
                     if (i32 < 0) {
                         builder.append('-');
                     }
-                    appendNumber2(builder, u32 / 10000);
+
+                    int d = u32 / 10000;
+                    if (d > 100) {
+                        builder.append(String.valueOf(d));
+                    } else {
+                        appendNumber2(builder, d);
+                    }
                     builder.append(':');
                     appendNumber2(builder, (u32 % 10000) / 100);
                     builder.append(':');
@@ -724,7 +729,13 @@ public final class RowsLogBuffer {
                     if (ltime < 0) {
                         builder.append('-');
                     }
-                    appendNumber2(builder, (int) ((intpart >> 12) % (1 << 10)));
+
+                    int d = (int) ((intpart >> 12) % (1 << 10));
+                    if (d > 100) {
+                        builder.append(String.valueOf(d));
+                    } else {
+                        appendNumber2(builder, d);
+                    }
                     builder.append(':');
                     appendNumber2(builder, (int) ((intpart >> 6) % (1 << 6)));
                     builder.append(':');
@@ -1134,7 +1145,7 @@ public final class RowsLogBuffer {
                 .append(digits[(d / 100) % 10])
                 .append(digits[(d / 10) % 10])
                 .append(digits[d % 10]);
-        } else if (d >= 100) {
+        } else {
             builder.append('0');
             appendNumber3(builder, d);
         }
@@ -1142,9 +1153,7 @@ public final class RowsLogBuffer {
 
     private void appendNumber3(StringBuilder builder, int d) {
         if (d >= 100) {
-            builder.append(digits[d / 100])
-                .append(digits[(d / 10) % 10])
-                .append(digits[d % 10]);
+            builder.append(digits[d / 100]).append(digits[(d / 10) % 10]).append(digits[d % 10]);
         } else {
             builder.append('0');
             appendNumber2(builder, d);

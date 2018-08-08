@@ -93,6 +93,10 @@ public class CanalParameter implements Serializable {
     private Boolean                  filterTableError                   = Boolean.FALSE;             // 是否忽略表解析异常
     private String                   blackFilter                        = null;                      // 匹配黑名单,忽略解析
 
+    private Boolean                  tsdbEnable                         = Boolean.FALSE;             // 是否开启tableMetaTSDB
+    private String                   tsdbJdbcUrl;
+    private String                   tsdbJdbcUserName;
+    private String                   tsdbJdbcPassword;
     // ================================== 兼容字段处理
     private InetSocketAddress        masterAddress;                                                  // 主库信息
     private String                   masterUsername;                                                 // 帐号
@@ -246,7 +250,7 @@ public class CanalParameter implements Serializable {
         ZOOKEEPER,
         /** 混合模式，内存+文件 */
         MIXED,
-        /** 本地文件存储模式*/
+        /** 本地文件存储模式 */
         LOCAL_FILE;
 
         public boolean isMemory() {
@@ -261,7 +265,7 @@ public class CanalParameter implements Serializable {
             return this.equals(MetaMode.MIXED);
         }
 
-        public boolean isLocalFile(){
+        public boolean isLocalFile() {
             return this.equals(MetaMode.LOCAL_FILE);
         }
     }
@@ -881,6 +885,38 @@ public class CanalParameter implements Serializable {
 
     public void setBlackFilter(String blackFilter) {
         this.blackFilter = blackFilter;
+    }
+
+    public Boolean getTsdbEnable() {
+        return tsdbEnable;
+    }
+
+    public void setTsdbEnable(Boolean tsdbEnable) {
+        this.tsdbEnable = tsdbEnable;
+    }
+
+    public String getTsdbJdbcUrl() {
+        return tsdbJdbcUrl;
+    }
+
+    public void setTsdbJdbcUrl(String tsdbJdbcUrl) {
+        this.tsdbJdbcUrl = tsdbJdbcUrl;
+    }
+
+    public String getTsdbJdbcUserName() {
+        return tsdbJdbcUserName;
+    }
+
+    public void setTsdbJdbcUserName(String tsdbJdbcUserName) {
+        this.tsdbJdbcUserName = tsdbJdbcUserName;
+    }
+
+    public String getTsdbJdbcPassword() {
+        return tsdbJdbcPassword;
+    }
+
+    public void setTsdbJdbcPassword(String tsdbJdbcPassword) {
+        this.tsdbJdbcPassword = tsdbJdbcPassword;
     }
 
     public String toString() {

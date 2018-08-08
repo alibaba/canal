@@ -164,7 +164,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
                     blockingStart = System.nanoTime();
                 }
                 applyWait(++fullTimes);
-                if (fullTimes % 1000 == 0) {
+                if (fullTimes % 100 == 0) {
                     long nextStart = System.nanoTime();
                     eventsSinkBlockingTime.addAndGet(nextStart - blockingStart);
                     blockingStart = nextStart;

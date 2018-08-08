@@ -14,17 +14,6 @@
     <version>1.0.26-SNAPSHOT</version>
     <name>canal prometheus module for otter ${project.version}</name>
     <dependencies>
-        <!-- load time weaver-->
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>1.8.9</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <version>1.8.9</version>
-        </dependency>
         <dependency>
             <groupId>org.jctools</groupId>
             <artifactId>jctools-core</artifactId>
