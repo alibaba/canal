@@ -16,13 +16,13 @@ public class TableMetaCacheWithStorage implements TableMetaCacheInterface {
     private HistoryTableMetaCache cache = new HistoryTableMetaCache(); // cache
 
     public TableMetaCacheWithStorage(MysqlConnection con, TableMetaStorage tableMetaStorage) {
-        this.tableMetaStorage = tableMetaStorage;
         InetSocketAddress address = con.getAddress();
-        this.tableMetaStorage.setDbAddress(address.getHostName()+":"+address.getPort());
         cache.setMetaConnection(con);
         cache.setTableMetaStorage(tableMetaStorage);
         if (tableMetaStorage != null) {
             try {
+                this.tableMetaStorage = tableMetaStorage;
+                this.tableMetaStorage.setDbAddress(address.getHostName()+":"+address.getPort());
                 cache.init(tableMetaStorage.fetch()); // 初始化，从存储拉取TableMeta
             } catch (IOException e) {
                 logger.error(e.getMessage());
