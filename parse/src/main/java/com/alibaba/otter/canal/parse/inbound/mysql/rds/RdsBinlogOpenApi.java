@@ -1,9 +1,5 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.rds;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
-import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.DescribeBinlogFileResult;
-import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.RdsItem;
-import com.alibaba.otter.canal.parse.inbound.mysql.rds.request.DescribeBinlogFilesRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.BufferedOutputStream;
@@ -17,7 +13,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.UUID;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
@@ -40,6 +43,10 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.DescribeBinlogFileResult;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.RdsItem;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.request.DescribeBinlogFilesRequest;
 
 /**
  * @author agapple 2017年10月14日 下午1:53:52
@@ -55,11 +62,10 @@ public class RdsBinlogOpenApi {
     private static final String   API_VERSION         = "2014-08-15";
     private static final String   SIGNATURE_VERSION   = "1.0";
 
-
-    public static List<BinlogFile> listBinlogFiles(String url, String ak, String sk, String dbInstanceId, Date startTime,
-                                                   Date endTime) {
+    public static List<BinlogFile> listBinlogFiles(String url, String ak, String sk, String dbInstanceId,
+                                                   Date startTime, Date endTime) {
         DescribeBinlogFilesRequest request = new DescribeBinlogFilesRequest();
-        if (StringUtils.isNotEmpty(url)){
+        if (StringUtils.isNotEmpty(url)) {
             try {
                 URI uri = new URI(url);
                 request.setEndPoint(uri.getHost());
@@ -76,12 +82,12 @@ public class RdsBinlogOpenApi {
         request.setAccessKeySecret(sk);
         DescribeBinlogFileResult result = null;
         int retryTime = 3;
-        while (true){
-            try{
+        while (true) {
+            try {
                 result = request.doAction();
                 break;
-            }catch (Exception e){
-                if(retryTime-- <= 0){
+            } catch (Exception e) {
+                if (retryTime-- <= 0) {
                     throw new RuntimeException(e);
                 }
                 try {
@@ -90,16 +96,15 @@ public class RdsBinlogOpenApi {
                 }
             }
         }
-        if (result == null){
+        if (result == null) {
             return Collections.EMPTY_LIST;
         }
         RdsItem rdsItem = result.getItems();
-        if (rdsItem != null){
+        if (rdsItem != null) {
             return rdsItem.getBinLogFile();
         }
         return Collections.EMPTY_LIST;
     }
-
 
     public static void downloadBinlogFiles(String url, String ak, String sk, String dbInstanceId, Date startTime,
                                            Date endTime, File destDir) throws Throwable {

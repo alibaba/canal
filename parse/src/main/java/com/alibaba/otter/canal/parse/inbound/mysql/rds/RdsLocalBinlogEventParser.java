@@ -28,15 +28,15 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  */
 public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements CanalEventParser, LocalBinLogConnection.FileParserListener {
 
-    private String url = "https://rds.aliyuncs.com/"; // openapi地址
-    private String accesskey; // 云账号的ak
-    private String secretkey; // 云账号sk
-    private String instanceId; // rds实例id
-    private Long startTime;
-    private Long endTime;
+    private String              url = "https://rds.aliyuncs.com/"; // openapi地址
+    private String              accesskey;                        // 云账号的ak
+    private String              secretkey;                        // 云账号sk
+    private String              instanceId;                       // rds实例id
+    private Long                startTime;
+    private Long                endTime;
     private BinlogDownloadQueue binlogDownloadQueue;
     private ParseFinishListener finishListener;
-    private int batchSize;
+    private int                 batchSize;
 
     public RdsLocalBinlogEventParser(){
     }
@@ -59,7 +59,8 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             }
             long startTimeInMill = entryPosition.getTimestamp();
             startTime = startTimeInMill;
-            List<BinlogFile> binlogFiles = RdsBinlogOpenApi.listBinlogFiles(url, accesskey,
+            List<BinlogFile> binlogFiles = RdsBinlogOpenApi.listBinlogFiles(url,
+                accesskey,
                 secretkey,
                 instanceId,
                 new Date(startTime),
@@ -132,26 +133,21 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
         }
     }
 
-
     public void setAccesskey(String accesskey) {
         this.accesskey = accesskey;
     }
-
 
     public void setSecretkey(String secretkey) {
         this.secretkey = secretkey;
     }
 
-
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
     }
 
-
     public void setStartTime(Long startTime) {
         this.startTime = startTime;
     }
-
 
     public void setEndTime(Long endTime) {
         this.endTime = endTime;
@@ -162,20 +158,24 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
         try {
             binlogDownloadQueue.downOne();
             File needDeleteFile = new File(directory + File.separator + fileName);
-            if (needDeleteFile.exists()){
+            if (needDeleteFile.exists()) {
                 needDeleteFile.delete();
             }
             // 处理下logManager位点问题
             LogPosition logPosition = logPositionManager.getLatestIndexBy(destination);
             EntryPosition position = logPosition.getPostion();
-            if (position != null){
+            if (position != null) {
                 LogPosition newLogPosition = new LogPosition();
                 String journalName = position.getJournalName();
                 int sepIdx = journalName.indexOf(".");
-                String fileIndex = journalName.substring(sepIdx+1);
+                String fileIndex = journalName.substring(sepIdx + 1);
                 int index = NumberUtils.toInt(fileIndex) + 1;
-                String newJournalName = journalName.substring(0, sepIdx) + "." + StringUtils.leftPad(String.valueOf(index), fileIndex.length(), "0");
-                newLogPosition.setPostion(new EntryPosition(newJournalName, 4L, position.getTimestamp(), position.getServerId()));
+                String newJournalName = journalName.substring(0, sepIdx) + "."
+                                        + StringUtils.leftPad(String.valueOf(index), fileIndex.length(), "0");
+                newLogPosition.setPostion(new EntryPosition(newJournalName,
+                    4L,
+                    position.getTimestamp(),
+                    position.getServerId()));
                 newLogPosition.setIdentity(logPosition.getIdentity());
                 logPositionManager.persistLogPosition(destination, newLogPosition);
             }
@@ -202,7 +202,8 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
         this.finishListener = finishListener;
     }
 
-    public interface ParseFinishListener{
+    public interface ParseFinishListener {
+
         void onFinish();
     }
 

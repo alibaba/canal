@@ -14,25 +14,26 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
  */
 public class RdsBinlogEventParserProxy extends MysqlEventParser {
 
-    private String rdsOpenApiUrl = "https://rds.aliyuncs.com/"; // openapi地址
-    private String accesskey; // 云账号的ak
-    private String secretkey; // 云账号sk
-    private String instanceId; // rds实例id
-    private Long startTime;
-    private Long endTime;
-    private String directory; //binlog 目录
-    private int batchSize = 4; //最多下载的binlog文件数量
+    private String                    rdsOpenApiUrl        = "https://rds.aliyuncs.com/";    // openapi地址
+    private String                    accesskey;                                             // 云账号的ak
+    private String                    secretkey;                                             // 云账号sk
+    private String                    instanceId;                                            // rds实例id
+    private Long                      startTime;
+    private Long                      endTime;
+    private String                    directory;                                             // binlog
+                                                                                              // 目录
+    private int                       batchSize            = 4;                              // 最多下载的binlog文件数量
 
     private RdsLocalBinlogEventParser rdsBinlogEventParser = new RdsLocalBinlogEventParser();
-    private ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+    private ExecutorService           executorService      = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(r, "rds-binlog-daemon-thread");
-            t.setDaemon(true);
-            return t;
-        }
-    });
+                                                               @Override
+                                                               public Thread newThread(Runnable r) {
+                                                                   Thread t = new Thread(r, "rds-binlog-daemon-thread");
+                                                                   t.setDaemon(true);
+                                                                   return t;
+                                                               }
+                                                           });
 
     @Override
     public void start() {
@@ -62,9 +63,11 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
         rdsBinlogEventParser.setDirectory(directory);
         rdsBinlogEventParser.setBatchSize(batchSize);
         rdsBinlogEventParser.setFinishListener(new RdsLocalBinlogEventParser.ParseFinishListener() {
+
             @Override
             public void onFinish() {
                 executorService.execute(new Runnable() {
+
                     @Override
                     public void run() {
                         rdsBinlogEventParser.stop();
@@ -124,16 +127,13 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
         this.rdsOpenApiUrl = rdsOpenApiUrl;
     }
 
-
     public void setAccesskey(String accesskey) {
         this.accesskey = accesskey;
     }
 
-
     public void setSecretkey(String secretkey) {
         this.secretkey = secretkey;
     }
-
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;

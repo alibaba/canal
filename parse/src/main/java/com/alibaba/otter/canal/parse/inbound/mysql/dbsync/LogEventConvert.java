@@ -10,9 +10,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaCacheInterface;
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorage;
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.exception.NoHistoryException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -90,8 +87,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
 
-
-    private TableMetaCacheInterface tableMetaCache;
+    private TableMetaCache              tableMetaCache;
     private String                      binlogFileName      = "mysql-bin.000001";
 
     private Charset                     charset             = Charset.defaultCharset();
@@ -268,8 +264,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             if (!isSeek) {
                 // 使用新的表结构元数据管理方式
                 EntryPosition position = createPosition(event.getHeader());
-                String fulltbName = schemaName+"."+tableName;
-                tableMetaCache.apply(position, fulltbName, queryString, null);
+                tableMetaCache.apply(position, event.getDbName(), queryString, null);
             }
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
@@ -944,7 +939,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         this.nameBlackFilter = nameBlackFilter;
     }
 
-    public void setTableMetaCache(TableMetaCacheInterface tableMetaCache) {
+    public void setTableMetaCache(TableMetaCache tableMetaCache) {
         this.tableMetaCache = tableMetaCache;
     }
 

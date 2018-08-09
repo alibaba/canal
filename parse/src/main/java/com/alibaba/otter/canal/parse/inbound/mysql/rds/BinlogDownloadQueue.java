@@ -1,7 +1,17 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.rds;
 
-import java.io.*;
-import java.util.*;
+import io.netty.handler.codec.http.HttpResponseStatus;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -20,29 +30,27 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
-
 /**
  * @author chengjin.lyf on 2018/8/7 下午3:10
  * @since 1.0.25
  */
 public class BinlogDownloadQueue {
 
-    private static final Logger logger = LoggerFactory.getLogger(BinlogDownloadQueue.class);
-    private static final int      TIMEOUT             = 10000;
+    private static final Logger             logger        = LoggerFactory.getLogger(BinlogDownloadQueue.class);
+    private static final int                TIMEOUT       = 10000;
 
     private LinkedBlockingQueue<BinlogFile> downloadQueue = new LinkedBlockingQueue<BinlogFile>();
-    private LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>();
-    private LinkedList<BinlogFile> binlogList;
-    private final int batchSize;
-    private Thread downloadThread;
-    public boolean running = true;
-    private final String destDir;
-    private String hostId;
-    private int currentSize;
-    private String lastDownload;
+    private LinkedBlockingQueue<Runnable>   taskQueue     = new LinkedBlockingQueue<Runnable>();
+    private LinkedList<BinlogFile>          binlogList;
+    private final int                       batchSize;
+    private Thread                          downloadThread;
+    public boolean                          running       = true;
+    private final String                    destDir;
+    private String                          hostId;
+    private int                             currentSize;
+    private String                          lastDownload;
 
-    public BinlogDownloadQueue(List<BinlogFile> downloadQueue, int batchSize, String destDir) throws IOException {
+    public BinlogDownloadQueue(List<BinlogFile> downloadQueue, int batchSize, String destDir) throws IOException{
         this.binlogList = new LinkedList(downloadQueue);
         this.batchSize = batchSize;
         this.destDir = destDir;
@@ -51,12 +59,13 @@ public class BinlogDownloadQueue {
         cleanDir();
     }
 
-    private void prepareBinlogList(){
+    private void prepareBinlogList() {
         for (BinlogFile binlog : this.binlogList) {
             String fileName = StringUtils.substringBetween(binlog.getDownloadLink(), "mysql-bin.", "?");
             binlog.setFileName(fileName);
         }
         Collections.sort(this.binlogList, new Comparator<BinlogFile>() {
+
             @Override
             public int compare(BinlogFile o1, BinlogFile o2) {
                 return o1.getFileName().compareTo(o2.getFileName());
@@ -78,35 +87,34 @@ public class BinlogDownloadQueue {
         downloadThread.start();
     }
 
-
     public BinlogFile tryOne() throws IOException {
         BinlogFile binlogFile = binlogList.poll();
         download(binlogFile);
         hostId = binlogFile.getHostInstanceID();
-        this.currentSize ++;
+        this.currentSize++;
         return binlogFile;
     }
 
-    public void notifyNotMatch(){
-        this.currentSize --;
+    public void notifyNotMatch() {
+        this.currentSize--;
         filter(hostId);
     }
 
-    private void filter(String hostInstanceId){
+    private void filter(String hostInstanceId) {
         Iterator<BinlogFile> it = binlogList.iterator();
-        while (it.hasNext()){
+        while (it.hasNext()) {
             BinlogFile bf = it.next();
-            if(bf.getHostInstanceID().equalsIgnoreCase(hostInstanceId)){
+            if (bf.getHostInstanceID().equalsIgnoreCase(hostInstanceId)) {
                 it.remove();
-            }else{
+            } else {
                 hostId = bf.getHostInstanceID();
             }
         }
     }
 
-    public boolean isLastFile(String fileName){
+    public boolean isLastFile(String fileName) {
         String needCompareName = lastDownload;
-        if (StringUtils.isNotEmpty(needCompareName) && StringUtils.endsWith(needCompareName, "tar")){
+        if (StringUtils.isNotEmpty(needCompareName) && StringUtils.endsWith(needCompareName, "tar")) {
             needCompareName = needCompareName.substring(0, needCompareName.indexOf("."));
         }
         return fileName.equalsIgnoreCase(needCompareName) && binlogList.isEmpty();
@@ -115,27 +123,27 @@ public class BinlogDownloadQueue {
     public void prepare() throws InterruptedException {
         for (int i = this.currentSize; i < batchSize && !binlogList.isEmpty(); i++) {
             BinlogFile binlogFile = null;
-            while (!binlogList.isEmpty()){
+            while (!binlogList.isEmpty()) {
                 binlogFile = binlogList.poll();
-                if (!binlogFile.getHostInstanceID().equalsIgnoreCase(hostId)){
+                if (!binlogFile.getHostInstanceID().equalsIgnoreCase(hostId)) {
                     continue;
                 }
                 break;
             }
-            if (binlogFile == null){
+            if (binlogFile == null) {
                 break;
             }
             this.downloadQueue.put(binlogFile);
             this.lastDownload = "mysql-bin." + binlogFile.getFileName();
-            this.currentSize ++;
+            this.currentSize++;
         }
     }
 
-    public void downOne(){
-        this.currentSize --;
+    public void downOne() {
+        this.currentSize--;
     }
 
-    public void release(){
+    public void release() {
         running = false;
         this.currentSize = 0;
         binlogList.clear();
@@ -146,21 +154,17 @@ public class BinlogDownloadQueue {
         String downloadLink = binlogFile.getDownloadLink();
         String fileName = binlogFile.getFileName();
         HttpGet httpGet = new HttpGet(downloadLink);
-        CloseableHttpClient httpClient = HttpClientBuilder.create()
-                .setMaxConnPerRoute(50)
-                .setMaxConnTotal(100)
-                .build();
+        CloseableHttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(50).setMaxConnTotal(100).build();
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(TIMEOUT)
-                .setConnectionRequestTimeout(TIMEOUT)
-                .setSocketTimeout(TIMEOUT)
-                .build();
+            .setConnectTimeout(TIMEOUT)
+            .setConnectionRequestTimeout(TIMEOUT)
+            .setSocketTimeout(TIMEOUT)
+            .build();
         httpGet.setConfig(requestConfig);
         HttpResponse response = httpClient.execute(httpGet);
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode != HttpResponseStatus.OK.code()) {
-            throw new RuntimeException("download failed , url:" + downloadLink + " , statusCode:"
-                                       + statusCode);
+            throw new RuntimeException("download failed , url:" + downloadLink + " , statusCode:" + statusCode);
         }
         saveFile(new File(destDir), "mysql-bin." + fileName, response);
     }
@@ -168,7 +172,7 @@ public class BinlogDownloadQueue {
     private static void saveFile(File parentFile, String fileName, HttpResponse response) throws IOException {
         InputStream is = response.getEntity().getContent();
         long totalSize = Long.parseLong(response.getFirstHeader("Content-Length").getValue());
-        if(response.getFirstHeader("Content-Disposition")!=null){
+        if (response.getFirstHeader("Content-Disposition") != null) {
             fileName = response.getFirstHeader("Content-Disposition").getValue();
             fileName = StringUtils.substringAfter(fileName, "filename=");
         }
@@ -243,11 +247,11 @@ public class BinlogDownloadQueue {
             while (running) {
                 try {
                     BinlogFile binlogFile = downloadQueue.poll(5000, TimeUnit.MILLISECONDS);
-                    if (binlogFile != null){
+                    if (binlogFile != null) {
                         download(binlogFile);
                     }
                     Runnable runnable = taskQueue.poll(5000, TimeUnit.MILLISECONDS);
-                    if (runnable != null){
+                    if (runnable != null) {
                         runnable.run();
                     }
                 } catch (Exception e) {

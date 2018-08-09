@@ -1,9 +1,7 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -12,9 +10,6 @@ import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsBinlogEventParserProxy;
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaEntry;
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.impl.mysql.MySqlTableMetaCallback;
-import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.impl.mysql.MySqlTableMetaStorageFactory;
 import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
