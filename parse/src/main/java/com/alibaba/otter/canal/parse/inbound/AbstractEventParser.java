@@ -8,7 +8,6 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -95,10 +94,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                                                                     .availableProcessors() * 60 / 100;     // 60%的能力跑解析,剩余部分处理网络
     protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
-    protected ParserExceptionHandler                 parserExceptionHandler;
-    protected long serverId;
-
-
 
     protected abstract BinlogParser buildParser();
 
@@ -175,16 +170,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         preDump(erosaConnection);
 
                         erosaConnection.connect();// 链接
-
-                        long queryServerId = erosaConnection.queryServerId();
-                        if (queryServerId != 0){
-                            serverId = queryServerId;
-                        }
                         // 4. 获取最后的位置信息
                         EntryPosition position = findStartPosition(erosaConnection);
                         final EntryPosition startPosition = position;
                         if (startPosition == null) {
-                            throw new PositionNotFoundException("can't find start position for " + destination);
+                            throw new CanalParseException("can't find start position for " + destination);
                         }
 
                         if (!processTableMeta(startPosition)) {
@@ -286,9 +276,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             logger.error(String.format("dump address %s has an error, retrying. caused by ",
                                 runningInfo.getAddress().toString()), e);
                             sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
-                        }
-                        if (parserExceptionHandler!=null){
-                            parserExceptionHandler.handle(e);
                         }
                     } finally {
                         // 重新置为中断状态
@@ -628,19 +615,4 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.parallelBufferSize = parallelBufferSize;
     }
 
-    public ParserExceptionHandler getParserExceptionHandler() {
-        return parserExceptionHandler;
-    }
-
-    public void setParserExceptionHandler(ParserExceptionHandler parserExceptionHandler) {
-        this.parserExceptionHandler = parserExceptionHandler;
-    }
-
-    public long getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(long serverId) {
-        this.serverId = serverId;
-    }
 }

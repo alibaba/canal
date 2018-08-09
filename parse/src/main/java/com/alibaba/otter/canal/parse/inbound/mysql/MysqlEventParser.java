@@ -53,11 +53,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private int                receiveBufferSize                 = 64 * 1024;
     private int                sendBufferSize                    = 64 * 1024;
     // 数据库信息
-    protected AuthenticationInfo masterInfo;                                   // 主库
-    protected AuthenticationInfo standbyInfo;                                  // 备库
+    private AuthenticationInfo masterInfo;                                   // 主库
+    private AuthenticationInfo standbyInfo;                                  // 备库
     // binlog信息
-    protected EntryPosition      masterPosition;
-    protected EntryPosition      standbyPosition;
+    private EntryPosition      masterPosition;
+    private EntryPosition      standbyPosition;
     private long               slaveId;                                      // 链接到mysql的slave
     // 心跳检查信息
     private String             detectingSQL;                                 // 心跳sql
