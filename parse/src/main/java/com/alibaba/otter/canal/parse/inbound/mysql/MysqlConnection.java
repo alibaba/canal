@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlConnector;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
@@ -322,6 +324,16 @@ public class MysqlConnection implements ErosaConnection {
         // set authInfo
         connection.setAuthInfo(authInfo);
         return connection;
+    }
+
+    @Override
+    public long queryServerId() throws IOException {
+        ResultSetPacket resultSetPacket = query("show variables like 'server_id'");
+        List<String> fieldValues = resultSetPacket.getFieldValues();
+        if (fieldValues == null || fieldValues.size() != 2){
+            return 0;
+        }
+        return NumberUtils.toLong(fieldValues.get(1));
     }
 
     // ====================== help method ====================
