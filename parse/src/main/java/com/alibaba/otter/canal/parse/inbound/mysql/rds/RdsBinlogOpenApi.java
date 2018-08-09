@@ -1,5 +1,9 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.rds;
 
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.DescribeBinlogFileResult;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.RdsItem;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.request.DescribeBinlogFilesRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.BufferedOutputStream;
@@ -9,16 +13,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
@@ -55,6 +54,52 @@ public class RdsBinlogOpenApi {
     private static final String   MAC_NAME            = "HmacSHA1";
     private static final String   API_VERSION         = "2014-08-15";
     private static final String   SIGNATURE_VERSION   = "1.0";
+
+
+    public static List<BinlogFile> listBinlogFiles(String url, String ak, String sk, String dbInstanceId, Date startTime,
+                                                   Date endTime) {
+        DescribeBinlogFilesRequest request = new DescribeBinlogFilesRequest();
+        if (StringUtils.isNotEmpty(url)){
+            try {
+                URI uri = new URI(url);
+                request.setEndPoint(uri.getHost());
+            } catch (URISyntaxException e) {
+                logger.error("resolve url host failed, will use default rds endpoint!");
+            }
+        }
+        request.setStartDate(startTime);
+        request.setEndDate(endTime);
+        request.setPageNumber(1);
+        request.setPageSize(100);
+        request.setRdsInstanceId(dbInstanceId);
+        request.setAccessKeyId(ak);
+        request.setAccessKeySecret(sk);
+        DescribeBinlogFileResult result = null;
+        int retryTime = 3;
+        while (true){
+            try{
+                result = request.doAction();
+                break;
+            }catch (Exception e){
+                if(retryTime-- <= 0){
+                    throw new RuntimeException(e);
+                }
+                try {
+                    Thread.sleep(100L);
+                } catch (InterruptedException e1) {
+                }
+            }
+        }
+        if (result == null){
+            return Collections.EMPTY_LIST;
+        }
+        RdsItem rdsItem = result.getItems();
+        if (rdsItem != null){
+            return rdsItem.getBinLogFile();
+        }
+        return Collections.EMPTY_LIST;
+    }
+
 
     public static void downloadBinlogFiles(String url, String ak, String sk, String dbInstanceId, Date startTime,
                                            Date endTime, File destDir) throws Throwable {

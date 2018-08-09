@@ -203,10 +203,15 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             try {
                 LogBuffer buffer = event.getBuffer();
                 if (StringUtils.isNotEmpty(event.getBinlogFileName())
-                    && !context.getLogPosition().getFileName().equals(event.getBinlogFileName())) {
+                    && (context.getLogPosition() == null
+                    || !context.getLogPosition().getFileName().equals(event.getBinlogFileName()))) {
                     // set roate binlog file name
-                    context.setLogPosition(new LogPosition(event.getBinlogFileName(), context.getLogPosition()
-                        .getPosition()));
+                    if (context.getLogPosition() == null){
+                        context.setLogPosition(new LogPosition(event.getBinlogFileName(), 0));
+                    }else{
+                        context.setLogPosition(new LogPosition(event.getBinlogFileName(), context.getLogPosition()
+                                .getPosition()));
+                    }
                 }
 
                 LogEvent logEvent = decoder.decode(buffer, context);

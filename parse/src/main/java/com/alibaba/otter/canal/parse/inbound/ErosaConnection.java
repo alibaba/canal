@@ -40,4 +40,6 @@ public interface ErosaConnection {
     public void dump(GTIDSet gtidSet, MultiStageCoprocessor coprocessor) throws IOException;
 
     ErosaConnection fork();
+
+    public long queryServerId() throws IOException;
 }
