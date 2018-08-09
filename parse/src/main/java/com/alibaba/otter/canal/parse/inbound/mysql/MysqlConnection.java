@@ -76,6 +76,7 @@ public class MysqlConnection implements ErosaConnection {
     }
 
     public void connect() throws IOException {
+        MysqlConnectionKiller.getInstance().addConnectionToKill(this);
         connector.connect();
     }
 
