@@ -756,6 +756,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         } else {
                             // byte数组，直接使用iso-8859-1保留对应编码，浪费内存
                             columnBuilder.setValue(new String((byte[]) value, ISO_8859_1));
+                            // columnBuilder.setValueBytes(ByteString.copyFrom((byte[])
+                            // value));
                             javaType = Types.BLOB;
                         }
                         break;
