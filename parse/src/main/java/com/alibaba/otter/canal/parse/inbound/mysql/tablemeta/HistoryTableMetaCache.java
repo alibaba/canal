@@ -51,7 +51,7 @@ public class HistoryTableMetaCache {
         });
     }
 
-    public void init(List<TableMetaEntry> entries) throws IOException {
+    public void init(List<TableMetaEntry> entries) {
         if (entries == null) {
             return;
         }
@@ -60,6 +60,8 @@ public class HistoryTableMetaCache {
                 put(entry.getSchema(), entry.getTable(), entry.getDdl(), entry.getTimestamp());
             } catch (CacheConnectionNull cacheConnectionNull) {
                 cacheConnectionNull.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
