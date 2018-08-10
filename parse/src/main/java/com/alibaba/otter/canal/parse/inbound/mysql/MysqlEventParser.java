@@ -68,8 +68,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private BinlogImage[]      supportBinlogImages;                          // 支持的binlogImage,如果设置会执行强校验
 
     // update by yishun.chen,特殊异常处理参数
-    private int                dumpErrorCount                    = 0;        // binlogDump失败异常计数
-    private int                dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
+    private       int                 dumpErrorCount            = 0;        // binlogDump失败异常计数
+    private       int                 dumpErrorCountThreshold   = 2;        // binlogDump失败异常计数阀值
+
+    // instance received binlog bytes
+    private final AtomicLong          receivedBinlogBytes       = new AtomicLong(0L);
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -313,6 +316,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         connection.getConnector().setSendBufferSize(sendBufferSize);
         connection.getConnector().setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
         connection.setCharset(connectionCharset);
+        connection.setReceivedBinlogBytes(receivedBinlogBytes);
         // 随机生成slaveId
         if (this.slaveId <= 0) {
             this.slaveId = generateUniqueServerId();
@@ -511,7 +515,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private Long findTransactionBeginPosition(ErosaConnection mysqlConnection, final EntryPosition entryPosition)
                                                                                                                  throws IOException {
         // 针对开始的第一条为非Begin记录，需要从该binlog扫描
-        final AtomicLong preTransactionStartPosition = new AtomicLong(0L);
+        final java.util.concurrent.atomic.AtomicLong preTransactionStartPosition = new java.util.concurrent.atomic.AtomicLong(0L);
         mysqlConnection.reconnect();
         mysqlConnection.seek(entryPosition.getJournalName(), 4L, new SinkFunction<LogEvent>() {
 
@@ -908,6 +912,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
+    }
+
+
+
+    public AtomicLong getReceivedBinlogBytes() {
+        return this.receivedBinlogBytes;
     }
 
 }

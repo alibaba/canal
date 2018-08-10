@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.store.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -31,6 +32,7 @@ public class Event implements Serializable {
     private EventType         eventType;
     private String            gtid;
     private long              rawLength;
+    private int               rowsCount;
 
     public Event(){
     }
@@ -47,6 +49,17 @@ public class Event implements Serializable {
         // build raw
         this.rawEntry = entry.toByteString();
         this.rawLength = rawEntry.size();
+        if (entryType == EntryType.ROWDATA) {
+            List<CanalEntry.Pair> props = entry.getHeader().getPropsList();
+            if (props != null) {
+                for (CanalEntry.Pair p : props) {
+                    if ("rowsCount".equals(p.getKey())) {
+                        rowsCount = Integer.parseInt(p.getValue());
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     public LogIdentity getLogIdentity() {
@@ -129,7 +142,16 @@ public class Event implements Serializable {
         this.eventType = eventType;
     }
 
+    public int getRowsCount() {
+        return rowsCount;
+    }
+
+    public void setRowsCount(int rowsCount) {
+        this.rowsCount = rowsCount;
+    }
+
     public String toString() {
         return ToStringBuilder.reflectionToString(this, CanalToStringStyle.DEFAULT_STYLE);
     }
+
 }
