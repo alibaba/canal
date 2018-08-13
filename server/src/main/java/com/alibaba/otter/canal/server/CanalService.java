@@ -20,6 +20,14 @@ public interface CanalService {
 
     Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit)
                                                                                                     throws CanalServerException;
+    Message get(ClientIdentity clientIdentity, int batchSize, long maxBatchDataSize) throws CanalServerException;
+
+    Message get(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long maxBatchDataSize) throws CanalServerException;
+
+    Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, long maxBatchDataSize) throws CanalServerException;
+
+    Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long maxBatchDataSize)
+            throws CanalServerException;
 
     void ack(ClientIdentity clientIdentity, long batchId) throws CanalServerException;
 

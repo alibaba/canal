@@ -45,21 +45,37 @@ public interface CanalEventStore<T> extends CanalLifeCycle, CanalStoreScavenge {
      */
     boolean tryPut(T data) throws CanalStoreException;
 
+//    /**
+//     * 获取指定大小的数据，阻塞等待其操作完成
+//     */
+//    Events<T> get(Position start, int batchSize) throws InterruptedException, CanalStoreException;
+//
+//    /**
+//     * 获取指定大小的数据，阻塞等待其操作完成或者时间超时
+//     */
+//    Events<T> get(Position start, int batchSize, long timeout, TimeUnit unit) throws InterruptedException,
+//                                                                             CanalStoreException;
+//
+//    /**
+//     * 根据指定位置，获取一个指定大小的数据
+//     */
+//    Events<T> tryGet(Position start, int batchSize) throws CanalStoreException;
+
     /**
      * 获取指定大小的数据，阻塞等待其操作完成
      */
-    Events<T> get(Position start, int batchSize) throws InterruptedException, CanalStoreException;
+    Events<T> get(Position start, int batchSize, long maxBatchDataSize) throws InterruptedException, CanalStoreException, CanalEventTooLargeException;
 
     /**
      * 获取指定大小的数据，阻塞等待其操作完成或者时间超时
      */
-    Events<T> get(Position start, int batchSize, long timeout, TimeUnit unit) throws InterruptedException,
-                                                                             CanalStoreException;
+    Events<T> get(Position start, int batchSize, long timeout, TimeUnit unit, long maxBatchDataSize) throws InterruptedException,
+            CanalStoreException, CanalEventTooLargeException;
 
     /**
      * 根据指定位置，获取一个指定大小的数据
      */
-    Events<T> tryGet(Position start, int batchSize) throws CanalStoreException;
+    Events<T> tryGet(Position start, int batchSize, long maxBatchDataSize) throws CanalStoreException, CanalEventTooLargeException;
 
     /**
      * 获取最后一条数据的position

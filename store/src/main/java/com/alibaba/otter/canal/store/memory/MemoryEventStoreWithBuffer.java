@@ -12,14 +12,13 @@ import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
-import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
-import com.alibaba.otter.canal.store.CanalEventStore;
-import com.alibaba.otter.canal.store.CanalStoreException;
-import com.alibaba.otter.canal.store.CanalStoreScavenge;
+import com.alibaba.otter.canal.store.*;
 import com.alibaba.otter.canal.store.helper.CanalEventUtils;
 import com.alibaba.otter.canal.store.model.BatchMode;
 import com.alibaba.otter.canal.store.model.Event;
 import com.alibaba.otter.canal.store.model.Events;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 基于内存buffer构建内存memory store
@@ -35,6 +34,7 @@ import com.alibaba.otter.canal.store.model.Events;
  */
 public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge implements CanalEventStore<Event>, CanalStoreScavenge {
 
+    private static Logger logger = LoggerFactory.getLogger(MemoryEventStoreWithBuffer.class);
     private static final long INIT_SQEUENCE = -1;
     private int               bufferSize    = 16 * 1024;
     private int               bufferMemUnit = 1024;                         // memsize的单位，默认为1kb大小
@@ -57,7 +57,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     private Condition         notEmpty      = lock.newCondition();
 
     private BatchMode         batchMode     = BatchMode.ITEMSIZE;           // 默认为内存大小模式
-    private boolean           ddlIsolation  = false;
+    private boolean          ddlIsolation  = false;
 
     public MemoryEventStoreWithBuffer(){
 
@@ -197,7 +197,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         notEmpty.signal();
     }
 
-    public Events<Event> get(Position start, int batchSize) throws InterruptedException, CanalStoreException {
+    public Events<Event> get(Position start, int batchSize, long maxBatchDataSize) throws InterruptedException, CanalStoreException, CanalEventTooLargeException {
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
@@ -209,26 +209,26 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                 throw ie;
             }
 
-            return doGet(start, batchSize);
+            return doGet(start, batchSize, maxBatchDataSize);
         } finally {
             lock.unlock();
         }
     }
 
-    public Events<Event> get(Position start, int batchSize, long timeout, TimeUnit unit) throws InterruptedException,
-                                                                                        CanalStoreException {
+    public Events<Event> get(Position start, int batchSize, long timeout, TimeUnit unit,long maxBatchDataSize) throws InterruptedException,
+            CanalStoreException, CanalEventTooLargeException {
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
             for (;;) {
                 if (checkUnGetSlotAt((LogPosition) start, batchSize)) {
-                    return doGet(start, batchSize);
+                    return doGet(start, batchSize, maxBatchDataSize);
                 }
 
                 if (nanos <= 0) {
                     // 如果时间到了，有多少取多少
-                    return doGet(start, batchSize);
+                    return doGet(start, batchSize, maxBatchDataSize);
                 }
 
                 try {
@@ -244,19 +244,20 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
-    public Events<Event> tryGet(Position start, int batchSize) throws CanalStoreException {
+    public Events<Event> tryGet(Position start, int batchSize, long maxBatchDataSize) throws CanalStoreException, CanalEventTooLargeException {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            return doGet(start, batchSize);
+            return doGet(start, batchSize, maxBatchDataSize);
         } finally {
             lock.unlock();
         }
     }
 
-    private Events<Event> doGet(Position start, int batchSize) throws CanalStoreException {
+    private Events<Event> doGet(Position start, int batchSize, long maxBatchDataSize) throws CanalStoreException, CanalEventTooLargeException {
+        //TODO: split events
         LogPosition startPosition = (LogPosition) start;
-
+        long currentSize = 0;
         long current = getSequence.get();
         long maxAbleSequence = putSequence.get();
         long next = current;
@@ -273,6 +274,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         Events<Event> result = new Events<Event>();
         List<Event> entrys = result.getEvents();
         long memsize = 0;
+        long totalSize = 0;
         if (batchMode.isItemSize()) {
             end = (next + batchSize - 1) < maxAbleSequence ? (next + batchSize - 1) : maxAbleSequence;
             // 提取数据并返回
@@ -289,6 +291,12 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                     }
                     break;
                 } else {
+                    currentSize = event.getEntry().getSerializedSize();
+                    totalSize += event.getEntry().getSerializedSize();
+                    if (totalSize > maxBatchDataSize) {
+                        end = next - 1;
+                        break;
+                    }
                     entrys.add(event);
                 }
             }
@@ -308,6 +316,11 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                     }
                     break;
                 } else {
+                    currentSize = event.getEntry().getSerializedSize();
+                    totalSize += event.getEntry().getSerializedSize();
+                    if (totalSize > maxBatchDataSize) {
+                        break;
+                    }
                     entrys.add(event);
                     memsize += calculateSize(event);
                     end = next;// 记录end位点
@@ -326,12 +339,19 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         for (int i = entrys.size() - 1; i >= 0; i--) {
             Event event = entrys.get(i);
             if (CanalEntry.EntryType.TRANSACTIONBEGIN == event.getEntry().getEntryType()
-                || CanalEntry.EntryType.TRANSACTIONEND == event.getEntry().getEntryType()
-                || isDdl(event.getEntry().getHeader().getEventType())) {
+                    || CanalEntry.EntryType.TRANSACTIONEND == event.getEntry().getEntryType()
+                    || isDdl(event.getEntry().getHeader().getEventType())) {
                 // 将事务头/尾设置可被为ack的点
                 range.setAck(CanalEventUtils.createPosition(event));
                 break;
             }
+        }
+
+        if (result.getEvents().isEmpty()) {
+            // ignore too large event, print log
+
+            logger.warn("single event too large: {0}, max value is {1}", currentSize, maxBatchDataSize);
+            throw new CanalEventTooLargeException();
         }
 
         if (getSequence.compareAndSet(current, end)) {
@@ -418,7 +438,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                     if (batchMode.isMemSize()) {
                         ackMemSize.addAndGet(memsize);
                         // 尝试清空buffer中的内存，将ack之前的内存全部释放掉
-                        for (long index = sequence + 1; index < next; index++) {
+                        for (long index = sequence + 1; index <= next; index++) {
                             entries[getIndex(index)] = null;// 设置为null
                         }
                     }
