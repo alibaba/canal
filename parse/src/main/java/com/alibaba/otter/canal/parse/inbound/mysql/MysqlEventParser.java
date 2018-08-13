@@ -47,32 +47,32 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
  */
 public class MysqlEventParser extends AbstractMysqlEventParser implements CanalEventParser, CanalHASwitchable {
 
-    private CanalHAController  haController                      = null;
+    private CanalHAController    haController                      = null;
 
-    private int                defaultConnectionTimeoutInSeconds = 30;       // sotimeout
-    private int                receiveBufferSize                 = 64 * 1024;
-    private int                sendBufferSize                    = 64 * 1024;
+    private int                  defaultConnectionTimeoutInSeconds = 30;                // sotimeout
+    private int                  receiveBufferSize                 = 64 * 1024;
+    private int                  sendBufferSize                    = 64 * 1024;
     // 数据库信息
-    protected AuthenticationInfo masterInfo;                                   // 主库
-    protected AuthenticationInfo standbyInfo;                                  // 备库
+    protected AuthenticationInfo masterInfo;                                            // 主库
+    protected AuthenticationInfo standbyInfo;                                           // 备库
     // binlog信息
     protected EntryPosition      masterPosition;
     protected EntryPosition      standbyPosition;
-    private long               slaveId;                                      // 链接到mysql的slave
+    private long                 slaveId;                                               // 链接到mysql的slave
     // 心跳检查信息
-    private String             detectingSQL;                                 // 心跳sql
-    private MysqlConnection    metaConnection;                               // 查询meta信息的链接
-    private TableMetaCache     tableMetaCache;                               // 对应meta
-    private int                fallbackIntervalInSeconds         = 60;       // 切换回退时间
-    private BinlogFormat[]     supportBinlogFormats;                         // 支持的binlogFormat,如果设置会执行强校验
-    private BinlogImage[]      supportBinlogImages;                          // 支持的binlogImage,如果设置会执行强校验
+    private String               detectingSQL;                                          // 心跳sql
+    private MysqlConnection      metaConnection;                                        // 查询meta信息的链接
+    private TableMetaCache       tableMetaCache;                                        // 对应meta
+    private int                  fallbackIntervalInSeconds         = 60;                // 切换回退时间
+    private BinlogFormat[]       supportBinlogFormats;                                  // 支持的binlogFormat,如果设置会执行强校验
+    private BinlogImage[]        supportBinlogImages;                                   // 支持的binlogImage,如果设置会执行强校验
 
     // update by yishun.chen,特殊异常处理参数
-    private       int                 dumpErrorCount            = 0;        // binlogDump失败异常计数
-    private       int                 dumpErrorCountThreshold   = 2;        // binlogDump失败异常计数阀值
+    private int                  dumpErrorCount                    = 0;                 // binlogDump失败异常计数
+    private int                  dumpErrorCountThreshold           = 2;                 // binlogDump失败异常计数阀值
 
     // instance received binlog bytes
-    private final AtomicLong          receivedBinlogBytes       = new AtomicLong(0L);
+    private final AtomicLong     receivedBinlogBytes               = new AtomicLong(0L);
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -756,16 +756,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         Long logposTimestamp = entry.getHeader().getExecuteTime();
                         Long serverId = entry.getHeader().getServerId();
 
-                        if (CanalEntry.EntryType.TRANSACTIONBEGIN.equals(entry.getEntryType())
-                            || CanalEntry.EntryType.TRANSACTIONEND.equals(entry.getEntryType())) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("compare exit condition:{},{},{}, startTimestamp={}...", new Object[] {
-                                        logfilename, logfileoffset, logposTimestamp, startTimestamp });
-                            }
-                            // 事务头和尾寻找第一条记录时间戳，如果最小的一条记录都不满足条件，可直接退出
-                            if (logposTimestamp >= startTimestamp) {
-                                return false;
-                            }
+                        // 如果最小的一条记录都不满足条件，可直接退出
+                        if (logposTimestamp >= startTimestamp) {
+                            return false;
                         }
 
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
@@ -913,8 +906,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
     }
-
-
 
     public AtomicLong getReceivedBinlogBytes() {
         return this.receivedBinlogBytes;

@@ -5,8 +5,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -32,7 +30,6 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-import com.taobao.tddl.dbsync.binlog.LogPosition;
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
@@ -53,7 +50,7 @@ import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
  */
 public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implements MultiStageCoprocessor {
 
-    private static final int             maxFullTimes               = 10;
+    private static final int             maxFullTimes = 10;
     private LogEventConvert              logEventConvert;
     private EventTransactionBuffer       transactionBuffer;
     private ErosaConnection              connection;
@@ -141,14 +138,18 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         super.stop();
     }
 
+    public boolean publish(LogBuffer buffer) {
+        return this.publish(buffer, null);
+    }
+
     /**
      * 网络数据投递
      */
-    public boolean publish(LogBuffer buffer) {
-        return publish(buffer, null);
+    public boolean publish(LogEvent event) {
+        return this.publish(null, event);
     }
 
-    public boolean publish(LogBuffer buffer, String binlogFileName) {
+    private boolean publish(LogBuffer buffer, LogEvent event) {
         if (!isStart()) {
             if (exception != null) {
                 throw exception;
@@ -169,10 +170,11 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         do {
             try {
                 long next = disruptorMsgBuffer.tryNext();
-                MessageEvent event = disruptorMsgBuffer.get(next);
-                event.setBuffer(buffer);
-                if (binlogFileName != null) {
-                    event.setBinlogFileName(binlogFileName);
+                MessageEvent data = disruptorMsgBuffer.get(next);
+                if (buffer != null) {
+                    data.setBuffer(buffer);
+                } else {
+                    data.setEvent(event);
                 }
                 disruptorMsgBuffer.publish(next);
                 if (fullTimes > 0) {
@@ -184,7 +186,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     blockingStart = System.nanoTime();
                 }
                 // park
-                //LockSupport.parkNanos(1L);
+                // LockSupport.parkNanos(1L);
                 applyWait(++fullTimes);
                 interupted = Thread.interrupted();
                 if (fullTimes % 1000 == 0) {
@@ -217,7 +219,6 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         start();
     }
 
-
     private class SimpleParserStage implements EventHandler<MessageEvent>, LifecycleAware {
 
         private LogDecoder decoder;
@@ -230,22 +231,12 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
             try {
-                LogBuffer buffer = event.getBuffer();
-                if (StringUtils.isNotEmpty(event.getBinlogFileName())
-                    && (context.getLogPosition() == null || !context.getLogPosition()
-                        .getFileName()
-                        .equals(event.getBinlogFileName()))) {
-                    // set roate binlog file name
-                    if (context.getLogPosition() == null) {
-                        context.setLogPosition(new LogPosition(event.getBinlogFileName(), 0));
-                    } else {
-                        context.setLogPosition(new LogPosition(event.getBinlogFileName(), context.getLogPosition()
-                            .getPosition()));
-                    }
+                LogEvent logEvent = event.getEvent();
+                if (logEvent == null) {
+                    LogBuffer buffer = event.getBuffer();
+                    logEvent = decoder.decode(buffer, context);
+                    event.setEvent(logEvent);
                 }
-
-                LogEvent logEvent = decoder.decode(buffer, context);
-                event.setEvent(logEvent);
 
                 int eventType = logEvent.getHeader().getType();
                 TableMeta tableMeta = null;
@@ -347,7 +338,6 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
                 // clear for gc
                 event.setBuffer(null);
-                event.setBinlogFileName(null);
                 event.setEvent(null);
                 event.setTable(null);
                 event.setEntry(null);
@@ -371,20 +361,11 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     class MessageEvent {
 
-        private String           binlogFileName;      // for local binlog parse
         private LogBuffer        buffer;
         private CanalEntry.Entry entry;
         private boolean          needDmlParse = false;
         private TableMeta        table;
         private LogEvent         event;
-
-        public String getBinlogFileName() {
-            return binlogFileName;
-        }
-
-        public void setBinlogFileName(String binlogFileName) {
-            this.binlogFileName = binlogFileName;
-        }
 
         public LogBuffer getBuffer() {
             return buffer;

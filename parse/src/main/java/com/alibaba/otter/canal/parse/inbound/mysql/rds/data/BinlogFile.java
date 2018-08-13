@@ -6,7 +6,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql.rds.data;
  */
 public class BinlogFile {
 
-    private Long FileSize;
+    private Long   FileSize;
     private String LogBeginTime;
     private String LogEndTime;
     private String DownloadLink;
@@ -69,4 +69,12 @@ public class BinlogFile {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+
+    @Override
+    public String toString() {
+        return "BinlogFile [FileSize=" + FileSize + ", LogBeginTime=" + LogBeginTime + ", LogEndTime=" + LogEndTime
+               + ", DownloadLink=" + DownloadLink + ", HostInstanceID=" + HostInstanceID + ", LinkExpiredTime="
+               + LinkExpiredTime + ", fileName=" + fileName + "]";
+    }
+
 }

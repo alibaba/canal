@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.inbound;
 
 import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
  * 针对解析器提供一个多阶段协同的处理
@@ -23,7 +24,7 @@ public interface MultiStageCoprocessor extends CanalLifeCycle {
      */
     public boolean publish(LogBuffer buffer);
 
-    public boolean publish(LogBuffer buffer, String binlogFileName);
+    public boolean publish(LogEvent event);
 
     public void reset();
 }

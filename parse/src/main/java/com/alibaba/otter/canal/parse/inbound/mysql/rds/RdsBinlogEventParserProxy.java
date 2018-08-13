@@ -4,93 +4,109 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.ParserExceptionHandler;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 
 /**
+ * aliyun rds的binlog parser支持
+ * 
+ * <pre>
+ * 注意点：aliyun的binlog会有定期清理并备份到oss上, 这里实现了一份自动下载oss+rds binlog的机制
+ * </pre>
+ * 
  * @author chengjin.lyf on 2018/7/20 上午10:52
  * @since 1.0.25
  */
 public class RdsBinlogEventParserProxy extends MysqlEventParser {
 
-    private String                    rdsOpenApiUrl        = "https://rds.aliyuncs.com/";    // openapi地址
-    private String                    accesskey;                                             // 云账号的ak
-    private String                    secretkey;                                             // 云账号sk
-    private String                    instanceId;                                            // rds实例id
-    private Long                      startTime;
-    private Long                      endTime;
-    private String                    directory;                                             // binlog
-                                                                                              // 目录
-    private int                       batchSize            = 4;                              // 最多下载的binlog文件数量
+    private String                    rdsOpenApiUrl             = "https://rds.aliyuncs.com/";    // openapi地址
+    private String                    accesskey;                                                  // 云账号的ak
+    private String                    secretkey;                                                  // 云账号sk
+    private String                    instanceId;                                                 // rds实例id
+    private String                    directory;                                                  // binlog目录
+    private int                       batchFileSize             = 4;                              // 最多下载的binlog文件数量
 
-    private RdsLocalBinlogEventParser rdsBinlogEventParser = new RdsLocalBinlogEventParser();
-    private ExecutorService           executorService      = Executors.newSingleThreadExecutor(new ThreadFactory() {
+    private RdsLocalBinlogEventParser rdsLocalBinlogEventParser = new RdsLocalBinlogEventParser();
+    private ExecutorService           executorService           = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
-                                                               @Override
-                                                               public Thread newThread(Runnable r) {
-                                                                   Thread t = new Thread(r, "rds-binlog-daemon-thread");
-                                                                   t.setDaemon(true);
-                                                                   return t;
-                                                               }
-                                                           });
+                                                                    @Override
+                                                                    public Thread newThread(Runnable r) {
+                                                                        Thread t = new Thread(r,
+                                                                            "rds-binlog-daemon-thread");
+                                                                        t.setDaemon(true);
+                                                                        return t;
+                                                                    }
+                                                                });
 
     @Override
     public void start() {
-        final ParserExceptionHandler targetHandler = this.getParserExceptionHandler();
-        rdsBinlogEventParser.setLogPositionManager(this.getLogPositionManager());
-        rdsBinlogEventParser.setDestination(destination);
-        rdsBinlogEventParser.setAlarmHandler(this.getAlarmHandler());
-        rdsBinlogEventParser.setConnectionCharset(this.connectionCharset);
-        rdsBinlogEventParser.setConnectionCharsetNumber(this.connectionCharsetNumber);
-        rdsBinlogEventParser.setEnableTsdb(this.enableTsdb);
-        rdsBinlogEventParser.setEventBlackFilter(this.eventBlackFilter);
-        rdsBinlogEventParser.setFilterQueryDcl(this.filterQueryDcl);
-        rdsBinlogEventParser.setFilterQueryDdl(this.filterQueryDdl);
-        rdsBinlogEventParser.setFilterQueryDml(this.filterQueryDml);
-        rdsBinlogEventParser.setFilterRows(this.filterRows);
-        rdsBinlogEventParser.setFilterTableError(this.filterTableError);
-        rdsBinlogEventParser.setIsGTIDMode(this.isGTIDMode);
-        rdsBinlogEventParser.setMasterInfo(this.masterInfo);
-        rdsBinlogEventParser.setEventFilter(this.eventFilter);
-        rdsBinlogEventParser.setMasterPosition(this.masterPosition);
-        rdsBinlogEventParser.setTransactionSize(this.transactionSize);
-        rdsBinlogEventParser.setUrl(this.rdsOpenApiUrl);
-        rdsBinlogEventParser.setAccesskey(this.accesskey);
-        rdsBinlogEventParser.setSecretkey(this.secretkey);
-        rdsBinlogEventParser.setInstanceId(this.instanceId);
-        rdsBinlogEventParser.setEventSink(eventSink);
-        rdsBinlogEventParser.setDirectory(directory);
-        rdsBinlogEventParser.setBatchSize(batchSize);
-        rdsBinlogEventParser.setFinishListener(new RdsLocalBinlogEventParser.ParseFinishListener() {
-
-            @Override
-            public void onFinish() {
-                executorService.execute(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        rdsBinlogEventParser.stop();
-                        RdsBinlogEventParserProxy.this.start();
-                    }
-                });
-
+        if (StringUtils.isNotEmpty(accesskey) && StringUtils.isNotEmpty(secretkey)
+            && StringUtils.isNotEmpty(instanceId)) {
+            final ParserExceptionHandler targetHandler = this.getParserExceptionHandler();
+            if (directory == null) {
+                directory = System.getProperty("java.io.tmpdir", "/tmp") + "/" + destination;
             }
-        });
-        this.setParserExceptionHandler(new ParserExceptionHandler() {
+            rdsLocalBinlogEventParser.setLogPositionManager(this.getLogPositionManager());
+            rdsLocalBinlogEventParser.setDestination(destination);
+            rdsLocalBinlogEventParser.setAlarmHandler(this.getAlarmHandler());
+            rdsLocalBinlogEventParser.setConnectionCharset(this.connectionCharset);
+            rdsLocalBinlogEventParser.setConnectionCharsetNumber(this.connectionCharsetNumber);
+            rdsLocalBinlogEventParser.setEnableTsdb(this.enableTsdb);
+            rdsLocalBinlogEventParser.setEventBlackFilter(this.eventBlackFilter);
+            rdsLocalBinlogEventParser.setFilterQueryDcl(this.filterQueryDcl);
+            rdsLocalBinlogEventParser.setFilterQueryDdl(this.filterQueryDdl);
+            rdsLocalBinlogEventParser.setFilterQueryDml(this.filterQueryDml);
+            rdsLocalBinlogEventParser.setFilterRows(this.filterRows);
+            rdsLocalBinlogEventParser.setFilterTableError(this.filterTableError);
+            // rdsLocalBinlogEventParser.setIsGTIDMode(this.isGTIDMode);
+            rdsLocalBinlogEventParser.setMasterInfo(this.masterInfo);
+            rdsLocalBinlogEventParser.setEventFilter(this.eventFilter);
+            rdsLocalBinlogEventParser.setMasterPosition(this.masterPosition);
+            rdsLocalBinlogEventParser.setTransactionSize(this.transactionSize);
+            rdsLocalBinlogEventParser.setUrl(this.rdsOpenApiUrl);
+            rdsLocalBinlogEventParser.setAccesskey(this.accesskey);
+            rdsLocalBinlogEventParser.setSecretkey(this.secretkey);
+            rdsLocalBinlogEventParser.setInstanceId(this.instanceId);
+            rdsLocalBinlogEventParser.setEventSink(eventSink);
+            rdsLocalBinlogEventParser.setDirectory(directory);
+            rdsLocalBinlogEventParser.setBatchFileSize(batchFileSize);
+            rdsLocalBinlogEventParser.setParallel(this.parallel);
+            rdsLocalBinlogEventParser.setParallelBufferSize(this.parallelBufferSize);
+            rdsLocalBinlogEventParser.setParallelThreadSize(this.parallelThreadSize);
+            rdsLocalBinlogEventParser.setFinishListener(new RdsLocalBinlogEventParser.ParseFinishListener() {
 
-            @Override
-            public void handle(Throwable e) {
-                handleMysqlParserException(e);
-                if (targetHandler != null) {
-                    targetHandler.handle(e);
+                @Override
+                public void onFinish() {
+                    executorService.execute(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            rdsLocalBinlogEventParser.stop();
+                            RdsBinlogEventParserProxy.this.start();
+                        }
+                    });
+
                 }
-            }
-        });
+            });
+            this.setParserExceptionHandler(new ParserExceptionHandler() {
+
+                @Override
+                public void handle(Throwable e) {
+                    handleMysqlParserException(e);
+                    if (targetHandler != null) {
+                        targetHandler.handle(e);
+                    }
+                }
+            });
+        }
+
         super.start();
     }
 
-    public void handleMysqlParserException(Throwable throwable) {
+    private void handleMysqlParserException(Throwable throwable) {
         if (throwable instanceof PositionNotFoundException) {
             logger.info("remove rds not found position, try download rds binlog!");
             executorService.execute(new Runnable() {
@@ -101,12 +117,12 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
                         logger.info("stop mysql parser!");
                         RdsBinlogEventParserProxy rdsBinlogEventParserProxy = RdsBinlogEventParserProxy.this;
                         long serverId = rdsBinlogEventParserProxy.getServerId();
-                        rdsBinlogEventParser.setServerId(serverId);
+                        rdsLocalBinlogEventParser.setServerId(serverId);
                         rdsBinlogEventParserProxy.stop();
                         logger.info("start rds mysql binlog parser!");
-                        rdsBinlogEventParser.start();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        rdsLocalBinlogEventParser.start();
+                    } catch (Throwable e) {
+                        logger.info("handle exception failed", e);
                     }
                 }
             });
@@ -143,7 +159,8 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
         this.directory = directory;
     }
 
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
+    public void setBatchFileSize(int batchFileSize) {
+        this.batchFileSize = batchFileSize;
     }
+
 }

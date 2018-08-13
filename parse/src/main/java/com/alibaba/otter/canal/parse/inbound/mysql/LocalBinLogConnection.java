@@ -4,25 +4,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import com.alibaba.otter.canal.parse.exception.ServerIdNotMatchException;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.exception.ServerIdNotMatchException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.local.BinLogFileQueue;
 import com.taobao.tddl.dbsync.binlog.FileLogFetcher;
-import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.LogPosition;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 
 /**
  * local bin log connection (not real connection)
@@ -39,7 +38,6 @@ public class LocalBinLogConnection implements ErosaConnection {
     private boolean             running    = false;
     private long                serverId;
     private FileParserListener  parserListener;
-
 
     public LocalBinLogConnection(){
     }
@@ -92,16 +90,13 @@ public class LocalBinLogConnection implements ErosaConnection {
             while (running) {
                 boolean needContinue = true;
                 LogEvent event = null;
-                // 处理一下binlog文件名
-                event = new RotateLogEvent(context.getLogPosition().getFileName(), 4);
-                func.sink(event);
                 while (fetcher.fetch()) {
                     event = decoder.decode(fetcher, context);
                     if (event == null) {
                         continue;
                     }
-                    if (serverId != 0 && event.getServerId() != serverId){
-                        throw new ServerIdNotMatchException("unexpected serverId "+serverId + " in binlog file !");
+                    if (serverId != 0 && event.getServerId() != serverId) {
+                        throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
                     }
 
                     if (!func.sink(event)) {
@@ -168,9 +163,8 @@ public class LocalBinLogConnection implements ErosaConnection {
                 while (fetcher.fetch()) {
                     LogEvent event = decoder.decode(fetcher, context);
                     if (event != null) {
-
-                        if (serverId != 0 && event.getServerId() != serverId){
-                            throw new ServerIdNotMatchException("unexpected serverId "+serverId + " in binlog file !");
+                        if (serverId != 0 && event.getServerId() != serverId) {
+                            throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
                         }
 
                         if (event.getWhen() > timestampSeconds) {
@@ -187,6 +181,9 @@ public class LocalBinLogConnection implements ErosaConnection {
                                 lastXidLogFileOffset = event.getLogPos();
                             }
                         } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
+                            lastXidLogFilename = current.getName();
+                            lastXidLogFileOffset = event.getLogPos();
+                        } else if (LogEvent.FORMAT_DESCRIPTION_EVENT == event.getHeader().getType()) {
                             lastXidLogFilename = current.getName();
                             lastXidLogFileOffset = event.getLogPos();
                         }
@@ -225,17 +222,29 @@ public class LocalBinLogConnection implements ErosaConnection {
     @Override
     public void dump(String binlogfilename, Long binlogPosition, MultiStageCoprocessor coprocessor) throws IOException {
         File current = new File(directory, binlogfilename);
+        if (!current.exists()) {
+            throw new CanalParseException("binlog:" + binlogfilename + " is not found");
+        }
 
         FileLogFetcher fetcher = new FileLogFetcher(bufferSize);
+        LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
+        LogContext context = new LogContext();
         try {
             fetcher.open(current, binlogPosition);
+            context.setLogPosition(new LogPosition(binlogfilename, binlogPosition));
             while (running) {
                 boolean needContinue = true;
+                LogEvent event = null;
                 while (fetcher.fetch()) {
-                    LogBuffer buffer = fetcher.duplicate();
-                    fetcher.consume(fetcher.limit());
-                    // set filename
-                    if (!coprocessor.publish(buffer, binlogfilename)) {
+                    event = decoder.decode(fetcher, context);
+                    if (event == null) {
+                        continue;
+                    }
+                    if (serverId != 0 && event.getServerId() != serverId) {
+                        throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
+                    }
+
+                    if (!coprocessor.publish(event)) {
                         needContinue = false;
                         break;
                     }
@@ -244,7 +253,6 @@ public class LocalBinLogConnection implements ErosaConnection {
                 fetcher.close(); // 关闭上一个文件
                 parserFinish(binlogfilename);
                 if (needContinue) {// 读取下一个
-
                     File nextFile;
                     if (needWait) {
                         nextFile = binlogs.waitForNextFile(current);
@@ -272,8 +280,8 @@ public class LocalBinLogConnection implements ErosaConnection {
         }
     }
 
-    private void parserFinish(String fileName){
-        if (parserListener != null){
+    private void parserFinish(String fileName) {
+        if (parserListener != null) {
             parserListener.onFinish(fileName);
         }
     }
@@ -306,9 +314,8 @@ public class LocalBinLogConnection implements ErosaConnection {
                 while (fetcher.fetch()) {
                     LogEvent event = decoder.decode(fetcher, context);
                     if (event != null) {
-
-                        if (serverId != 0 && event.getServerId() != serverId){
-                            throw new ServerIdNotMatchException("unexpected serverId "+serverId + " in binlog file !");
+                        if (serverId != 0 && event.getServerId() != serverId) {
+                            throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
                         }
 
                         if (event.getWhen() > timestampSeconds) {
@@ -325,6 +332,9 @@ public class LocalBinLogConnection implements ErosaConnection {
                                 lastXidLogFileOffset = event.getLogPos();
                             }
                         } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
+                            lastXidLogFilename = current.getName();
+                            lastXidLogFileOffset = event.getLogPos();
+                        } else if (LogEvent.FORMAT_DESCRIPTION_EVENT == event.getHeader().getType()) {
                             lastXidLogFilename = current.getName();
                             lastXidLogFileOffset = event.getLogPos();
                         }
@@ -410,7 +420,8 @@ public class LocalBinLogConnection implements ErosaConnection {
         this.parserListener = parserListener;
     }
 
-    public interface FileParserListener{
+    public interface FileParserListener {
+
         void onFinish(String fileName);
     }
 

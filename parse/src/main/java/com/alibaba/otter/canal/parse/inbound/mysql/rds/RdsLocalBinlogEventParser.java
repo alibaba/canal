@@ -28,15 +28,15 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  */
 public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements CanalEventParser, LocalBinLogConnection.FileParserListener {
 
-    private String              url = "https://rds.aliyuncs.com/"; // openapi地址
-    private String              accesskey;                        // 云账号的ak
-    private String              secretkey;                        // 云账号sk
-    private String              instanceId;                       // rds实例id
+    private String              url;                // openapi地址
+    private String              accesskey;          // 云账号的ak
+    private String              secretkey;          // 云账号sk
+    private String              instanceId;         // rds实例id
     private Long                startTime;
     private Long                endTime;
     private BinlogDownloadQueue binlogDownloadQueue;
     private ParseFinishListener finishListener;
-    private int                 batchSize;
+    private int                 batchFileSize;
 
     public RdsLocalBinlogEventParser(){
     }
@@ -65,10 +65,9 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
                 instanceId,
                 new Date(startTime),
                 new Date(endTime));
-            binlogDownloadQueue = new BinlogDownloadQueue(binlogFiles, batchSize, directory);
+            binlogDownloadQueue = new BinlogDownloadQueue(binlogFiles, batchFileSize, directory);
             binlogDownloadQueue.silenceDownload();
             needWait = true;
-            parallel = false;
             // try to download one file,use to test server id
             binlogDownloadQueue.tryOne();
         } catch (Throwable e) {
@@ -91,10 +90,12 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             binlogDownloadQueue.notifyNotMatch();
             try {
                 binlogDownloadQueue.cleanDir();
+                binlogDownloadQueue.tryOne();
                 binlogDownloadQueue.prepare();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
+
             try {
                 binlogDownloadQueue.execute(new Runnable() {
 
@@ -163,8 +164,10 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             }
             // 处理下logManager位点问题
             LogPosition logPosition = logPositionManager.getLatestIndexBy(destination);
-            EntryPosition position = logPosition.getPostion();
-            if (position != null) {
+            Long timestamp = 0L;
+            if (logPosition != null && logPosition.getPostion() != null) {
+                timestamp = logPosition.getPostion().getTimestamp();
+                EntryPosition position = logPosition.getPostion();
                 LogPosition newLogPosition = new LogPosition();
                 String journalName = position.getJournalName();
                 int sepIdx = journalName.indexOf(".");
@@ -181,9 +184,13 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             }
 
             if (binlogDownloadQueue.isLastFile(fileName)) {
-                logger.info("all file parse complete, switch to mysql parser!");
+                logger.warn("last file : " + fileName + " , timestamp : " + timestamp
+                            + " , all file parse complete, switch to mysql parser!");
                 finishListener.onFinish();
                 return;
+            } else {
+                logger.warn("parse local binlog file : " + fileName + " , timestamp : " + timestamp
+                            + " , try the next binlog !");
             }
             binlogDownloadQueue.prepare();
         } catch (Exception e) {
@@ -207,7 +214,7 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
         void onFinish();
     }
 
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
+    public void setBatchFileSize(int batchFileSize) {
+        this.batchFileSize = batchFileSize;
     }
 }

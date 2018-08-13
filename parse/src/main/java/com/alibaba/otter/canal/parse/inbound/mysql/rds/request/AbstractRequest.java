@@ -1,12 +1,18 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.rds.request;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Mac;
@@ -32,8 +38,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
-
 /**
  * @author chengjin.lyf on 2018/8/7 下午2:26
  * @since 1.0.25
@@ -49,41 +53,37 @@ public abstract class AbstractRequest<T> {
      */
     private static final String MAC_NAME = "HmacSHA1";
 
-    private String accessKeyId;
+    private String              accessKeyId;
 
-    private String accessKeySecret;
+    private String              accessKeySecret;
 
     /**
-     *  api 版本
-     *
+     * api 版本
      */
-    private String version;
+    private String              version;
 
-    private String endPoint = "rds.aliyuncs.com";
+    private String              endPoint = "rds.aliyuncs.com";
 
-    private String protocol = "http";
+    private String              protocol = "http";
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
     }
 
-    private int timeout = (int) TimeUnit.MINUTES.toMillis(1);
-
+    private int                 timeout = (int) TimeUnit.MINUTES.toMillis(1);
 
     private Map<String, String> treeMap = new TreeMap();
 
-    public void putQueryString(String name, String value){
-        if (StringUtils.isBlank(name) || StringUtils.isBlank(value)){
+    public void putQueryString(String name, String value) {
+        if (StringUtils.isBlank(name) || StringUtils.isBlank(value)) {
             return;
         }
         treeMap.put(name, value);
     }
 
-
     public void setVersion(String version) {
         this.version = version;
     }
-
 
     public void setEndPoint(String endPoint) {
         this.endPoint = endPoint;
@@ -169,7 +169,7 @@ public abstract class AbstractRequest<T> {
         p.put("Format", "JSON");
         p.put("Version", version);
         p.put("AccessKeyId", accessKeyId);
-        p.put("SignatureMethod", "HMAC-SHA1"); //此处不能用变量 MAC_NAME
+        p.put("SignatureMethod", "HMAC-SHA1"); // 此处不能用变量 MAC_NAME
         p.put("Timestamp", formatUTCTZ(new Date()));
         p.put("SignatureVersion", "1.0");
         p.put("SignatureNonce", UUID.randomUUID().toString());
@@ -193,6 +193,7 @@ public abstract class AbstractRequest<T> {
      * @return
      * @throws IOException
      */
+    @SuppressWarnings("deprecation")
     private final HttpResponse executeHttpRequest(HttpGet getMethod, String host) throws Exception {
         SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, new TrustStrategy() {
 
@@ -202,24 +203,24 @@ public abstract class AbstractRequest<T> {
             }
         }).build();
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
-                new String[] { "TLSv1" },
-                null,
-                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+            new String[] { "TLSv1" },
+            null,
+            SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
         Registry registry = RegistryBuilder.create()
-                .register("http", PlainConnectionSocketFactory.INSTANCE)
-                .register("https", sslsf)
-                .build();
+            .register("http", PlainConnectionSocketFactory.INSTANCE)
+            .register("https", sslsf)
+            .build();
         HttpClientConnectionManager httpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
         CloseableHttpClient httpClient = HttpClientBuilder.create()
-                .setMaxConnPerRoute(50)
-                .setMaxConnTotal(100)
-                .setConnectionManager(httpClientConnectionManager)
-                .build();
+            .setMaxConnPerRoute(50)
+            .setMaxConnTotal(100)
+            .setConnectionManager(httpClientConnectionManager)
+            .build();
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
+            .setConnectTimeout(timeout)
+            .setConnectionRequestTimeout(timeout)
+            .setSocketTimeout(timeout)
+            .build();
         getMethod.setConfig(requestConfig);
         HttpResponse response = httpClient.execute(getMethod);
         int statusCode = response.getStatusLine().getStatusCode();
@@ -232,14 +233,14 @@ public abstract class AbstractRequest<T> {
 
     protected abstract T processResult(HttpResponse response) throws Exception;
 
-    protected void processBefore(){
+    protected void processBefore() {
 
     }
 
-    public final T  doAction() throws Exception {
+    public final T doAction() throws Exception {
         processBefore();
         String requestStr = makeRequestString(treeMap);
-        HttpGet httpGet = new HttpGet(protocol + "://" +endPoint + "?" + requestStr);
+        HttpGet httpGet = new HttpGet(protocol + "://" + endPoint + "?" + requestStr);
         HttpResponse response = executeHttpRequest(httpGet, endPoint);
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             String result = EntityUtils.toString(response.getEntity());
