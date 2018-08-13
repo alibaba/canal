@@ -347,7 +347,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     }
 
     @Override
-    public Message getFirstevent(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws InterruptedException {
+    public Message getFirstEvent(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws InterruptedException {
         checkStart(clientIdentity.getDestination());
         checkSubscribe(clientIdentity);
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());

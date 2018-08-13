@@ -30,7 +30,7 @@ public interface CanalService {
     Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long batchTransactionMaxSize)
             throws CanalServerException, CanalEventTooLargeException;
 
-    Message getFirstevent(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws InterruptedException;
+    Message getFirstEvent(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws InterruptedException;
 
     void ack(ClientIdentity clientIdentity, long batchId) throws CanalServerException;
 
