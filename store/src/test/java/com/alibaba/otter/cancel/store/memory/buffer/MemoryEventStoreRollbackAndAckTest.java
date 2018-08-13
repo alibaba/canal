@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.protocol.position.Position;
+import com.alibaba.otter.canal.store.CanalEventTooLargeException;
 import com.alibaba.otter.canal.store.helper.CanalEventUtils;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
 import com.alibaba.otter.canal.store.model.Event;
@@ -40,12 +41,19 @@ public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
         Assert.assertEquals(lastest, CanalEventUtils.createPosition(buildEvent("1", 1L, 1L + bufferSize / 2 - 1)));
 
         System.out.println("start get");
-        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize);
+        Events<Event> entrys1 = null;
+		try {
+			entrys1 = eventStore.tryGet(first, bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("first get size : " + entrys1.getEvents().size());
 
         eventStore.rollback();
 
-        entrys1 = eventStore.tryGet(first, bufferSize);
+        try {
+			entrys1 = eventStore.tryGet(first, bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("after rollback get size : " + entrys1.getEvents().size());
         Assert.assertTrue(entrys1.getEvents().size() == bufferSize / 2);
 
@@ -56,12 +64,19 @@ public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
             Assert.assertTrue(result);
         }
 
-        Events<Event> entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
+        Events<Event> entrys2 = null;
+		try {
+			entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("second get size : " + entrys2.getEvents().size());
 
         eventStore.rollback();
 
-        entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
+        try {
+			entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("after rollback get size : " + entrys2.getEvents().size());
         Assert.assertTrue(entrys2.getEvents().size() == bufferSize);
 
@@ -97,7 +112,11 @@ public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
         Assert.assertEquals(lastest, CanalEventUtils.createPosition(buildEvent("1", 1L, 1L + bufferSize / 2 - 1)));
 
         System.out.println("start get");
-        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize);
+        Events<Event> entrys1 = null;
+		try {
+			entrys1 = eventStore.tryGet(first, bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e1) {
+		}
         System.out.println("first get size : " + entrys1.getEvents().size());
 
         eventStore.cleanUntil(entrys1.getPositionRange().getEnd());
@@ -110,12 +129,19 @@ public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
             Assert.assertTrue(result);
         }
 
-        Events<Event> entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
+        Events<Event> entrys2 = null;
+		try {
+			entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("second get size : " + entrys2.getEvents().size());
 
         eventStore.rollback();
 
-        entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
+        try {
+			entrys2 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("after rollback get size : " + entrys2.getEvents().size());
 
         first = eventStore.getFirstPosition();
@@ -131,7 +157,11 @@ public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
         eventStore.cleanUntil(entrys2.getPositionRange().getEnd());
 
         // 最后就拿不到数据
-        Events<Event> entrys3 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize);
+        Events<Event> entrys3 = null;
+		try {
+			entrys3 = eventStore.tryGet(entrys1.getPositionRange().getEnd(), bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("third get size : " + entrys3.getEvents().size());
         Assert.assertEquals(0, entrys3.getEvents().size());
 

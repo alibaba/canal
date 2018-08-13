@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.protocol.position.Position;
+import com.alibaba.otter.canal.store.CanalEventTooLargeException;
 import com.alibaba.otter.canal.store.CanalStoreException;
 import com.alibaba.otter.canal.store.helper.CanalEventUtils;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
@@ -84,7 +85,11 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
         Assert.assertTrue(result);
 
         Position position = eventStore.getFirstPosition();
-        Events<Event> entrys = eventStore.tryGet(position, 1);
+        Events<Event> entrys=null;
+		try {
+			entrys = eventStore.tryGet(position, 1, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         Assert.assertTrue(entrys.getEvents().size() == 1);
         Assert.assertEquals(position, entrys.getPositionRange().getStart());
         Assert.assertEquals(position, entrys.getPositionRange().getEnd());
@@ -111,7 +116,11 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
         Assert.assertEquals(lastest, CanalEventUtils.createPosition(buildEvent("1", 1L, 1L + bufferSize - 1)));
 
         System.out.println("start get");
-        Events<Event> entrys1 = eventStore.tryGet(first, bufferSize);
+        Events<Event> entrys1 = null;
+		try {
+			entrys1 = eventStore.tryGet(first, bufferSize, Long.MAX_VALUE);
+		} catch (CanalEventTooLargeException e) {
+		}
         System.out.println("first get size : " + entrys1.getEvents().size());
 
         Assert.assertTrue(entrys1.getEvents().size() == bufferSize);
@@ -136,7 +145,11 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
 
         final Position position = eventStore.getFirstPosition();
         try {
-            Events<Event> entrys = eventStore.get(position, batchSize);
+            Events<Event> entrys = null;
+			try {
+				entrys = eventStore.get(position, batchSize, Long.MAX_VALUE);
+			} catch (CanalEventTooLargeException e) {
+			}
             Assert.assertTrue(entrys.getEvents().size() == batchSize);
             Assert.assertEquals(position, entrys.getPositionRange().getStart());
             Assert.assertEquals(position, entrys.getPositionRange().getEnd());
@@ -150,12 +163,13 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
             public void run() {
                 boolean result = false;
                 try {
-                    eventStore.get(position, batchSize);
+                    eventStore.get(position, batchSize, Long.MAX_VALUE);
                 } catch (CanalStoreException e) {
                 } catch (InterruptedException e) {
                     System.out.println("interrupt occured.");
                     result = true;
-                }
+                } catch (CanalEventTooLargeException e) {
+				}
                 Assert.assertTrue(result);
             }
         });
