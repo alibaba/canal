@@ -155,6 +155,7 @@ public class HttpHelper {
                     .register("https", new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE))
                     .build()))
                 .build();
+
             // ---------------- 创建支持https 的client成功---------
 
             URI uri = new URIBuilder(url).build();

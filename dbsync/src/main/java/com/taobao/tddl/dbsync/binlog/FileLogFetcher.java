@@ -168,7 +168,9 @@ public final class FileLogFetcher extends LogFetcher {
      * @see com.taobao.tddl.dbsync.binlog.LogFetcher#close()
      */
     public void close() throws IOException {
-        if (fin != null) fin.close();
+        if (fin != null) {
+            fin.close();
+        }
 
         fin = null;
     }

@@ -2,12 +2,12 @@ package com.alibaba.otter.canal.parse.inbound.mysql.rds.request;
 
 import java.util.Date;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.DescribeBinlogFileResult;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.DescribeBinlogFileResult;
 
 /**
  * @author chengjin.lyf on 2018/8/7 下午3:41
@@ -15,11 +15,9 @@ import com.alibaba.fastjson.TypeReference;
  */
 public class DescribeBinlogFilesRequest extends AbstractRequest<DescribeBinlogFileResult> {
 
-
-    public DescribeBinlogFilesRequest() {
+    public DescribeBinlogFilesRequest(){
         setVersion("2014-08-15");
         putQueryString("Action", "DescribeBinlogFiles");
-
     }
 
     public void setRdsInstanceId(String rdsInstanceId) {
@@ -35,11 +33,11 @@ public class DescribeBinlogFilesRequest extends AbstractRequest<DescribeBinlogFi
     }
 
     public void setStartDate(Date startDate) {
-        putQueryString("StartTime" , formatUTCTZ(startDate));
+        putQueryString("StartTime", formatUTCTZ(startDate));
     }
 
     public void setEndDate(Date endDate) {
-        putQueryString("EndTime" , formatUTCTZ(endDate));
+        putQueryString("EndTime", formatUTCTZ(endDate));
     }
 
     public void setResourceOwnerId(Long resourceOwnerId) {
@@ -49,8 +47,9 @@ public class DescribeBinlogFilesRequest extends AbstractRequest<DescribeBinlogFi
     @Override
     protected DescribeBinlogFileResult processResult(HttpResponse response) throws Exception {
         String result = EntityUtils.toString(response.getEntity());
-        DescribeBinlogFileResult describeBinlogFileResult = JSONObject.parseObject(result, new TypeReference<DescribeBinlogFileResult>() {
-        });
+        DescribeBinlogFileResult describeBinlogFileResult = JSONObject.parseObject(result,
+            new TypeReference<DescribeBinlogFileResult>() {
+            });
         return describeBinlogFileResult;
     }
 }

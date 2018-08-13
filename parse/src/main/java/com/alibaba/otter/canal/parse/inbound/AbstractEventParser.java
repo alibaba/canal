@@ -8,8 +8,6 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -23,6 +21,7 @@ import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
@@ -97,10 +96,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
     protected ParserExceptionHandler                 parserExceptionHandler;
-    protected long serverId;
-
-
-
+    protected long                                   serverId;
 
     protected abstract BinlogParser buildParser();
 
@@ -179,7 +175,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         erosaConnection.connect();// 链接
 
                         long queryServerId = erosaConnection.queryServerId();
-                        if (queryServerId != 0){
+                        if (queryServerId != 0) {
                             serverId = queryServerId;
                         }
                         // 4. 获取最后的位置信息
@@ -289,7 +285,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 runningInfo.getAddress().toString()), e);
                             sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
                         }
-                        if (parserExceptionHandler!=null){
+                        if (parserExceptionHandler != null) {
                             parserExceptionHandler.handle(e);
                         }
                     } finally {
@@ -441,7 +437,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return logPosition;
     }
 
-    protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, long startPosition) {
+    protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, Long startPosition) {
         if (lastPosition != null) {
             logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s]",
                 lastPosition.getPostion()),

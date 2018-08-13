@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -14,6 +16,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -23,8 +28,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +55,7 @@ public class BinlogDownloadQueue {
     private LinkedBlockingQueue<BinlogFile> downloadQueue = new LinkedBlockingQueue<BinlogFile>();
     private LinkedBlockingQueue<Runnable>   taskQueue     = new LinkedBlockingQueue<Runnable>();
     private LinkedList<BinlogFile>          binlogList;
-    private final int                       batchSize;
+    private final int                       batchFileSize;
     private Thread                          downloadThread;
     public boolean                          running       = true;
     private final String                    destDir;
@@ -50,9 +63,9 @@ public class BinlogDownloadQueue {
     private int                             currentSize;
     private String                          lastDownload;
 
-    public BinlogDownloadQueue(List<BinlogFile> downloadQueue, int batchSize, String destDir) throws IOException{
+    public BinlogDownloadQueue(List<BinlogFile> downloadQueue, int batchFileSize, String destDir) throws IOException{
         this.binlogList = new LinkedList(downloadQueue);
-        this.batchSize = batchSize;
+        this.batchFileSize = batchFileSize;
         this.destDir = destDir;
         this.currentSize = 0;
         prepareBinlogList();
@@ -83,11 +96,12 @@ public class BinlogDownloadQueue {
         if (downloadThread != null) {
             return;
         }
-        downloadThread = new Thread(new DownloadThread());
+        downloadThread = new Thread(new DownloadThread(), "download-" + destDir);
+        downloadThread.setDaemon(true);
         downloadThread.start();
     }
 
-    public BinlogFile tryOne() throws IOException {
+    public BinlogFile tryOne() throws Throwable {
         BinlogFile binlogFile = binlogList.poll();
         download(binlogFile);
         hostId = binlogFile.getHostInstanceID();
@@ -121,7 +135,7 @@ public class BinlogDownloadQueue {
     }
 
     public void prepare() throws InterruptedException {
-        for (int i = this.currentSize; i < batchSize && !binlogList.isEmpty(); i++) {
+        for (int i = this.currentSize; i < batchFileSize && !binlogList.isEmpty(); i++) {
             BinlogFile binlogFile = null;
             while (!binlogList.isEmpty()) {
                 binlogFile = binlogList.poll();
@@ -150,11 +164,37 @@ public class BinlogDownloadQueue {
         downloadQueue.clear();
     }
 
-    private void download(BinlogFile binlogFile) throws IOException {
+    private void download(BinlogFile binlogFile) throws Throwable {
         String downloadLink = binlogFile.getDownloadLink();
         String fileName = binlogFile.getFileName();
+
+        downloadLink = downloadLink.trim();
+        CloseableHttpClient httpClient = null;
+        if (downloadLink.startsWith("https")) {
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setMaxConnPerRoute(50);
+            builder.setMaxConnTotal(100);
+            // 创建支持忽略证书的https
+            final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
+
+                @Override
+                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                    return true;
+                }
+            }).build();
+
+            httpClient = HttpClientBuilder.create()
+                .setSSLContext(sslContext)
+                .setConnectionManager(new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory> create()
+                    .register("http", PlainConnectionSocketFactory.INSTANCE)
+                    .register("https", new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE))
+                    .build()))
+                .build();
+        } else {
+            httpClient = HttpClientBuilder.create().setMaxConnPerRoute(50).setMaxConnTotal(100).build();
+        }
+
         HttpGet httpGet = new HttpGet(downloadLink);
-        CloseableHttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(50).setMaxConnTotal(100).build();
         RequestConfig requestConfig = RequestConfig.custom()
             .setConnectTimeout(TIMEOUT)
             .setConnectionRequestTimeout(TIMEOUT)
@@ -187,6 +227,9 @@ public class BinlogDownloadQueue {
                     String name = tarArchiveEntry.getName();
                     File tarFile = new File(parentFile, name + ".tmp");
                     logger.info("start to download file " + tarFile.getName());
+                    if (tarFile.exists()) {
+                        tarFile.delete();
+                    }
                     BufferedOutputStream bos = null;
                     try {
                         bos = new BufferedOutputStream(new FileOutputStream(tarFile));
@@ -204,6 +247,10 @@ public class BinlogDownloadQueue {
                 tais.close();
             } else {
                 File file = new File(parentFile, fileName + ".tmp");
+                if (file.exists()) {
+                    file.delete();
+                }
+
                 if (!file.isFile()) {
                     file.createNewFile();
                 }
@@ -245,17 +292,45 @@ public class BinlogDownloadQueue {
         @Override
         public void run() {
             while (running) {
+                BinlogFile binlogFile = null;
                 try {
-                    BinlogFile binlogFile = downloadQueue.poll(5000, TimeUnit.MILLISECONDS);
+                    binlogFile = downloadQueue.poll(5000, TimeUnit.MILLISECONDS);
                     if (binlogFile != null) {
-                        download(binlogFile);
+                        int retry = 1;
+                        while (true) {
+                            try {
+                                download(binlogFile);
+                                break;
+                            } catch (Throwable e) {
+                                if (retry % 10 == 0) {
+                                    retry = retry + 1;
+                                    try {
+                                        logger.warn("download failed + " + binlogFile.toString() + "], retry : "
+                                                    + retry, e);
+                                        // File errorFile = new File(destDir,
+                                        // "error.txt");
+                                        // FileWriter writer = new
+                                        // FileWriter(errorFile);
+                                        // writer.write(ExceptionUtils.getFullStackTrace(e));
+                                        // writer.flush();
+                                        // IOUtils.closeQuietly(writer);
+                                        LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(100 * retry));
+                                    } catch (Throwable e1) {
+                                        logger.error("write error failed", e1);
+                                    }
+                                } else {
+                                    retry = retry + 1;
+                                }
+                            }
+                        }
                     }
+
                     Runnable runnable = taskQueue.poll(5000, TimeUnit.MILLISECONDS);
                     if (runnable != null) {
                         runnable.run();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Throwable e) {
+                    logger.error("task process failed", e);
                 }
             }
 

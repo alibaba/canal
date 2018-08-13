@@ -7,6 +7,7 @@ import java.util.List;
  * @since 1.0.25
  */
 public class RdsItem {
+
     private List<BinlogFile> BinLogFile;
 
     public List<BinlogFile> getBinLogFile() {
@@ -16,4 +17,10 @@ public class RdsItem {
     public void setBinLogFile(List<BinlogFile> binLogFile) {
         BinLogFile = binLogFile;
     }
+
+    @Override
+    public String toString() {
+        return "RdsItem [BinLogFile=" + BinLogFile + "]";
+    }
+
 }

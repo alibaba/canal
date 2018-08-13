@@ -134,10 +134,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     protected MultiStageCoprocessor buildMultiStageCoprocessor() {
         MysqlMultiStageCoprocessor mysqlMultiStageCoprocessor = new MysqlMultiStageCoprocessor(parallelBufferSize,
-                parallelThreadSize,
-                (LogEventConvert) binlogParser,
-                transactionBuffer,
-                destination);
+            parallelThreadSize,
+            (LogEventConvert) binlogParser,
+            transactionBuffer,
+            destination);
         mysqlMultiStageCoprocessor.setEventsPublishBlockingTime(eventsPublishBlockingTime);
         return mysqlMultiStageCoprocessor;
     }

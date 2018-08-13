@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlConnector;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
@@ -40,20 +39,20 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 public class MysqlConnection implements ErosaConnection {
 
-    private static final Logger       logger                    = LoggerFactory.getLogger(MysqlConnection.class);
+    private static final Logger logger      = LoggerFactory.getLogger(MysqlConnection.class);
 
-    private MysqlConnector            connector;
-    private long                      slaveId;
-    private Charset                   charset                   = Charset.forName("UTF-8");
-    private BinlogFormat              binlogFormat;
-    private BinlogImage               binlogImage;
+    private MysqlConnector      connector;
+    private long                slaveId;
+    private Charset             charset     = Charset.forName("UTF-8");
+    private BinlogFormat        binlogFormat;
+    private BinlogImage         binlogImage;
 
     // tsdb releated
-    private AuthenticationInfo        authInfo;
-    protected     int                 connTimeout               = 5 * 1000;                                      // 5秒
-    protected     int                 soTimeout                 = 60 * 60 * 1000;                                // 1小时
+    private AuthenticationInfo  authInfo;
+    protected int               connTimeout = 5 * 1000;                                      // 5秒
+    protected int               soTimeout   = 60 * 60 * 1000;                                // 1小时
     // dump binlog bytes, 暂不包括meta与TSDB
-    private AtomicLong                receivedBinlogBytes;
+    private AtomicLong          receivedBinlogBytes;
 
     public MysqlConnection(){
     }
@@ -338,7 +337,7 @@ public class MysqlConnection implements ErosaConnection {
     public long queryServerId() throws IOException {
         ResultSetPacket resultSetPacket = query("show variables like 'server_id'");
         List<String> fieldValues = resultSetPacket.getFieldValues();
-        if (fieldValues == null || fieldValues.size() != 2){
+        if (fieldValues == null || fieldValues.size() != 2) {
             return 0;
         }
         return NumberUtils.toLong(fieldValues.get(1));
@@ -477,8 +476,6 @@ public class MysqlConnection implements ErosaConnection {
             receivedBinlogBytes.addAndGet(x);
         }
     }
-
-
 
     public static enum BinlogFormat {
 

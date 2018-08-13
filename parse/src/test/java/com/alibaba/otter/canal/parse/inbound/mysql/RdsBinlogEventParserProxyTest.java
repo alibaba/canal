@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsBinlogEventParserProxy;
 import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
@@ -28,10 +29,9 @@ public class RdsBinlogEventParserProxyTest {
     private static final String MYSQL_ADDRESS = "";
     private static final String USERNAME      = "";
     private static final String PASSWORD      = "";
-    public static final String DBNAME = "";
-    public static final String TBNAME = "";
-    public static final String DDL = "";
-
+    public static final String  DBNAME        = "";
+    public static final String  TBNAME        = "";
+    public static final String  DDL           = "";
 
     @Test
     public void test_timestamp() throws InterruptedException {
@@ -41,7 +41,7 @@ public class RdsBinlogEventParserProxyTest {
 
         final RdsBinlogEventParserProxy controller = new RdsBinlogEventParserProxy();
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -1);
+        calendar.add(Calendar.HOUR_OF_DAY, -24 * 4);
         final EntryPosition defaultPosition = buildPosition(null, null, calendar.getTimeInMillis());
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
@@ -51,13 +51,15 @@ public class RdsBinlogEventParserProxyTest {
         controller.setInstanceId("");
         controller.setAccesskey("");
         controller.setSecretkey("");
-        controller.setBatchSize(4);
-//        controller.setRdsOpenApiUrl("https://rds.aliyuncs.com/");
+        controller.setDirectory("/tmp/binlog");
+        controller.setEventBlackFilter(new AviaterRegexFilter("mysql\\.*"));
+        controller.setFilterTableError(true);
+        controller.setBatchFileSize(4);
         controller.setEventSink(new AbstractCanalEventSinkTest<List<CanalEntry.Entry>>() {
 
             @Override
             public boolean sink(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress, String destination)
-                    throws CanalSinkException {
+                                                                                                                   throws CanalSinkException {
                 for (CanalEntry.Entry entry : entrys) {
                     if (entry.getEntryType() != CanalEntry.EntryType.HEARTBEAT) {
                         entryCount.incrementAndGet();
@@ -79,8 +81,8 @@ public class RdsBinlogEventParserProxyTest {
         controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             private LogPosition logPosition;
+
             public void persistLogPosition(String destination, LogPosition logPosition) {
-                System.out.println(logPosition);
                 this.logPosition = logPosition;
             }
 
@@ -104,7 +106,6 @@ public class RdsBinlogEventParserProxyTest {
         Assert.assertTrue(entryPosition.getPosition() <= 6163L);
         Assert.assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
     }
-
 
     // ======================== helper method =======================
 
