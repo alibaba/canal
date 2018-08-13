@@ -545,6 +545,9 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     }
 
     // ================ setter / getter ==================
+    public int getBufferSize() {
+        return this.bufferSize;
+    }
 
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
@@ -563,22 +566,22 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     }
 
     public AtomicLong getPutSequence() {
-        return putSequence;
+        return this.putSequence;
     }
 
     public AtomicLong getAckSequence() {
-        return ackSequence;
+        return this.ackSequence;
     }
 
     public AtomicLong getPutMemSize() {
-        return putMemSize;
+        return this.putMemSize;
     }
 
     public AtomicLong getAckMemSize() {
-        return ackMemSize;
+        return this.ackMemSize;
     }
 
     public BatchMode getBatchMode() {
-        return batchMode;
+        return this.batchMode;
     }
 }
