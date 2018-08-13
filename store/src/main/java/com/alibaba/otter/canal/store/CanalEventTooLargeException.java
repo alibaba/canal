@@ -1,4 +1,9 @@
 package com.alibaba.otter.canal.store;
 
-public class CanalEventTooLargeException extends Exception {
+import com.alibaba.otter.canal.common.CanalException;
+
+public class CanalEventTooLargeException extends CanalException {
+    public CanalEventTooLargeException(Throwable cause) {
+        super(cause);
+    }
 }

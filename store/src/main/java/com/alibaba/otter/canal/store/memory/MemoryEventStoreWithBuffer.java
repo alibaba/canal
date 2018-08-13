@@ -334,7 +334,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             // ignore too large event, print log
 
             logger.warn("single event too large: {0}, max value is {1}", currentSize, batchTransactionMaxSize);
-            throw new CanalEventTooLargeException();
+            throw new CanalEventTooLargeException(null);
         }
 
         PositionRange<LogPosition> range = new PositionRange<LogPosition>();

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.store.CanalEventTooLargeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -203,8 +204,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      * </pre>
      */
     @Override
-    public Message get(ClientIdentity clientIdentity, int batchSize, long maxBatchDataSize) throws CanalServerException {
-        return get(clientIdentity, batchSize, null, null, maxBatchDataSize);
+    public Message get(ClientIdentity clientIdentity, int batchSize, long batchTransactionMaxSize) throws CanalServerException, CanalEventTooLargeException {
+        return get(clientIdentity, batchSize, null, null, batchTransactionMaxSize);
     }
 
     /**
@@ -221,8 +222,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      * </pre>
      */
     @Override
-    public Message get(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long maxBatchDataSize)
-            throws CanalServerException {
+    public Message get(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long batchTransactionMaxSize)
+            throws CanalServerException, CanalEventTooLargeException {
         checkStart(clientIdentity.getDestination());
         checkSubscribe(clientIdentity);
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
@@ -238,7 +239,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
             Events<Event> events = null;
             Position start = canalInstance.getMetaManager().getCursor(clientIdentity);
-            events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit, maxBatchDataSize);
+            events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit, batchTransactionMaxSize);
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
                 logger.debug("get successfully, clientId:{} batchSize:{} but result is null",
@@ -277,8 +278,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      * </pre>
      */
     @Override
-    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, long maxBatchDataSize) throws CanalServerException {
-        return getWithoutAck(clientIdentity, batchSize, null, null, maxBatchDataSize);
+    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, long batchTransactionMaxSize) throws CanalServerException, CanalEventTooLargeException {
+        return getWithoutAck(clientIdentity, batchSize, null, null, batchTransactionMaxSize);
     }
 
     /**
@@ -296,8 +297,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      * </pre>
      */
     @Override
-    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long maxBatchDataSize)
-            throws CanalServerException {
+    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long batchTransactionMaxSize)
+            throws CanalServerException, CanalEventTooLargeException {
         checkStart(clientIdentity.getDestination());
         checkSubscribe(clientIdentity);
 
@@ -308,14 +309,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
             Events<Event> events = null;
             if (positionRanges != null) { // 存在流数据
-                events = getEvents(canalInstance.getEventStore(), positionRanges.getStart(), batchSize, timeout, unit, maxBatchDataSize);
+                events = getEvents(canalInstance.getEventStore(), positionRanges.getStart(), batchSize, timeout, unit, batchTransactionMaxSize);
             } else {// ack后第一次获取
                 Position start = canalInstance.getMetaManager().getCursor(clientIdentity);
                 if (start == null) { // 第一次，还没有过ack记录，则获取当前store中的第一条
                     start = canalInstance.getEventStore().getFirstPosition();
                 }
 
-                events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit, maxBatchDataSize);
+                events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit, batchTransactionMaxSize);
             }
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
@@ -342,6 +343,51 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 return new Message(batchId, entrys);
             }
 
+        }
+    }
+
+    @Override
+    public Message getFirstevent(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws InterruptedException {
+        checkStart(clientIdentity.getDestination());
+        checkSubscribe(clientIdentity);
+        CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
+        synchronized (canalInstance) {
+            PositionRange<LogPosition> positionRanges = canalInstance.getMetaManager().getLastestBatch(clientIdentity);
+
+            Events<Event> events = null;
+            if (positionRanges != null) { // 存在流数据
+                events = canalInstance.getEventStore().getFirstEvent(positionRanges.getStart());
+            } else {// ack后第一次获取
+                Position start = canalInstance.getMetaManager().getCursor(clientIdentity);
+                if (start == null) { // 第一次，还没有过ack记录，则获取当前store中的第一条
+                    start = canalInstance.getEventStore().getFirstPosition();
+                }
+
+                events = canalInstance.getEventStore().getFirstEvent(positionRanges.getStart());
+            }
+            if (CollectionUtils.isEmpty(events.getEvents())) {
+                logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result is null",
+                        clientIdentity.getClientId(), batchSize);
+                return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
+            } else {
+                // 记录到流式信息
+                Long batchId = canalInstance.getMetaManager().addBatch(clientIdentity, events.getPositionRange());
+                List<Entry> entrys = Lists.transform(events.getEvents(), new Function<Event, Entry>() {
+
+                    public Entry apply(Event input) {
+                        return input.getEntry();
+                    }
+                });
+                if (logger.isInfoEnabled()) {
+                    logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
+                            clientIdentity.getClientId(),
+                            batchSize,
+                            entrys.size(),
+                            batchId,
+                            events.getPositionRange());
+                }
+                return new Message(batchId, entrys);
+            }
         }
     }
 
@@ -480,18 +526,20 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      * 根据不同的参数，选择不同的方式获取数据
      */
     private Events<Event> getEvents(CanalEventStore eventStore, Position start, int batchSize, Long timeout,
-                                    TimeUnit unit, long maxBatchDataSize) {
+                                    TimeUnit unit, long batchTransactionMaxSize) throws CanalEventTooLargeException {
         try {
             if (timeout == null) {
-                return eventStore.tryGet(start, batchSize, maxBatchDataSize);
+                return eventStore.tryGet(start, batchSize, batchTransactionMaxSize);
             } else {
 
                 if (timeout <= 0) {
-                    return eventStore.get(start, batchSize, maxBatchDataSize);
+                    return eventStore.get(start, batchSize, batchTransactionMaxSize);
                 } else {
-                    return eventStore.get(start, batchSize, timeout, unit, maxBatchDataSize);
+                    return eventStore.get(start, batchSize, timeout, unit, batchTransactionMaxSize);
                 }
             }
+        } catch (CanalEventTooLargeException e) {
+            throw e;
         } catch (Exception e) {
             throw new CanalServerException(e);
         }
