@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.store.CanalEventStore;
+import com.alibaba.otter.canal.store.CanalEventTooLargeException;
 import com.alibaba.otter.canal.store.CanalStoreException;
 import com.alibaba.otter.canal.store.model.Event;
 import com.alibaba.otter.canal.store.model.Events;
@@ -89,5 +90,32 @@ public class DummyEventStore implements CanalEventStore<Event> {
         System.out.println("time:" + data.getEntry().getHeader().getExecuteTime());
         return true;
     }
+
+	@Override
+	public Events<Event> get(Position start, int batchSize, long batchTransactionMaxSize)
+			throws InterruptedException, CanalStoreException, CanalEventTooLargeException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Events<Event> get(Position start, int batchSize, long timeout, TimeUnit unit, long batchTransactionMaxSize)
+			throws InterruptedException, CanalStoreException, CanalEventTooLargeException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Events<Event> tryGet(Position start, int batchSize, long batchTransactionMaxSize)
+			throws CanalStoreException, CanalEventTooLargeException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Events<Event> getFirstEvent(Position start) throws InterruptedException, CanalStoreException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
