@@ -15,11 +15,12 @@ import com.alibaba.otter.canal.protocol.position.PositionRange;
  * @author jianghang 2012-6-14 下午09:07:41
  * @version 1.0.0
  */
+
+@SuppressWarnings("rawtypes")
 public class Events<EVENT> implements Serializable {
 
     private static final long serialVersionUID = -7337454954300706044L;
-
-    private PositionRange     positionRange    = new PositionRange();
+	private PositionRange     positionRange    = new PositionRange();
     private List<EVENT>       events           = new ArrayList<EVENT>();
 
     public List<EVENT> getEvents() {

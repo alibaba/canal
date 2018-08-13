@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.store.CanalEventTooLargeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -33,24 +34,25 @@ import com.google.common.collect.MigrateMap;
 
 /**
  * 嵌入式版本实现
- * 
+ *
  * @author jianghang 2012-7-12 下午01:34:00
  * @author zebin.xuzb
  * @version 1.0.0
  */
 public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer, CanalService {
 
-    private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
+    private static final Logger logger = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
     private Map<String, CanalInstance> canalInstances;
     // private Map<ClientIdentity, Position> lastRollbackPostions;
-    private CanalInstanceGenerator     canalInstanceGenerator;
+    private CanalInstanceGenerator canalInstanceGenerator;
+    private static long DEFAULT_MAX_BATCH_DATA_LENGTH = 8 * 1024 * 1024L;
 
     private static class SingletonHolder {
 
         private static final CanalServerWithEmbedded CANAL_SERVER_WITH_EMBEDDED = new CanalServerWithEmbedded();
     }
 
-    public CanalServerWithEmbedded(){
+    public CanalServerWithEmbedded() {
         // 希望也保留用户new单独实例的需求,兼容历史
     }
 
@@ -166,6 +168,26 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         logger.info("unsubscribe successfully, {}", clientIdentity);
     }
 
+    @Override
+    public Message get(ClientIdentity clientIdentity, int batchSize) throws CanalServerException {
+        return get(clientIdentity, batchSize, DEFAULT_MAX_BATCH_DATA_LENGTH);
+    }
+
+    @Override
+    public Message get(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws CanalServerException {
+        return get(clientIdentity, batchSize, timeout, unit, DEFAULT_MAX_BATCH_DATA_LENGTH);
+    }
+
+    @Override
+    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize) throws CanalServerException {
+        return getWithoutAck(clientIdentity, batchSize, DEFAULT_MAX_BATCH_DATA_LENGTH);
+    }
+
+    @Override
+    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws CanalServerException {
+        return getWithoutAck(clientIdentity, batchSize, timeout, unit, DEFAULT_MAX_BATCH_DATA_LENGTH);
+    }
+
     /**
      * 查询所有的订阅信息
      */
@@ -176,32 +198,32 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 获取数据
-     * 
+     *
      * <pre>
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
      */
     @Override
-    public Message get(ClientIdentity clientIdentity, int batchSize) throws CanalServerException {
-        return get(clientIdentity, batchSize, null, null);
+    public Message get(ClientIdentity clientIdentity, int batchSize, long batchTransactionMaxSize) throws CanalServerException, CanalEventTooLargeException {
+        return get(clientIdentity, batchSize, null, null, batchTransactionMaxSize);
     }
 
     /**
      * 获取数据，可以指定超时时间.
-     * 
+     *
      * <pre>
      * 几种case:
      * a. 如果timeout为null，则采用tryGet方式，即时获取
      * b. 如果timeout不为null
      *    1. timeout为0，则采用get阻塞方式，获取数据，不设置超时，直到有足够的batchSize数据才返回
      *    2. timeout不为0，则采用get+timeout方式，获取数据，超时还没有batchSize足够的数据，有多少返回多少
-     * 
+     *
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
      */
     @Override
-    public Message get(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit)
-                                                                                                 throws CanalServerException {
+    public Message get(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long batchTransactionMaxSize)
+            throws CanalServerException, CanalEventTooLargeException {
         checkStart(clientIdentity.getDestination());
         checkSubscribe(clientIdentity);
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
@@ -211,13 +233,13 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
             if (positionRanges != null) {
                 throw new CanalServerException(String.format("clientId:%s has last batch:[%s] isn't ack , maybe loss data",
-                    clientIdentity.getClientId(),
-                    positionRanges));
+                        clientIdentity.getClientId(),
+                        positionRanges));
             }
 
             Events<Event> events = null;
             Position start = canalInstance.getMetaManager().getCursor(clientIdentity);
-            events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit);
+            events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit, batchTransactionMaxSize);
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
                 logger.debug("get successfully, clientId:{} batchSize:{} but result is null",
@@ -250,33 +272,33 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     /**
      * 不指定 position 获取事件。canal 会记住此 client 最新的 position。 <br/>
      * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
-     * 
+     *
      * <pre>
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
      */
     @Override
-    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize) throws CanalServerException {
-        return getWithoutAck(clientIdentity, batchSize, null, null);
+    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, long batchTransactionMaxSize) throws CanalServerException, CanalEventTooLargeException {
+        return getWithoutAck(clientIdentity, batchSize, null, null, batchTransactionMaxSize);
     }
 
     /**
      * 不指定 position 获取事件。canal 会记住此 client 最新的 position。 <br/>
      * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
-     * 
+     *
      * <pre>
      * 几种case:
      * a. 如果timeout为null，则采用tryGet方式，即时获取
      * b. 如果timeout不为null
      *    1. timeout为0，则采用get阻塞方式，获取数据，不设置超时，直到有足够的batchSize数据才返回
      *    2. timeout不为0，则采用get+timeout方式，获取数据，超时还没有batchSize足够的数据，有多少返回多少
-     *    
+     *
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
      */
     @Override
-    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit)
-                                                                                                           throws CanalServerException {
+    public Message getWithoutAck(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit, long batchTransactionMaxSize)
+            throws CanalServerException, CanalEventTooLargeException {
         checkStart(clientIdentity.getDestination());
         checkSubscribe(clientIdentity);
 
@@ -287,14 +309,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
             Events<Event> events = null;
             if (positionRanges != null) { // 存在流数据
-                events = getEvents(canalInstance.getEventStore(), positionRanges.getStart(), batchSize, timeout, unit);
+                events = getEvents(canalInstance.getEventStore(), positionRanges.getStart(), batchSize, timeout, unit, batchTransactionMaxSize);
             } else {// ack后第一次获取
                 Position start = canalInstance.getMetaManager().getCursor(clientIdentity);
                 if (start == null) { // 第一次，还没有过ack记录，则获取当前store中的第一条
                     start = canalInstance.getEventStore().getFirstPosition();
                 }
 
-                events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit);
+                events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit, batchTransactionMaxSize);
             }
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
@@ -324,6 +346,51 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         }
     }
 
+    @Override
+    public Message getFirstevent(ClientIdentity clientIdentity, int batchSize, Long timeout, TimeUnit unit) throws InterruptedException {
+        checkStart(clientIdentity.getDestination());
+        checkSubscribe(clientIdentity);
+        CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
+        synchronized (canalInstance) {
+            PositionRange<LogPosition> positionRanges = canalInstance.getMetaManager().getLastestBatch(clientIdentity);
+
+            Events<Event> events = null;
+            if (positionRanges != null) { // 存在流数据
+                events = canalInstance.getEventStore().getFirstEvent(positionRanges.getStart());
+            } else {// ack后第一次获取
+                Position start = canalInstance.getMetaManager().getCursor(clientIdentity);
+                if (start == null) { // 第一次，还没有过ack记录，则获取当前store中的第一条
+                    start = canalInstance.getEventStore().getFirstPosition();
+                }
+
+                events = canalInstance.getEventStore().getFirstEvent(positionRanges.getStart());
+            }
+            if (CollectionUtils.isEmpty(events.getEvents())) {
+                logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result is null",
+                        clientIdentity.getClientId(), batchSize);
+                return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
+            } else {
+                // 记录到流式信息
+                Long batchId = canalInstance.getMetaManager().addBatch(clientIdentity, events.getPositionRange());
+                List<Entry> entrys = Lists.transform(events.getEvents(), new Function<Event, Entry>() {
+
+                    public Entry apply(Event input) {
+                        return input.getEntry();
+                    }
+                });
+                if (logger.isInfoEnabled()) {
+                    logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
+                            clientIdentity.getClientId(),
+                            batchSize,
+                            entrys.size(),
+                            batchId,
+                            events.getPositionRange());
+                }
+                return new Message(batchId, entrys);
+            }
+        }
+    }
+
     /**
      * 查询当前未被ack的batch列表，batchId会按照从小到大进行返回
      */
@@ -340,7 +407,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 进行 batch id 的确认。确认之后，小于等于此 batchId 的 Message 都会被确认。
-     * 
+     *
      * <pre>
      * 注意：进行反馈时必须按照batchId的顺序进行ack(需有客户端保证)
      * </pre>
@@ -355,8 +422,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         positionRanges = canalInstance.getMetaManager().removeBatch(clientIdentity, batchId); // 更新位置
         if (positionRanges == null) { // 说明是重复的ack/rollback
             throw new CanalServerException(String.format("ack error , clientId:%s batchId:%d is not exist , please check",
-                clientIdentity.getClientId(),
-                batchId));
+                    clientIdentity.getClientId(),
+                    batchId));
         }
 
         // 更新cursor最好严格判断下位置是否有跳跃更新
@@ -410,7 +477,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             canalInstance.getMetaManager().clearAllBatchs(clientIdentity);
             // rollback eventStore中的状态信息
             canalInstance.getEventStore().rollback();
-            logger.info("rollback successfully, clientId:{}", new Object[] { clientIdentity.getClientId() });
+            logger.info("rollback successfully, clientId:{}", new Object[]{clientIdentity.getClientId()});
         }
     }
 
@@ -430,22 +497,22 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         synchronized (canalInstance) {
             // 清除batch信息
             PositionRange<LogPosition> positionRanges = canalInstance.getMetaManager().removeBatch(clientIdentity,
-                batchId);
+                    batchId);
             if (positionRanges == null) { // 说明是重复的ack/rollback
                 throw new CanalServerException(String.format("rollback error, clientId:%s batchId:%d is not exist , please check",
-                    clientIdentity.getClientId(),
-                    batchId));
+                        clientIdentity.getClientId(),
+                        batchId));
             }
 
             // lastRollbackPostions.put(clientIdentity,
             // positionRanges.getEnd());// 记录一下最后rollback的位置
             // TODO 后续rollback到指定的batchId位置
             canalInstance.getEventStore().rollback();// rollback
-                                                     // eventStore中的状态信息
+            // eventStore中的状态信息
             logger.info("rollback successfully, clientId:{} batchId:{} position:{}",
-                clientIdentity.getClientId(),
-                batchId,
-                positionRanges);
+                    clientIdentity.getClientId(),
+                    batchId,
+                    positionRanges);
         }
     }
 
@@ -459,19 +526,22 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      * 根据不同的参数，选择不同的方式获取数据
      */
     private Events<Event> getEvents(CanalEventStore eventStore, Position start, int batchSize, Long timeout,
-                                    TimeUnit unit) {
-        if (timeout == null) {
-            return eventStore.tryGet(start, batchSize);
-        } else {
-            try {
+                                    TimeUnit unit, long batchTransactionMaxSize) throws CanalEventTooLargeException {
+        try {
+            if (timeout == null) {
+                return eventStore.tryGet(start, batchSize, batchTransactionMaxSize);
+            } else {
+
                 if (timeout <= 0) {
-                    return eventStore.get(start, batchSize);
+                    return eventStore.get(start, batchSize, batchTransactionMaxSize);
                 } else {
-                    return eventStore.get(start, batchSize, timeout, unit);
+                    return eventStore.get(start, batchSize, timeout, unit, batchTransactionMaxSize);
                 }
-            } catch (Exception e) {
-                throw new CanalServerException(e);
             }
+        } catch (CanalEventTooLargeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CanalServerException(e);
         }
     }
 
@@ -480,7 +550,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         boolean hasSubscribe = canalInstance.getMetaManager().hasSubscribe(clientIdentity);
         if (!hasSubscribe) {
             throw new CanalServerException(String.format("ClientIdentity:%s should subscribe first",
-                clientIdentity.toString()));
+                    clientIdentity.toString()));
         }
     }
 
