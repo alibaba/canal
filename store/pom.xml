@@ -6,7 +6,6 @@
 		<version>1.1.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<groupId>com.alibaba.otter</groupId>
 	<artifactId>canal.store</artifactId>
 	<packaging>jar</packaging>
 	<name>canal store module for otter ${project.version}</name>

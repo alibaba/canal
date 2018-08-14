@@ -150,7 +150,7 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
                 }
 
                 try {
-                    Events<Event> entrys = eventStore.get(first, batchSize, 1000L, TimeUnit.MILLISECONDS);
+                    Events<Event> entrys = eventStore.get(first, batchSize, 1000L, TimeUnit.MILLISECONDS, Long.MAX_VALUE);
                     // Events<Event> entrys = eventStore.tryGet(first,
                     // batchSize);
                     if (!CollectionUtils.isEmpty(entrys.getEvents())) {
