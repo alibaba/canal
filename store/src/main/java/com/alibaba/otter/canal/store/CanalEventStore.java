@@ -45,21 +45,21 @@ public interface CanalEventStore<T> extends CanalLifeCycle, CanalStoreScavenge {
      */
     boolean tryPut(T data) throws CanalStoreException;
 
-//    /**
-//     * 获取指定大小的数据，阻塞等待其操作完成
-//     */
-//    Events<T> get(Position start, int batchSize) throws InterruptedException, CanalStoreException;
-//
-//    /**
-//     * 获取指定大小的数据，阻塞等待其操作完成或者时间超时
-//     */
-//    Events<T> get(Position start, int batchSize, long timeout, TimeUnit unit) throws InterruptedException,
-//                                                                             CanalStoreException;
-//
-//    /**
-//     * 根据指定位置，获取一个指定大小的数据
-//     */
-//    Events<T> tryGet(Position start, int batchSize) throws CanalStoreException;
+    /**
+     * 获取指定大小的数据，阻塞等待其操作完成
+     */
+    Events<T> get(Position start, int batchSize) throws InterruptedException, CanalStoreException;
+
+    /**
+     * 获取指定大小的数据，阻塞等待其操作完成或者时间超时
+     */
+    Events<T> get(Position start, int batchSize, long timeout, TimeUnit unit) throws InterruptedException,
+                                                                             CanalStoreException;
+
+    /**
+     * 根据指定位置，获取一个指定大小的数据
+     */
+    Events<T> tryGet(Position start, int batchSize) throws CanalStoreException;
 
     /**
      * 由于Canal的上层调用一般是otter，otter中Dubbo的单次调用最大的传输容量默认是8M， batchTransactionMaxSize 由上层调用传入，使得每次获取的batch data 大小一定小于单次传输的最大容量，

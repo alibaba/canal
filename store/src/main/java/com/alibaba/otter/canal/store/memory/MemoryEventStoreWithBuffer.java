@@ -36,6 +36,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     private static Logger logger = LoggerFactory.getLogger(MemoryEventStoreWithBuffer.class);
     private static final long INIT_SQEUENCE = -1;
+    private static long DEFAULT_MAX_BATCH_DATA_LENGTH = 8 * 1024 * 1024L;
     private int               bufferSize    = 16 * 1024;
     private int               bufferMemUnit = 1024;                         // memsize的单位，默认为1kb大小
     private int               indexMask;
@@ -167,6 +168,21 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     public boolean tryPut(Event data) throws CanalStoreException {
         return tryPut(Arrays.asList(data));
+    }
+
+    @Override
+    public Events<Event> get(Position start, int batchSize) throws InterruptedException, CanalStoreException {
+        return get(start, batchSize, DEFAULT_MAX_BATCH_DATA_LENGTH);
+    }
+
+    @Override
+    public Events<Event> get(Position start, int batchSize, long timeout, TimeUnit unit) throws InterruptedException, CanalStoreException {
+        return get(start, batchSize, timeout, unit, DEFAULT_MAX_BATCH_DATA_LENGTH);
+    }
+
+    @Override
+    public Events<Event> tryGet(Position start, int batchSize) throws CanalStoreException {
+        return tryGet(start, batchSize, DEFAULT_MAX_BATCH_DATA_LENGTH);
     }
 
     /**
