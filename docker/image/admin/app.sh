@@ -86,7 +86,9 @@ function start_canal() {
         echo "multi destination:$destination is not support"
         exit 1;
     else
-        mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+        if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
+            mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+        fi 
     fi
     su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh 1>>/tmp/start.log 2>&1'
     sleep 5

@@ -35,9 +35,4 @@ public class NopCanalMetricsService implements CanalMetricsService {
     public void unregister(CanalInstance instance) {
 
     }
-
-    @Override
-    public void setServerPort(int port) {
-
-    }
 }

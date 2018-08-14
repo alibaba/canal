@@ -40,7 +40,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
     private static final String                             PRODUCE_MEM_HELP = "Produced mem bytes of canal instance";
     private static final String                             CONSUME_MEM_HELP = "Consumed mem bytes of canal instance";
     private final ConcurrentMap<String, StoreMetricsHolder> instances        = new ConcurrentHashMap<String, StoreMetricsHolder>();
-    private final List<String>                              storeLabelsList  = Arrays.asList(DEST, "batchMode", "size");
+    private final List<String>                              storeLabelsList  = Arrays.asList(DEST, "batchMode");
 
     private StoreCollector() {}
 
@@ -100,8 +100,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
         holder.putSeq = memStore.getPutSequence();
         holder.ackSeq = memStore.getAckSequence();
         holder.destLabelValues = Collections.singletonList(destination);
-        holder.size = memStore.getBufferSize();
-        holder.storeLabelValues = Arrays.asList(destination, holder.batchMode.name(), Integer.toString(holder.size));
+        holder.storeLabelValues = Arrays.asList(destination, memStore.getBatchMode().name());
         Preconditions.checkNotNull(holder.batchMode);
         Preconditions.checkNotNull(holder.putSeq);
         Preconditions.checkNotNull(holder.ackSeq);
@@ -129,7 +128,6 @@ public class StoreCollector extends Collector implements InstanceRegistry {
         private BatchMode    batchMode;
         private AtomicLong   putMemSize;
         private AtomicLong   ackMemSize;
-        private int          size;
         private List<String> destLabelValues;
         private List<String> storeLabelValues;
     }
