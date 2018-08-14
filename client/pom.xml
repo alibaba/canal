@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" ">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.ctrip.framework</groupId>
+		<groupId>com.alibaba.otter</groupId>
 		<artifactId>canal</artifactId>
 		<version>1.1.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
@@ -11,7 +11,7 @@
 	<name>canal client module for otter ${project.version}</name>
 	<dependencies>
 		<dependency>
-			<groupId>com.ctrip.framework</groupId>
+			<groupId>com.alibaba.otter</groupId>
 			<artifactId>canal.protocol</artifactId>
 			<version>${project.version}</version>
 		</dependency>

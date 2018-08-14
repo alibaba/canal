@@ -255,7 +255,6 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     }
 
     private Events<Event> doGet(Position start, int batchSize, long batchTransactionMaxSize) throws CanalStoreException, CanalEventTooLargeException {
-        //TODO: split events
         LogPosition startPosition = (LogPosition) start;
         long currentSize = 0;
         long current = getSequence.get();
@@ -291,8 +290,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                     }
                     break;
                 } else {
-                    currentSize = event.getEntry().getSerializedSize();
-                    totalSize += event.getEntry().getSerializedSize();
+                    currentSize = event.getRawLength();
+                    totalSize += event.getRawLength();
                     if (totalSize > batchTransactionMaxSize) {
                         end = next - 1; // 如果结果中加入当前event,数据量将大于设定的最大的batchTransactionMaxSize，放弃当前event
                         break;
@@ -316,8 +315,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                     }
                     break;
                 } else {
-                    currentSize = event.getEntry().getSerializedSize();
-                    totalSize += event.getEntry().getSerializedSize();
+                    currentSize = event.getRawLength();
+                    totalSize += event.getRawLength();
                     if (totalSize > batchTransactionMaxSize) {
                         break; // 如果结果中加入当前event,数据量将大于设定的最大batchTransactionMaxSize，放弃当前event
                     }
