@@ -10,7 +10,7 @@ function usage() {
     echo "         -e canal.instance.connectionCharset=UTF-8 \\"
     echo "         -e canal.instance.tsdb.enable=true \\"
     echo "         -e canal.instance.gtidon=false \\"
-    echo "         -e canal.instance.filter.regex=.*\\..* "
+    echo "         -e canal.instance.filter.regex=.*\\\\\\..* "
     exit
 }
 
