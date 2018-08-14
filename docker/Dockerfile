@@ -5,7 +5,6 @@ MAINTAINER agapple (jianghang115@gmail.com)
 # install canal
 COPY image/ /tmp/docker/
 COPY canal.deployer-*.tar.gz /home/admin/
-COPY jdk-8-linux-x64.rpm /tmp/
 
 RUN \
     cp -R /tmp/docker/alidata /alidata && \
