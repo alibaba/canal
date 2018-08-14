@@ -244,6 +244,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             mysqlEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
             // 数据库信息参数
             mysqlEventParser.setSlaveId(parameters.getSlaveId());
+
             if (!CollectionUtils.isEmpty(dbAddresses)) {
                 mysqlEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
                     parameters.getDbUsername(),

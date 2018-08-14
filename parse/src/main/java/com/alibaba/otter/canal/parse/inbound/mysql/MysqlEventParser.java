@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.alibaba.otter.canal.parse.inbound.*;
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorage;
+import com.alibaba.otter.canal.parse.inbound.mysql.tablemeta.TableMetaStorageFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -20,9 +23,6 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
-import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
-import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
-import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogFormat;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.BinlogImage;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
@@ -73,6 +73,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     // instance received binlog bytes
     private final AtomicLong     receivedBinlogBytes               = new AtomicLong(0L);
+
+    private TableMetaStorageFactory tableMetaStorageFactory;
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -125,6 +127,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 ((DatabaseTableMeta) tableMetaTSDB).setConnection(metaConnection);
                 ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
                 ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
+            }
+
+
+            TableMetaStorage storage = null;
+            if (tableMetaStorageFactory != null) {
+                storage = tableMetaStorageFactory.getTableMetaStorage();
             }
 
             tableMetaCache = new TableMetaCache(metaConnection, tableMetaTSDB);

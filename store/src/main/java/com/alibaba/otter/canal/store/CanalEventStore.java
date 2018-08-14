@@ -62,6 +62,38 @@ public interface CanalEventStore<T> extends CanalLifeCycle, CanalStoreScavenge {
     Events<T> tryGet(Position start, int batchSize) throws CanalStoreException;
 
     /**
+     * 由于Canal的上层调用一般是otter，otter中Dubbo的单次调用最大的传输容量默认是8M， batchTransactionMaxSize 由上层调用传入，使得每次获取的batch data 大小一定小于单次传输的最大容量，
+     * 否则就抛出CanalEventTooLargeException异常，由上层调用处理超大Event的问题。
+     * 获取指定大小的数据，阻塞等待其操作完成
+     */
+    Events<T> get(Position start, int batchSize, long batchTransactionMaxSize) throws InterruptedException, CanalStoreException, CanalEventTooLargeException;
+
+    
+    /**
+     * 由于Canal的上层调用一般是otter，otter中Dubbo的单次调用最大的传输容量默认是8M， batchTransactionMaxSize 由上层调用传入，使得每次获取的batch data 大小一定小于单次传输的最大容量，
+     * 否则就抛出CanalEventTooLargeException异常，由上层调用处理超大Event的问题。
+     * 根据指定位置，获取指定大小的数据，阻塞等待其操作完成或者时间超时
+     */
+    Events<T> get(Position start, int batchSize, long timeout, TimeUnit unit, long batchTransactionMaxSize) throws InterruptedException,
+            CanalStoreException, CanalEventTooLargeException;
+    
+    /**
+     * 由于Canal的上层调用一般是otter，otter中Dubbo的单次调用最大的传输容量默认是8M， batchTransactionMaxSize 由上层调用传入，使得每次获取的batch data 大小一定小于单次传输的最大容量，
+     * 否则就抛出CanalEventTooLargeException异常，由上层调用处理超大Event的问题。
+     * 根据指定位置，获取一个指定大小的数据
+     */
+    Events<T> tryGet(Position start, int batchSize, long batchTransactionMaxSize) throws CanalStoreException, CanalEventTooLargeException;
+
+
+    /***
+     * 配合CanalEventTooLargeException异常使用
+     * 当上层调用捕获了CanalEventTooLargeException异常，说明当前first event是一个超出了上层传输能力的event，
+     * 上调用需要直接获取到这个event,由上层逻辑来做处理（拆分,压缩或者直接抛弃）
+     * @return
+     */
+    Events<T> getFirstEvent(Position start) throws InterruptedException, CanalStoreException;;
+    
+    /**
      * 获取最后一条数据的position
      */
     Position getLatestPosition() throws CanalStoreException;
