@@ -42,6 +42,7 @@ import com.google.protobuf.ByteString;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.HeartbeatLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LogHeader;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
@@ -144,6 +145,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return parseRandLogEvent((RandLogEvent) logEvent);
             case LogEvent.GTID_LOG_EVENT:
                 return parseGTIDLogEvent((GtidLogEvent) logEvent);
+            case LogEvent.HEARTBEAT_LOG_EVENT:
+                return parseHeartbeatLogEvent((HeartbeatLogEvent) logEvent);
             default:
                 break;
         }
@@ -156,6 +159,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (tableMetaCache != null) {
             tableMetaCache.clearTableMeta();
         }
+    }
+
+    private Entry parseHeartbeatLogEvent(HeartbeatLogEvent logEvent) {
+        Header.Builder headerBuilder = Header.newBuilder();
+        headerBuilder.setEventType(EventType.MHEARTBEAT);
+        Entry.Builder entryBuilder = Entry.newBuilder();
+        entryBuilder.setHeader(headerBuilder.build());
+        entryBuilder.setEntryType(EntryType.HEARTBEAT);
+        return entryBuilder.build();
     }
 
     private Entry parseGTIDLogEvent(GtidLogEvent logEvent) {
@@ -541,12 +553,16 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     tableError |= parseOneRow(rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
                 }
 
-                rowsCount ++;
+                rowsCount++;
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
             }
 
             TableMapLogEvent table = event.getTable();
-            Header header = createHeader(event.getHeader(), table.getDbName(), table.getTableName(), eventType, rowsCount);
+            Header header = createHeader(event.getHeader(),
+                table.getDbName(),
+                table.getTableName(),
+                eventType,
+                rowsCount);
 
             RowChange rowChange = rowChangeBuider.build();
             if (tableError) {
@@ -755,6 +771,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         } else {
                             // byte数组，直接使用iso-8859-1保留对应编码，浪费内存
                             columnBuilder.setValue(new String((byte[]) value, ISO_8859_1));
+                            // columnBuilder.setValueBytes(ByteString.copyFrom((byte[])
+                            // value));
                             javaType = Types.BLOB;
                         }
                         break;
@@ -801,12 +819,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
     }
 
-
     private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType) {
         return createHeader(logHeader, schemaName, tableName, eventType, -1);
     }
 
-    private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType, Integer rowsCount) {
+    private Header createHeader(LogHeader logHeader, String schemaName, String tableName, EventType eventType,
+                                Integer rowsCount) {
         // header会做信息冗余,方便以后做检索或者过滤
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setVersion(version);
@@ -869,10 +887,13 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private TableMeta getTableMeta(String dbName, String tbName, boolean useCache, EntryPosition position) {
         try {
             return tableMetaCache.getTableMeta(dbName, tbName, useCache, position);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             String message = ExceptionUtils.getRootCauseMessage(e);
             if (filterTableError) {
                 if (StringUtils.contains(message, "errorNumber=1146") && StringUtils.contains(message, "doesn't exist")) {
+                    return null;
+                } else if (StringUtils.contains(message, "errorNumber=1142")
+                           && StringUtils.contains(message, "command denied")) {
                     return null;
                 }
             }
@@ -960,5 +981,4 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public void setGtidSet(GTIDSet gtidSet) {
         this.gtidSet = gtidSet;
     }
-
 }

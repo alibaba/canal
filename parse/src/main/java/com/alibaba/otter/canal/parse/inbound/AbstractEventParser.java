@@ -21,6 +21,7 @@ import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
@@ -94,6 +95,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                                                                     .availableProcessors() * 60 / 100;     // 60%的能力跑解析,剩余部分处理网络
     protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
+    protected ParserExceptionHandler                 parserExceptionHandler;
+    protected long                                   serverId;
 
     protected abstract BinlogParser buildParser();
 
@@ -170,11 +173,16 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         preDump(erosaConnection);
 
                         erosaConnection.connect();// 链接
+
+                        long queryServerId = erosaConnection.queryServerId();
+                        if (queryServerId != 0) {
+                            serverId = queryServerId;
+                        }
                         // 4. 获取最后的位置信息
                         EntryPosition position = findStartPosition(erosaConnection);
                         final EntryPosition startPosition = position;
                         if (startPosition == null) {
-                            throw new CanalParseException("can't find start position for " + destination);
+                            throw new PositionNotFoundException("can't find start position for " + destination);
                         }
 
                         if (!processTableMeta(startPosition)) {
@@ -276,6 +284,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             logger.error(String.format("dump address %s has an error, retrying. caused by ",
                                 runningInfo.getAddress().toString()), e);
                             sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
+                        }
+                        if (parserExceptionHandler != null) {
+                            parserExceptionHandler.handle(e);
                         }
                     } finally {
                         // 重新置为中断状态
@@ -426,7 +437,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return logPosition;
     }
 
-    protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, long startPosition) {
+    protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, Long startPosition) {
         if (lastPosition != null) {
             logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s]",
                 lastPosition.getPostion()),
@@ -613,6 +624,22 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     public void setParallelBufferSize(int parallelBufferSize) {
         this.parallelBufferSize = parallelBufferSize;
+    }
+
+    public ParserExceptionHandler getParserExceptionHandler() {
+        return parserExceptionHandler;
+    }
+
+    public void setParserExceptionHandler(ParserExceptionHandler parserExceptionHandler) {
+        this.parserExceptionHandler = parserExceptionHandler;
+    }
+
+    public long getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(long serverId) {
+        this.serverId = serverId;
     }
 
 }

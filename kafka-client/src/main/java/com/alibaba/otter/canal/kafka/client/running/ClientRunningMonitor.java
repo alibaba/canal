@@ -1,12 +1,11 @@
 package com.alibaba.otter.canal.kafka.client.running;
 
-import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
-import com.alibaba.otter.canal.common.utils.AddressUtils;
-import com.alibaba.otter.canal.common.utils.BooleanMutex;
-import com.alibaba.otter.canal.common.utils.JsonUtils;
-import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
-import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
-import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+import java.text.MessageFormat;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.exception.ZkException;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
@@ -17,11 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import java.text.MessageFormat;
-import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
+import com.alibaba.otter.canal.common.utils.AddressUtils;
+import com.alibaba.otter.canal.common.utils.BooleanMutex;
+import com.alibaba.otter.canal.common.utils.JsonUtils;
+import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
+import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
+import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+
 
 /**
  * kafka client running状态信息
@@ -31,13 +33,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class ClientRunningMonitor extends AbstractCanalLifeCycle {
 
-    private static final String TOPIC_ROOT_NODE = ZookeeperPathUtils.CANAL_ROOT_NODE + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR + "topics";
+    private static final String TOPIC_ROOT_NODE             = ZookeeperPathUtils.CANAL_ROOT_NODE
+                                                              + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR + "topics";
 
-    private static final String TOPIC_NODE = TOPIC_ROOT_NODE + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR + "{0}";
+    private static final String TOPIC_NODE                  = TOPIC_ROOT_NODE + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR
+                                                              + "{0}";
 
-    private static final String TOPIC_CLIENTID_NODE = TOPIC_NODE + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR + "{1}";
+    private static final String TOPIC_CLIENTID_NODE         = TOPIC_NODE + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR
+                                                              + "{1}";
 
-    private static final String TOPIC_CLIENTID_RUNNING_NODE = TOPIC_CLIENTID_NODE + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR + ZookeeperPathUtils.RUNNING_NODE;
+    private static final String TOPIC_CLIENTID_RUNNING_NODE = TOPIC_CLIENTID_NODE
+                                                              + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR
+                                                              + ZookeeperPathUtils.RUNNING_NODE;
 
     private static String getTopicClientRunning(String topic, String groupId) {
         return MessageFormat.format(TOPIC_CLIENTID_RUNNING_NODE, topic, groupId);
@@ -47,21 +54,21 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
         return MessageFormat.format(TOPIC_CLIENTID_NODE, topic, groupId);
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(ClientRunningMonitor.class);
-    private ZkClientx zkClient;
-    private String topic;
-    private ClientRunningData clientData;
-    private IZkDataListener dataListener;
-    private BooleanMutex mutex = new BooleanMutex(false);
-    private volatile boolean release = false;
+    private static final Logger        logger       = LoggerFactory.getLogger(ClientRunningMonitor.class);
+    private ZkClientx                  zkClient;
+    private String                     topic;
+    private ClientRunningData          clientData;
+    private IZkDataListener            dataListener;
+    private BooleanMutex               mutex        = new BooleanMutex(false);
+    private volatile boolean           release      = false;
     private volatile ClientRunningData activeData;
-    private ScheduledExecutorService delayExector = Executors.newScheduledThreadPool(1);
-    private ClientRunningListener listener;
-    private int delayTime = 5;
+    private ScheduledExecutorService   delayExector = Executors.newScheduledThreadPool(1);
+    private ClientRunningListener      listener;
+    private int                        delayTime    = 5;
 
-    private static Integer virtualPort;
+    private static Integer             virtualPort;
 
-    public ClientRunningMonitor() {
+    public ClientRunningMonitor(){
         if (virtualPort == null) {
             Random rand = new Random();
             virtualPort = rand.nextInt(9000) + 1000;
@@ -108,7 +115,6 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
 
     }
 
-
     public void start() {
         super.start();
 
@@ -123,7 +129,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
         String path = getTopicClientRunning(this.topic, clientData.getGroupId());
         zkClient.unsubscribeDataChanges(path, dataListener);
         releaseRunning(); // 尝试一下release
-        //Fix issue #697
+        // Fix issue #697
         if (delayExector != null) {
             delayExector.shutdown();
         }
@@ -159,13 +165,12 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                 }
             }
         } catch (ZkNoNodeException e) {
-            zkClient.createPersistent(getClientIdNodePath(this.topic, clientData.getGroupId()),
-                    true); // 尝试创建父节点
+            zkClient.createPersistent(getClientIdNodePath(this.topic, clientData.getGroupId()), true); // 尝试创建父节点
             initRunning();
         } catch (Throwable t) {
             logger.error(MessageFormat.format("There is an error when execute initRunning method, with destination [{0}].",
-                    topic),
-                    t);
+                topic),
+                t);
             // 出现任何异常尝试release
             releaseRunning();
             throw new CanalClientException("something goes wrong in initRunning method. ", t);
@@ -187,7 +192,8 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
      */
     public boolean check() {
         String path = getTopicClientRunning(this.topic, clientData.getGroupId());
-        //ZookeeperPathUtils.getDestinationClientRunning(this.destination, clientData.getClientId());
+        // ZookeeperPathUtils.getDestinationClientRunning(this.destination,
+        // clientData.getClientId());
         try {
             byte[] bytes = zkClient.readData(path);
             ClientRunningData eventData = JsonUtils.unmarshalFromByte(bytes, ClientRunningData.class);
@@ -196,8 +202,8 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             boolean result = isMine(activeData.getAddress());
             if (!result) {
                 logger.warn("canal is running in [{}] , but not in [{}]",
-                        activeData.getAddress(),
-                        clientData.getAddress());
+                    activeData.getAddress(),
+                    clientData.getAddress());
             }
             return result;
         } catch (ZkNoNodeException e) {
@@ -235,7 +241,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
         if (listener != null) {
             // 触发回调
             listener.processActiveEnter();
-            this.clientData.setAddress(/*address*/AddressUtils.getHostIp() + ":" + virtualPort);
+            this.clientData.setAddress(/* address */AddressUtils.getHostIp() + ":" + virtualPort);
 
             String path = getTopicClientRunning(this.topic, clientData.getGroupId());
             // 序列化

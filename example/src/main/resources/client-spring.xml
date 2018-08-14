@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd"
+       default-autowire="byName">
+
+    <bean class="com.alibaba.otter.canal.example.db.PropertyPlaceholderConfigurer" lazy-init="false">
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/><!-- 允许system覆盖 -->
+        <property name="locationNames">
+            <list>
+                <value>classpath:client.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="${target.mysql.url:}"/>
+        <property name="username" value="${target.mysql.dbUsername:canal}"/>
+        <property name="password" value="${target.mysql.dbPassword:canal}"/>
+        <property name="maxActive" value="30"/>
+        <property name="initialSize" value="0"/>
+        <property name="minIdle" value="1"/>
+        <property name="maxWait" value="10000"/>
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <property name="validationQuery" value="SELECT 1"/>
+        <property name="exceptionSorterClassName" value="com.alibaba.druid.pool.vendor.MySqlExceptionSorter"/>
+        <property name="validConnectionCheckerClassName" value="com.alibaba.druid.pool.vendor.MySqlValidConnectionChecker"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="useUnfairLock" value="true"/>
+    </bean>
+
+    <bean name="canalConnectorClient" class="com.alibaba.otter.canal.example.db.CanalConnectorClient" abstract="true">
+        <property name="zkServers" value="${zk.servers:127.0.0.1:2181}"/>
+        <property name="debug" value="${client.debug:true}"/>
+        <property name="destination" value="${client.destination:example}"/>
+        <property name="username" value="${client.username:canal}"/>
+        <property name="password" value="${client.password:canal}"/>
+        <property name="exceptionStrategy" value="${client.exceptionstrategy:1}"/>
+        <property name="retryTimes" value="${client.retrytimes:3}"/>
+        <property name="filter" value="${client.filter:.*\\..*}"/>
+        <property name="waitingTime" value="${client.waiting.time:10}"/>
+    </bean>
+
+
+    <bean id="mysqlClient" class="com.alibaba.otter.canal.example.db.mysql.MysqlClient" lazy-init="true" parent="canalConnectorClient">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+</beans>

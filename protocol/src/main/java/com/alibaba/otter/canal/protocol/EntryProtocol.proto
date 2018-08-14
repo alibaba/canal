@@ -194,6 +194,8 @@ enum EventType {
     /** XA **/
     XACOMMIT    =       13;
     XAROLLBACK  =		14;
+    /** MASTER HEARTBEAT **/
+    MHEARTBEAT  =       15;
 }
 
 /**数据库类型**/

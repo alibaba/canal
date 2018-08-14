@@ -1,39 +1,45 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFactory;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
-import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBBuilder;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBFactory;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 
 public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
-    protected final Logger      logger                  = LoggerFactory.getLogger(this.getClass());
-    protected static final long BINLOG_START_OFFEST     = 4L;
+    protected final Logger         logger                    = LoggerFactory.getLogger(this.getClass());
+    protected static final long    BINLOG_START_OFFEST       = 4L;
 
-    protected boolean           enableTsdb              = false;
-    protected String            tsdbSpringXml;
-    protected TableMetaTSDB     tableMetaTSDB;
+    protected TableMetaTSDBFactory tableMetaTSDBFactory      = new DefaultTableMetaTSDBFactory();
+    protected boolean              enableTsdb                = false;
+    protected String               tsdbSpringXml;
+    protected TableMetaTSDB        tableMetaTSDB;
+
     // 编码信息
-    protected byte              connectionCharsetNumber = (byte) 33;
-    protected Charset           connectionCharset       = Charset.forName("UTF-8");
-    protected boolean           filterQueryDcl          = false;
-    protected boolean           filterQueryDml          = false;
-    protected boolean           filterQueryDdl          = false;
-    protected boolean           filterRows              = false;
-    protected boolean           filterTableError        = false;
-    protected boolean           useDruidDdlFilter       = true;
+    protected byte                 connectionCharsetNumber   = (byte) 33;
+    protected Charset              connectionCharset         = Charset.forName("UTF-8");
+    protected boolean              filterQueryDcl            = false;
+    protected boolean              filterQueryDml            = false;
+    protected boolean              filterQueryDdl            = false;
+    protected boolean              filterRows                = false;
+    protected boolean              filterTableError          = false;
+    protected boolean              useDruidDdlFilter         = true;
+    private final AtomicLong       eventsPublishBlockingTime = new AtomicLong(0L);
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
@@ -91,8 +97,16 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     public void start() throws CanalParseException {
         if (enableTsdb) {
             if (tableMetaTSDB == null) {
-                // 初始化
-                tableMetaTSDB = TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
+                synchronized (CanalEventParser.class) {
+                    try {
+                        // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
+                        System.setProperty("canal.instance.destination", destination);
+                        // 初始化
+                        tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
+                    } finally {
+                        System.setProperty("canal.instance.destination", "");
+                    }
+                }
             }
         }
 
@@ -101,7 +115,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void stop() throws CanalParseException {
         if (enableTsdb) {
-            TableMetaTSDBBuilder.destory(destination);
+            tableMetaTSDBFactory.destory(destination);
             tableMetaTSDB = null;
         }
 
@@ -119,11 +133,13 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     }
 
     protected MultiStageCoprocessor buildMultiStageCoprocessor() {
-        return new MysqlMultiStageCoprocessor(parallelBufferSize,
+        MysqlMultiStageCoprocessor mysqlMultiStageCoprocessor = new MysqlMultiStageCoprocessor(parallelBufferSize,
             parallelThreadSize,
             (LogEventConvert) binlogParser,
             transactionBuffer,
             destination);
+        mysqlMultiStageCoprocessor.setEventsPublishBlockingTime(eventsPublishBlockingTime);
+        return mysqlMultiStageCoprocessor;
     }
 
     // ============================ setter / getter =========================
@@ -173,7 +189,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         if (this.enableTsdb) {
             if (tableMetaTSDB == null) {
                 // 初始化
-                tableMetaTSDB = TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
+                tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
             }
         }
     }
@@ -183,9 +199,17 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         if (this.enableTsdb) {
             if (tableMetaTSDB == null) {
                 // 初始化
-                tableMetaTSDB = TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
+                tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
             }
         }
+    }
+
+    public void setTableMetaTSDBFactory(TableMetaTSDBFactory tableMetaTSDBFactory) {
+        this.tableMetaTSDBFactory = tableMetaTSDBFactory;
+    }
+
+    public AtomicLong getEventsPublishBlockingTime() {
+        return this.eventsPublishBlockingTime;
     }
 
 }

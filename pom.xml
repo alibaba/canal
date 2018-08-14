@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.0.26-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -96,8 +96,8 @@
         <maven.test.skip>true</maven.test.skip>
         <downloadSources>true</downloadSources>
         <!-- compiler settings properties -->
-        <java_source_version>1.6</java_source_version>
-        <java_target_version>1.6</java_target_version>
+        <java_source_version>1.7</java_source_version>
+        <java_target_version>1.7</java_target_version>
         <file_encoding>UTF-8</file_encoding>
         <spring_version>3.2.9.RELEASE</spring_version>
     </properties>
@@ -247,7 +247,7 @@
             <dependency>
                 <groupId>com.alibaba.fastsql</groupId>
                 <artifactId>fastsql</artifactId>
-                <version>2.0.0_preview_520</version>
+                <version>2.0.0_preview_540</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -332,7 +332,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.2</version>
+                <version>3.8.0</version>
                 <configuration>
                     <source>${java_source_version}</source>
                     <target>${java_target_version}</target>

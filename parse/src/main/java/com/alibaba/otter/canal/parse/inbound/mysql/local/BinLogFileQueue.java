@@ -25,13 +25,14 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
  */
 public class BinLogFileQueue {
 
-    private String        baseName       = "mysql-bin.";
-    private List<File>    binlogs        = new ArrayList<File>();
-    private File          directory;
-    private ReentrantLock lock           = new ReentrantLock();
-    private Condition     nextCondition  = lock.newCondition();
-    private Timer         timer          = new Timer(true);
-    private long          reloadInterval = 10 * 1000L;           // 10秒
+    private String              baseName       = "mysql-bin.";
+    private List<File>          binlogs        = new ArrayList<File>();
+    private File                directory;
+    private ReentrantLock       lock           = new ReentrantLock();
+    private Condition           nextCondition  = lock.newCondition();
+    private Timer               timer          = new Timer(true);
+    private long                reloadInterval = 10 * 1000L;           // 10秒
+    private CanalParseException exception      = null;
 
     public BinLogFileQueue(String directory){
         this(new File(directory));
@@ -52,9 +53,24 @@ public class BinLogFileQueue {
         timer.scheduleAtFixedRate(new TimerTask() {
 
             public void run() {
-                List<File> files = listBinlogFiles();
-                for (File file : files) {
-                    offer(file);
+                try {
+                    // File errorFile = new File(BinLogFileQueue.this.directory,
+                    // errorFileName);
+                    // if (errorFile.isFile() && errorFile.exists()) {
+                    // String text = StringUtils.join(IOUtils.readLines(new
+                    // FileInputStream(errorFile)), "\n");
+                    // exception = new CanalParseException(text);
+                    // }
+                    List<File> files = listBinlogFiles();
+                    for (File file : files) {
+                        offer(file);
+                    }
+                } catch (Throwable e) {
+                    exception = new CanalParseException(e);
+                }
+
+                if (exception != null) {
+                    offer(null);
                 }
             }
         }, reloadInterval, reloadInterval);
@@ -69,6 +85,10 @@ public class BinLogFileQueue {
     public File getNextFile(File pre) {
         try {
             lock.lockInterruptibly();
+            if (exception != null) {
+                throw exception;
+            }
+
             if (binlogs.size() == 0) {
                 return null;
             } else {
@@ -94,6 +114,10 @@ public class BinLogFileQueue {
     public File getBefore(File file) {
         try {
             lock.lockInterruptibly();
+            if (exception != null) {
+                throw exception;
+            }
+
             if (binlogs.size() == 0) {
                 return null;
             } else {
@@ -130,6 +154,9 @@ public class BinLogFileQueue {
                 nextCondition.await();// 等待新文件
             }
 
+            if (exception != null) {
+                throw exception;
+            }
             if (pre == null) {// 第一次
                 return binlogs.get(0);
             } else {
@@ -170,13 +197,16 @@ public class BinLogFileQueue {
     private boolean offer(File file) {
         try {
             lock.lockInterruptibly();
-            if (!binlogs.contains(file)) {
-                binlogs.add(file);
-                nextCondition.signalAll();// 唤醒
-                return true;
-            } else {
-                return false;
+            if (file != null) {
+                if (!binlogs.contains(file)) {
+                    binlogs.add(file);
+                    nextCondition.signalAll();// 唤醒
+                    return true;
+                }
             }
+
+            nextCondition.signalAll();// 唤醒
+            return false;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;
