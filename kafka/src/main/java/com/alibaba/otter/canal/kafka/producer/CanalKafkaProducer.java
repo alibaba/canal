@@ -21,7 +21,7 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class CanalKafkaProducer {
 
-    private static final Logger       logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
     private Producer<String, Message> producer;
 
@@ -83,6 +83,8 @@ public class CanalKafkaProducer {
             record = new ProducerRecord<String, Message>(topic.getTopic(), message);
         }
         producer.send(record);
-        logger.debug("send message to kafka topic: {} \n {}", topic.getTopic(), message.toString());
+        if (logger.isDebugEnabled()) {
+            logger.debug("send message to kafka topic: {} \n {}", topic.getTopic(), message.toString());
+        }
     }
 }
