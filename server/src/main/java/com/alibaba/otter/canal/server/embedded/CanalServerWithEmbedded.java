@@ -44,6 +44,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     private Map<String, CanalInstance> canalInstances;
     // private Map<ClientIdentity, Position> lastRollbackPostions;
     private CanalInstanceGenerator     canalInstanceGenerator;
+    private int                        metricsPort;
     private CanalMetricsService        metrics          = NopCanalMetricsService.NOP;
 
     private static class SingletonHolder {
@@ -64,6 +65,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             super.start();
             // 如果存在provider,则启动metrics service
             loadCanalMetrics();
+            metrics.setServerPort(metricsPort);
             metrics.initialize();
             canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
 
@@ -527,6 +529,10 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     public void setCanalInstanceGenerator(CanalInstanceGenerator canalInstanceGenerator) {
         this.canalInstanceGenerator = canalInstanceGenerator;
+    }
+
+    public void setMetricsPort(int metricsPort) {
+        this.metricsPort = metricsPort;
     }
 
 }
