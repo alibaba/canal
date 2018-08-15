@@ -22,6 +22,7 @@ public class PrometheusService implements CanalMetricsService {
     private static final Logger          logger          = LoggerFactory.getLogger(PrometheusService.class);
     private final CanalInstanceExports   instanceExports;
     private volatile boolean             running         = false;
+    private int                          port;
     private HTTPServer                   server;
     private final ClientInstanceProfiler clientProfiler;
 
@@ -41,9 +42,9 @@ public class PrometheusService implements CanalMetricsService {
     @Override
     public void initialize() {
         try {
-            //TODO 1.Configurable port
-            //TODO 2.Https
-            server = new HTTPServer(11112);
+            logger.info("Start prometheus HTTPServer on port {}.", port);
+            //TODO 2.Https?
+            server = new HTTPServer(port);
         } catch (IOException e) {
             logger.warn("Unable to start prometheus HTTPServer.", e);
             return;
@@ -110,6 +111,11 @@ public class PrometheusService implements CanalMetricsService {
             logger.warn("Unable to unregister instance exports for {}.", instance.getDestination(), t);
         }
         logger.info("Unregister metrics for destination {}.", instance.getDestination());
+    }
+
+    @Override
+    public void setServerPort(int port) {
+        this.port = port;
     }
 
 }
