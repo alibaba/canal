@@ -545,6 +545,9 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     }
 
     // ================ setter / getter ==================
+    public int getBufferSize() {
+        return this.bufferSize;
+    }
 
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
