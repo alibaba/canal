@@ -7,7 +7,6 @@ import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
 import com.google.common.base.Preconditions;
 import io.prometheus.client.Collector;
-import io.prometheus.client.Counter;
 import io.prometheus.client.CounterMetricFamily;
 import io.prometheus.client.GaugeMetricFamily;
 import org.slf4j.Logger;
@@ -30,12 +29,8 @@ public class EntryCollector extends Collector implements InstanceRegistry {
     private static final Logger                             logger            = LoggerFactory.getLogger(SinkCollector.class);
     private static final String                             DELAY             = "canal_instance_traffic_delay";
     private static final String                             TRANSACTION       = "canal_instance_transactions";
-    private static final String                             ROW_EVENTS        = "canal_instance_row_events";
-    private static final String                             ROWS_COUNTER      = "canal_instance_rows_counter";
     private static final String                             DELAY_HELP        = "Traffic delay of canal instance in milliseconds";
     private static final String                             TRANSACTION_HELP  = "Transactions counter of canal instance";
-    private static final String                             ROW_EVENTS_HELP   = "Rowdata events counter of canal instance";
-    private static final String                             ROWS_COUNTER_HELP = "Rows counter of canal instance";
     private final ConcurrentMap<String, EntryMetricsHolder> instances        = new ConcurrentHashMap<String, EntryMetricsHolder>();
 
     private EntryCollector() {}
@@ -55,10 +50,6 @@ public class EntryCollector extends Collector implements InstanceRegistry {
                 DELAY_HELP, DEST_LABELS_LIST);
         CounterMetricFamily transactions = new CounterMetricFamily(TRANSACTION,
                 TRANSACTION_HELP, DEST_LABELS_LIST);
-        CounterMetricFamily rowEvents = new CounterMetricFamily(ROW_EVENTS,
-                ROW_EVENTS_HELP, DEST_LABELS_LIST);
-        CounterMetricFamily rowsCounter = new CounterMetricFamily(ROWS_COUNTER,
-                ROWS_COUNTER_HELP, DEST_LABELS_LIST);
         for (EntryMetricsHolder emh : instances.values()) {
             long now = System.currentTimeMillis();
             long latest = emh.latestExecTime.get();
@@ -66,13 +57,9 @@ public class EntryCollector extends Collector implements InstanceRegistry {
                 delay.addMetric(emh.destLabelValues, (now - latest));
             }
             transactions.addMetric(emh.destLabelValues, emh.transactionCounter.doubleValue());
-            rowEvents.addMetric(emh.destLabelValues, emh.rowEventCounter.doubleValue());
-            rowsCounter.addMetric(emh.destLabelValues, emh.rowsCounter.doubleValue());
         }
         mfs.add(delay);
         mfs.add(transactions);
-        mfs.add(rowEvents);
-        mfs.add(rowsCounter);
         return mfs;
     }
 
@@ -89,12 +76,8 @@ public class EntryCollector extends Collector implements InstanceRegistry {
         PrometheusCanalEventDownStreamHandler handler = assembleHandler(entrySink);
         holder.latestExecTime = handler.getLatestExecuteTime();
         holder.transactionCounter = handler.getTransactionCounter();
-        holder.rowEventCounter = handler.getRowEventCounter();
-        holder.rowsCounter = handler.getRowsCounter();
         Preconditions.checkNotNull(holder.latestExecTime);
         Preconditions.checkNotNull(holder.transactionCounter);
-        Preconditions.checkNotNull(holder.rowEventCounter);
-        Preconditions.checkNotNull(holder.rowsCounter);
         EntryMetricsHolder old = instances.put(destination, holder);
         if (old != null) {
             logger.warn("Remove stale EntryCollector for instance {}.", destination);
@@ -145,8 +128,6 @@ public class EntryCollector extends Collector implements InstanceRegistry {
     private class EntryMetricsHolder {
         private AtomicLong   latestExecTime;
         private AtomicLong   transactionCounter;
-        private AtomicLong   rowEventCounter;
-        private AtomicLong   rowsCounter;
         private List<String> destLabelValues;
     }
 
