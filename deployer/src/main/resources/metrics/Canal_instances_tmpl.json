@@ -1,5 +1,14 @@
 {
-  "__inputs": [],
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
   "__requires": [
     {
       "type": "grafana",
@@ -11,6 +20,12 @@
       "type": "panel",
       "id": "graph",
       "name": "Graph",
+      "version": "5.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
       "version": "5.0.0"
     }
   ],
@@ -31,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1534552626378,
+  "iteration": 1534648729090,
   "links": [],
   "panels": [
     {
@@ -261,12 +276,16 @@
       }
     },
     {
-      "aliasColors": {},
+      "aliasColors": {
+        "ack": "#f29191",
+        "get": "#cca300",
+        "put": "#1f78c1"
+      },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
       "datasource": "$datasource",
-      "description": "Canal instance 相对于master的延时。",
+      "description": "master: Canal server相对于MySQL master的延时。通过master heartbeat机制能刷新idle状态下的延时。\nput: store put操作的时间点为基准。\nget: client get操作的时间点为基准。\nack:  client ack操作的时间点为基准。",
       "fill": 1,
       "gridPos": {
         "h": 5,
@@ -300,10 +319,35 @@
         {
           "expr": "canal_instance_traffic_delay{destination=~\"$destination\"} / 1000",
           "format": "time_series",
+          "hide": false,
           "interval": "15s",
           "intervalFactor": 2,
-          "legendFormat": "delay",
+          "legendFormat": "master",
+          "refId": "D"
+        },
+        {
+          "expr": "canal_instance_put_delay{destination=~\"$destination\"} / 1000",
+          "format": "time_series",
+          "interval": "15s",
+          "intervalFactor": 2,
+          "legendFormat": "put",
           "refId": "A"
+        },
+        {
+          "expr": "canal_instance_get_delay{destination=~\"$destination\"} / 1000",
+          "format": "time_series",
+          "interval": "15s",
+          "intervalFactor": 2,
+          "legendFormat": "get",
+          "refId": "B"
+        },
+        {
+          "expr": "canal_instance_ack_delay{destination=~\"$destination\"} / 1000",
+          "format": "time_series",
+          "interval": "15s",
+          "intervalFactor": 2,
+          "legendFormat": "ack",
+          "refId": "C"
         }
       ],
       "thresholds": [],
@@ -352,7 +396,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "$datasource",
-      "description": "sink线程idle占比；dump线程idle占比(仅parallel mode)。",
+      "description": "sink线程blocking占比；dump线程blocking占比(仅parallel mode)。",
       "fill": 1,
       "gridPos": {
         "h": 5,
@@ -404,7 +448,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Idle",
+      "title": "Blocking",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -462,7 +506,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "$datasource",
-      "description": "Canal client instance消费binlog的TPS， 以MySQL binlog events为单位计算。",
+      "description": "Canal client instance消费binlog的TPS(ack过的events)， 以binlog events为单位计算。",
       "fill": 1,
       "gridPos": {
         "h": 5,
@@ -505,7 +549,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "TPS",
+      "title": "TPS(events)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -639,7 +683,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "$datasource",
-      "description": "Canal instance处理binlog的TPS。\n1. table rows：以table变更行数为单位。\n2. row data：rowData events为单位。",
+      "description": "Instance处理binlog的TPS(以master变更行数table rows为基准计算)。\nput: put操作TPS。\nget: get操作TPS。\nack: ack操作TPS。",
       "fill": 1,
       "gridPos": {
         "h": 5,
@@ -671,26 +715,33 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(canal_instance_rows_counter{destination=~\"$destination\"}[30s])",
+          "expr": "rate(canal_instance_put_rows{destination=~\"$destination\"}[2m])",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,
-          "legendFormat": "tableRows",
+          "legendFormat": "put",
           "refId": "A"
         },
         {
-          "expr": "rate(canal_instance_row_events{destination=~\"$destination\"}[30s])",
+          "expr": "rate(canal_instance_get_rows{destination=~\"$destination\"}[2m])",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,
-          "legendFormat": "rowDatas",
+          "legendFormat": "get",
           "refId": "B"
+        },
+        {
+          "expr": "rate(canal_instance_ack_rows{destination=~\"$destination\"}[2m])",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "ack",
+          "refId": "C"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "TPS(table rows VS row data)",
+      "title": "TPS(table rows)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -831,8 +882,8 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
-      "description": "Canal client 请求latency概况。",
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "client 请求的GET与ACK包的QPS。",
       "fill": 1,
       "gridPos": {
         "h": 5,
@@ -840,14 +891,12 @@
         "x": 6,
         "y": 13
       },
-      "id": 18,
+      "id": 38,
       "legend": {
-        "alignAsTable": false,
         "avg": false,
         "current": false,
         "max": false,
         "min": false,
-        "rightSide": false,
         "show": true,
         "total": false,
         "values": false
@@ -860,39 +909,37 @@
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
-      "seriesOverrides": [
-        {
-          "alias": "25.0",
-          "yaxis": 1
-        },
-        {
-          "alias": "100.0",
-          "yaxis": 1
-        }
-      ],
+      "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(canal_instance_client_request_latency_bucket{destination=~\"$destination\"}[2m])",
+          "expr": "rate(canal_instance_client_packets{destination=~\"$destination\",packetType=\"GET\"}[2m])",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,
-          "legendFormat": "{{le}}ms",
+          "legendFormat": "GET",
           "refId": "A"
+        },
+        {
+          "expr": "rate(canal_instance_client_packets{destination=~\"$destination\",packetType=\"CLIENTACK\"}[2m])",
+          "format": "time_series",
+          "interval": "15s",
+          "intervalFactor": 2,
+          "legendFormat": "ACK",
+          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Latency",
+      "title": "Client QPS",
       "tooltip": {
         "shared": true,
         "sort": 0,
         "value_type": "individual"
       },
-      "transparent": false,
       "type": "graph",
       "xaxis": {
         "buckets": null,
@@ -973,7 +1020,7 @@
           "expr": "rate(canal_instance_client_packets{destination=~\"$destination\", packetType=\"GET\"}[2m])",
           "format": "time_series",
           "intervalFactor": 1,
-          "legendFormat": "total",
+          "legendFormat": "nonempty",
           "refId": "B"
         }
       ],
@@ -997,6 +1044,105 @@
       "yaxes": [
         {
           "format": "wps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "$datasource",
+      "description": "Canal client 请求响应时间的概况。",
+      "fill": 1,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 13
+      },
+      "id": 18,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "25.0",
+          "yaxis": 1
+        },
+        {
+          "alias": "100.0",
+          "yaxis": 1
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "rate(canal_instance_client_request_latency_bucket{destination=~\"$destination\"}[2m])",
+          "format": "time_series",
+          "hide": false,
+          "interval": "15s",
+          "intervalFactor": 2,
+          "legendFormat": "{{le}}ms",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Response time",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -1250,7 +1396,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1281,5 +1427,5 @@
   "timezone": "",
   "title": "Canal instances",
   "uid": "8vh8NGpiz",
-  "version": 82
+  "version": 96
 }

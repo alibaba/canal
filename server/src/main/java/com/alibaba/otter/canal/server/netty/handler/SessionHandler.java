@@ -220,6 +220,7 @@ public class SessionHandler extends SimpleChannelHandler {
                         } else {
                             clientIdentity = new ClientIdentity(ack.getDestination(), Short.valueOf(ack.getClientId()));
                             embeddedServer.ack(clientIdentity, ack.getBatchId());
+                            new ChannelFutureAggregator(ack.getDestination(), ack, packet.getType(), 0, System.nanoTime() - start).operationComplete(null);
                         }
                     } else {
                         byte[] errorBytes = NettyUtils.errorPacket(401, MessageFormatter.format("destination or clientId is null", ack.toString()).getMessage());
@@ -239,6 +240,7 @@ public class SessionHandler extends SimpleChannelHandler {
                         } else {
                             embeddedServer.rollback(clientIdentity, rollback.getBatchId()); // 只回滚单个批次
                         }
+                        new ChannelFutureAggregator(rollback.getDestination(), rollback, packet.getType(), 0, System.nanoTime() - start).operationComplete(null);
                     } else {
                         byte[] errorBytes = NettyUtils.errorPacket(401, MessageFormatter.format("destination or clientId is null", rollback.toString()).getMessage());
                         NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(rollback.getDestination(),
