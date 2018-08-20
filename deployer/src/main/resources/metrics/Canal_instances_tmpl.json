@@ -46,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1534648729090,
+  "iteration": 1534723196501,
   "links": [],
   "panels": [
     {
@@ -500,13 +500,14 @@
     },
     {
       "aliasColors": {
-        "TPS": "#64b0c8"
+        "rowDatas": "#7eb26d",
+        "tableRows": "#c15c17"
       },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
       "datasource": "$datasource",
-      "description": "Canal client instance消费binlog的TPS(ack过的events)， 以binlog events为单位计算。",
+      "description": "Instance处理binlog的TPS(以master变更行数table rows为基准计算)。\nput: put操作TPS。\nget: get操作TPS。\nack: ack操作TPS。",
       "fill": 1,
       "gridPos": {
         "h": 5,
@@ -514,7 +515,7 @@
         "x": 0,
         "y": 7
       },
-      "id": 8,
+      "id": 14,
       "legend": {
         "avg": false,
         "current": false,
@@ -538,18 +539,33 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(canal_instance_store_consume_seq{destination=~\"$destination\"}[2m])",
+          "expr": "rate(canal_instance_put_rows{destination=~\"$destination\"}[2m])",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,
-          "legendFormat": "events",
+          "legendFormat": "put",
           "refId": "A"
+        },
+        {
+          "expr": "rate(canal_instance_get_rows{destination=~\"$destination\"}[2m])",
+          "format": "time_series",
+          "interval": "15s",
+          "intervalFactor": 2,
+          "legendFormat": "get",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(canal_instance_ack_rows{destination=~\"$destination\"}[2m])",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "ack",
+          "refId": "C"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "TPS(events)",
+      "title": "TPS(table rows)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -638,110 +654,6 @@
       "timeFrom": null,
       "timeShift": null,
       "title": "TPS(MySQL transaction)",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "iops",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {
-        "rowDatas": "#7eb26d",
-        "tableRows": "#c15c17"
-      },
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "description": "Instance处理binlog的TPS(以master变更行数table rows为基准计算)。\nput: put操作TPS。\nget: get操作TPS。\nack: ack操作TPS。",
-      "fill": 1,
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 7
-      },
-      "id": 14,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "rate(canal_instance_put_rows{destination=~\"$destination\"}[2m])",
-          "format": "time_series",
-          "interval": "15s",
-          "intervalFactor": 2,
-          "legendFormat": "put",
-          "refId": "A"
-        },
-        {
-          "expr": "rate(canal_instance_get_rows{destination=~\"$destination\"}[2m])",
-          "format": "time_series",
-          "interval": "15s",
-          "intervalFactor": 2,
-          "legendFormat": "get",
-          "refId": "B"
-        },
-        {
-          "expr": "rate(canal_instance_ack_rows{destination=~\"$destination\"}[2m])",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "ack",
-          "refId": "C"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "TPS(table rows)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1396,7 +1308,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -1427,5 +1339,5 @@
   "timezone": "",
   "title": "Canal instances",
   "uid": "8vh8NGpiz",
-  "version": 96
+  "version": 97
 }
