@@ -72,7 +72,7 @@ DATA="$BASE/data"
 mkdir -p $DATA
 CONFIG=${@:1}
 #VOLUMNS="-v $DATA:/home/admin/canal-server/logs"
-PORTLIST="8000 8080 2222 11111"
+PORTLIST="8000 2222 11111 11112"
 PORTS=""
 for PORT in $PORTLIST ; do
     #exist=`check_port $PORT`
