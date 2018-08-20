@@ -120,6 +120,7 @@
         <module>kafka</module>
         <module>kafka-client</module>
         <module>prometheus</module>
+        <module>client-launcher</module>
     </modules>
 
     <dependencyManagement>

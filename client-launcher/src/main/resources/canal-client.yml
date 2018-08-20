@@ -1,0 +1,22 @@
+#canalServerHost: 127.0.0.1:11111
+zookeeperHosts: 127.0.0.1:2181
+#bootstrapServers: kafka1.mytest.com:9092,kafka2.mytest.com:9092
+
+canalInstances:
+- instance: example
+  adapterGroups:
+  - outAdapters:
+    - name: logger
+#    - name: hbase
+#      hosts:
+#      properties: {znodeParent: /hbase}
+
+#kafkaTopics:
+#- topic: devmysql4308
+#  groups:
+#  - groupId: devmysql4308_es
+#    adapters:
+#    - name: es
+#      hosts:
+#      zkHosts:
+#      properties: {clusterName: es-service-test}
