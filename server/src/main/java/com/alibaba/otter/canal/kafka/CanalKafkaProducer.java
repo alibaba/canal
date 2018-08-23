@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.producer;
+package com.alibaba.otter.canal.kafka;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -10,7 +10,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.kafka.producer.KafkaProperties.Topic;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -21,7 +20,7 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class CanalKafkaProducer {
 
-    private static final Logger logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
+    private static final Logger       logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
     private Producer<String, Message> producer;
 
@@ -49,7 +48,7 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(Topic topic, Message message) throws IOException {
+    public void send(KafkaProperties.Topic topic, Message message) throws IOException {
         // set canal.instance.filter.transaction.entry = true
 
         // boolean valid = false;

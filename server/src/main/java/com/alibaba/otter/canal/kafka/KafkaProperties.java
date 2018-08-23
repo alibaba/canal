@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.producer;
+package com.alibaba.otter.canal.kafka;
 
 import java.util.ArrayList;
 import java.util.HashSet;

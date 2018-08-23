@@ -12,8 +12,8 @@ canalDestinations:
     topic: example
     partition:
     # 一个destination可以对应多个topic
-#    topics:
-#      - topic: example
-#        partition:
+    #topics:
+    #  - topic: example
+    #    partition:
 
 

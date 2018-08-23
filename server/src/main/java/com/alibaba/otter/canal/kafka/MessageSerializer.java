@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.producer;
+package com.alibaba.otter.canal.kafka;
 
 import java.util.List;
 import java.util.Map;
@@ -37,20 +37,20 @@ public class MessageSerializer implements Serializer<Message> {
                         List<ByteString> rowEntries = data.getRawEntries();
                         // message size
                         int messageSize = 0;
-                        messageSize += com.google.protobuf.CodedOutputStream.computeInt64Size(1, data.getId());
+                        messageSize += CodedOutputStream.computeInt64Size(1, data.getId());
 
                         int dataSize = 0;
                         for (int i = 0; i < rowEntries.size(); i++) {
-                            dataSize += com.google.protobuf.CodedOutputStream.computeBytesSizeNoTag(rowEntries.get(i));
+                            dataSize += CodedOutputStream.computeBytesSizeNoTag(rowEntries.get(i));
                         }
                         messageSize += dataSize;
                         messageSize += 1 * rowEntries.size();
                         // packet size
                         int size = 0;
-                        size += com.google.protobuf.CodedOutputStream.computeEnumSize(3,
+                        size += CodedOutputStream.computeEnumSize(3,
                             PacketType.MESSAGES.getNumber());
-                        size += com.google.protobuf.CodedOutputStream.computeTagSize(5)
-                                + com.google.protobuf.CodedOutputStream.computeRawVarint32Size(messageSize)
+                        size += CodedOutputStream.computeTagSize(5)
+                                + CodedOutputStream.computeRawVarint32Size(messageSize)
                                 + messageSize;
                         // build data
                         byte[] body = new byte[size];
@@ -73,7 +73,7 @@ public class MessageSerializer implements Serializer<Message> {
                         }
 
                         CanalPacket.Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
-                        packetBuilder.setType(CanalPacket.PacketType.MESSAGES);
+                        packetBuilder.setType(PacketType.MESSAGES);
                         packetBuilder.setBody(messageBuilder.build().toByteString());
                         return packetBuilder.build().toByteArray();
                     }
