@@ -80,8 +80,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         this.disruptorMsgBuffer = RingBuffer.createSingleProducer(new MessageEventFactory(),
             ringBufferSize,
             new BlockingWaitStrategy());
-
-        this.parserExecutor = Executors.newFixedThreadPool(parserThreadCount,
+        int tc = parserThreadCount > 0 ? parserThreadCount : 1;
+        this.parserExecutor = Executors.newFixedThreadPool(tc,
             new NamedThreadFactory("MultiStageCoprocessor-Parser-" + destination));
 
         this.stageExecutor = Executors.newFixedThreadPool(2, new NamedThreadFactory("MultiStageCoprocessor-other-"
