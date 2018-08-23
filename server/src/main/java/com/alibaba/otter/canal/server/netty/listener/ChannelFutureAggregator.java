@@ -43,7 +43,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
     @Override
     public void operationComplete(ChannelFuture future) {
         // profiling after I/O operation
-        if (future.getCause() != null) {
+        if (future != null && future.getCause() != null) {
             result.channelError = future.getCause();
         }
         profiler().profiling(result);

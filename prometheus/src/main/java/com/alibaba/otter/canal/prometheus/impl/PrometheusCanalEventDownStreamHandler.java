@@ -13,10 +13,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDownStreamHandler<List<Event>> {
 
-    private final AtomicLong latestExecuteTime  = new AtomicLong(0L);
+    private final AtomicLong latestExecuteTime  = new AtomicLong(System.currentTimeMillis());
     private final AtomicLong transactionCounter = new AtomicLong(0L);
-    private final AtomicLong rowEventCounter    = new AtomicLong(0L);
-    private final AtomicLong rowsCounter        = new AtomicLong(0L);
 
     @Override
     public List<Event> before(List<Event> events) {
@@ -34,8 +32,6 @@ public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDow
                     case ROWDATA: {
                         long exec = e.getExecuteTime();
                         if (exec > 0) localExecTime = exec;
-                        rowEventCounter.incrementAndGet();
-                        rowsCounter.addAndGet(e.getRowsCount());
                         break;
                     }
                     case TRANSACTIONEND: {
@@ -80,11 +76,4 @@ public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDow
         return transactionCounter;
     }
 
-    public AtomicLong getRowsCounter() {
-        return rowsCounter;
-    }
-
-    public AtomicLong getRowEventCounter() {
-        return rowEventCounter;
-    }
 }
