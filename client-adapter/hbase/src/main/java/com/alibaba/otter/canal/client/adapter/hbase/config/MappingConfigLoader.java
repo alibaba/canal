@@ -45,7 +45,7 @@ public class MappingConfigLoader {
                 continue;
             }
             c = c.trim();
-            if (c.startsWith("#")) {
+            if (c.equals("") || c.startsWith("#")) {
                 continue;
             }
 
