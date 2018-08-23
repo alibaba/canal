@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.client;
+package com.alibaba.otter.canal.client.kafka;
 
 import java.util.Map;
 

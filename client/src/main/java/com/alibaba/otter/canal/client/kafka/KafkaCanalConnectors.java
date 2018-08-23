@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.client;
+package com.alibaba.otter.canal.client.kafka;
 
 /**
  * canal kafka connectors创建工具类

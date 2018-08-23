@@ -18,17 +18,16 @@
             <artifactId>client-adapter.common</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.client</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <!-- 单独引入kafka依赖 -->
         <dependency>
-            <groupId>com.alibaba.otter</groupId>
-            <artifactId>canal.kafka.client</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>

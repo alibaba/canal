@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.client.running;
+package com.alibaba.otter.canal.client.kafka.running;
 
 /**
  * client running状态信息

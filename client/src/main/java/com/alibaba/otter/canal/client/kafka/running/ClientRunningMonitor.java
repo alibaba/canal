@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.client.running;
+package com.alibaba.otter.canal.client.kafka.running;
 
 import java.text.MessageFormat;
 import java.util.Random;
@@ -55,15 +55,15 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
     }
 
     private static final Logger        logger       = LoggerFactory.getLogger(ClientRunningMonitor.class);
-    private ZkClientx                  zkClient;
+    private ZkClientx zkClient;
     private String                     topic;
-    private ClientRunningData          clientData;
+    private ClientRunningData clientData;
     private IZkDataListener            dataListener;
-    private BooleanMutex               mutex        = new BooleanMutex(false);
+    private BooleanMutex mutex        = new BooleanMutex(false);
     private volatile boolean           release      = false;
     private volatile ClientRunningData activeData;
     private ScheduledExecutorService   delayExector = Executors.newScheduledThreadPool(1);
-    private ClientRunningListener      listener;
+    private ClientRunningListener listener;
     private int                        delayTime    = 5;
 
     private static Integer             virtualPort;

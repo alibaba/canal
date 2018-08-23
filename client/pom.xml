@@ -16,6 +16,13 @@
 			<artifactId>canal.protocol</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- 客户端要使用请单独引入kafka依赖 -->
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>1.1.1</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- junit -->
 		<dependency>

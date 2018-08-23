@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka.client.running;
+package com.alibaba.otter.canal.client.running.kafka;
 
 import org.junit.Assert;
 

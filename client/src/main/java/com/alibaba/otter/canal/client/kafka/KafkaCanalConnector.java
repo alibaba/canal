@@ -1,21 +1,22 @@
-package com.alibaba.otter.canal.kafka.client;
+package com.alibaba.otter.canal.client.kafka;
 
-import com.alibaba.otter.canal.common.utils.AddressUtils;
-import com.alibaba.otter.canal.common.utils.BooleanMutex;
-import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
-import com.alibaba.otter.canal.kafka.client.running.ClientRunningData;
-import com.alibaba.otter.canal.kafka.client.running.ClientRunningListener;
-import com.alibaba.otter.canal.kafka.client.running.ClientRunningMonitor;
-import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
-import java.util.Collections;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.otter.canal.client.kafka.running.ClientRunningData;
+import com.alibaba.otter.canal.client.kafka.running.ClientRunningListener;
+import com.alibaba.otter.canal.client.kafka.running.ClientRunningMonitor;
+import com.alibaba.otter.canal.common.utils.AddressUtils;
+import com.alibaba.otter.canal.common.utils.BooleanMutex;
+import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
+import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 
 /**
  * canal kafka 数据操作客户端
