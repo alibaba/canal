@@ -120,6 +120,8 @@
         <module>kafka</module>
         <module>kafka-client</module>
         <module>prometheus</module>
+        <module>client-adapter</module>
+        <module>client-launcher</module>
     </modules>
 
     <dependencyManagement>
@@ -332,7 +334,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.7.0</version>
                 <configuration>
                     <source>${java_source_version}</source>
                     <target>${java_target_version}</target>
