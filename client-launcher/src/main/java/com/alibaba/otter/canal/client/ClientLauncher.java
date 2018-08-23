@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client;
 
-import com.alibaba.otter.canal.client.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.loader.CanalAdapterLoader;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,8 +10,9 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.FileInputStream;
 
 public class ClientLauncher {
+
     private static final String CLASSPATH_URL_PREFIX = "classpath:";
-    private static final Logger logger = LoggerFactory.getLogger(ClientLauncher.class);
+    private static final Logger logger               = LoggerFactory.getLogger(ClientLauncher.class);
 
     public static void main(String[] args) {
         try {
@@ -23,7 +25,7 @@ public class ClientLauncher {
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
                 canalClientConfig = new Yaml().loadAs(ClientLauncher.class.getClassLoader().getResourceAsStream(conf),
-                        CanalClientConfig.class);
+                    CanalClientConfig.class);
             } else {
                 canalClientConfig = new Yaml().loadAs(new FileInputStream(conf), CanalClientConfig.class);
             }

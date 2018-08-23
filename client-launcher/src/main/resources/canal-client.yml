@@ -1,5 +1,5 @@
-#canalServerHost: 127.0.0.1:11111
-zookeeperHosts: 127.0.0.1:2181
+canalServerHost: 127.0.0.1:11111
+#zookeeperHosts: 127.0.0.1:2181
 #bootstrapServers: kafka1.mytest.com:9092,kafka2.mytest.com:9092
 
 canalInstances:
@@ -7,9 +7,9 @@ canalInstances:
   adapterGroups:
   - outAdapters:
     - name: logger
-#    - name: hbase
-#      hosts:
-#      properties: {znodeParent: /hbase}
+    - name: hbase
+      hosts: slave1:2181
+      properties: {znodeParent: "/hbase-unsecure"}
 
 #kafkaTopics:
 #- topic: devmysql4308

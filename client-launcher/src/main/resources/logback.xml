@@ -36,12 +36,12 @@
 
 	<logger name="com.alibaba.otter.canal.client" additivity="false">
 		<level value="INFO" />
-		<appender-ref ref="STDOUT"/>
+		<!--<appender-ref ref="STDOUT"/>-->
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
     
 	<root level="WARN">
-		<appender-ref ref="STDOUT"/>
+		<!--<appender-ref ref="STDOUT"/>-->
 		<appender-ref ref="CANAL-ROOT" />
 	</root>
 </configuration>

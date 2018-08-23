@@ -15,6 +15,12 @@
     <dependencies>
         <dependency>
             <groupId>com.alibaba.otter</groupId>
+            <artifactId>client-adapter.common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.client</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -25,14 +31,23 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.9.4</version>
-        </dependency>
-        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.17</version>
+        </dependency>
+
+        <!-- outer adapter -->
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>client-adapter.logger</artifactId>
+            <version>${project.version}</version>
+            <classifier>jar-with-dependencies</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>client-adapter.hbase</artifactId>
+            <version>${project.version}</version>
+            <classifier>jar-with-dependencies</classifier>
         </dependency>
     </dependencies>
 
