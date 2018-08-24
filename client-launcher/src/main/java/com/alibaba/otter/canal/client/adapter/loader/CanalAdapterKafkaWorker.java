@@ -91,7 +91,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     private void process() {
         while (!running)
             ;
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
         final AtomicBoolean executing = new AtomicBoolean(true);
         while (running) {
             try {
@@ -142,7 +142,8 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                                 }
                             });
 
-                            while (executing.get()) { // keeping kafka client active
+                            // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
+                            while (executing.get()) {
                                 connector.ack();
                                 Thread.sleep(500);
                             }

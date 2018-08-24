@@ -1,6 +1,6 @@
 canalServerHost: 127.0.0.1:11111
-#zookeeperHosts: 127.0.0.1:2181
-#bootstrapServers: kafka1.mytest.com:9092,kafka2.mytest.com:9092
+#zookeeperHosts: slave1:2181
+#bootstrapServers: slave1:6667,slave2:6667
 
 canalInstances:
 - instance: example
@@ -10,13 +10,12 @@ canalInstances:
     - name: hbase
       hosts: slave1:2181
       properties: {znodeParent: "/hbase-unsecure"}
-
 #kafkaTopics:
-#- topic: devmysql4308
+#- topic: example
 #  groups:
-#  - groupId: devmysql4308_es
-#    adapters:
-#    - name: es
-#      hosts:
-#      zkHosts:
-#      properties: {clusterName: es-service-test}
+#  - groupId: example_g1
+#    outAdapters:
+#    - name: logger
+#    - name: hbase
+#      hosts: slave1:2181
+#      properties: {znodeParent: "/hbase-unsecure"}

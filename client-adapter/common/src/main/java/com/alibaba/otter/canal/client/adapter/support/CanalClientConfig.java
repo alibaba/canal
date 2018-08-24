@@ -20,9 +20,9 @@ public class CanalClientConfig {
 
     private String              bootstrapServers;
 
-    private List<KafkaTopic>    kafkaTopics    = new ArrayList<>();
+    private List<KafkaTopic>    kafkaTopics;
 
-    private List<CanalInstance> canalInstances = new ArrayList<>();
+    private List<CanalInstance> canalInstances;
 
     public String getCanalServerHost() {
         return canalServerHost;
