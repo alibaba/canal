@@ -26,13 +26,13 @@ public class CanalAdapterLoader {
 
     private static final Logger                  logger            = LoggerFactory.getLogger(CanalAdapterLoader.class);
 
-    private CanalClientConfig canalClientConfig;
+    private CanalClientConfig                    canalClientConfig;
 
     private Map<String, CanalAdapterWorker>      canalWorkers      = new HashMap<>();
 
     private Map<String, CanalAdapterKafkaWorker> canalKafkaWorkers = new HashMap<>();
 
-    private ExtensionLoader<CanalOuterAdapter> loader;
+    private ExtensionLoader<CanalOuterAdapter>   loader;
 
     public CanalAdapterLoader(CanalClientConfig canalClientConfig){
         this.canalClientConfig = canalClientConfig;
@@ -43,7 +43,7 @@ public class CanalAdapterLoader {
      */
     public void init() {
         // canal instances 和 kafka topics 配置不能同时为空
-        if (canalClientConfig.getCanalInstances().isEmpty() && canalClientConfig.getKafkaTopics().isEmpty()) {
+        if (canalClientConfig.getCanalInstances() == null && canalClientConfig.getKafkaTopics() == null) {
             throw new RuntimeException("Blank config property: canalInstances or canalKafkaTopics");
         }
 
@@ -58,56 +58,61 @@ public class CanalAdapterLoader {
         }
         String zkHosts = this.canalClientConfig.getZookeeperHosts();
 
-        if (zkHosts == null && sa == null) {
-            throw new RuntimeException("Blank config property: canalServerHost or zookeeperHosts");
-        }
+        // if (zkHosts == null && sa == null) {
+        // throw new RuntimeException("Blank config property: canalServerHost or
+        // zookeeperHosts");
+        // }
 
         // 初始化canal-client的适配器
-        for (CanalClientConfig.CanalInstance instance : canalClientConfig.getCanalInstances()) {
-            List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
+        if (canalClientConfig.getCanalInstances() != null) {
+            for (CanalClientConfig.CanalInstance instance : canalClientConfig.getCanalInstances()) {
+                List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
 
-            for (CanalClientConfig.AdapterGroup connectorGroup : instance.getAdapterGroups()) {
-                List<CanalOuterAdapter> canalOutConnectors = new ArrayList<>();
-                for (CanalOuterAdapterConfiguration c : connectorGroup.getOutAdapters()) {
-                    loadConnector(c, canalOutConnectors);
+                for (CanalClientConfig.AdapterGroup connectorGroup : instance.getAdapterGroups()) {
+                    List<CanalOuterAdapter> canalOutConnectors = new ArrayList<>();
+                    for (CanalOuterAdapterConfiguration c : connectorGroup.getOutAdapters()) {
+                        loadConnector(c, canalOutConnectors);
+                    }
+                    canalOuterAdapterGroups.add(canalOutConnectors);
                 }
-                canalOuterAdapterGroups.add(canalOutConnectors);
+                CanalAdapterWorker worker;
+                if (zkHosts != null) {
+                    worker = new CanalAdapterWorker(instance.getInstance(), zkHosts, canalOuterAdapterGroups);
+                } else {
+                    worker = new CanalAdapterWorker(instance.getInstance(), sa, canalOuterAdapterGroups);
+                }
+                canalWorkers.put(instance.getInstance(), worker);
+                worker.start();
+                logger.info("Start adapter for canal instance: {} succeed", instance.getInstance());
             }
-            CanalAdapterWorker worker;
-            if (zkHosts != null) {
-                worker = new CanalAdapterWorker(instance.getInstance(), zkHosts, canalOuterAdapterGroups);
-            } else {
-                worker = new CanalAdapterWorker(instance.getInstance(), sa, canalOuterAdapterGroups);
-            }
-            canalWorkers.put(instance.getInstance(), worker);
-            worker.start();
-            logger.info("Start adapter for canal instance: {} succeed", instance.getInstance());
         }
 
         // 初始化canal-client-kafka的适配器
-        for (CanalClientConfig.KafkaTopic kafkaTopic : canalClientConfig.getKafkaTopics()) {
-            for (CanalClientConfig.Group group : kafkaTopic.getGroups()) {
-                List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
+        if (canalClientConfig.getKafkaTopics() != null) {
+            for (CanalClientConfig.KafkaTopic kafkaTopic : canalClientConfig.getKafkaTopics()) {
+                for (CanalClientConfig.Group group : kafkaTopic.getGroups()) {
+                    List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
 
-                List<CanalOuterAdapter> canalOuterAdapters = new ArrayList<>();
+                    List<CanalOuterAdapter> canalOuterAdapters = new ArrayList<>();
 
-                for (CanalOuterAdapterConfiguration config : group.getOutAdapters()) {
-                    // for (CanalOuterAdapterConfiguration config : adaptor.getOutAdapters()) {
-                    loadConnector(config, canalOuterAdapters);
-                    // }
+                    for (CanalOuterAdapterConfiguration config : group.getOutAdapters()) {
+                        // for (CanalOuterAdapterConfiguration config : adaptor.getOutAdapters()) {
+                        loadConnector(config, canalOuterAdapters);
+                        // }
+                    }
+                    canalOuterAdapterGroups.add(canalOuterAdapters);
+
+                    // String zkServers = canalClientConfig.getZookeeperHosts();
+                    CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(zkHosts,
+                        canalClientConfig.getBootstrapServers(),
+                        kafkaTopic.getTopic(),
+                        group.getGroupId(),
+                        canalOuterAdapterGroups);
+                    canalKafkaWorkers.put(kafkaTopic.getTopic() + "-" + group.getGroupId(), canalKafkaWorker);
+                    canalKafkaWorker.start();
+                    logger.info("Start adapter for canal-client kafka topic: {} succeed",
+                        kafkaTopic.getTopic() + "-" + group.getGroupId());
                 }
-                canalOuterAdapterGroups.add(canalOuterAdapters);
-
-                String zkServers = canalClientConfig.getZookeeperHosts();
-                CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(zkServers,
-                    canalClientConfig.getBootstrapServers(),
-                    kafkaTopic.getTopic(),
-                    group.getGroupId(),
-                    canalOuterAdapterGroups);
-                canalKafkaWorkers.put(kafkaTopic.getTopic() + "-" + group.getGroupId(), canalKafkaWorker);
-                canalKafkaWorker.start();
-                logger.info("Start adapter for canal-client kafka topic: {} succeed",
-                    kafkaTopic.getTopic() + "-" + group.getGroupId());
             }
         }
     }

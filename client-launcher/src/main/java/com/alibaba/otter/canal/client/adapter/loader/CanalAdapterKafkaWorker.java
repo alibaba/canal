@@ -1,19 +1,25 @@
 package com.alibaba.otter.canal.client.adapter.loader;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
-import com.alibaba.otter.canal.client.adapter.loader.AbstractCanalAdapterWorker;
-import com.alibaba.otter.canal.kafka.client.KafkaCanalConnector;
-import com.alibaba.otter.canal.kafka.client.KafkaCanalConnectors;
-import com.alibaba.otter.canal.protocol.Message;
-import org.apache.kafka.clients.consumer.CommitFailedException;
-import org.apache.kafka.common.errors.WakeupException;
-
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.kafka.clients.consumer.CommitFailedException;
+import org.apache.kafka.common.errors.WakeupException;
+
+import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
+import com.alibaba.otter.canal.client.kafka.KafkaCanalConnectors;
+import com.alibaba.otter.canal.protocol.Message;
+
+/**
+ * kafka对应的client适配器工作线程
+ *
+ * @author machengyuan 2018-8-19 下午11:30:49
+ * @version 1.0.0
+ */
 public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
 
     private KafkaCanalConnector connector;
@@ -85,7 +91,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     private void process() {
         while (!running)
             ;
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
         final AtomicBoolean executing = new AtomicBoolean(true);
         while (running) {
             try {
@@ -136,7 +142,8 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                                 }
                             });
 
-                            while (executing.get()) { // keeping kafka client active
+                            // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
+                            while (executing.get()) {
                                 connector.ack();
                                 Thread.sleep(500);
                             }

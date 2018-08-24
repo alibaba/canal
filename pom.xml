@@ -117,8 +117,6 @@
         <module>client</module>
         <module>deployer</module>
         <module>example</module>
-        <module>kafka</module>
-        <module>kafka-client</module>
         <module>prometheus</module>
         <module>client-adapter</module>
         <module>client-launcher</module>
