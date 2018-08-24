@@ -3,6 +3,7 @@ package com.taobao.tddl.dbsync.binlog;
 import java.io.IOException;
 import java.util.BitSet;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -159,18 +160,19 @@ public final class LogDecoder {
             // remove checksum bytes
             buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
         }
-
         switch (header.getType()) {
             case LogEvent.QUERY_EVENT: {
                 QueryLogEvent event = new QueryLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.XID_EVENT: {
                 XidLogEvent event = new XidLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.TABLE_MAP_EVENT: {
@@ -268,12 +270,14 @@ public final class LogDecoder {
                 RandLogEvent event = new RandLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.USER_VAR_EVENT: {
                 UserVarLogEvent event = new UserVarLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.FORMAT_DESCRIPTION_EVENT: {
@@ -324,6 +328,7 @@ public final class LogDecoder {
                 HeartbeatLogEvent event = new HeartbeatLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.IGNORABLE_LOG_EVENT: {
@@ -336,6 +341,7 @@ public final class LogDecoder {
                 RowsQueryLogEvent event = new RowsQueryLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.WRITE_ROWS_EVENT: {
@@ -343,6 +349,7 @@ public final class LogDecoder {
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 event.fillTable(context);
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.UPDATE_ROWS_EVENT: {
@@ -350,6 +357,7 @@ public final class LogDecoder {
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 event.fillTable(context);
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.DELETE_ROWS_EVENT: {
@@ -357,6 +365,7 @@ public final class LogDecoder {
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 event.fillTable(context);
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.GTID_LOG_EVENT:
@@ -364,6 +373,8 @@ public final class LogDecoder {
                 GtidLogEvent event = new GtidLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                // update latest gtid
+                context.putGtid(event);
                 return event;
             }
             case LogEvent.PREVIOUS_GTIDS_LOG_EVENT: {
@@ -394,6 +405,7 @@ public final class LogDecoder {
                 AnnotateRowsEvent event = new AnnotateRowsEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtidStr(context.getGtidSet());
                 return event;
             }
             case LogEvent.BINLOG_CHECKPOINT_EVENT: {
