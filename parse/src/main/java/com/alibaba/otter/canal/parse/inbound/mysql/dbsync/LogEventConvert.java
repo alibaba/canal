@@ -176,9 +176,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         Pair.Builder builder = Pair.newBuilder();
         builder.setKey("gtid");
         builder.setValue(value);
-        if (gtidSet != null) {
-            gtidSet.update(value);
-        }
+
         if (logEvent.getLastCommitted() != null) {
             builder.setKey("lastCommitted");
             builder.setValue(String.valueOf(logEvent.getLastCommitted()));
@@ -845,9 +843,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
         headerBuilder.setEventLength(logHeader.getEventLen());
         // enable gtid position
-        if (gtidSet != null) {
-            String gtid = gtidSet.toString();
-            headerBuilder.setGtid(gtid);
+        if (StringUtils.isNotEmpty(logHeader.getGtidStr())) {
+            headerBuilder.setGtid(logHeader.getGtidStr());
         }
 
         // add rowsCount suppport

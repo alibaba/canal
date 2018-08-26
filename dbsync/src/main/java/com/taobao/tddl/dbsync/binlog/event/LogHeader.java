@@ -1,5 +1,6 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
@@ -119,6 +120,8 @@ public final class LogHeader {
      * binlog fileName
      */
     protected String    logFileName;
+
+    protected String    gtidStr;
 
     /* for Start_event_v3 */
     public LogHeader(final int type){
@@ -286,6 +289,16 @@ public final class LogHeader {
     private void processCheckSum(LogBuffer buffer) {
         if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
             crc = buffer.getUint32(eventLen - LogEvent.BINLOG_CHECKSUM_LEN);
+        }
+    }
+
+    public String getGtidStr() {
+        return gtidStr;
+    }
+
+    public void putGtidStr(GTIDSet gtidSet) {
+        if (gtidSet != null) {
+            this.gtidStr = gtidSet.toString();
         }
     }
 }
