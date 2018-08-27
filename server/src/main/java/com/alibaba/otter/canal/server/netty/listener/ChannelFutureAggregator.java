@@ -7,6 +7,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 
 import static com.alibaba.otter.canal.server.netty.CanalServerWithNettyProfiler.profiler;
+import static com.alibaba.otter.canal.server.netty.NettyUtils.HEADER_LENGTH;
 
 /**
  * @author Chuanyi Li
@@ -32,7 +33,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
                 .destination(destination)
                 .type(type)
                 .request(request)
-                .amount(amount)
+                .amount(amount + HEADER_LENGTH)
                 .latency(latency)
                 .errorCode(errorCode)
                 .empty(empty)
@@ -42,7 +43,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
     @Override
     public void operationComplete(ChannelFuture future) {
         // profiling after I/O operation
-        if (future.getCause() != null) {
+        if (future != null && future.getCause() != null) {
             result.channelError = future.getCause();
         }
         profiler().profiling(result);

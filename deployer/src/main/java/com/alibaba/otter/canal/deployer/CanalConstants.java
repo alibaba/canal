@@ -15,6 +15,7 @@ public class CanalConstants {
     public static final String CANAL_ID                          = ROOT + "." + "id";
     public static final String CANAL_IP                          = ROOT + "." + "ip";
     public static final String CANAL_PORT                        = ROOT + "." + "port";
+    public static final String CANAL_METRICS_PULL_PORT           = ROOT + "." + "metrics.pull.port";
     public static final String CANAL_ZKSERVERS                   = ROOT + "." + "zkServers";
     public static final String CANAL_WITHOUT_NETTY               = ROOT + "." + "withoutNetty";
 
@@ -22,6 +23,7 @@ public class CanalConstants {
     public static final String CANAL_AUTO_SCAN                   = ROOT + "." + "auto.scan";
     public static final String CANAL_AUTO_SCAN_INTERVAL          = ROOT + "." + "auto.scan.interval";
     public static final String CANAL_CONF_DIR                    = ROOT + "." + "conf.dir";
+    public static final String CANAL_SERVER_MODE                 = ROOT + "." + "serverMode";
 
     public static final String CANAL_DESTINATION_SPLIT           = ",";
     public static final String GLOBAL_NAME                       = "global";

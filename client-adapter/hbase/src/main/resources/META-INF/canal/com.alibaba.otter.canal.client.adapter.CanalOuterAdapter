@@ -1,0 +1,1 @@
+hbase=com.alibaba.otter.canal.client.adapter.hbase.HbaseAdapter

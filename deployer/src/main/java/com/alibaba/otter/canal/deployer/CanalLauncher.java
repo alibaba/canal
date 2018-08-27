@@ -3,6 +3,8 @@ package com.alibaba.otter.canal.deployer;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import com.alibaba.otter.canal.kafka.CanalKafkaStarter;
+import com.alibaba.otter.canal.server.CanalServerStarter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,17 @@ public class CanalLauncher {
                 }
 
             });
+
+            CanalServerStarter canalServerStarter = null;
+            String serverMode = properties.getProperty(CanalConstants.CANAL_SERVER_MODE, "tcp");
+            if (serverMode.equalsIgnoreCase("kafka")) {
+                canalServerStarter = new CanalKafkaStarter();
+            } else if (serverMode.equalsIgnoreCase("rocketMQ")) {
+                // 预留rocketMQ启动
+            }
+            if (canalServerStarter != null) {
+                canalServerStarter.init();
+            }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:", e);
             System.exit(0);

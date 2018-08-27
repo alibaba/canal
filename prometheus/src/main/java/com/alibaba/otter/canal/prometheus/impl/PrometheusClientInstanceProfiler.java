@@ -71,7 +71,6 @@ public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler 
         String destination = result.getDestination();
         PacketType type = result.getType();
         outboundCounter.labels(destination).inc(result.getAmount());
-        packetsCounter.labels(destination, type.name()).inc();
         short errorCode = result.getErrorCode();
         if (errorCode > 0) {
             errorsCounter.labels(destination, Short.toString(errorCode)).inc();
@@ -81,12 +80,16 @@ public class PrometheusClientInstanceProfiler implements ClientInstanceProfiler 
         switch (type) {
             case GET:
                 boolean empty = result.getEmpty();
+                // 区分一下空包
                 if (empty) {
                     emptyBatchesCounter.labels(destination).inc();
+                } else {
+                    packetsCounter.labels(destination, type.name()).inc();
                 }
                 break;
             // reserve for others
             default:
+                packetsCounter.labels(destination, type.name()).inc();
                 break;
         }
     }

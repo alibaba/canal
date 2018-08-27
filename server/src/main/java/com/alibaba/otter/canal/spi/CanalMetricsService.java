@@ -39,4 +39,9 @@ public interface CanalMetricsService {
      */
     void unregister(CanalInstance instance);
 
+    /**
+     * @param port server port for pull
+     */
+    void setServerPort(int port);
+
 }

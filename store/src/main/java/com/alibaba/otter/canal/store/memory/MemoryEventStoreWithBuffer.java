@@ -51,6 +51,16 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     private AtomicLong        getMemSize    = new AtomicLong(0);
     private AtomicLong        ackMemSize    = new AtomicLong(0);
 
+    // 记录下put/get/ack操作的三个execTime
+    private AtomicLong        putExecTime   = new AtomicLong(System.currentTimeMillis());
+    private AtomicLong        getExecTime   = new AtomicLong(System.currentTimeMillis());
+    private AtomicLong        ackExecTime   = new AtomicLong(System.currentTimeMillis());
+
+    // 记录下put/get/ack操作的三个table rows
+    private AtomicLong        putTableRows  = new AtomicLong(0);
+    private AtomicLong        getTableRows  = new AtomicLong(0);
+    private AtomicLong        ackTableRows  = new AtomicLong(0);
+
     // 阻塞put/get操作控制信号
     private ReentrantLock     lock          = new ReentrantLock();
     private Condition         notFull       = lock.newCondition();
@@ -192,7 +202,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
             putMemSize.getAndAdd(size);
         }
-
+        profiling(data, OP.PUT);
         // tell other threads that store is not empty
         notEmpty.signal();
     }
@@ -336,6 +346,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         if (getSequence.compareAndSet(current, end)) {
             getMemSize.addAndGet(memsize);
             notFull.signal();
+            profiling(result.getEvents(), OP.GET);
             return result;
         } else {
             return new Events<Event>();
@@ -407,8 +418,15 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
             boolean hasMatch = false;
             long memsize = 0;
+            // ack没有list，但有已存在的foreach，还是节省一下list的开销
+            long localExecTime = 0L;
+            int deltaRows = 0;
             for (long next = sequence + 1; next <= maxSequence; next++) {
                 Event event = entries[getIndex(next)];
+                if (localExecTime == 0 && event.getExecuteTime() > 0) {
+                    localExecTime = event.getExecuteTime();
+                }
+                deltaRows += event.getRowsCount();
                 memsize += calculateSize(event);
                 boolean match = CanalEventUtils.checkPosition(event, (LogPosition) position);
                 if (match) {// 找到对应的position，更新ack seq
@@ -424,11 +442,14 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
                     if (ackSequence.compareAndSet(sequence, next)) {// 避免并发ack
                         notFull.signal();
+                        ackTableRows.addAndGet(deltaRows);
+                        if (localExecTime > 0) {
+                            ackExecTime.lazySet(localExecTime);
+                        }
                         return;
                     }
                 }
             }
-
             if (!hasMatch) {// 找不到对应需要ack的position
                 throw new CanalStoreException("no match ack position" + position.toString());
             }
@@ -544,7 +565,49 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                || type == EventType.DINDEX;
     }
 
+    private void profiling(List<Event> events, OP op) {
+        long localExecTime = 0L;
+        int deltaRows = 0;
+        if (events != null && !events.isEmpty()) {
+            for (Event e : events) {
+                if (localExecTime == 0 && e.getExecuteTime() > 0) {
+                    localExecTime = e.getExecuteTime();
+                }
+                deltaRows += e.getRowsCount();
+            }
+        }
+        switch (op) {
+            case PUT:
+                putTableRows.addAndGet(deltaRows);
+                if (localExecTime > 0) {
+                    putExecTime.lazySet(localExecTime);
+                }
+                break;
+            case GET:
+                getTableRows.addAndGet(deltaRows);
+                if (localExecTime > 0) {
+                    getExecTime.lazySet(localExecTime);
+                }
+                break;
+            case ACK:
+                ackTableRows.addAndGet(deltaRows);
+                if (localExecTime > 0) {
+                    ackExecTime.lazySet(localExecTime);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private enum OP {
+        PUT, GET, ACK
+    }
+
     // ================ setter / getter ==================
+    public int getBufferSize() {
+        return this.bufferSize;
+    }
 
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
@@ -580,5 +643,29 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     public BatchMode getBatchMode() {
         return batchMode;
+    }
+
+    public AtomicLong getPutExecTime() {
+        return putExecTime;
+    }
+
+    public AtomicLong getGetExecTime() {
+        return getExecTime;
+    }
+
+    public AtomicLong getAckExecTime() {
+        return ackExecTime;
+    }
+
+    public AtomicLong getPutTableRows() {
+        return putTableRows;
+    }
+
+    public AtomicLong getGetTableRows() {
+        return getTableRows;
+    }
+
+    public AtomicLong getAckTableRows() {
+        return ackTableRows;
     }
 }

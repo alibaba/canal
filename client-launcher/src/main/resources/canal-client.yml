@@ -1,0 +1,21 @@
+canalServerHost: 127.0.0.1:11111
+#zookeeperHosts: slave1:2181
+#bootstrapServers: slave1:6667,slave2:6667
+
+canalInstances:
+- instance: example
+  adapterGroups:
+  - outAdapters:
+    - name: logger
+    - name: hbase
+      hosts: slave1:2181
+      properties: {znodeParent: "/hbase-unsecure"}
+#kafkaTopics:
+#- topic: example
+#  groups:
+#  - groupId: example_g1
+#    outAdapters:
+#    - name: logger
+#    - name: hbase
+#      hosts: slave1:2181
+#      properties: {znodeParent: "/hbase-unsecure"}
