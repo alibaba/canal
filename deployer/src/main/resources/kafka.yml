@@ -3,8 +3,6 @@ retries: 0
 batchSize: 16384
 lingerMs: 1
 bufferMemory: 33554432
-# canal的批次大小，单位 k，量大建议改为1M
-canalBatchSize: 50
 filterTransactionEntry: true
 
 canalDestinations:

@@ -19,7 +19,7 @@ public class KafkaProperties {
     private int                    lingerMs               = 1;
     private long                   bufferMemory           = 33554432L;
     private boolean                filterTransactionEntry = true;
-    private int                    canalBatchSize         = 5;
+    private int                    canalBatchSize         = 50;
 
     private List<CanalDestination> canalDestinations      = new ArrayList<CanalDestination>();
 

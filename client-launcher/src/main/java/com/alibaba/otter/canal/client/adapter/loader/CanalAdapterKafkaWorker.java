@@ -143,9 +143,13 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                             });
 
                             // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
+                            long currentTS = System.currentTimeMillis();
                             while (executing.get()) {
-                                connector.ack();
-                                Thread.sleep(500);
+                                // 大于1分钟未消费完ack一次keep alive
+                                if (System.currentTimeMillis() - currentTS >  60000) {
+                                    connector.ack();
+                                    currentTS = System.currentTimeMillis();
+                                }
                             }
                         } else {
                             connector.ack();
