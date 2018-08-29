@@ -99,15 +99,13 @@ public class StoreCollector extends Collector implements InstanceRegistry {
             long get = Math.min(smh.getExecTime.get(), pet);
             long aet = Math.min(smh.ackExecTime.get(), get);
             long now = System.currentTimeMillis();
-            if (now >= pet) {
-                putDelay.addMetric(smh.destLabelValues, (now - pet));
-            }
-            if (now >= get) {
-                getDelay.addMetric(smh.destLabelValues, (now - get));
-            }
-            if (now >= aet) {
-                ackDelay.addMetric(smh.destLabelValues, (now - aet));
-            }
+            // execTime > now，delay显示为0
+            long pd = (now >= pet) ? (now - pet) : 0;
+            putDelay.addMetric(smh.destLabelValues, pd);
+            long gd = (now >= get) ? (now - get) : 0;
+            getDelay.addMetric(smh.destLabelValues, gd);
+            long ad = (now >= aet) ? (now - aet) : 0;
+            ackDelay.addMetric(smh.destLabelValues, ad);
             putRows.addMetric(smh.destLabelValues, smh.putTableRows.doubleValue());
             getRows.addMetric(smh.destLabelValues, smh.getTableRows.doubleValue());
             ackRows.addMetric(smh.destLabelValues, smh.ackTableRows.doubleValue());
