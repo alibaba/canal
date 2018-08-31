@@ -53,9 +53,9 @@ public class EntryCollector extends Collector implements InstanceRegistry {
         for (EntryMetricsHolder emh : instances.values()) {
             long now = System.currentTimeMillis();
             long latest = emh.latestExecTime.get();
-            if (now >= latest) {
-                delay.addMetric(emh.destLabelValues, (now - latest));
-            }
+            // execTime > now，delay显示为0
+            long d = (now >= latest) ? (now - latest) : 0;
+            delay.addMetric(emh.destLabelValues, d);
             transactions.addMetric(emh.destLabelValues, emh.transactionCounter.doubleValue());
         }
         mfs.add(delay);
