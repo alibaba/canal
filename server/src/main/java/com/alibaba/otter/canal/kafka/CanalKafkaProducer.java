@@ -48,33 +48,7 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(KafkaProperties.Topic topic, Message message) throws IOException {
-        // set canal.instance.filter.transaction.entry = true
-
-        // boolean valid = false;
-        // if (message != null) {
-        // if (message.isRaw() && !message.getRawEntries().isEmpty()) {
-        // for (ByteString byteString : message.getRawEntries()) {
-        // CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(byteString);
-        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-        // valid = true;
-        // break;
-        // }
-        // }
-        // } else if (!message.getEntries().isEmpty()){
-        // for (CanalEntry.Entry entry : message.getEntries()) {
-        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-        // valid = true;
-        // break;
-        // }
-        // }
-        // }
-        // }
-        // if (!valid) {
-        // return;
-        // }
+    public void send(KafkaProperties.Topic topic, Message message) {
         ProducerRecord<String, Message> record;
         if (topic.getPartition() != null) {
             record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);

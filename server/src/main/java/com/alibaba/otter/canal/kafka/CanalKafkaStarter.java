@@ -54,9 +54,9 @@ public class CanalKafkaStarter implements CanalServerStarter {
             canalKafkaProducer = new CanalKafkaProducer();
             canalKafkaProducer.init(kafkaProperties);
             // set filterTransactionEntry
-            if (kafkaProperties.isFilterTransactionEntry()) {
-                System.setProperty("canal.instance.filter.transaction.entry", "true");
-            }
+            // if (kafkaProperties.isFilterTransactionEntry()) {
+            //     System.setProperty("canal.instance.filter.transaction.entry", "true");
+            // }
             // 对应每个instance启动一个worker线程
             List<CanalDestination> destinations = kafkaProperties.getCanalDestinations();
 
