@@ -1,15 +1,14 @@
 package com.alibaba.otter.canal.client.adapter.loader;
 
-import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.client.CanalConnectors;
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
-import com.alibaba.otter.canal.client.adapter.loader.AbstractCanalAdapterWorker;
-import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
-import com.alibaba.otter.canal.protocol.Message;
-
 import java.net.SocketAddress;
 import java.util.List;
 import java.util.concurrent.Executors;
+
+import com.alibaba.otter.canal.client.CanalConnector;
+import com.alibaba.otter.canal.client.CanalConnectors;
+import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * 原生canal-server对应的client适配器工作线程

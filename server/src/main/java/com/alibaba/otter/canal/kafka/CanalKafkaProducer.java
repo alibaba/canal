@@ -1,11 +1,11 @@
 package com.alibaba.otter.canal.kafka;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,16 +48,32 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(KafkaProperties.Topic topic, Message message) {
-        ProducerRecord<String, Message> record;
-        if (topic.getPartition() != null) {
-            record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
-        } else {
-            record = new ProducerRecord<String, Message>(topic.getTopic(), message);
+    public void send(KafkaProperties.Topic topic, Message message, Callback callback) {
+        producer.initTransactions();
+        try {
+            producer.beginTransaction();
+            ProducerRecord<String, Message> record;
+            if (topic.getPartition() != null) {
+                record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
+            } else {
+                record = new ProducerRecord<String, Message>(topic.getTopic(), message);
+            }
+            producer.send(record);
+            producer.commitTransaction();
+            callback.commit();
+            if (logger.isDebugEnabled()) {
+                logger.debug("send message to kafka topic: {} \n {}", topic.getTopic(), message.toString());
+            }
+        } catch (KafkaException e) {
+            producer.abortTransaction();
+            callback.rollback();
         }
-        producer.send(record);
-        if (logger.isDebugEnabled()) {
-            logger.debug("send message to kafka topic: {} \n {}", topic.getTopic(), message.toString());
-        }
+    }
+
+    public interface Callback {
+
+        void commit();
+
+        void rollback();
     }
 }

@@ -97,9 +97,9 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
             try {
                 logger.info("=============> Start to connect topic: {} <=============", this.topic);
                 connector.connect();
-                logger.info("=============> Start to subscribe topic: {}<=============", this.topic);
+                logger.info("=============> Start to subscribe topic: {} <=============", this.topic);
                 connector.subscribe();
-                logger.info("=============> Subscribe topic: {} succeed<=============", this.topic);
+                logger.info("=============> Subscribe topic: {} succeed <=============", this.topic);
                 while (running) {
                     try {
                         // switcher.get(); //等待开关开启
@@ -146,7 +146,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                             long currentTS = System.currentTimeMillis();
                             while (executing.get()) {
                                 // 大于1分钟未消费完ack一次keep alive
-                                if (System.currentTimeMillis() - currentTS >  60000) {
+                                if (System.currentTimeMillis() - currentTS > 60000) {
                                     connector.ack();
                                     currentTS = System.currentTimeMillis();
                                 }
