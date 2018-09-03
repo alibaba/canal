@@ -82,4 +82,11 @@ public class GtidLogEvent extends LogEvent {
     public Long getSequenceNumber() {
         return sequenceNumber;
     }
+
+    public String getGtidStr() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(sid.toString()).append(":");
+        sb.append(gno);
+        return sb.toString();
+    }
 }

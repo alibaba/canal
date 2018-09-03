@@ -8,6 +8,8 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlMultiStageCoprocessor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -235,12 +237,14 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         if (parallel) {
                             // build stage processor
                             multiStageCoprocessor = buildMultiStageCoprocessor();
-                            multiStageCoprocessor.start();
-
                             if (isGTIDMode()) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
-                                erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), multiStageCoprocessor);
+                                GTIDSet gtidSet = MysqlGTIDSet.parse(startPosition.getGtid());
+                                ((MysqlMultiStageCoprocessor) multiStageCoprocessor).setGtidSet(gtidSet);
+                                multiStageCoprocessor.start();
+                                erosaConnection.dump(gtidSet, multiStageCoprocessor);
                             } else {
+                                multiStageCoprocessor.start();
                                 if (StringUtils.isEmpty(startPosition.getJournalName())
                                     && startPosition.getTimestamp() != null) {
                                     erosaConnection.dump(startPosition.getTimestamp(), multiStageCoprocessor);
