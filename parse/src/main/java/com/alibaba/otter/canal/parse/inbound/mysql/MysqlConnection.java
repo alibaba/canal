@@ -179,6 +179,8 @@ public class MysqlConnection implements ErosaConnection {
             fetcher.start(connector.getChannel());
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
+            // fix bug: #890 将gtid传输至context中，供decode使用
+            context.setGtidSet(gtidSet);
             while (fetcher.fetch()) {
                 accumulateReceivedBytes(fetcher.limit());
                 LogEvent event = null;
