@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -117,7 +118,16 @@ public class CanalKafkaStarter implements CanalServerStarter {
                 logger.info("## the canal consumer {} is running now ......", destination.getCanalDestination());
 
                 while (running) {
-                    Message message = server.getWithoutAck(clientIdentity, kafkaProperties.getCanalBatchSize()); // 获取指定数量的数据
+                    Message message;
+                    if (kafkaProperties.getCanalGetTimeout() != null) {
+                        message = server.getWithoutAck(clientIdentity,
+                            kafkaProperties.getCanalBatchSize(),
+                            kafkaProperties.getCanalGetTimeout(),
+                            TimeUnit.MILLISECONDS);
+                    } else {
+                        message = server.getWithoutAck(clientIdentity, kafkaProperties.getCanalBatchSize());
+                    }
+
                     final long batchId = message.getId();
                     try {
                         int size = message.isRaw() ? message.getRawEntries().size() : message.getEntries().size();

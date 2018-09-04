@@ -20,6 +20,7 @@ public class KafkaProperties {
     private long                   bufferMemory           = 33554432L;
     private boolean                filterTransactionEntry = true;
     private int                    canalBatchSize         = 50;
+    private Long                   canalGetTimeout;
 
     private List<CanalDestination> canalDestinations      = new ArrayList<CanalDestination>();
 
@@ -149,6 +150,14 @@ public class KafkaProperties {
 
     public void setCanalBatchSize(int canalBatchSize) {
         this.canalBatchSize = canalBatchSize;
+    }
+
+    public Long getCanalGetTimeout() {
+        return canalGetTimeout;
+    }
+
+    public void setCanalGetTimeout(Long canalGetTimeout) {
+        this.canalGetTimeout = canalGetTimeout;
     }
 
     public List<CanalDestination> getCanalDestinations() {
