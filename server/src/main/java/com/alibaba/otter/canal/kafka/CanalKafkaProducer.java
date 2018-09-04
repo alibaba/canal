@@ -1,11 +1,12 @@
 package com.alibaba.otter.canal.kafka;
 
-import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ public class CanalKafkaProducer {
         properties.put("key.serializer", StringSerializer.class.getName());
         properties.put("value.serializer", MessageSerializer.class.getName());
         producer = new KafkaProducer<String, Message>(properties);
+        // producer.initTransactions();
     }
 
     public void stop() {
@@ -48,42 +50,33 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(KafkaProperties.Topic topic, Message message) throws IOException {
-        // set canal.instance.filter.transaction.entry = true
+    public void send(KafkaProperties.Topic topic, Message message, Callback callback) {
+        try {
+            // producer.beginTransaction();
+            ProducerRecord<String, Message> record;
+            if (topic.getPartition() != null) {
+                record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
+            } else {
+                record = new ProducerRecord<String, Message>(topic.getTopic(), message);
+            }
+            Future<RecordMetadata> future = producer.send(record);
+            future.get();
+            // producer.commitTransaction();
+            callback.commit();
+            if (logger.isDebugEnabled()) {
+                logger.debug("send message to kafka topic: {}", topic.getTopic());
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            // producer.abortTransaction();
+            callback.rollback();
+        }
+    }
 
-        // boolean valid = false;
-        // if (message != null) {
-        // if (message.isRaw() && !message.getRawEntries().isEmpty()) {
-        // for (ByteString byteString : message.getRawEntries()) {
-        // CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(byteString);
-        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-        // valid = true;
-        // break;
-        // }
-        // }
-        // } else if (!message.getEntries().isEmpty()){
-        // for (CanalEntry.Entry entry : message.getEntries()) {
-        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-        // valid = true;
-        // break;
-        // }
-        // }
-        // }
-        // }
-        // if (!valid) {
-        // return;
-        // }
-        ProducerRecord<String, Message> record;
-        if (topic.getPartition() != null) {
-            record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
-        } else {
-            record = new ProducerRecord<String, Message>(topic.getTopic(), message);
-        }
-        producer.send(record);
-        if (logger.isDebugEnabled()) {
-            logger.debug("send message to kafka topic: {} \n {}", topic.getTopic(), message.toString());
-        }
+    public interface Callback {
+
+        void commit();
+
+        void rollback();
     }
 }

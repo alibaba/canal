@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -33,9 +34,9 @@ public class CanalKafkaStarter implements CanalServerStarter {
 
     private ExecutorService     executorService;
 
-    private CanalKafkaProducer canalKafkaProducer;
+    private CanalKafkaProducer  canalKafkaProducer;
 
-    private KafkaProperties kafkaProperties;
+    private KafkaProperties     kafkaProperties;
 
     public void init() {
         try {
@@ -54,9 +55,9 @@ public class CanalKafkaStarter implements CanalServerStarter {
             canalKafkaProducer = new CanalKafkaProducer();
             canalKafkaProducer.init(kafkaProperties);
             // set filterTransactionEntry
-            if (kafkaProperties.isFilterTransactionEntry()) {
-                System.setProperty("canal.instance.filter.transaction.entry", "true");
-            }
+            // if (kafkaProperties.isFilterTransactionEntry()) {
+            // System.setProperty("canal.instance.filter.transaction.entry", "true");
+            // }
             // 对应每个instance启动一个worker线程
             List<CanalDestination> destinations = kafkaProperties.getCanalDestinations();
 
@@ -101,8 +102,8 @@ public class CanalKafkaStarter implements CanalServerStarter {
         while (!running)
             ;
         logger.info("## start the canal consumer: {}.", destination.getCanalDestination());
-        CanalServerWithEmbedded server = CanalServerWithEmbedded.instance();
-        ClientIdentity clientIdentity = new ClientIdentity(destination.getCanalDestination(), (short) 1001, "");
+        final CanalServerWithEmbedded server = CanalServerWithEmbedded.instance();
+        final ClientIdentity clientIdentity = new ClientIdentity(destination.getCanalDestination(), (short) 1001, "");
         while (running) {
             try {
                 if (!server.getCanalInstances().containsKey(clientIdentity.getDestination())) {
@@ -117,27 +118,38 @@ public class CanalKafkaStarter implements CanalServerStarter {
                 logger.info("## the canal consumer {} is running now ......", destination.getCanalDestination());
 
                 while (running) {
-                    Message message = server.getWithoutAck(clientIdentity, kafkaProperties.getCanalBatchSize()); // 获取指定数量的数据
-                    long batchId = message.getId();
+                    Message message;
+                    if (kafkaProperties.getCanalGetTimeout() != null) {
+                        message = server.getWithoutAck(clientIdentity,
+                            kafkaProperties.getCanalBatchSize(),
+                            kafkaProperties.getCanalGetTimeout(),
+                            TimeUnit.MILLISECONDS);
+                    } else {
+                        message = server.getWithoutAck(clientIdentity, kafkaProperties.getCanalBatchSize());
+                    }
+
+                    final long batchId = message.getId();
                     try {
                         int size = message.isRaw() ? message.getRawEntries().size() : message.getEntries().size();
                         if (batchId != -1 && size != 0) {
-                            if (!StringUtils.isEmpty(destination.getTopic())) {
-                                Topic topic = new Topic();
-                                topic.setTopic(destination.getTopic());
-                                topic.setPartition(destination.getPartition());
-                                destination.getTopics().add(topic);
-                            }
-                            for (Topic topic : destination.getTopics()) {
-                                canalKafkaProducer.send(topic, message); // 发送message到所有topic
-                            }
+                            Topic topic = new Topic();
+                            topic.setTopic(destination.getTopic());
+                            topic.setPartition(destination.getPartition());
+                            canalKafkaProducer.send(topic, message, new CanalKafkaProducer.Callback() {
+
+                                @Override
+                                public void commit() {
+                                    server.ack(clientIdentity, batchId); // 提交确认
+                                }
+
+                                @Override
+                                public void rollback() {
+                                    server.rollback(clientIdentity, batchId);
+                                }
+                            }); // 发送message到topic
                         }
 
-                        if (batchId != -1) {
-                            server.ack(clientIdentity, batchId); // 提交确认
-                        }
                     } catch (Exception e) {
-                        server.rollback(clientIdentity);
                         logger.error(e.getMessage(), e);
                     }
                 }
