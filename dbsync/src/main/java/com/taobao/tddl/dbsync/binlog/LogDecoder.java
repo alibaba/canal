@@ -3,11 +3,10 @@ package com.taobao.tddl.dbsync.binlog;
 import java.io.IOException;
 import java.util.BitSet;
 
-import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.taobao.tddl.dbsync.binlog.event.AppendBlockLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.BeginLoadQueryLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.CreateFileLogEvent;
@@ -52,12 +51,12 @@ import com.taobao.tddl.dbsync.binlog.event.mariadb.StartEncryptionLogEvent;
  * <pre>
  * LogDecoder decoder = new LogDecoder();
  * decoder.handle(...);
- *
+ * 
  * LogEvent event;
  * do
  * {
  *     event = decoder.decode(buffer, context);
- *
+ * 
  *     // process log event.
  * }
  * while (event != null);

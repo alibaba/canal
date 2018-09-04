@@ -226,7 +226,7 @@ public class SimpleDdlParserTest {
         Assert.assertEquals("retl", result.getSchemaName());
         Assert.assertEquals("retl_mark", result.getTableName());
 
-        //test index name contains 'on' -- version
+        // test index name contains 'on' -- version
         queryString = "create index schema_new_index_version_s_idx on q_contract_account (contract_id,main_contract_id)";
         result = SimpleDdlParser.parse(queryString, "retl");
         Assert.assertNotNull(result);

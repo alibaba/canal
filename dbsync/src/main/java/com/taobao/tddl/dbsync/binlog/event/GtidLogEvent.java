@@ -14,10 +14,10 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 public class GtidLogEvent extends LogEvent {
 
     // / Length of the commit_flag in event encoding
-    public static final int ENCODED_FLAG_LENGTH = 1;
+    public static final int ENCODED_FLAG_LENGTH         = 1;
     // / Length of SID in event encoding
-    public static final int ENCODED_SID_LENGTH  = 16;
-    public static final int LOGICAL_TIMESTAMP_TYPE_CODE  = 2;
+    public static final int ENCODED_SID_LENGTH          = 16;
+    public static final int LOGICAL_TIMESTAMP_TYPE_CODE = 2;
 
     private boolean         commitFlag;
     private UUID            sid;
@@ -49,8 +49,6 @@ public class GtidLogEvent extends LogEvent {
             lastCommitted = buffer.getLong64();
             sequenceNumber = buffer.getLong64();
         }
-
-
 
         // ignore gtid info read
         // sid.copy_from((uchar *)ptr_buffer);
