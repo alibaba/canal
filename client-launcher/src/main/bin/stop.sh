@@ -45,7 +45,7 @@ fi
 
 pid=`cat $pidfile`
 if [ "$pid" == "" ] ; then
-	pid=`get_pid "appName=otter-canal"`
+	pid=`get_pid "appName=otter-canal-client"`
 fi
 
 echo -e "`hostname`: stopping canal $pid ... "
@@ -54,7 +54,7 @@ kill $pid
 LOOPS=0
 while (true); 
 do 
-	gpid=`get_pid "appName=otter-canal" "$pid"`
+	gpid=`get_pid "appName=otter-canal-client" "$pid"`
     if [ "$gpid" == "" ] ; then
     	echo "Oook! cost:$LOOPS"
     	`rm $pidfile`
