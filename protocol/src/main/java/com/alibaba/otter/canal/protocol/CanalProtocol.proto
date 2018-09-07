@@ -1,3 +1,4 @@
+syntax = "proto2";
 package com.alibaba.otter.canal.protocol;
 
 option java_package = "com.alibaba.otter.canal.protocol";
