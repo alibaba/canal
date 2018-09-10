@@ -3,11 +3,12 @@ package com.alibaba.otter.canal.deployer;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import com.alibaba.otter.canal.kafka.CanalKafkaStarter;
-import com.alibaba.otter.canal.server.CanalServerStarter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.kafka.CanalKafkaStarter;
+import com.alibaba.otter.canal.server.CanalServerStarter;
 
 /**
  * canal独立版本启动的入口类
@@ -55,12 +56,13 @@ public class CanalLauncher {
             });
 
             CanalServerStarter canalServerStarter = null;
-            String serverMode = properties.getProperty(CanalConstants.CANAL_SERVER_MODE, "tcp");
+            String serverMode = controller.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
             if (serverMode.equalsIgnoreCase("kafka")) {
                 canalServerStarter = new CanalKafkaStarter();
             } else if (serverMode.equalsIgnoreCase("rocketMQ")) {
                 // 预留rocketMQ启动
             }
+
             if (canalServerStarter != null) {
                 canalServerStarter.init();
             }

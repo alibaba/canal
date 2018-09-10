@@ -19,11 +19,13 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlMultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
@@ -235,12 +237,14 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         if (parallel) {
                             // build stage processor
                             multiStageCoprocessor = buildMultiStageCoprocessor();
-                            multiStageCoprocessor.start();
-
                             if (isGTIDMode()) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
-                                erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), multiStageCoprocessor);
+                                GTIDSet gtidSet = MysqlGTIDSet.parse(startPosition.getGtid());
+                                ((MysqlMultiStageCoprocessor) multiStageCoprocessor).setGtidSet(gtidSet);
+                                multiStageCoprocessor.start();
+                                erosaConnection.dump(gtidSet, multiStageCoprocessor);
                             } else {
+                                multiStageCoprocessor.start();
                                 if (StringUtils.isEmpty(startPosition.getJournalName())
                                     && startPosition.getTimestamp() != null) {
                                     erosaConnection.dump(startPosition.getTimestamp(), multiStageCoprocessor);

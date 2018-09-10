@@ -20,12 +20,12 @@ public class MysqlBinlogDumpPerformanceTest {
 
     public static void main(String args[]) {
         final MysqlEventParser controller = new MysqlEventParser();
-        final EntryPosition startPosition = new EntryPosition("mysql-bin.001699", 120L, 100L);
+        final EntryPosition startPosition = new EntryPosition("mysql-bin.000007", 89796293L, 100L);
         controller.setConnectionCharset(Charset.forName("UTF-8"));
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
         controller.setFilterQueryDml(true);
-        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3328), "root", "hello"));
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("100.81.154.142", 3306), "canal", "canal"));
         controller.setMasterPosition(startPosition);
         controller.setEnableTsdb(false);
         controller.setDestination("example");

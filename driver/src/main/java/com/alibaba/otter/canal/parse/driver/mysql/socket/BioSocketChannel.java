@@ -138,6 +138,16 @@ public class BioSocketChannel implements SocketChannel {
         if (socket != null) {
             return socket.getRemoteSocketAddress();
         }
+
+        return null;
+    }
+
+    public SocketAddress getLocalSocketAddress() {
+        Socket socket = this.socket;
+        if (socket != null) {
+            return socket.getLocalSocketAddress();
+        }
+
         return null;
     }
 

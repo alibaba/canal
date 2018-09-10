@@ -4,6 +4,7 @@ import static com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetche
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -179,6 +180,8 @@ public class MysqlConnection implements ErosaConnection {
             fetcher.start(connector.getChannel());
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
+            // fix bug: #890 将gtid传输至context中，供decode使用
+            context.setGtidSet(gtidSet);
             while (fetcher.fetch()) {
                 accumulateReceivedBytes(fetcher.limit());
                 LogEvent event = null;
@@ -252,10 +255,18 @@ public class MysqlConnection implements ErosaConnection {
 
     private void sendRegisterSlave() throws IOException {
         RegisterSlaveCommandPacket cmd = new RegisterSlaveCommandPacket();
-        cmd.reportHost = authInfo.getAddress().getAddress().getHostAddress();
+        SocketAddress socketAddress = connector.getChannel().getLocalSocketAddress();
+        if (socketAddress == null || !(socketAddress instanceof InetSocketAddress)) {
+            return;
+        }
+
+        InetSocketAddress address = (InetSocketAddress) socketAddress;
+        String host = address.getHostString();
+        int port = address.getPort();
+        cmd.reportHost = host;
+        cmd.reportPort = port;
         cmd.reportPasswd = authInfo.getPassword();
         cmd.reportUser = authInfo.getUsername();
-        cmd.reportPort = authInfo.getAddress().getPort(); // 暂时先用master节点的port
         cmd.serverId = this.slaveId;
         byte[] cmdBody = cmd.toBytes();
 

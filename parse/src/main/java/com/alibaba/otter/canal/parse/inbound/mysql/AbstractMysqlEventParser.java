@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
@@ -76,13 +75,6 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
      * @return
      */
     protected boolean processTableMeta(EntryPosition position) {
-        if (isGTIDMode()) {
-            if (binlogParser instanceof LogEventConvert) {
-                // 记录gtid
-                ((LogEventConvert) binlogParser).setGtidSet(MysqlGTIDSet.parse(position.getGtid()));
-            }
-        }
-
         if (tableMetaTSDB != null) {
             if (position.getTimestamp() == null || position.getTimestamp() <= 0) {
                 throw new CanalParseException("use gtid and TableMeta TSDB should be config timestamp > 0");

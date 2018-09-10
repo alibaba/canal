@@ -7,6 +7,7 @@ import java.util.concurrent.locks.LockSupport;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer;
@@ -63,6 +64,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private String                       destination;
     private volatile CanalParseException exception;
     private AtomicLong                   eventsPublishBlockingTime;
+    private GTIDSet                      gtidSet;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination){
@@ -81,8 +83,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             ringBufferSize,
             new BlockingWaitStrategy());
         int tc = parserThreadCount > 0 ? parserThreadCount : 1;
-        this.parserExecutor = Executors.newFixedThreadPool(tc,
-            new NamedThreadFactory("MultiStageCoprocessor-Parser-" + destination));
+        this.parserExecutor = Executors.newFixedThreadPool(tc, new NamedThreadFactory("MultiStageCoprocessor-Parser-"
+                                                                                      + destination));
 
         this.stageExecutor = Executors.newFixedThreadPool(2, new NamedThreadFactory("MultiStageCoprocessor-other-"
                                                                                     + destination));
@@ -227,6 +229,9 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         public SimpleParserStage(){
             decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             context = new LogContext();
+            if (gtidSet != null) {
+                context.setGtidSet(gtidSet);
+            }
         }
 
         public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
@@ -447,4 +452,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         this.eventsPublishBlockingTime = eventsPublishBlockingTime;
     }
 
+    public void setGtidSet(GTIDSet gtidSet) {
+        this.gtidSet = gtidSet;
+    }
 }
