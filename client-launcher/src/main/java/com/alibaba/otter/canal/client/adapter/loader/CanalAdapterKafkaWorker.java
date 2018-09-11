@@ -33,7 +33,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
         this.topic = topic;
         this.canalDestination = topic;
         connector = KafkaCanalConnectors.newKafkaConnector(zkServers, bootstrapServers, topic, null, groupId);
-        // connector.setSessionTimeout(5L, TimeUnit.MINUTES);
+        connector.setSessionTimeout(5L, TimeUnit.MINUTES);
 
         // super.initSwitcher(topic);
     }
