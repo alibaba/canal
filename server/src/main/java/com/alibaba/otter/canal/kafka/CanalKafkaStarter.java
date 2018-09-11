@@ -147,6 +147,12 @@ public class CanalKafkaStarter implements CanalServerStarter {
                                     server.rollback(clientIdentity, batchId);
                                 }
                             }); // 发送message到topic
+                        } else {
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                // ignore
+                            }
                         }
 
                     } catch (Exception e) {
