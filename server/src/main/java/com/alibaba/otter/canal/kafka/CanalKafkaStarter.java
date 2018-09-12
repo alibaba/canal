@@ -149,7 +149,7 @@ public class CanalKafkaStarter implements CanalServerStarter {
                             }); // 发送message到topic
                         } else {
                             try {
-                                Thread.sleep(1000);
+                                Thread.sleep(100);
                             } catch (InterruptedException e) {
                                 // ignore
                             }
