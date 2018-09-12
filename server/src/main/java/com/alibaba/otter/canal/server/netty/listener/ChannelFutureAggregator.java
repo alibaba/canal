@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.server.netty.listener;
 
 import com.alibaba.otter.canal.protocol.CanalPacket;
 import com.google.common.base.Preconditions;
-import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 
@@ -16,19 +16,19 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
 
     private ClientRequestResult result;
 
-    public ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency, boolean empty) {
+    public ChannelFutureAggregator(String destination, GeneratedMessageV3 request, CanalPacket.PacketType type, int amount, long latency, boolean empty) {
         this(destination, request, type, amount, latency, empty, (short) 0);
     }
 
-    public ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency) {
+    public ChannelFutureAggregator(String destination, GeneratedMessageV3 request, CanalPacket.PacketType type, int amount, long latency) {
         this(destination, request, type, amount, latency, false, (short) 0);
     }
 
-    public ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency, short errorCode) {
+    public ChannelFutureAggregator(String destination, GeneratedMessageV3 request, CanalPacket.PacketType type, int amount, long latency, short errorCode) {
         this(destination, request, type, amount, latency, false, errorCode);
     }
 
-    private ChannelFutureAggregator(String destination, GeneratedMessage request, CanalPacket.PacketType type, int amount, long latency, boolean empty, short errorCode) {
+    private ChannelFutureAggregator(String destination, GeneratedMessageV3 request, CanalPacket.PacketType type, int amount, long latency, boolean empty, short errorCode) {
         this.result = new ClientRequestResult.Builder()
                 .destination(destination)
                 .type(type)
@@ -56,7 +56,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
 
         private String                 destination;
         private CanalPacket.PacketType type;
-        private GeneratedMessage       request;
+        private GeneratedMessageV3       request;
         private int                    amount;
         private long                   latency;
         private short                  errorCode;
@@ -81,7 +81,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
 
             private String                 destination;
             private CanalPacket.PacketType type;
-            private GeneratedMessage       request;
+            private GeneratedMessageV3       request;
             private int                    amount;
             private long                   latency;
             private short                  errorCode;
@@ -98,7 +98,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
                 return this;
             }
 
-            Builder request(GeneratedMessage request) {
+            Builder request(GeneratedMessageV3 request) {
                 this.request = request;
                 return this;
             }
@@ -153,7 +153,7 @@ public class ChannelFutureAggregator implements ChannelFutureListener {
             return type;
         }
 
-        public GeneratedMessage getRequest() {
+        public GeneratedMessageV3 getRequest() {
             return request;
         }
 
