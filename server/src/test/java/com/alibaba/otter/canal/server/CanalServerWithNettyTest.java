@@ -66,6 +66,8 @@ public class CanalServerWithNettyTest {
 
     @Test
     public void testAuth() {
+
+
         try {
             SocketChannel channel = SocketChannel.open();
             channel.connect(new InetSocketAddress("127.0.0.1", 1088));
@@ -80,7 +82,7 @@ public class CanalServerWithNettyTest {
             }
             //
             Handshake handshake = Handshake.parseFrom(p.getBody());
-            System.out.println(handshake.getSupportedCompressionsList());
+            System.out.println(handshake.getSupportedCompressions());
             //
             ClientAuth ca = ClientAuth.newBuilder()
                 .setUsername("")
