@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
+import com.alibaba.otter.canal.parse.exception.PositionErrorException;
 import com.taobao.tddl.dbsync.binlog.LogFetcher;
 
 /**
@@ -99,7 +100,7 @@ public class DirectLogFetcher extends LogFetcher {
                     final int errno = getInt16();
                     String sqlstate = forward(1).getFixString(SQLSTATE_LENGTH);
                     String errmsg = getFixString(limit - position);
-                    throw new IOException("Received error packet:" + " errno = " + errno + ", sqlstate = " + sqlstate
+                    throw new PositionErrorException("Received error packet:" + " errno = " + errno + ", sqlstate = " + sqlstate
                                           + " errmsg = " + errmsg);
                 } else if (mark == 254) {
                     // Indicates end of stream. It's not clear when this would

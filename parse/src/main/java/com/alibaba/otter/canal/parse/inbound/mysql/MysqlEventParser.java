@@ -351,7 +351,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             // GTID模式下，CanalLogPositionManager里取最后的gtid，没有则取instanc配置中的
             LogPosition logPosition = getLogPositionManager().getLatestIndexBy(destination);
             if (logPosition != null) {
-                return logPosition.getPostion();
+            	if (isOverThanFixTime(connection)) {
+            		return new EntryPosition("mysql-bin.000001", 154L);
+            	} else {
+            		return logPosition.getPostion();
+            	}
             }
 
             if (StringUtils.isNotEmpty(masterPosition.getGtid())) {
@@ -373,7 +377,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
         return startPosition;
     }
-
+    
     protected EntryPosition findEndPosition(ErosaConnection connection) throws IOException {
         MysqlConnection mysqlConnection = (MysqlConnection) connection;
         EntryPosition endPosition = findEndPosition(mysqlConnection);
@@ -418,7 +422,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     protected EntryPosition findStartPositionInternal(ErosaConnection connection) {
         MysqlConnection mysqlConnection = (MysqlConnection) connection;
         LogPosition logPosition = logPositionManager.getLatestIndexBy(destination);
-        if (logPosition == null) {// 找不到历史成功记录
+        
+        if (isOverThanFixTime(connection)) {
+        	positionErrorTimeMap.remove(runningInfo.getAddress().getHostString());
+        	return new EntryPosition("mysql-bin.000001", 154L);
+        } else if (logPosition == null) {// 找不到历史成功记录
             EntryPosition entryPosition = null;
             if (masterInfo != null && mysqlConnection.getConnector().getAddress().equals(masterInfo.getAddress())) {
                 entryPosition = masterPosition;
@@ -510,6 +518,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
+    private boolean isOverThanFixTime(ErosaConnection connection) {
+    	if (this.isPositionErrorEnable()) {
+    		String ip = runningInfo.getAddress().getHostString();
+    		return positionErrorTimeMap.containsKey(ip) && (int)positionErrorTimeMap.get(ip) > this.getPositionErrorTime();
+    	}
+    	return false;
+    }
+    
     // 根据想要的position，可能这个position对应的记录为rowdata，需要找到事务头，避免丢数据
     // 主要考虑一个事务执行时间可能会几秒种，如果仅仅按照timestamp相同，则可能会丢失事务的前半部分数据
     private Long findTransactionBeginPosition(ErosaConnection mysqlConnection, final EntryPosition entryPosition)

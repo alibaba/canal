@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.parse.inbound;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,6 +23,7 @@ import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.exception.PositionErrorException;
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
@@ -37,6 +39,7 @@ import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import com.google.common.collect.Maps;
 
 /**
  * 抽象的EventParser, 最大化共用mysql/oracle版本的实现
@@ -100,9 +103,14 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected ParserExceptionHandler                 parserExceptionHandler;
     protected long                                   serverId;
 
+    // 数据库在重装或者执行reset master情况下,会导致寻找位置失败,原因是从zk中获取的位置,mysql中却没有
+    protected boolean                                positionErrorEnable          = false;                                   // 默认关闭
+    protected int                                    positionErrorTime            = 5;                                       // 解析binlog日志错误的次数
+    protected Map<String, Integer>                   positionErrorTimeMap         = Maps.newConcurrentMap();                 // 记录错误的次数和ip的对应关系
+    
     protected abstract BinlogParser buildParser();
 
-    protected abstract ErosaConnection buildErosaConnection();
+	protected abstract ErosaConnection buildErosaConnection();
 
     protected abstract MultiStageCoprocessor buildMultiStageCoprocessor();
 
@@ -276,22 +284,19 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         needTransactionPosition.compareAndSet(false, true);
                         logger.error(String.format("dump address %s has an error, retrying. caused by ",
                             runningInfo.getAddress().toString()), e);
+                    } catch (PositionErrorException e) {
+                    	if (isPositionErrorEnable()) {
+                    		// 记录相同ip出现位置错误的次数
+                    		String ip = runningInfo.getAddress().getHostString();
+                    		if (positionErrorTimeMap.containsKey(ip)) {
+                    			positionErrorTimeMap.put(ip, positionErrorTimeMap.get(ip) + 1);
+                    		} else {
+                    			positionErrorTimeMap.put(ip, 1);
+                    		}
+                    	} 
+                    	exceptionHandle(e);
                     } catch (Throwable e) {
-                        processDumpError(e);
-                        exception = e;
-                        if (!running) {
-                            if (!(e instanceof java.nio.channels.ClosedByInterruptException || e.getCause() instanceof java.nio.channels.ClosedByInterruptException)) {
-                                throw new CanalParseException(String.format("dump address %s has an error, retrying. ",
-                                    runningInfo.getAddress().toString()), e);
-                            }
-                        } else {
-                            logger.error(String.format("dump address %s has an error, retrying. caused by ",
-                                runningInfo.getAddress().toString()), e);
-                            sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
-                        }
-                        if (parserExceptionHandler != null) {
-                            parserExceptionHandler.handle(e);
-                        }
+                        exceptionHandle(e);
                     } finally {
                         // 重新置为中断状态
                         Thread.interrupted();
@@ -336,6 +341,24 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                 }
                 MDC.remove("destination");
             }
+
+			private void exceptionHandle(Throwable e) {
+				processDumpError(e);
+				exception = e;
+				if (!running) {
+				    if (!(e instanceof java.nio.channels.ClosedByInterruptException || e.getCause() instanceof java.nio.channels.ClosedByInterruptException)) {
+				        throw new CanalParseException(String.format("dump address %s has an error, retrying. ",
+				            runningInfo.getAddress().toString()), e);
+				    }
+				} else {
+				    logger.error(String.format("dump address %s has an error, retrying. caused by ",
+				        runningInfo.getAddress().toString()), e);
+				    sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
+				}
+				if (parserExceptionHandler != null) {
+				    parserExceptionHandler.handle(e);
+				}
+			}
         });
 
         parseThread.setUncaughtExceptionHandler(handler);
@@ -646,4 +669,19 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.serverId = serverId;
     }
 
+    public boolean isPositionErrorEnable() {
+		return positionErrorEnable;
+	}
+
+	public void setPositionErrorEnable(boolean positionErrorEnable) {
+		this.positionErrorEnable = positionErrorEnable;
+	}
+
+	public int getPositionErrorTime() {
+		return positionErrorTime;
+	}
+
+	public void setPositionErrorTime(int positionErrorTime) {
+		this.positionErrorTime = positionErrorTime;
+	}
 }

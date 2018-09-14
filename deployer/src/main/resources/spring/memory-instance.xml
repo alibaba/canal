@@ -152,5 +152,9 @@
 		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
 		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
+		
+		<!-- position error config -->
+		<property name="positionErrorEnable" value="${canal.instance.position.error.check:false}" />
+		<property name="positionErrorTime" value="${canal.instance.position.error.check.time:5}" />
 	</bean>
 </beans>

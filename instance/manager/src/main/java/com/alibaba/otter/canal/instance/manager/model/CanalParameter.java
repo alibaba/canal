@@ -111,6 +111,8 @@ public class CanalParameter implements Serializable {
     private String                   standbyLogfileName                 = null;                      // standby起始位置
     private Long                     standbyLogfileOffest               = null;
     private Long                     standbyTimestamp                   = null;
+    private boolean                  positionErrorEnable                = false;                                   // 默认关闭
+    private int                      positionErrorTime                  = 5;  
 
     public static enum RunMode {
 
@@ -922,4 +924,20 @@ public class CanalParameter implements Serializable {
     public String toString() {
         return ToStringBuilder.reflectionToString(this, CanalToStringStyle.DEFAULT_STYLE);
     }
+
+	public boolean isPositionErrorEnable() {
+		return positionErrorEnable;
+	}
+
+	public void setPositionErrorEnable(boolean positionErrorEnable) {
+		this.positionErrorEnable = positionErrorEnable;
+	}
+
+	public int getPositionErrorTime() {
+		return positionErrorTime;
+	}
+
+	public void setPositionErrorTime(int positionErrorTime) {
+		this.positionErrorTime = positionErrorTime;
+	}
 }
