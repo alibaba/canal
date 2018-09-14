@@ -1,3 +1,4 @@
+syntax = "proto3";
 package com.alibaba.otter.canal.protocol;
 
 option java_package = "com.alibaba.otter.canal.protocol";
@@ -5,6 +6,7 @@ option java_outer_classname = "CanalPacket";
 option optimize_for = SPEED;
 
 enum Compression {
+    COMPRESSIONCOMPATIBLEPROTO2 = 0;
     NONE = 1;
     ZLIB = 2;
     GZIP = 3;
@@ -12,6 +14,8 @@ enum Compression {
 }
 
 enum PacketType {
+    //compatible
+    PACKAGETYPECOMPATIBLEPROTO2 = 0;
     HANDSHAKE = 1;
     CLIENTAUTHENTICATION = 2;
     ACK = 3;
@@ -29,86 +33,122 @@ enum PacketType {
 }
 
 message Packet {
-    optional int32 magic_number = 1 [default = 17];
-    optional int32 version = 2 [default = 1];
-    optional PacketType type = 3;
-    optional Compression compression = 4 [default = NONE];
-    optional bytes body = 5;
+     //[default = 17];
+     oneof magic_number_present {
+         int32 magic_number = 1;
+     }
+     //[default = 1];
+     oneof version_present {
+          int32 version = 2;
+     };
+     PacketType type = 3;
+     //[default = NONE];
+     oneof compression_present {
+          Compression compression = 4;
+     }
+
+     bytes body = 5;
 }
 
 message HeartBeat {
-    optional int64 send_timestamp = 1;
-    optional int64 start_timestamp = 2;
+     int64 send_timestamp = 1;
+     int64 start_timestamp = 2;
 }
 
 message Handshake {
-    optional string communication_encoding = 1 [default = "utf8"];
-    optional bytes seeds = 2;
-    repeated Compression supported_compressions = 3;
+    //  [default = "utf8"];
+    oneof communication_encoding_present {
+        string communication_encoding = 1;
+    }
+     bytes seeds = 2;
+     Compression supported_compressions = 3;
 }
 
 // client authentication
 message ClientAuth {
-    optional string username = 1;
-    optional bytes password = 2; // hashed password with seeds from Handshake message
-    optional int32 net_read_timeout = 3 [default = 0]; // in seconds
-    optional int32 net_write_timeout = 4 [default = 0]; // in seconds
-    optional string destination = 5;
-    optional string client_id = 6;
-    optional string filter = 7;
-    optional int64 start_timestamp = 8;
+    string username = 1;
+    bytes password = 2; // hashed password with seeds from Handshake message
+    // [default = 0]
+    oneof net_read_timeout_present {
+         int32 net_read_timeout = 3; // in seconds
+    }
+    // [default = 0];
+    oneof net_write_timeout_present {
+        int32 net_write_timeout = 4; // in seconds
+    }
+    string destination = 5;
+    string client_id = 6;
+    string filter = 7;
+    int64 start_timestamp = 8;
 }
 
 message Ack {
-    optional int32 error_code = 1 [default = 0];
-    optional string error_message = 2; // if something like compression is not supported, erorr_message will tell about it.
+    //[default = 0]
+    oneof error_code_present {
+        int32 error_code = 1;
+    }
+    string error_message = 2; // if something like compression is not supported, erorr_message will tell about it.
 }
 
 message ClientAck {
-    optional string destination = 1;
-    optional string client_id = 2;
-    optional int64 batch_id = 3;
+    string destination = 1;
+    string client_id = 2;
+    int64 batch_id = 3;
 }
 
 // subscription
 message Sub {
-    optional string destination = 1;
-    optional string client_id = 2;
-    optional string filter = 7;
+    string destination = 1;
+    string client_id = 2;
+    string filter = 7;
 }
 
 // Unsubscription
 message Unsub {
-    optional string destination = 1;
-    optional string client_id = 2;
-    optional string filter = 7;
+    string destination = 1;
+    string client_id = 2;
+    string filter = 7;
 }
 
 //  PullRequest
 message Get {
-    optional string destination = 1;
-    optional string client_id = 2;
-    optional int32 fetch_size = 3;
-    optional int64 timeout = 4 [default = -1]; // 默认-1时代表不控制
-    optional int32 unit = 5 [default = 2];// 数字类型，0:纳秒,1:毫秒,2:微秒,3:秒,4:分钟,5:小时,6:天
-    optional bool auto_ack = 6 [default = false]; // 是否自动ack
+    string destination = 1;
+    string client_id = 2;
+    int32 fetch_size = 3;
+    //[default = -1]
+    oneof timeout_present {
+        int64 timeout = 4; // 默认-1时代表不控制
+    }
+    //[default = 2]
+    oneof unit_present {
+        int32 unit = 5;// 数字类型，0:纳秒,1:毫秒,2:微秒,3:秒,4:分钟,5:小时,6:天
+    }
+    //[default = false]
+    oneof auto_ack_present {
+        bool auto_ack = 6; // 是否自动ack
+    }
+
 }
 
 //
 message Messages {
-	optional int64 batch_id = 1;
+	int64 batch_id = 1;
     repeated bytes messages = 2;
 }
 
 // TBD when new packets are required
 message Dump{
-    optional string journal = 1;
-    optional int64  position = 2;
-    optional int64 timestamp = 3 [default = 0];
+    string journal = 1;
+    int64  position = 2;
+    // [default = 0]
+    oneof timestamp_present {
+        int64 timestamp = 3;
+    }
+
 }
 
 message ClientRollback{
-    optional string destination = 1;
-    optional string client_id = 2;
-    optional int64 batch_id = 3;
+    string destination = 1;
+    string client_id = 2;
+    int64 batch_id = 3;
 }

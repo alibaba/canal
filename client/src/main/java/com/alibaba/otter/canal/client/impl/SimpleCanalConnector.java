@@ -159,7 +159,7 @@ public class SimpleCanalConnector implements CanalConnector {
             }
             //
             Handshake handshake = Handshake.parseFrom(p.getBody());
-            supportedCompressions.addAll(handshake.getSupportedCompressionsList());
+            supportedCompressions.add(handshake.getSupportedCompressions());
             //
             ClientAuth ca = ClientAuth.newBuilder()
                 .setUsername(username != null ? username : "")
