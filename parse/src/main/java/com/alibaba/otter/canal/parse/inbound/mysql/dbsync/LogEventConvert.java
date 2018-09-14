@@ -545,7 +545,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 rowsCount++;
                 rowChangeBuider.addRowDatas(rowDataBuilder.build());
             }
-
             TableMapLogEvent table = event.getTable();
             Header header = createHeader(event.getHeader(),
                 table.getDbName(),
@@ -834,8 +833,24 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
         headerBuilder.setEventLength(logHeader.getEventLen());
         // enable gtid position
-        if (StringUtils.isNotEmpty(logHeader.getGtidStr())) {
-            headerBuilder.setGtid(logHeader.getGtidStr());
+        if (StringUtils.isNotEmpty(logHeader.getGtidSetStr())) {
+            headerBuilder.setGtid(logHeader.getGtidSetStr());
+        }
+        // add current gtid
+        if (StringUtils.isNotEmpty(logHeader.getCurrentGtid())) {
+            Pair pair = createSpecialPair("curtGtid", logHeader.getCurrentGtid());
+            headerBuilder.addProps(pair);
+        }
+        // add current gtid sequence no
+        if (StringUtils.isNotEmpty(logHeader.getCurrentGtidSn())) {
+            Pair pair = createSpecialPair("curtGtidSn", logHeader.getCurrentGtidSn());
+            headerBuilder.addProps(pair);
+        }
+
+        // add current gtid last committed
+        if (StringUtils.isNotEmpty(logHeader.getCurrentGtidLastCommit())) {
+            Pair pair = createSpecialPair("curtGtidLct", logHeader.getCurrentGtidLastCommit());
+            headerBuilder.addProps(pair);
         }
 
         // add rowsCount suppport
