@@ -21,6 +21,7 @@ public class KafkaProperties {
     private boolean                filterTransactionEntry = true;
     private int                    canalBatchSize         = 50;
     private Long                   canalGetTimeout;
+    private boolean                flatMessage            = true;
 
     private List<CanalDestination> canalDestinations      = new ArrayList<CanalDestination>();
 
@@ -158,6 +159,14 @@ public class KafkaProperties {
 
     public void setCanalGetTimeout(Long canalGetTimeout) {
         this.canalGetTimeout = canalGetTimeout;
+    }
+
+    public boolean getFlatMessage() {
+        return flatMessage;
+    }
+
+    public void setFlatMessage(boolean flatMessage) {
+        this.flatMessage = flatMessage;
     }
 
     public List<CanalDestination> getCanalDestinations() {

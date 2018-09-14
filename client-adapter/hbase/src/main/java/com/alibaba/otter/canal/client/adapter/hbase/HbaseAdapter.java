@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -86,20 +87,14 @@ public class HbaseAdapter implements CanalOuterAdapter {
     }
 
     @Override
-    public void writeOut(Message message) {
-        MessageUtil.parse4Dml(message, new MessageUtil.Consumer<Dml>() {
-
-            @Override
-            public void accept(Dml dml) {
-                if (dml == null) {
-                    return;
-                }
-                String database = dml.getDatabase();
-                String table = dml.getTable();
-                MappingConfig config = mappingConfigCache.get(database + "-" + table);
-                hbaseSyncService.sync(config, dml);
-            }
-        });
+    public void writeOut(Dml dml) {
+        if (dml == null) {
+            return;
+        }
+        String database = dml.getDatabase();
+        String table = dml.getTable();
+        MappingConfig config = mappingConfigCache.get(database + "-" + table);
+        hbaseSyncService.sync(config, dml);
     }
 
     @Override

@@ -20,6 +20,8 @@ public class CanalClientConfig {
 
     private String              bootstrapServers;
 
+    private Boolean             flatMessage = true;
+
     private List<KafkaTopic>    kafkaTopics;
 
     private List<CanalInstance> canalInstances;
@@ -54,6 +56,14 @@ public class CanalClientConfig {
 
     public void setBootstrapServers(String bootstrapServers) {
         this.bootstrapServers = bootstrapServers;
+    }
+
+    public Boolean getFlatMessage() {
+        return flatMessage;
+    }
+
+    public void setFlatMessage(Boolean flatMessage) {
+        this.flatMessage = flatMessage;
     }
 
     public List<KafkaTopic> getKafkaTopics() {

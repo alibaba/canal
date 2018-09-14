@@ -59,6 +59,8 @@ public class CanalAdapterLoader {
         }
         String zkHosts = this.canalClientConfig.getZookeeperHosts();
 
+        boolean flatMessage = this.canalClientConfig.getFlatMessage();
+
         // if (zkHosts == null && sa == null) {
         // throw new RuntimeException("Blank config property: canalServerHost or
         // zookeeperHosts");
@@ -104,11 +106,12 @@ public class CanalAdapterLoader {
                     canalOuterAdapterGroups.add(canalOuterAdapters);
 
                     // String zkServers = canalClientConfig.getZookeeperHosts();
-                    CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(zkHosts,
+                    CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(
                         canalClientConfig.getBootstrapServers(),
                         kafkaTopic.getTopic(),
                         group.getGroupId(),
-                        canalOuterAdapterGroups);
+                        canalOuterAdapterGroups,
+                        flatMessage);
                     canalKafkaWorkers.put(kafkaTopic.getTopic() + "-" + group.getGroupId(), canalKafkaWorker);
                     canalKafkaWorker.start();
                     logger.info("Start adapter for canal-client kafka topic: {} succeed",

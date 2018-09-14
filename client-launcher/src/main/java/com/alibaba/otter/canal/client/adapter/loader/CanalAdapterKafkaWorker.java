@@ -12,6 +12,7 @@ import org.apache.kafka.common.errors.WakeupException;
 import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnectors;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -26,14 +27,17 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
 
     private String              topic;
 
-    public CanalAdapterKafkaWorker(String zkServers, String bootstrapServers, String topic, String groupId,
-                                   List<List<CanalOuterAdapter>> canalOuterAdapters){
+    private boolean             flatMessage;
+
+    public CanalAdapterKafkaWorker(String bootstrapServers, String topic, String groupId,
+                                   List<List<CanalOuterAdapter>> canalOuterAdapters, boolean flatMessage){
         this.canalOuterAdapters = canalOuterAdapters;
         this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         this.topic = topic;
         this.canalDestination = topic;
-        connector = KafkaCanalConnectors.newKafkaConnector(zkServers, bootstrapServers, topic, null, groupId);
-        connector.setSessionTimeout(5L, TimeUnit.MINUTES);
+        this.flatMessage = flatMessage;
+        connector = KafkaCanalConnectors.newKafkaConnector(bootstrapServers, topic, null, groupId, flatMessage);
+        // connector.setSessionTimeout(1L, TimeUnit.MINUTES);
 
         // super.initSwitcher(topic);
     }
@@ -104,56 +108,47 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                     try {
                         // switcher.get(); //等待开关开启
 
-                        final Message message = connector.getWithoutAck();
+                        List<?> messages;
+                        if (!flatMessage) {
+                            messages = connector.getWithoutAck();
+                        } else {
+                            messages = connector.getFlatMessageWithoutAck(100L, TimeUnit.MILLISECONDS);
+                        }
+                        if (messages != null) {
+                            for (final Object message : messages) {
+                                executing.set(true);
+                                if (message != null) {
+                                    executor.submit(new Runnable() {
 
-                        executing.set(true);
-                        if (message != null) {
-                            executor.submit(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                if (message instanceof FlatMessage) {
+                                                    writeOut((FlatMessage) message);
+                                                } else {
+                                                    writeOut((Message) message);
+                                                }
+                                            } catch (Exception e) {
+                                                logger.error(e.getMessage(), e);
+                                            } finally {
+                                                executing.compareAndSet(true, false);
+                                            }
+                                        }
+                                    });
 
-                                @Override
-                                public void run() {
-                                    try {
-                                        if (logger.isDebugEnabled()) {
-                                            logger.debug("topic: {} batchId: {} batchSize: {} ",
-                                                topic,
-                                                message.getId(),
-                                                message.getEntries().size());
+                                    // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
+                                    long currentTS = System.currentTimeMillis();
+                                    while (executing.get()) {
+                                        // 大于10秒未消费完ack一次keep alive
+                                        if (System.currentTimeMillis() - currentTS > 10000) {
+                                            connector.ack();
+                                            currentTS = System.currentTimeMillis();
                                         }
-                                        long begin = System.currentTimeMillis();
-                                        writeOut(message);
-                                        long now = System.currentTimeMillis();
-                                        if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
-                                            logger.error("topic: {} batchId {} elapsed time: {} ms",
-                                                topic,
-                                                message.getId(),
-                                                now - begin);
-                                        }
-                                        if (logger.isDebugEnabled()) {
-                                            logger.debug("topic: {} batchId {} elapsed time: {} ms",
-                                                topic,
-                                                message.getId(),
-                                                now - begin);
-                                        }
-                                    } catch (Exception e) {
-                                        logger.error(e.getMessage(), e);
-                                    } finally {
-                                        executing.compareAndSet(true, false);
                                     }
                                 }
-                            });
-
-                            // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
-                            long currentTS = System.currentTimeMillis();
-                            while (executing.get()) {
-                                // 大于1分钟未消费完ack一次keep alive
-                                if (System.currentTimeMillis() - currentTS > 60000) {
-                                    connector.ack();
-                                    currentTS = System.currentTimeMillis();
-                                }
                             }
-                        } else {
-                            connector.ack();
                         }
+                        connector.ack();
                     } catch (CommitFailedException e) {
                         logger.warn(e.getMessage());
                     } catch (Exception e) {
@@ -161,19 +156,23 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                         TimeUnit.SECONDS.sleep(1L);
                     }
                 }
-            } catch (Exception e) {
+            } catch (
+
+            Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
 
         executor.shutdown();
 
-        try {
+        try
+
+        {
             connector.unsubscribe();
         } catch (WakeupException e) {
             // No-op. Continue process
         }
-        connector.disconnnect();
+        connector.disconnect();
         logger.info("=============> Disconnect topic: {} <=============", this.topic);
     }
 }
