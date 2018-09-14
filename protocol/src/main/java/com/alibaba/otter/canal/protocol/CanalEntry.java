@@ -22,7 +22,11 @@ public final class CanalEntry {
    * Protobuf enum {@code com.alibaba.otter.canal.protocol.EntryType}
    */
   public enum EntryType
-      implements com.google.protobuf.ProtocolMessageEnum {
+          implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>ENTRYTYPECOMPATIBLEPROTO2 = 0;</code>
+     */
+    ENTRYTYPECOMPATIBLEPROTO2(0),
     /**
      * <code>TRANSACTIONBEGIN = 1;</code>
      */
@@ -47,8 +51,13 @@ public final class CanalEntry {
      * <code>GTIDLOG = 5;</code>
      */
     GTIDLOG(5),
+    UNRECOGNIZED(-1),
     ;
 
+    /**
+     * <code>ENTRYTYPECOMPATIBLEPROTO2 = 0;</code>
+     */
+    public static final int ENTRYTYPECOMPATIBLEPROTO2_VALUE = 0;
     /**
      * <code>TRANSACTIONBEGIN = 1;</code>
      */
@@ -76,6 +85,10 @@ public final class CanalEntry {
 
 
     public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+                "Can't get the number of an unknown enum value.");
+      }
       return value;
     }
 
@@ -89,6 +102,7 @@ public final class CanalEntry {
 
     public static EntryType forNumber(int value) {
       switch (value) {
+        case 0: return ENTRYTYPECOMPATIBLEPROTO2;
         case 1: return TRANSACTIONBEGIN;
         case 2: return ROWDATA;
         case 3: return TRANSACTIONEND;
@@ -99,37 +113,40 @@ public final class CanalEntry {
     }
 
     public static com.google.protobuf.Internal.EnumLiteMap<EntryType>
-        internalGetValueMap() {
+    internalGetValueMap() {
       return internalValueMap;
     }
     private static final com.google.protobuf.Internal.EnumLiteMap<
-        EntryType> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<EntryType>() {
-            public EntryType findValueByNumber(int number) {
-              return EntryType.forNumber(number);
-            }
-          };
+            EntryType> internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<EntryType>() {
+              public EntryType findValueByNumber(int number) {
+                return EntryType.forNumber(number);
+              }
+            };
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
+    getValueDescriptor() {
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
+    getDescriptorForType() {
       return getDescriptor();
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
+    getDescriptor() {
       return com.alibaba.otter.canal.protocol.CanalEntry.getDescriptor().getEnumTypes().get(0);
     }
 
     private static final EntryType[] VALUES = values();
 
     public static EntryType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+            com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
+                "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
       }
       return VALUES[desc.getIndex()];
     }
@@ -152,6 +169,10 @@ public final class CanalEntry {
    */
   public enum EventType
       implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>EVENTTYPECOMPATIBLEPROTO2 = 0;</code>
+     */
+    EVENTTYPECOMPATIBLEPROTO2(0),
     /**
      * <code>INSERT = 1;</code>
      */
@@ -224,8 +245,13 @@ public final class CanalEntry {
      * <code>MHEARTBEAT = 15;</code>
      */
     MHEARTBEAT(15),
+    UNRECOGNIZED(-1),
     ;
 
+    /**
+     * <code>EVENTTYPECOMPATIBLEPROTO2 = 0;</code>
+     */
+    public static final int EVENTTYPECOMPATIBLEPROTO2_VALUE = 0;
     /**
      * <code>INSERT = 1;</code>
      */
@@ -301,6 +327,10 @@ public final class CanalEntry {
 
 
     public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
       return value;
     }
 
@@ -314,6 +344,7 @@ public final class CanalEntry {
 
     public static EventType forNumber(int value) {
       switch (value) {
+        case 0: return EVENTTYPECOMPATIBLEPROTO2;
         case 1: return INSERT;
         case 2: return UPDATE;
         case 3: return DELETE;
@@ -366,6 +397,9 @@ public final class CanalEntry {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
       }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
       return VALUES[desc.getIndex()];
     }
 
@@ -388,6 +422,10 @@ public final class CanalEntry {
   public enum Type
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
+     * <code>TYPECOMPATIBLEPROTO2 = 0;</code>
+     */
+    TYPECOMPATIBLEPROTO2(0),
+    /**
      * <code>ORACLE = 1;</code>
      */
     ORACLE(1),
@@ -399,8 +437,13 @@ public final class CanalEntry {
      * <code>PGSQL = 3;</code>
      */
     PGSQL(3),
+    UNRECOGNIZED(-1),
     ;
 
+    /**
+     * <code>TYPECOMPATIBLEPROTO2 = 0;</code>
+     */
+    public static final int TYPECOMPATIBLEPROTO2_VALUE = 0;
     /**
      * <code>ORACLE = 1;</code>
      */
@@ -416,6 +459,10 @@ public final class CanalEntry {
 
 
     public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
       return value;
     }
 
@@ -429,6 +476,7 @@ public final class CanalEntry {
 
     public static Type forNumber(int value) {
       switch (value) {
+        case 0: return TYPECOMPATIBLEPROTO2;
         case 1: return ORACLE;
         case 2: return MYSQL;
         case 3: return PGSQL;
@@ -469,6 +517,9 @@ public final class CanalEntry {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
       }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
       return VALUES[desc.getIndex()];
     }
 
@@ -490,7 +541,7 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      *
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+     * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
      */
     boolean hasHeader();
     /**
@@ -498,7 +549,7 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      *
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+     * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
      */
     com.alibaba.otter.canal.protocol.CanalEntry.Header getHeader();
     /**
@@ -506,24 +557,16 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      *
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+     * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
      */
     com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder getHeaderOrBuilder();
 
     /**
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
      */
-    boolean hasEntryType();
+    int getEntryTypeValue();
     /**
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
      */
     com.alibaba.otter.canal.protocol.CanalEntry.EntryType getEntryType();
 
@@ -532,17 +575,11 @@ public final class CanalEntry {
      **传输的二进制数组*
      * </pre>
      *
-     * <code>optional bytes storeValue = 3;</code>
-     */
-    boolean hasStoreValue();
-    /**
-     * <pre>
-     **传输的二进制数组*
-     * </pre>
-     *
-     * <code>optional bytes storeValue = 3;</code>
+     * <code>bytes storeValue = 3;</code>
      */
     com.google.protobuf.ByteString getStoreValue();
+
+    public com.alibaba.otter.canal.protocol.CanalEntry.Entry.EntryTypePresentCase getEntryTypePresentCase();
   }
   /**
    * <pre>
@@ -564,7 +601,6 @@ public final class CanalEntry {
       super(builder);
     }
     private Entry() {
-      entryType_ = 2;
       storeValue_ = com.google.protobuf.ByteString.EMPTY;
     }
 
@@ -594,36 +630,30 @@ public final class CanalEntry {
               break;
             case 10: {
               com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000001) == 0x00000001)) {
+              if (header_ != null) {
                 subBuilder = header_.toBuilder();
               }
-              header_ = input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Header.PARSER, extensionRegistry);
+              header_ = input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Header.parser(), extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(header_);
                 header_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000001;
+
               break;
             }
             case 16: {
               int rawValue = input.readEnum();
-                @SuppressWarnings("deprecation")
-              com.alibaba.otter.canal.protocol.CanalEntry.EntryType value = com.alibaba.otter.canal.protocol.CanalEntry.EntryType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(2, rawValue);
-              } else {
-                bitField0_ |= 0x00000002;
-                entryType_ = rawValue;
-              }
+              entryTypePresentCase_ = 2;
+              entryTypePresent_ = rawValue;
               break;
             }
             case 26: {
-              bitField0_ |= 0x00000004;
+
               storeValue_ = input.readBytes();
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -654,7 +684,42 @@ public final class CanalEntry {
               com.alibaba.otter.canal.protocol.CanalEntry.Entry.class, com.alibaba.otter.canal.protocol.CanalEntry.Entry.Builder.class);
     }
 
-    private int bitField0_;
+    private int entryTypePresentCase_ = 0;
+    private java.lang.Object entryTypePresent_;
+    public enum EntryTypePresentCase
+        implements com.google.protobuf.Internal.EnumLite {
+      ENTRYTYPE(2),
+      ENTRYTYPEPRESENT_NOT_SET(0);
+      private final int value;
+      private EntryTypePresentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static EntryTypePresentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static EntryTypePresentCase forNumber(int value) {
+        switch (value) {
+          case 2: return ENTRYTYPE;
+          case 0: return ENTRYTYPEPRESENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public EntryTypePresentCase
+    getEntryTypePresentCase() {
+      return EntryTypePresentCase.forNumber(
+          entryTypePresentCase_);
+    }
+
     public static final int HEADER_FIELD_NUMBER = 1;
     private com.alibaba.otter.canal.protocol.CanalEntry.Header header_;
     /**
@@ -662,17 +727,17 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      *
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+     * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
      */
     public boolean hasHeader() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return header_ != null;
     }
     /**
      * <pre>
      **协议头部信息*
      * </pre>
      *
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+     * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
      */
     public com.alibaba.otter.canal.protocol.CanalEntry.Header getHeader() {
       return header_ == null ? com.alibaba.otter.canal.protocol.CanalEntry.Header.getDefaultInstance() : header_;
@@ -682,35 +747,33 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      *
-     * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+     * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
      */
     public com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder getHeaderOrBuilder() {
-      return header_ == null ? com.alibaba.otter.canal.protocol.CanalEntry.Header.getDefaultInstance() : header_;
+      return getHeader();
     }
 
     public static final int ENTRYTYPE_FIELD_NUMBER = 2;
-    private int entryType_;
     /**
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
      */
-    public boolean hasEntryType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+    public int getEntryTypeValue() {
+      if (entryTypePresentCase_ == 2) {
+        return (java.lang.Integer) entryTypePresent_;
+      }
+      return EntryType.ROWDATA_VALUE;
     }
     /**
-     * <pre>
-     **打散后的事件类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
      */
     public com.alibaba.otter.canal.protocol.CanalEntry.EntryType getEntryType() {
-      @SuppressWarnings("deprecation")
-      com.alibaba.otter.canal.protocol.CanalEntry.EntryType result = com.alibaba.otter.canal.protocol.CanalEntry.EntryType.valueOf(entryType_);
-      return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EntryType.ROWDATA : result;
+      if (entryTypePresentCase_ == 2) {
+        @SuppressWarnings("deprecation")
+        com.alibaba.otter.canal.protocol.CanalEntry.EntryType result = com.alibaba.otter.canal.protocol.CanalEntry.EntryType.valueOf(
+            (java.lang.Integer) entryTypePresent_);
+        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EntryType.UNRECOGNIZED : result;
+      }
+      return com.alibaba.otter.canal.protocol.CanalEntry.EntryType.TRANSACTIONBEGIN;
     }
 
     public static final int STOREVALUE_FIELD_NUMBER = 3;
@@ -720,17 +783,7 @@ public final class CanalEntry {
      **传输的二进制数组*
      * </pre>
      *
-     * <code>optional bytes storeValue = 3;</code>
-     */
-    public boolean hasStoreValue() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <pre>
-     **传输的二进制数组*
-     * </pre>
-     *
-     * <code>optional bytes storeValue = 3;</code>
+     * <code>bytes storeValue = 3;</code>
      */
     public com.google.protobuf.ByteString getStoreValue() {
       return storeValue_;
@@ -750,13 +803,13 @@ public final class CanalEntry {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (header_ != null) {
         output.writeMessage(1, getHeader());
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeEnum(2, entryType_);
+      if (entryTypePresentCase_ == 2) {
+        output.writeEnum(2, ((java.lang.Integer) entryTypePresent_));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!storeValue_.isEmpty()) {
         output.writeBytes(3, storeValue_);
       }
       unknownFields.writeTo(output);
@@ -768,15 +821,15 @@ public final class CanalEntry {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (header_ != null) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getHeader());
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (entryTypePresentCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(2, entryType_);
+          .computeEnumSize(2, ((java.lang.Integer) entryTypePresent_));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!storeValue_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, storeValue_);
       }
@@ -801,14 +854,18 @@ public final class CanalEntry {
         result = result && getHeader()
             .equals(other.getHeader());
       }
-      result = result && (hasEntryType() == other.hasEntryType());
-      if (hasEntryType()) {
-        result = result && entryType_ == other.entryType_;
-      }
-      result = result && (hasStoreValue() == other.hasStoreValue());
-      if (hasStoreValue()) {
-        result = result && getStoreValue()
-            .equals(other.getStoreValue());
+      result = result && getStoreValue()
+          .equals(other.getStoreValue());
+      result = result && getEntryTypePresentCase().equals(
+          other.getEntryTypePresentCase());
+      if (!result) return false;
+      switch (entryTypePresentCase_) {
+        case 2:
+          result = result && getEntryTypeValue()
+              == other.getEntryTypeValue();
+          break;
+        case 0:
+        default:
       }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
@@ -825,13 +882,15 @@ public final class CanalEntry {
         hash = (37 * hash) + HEADER_FIELD_NUMBER;
         hash = (53 * hash) + getHeader().hashCode();
       }
-      if (hasEntryType()) {
-        hash = (37 * hash) + ENTRYTYPE_FIELD_NUMBER;
-        hash = (53 * hash) + entryType_;
-      }
-      if (hasStoreValue()) {
-        hash = (37 * hash) + STOREVALUE_FIELD_NUMBER;
-        hash = (53 * hash) + getStoreValue().hashCode();
+      hash = (37 * hash) + STOREVALUE_FIELD_NUMBER;
+      hash = (53 * hash) + getStoreValue().hashCode();
+      switch (entryTypePresentCase_) {
+        case 2:
+          hash = (37 * hash) + ENTRYTYPE_FIELD_NUMBER;
+          hash = (53 * hash) + getEntryTypeValue();
+          break;
+        case 0:
+        default:
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -968,7 +1027,6 @@ public final class CanalEntry {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
-          getHeaderFieldBuilder();
         }
       }
       @java.lang.Override
@@ -977,13 +1035,13 @@ public final class CanalEntry {
         if (headerBuilder_ == null) {
           header_ = null;
         } else {
-          headerBuilder_.clear();
+          header_ = null;
+          headerBuilder_ = null;
         }
-        bitField0_ = (bitField0_ & ~0x00000001);
-        entryType_ = 2;
-        bitField0_ = (bitField0_ & ~0x00000002);
         storeValue_ = com.google.protobuf.ByteString.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
+
+        entryTypePresentCase_ = 0;
+        entryTypePresent_ = null;
         return this;
       }
 
@@ -1010,25 +1068,16 @@ public final class CanalEntry {
       @java.lang.Override
       public com.alibaba.otter.canal.protocol.CanalEntry.Entry buildPartial() {
         com.alibaba.otter.canal.protocol.CanalEntry.Entry result = new com.alibaba.otter.canal.protocol.CanalEntry.Entry(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
         if (headerBuilder_ == null) {
           result.header_ = header_;
         } else {
           result.header_ = headerBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.entryType_ = entryType_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
+        if (entryTypePresentCase_ == 2) {
+          result.entryTypePresent_ = entryTypePresent_;
         }
         result.storeValue_ = storeValue_;
-        result.bitField0_ = to_bitField0_;
+        result.entryTypePresentCase_ = entryTypePresentCase_;
         onBuilt();
         return result;
       }
@@ -1080,11 +1129,17 @@ public final class CanalEntry {
         if (other.hasHeader()) {
           mergeHeader(other.getHeader());
         }
-        if (other.hasEntryType()) {
-          setEntryType(other.getEntryType());
-        }
-        if (other.hasStoreValue()) {
+        if (other.getStoreValue() != com.google.protobuf.ByteString.EMPTY) {
           setStoreValue(other.getStoreValue());
+        }
+        switch (other.getEntryTypePresentCase()) {
+          case ENTRYTYPE: {
+            setEntryTypeValue(other.getEntryTypeValue());
+            break;
+          }
+          case ENTRYTYPEPRESENT_NOT_SET: {
+            break;
+          }
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1114,7 +1169,21 @@ public final class CanalEntry {
         }
         return this;
       }
-      private int bitField0_;
+      private int entryTypePresentCase_ = 0;
+      private java.lang.Object entryTypePresent_;
+      public EntryTypePresentCase
+          getEntryTypePresentCase() {
+        return EntryTypePresentCase.forNumber(
+            entryTypePresentCase_);
+      }
+
+      public Builder clearEntryTypePresent() {
+        entryTypePresentCase_ = 0;
+        entryTypePresent_ = null;
+        onChanged();
+        return this;
+      }
+
 
       private com.alibaba.otter.canal.protocol.CanalEntry.Header header_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -1124,17 +1193,17 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public boolean hasHeader() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return headerBuilder_ != null || header_ != null;
       }
       /**
        * <pre>
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public com.alibaba.otter.canal.protocol.CanalEntry.Header getHeader() {
         if (headerBuilder_ == null) {
@@ -1148,7 +1217,7 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public Builder setHeader(com.alibaba.otter.canal.protocol.CanalEntry.Header value) {
         if (headerBuilder_ == null) {
@@ -1160,7 +1229,7 @@ public final class CanalEntry {
         } else {
           headerBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000001;
+
         return this;
       }
       /**
@@ -1168,7 +1237,7 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public Builder setHeader(
           com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder builderForValue) {
@@ -1178,7 +1247,7 @@ public final class CanalEntry {
         } else {
           headerBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000001;
+
         return this;
       }
       /**
@@ -1186,13 +1255,11 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public Builder mergeHeader(com.alibaba.otter.canal.protocol.CanalEntry.Header value) {
         if (headerBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001) &&
-              header_ != null &&
-              header_ != com.alibaba.otter.canal.protocol.CanalEntry.Header.getDefaultInstance()) {
+          if (header_ != null) {
             header_ =
               com.alibaba.otter.canal.protocol.CanalEntry.Header.newBuilder(header_).mergeFrom(value).buildPartial();
           } else {
@@ -1202,7 +1269,7 @@ public final class CanalEntry {
         } else {
           headerBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000001;
+
         return this;
       }
       /**
@@ -1210,16 +1277,17 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public Builder clearHeader() {
         if (headerBuilder_ == null) {
           header_ = null;
           onChanged();
         } else {
-          headerBuilder_.clear();
+          header_ = null;
+          headerBuilder_ = null;
         }
-        bitField0_ = (bitField0_ & ~0x00000001);
+
         return this;
       }
       /**
@@ -1227,10 +1295,10 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder getHeaderBuilder() {
-        bitField0_ |= 0x00000001;
+        
         onChanged();
         return getHeaderFieldBuilder().getBuilder();
       }
@@ -1239,7 +1307,7 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       public com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder getHeaderOrBuilder() {
         if (headerBuilder_ != null) {
@@ -1254,7 +1322,7 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        *
-       * <code>optional .com.alibaba.otter.canal.protocol.Header header = 1;</code>
+       * <code>.com.alibaba.otter.canal.protocol.Header header = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           com.alibaba.otter.canal.protocol.CanalEntry.Header, com.alibaba.otter.canal.protocol.CanalEntry.Header.Builder, com.alibaba.otter.canal.protocol.CanalEntry.HeaderOrBuilder> 
@@ -1270,56 +1338,57 @@ public final class CanalEntry {
         return headerBuilder_;
       }
 
-      private int entryType_ = 2;
       /**
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
        */
-      public boolean hasEntryType() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+      public int getEntryTypeValue() {
+        if (entryTypePresentCase_ == 2) {
+          return ((java.lang.Integer) entryTypePresent_).intValue();
+        }
+        return 0;
       }
       /**
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
+       */
+      public Builder setEntryTypeValue(int value) {
+        entryTypePresentCase_ = 2;
+        entryTypePresent_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
        */
       public com.alibaba.otter.canal.protocol.CanalEntry.EntryType getEntryType() {
-        @SuppressWarnings("deprecation")
-        com.alibaba.otter.canal.protocol.CanalEntry.EntryType result = com.alibaba.otter.canal.protocol.CanalEntry.EntryType.valueOf(entryType_);
-        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EntryType.ROWDATA : result;
+        if (entryTypePresentCase_ == 2) {
+          @SuppressWarnings("deprecation")
+          com.alibaba.otter.canal.protocol.CanalEntry.EntryType result = com.alibaba.otter.canal.protocol.CanalEntry.EntryType.valueOf(
+              (java.lang.Integer) entryTypePresent_);
+          return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EntryType.UNRECOGNIZED : result;
+        }
+        return com.alibaba.otter.canal.protocol.CanalEntry.EntryType.TRANSACTIONBEGIN;
       }
       /**
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
        */
       public Builder setEntryType(com.alibaba.otter.canal.protocol.CanalEntry.EntryType value) {
         if (value == null) {
           throw new NullPointerException();
         }
-        bitField0_ |= 0x00000002;
-        entryType_ = value.getNumber();
+        entryTypePresentCase_ = 2;
+        entryTypePresent_ = value.getNumber();
         onChanged();
         return this;
       }
       /**
-       * <pre>
-       **打散后的事件类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EntryType entryType = 2 [default = ROWDATA];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EntryType entryType = 2;</code>
        */
       public Builder clearEntryType() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        entryType_ = 2;
-        onChanged();
+        if (entryTypePresentCase_ == 2) {
+          entryTypePresentCase_ = 0;
+          entryTypePresent_ = null;
+          onChanged();
+        }
         return this;
       }
 
@@ -1329,17 +1398,7 @@ public final class CanalEntry {
        **传输的二进制数组*
        * </pre>
        *
-       * <code>optional bytes storeValue = 3;</code>
-       */
-      public boolean hasStoreValue() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <pre>
-       **传输的二进制数组*
-       * </pre>
-       *
-       * <code>optional bytes storeValue = 3;</code>
+       * <code>bytes storeValue = 3;</code>
        */
       public com.google.protobuf.ByteString getStoreValue() {
         return storeValue_;
@@ -1349,13 +1408,13 @@ public final class CanalEntry {
        **传输的二进制数组*
        * </pre>
        *
-       * <code>optional bytes storeValue = 3;</code>
+       * <code>bytes storeValue = 3;</code>
        */
       public Builder setStoreValue(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  
         storeValue_ = value;
         onChanged();
         return this;
@@ -1365,10 +1424,10 @@ public final class CanalEntry {
        **传输的二进制数组*
        * </pre>
        *
-       * <code>optional bytes storeValue = 3;</code>
+       * <code>bytes storeValue = 3;</code>
        */
       public Builder clearStoreValue() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        
         storeValue_ = getDefaultInstance().getStoreValue();
         onChanged();
         return this;
@@ -1376,7 +1435,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -1399,7 +1458,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<Entry>
+    private static final com.google.protobuf.Parser<Entry>
         PARSER = new com.google.protobuf.AbstractParser<Entry>() {
       @java.lang.Override
       public Entry parsePartialFrom(
@@ -1431,19 +1490,7 @@ public final class CanalEntry {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     *
-     * <code>optional int32 version = 1 [default = 1];</code>
-     */
-    boolean hasVersion();
-    /**
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     *
-     * <code>optional int32 version = 1 [default = 1];</code>
+     * <code>int32 version = 1;</code>
      */
     int getVersion();
 
@@ -1452,15 +1499,7 @@ public final class CanalEntry {
      **binlog/redolog 文件名*
      * </pre>
      *
-     * <code>optional string logfileName = 2;</code>
-     */
-    boolean hasLogfileName();
-    /**
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     *
-     * <code>optional string logfileName = 2;</code>
+     * <code>string logfileName = 2;</code>
      */
     java.lang.String getLogfileName();
     /**
@@ -1468,7 +1507,7 @@ public final class CanalEntry {
      **binlog/redolog 文件名*
      * </pre>
      *
-     * <code>optional string logfileName = 2;</code>
+     * <code>string logfileName = 2;</code>
      */
     com.google.protobuf.ByteString
         getLogfileNameBytes();
@@ -1478,15 +1517,7 @@ public final class CanalEntry {
      **binlog/redolog 文件的偏移位置*
      * </pre>
      *
-     * <code>optional int64 logfileOffset = 3;</code>
-     */
-    boolean hasLogfileOffset();
-    /**
-     * <pre>
-     **binlog/redolog 文件的偏移位置*
-     * </pre>
-     *
-     * <code>optional int64 logfileOffset = 3;</code>
+     * <code>int64 logfileOffset = 3;</code>
      */
     long getLogfileOffset();
 
@@ -1495,15 +1526,7 @@ public final class CanalEntry {
      **服务端serverId*
      * </pre>
      *
-     * <code>optional int64 serverId = 4;</code>
-     */
-    boolean hasServerId();
-    /**
-     * <pre>
-     **服务端serverId*
-     * </pre>
-     *
-     * <code>optional int64 serverId = 4;</code>
+     * <code>int64 serverId = 4;</code>
      */
     long getServerId();
 
@@ -1512,15 +1535,7 @@ public final class CanalEntry {
      ** 变更数据的编码 *
      * </pre>
      *
-     * <code>optional string serverenCode = 5;</code>
-     */
-    boolean hasServerenCode();
-    /**
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     *
-     * <code>optional string serverenCode = 5;</code>
+     * <code>string serverenCode = 5;</code>
      */
     java.lang.String getServerenCode();
     /**
@@ -1528,7 +1543,7 @@ public final class CanalEntry {
      ** 变更数据的编码 *
      * </pre>
      *
-     * <code>optional string serverenCode = 5;</code>
+     * <code>string serverenCode = 5;</code>
      */
     com.google.protobuf.ByteString
         getServerenCodeBytes();
@@ -1538,32 +1553,16 @@ public final class CanalEntry {
      **变更数据的执行时间 *
      * </pre>
      *
-     * <code>optional int64 executeTime = 6;</code>
-     */
-    boolean hasExecuteTime();
-    /**
-     * <pre>
-     **变更数据的执行时间 *
-     * </pre>
-     *
-     * <code>optional int64 executeTime = 6;</code>
+     * <code>int64 executeTime = 6;</code>
      */
     long getExecuteTime();
 
     /**
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+     * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
      */
-    boolean hasSourceType();
+    int getSourceTypeValue();
     /**
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+     * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
      */
     com.alibaba.otter.canal.protocol.CanalEntry.Type getSourceType();
 
@@ -1572,15 +1571,7 @@ public final class CanalEntry {
      ** 变更数据的schemaname*
      * </pre>
      *
-     * <code>optional string schemaName = 8;</code>
-     */
-    boolean hasSchemaName();
-    /**
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     *
-     * <code>optional string schemaName = 8;</code>
+     * <code>string schemaName = 8;</code>
      */
     java.lang.String getSchemaName();
     /**
@@ -1588,7 +1579,7 @@ public final class CanalEntry {
      ** 变更数据的schemaname*
      * </pre>
      *
-     * <code>optional string schemaName = 8;</code>
+     * <code>string schemaName = 8;</code>
      */
     com.google.protobuf.ByteString
         getSchemaNameBytes();
@@ -1598,15 +1589,7 @@ public final class CanalEntry {
      **变更数据的tablename*
      * </pre>
      *
-     * <code>optional string tableName = 9;</code>
-     */
-    boolean hasTableName();
-    /**
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     *
-     * <code>optional string tableName = 9;</code>
+     * <code>string tableName = 9;</code>
      */
     java.lang.String getTableName();
     /**
@@ -1614,7 +1597,7 @@ public final class CanalEntry {
      **变更数据的tablename*
      * </pre>
      *
-     * <code>optional string tableName = 9;</code>
+     * <code>string tableName = 9;</code>
      */
     com.google.protobuf.ByteString
         getTableNameBytes();
@@ -1624,32 +1607,16 @@ public final class CanalEntry {
      **每个event的长度*
      * </pre>
      *
-     * <code>optional int64 eventLength = 10;</code>
-     */
-    boolean hasEventLength();
-    /**
-     * <pre>
-     **每个event的长度*
-     * </pre>
-     *
-     * <code>optional int64 eventLength = 10;</code>
+     * <code>int64 eventLength = 10;</code>
      */
     long getEventLength();
 
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
      */
-    boolean hasEventType();
+    int getEventTypeValue();
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
      */
     com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType();
 
@@ -1702,15 +1669,7 @@ public final class CanalEntry {
      **当前事务的gitd*
      * </pre>
      *
-     * <code>optional string gtid = 13;</code>
-     */
-    boolean hasGtid();
-    /**
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     *
-     * <code>optional string gtid = 13;</code>
+     * <code>string gtid = 13;</code>
      */
     java.lang.String getGtid();
     /**
@@ -1718,10 +1677,16 @@ public final class CanalEntry {
      **当前事务的gitd*
      * </pre>
      *
-     * <code>optional string gtid = 13;</code>
+     * <code>string gtid = 13;</code>
      */
     com.google.protobuf.ByteString
         getGtidBytes();
+
+    public com.alibaba.otter.canal.protocol.CanalEntry.Header.VersionPresentCase getVersionPresentCase();
+
+    public com.alibaba.otter.canal.protocol.CanalEntry.Header.SourceTypePresentCase getSourceTypePresentCase();
+
+    public com.alibaba.otter.canal.protocol.CanalEntry.Header.EventTypePresentCase getEventTypePresentCase();
   }
   /**
    * <pre>
@@ -1740,17 +1705,14 @@ public final class CanalEntry {
       super(builder);
     }
     private Header() {
-      version_ = 1;
       logfileName_ = "";
       logfileOffset_ = 0L;
       serverId_ = 0L;
       serverenCode_ = "";
       executeTime_ = 0L;
-      sourceType_ = 2;
       schemaName_ = "";
       tableName_ = "";
       eventLength_ = 0L;
-      eventType_ = 2;
       props_ = java.util.Collections.emptyList();
       gtid_ = "";
     }
@@ -1780,76 +1742,64 @@ public final class CanalEntry {
               done = true;
               break;
             case 8: {
-              bitField0_ |= 0x00000001;
-              version_ = input.readInt32();
+              versionPresentCase_ = 1;
+              versionPresent_ = input.readInt32();
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000002;
-              logfileName_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              logfileName_ = s;
               break;
             }
             case 24: {
-              bitField0_ |= 0x00000004;
+
               logfileOffset_ = input.readInt64();
               break;
             }
             case 32: {
-              bitField0_ |= 0x00000008;
+
               serverId_ = input.readInt64();
               break;
             }
             case 42: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000010;
-              serverenCode_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              serverenCode_ = s;
               break;
             }
             case 48: {
-              bitField0_ |= 0x00000020;
+
               executeTime_ = input.readInt64();
               break;
             }
             case 56: {
               int rawValue = input.readEnum();
-                @SuppressWarnings("deprecation")
-              com.alibaba.otter.canal.protocol.CanalEntry.Type value = com.alibaba.otter.canal.protocol.CanalEntry.Type.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(7, rawValue);
-              } else {
-                bitField0_ |= 0x00000040;
-                sourceType_ = rawValue;
-              }
+              sourceTypePresentCase_ = 7;
+              sourceTypePresent_ = rawValue;
               break;
             }
             case 66: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000080;
-              schemaName_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              schemaName_ = s;
               break;
             }
             case 74: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000100;
-              tableName_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              tableName_ = s;
               break;
             }
             case 80: {
-              bitField0_ |= 0x00000200;
+
               eventLength_ = input.readInt64();
               break;
             }
             case 88: {
               int rawValue = input.readEnum();
-                @SuppressWarnings("deprecation")
-              com.alibaba.otter.canal.protocol.CanalEntry.EventType value = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(11, rawValue);
-              } else {
-                bitField0_ |= 0x00000400;
-                eventType_ = rawValue;
-              }
+              eventTypePresentCase_ = 11;
+              eventTypePresent_ = rawValue;
               break;
             }
             case 98: {
@@ -1858,17 +1808,17 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000800;
               }
               props_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.parser(), extensionRegistry));
               break;
             }
             case 106: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000800;
-              gtid_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              gtid_ = s;
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -1903,27 +1853,123 @@ public final class CanalEntry {
     }
 
     private int bitField0_;
-    public static final int VERSION_FIELD_NUMBER = 1;
-    private int version_;
-    /**
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     *
-     * <code>optional int32 version = 1 [default = 1];</code>
-     */
-    public boolean hasVersion() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+    private int versionPresentCase_ = 0;
+    private java.lang.Object versionPresent_;
+    public enum VersionPresentCase
+        implements com.google.protobuf.Internal.EnumLite {
+      VERSION(1),
+      VERSIONPRESENT_NOT_SET(0);
+      private final int value;
+      private VersionPresentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static VersionPresentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static VersionPresentCase forNumber(int value) {
+        switch (value) {
+          case 1: return VERSION;
+          case 0: return VERSIONPRESENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public VersionPresentCase
+    getVersionPresentCase() {
+      return VersionPresentCase.forNumber(
+          versionPresentCase_);
     }
+
+    private int sourceTypePresentCase_ = 0;
+    private java.lang.Object sourceTypePresent_;
+    public enum SourceTypePresentCase
+        implements com.google.protobuf.Internal.EnumLite {
+      SOURCETYPE(7),
+      SOURCETYPEPRESENT_NOT_SET(0);
+      private final int value;
+      private SourceTypePresentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static SourceTypePresentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static SourceTypePresentCase forNumber(int value) {
+        switch (value) {
+          case 7: return SOURCETYPE;
+          case 0: return SOURCETYPEPRESENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public SourceTypePresentCase
+    getSourceTypePresentCase() {
+      return SourceTypePresentCase.forNumber(
+          sourceTypePresentCase_);
+    }
+
+    private int eventTypePresentCase_ = 0;
+    private java.lang.Object eventTypePresent_;
+    public enum EventTypePresentCase
+        implements com.google.protobuf.Internal.EnumLite {
+      EVENTTYPE(11),
+      EVENTTYPEPRESENT_NOT_SET(0);
+      private final int value;
+      private EventTypePresentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static EventTypePresentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static EventTypePresentCase forNumber(int value) {
+        switch (value) {
+          case 11: return EVENTTYPE;
+          case 0: return EVENTTYPEPRESENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public EventTypePresentCase
+    getEventTypePresentCase() {
+      return EventTypePresentCase.forNumber(
+          eventTypePresentCase_);
+    }
+
+    public static final int VERSION_FIELD_NUMBER = 1;
     /**
-     * <pre>
-     **协议的版本号*
-     * </pre>
-     *
-     * <code>optional int32 version = 1 [default = 1];</code>
+     * <code>int32 version = 1;</code>
      */
     public int getVersion() {
-      return version_;
+      if (versionPresentCase_ == 1) {
+        return (java.lang.Integer) versionPresent_;
+      }
+      return 1;
     }
 
     public static final int LOGFILENAME_FIELD_NUMBER = 2;
@@ -1933,17 +1979,7 @@ public final class CanalEntry {
      **binlog/redolog 文件名*
      * </pre>
      *
-     * <code>optional string logfileName = 2;</code>
-     */
-    public boolean hasLogfileName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <pre>
-     **binlog/redolog 文件名*
-     * </pre>
-     *
-     * <code>optional string logfileName = 2;</code>
+     * <code>string logfileName = 2;</code>
      */
     public java.lang.String getLogfileName() {
       java.lang.Object ref = logfileName_;
@@ -1953,9 +1989,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          logfileName_ = s;
-        }
+        logfileName_ = s;
         return s;
       }
     }
@@ -1964,7 +1998,7 @@ public final class CanalEntry {
      **binlog/redolog 文件名*
      * </pre>
      *
-     * <code>optional string logfileName = 2;</code>
+     * <code>string logfileName = 2;</code>
      */
     public com.google.protobuf.ByteString
         getLogfileNameBytes() {
@@ -1987,17 +2021,7 @@ public final class CanalEntry {
      **binlog/redolog 文件的偏移位置*
      * </pre>
      *
-     * <code>optional int64 logfileOffset = 3;</code>
-     */
-    public boolean hasLogfileOffset() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <pre>
-     **binlog/redolog 文件的偏移位置*
-     * </pre>
-     *
-     * <code>optional int64 logfileOffset = 3;</code>
+     * <code>int64 logfileOffset = 3;</code>
      */
     public long getLogfileOffset() {
       return logfileOffset_;
@@ -2010,17 +2034,7 @@ public final class CanalEntry {
      **服务端serverId*
      * </pre>
      *
-     * <code>optional int64 serverId = 4;</code>
-     */
-    public boolean hasServerId() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <pre>
-     **服务端serverId*
-     * </pre>
-     *
-     * <code>optional int64 serverId = 4;</code>
+     * <code>int64 serverId = 4;</code>
      */
     public long getServerId() {
       return serverId_;
@@ -2033,17 +2047,7 @@ public final class CanalEntry {
      ** 变更数据的编码 *
      * </pre>
      *
-     * <code>optional string serverenCode = 5;</code>
-     */
-    public boolean hasServerenCode() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    /**
-     * <pre>
-     ** 变更数据的编码 *
-     * </pre>
-     *
-     * <code>optional string serverenCode = 5;</code>
+     * <code>string serverenCode = 5;</code>
      */
     public java.lang.String getServerenCode() {
       java.lang.Object ref = serverenCode_;
@@ -2053,9 +2057,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          serverenCode_ = s;
-        }
+        serverenCode_ = s;
         return s;
       }
     }
@@ -2064,7 +2066,7 @@ public final class CanalEntry {
      ** 变更数据的编码 *
      * </pre>
      *
-     * <code>optional string serverenCode = 5;</code>
+     * <code>string serverenCode = 5;</code>
      */
     public com.google.protobuf.ByteString
         getServerenCodeBytes() {
@@ -2087,45 +2089,33 @@ public final class CanalEntry {
      **变更数据的执行时间 *
      * </pre>
      *
-     * <code>optional int64 executeTime = 6;</code>
-     */
-    public boolean hasExecuteTime() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    /**
-     * <pre>
-     **变更数据的执行时间 *
-     * </pre>
-     *
-     * <code>optional int64 executeTime = 6;</code>
+     * <code>int64 executeTime = 6;</code>
      */
     public long getExecuteTime() {
       return executeTime_;
     }
 
     public static final int SOURCETYPE_FIELD_NUMBER = 7;
-    private int sourceType_;
     /**
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+     * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
      */
-    public boolean hasSourceType() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+    public int getSourceTypeValue() {
+      if (sourceTypePresentCase_ == 7) {
+        return (java.lang.Integer) sourceTypePresent_;
+      }
+      return 0;
     }
     /**
-     * <pre>
-     ** 变更数据的来源*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+     * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
      */
     public com.alibaba.otter.canal.protocol.CanalEntry.Type getSourceType() {
-      @SuppressWarnings("deprecation")
-      com.alibaba.otter.canal.protocol.CanalEntry.Type result = com.alibaba.otter.canal.protocol.CanalEntry.Type.valueOf(sourceType_);
-      return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.Type.MYSQL : result;
+      if (sourceTypePresentCase_ == 7) {
+        @SuppressWarnings("deprecation")
+        com.alibaba.otter.canal.protocol.CanalEntry.Type result = com.alibaba.otter.canal.protocol.CanalEntry.Type.valueOf(
+            (java.lang.Integer) sourceTypePresent_);
+        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.Type.UNRECOGNIZED : result;
+      }
+      return com.alibaba.otter.canal.protocol.CanalEntry.Type.TYPECOMPATIBLEPROTO2;
     }
 
     public static final int SCHEMANAME_FIELD_NUMBER = 8;
@@ -2135,17 +2125,7 @@ public final class CanalEntry {
      ** 变更数据的schemaname*
      * </pre>
      *
-     * <code>optional string schemaName = 8;</code>
-     */
-    public boolean hasSchemaName() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
-    }
-    /**
-     * <pre>
-     ** 变更数据的schemaname*
-     * </pre>
-     *
-     * <code>optional string schemaName = 8;</code>
+     * <code>string schemaName = 8;</code>
      */
     public java.lang.String getSchemaName() {
       java.lang.Object ref = schemaName_;
@@ -2155,9 +2135,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          schemaName_ = s;
-        }
+        schemaName_ = s;
         return s;
       }
     }
@@ -2166,7 +2144,7 @@ public final class CanalEntry {
      ** 变更数据的schemaname*
      * </pre>
      *
-     * <code>optional string schemaName = 8;</code>
+     * <code>string schemaName = 8;</code>
      */
     public com.google.protobuf.ByteString
         getSchemaNameBytes() {
@@ -2189,17 +2167,7 @@ public final class CanalEntry {
      **变更数据的tablename*
      * </pre>
      *
-     * <code>optional string tableName = 9;</code>
-     */
-    public boolean hasTableName() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
-    }
-    /**
-     * <pre>
-     **变更数据的tablename*
-     * </pre>
-     *
-     * <code>optional string tableName = 9;</code>
+     * <code>string tableName = 9;</code>
      */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
@@ -2209,9 +2177,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          tableName_ = s;
-        }
+        tableName_ = s;
         return s;
       }
     }
@@ -2220,7 +2186,7 @@ public final class CanalEntry {
      **变更数据的tablename*
      * </pre>
      *
-     * <code>optional string tableName = 9;</code>
+     * <code>string tableName = 9;</code>
      */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
@@ -2243,45 +2209,33 @@ public final class CanalEntry {
      **每个event的长度*
      * </pre>
      *
-     * <code>optional int64 eventLength = 10;</code>
-     */
-    public boolean hasEventLength() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
-    }
-    /**
-     * <pre>
-     **每个event的长度*
-     * </pre>
-     *
-     * <code>optional int64 eventLength = 10;</code>
+     * <code>int64 eventLength = 10;</code>
      */
     public long getEventLength() {
       return eventLength_;
     }
 
     public static final int EVENTTYPE_FIELD_NUMBER = 11;
-    private int eventType_;
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
      */
-    public boolean hasEventType() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+    public int getEventTypeValue() {
+      if (eventTypePresentCase_ == 11) {
+        return (java.lang.Integer) eventTypePresent_;
+      }
+      return 0;
     }
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
      */
     public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
-      @SuppressWarnings("deprecation")
-      com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(eventType_);
-      return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE : result;
+      if (eventTypePresentCase_ == 11) {
+        @SuppressWarnings("deprecation")
+        com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(
+            (java.lang.Integer) eventTypePresent_);
+        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UNRECOGNIZED : result;
+      }
+      return com.alibaba.otter.canal.protocol.CanalEntry.EventType.EVENTTYPECOMPATIBLEPROTO2;
     }
 
     public static final int PROPS_FIELD_NUMBER = 12;
@@ -2346,17 +2300,7 @@ public final class CanalEntry {
      **当前事务的gitd*
      * </pre>
      *
-     * <code>optional string gtid = 13;</code>
-     */
-    public boolean hasGtid() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
-    }
-    /**
-     * <pre>
-     **当前事务的gitd*
-     * </pre>
-     *
-     * <code>optional string gtid = 13;</code>
+     * <code>string gtid = 13;</code>
      */
     public java.lang.String getGtid() {
       java.lang.Object ref = gtid_;
@@ -2366,9 +2310,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          gtid_ = s;
-        }
+        gtid_ = s;
         return s;
       }
     }
@@ -2377,7 +2319,7 @@ public final class CanalEntry {
      **当前事务的gitd*
      * </pre>
      *
-     * <code>optional string gtid = 13;</code>
+     * <code>string gtid = 13;</code>
      */
     public com.google.protobuf.ByteString
         getGtidBytes() {
@@ -2407,43 +2349,44 @@ public final class CanalEntry {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeInt32(1, version_);
+      if (versionPresentCase_ == 1) {
+        output.writeInt32(
+            1, (int)((java.lang.Integer) versionPresent_));
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getLogfileNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, logfileName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (logfileOffset_ != 0L) {
         output.writeInt64(3, logfileOffset_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (serverId_ != 0L) {
         output.writeInt64(4, serverId_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (!getServerenCodeBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 5, serverenCode_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (executeTime_ != 0L) {
         output.writeInt64(6, executeTime_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        output.writeEnum(7, sourceType_);
+      if (sourceTypePresentCase_ == 7) {
+        output.writeEnum(7, ((java.lang.Integer) sourceTypePresent_));
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (!getSchemaNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 8, schemaName_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (!getTableNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 9, tableName_);
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (eventLength_ != 0L) {
         output.writeInt64(10, eventLength_);
       }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        output.writeEnum(11, eventType_);
+      if (eventTypePresentCase_ == 11) {
+        output.writeEnum(11, ((java.lang.Integer) eventTypePresent_));
       }
       for (int i = 0; i < props_.size(); i++) {
         output.writeMessage(12, props_.get(i));
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      if (!getGtidBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 13, gtid_);
       }
       unknownFields.writeTo(output);
@@ -2455,51 +2398,52 @@ public final class CanalEntry {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (versionPresentCase_ == 1) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(1, version_);
+          .computeInt32Size(
+              1, (int)((java.lang.Integer) versionPresent_));
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getLogfileNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, logfileName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (logfileOffset_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, logfileOffset_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (serverId_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, serverId_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (!getServerenCodeBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, serverenCode_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (executeTime_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(6, executeTime_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (sourceTypePresentCase_ == 7) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(7, sourceType_);
+          .computeEnumSize(7, ((java.lang.Integer) sourceTypePresent_));
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (!getSchemaNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, schemaName_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (!getTableNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(9, tableName_);
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (eventLength_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(10, eventLength_);
       }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+      if (eventTypePresentCase_ == 11) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(11, eventType_);
+          .computeEnumSize(11, ((java.lang.Integer) eventTypePresent_));
       }
       for (int i = 0; i < props_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(12, props_.get(i));
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      if (!getGtidBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(13, gtid_);
       }
       size += unknownFields.getSerializedSize();
@@ -2518,65 +2462,58 @@ public final class CanalEntry {
       com.alibaba.otter.canal.protocol.CanalEntry.Header other = (com.alibaba.otter.canal.protocol.CanalEntry.Header) obj;
 
       boolean result = true;
-      result = result && (hasVersion() == other.hasVersion());
-      if (hasVersion()) {
-        result = result && (getVersion()
-            == other.getVersion());
-      }
-      result = result && (hasLogfileName() == other.hasLogfileName());
-      if (hasLogfileName()) {
-        result = result && getLogfileName()
-            .equals(other.getLogfileName());
-      }
-      result = result && (hasLogfileOffset() == other.hasLogfileOffset());
-      if (hasLogfileOffset()) {
-        result = result && (getLogfileOffset()
-            == other.getLogfileOffset());
-      }
-      result = result && (hasServerId() == other.hasServerId());
-      if (hasServerId()) {
-        result = result && (getServerId()
-            == other.getServerId());
-      }
-      result = result && (hasServerenCode() == other.hasServerenCode());
-      if (hasServerenCode()) {
-        result = result && getServerenCode()
-            .equals(other.getServerenCode());
-      }
-      result = result && (hasExecuteTime() == other.hasExecuteTime());
-      if (hasExecuteTime()) {
-        result = result && (getExecuteTime()
-            == other.getExecuteTime());
-      }
-      result = result && (hasSourceType() == other.hasSourceType());
-      if (hasSourceType()) {
-        result = result && sourceType_ == other.sourceType_;
-      }
-      result = result && (hasSchemaName() == other.hasSchemaName());
-      if (hasSchemaName()) {
-        result = result && getSchemaName()
-            .equals(other.getSchemaName());
-      }
-      result = result && (hasTableName() == other.hasTableName());
-      if (hasTableName()) {
-        result = result && getTableName()
-            .equals(other.getTableName());
-      }
-      result = result && (hasEventLength() == other.hasEventLength());
-      if (hasEventLength()) {
-        result = result && (getEventLength()
-            == other.getEventLength());
-      }
-      result = result && (hasEventType() == other.hasEventType());
-      if (hasEventType()) {
-        result = result && eventType_ == other.eventType_;
-      }
+      result = result && getLogfileName()
+          .equals(other.getLogfileName());
+      result = result && (getLogfileOffset()
+          == other.getLogfileOffset());
+      result = result && (getServerId()
+          == other.getServerId());
+      result = result && getServerenCode()
+          .equals(other.getServerenCode());
+      result = result && (getExecuteTime()
+          == other.getExecuteTime());
+      result = result && getSchemaName()
+          .equals(other.getSchemaName());
+      result = result && getTableName()
+          .equals(other.getTableName());
+      result = result && (getEventLength()
+          == other.getEventLength());
       result = result && getPropsList()
           .equals(other.getPropsList());
-      result = result && (hasGtid() == other.hasGtid());
-      if (hasGtid()) {
-        result = result && getGtid()
-            .equals(other.getGtid());
+      result = result && getGtid()
+          .equals(other.getGtid());
+      result = result && getVersionPresentCase().equals(
+          other.getVersionPresentCase());
+      if (!result) return false;
+      switch (versionPresentCase_) {
+        case 1:
+          result = result && (getVersion()
+              == other.getVersion());
+          break;
+        case 0:
+        default:
+      }
+      result = result && getSourceTypePresentCase().equals(
+          other.getSourceTypePresentCase());
+      if (!result) return false;
+      switch (sourceTypePresentCase_) {
+        case 7:
+          result = result && getSourceTypeValue()
+              == other.getSourceTypeValue();
+          break;
+        case 0:
+        default:
+      }
+      result = result && getEventTypePresentCase().equals(
+          other.getEventTypePresentCase());
+      if (!result) return false;
+      switch (eventTypePresentCase_) {
+        case 11:
+          result = result && getEventTypeValue()
+              == other.getEventTypeValue();
+          break;
+        case 0:
+        default:
       }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
@@ -2589,61 +2526,55 @@ public final class CanalEntry {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasVersion()) {
-        hash = (37 * hash) + VERSION_FIELD_NUMBER;
-        hash = (53 * hash) + getVersion();
-      }
-      if (hasLogfileName()) {
-        hash = (37 * hash) + LOGFILENAME_FIELD_NUMBER;
-        hash = (53 * hash) + getLogfileName().hashCode();
-      }
-      if (hasLogfileOffset()) {
-        hash = (37 * hash) + LOGFILEOFFSET_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getLogfileOffset());
-      }
-      if (hasServerId()) {
-        hash = (37 * hash) + SERVERID_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getServerId());
-      }
-      if (hasServerenCode()) {
-        hash = (37 * hash) + SERVERENCODE_FIELD_NUMBER;
-        hash = (53 * hash) + getServerenCode().hashCode();
-      }
-      if (hasExecuteTime()) {
-        hash = (37 * hash) + EXECUTETIME_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getExecuteTime());
-      }
-      if (hasSourceType()) {
-        hash = (37 * hash) + SOURCETYPE_FIELD_NUMBER;
-        hash = (53 * hash) + sourceType_;
-      }
-      if (hasSchemaName()) {
-        hash = (37 * hash) + SCHEMANAME_FIELD_NUMBER;
-        hash = (53 * hash) + getSchemaName().hashCode();
-      }
-      if (hasTableName()) {
-        hash = (37 * hash) + TABLENAME_FIELD_NUMBER;
-        hash = (53 * hash) + getTableName().hashCode();
-      }
-      if (hasEventLength()) {
-        hash = (37 * hash) + EVENTLENGTH_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getEventLength());
-      }
-      if (hasEventType()) {
-        hash = (37 * hash) + EVENTTYPE_FIELD_NUMBER;
-        hash = (53 * hash) + eventType_;
-      }
+      hash = (37 * hash) + LOGFILENAME_FIELD_NUMBER;
+      hash = (53 * hash) + getLogfileName().hashCode();
+      hash = (37 * hash) + LOGFILEOFFSET_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getLogfileOffset());
+      hash = (37 * hash) + SERVERID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getServerId());
+      hash = (37 * hash) + SERVERENCODE_FIELD_NUMBER;
+      hash = (53 * hash) + getServerenCode().hashCode();
+      hash = (37 * hash) + EXECUTETIME_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExecuteTime());
+      hash = (37 * hash) + SCHEMANAME_FIELD_NUMBER;
+      hash = (53 * hash) + getSchemaName().hashCode();
+      hash = (37 * hash) + TABLENAME_FIELD_NUMBER;
+      hash = (53 * hash) + getTableName().hashCode();
+      hash = (37 * hash) + EVENTLENGTH_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getEventLength());
       if (getPropsCount() > 0) {
         hash = (37 * hash) + PROPS_FIELD_NUMBER;
         hash = (53 * hash) + getPropsList().hashCode();
       }
-      if (hasGtid()) {
-        hash = (37 * hash) + GTID_FIELD_NUMBER;
-        hash = (53 * hash) + getGtid().hashCode();
+      hash = (37 * hash) + GTID_FIELD_NUMBER;
+      hash = (53 * hash) + getGtid().hashCode();
+      switch (versionPresentCase_) {
+        case 1:
+          hash = (37 * hash) + VERSION_FIELD_NUMBER;
+          hash = (53 * hash) + getVersion();
+          break;
+        case 0:
+        default:
+      }
+      switch (sourceTypePresentCase_) {
+        case 7:
+          hash = (37 * hash) + SOURCETYPE_FIELD_NUMBER;
+          hash = (53 * hash) + getSourceTypeValue();
+          break;
+        case 0:
+        default:
+      }
+      switch (eventTypePresentCase_) {
+        case 11:
+          hash = (37 * hash) + EVENTTYPE_FIELD_NUMBER;
+          hash = (53 * hash) + getEventTypeValue();
+          break;
+        case 0:
+        default:
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -2783,28 +2714,22 @@ public final class CanalEntry {
       @java.lang.Override
       public Builder clear() {
         super.clear();
-        version_ = 1;
-        bitField0_ = (bitField0_ & ~0x00000001);
         logfileName_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
+
         logfileOffset_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000004);
+
         serverId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000008);
+
         serverenCode_ = "";
-        bitField0_ = (bitField0_ & ~0x00000010);
+
         executeTime_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000020);
-        sourceType_ = 2;
-        bitField0_ = (bitField0_ & ~0x00000040);
+
         schemaName_ = "";
-        bitField0_ = (bitField0_ & ~0x00000080);
+
         tableName_ = "";
-        bitField0_ = (bitField0_ & ~0x00000100);
+
         eventLength_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000200);
-        eventType_ = 2;
-        bitField0_ = (bitField0_ & ~0x00000400);
+
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000800);
@@ -2812,7 +2737,13 @@ public final class CanalEntry {
           propsBuilder_.clear();
         }
         gtid_ = "";
-        bitField0_ = (bitField0_ & ~0x00001000);
+
+        versionPresentCase_ = 0;
+        versionPresent_ = null;
+        sourceTypePresentCase_ = 0;
+        sourceTypePresent_ = null;
+        eventTypePresentCase_ = 0;
+        eventTypePresent_ = null;
         return this;
       }
 
@@ -2841,50 +2772,23 @@ public final class CanalEntry {
         com.alibaba.otter.canal.protocol.CanalEntry.Header result = new com.alibaba.otter.canal.protocol.CanalEntry.Header(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.version_ = version_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
+        if (versionPresentCase_ == 1) {
+          result.versionPresent_ = versionPresent_;
         }
         result.logfileName_ = logfileName_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
         result.logfileOffset_ = logfileOffset_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
         result.serverId_ = serverId_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
-          to_bitField0_ |= 0x00000010;
-        }
         result.serverenCode_ = serverenCode_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-          to_bitField0_ |= 0x00000020;
-        }
         result.executeTime_ = executeTime_;
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
-          to_bitField0_ |= 0x00000040;
-        }
-        result.sourceType_ = sourceType_;
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-          to_bitField0_ |= 0x00000080;
+        if (sourceTypePresentCase_ == 7) {
+          result.sourceTypePresent_ = sourceTypePresent_;
         }
         result.schemaName_ = schemaName_;
-        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
-          to_bitField0_ |= 0x00000100;
-        }
         result.tableName_ = tableName_;
-        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
-          to_bitField0_ |= 0x00000200;
-        }
         result.eventLength_ = eventLength_;
-        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
-          to_bitField0_ |= 0x00000400;
+        if (eventTypePresentCase_ == 11) {
+          result.eventTypePresent_ = eventTypePresent_;
         }
-        result.eventType_ = eventType_;
         if (propsBuilder_ == null) {
           if (((bitField0_ & 0x00000800) == 0x00000800)) {
             props_ = java.util.Collections.unmodifiableList(props_);
@@ -2894,11 +2798,11 @@ public final class CanalEntry {
         } else {
           result.props_ = propsBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
-          to_bitField0_ |= 0x00000800;
-        }
         result.gtid_ = gtid_;
         result.bitField0_ = to_bitField0_;
+        result.versionPresentCase_ = versionPresentCase_;
+        result.sourceTypePresentCase_ = sourceTypePresentCase_;
+        result.eventTypePresentCase_ = eventTypePresentCase_;
         onBuilt();
         return result;
       }
@@ -2947,46 +2851,33 @@ public final class CanalEntry {
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalEntry.Header other) {
         if (other == com.alibaba.otter.canal.protocol.CanalEntry.Header.getDefaultInstance()) return this;
-        if (other.hasVersion()) {
-          setVersion(other.getVersion());
-        }
-        if (other.hasLogfileName()) {
-          bitField0_ |= 0x00000002;
+        if (!other.getLogfileName().isEmpty()) {
           logfileName_ = other.logfileName_;
           onChanged();
         }
-        if (other.hasLogfileOffset()) {
+        if (other.getLogfileOffset() != 0L) {
           setLogfileOffset(other.getLogfileOffset());
         }
-        if (other.hasServerId()) {
+        if (other.getServerId() != 0L) {
           setServerId(other.getServerId());
         }
-        if (other.hasServerenCode()) {
-          bitField0_ |= 0x00000010;
+        if (!other.getServerenCode().isEmpty()) {
           serverenCode_ = other.serverenCode_;
           onChanged();
         }
-        if (other.hasExecuteTime()) {
+        if (other.getExecuteTime() != 0L) {
           setExecuteTime(other.getExecuteTime());
         }
-        if (other.hasSourceType()) {
-          setSourceType(other.getSourceType());
-        }
-        if (other.hasSchemaName()) {
-          bitField0_ |= 0x00000080;
+        if (!other.getSchemaName().isEmpty()) {
           schemaName_ = other.schemaName_;
           onChanged();
         }
-        if (other.hasTableName()) {
-          bitField0_ |= 0x00000100;
+        if (!other.getTableName().isEmpty()) {
           tableName_ = other.tableName_;
           onChanged();
         }
-        if (other.hasEventLength()) {
+        if (other.getEventLength() != 0L) {
           setEventLength(other.getEventLength());
-        }
-        if (other.hasEventType()) {
-          setEventType(other.getEventType());
         }
         if (propsBuilder_ == null) {
           if (!other.props_.isEmpty()) {
@@ -3014,10 +2905,36 @@ public final class CanalEntry {
             }
           }
         }
-        if (other.hasGtid()) {
-          bitField0_ |= 0x00001000;
+        if (!other.getGtid().isEmpty()) {
           gtid_ = other.gtid_;
           onChanged();
+        }
+        switch (other.getVersionPresentCase()) {
+          case VERSION: {
+            setVersion(other.getVersion());
+            break;
+          }
+          case VERSIONPRESENT_NOT_SET: {
+            break;
+          }
+        }
+        switch (other.getSourceTypePresentCase()) {
+          case SOURCETYPE: {
+            setSourceTypeValue(other.getSourceTypeValue());
+            break;
+          }
+          case SOURCETYPEPRESENT_NOT_SET: {
+            break;
+          }
+        }
+        switch (other.getEventTypePresentCase()) {
+          case EVENTTYPE: {
+            setEventTypeValue(other.getEventTypeValue());
+            break;
+          }
+          case EVENTTYPEPRESENT_NOT_SET: {
+            break;
+          }
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -3047,53 +2964,80 @@ public final class CanalEntry {
         }
         return this;
       }
+      private int versionPresentCase_ = 0;
+      private java.lang.Object versionPresent_;
+      public VersionPresentCase
+          getVersionPresentCase() {
+        return VersionPresentCase.forNumber(
+            versionPresentCase_);
+      }
+
+      public Builder clearVersionPresent() {
+        versionPresentCase_ = 0;
+        versionPresent_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int sourceTypePresentCase_ = 0;
+      private java.lang.Object sourceTypePresent_;
+      public SourceTypePresentCase
+          getSourceTypePresentCase() {
+        return SourceTypePresentCase.forNumber(
+            sourceTypePresentCase_);
+      }
+
+      public Builder clearSourceTypePresent() {
+        sourceTypePresentCase_ = 0;
+        sourceTypePresent_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int eventTypePresentCase_ = 0;
+      private java.lang.Object eventTypePresent_;
+      public EventTypePresentCase
+          getEventTypePresentCase() {
+        return EventTypePresentCase.forNumber(
+            eventTypePresentCase_);
+      }
+
+      public Builder clearEventTypePresent() {
+        eventTypePresentCase_ = 0;
+        eventTypePresent_ = null;
+        onChanged();
+        return this;
+      }
+
       private int bitField0_;
 
-      private int version_ = 1;
       /**
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       *
-       * <code>optional int32 version = 1 [default = 1];</code>
-       */
-      public boolean hasVersion() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       *
-       * <code>optional int32 version = 1 [default = 1];</code>
+       * <code>int32 version = 1;</code>
        */
       public int getVersion() {
-        return version_;
+        if (versionPresentCase_ == 1) {
+          return (java.lang.Integer) versionPresent_;
+        }
+        return 0;
       }
       /**
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       *
-       * <code>optional int32 version = 1 [default = 1];</code>
+       * <code>int32 version = 1;</code>
        */
       public Builder setVersion(int value) {
-        bitField0_ |= 0x00000001;
-        version_ = value;
+        versionPresentCase_ = 1;
+        versionPresent_ = value;
         onChanged();
         return this;
       }
       /**
-       * <pre>
-       **协议的版本号*
-       * </pre>
-       *
-       * <code>optional int32 version = 1 [default = 1];</code>
+       * <code>int32 version = 1;</code>
        */
       public Builder clearVersion() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        version_ = 1;
-        onChanged();
+        if (versionPresentCase_ == 1) {
+          versionPresentCase_ = 0;
+          versionPresent_ = null;
+          onChanged();
+        }
         return this;
       }
 
@@ -3103,17 +3047,7 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        *
-       * <code>optional string logfileName = 2;</code>
-       */
-      public boolean hasLogfileName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <pre>
-       **binlog/redolog 文件名*
-       * </pre>
-       *
-       * <code>optional string logfileName = 2;</code>
+       * <code>string logfileName = 2;</code>
        */
       public java.lang.String getLogfileName() {
         java.lang.Object ref = logfileName_;
@@ -3121,9 +3055,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            logfileName_ = s;
-          }
+          logfileName_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -3134,7 +3066,7 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        *
-       * <code>optional string logfileName = 2;</code>
+       * <code>string logfileName = 2;</code>
        */
       public com.google.protobuf.ByteString
           getLogfileNameBytes() {
@@ -3154,14 +3086,14 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        *
-       * <code>optional string logfileName = 2;</code>
+       * <code>string logfileName = 2;</code>
        */
       public Builder setLogfileName(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  
         logfileName_ = value;
         onChanged();
         return this;
@@ -3171,10 +3103,10 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        *
-       * <code>optional string logfileName = 2;</code>
+       * <code>string logfileName = 2;</code>
        */
       public Builder clearLogfileName() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        
         logfileName_ = getDefaultInstance().getLogfileName();
         onChanged();
         return this;
@@ -3184,14 +3116,15 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        *
-       * <code>optional string logfileName = 2;</code>
+       * <code>string logfileName = 2;</code>
        */
       public Builder setLogfileNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  checkByteStringIsUtf8(value);
+        
         logfileName_ = value;
         onChanged();
         return this;
@@ -3203,17 +3136,7 @@ public final class CanalEntry {
        **binlog/redolog 文件的偏移位置*
        * </pre>
        *
-       * <code>optional int64 logfileOffset = 3;</code>
-       */
-      public boolean hasLogfileOffset() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <pre>
-       **binlog/redolog 文件的偏移位置*
-       * </pre>
-       *
-       * <code>optional int64 logfileOffset = 3;</code>
+       * <code>int64 logfileOffset = 3;</code>
        */
       public long getLogfileOffset() {
         return logfileOffset_;
@@ -3223,10 +3146,10 @@ public final class CanalEntry {
        **binlog/redolog 文件的偏移位置*
        * </pre>
        *
-       * <code>optional int64 logfileOffset = 3;</code>
+       * <code>int64 logfileOffset = 3;</code>
        */
       public Builder setLogfileOffset(long value) {
-        bitField0_ |= 0x00000004;
+        
         logfileOffset_ = value;
         onChanged();
         return this;
@@ -3236,10 +3159,10 @@ public final class CanalEntry {
        **binlog/redolog 文件的偏移位置*
        * </pre>
        *
-       * <code>optional int64 logfileOffset = 3;</code>
+       * <code>int64 logfileOffset = 3;</code>
        */
       public Builder clearLogfileOffset() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        
         logfileOffset_ = 0L;
         onChanged();
         return this;
@@ -3251,17 +3174,7 @@ public final class CanalEntry {
        **服务端serverId*
        * </pre>
        *
-       * <code>optional int64 serverId = 4;</code>
-       */
-      public boolean hasServerId() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <pre>
-       **服务端serverId*
-       * </pre>
-       *
-       * <code>optional int64 serverId = 4;</code>
+       * <code>int64 serverId = 4;</code>
        */
       public long getServerId() {
         return serverId_;
@@ -3271,10 +3184,10 @@ public final class CanalEntry {
        **服务端serverId*
        * </pre>
        *
-       * <code>optional int64 serverId = 4;</code>
+       * <code>int64 serverId = 4;</code>
        */
       public Builder setServerId(long value) {
-        bitField0_ |= 0x00000008;
+        
         serverId_ = value;
         onChanged();
         return this;
@@ -3284,10 +3197,10 @@ public final class CanalEntry {
        **服务端serverId*
        * </pre>
        *
-       * <code>optional int64 serverId = 4;</code>
+       * <code>int64 serverId = 4;</code>
        */
       public Builder clearServerId() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        
         serverId_ = 0L;
         onChanged();
         return this;
@@ -3299,17 +3212,7 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        *
-       * <code>optional string serverenCode = 5;</code>
-       */
-      public boolean hasServerenCode() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
-      }
-      /**
-       * <pre>
-       ** 变更数据的编码 *
-       * </pre>
-       *
-       * <code>optional string serverenCode = 5;</code>
+       * <code>string serverenCode = 5;</code>
        */
       public java.lang.String getServerenCode() {
         java.lang.Object ref = serverenCode_;
@@ -3317,9 +3220,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            serverenCode_ = s;
-          }
+          serverenCode_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -3330,7 +3231,7 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        *
-       * <code>optional string serverenCode = 5;</code>
+       * <code>string serverenCode = 5;</code>
        */
       public com.google.protobuf.ByteString
           getServerenCodeBytes() {
@@ -3350,14 +3251,14 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        *
-       * <code>optional string serverenCode = 5;</code>
+       * <code>string serverenCode = 5;</code>
        */
       public Builder setServerenCode(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  
         serverenCode_ = value;
         onChanged();
         return this;
@@ -3367,10 +3268,10 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        *
-       * <code>optional string serverenCode = 5;</code>
+       * <code>string serverenCode = 5;</code>
        */
       public Builder clearServerenCode() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        
         serverenCode_ = getDefaultInstance().getServerenCode();
         onChanged();
         return this;
@@ -3380,14 +3281,15 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        *
-       * <code>optional string serverenCode = 5;</code>
+       * <code>string serverenCode = 5;</code>
        */
       public Builder setServerenCodeBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  checkByteStringIsUtf8(value);
+        
         serverenCode_ = value;
         onChanged();
         return this;
@@ -3399,17 +3301,7 @@ public final class CanalEntry {
        **变更数据的执行时间 *
        * </pre>
        *
-       * <code>optional int64 executeTime = 6;</code>
-       */
-      public boolean hasExecuteTime() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
-      }
-      /**
-       * <pre>
-       **变更数据的执行时间 *
-       * </pre>
-       *
-       * <code>optional int64 executeTime = 6;</code>
+       * <code>int64 executeTime = 6;</code>
        */
       public long getExecuteTime() {
         return executeTime_;
@@ -3419,10 +3311,10 @@ public final class CanalEntry {
        **变更数据的执行时间 *
        * </pre>
        *
-       * <code>optional int64 executeTime = 6;</code>
+       * <code>int64 executeTime = 6;</code>
        */
       public Builder setExecuteTime(long value) {
-        bitField0_ |= 0x00000020;
+        
         executeTime_ = value;
         onChanged();
         return this;
@@ -3432,65 +3324,66 @@ public final class CanalEntry {
        **变更数据的执行时间 *
        * </pre>
        *
-       * <code>optional int64 executeTime = 6;</code>
+       * <code>int64 executeTime = 6;</code>
        */
       public Builder clearExecuteTime() {
-        bitField0_ = (bitField0_ & ~0x00000020);
+        
         executeTime_ = 0L;
         onChanged();
         return this;
       }
 
-      private int sourceType_ = 2;
       /**
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+       * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
        */
-      public boolean hasSourceType() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+      public int getSourceTypeValue() {
+        if (sourceTypePresentCase_ == 7) {
+          return ((java.lang.Integer) sourceTypePresent_).intValue();
+        }
+        return Type.MYSQL_VALUE;
       }
       /**
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+       * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
+       */
+      public Builder setSourceTypeValue(int value) {
+        sourceTypePresentCase_ = 7;
+        sourceTypePresent_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
        */
       public com.alibaba.otter.canal.protocol.CanalEntry.Type getSourceType() {
-        @SuppressWarnings("deprecation")
-        com.alibaba.otter.canal.protocol.CanalEntry.Type result = com.alibaba.otter.canal.protocol.CanalEntry.Type.valueOf(sourceType_);
-        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.Type.MYSQL : result;
+        if (sourceTypePresentCase_ == 7) {
+          @SuppressWarnings("deprecation")
+          com.alibaba.otter.canal.protocol.CanalEntry.Type result = com.alibaba.otter.canal.protocol.CanalEntry.Type.valueOf(
+              (java.lang.Integer) sourceTypePresent_);
+          return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.Type.UNRECOGNIZED : result;
+        }
+        return com.alibaba.otter.canal.protocol.CanalEntry.Type.TYPECOMPATIBLEPROTO2;
       }
       /**
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+       * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
        */
       public Builder setSourceType(com.alibaba.otter.canal.protocol.CanalEntry.Type value) {
         if (value == null) {
           throw new NullPointerException();
         }
-        bitField0_ |= 0x00000040;
-        sourceType_ = value.getNumber();
+        sourceTypePresentCase_ = 7;
+        sourceTypePresent_ = value.getNumber();
         onChanged();
         return this;
       }
       /**
-       * <pre>
-       ** 变更数据的来源*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.Type sourceType = 7 [default = MYSQL];</code>
+       * <code>.com.alibaba.otter.canal.protocol.Type sourceType = 7;</code>
        */
       public Builder clearSourceType() {
-        bitField0_ = (bitField0_ & ~0x00000040);
-        sourceType_ = 2;
-        onChanged();
+        if (sourceTypePresentCase_ == 7) {
+          sourceTypePresentCase_ = 0;
+          sourceTypePresent_ = null;
+          onChanged();
+        }
         return this;
       }
 
@@ -3500,17 +3393,7 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        *
-       * <code>optional string schemaName = 8;</code>
-       */
-      public boolean hasSchemaName() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
-      }
-      /**
-       * <pre>
-       ** 变更数据的schemaname*
-       * </pre>
-       *
-       * <code>optional string schemaName = 8;</code>
+       * <code>string schemaName = 8;</code>
        */
       public java.lang.String getSchemaName() {
         java.lang.Object ref = schemaName_;
@@ -3518,9 +3401,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            schemaName_ = s;
-          }
+          schemaName_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -3531,7 +3412,7 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        *
-       * <code>optional string schemaName = 8;</code>
+       * <code>string schemaName = 8;</code>
        */
       public com.google.protobuf.ByteString
           getSchemaNameBytes() {
@@ -3551,14 +3432,14 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        *
-       * <code>optional string schemaName = 8;</code>
+       * <code>string schemaName = 8;</code>
        */
       public Builder setSchemaName(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  
         schemaName_ = value;
         onChanged();
         return this;
@@ -3568,10 +3449,10 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        *
-       * <code>optional string schemaName = 8;</code>
+       * <code>string schemaName = 8;</code>
        */
       public Builder clearSchemaName() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        
         schemaName_ = getDefaultInstance().getSchemaName();
         onChanged();
         return this;
@@ -3581,14 +3462,15 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        *
-       * <code>optional string schemaName = 8;</code>
+       * <code>string schemaName = 8;</code>
        */
       public Builder setSchemaNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  checkByteStringIsUtf8(value);
+        
         schemaName_ = value;
         onChanged();
         return this;
@@ -3600,17 +3482,7 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        *
-       * <code>optional string tableName = 9;</code>
-       */
-      public boolean hasTableName() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
-      }
-      /**
-       * <pre>
-       **变更数据的tablename*
-       * </pre>
-       *
-       * <code>optional string tableName = 9;</code>
+       * <code>string tableName = 9;</code>
        */
       public java.lang.String getTableName() {
         java.lang.Object ref = tableName_;
@@ -3618,9 +3490,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            tableName_ = s;
-          }
+          tableName_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -3631,7 +3501,7 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        *
-       * <code>optional string tableName = 9;</code>
+       * <code>string tableName = 9;</code>
        */
       public com.google.protobuf.ByteString
           getTableNameBytes() {
@@ -3651,14 +3521,14 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        *
-       * <code>optional string tableName = 9;</code>
+       * <code>string tableName = 9;</code>
        */
       public Builder setTableName(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000100;
+  
         tableName_ = value;
         onChanged();
         return this;
@@ -3668,10 +3538,10 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        *
-       * <code>optional string tableName = 9;</code>
+       * <code>string tableName = 9;</code>
        */
       public Builder clearTableName() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        
         tableName_ = getDefaultInstance().getTableName();
         onChanged();
         return this;
@@ -3681,14 +3551,15 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        *
-       * <code>optional string tableName = 9;</code>
+       * <code>string tableName = 9;</code>
        */
       public Builder setTableNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000100;
+  checkByteStringIsUtf8(value);
+        
         tableName_ = value;
         onChanged();
         return this;
@@ -3700,17 +3571,7 @@ public final class CanalEntry {
        **每个event的长度*
        * </pre>
        *
-       * <code>optional int64 eventLength = 10;</code>
-       */
-      public boolean hasEventLength() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
-      }
-      /**
-       * <pre>
-       **每个event的长度*
-       * </pre>
-       *
-       * <code>optional int64 eventLength = 10;</code>
+       * <code>int64 eventLength = 10;</code>
        */
       public long getEventLength() {
         return eventLength_;
@@ -3720,10 +3581,10 @@ public final class CanalEntry {
        **每个event的长度*
        * </pre>
        *
-       * <code>optional int64 eventLength = 10;</code>
+       * <code>int64 eventLength = 10;</code>
        */
       public Builder setEventLength(long value) {
-        bitField0_ |= 0x00000200;
+        
         eventLength_ = value;
         onChanged();
         return this;
@@ -3733,65 +3594,66 @@ public final class CanalEntry {
        **每个event的长度*
        * </pre>
        *
-       * <code>optional int64 eventLength = 10;</code>
+       * <code>int64 eventLength = 10;</code>
        */
       public Builder clearEventLength() {
-        bitField0_ = (bitField0_ & ~0x00000200);
+        
         eventLength_ = 0L;
         onChanged();
         return this;
       }
 
-      private int eventType_ = 2;
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
        */
-      public boolean hasEventType() {
-        return ((bitField0_ & 0x00000400) == 0x00000400);
+      public int getEventTypeValue() {
+        if (eventTypePresentCase_ == 11) {
+          return ((java.lang.Integer) eventTypePresent_).intValue();
+        }
+        return EventType.UPDATE_VALUE;
       }
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
+       */
+      public Builder setEventTypeValue(int value) {
+        eventTypePresentCase_ = 11;
+        eventTypePresent_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
        */
       public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
-        @SuppressWarnings("deprecation")
-        com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(eventType_);
-        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE : result;
+        if (eventTypePresentCase_ == 11) {
+          @SuppressWarnings("deprecation")
+          com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(
+              (java.lang.Integer) eventTypePresent_);
+          return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UNRECOGNIZED : result;
+        }
+        return com.alibaba.otter.canal.protocol.CanalEntry.EventType.EVENTTYPECOMPATIBLEPROTO2;
       }
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
        */
       public Builder setEventType(com.alibaba.otter.canal.protocol.CanalEntry.EventType value) {
         if (value == null) {
           throw new NullPointerException();
         }
-        bitField0_ |= 0x00000400;
-        eventType_ = value.getNumber();
+        eventTypePresentCase_ = 11;
+        eventTypePresent_ = value.getNumber();
         onChanged();
         return this;
       }
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 11 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 11;</code>
        */
       public Builder clearEventType() {
-        bitField0_ = (bitField0_ & ~0x00000400);
-        eventType_ = 2;
-        onChanged();
+        if (eventTypePresentCase_ == 11) {
+          eventTypePresentCase_ = 0;
+          eventTypePresent_ = null;
+          onChanged();
+        }
         return this;
       }
 
@@ -4113,17 +3975,7 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        *
-       * <code>optional string gtid = 13;</code>
-       */
-      public boolean hasGtid() {
-        return ((bitField0_ & 0x00001000) == 0x00001000);
-      }
-      /**
-       * <pre>
-       **当前事务的gitd*
-       * </pre>
-       *
-       * <code>optional string gtid = 13;</code>
+       * <code>string gtid = 13;</code>
        */
       public java.lang.String getGtid() {
         java.lang.Object ref = gtid_;
@@ -4131,9 +3983,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            gtid_ = s;
-          }
+          gtid_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -4144,7 +3994,7 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        *
-       * <code>optional string gtid = 13;</code>
+       * <code>string gtid = 13;</code>
        */
       public com.google.protobuf.ByteString
           getGtidBytes() {
@@ -4164,14 +4014,14 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        *
-       * <code>optional string gtid = 13;</code>
+       * <code>string gtid = 13;</code>
        */
       public Builder setGtid(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00001000;
+  
         gtid_ = value;
         onChanged();
         return this;
@@ -4181,10 +4031,10 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        *
-       * <code>optional string gtid = 13;</code>
+       * <code>string gtid = 13;</code>
        */
       public Builder clearGtid() {
-        bitField0_ = (bitField0_ & ~0x00001000);
+        
         gtid_ = getDefaultInstance().getGtid();
         onChanged();
         return this;
@@ -4194,14 +4044,15 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        *
-       * <code>optional string gtid = 13;</code>
+       * <code>string gtid = 13;</code>
        */
       public Builder setGtidBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00001000;
+  checkByteStringIsUtf8(value);
+        
         gtid_ = value;
         onChanged();
         return this;
@@ -4209,7 +4060,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -4232,7 +4083,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<Header>
+    private static final com.google.protobuf.Parser<Header>
         PARSER = new com.google.protobuf.AbstractParser<Header>() {
       @java.lang.Override
       public Header parsePartialFrom(
@@ -4268,15 +4119,7 @@ public final class CanalEntry {
      **字段下标*
      * </pre>
      *
-     * <code>optional int32 index = 1;</code>
-     */
-    boolean hasIndex();
-    /**
-     * <pre>
-     **字段下标*
-     * </pre>
-     *
-     * <code>optional int32 index = 1;</code>
+     * <code>int32 index = 1;</code>
      */
     int getIndex();
 
@@ -4285,15 +4128,7 @@ public final class CanalEntry {
      **字段java中类型*
      * </pre>
      *
-     * <code>optional int32 sqlType = 2;</code>
-     */
-    boolean hasSqlType();
-    /**
-     * <pre>
-     **字段java中类型*
-     * </pre>
-     *
-     * <code>optional int32 sqlType = 2;</code>
+     * <code>int32 sqlType = 2;</code>
      */
     int getSqlType();
 
@@ -4302,15 +4137,7 @@ public final class CanalEntry {
      **字段名称(忽略大小写)，在mysql中是没有的*
      * </pre>
      *
-     * <code>optional string name = 3;</code>
-     */
-    boolean hasName();
-    /**
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     *
-     * <code>optional string name = 3;</code>
+     * <code>string name = 3;</code>
      */
     java.lang.String getName();
     /**
@@ -4318,7 +4145,7 @@ public final class CanalEntry {
      **字段名称(忽略大小写)，在mysql中是没有的*
      * </pre>
      *
-     * <code>optional string name = 3;</code>
+     * <code>string name = 3;</code>
      */
     com.google.protobuf.ByteString
         getNameBytes();
@@ -4328,15 +4155,7 @@ public final class CanalEntry {
      **是否是主键*
      * </pre>
      *
-     * <code>optional bool isKey = 4;</code>
-     */
-    boolean hasIsKey();
-    /**
-     * <pre>
-     **是否是主键*
-     * </pre>
-     *
-     * <code>optional bool isKey = 4;</code>
+     * <code>bool isKey = 4;</code>
      */
     boolean getIsKey();
 
@@ -4345,32 +4164,12 @@ public final class CanalEntry {
      **如果EventType=UPDATE,用于标识这个字段值是否有修改*
      * </pre>
      *
-     * <code>optional bool updated = 5;</code>
-     */
-    boolean hasUpdated();
-    /**
-     * <pre>
-     **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-     * </pre>
-     *
-     * <code>optional bool updated = 5;</code>
+     * <code>bool updated = 5;</code>
      */
     boolean getUpdated();
 
     /**
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     *
-     * <code>optional bool isNull = 6 [default = false];</code>
-     */
-    boolean hasIsNull();
-    /**
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     *
-     * <code>optional bool isNull = 6 [default = false];</code>
+     * <code>bool isNull = 6;</code>
      */
     boolean getIsNull();
 
@@ -4423,15 +4222,7 @@ public final class CanalEntry {
      ** 字段值,timestamp,Datetime是一个时间格式的文本 *
      * </pre>
      *
-     * <code>optional string value = 8;</code>
-     */
-    boolean hasValue();
-    /**
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     *
-     * <code>optional string value = 8;</code>
+     * <code>string value = 8;</code>
      */
     java.lang.String getValue();
     /**
@@ -4439,7 +4230,7 @@ public final class CanalEntry {
      ** 字段值,timestamp,Datetime是一个时间格式的文本 *
      * </pre>
      *
-     * <code>optional string value = 8;</code>
+     * <code>string value = 8;</code>
      */
     com.google.protobuf.ByteString
         getValueBytes();
@@ -4449,15 +4240,7 @@ public final class CanalEntry {
      ** 对应数据对象原始长度 *
      * </pre>
      *
-     * <code>optional int32 length = 9;</code>
-     */
-    boolean hasLength();
-    /**
-     * <pre>
-     ** 对应数据对象原始长度 *
-     * </pre>
-     *
-     * <code>optional int32 length = 9;</code>
+     * <code>int32 length = 9;</code>
      */
     int getLength();
 
@@ -4466,15 +4249,7 @@ public final class CanalEntry {
      **字段mysql类型*
      * </pre>
      *
-     * <code>optional string mysqlType = 10;</code>
-     */
-    boolean hasMysqlType();
-    /**
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     *
-     * <code>optional string mysqlType = 10;</code>
+     * <code>string mysqlType = 10;</code>
      */
     java.lang.String getMysqlType();
     /**
@@ -4482,10 +4257,12 @@ public final class CanalEntry {
      **字段mysql类型*
      * </pre>
      *
-     * <code>optional string mysqlType = 10;</code>
+     * <code>string mysqlType = 10;</code>
      */
     com.google.protobuf.ByteString
         getMysqlTypeBytes();
+
+    public com.alibaba.otter.canal.protocol.CanalEntry.Column.IsNullPresentCase getIsNullPresentCase();
   }
   /**
    * <pre>
@@ -4509,7 +4286,6 @@ public final class CanalEntry {
       name_ = "";
       isKey_ = false;
       updated_ = false;
-      isNull_ = false;
       props_ = java.util.Collections.emptyList();
       value_ = "";
       length_ = 0;
@@ -4541,34 +4317,34 @@ public final class CanalEntry {
               done = true;
               break;
             case 8: {
-              bitField0_ |= 0x00000001;
+
               index_ = input.readInt32();
               break;
             }
             case 16: {
-              bitField0_ |= 0x00000002;
+
               sqlType_ = input.readInt32();
               break;
             }
             case 26: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000004;
-              name_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              name_ = s;
               break;
             }
             case 32: {
-              bitField0_ |= 0x00000008;
+
               isKey_ = input.readBool();
               break;
             }
             case 40: {
-              bitField0_ |= 0x00000010;
+
               updated_ = input.readBool();
               break;
             }
             case 48: {
-              bitField0_ |= 0x00000020;
-              isNull_ = input.readBool();
+              isNullPresentCase_ = 6;
+              isNullPresent_ = input.readBool();
               break;
             }
             case 58: {
@@ -4577,28 +4353,28 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000040;
               }
               props_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.parser(), extensionRegistry));
               break;
             }
             case 66: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000040;
-              value_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              value_ = s;
               break;
             }
             case 72: {
-              bitField0_ |= 0x00000080;
+
               length_ = input.readInt32();
               break;
             }
             case 82: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000100;
-              mysqlType_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              mysqlType_ = s;
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -4633,6 +4409,42 @@ public final class CanalEntry {
     }
 
     private int bitField0_;
+    private int isNullPresentCase_ = 0;
+    private java.lang.Object isNullPresent_;
+    public enum IsNullPresentCase
+        implements com.google.protobuf.Internal.EnumLite {
+      ISNULL(6),
+      ISNULLPRESENT_NOT_SET(0);
+      private final int value;
+      private IsNullPresentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static IsNullPresentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static IsNullPresentCase forNumber(int value) {
+        switch (value) {
+          case 6: return ISNULL;
+          case 0: return ISNULLPRESENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public IsNullPresentCase
+    getIsNullPresentCase() {
+      return IsNullPresentCase.forNumber(
+          isNullPresentCase_);
+    }
+
     public static final int INDEX_FIELD_NUMBER = 1;
     private int index_;
     /**
@@ -4640,17 +4452,7 @@ public final class CanalEntry {
      **字段下标*
      * </pre>
      *
-     * <code>optional int32 index = 1;</code>
-     */
-    public boolean hasIndex() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <pre>
-     **字段下标*
-     * </pre>
-     *
-     * <code>optional int32 index = 1;</code>
+     * <code>int32 index = 1;</code>
      */
     public int getIndex() {
       return index_;
@@ -4663,17 +4465,7 @@ public final class CanalEntry {
      **字段java中类型*
      * </pre>
      *
-     * <code>optional int32 sqlType = 2;</code>
-     */
-    public boolean hasSqlType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <pre>
-     **字段java中类型*
-     * </pre>
-     *
-     * <code>optional int32 sqlType = 2;</code>
+     * <code>int32 sqlType = 2;</code>
      */
     public int getSqlType() {
       return sqlType_;
@@ -4686,17 +4478,7 @@ public final class CanalEntry {
      **字段名称(忽略大小写)，在mysql中是没有的*
      * </pre>
      *
-     * <code>optional string name = 3;</code>
-     */
-    public boolean hasName() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <pre>
-     **字段名称(忽略大小写)，在mysql中是没有的*
-     * </pre>
-     *
-     * <code>optional string name = 3;</code>
+     * <code>string name = 3;</code>
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -4706,9 +4488,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          name_ = s;
-        }
+        name_ = s;
         return s;
       }
     }
@@ -4717,7 +4497,7 @@ public final class CanalEntry {
      **字段名称(忽略大小写)，在mysql中是没有的*
      * </pre>
      *
-     * <code>optional string name = 3;</code>
+     * <code>string name = 3;</code>
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -4740,17 +4520,7 @@ public final class CanalEntry {
      **是否是主键*
      * </pre>
      *
-     * <code>optional bool isKey = 4;</code>
-     */
-    public boolean hasIsKey() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <pre>
-     **是否是主键*
-     * </pre>
-     *
-     * <code>optional bool isKey = 4;</code>
+     * <code>bool isKey = 4;</code>
      */
     public boolean getIsKey() {
       return isKey_;
@@ -4763,43 +4533,21 @@ public final class CanalEntry {
      **如果EventType=UPDATE,用于标识这个字段值是否有修改*
      * </pre>
      *
-     * <code>optional bool updated = 5;</code>
-     */
-    public boolean hasUpdated() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    /**
-     * <pre>
-     **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-     * </pre>
-     *
-     * <code>optional bool updated = 5;</code>
+     * <code>bool updated = 5;</code>
      */
     public boolean getUpdated() {
       return updated_;
     }
 
     public static final int ISNULL_FIELD_NUMBER = 6;
-    private boolean isNull_;
     /**
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     *
-     * <code>optional bool isNull = 6 [default = false];</code>
-     */
-    public boolean hasIsNull() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    /**
-     * <pre>
-     ** 标识是否为空  *
-     * </pre>
-     *
-     * <code>optional bool isNull = 6 [default = false];</code>
+     * <code>bool isNull = 6;</code>
      */
     public boolean getIsNull() {
-      return isNull_;
+      if (isNullPresentCase_ == 6) {
+        return (java.lang.Boolean) isNullPresent_;
+      }
+      return false;
     }
 
     public static final int PROPS_FIELD_NUMBER = 7;
@@ -4864,17 +4612,7 @@ public final class CanalEntry {
      ** 字段值,timestamp,Datetime是一个时间格式的文本 *
      * </pre>
      *
-     * <code>optional string value = 8;</code>
-     */
-    public boolean hasValue() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
-    }
-    /**
-     * <pre>
-     ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-     * </pre>
-     *
-     * <code>optional string value = 8;</code>
+     * <code>string value = 8;</code>
      */
     public java.lang.String getValue() {
       java.lang.Object ref = value_;
@@ -4884,9 +4622,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          value_ = s;
-        }
+        value_ = s;
         return s;
       }
     }
@@ -4895,7 +4631,7 @@ public final class CanalEntry {
      ** 字段值,timestamp,Datetime是一个时间格式的文本 *
      * </pre>
      *
-     * <code>optional string value = 8;</code>
+     * <code>string value = 8;</code>
      */
     public com.google.protobuf.ByteString
         getValueBytes() {
@@ -4918,17 +4654,7 @@ public final class CanalEntry {
      ** 对应数据对象原始长度 *
      * </pre>
      *
-     * <code>optional int32 length = 9;</code>
-     */
-    public boolean hasLength() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
-    }
-    /**
-     * <pre>
-     ** 对应数据对象原始长度 *
-     * </pre>
-     *
-     * <code>optional int32 length = 9;</code>
+     * <code>int32 length = 9;</code>
      */
     public int getLength() {
       return length_;
@@ -4941,17 +4667,7 @@ public final class CanalEntry {
      **字段mysql类型*
      * </pre>
      *
-     * <code>optional string mysqlType = 10;</code>
-     */
-    public boolean hasMysqlType() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
-    }
-    /**
-     * <pre>
-     **字段mysql类型*
-     * </pre>
-     *
-     * <code>optional string mysqlType = 10;</code>
+     * <code>string mysqlType = 10;</code>
      */
     public java.lang.String getMysqlType() {
       java.lang.Object ref = mysqlType_;
@@ -4961,9 +4677,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          mysqlType_ = s;
-        }
+        mysqlType_ = s;
         return s;
       }
     }
@@ -4972,7 +4686,7 @@ public final class CanalEntry {
      **字段mysql类型*
      * </pre>
      *
-     * <code>optional string mysqlType = 10;</code>
+     * <code>string mysqlType = 10;</code>
      */
     public com.google.protobuf.ByteString
         getMysqlTypeBytes() {
@@ -5002,34 +4716,35 @@ public final class CanalEntry {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (index_ != 0) {
         output.writeInt32(1, index_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (sqlType_ != 0) {
         output.writeInt32(2, sqlType_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!getNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, name_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (isKey_ != false) {
         output.writeBool(4, isKey_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (updated_ != false) {
         output.writeBool(5, updated_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeBool(6, isNull_);
+      if (isNullPresentCase_ == 6) {
+        output.writeBool(
+            6, (boolean)((java.lang.Boolean) isNullPresent_));
       }
       for (int i = 0; i < props_.size(); i++) {
         output.writeMessage(7, props_.get(i));
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (!getValueBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 8, value_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (length_ != 0) {
         output.writeInt32(9, length_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (!getMysqlTypeBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 10, mysqlType_);
       }
       unknownFields.writeTo(output);
@@ -5041,41 +4756,42 @@ public final class CanalEntry {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (index_ != 0) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, index_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (sqlType_ != 0) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(2, sqlType_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!getNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, name_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (isKey_ != false) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(4, isKey_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (updated_ != false) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(5, updated_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (isNullPresentCase_ == 6) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(6, isNull_);
+          .computeBoolSize(
+              6, (boolean)((java.lang.Boolean) isNullPresent_));
       }
       for (int i = 0; i < props_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(7, props_.get(i));
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (!getValueBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, value_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (length_ != 0) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(9, length_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (!getMysqlTypeBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(10, mysqlType_);
       }
       size += unknownFields.getSerializedSize();
@@ -5094,52 +4810,34 @@ public final class CanalEntry {
       com.alibaba.otter.canal.protocol.CanalEntry.Column other = (com.alibaba.otter.canal.protocol.CanalEntry.Column) obj;
 
       boolean result = true;
-      result = result && (hasIndex() == other.hasIndex());
-      if (hasIndex()) {
-        result = result && (getIndex()
-            == other.getIndex());
-      }
-      result = result && (hasSqlType() == other.hasSqlType());
-      if (hasSqlType()) {
-        result = result && (getSqlType()
-            == other.getSqlType());
-      }
-      result = result && (hasName() == other.hasName());
-      if (hasName()) {
-        result = result && getName()
-            .equals(other.getName());
-      }
-      result = result && (hasIsKey() == other.hasIsKey());
-      if (hasIsKey()) {
-        result = result && (getIsKey()
-            == other.getIsKey());
-      }
-      result = result && (hasUpdated() == other.hasUpdated());
-      if (hasUpdated()) {
-        result = result && (getUpdated()
-            == other.getUpdated());
-      }
-      result = result && (hasIsNull() == other.hasIsNull());
-      if (hasIsNull()) {
-        result = result && (getIsNull()
-            == other.getIsNull());
-      }
+      result = result && (getIndex()
+          == other.getIndex());
+      result = result && (getSqlType()
+          == other.getSqlType());
+      result = result && getName()
+          .equals(other.getName());
+      result = result && (getIsKey()
+          == other.getIsKey());
+      result = result && (getUpdated()
+          == other.getUpdated());
       result = result && getPropsList()
           .equals(other.getPropsList());
-      result = result && (hasValue() == other.hasValue());
-      if (hasValue()) {
-        result = result && getValue()
-            .equals(other.getValue());
-      }
-      result = result && (hasLength() == other.hasLength());
-      if (hasLength()) {
-        result = result && (getLength()
-            == other.getLength());
-      }
-      result = result && (hasMysqlType() == other.hasMysqlType());
-      if (hasMysqlType()) {
-        result = result && getMysqlType()
-            .equals(other.getMysqlType());
+      result = result && getValue()
+          .equals(other.getValue());
+      result = result && (getLength()
+          == other.getLength());
+      result = result && getMysqlType()
+          .equals(other.getMysqlType());
+      result = result && getIsNullPresentCase().equals(
+          other.getIsNullPresentCase());
+      if (!result) return false;
+      switch (isNullPresentCase_) {
+        case 6:
+          result = result && (getIsNull()
+              == other.getIsNull());
+          break;
+        case 0:
+        default:
       }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
@@ -5152,48 +4850,36 @@ public final class CanalEntry {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasIndex()) {
-        hash = (37 * hash) + INDEX_FIELD_NUMBER;
-        hash = (53 * hash) + getIndex();
-      }
-      if (hasSqlType()) {
-        hash = (37 * hash) + SQLTYPE_FIELD_NUMBER;
-        hash = (53 * hash) + getSqlType();
-      }
-      if (hasName()) {
-        hash = (37 * hash) + NAME_FIELD_NUMBER;
-        hash = (53 * hash) + getName().hashCode();
-      }
-      if (hasIsKey()) {
-        hash = (37 * hash) + ISKEY_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-            getIsKey());
-      }
-      if (hasUpdated()) {
-        hash = (37 * hash) + UPDATED_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-            getUpdated());
-      }
-      if (hasIsNull()) {
-        hash = (37 * hash) + ISNULL_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-            getIsNull());
-      }
+      hash = (37 * hash) + INDEX_FIELD_NUMBER;
+      hash = (53 * hash) + getIndex();
+      hash = (37 * hash) + SQLTYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getSqlType();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + ISKEY_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsKey());
+      hash = (37 * hash) + UPDATED_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getUpdated());
       if (getPropsCount() > 0) {
         hash = (37 * hash) + PROPS_FIELD_NUMBER;
         hash = (53 * hash) + getPropsList().hashCode();
       }
-      if (hasValue()) {
-        hash = (37 * hash) + VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + getValue().hashCode();
-      }
-      if (hasLength()) {
-        hash = (37 * hash) + LENGTH_FIELD_NUMBER;
-        hash = (53 * hash) + getLength();
-      }
-      if (hasMysqlType()) {
-        hash = (37 * hash) + MYSQLTYPE_FIELD_NUMBER;
-        hash = (53 * hash) + getMysqlType().hashCode();
+      hash = (37 * hash) + VALUE_FIELD_NUMBER;
+      hash = (53 * hash) + getValue().hashCode();
+      hash = (37 * hash) + LENGTH_FIELD_NUMBER;
+      hash = (53 * hash) + getLength();
+      hash = (37 * hash) + MYSQLTYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getMysqlType().hashCode();
+      switch (isNullPresentCase_) {
+        case 6:
+          hash = (37 * hash) + ISNULL_FIELD_NUMBER;
+          hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+              getIsNull());
+          break;
+        case 0:
+        default:
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -5334,17 +5020,15 @@ public final class CanalEntry {
       public Builder clear() {
         super.clear();
         index_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000001);
+
         sqlType_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000002);
+
         name_ = "";
-        bitField0_ = (bitField0_ & ~0x00000004);
+
         isKey_ = false;
-        bitField0_ = (bitField0_ & ~0x00000008);
+
         updated_ = false;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        isNull_ = false;
-        bitField0_ = (bitField0_ & ~0x00000020);
+
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000040);
@@ -5352,11 +5036,13 @@ public final class CanalEntry {
           propsBuilder_.clear();
         }
         value_ = "";
-        bitField0_ = (bitField0_ & ~0x00000080);
+
         length_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000100);
+
         mysqlType_ = "";
-        bitField0_ = (bitField0_ & ~0x00000200);
+
+        isNullPresentCase_ = 0;
+        isNullPresent_ = null;
         return this;
       }
 
@@ -5385,30 +5071,14 @@ public final class CanalEntry {
         com.alibaba.otter.canal.protocol.CanalEntry.Column result = new com.alibaba.otter.canal.protocol.CanalEntry.Column(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
         result.index_ = index_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
         result.sqlType_ = sqlType_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
         result.name_ = name_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
         result.isKey_ = isKey_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
-          to_bitField0_ |= 0x00000010;
-        }
         result.updated_ = updated_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-          to_bitField0_ |= 0x00000020;
+        if (isNullPresentCase_ == 6) {
+          result.isNullPresent_ = isNullPresent_;
         }
-        result.isNull_ = isNull_;
         if (propsBuilder_ == null) {
           if (((bitField0_ & 0x00000040) == 0x00000040)) {
             props_ = java.util.Collections.unmodifiableList(props_);
@@ -5418,19 +5088,11 @@ public final class CanalEntry {
         } else {
           result.props_ = propsBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-          to_bitField0_ |= 0x00000040;
-        }
         result.value_ = value_;
-        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
-          to_bitField0_ |= 0x00000080;
-        }
         result.length_ = length_;
-        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
-          to_bitField0_ |= 0x00000100;
-        }
         result.mysqlType_ = mysqlType_;
         result.bitField0_ = to_bitField0_;
+        result.isNullPresentCase_ = isNullPresentCase_;
         onBuilt();
         return result;
       }
@@ -5479,25 +5141,21 @@ public final class CanalEntry {
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalEntry.Column other) {
         if (other == com.alibaba.otter.canal.protocol.CanalEntry.Column.getDefaultInstance()) return this;
-        if (other.hasIndex()) {
+        if (other.getIndex() != 0) {
           setIndex(other.getIndex());
         }
-        if (other.hasSqlType()) {
+        if (other.getSqlType() != 0) {
           setSqlType(other.getSqlType());
         }
-        if (other.hasName()) {
-          bitField0_ |= 0x00000004;
+        if (!other.getName().isEmpty()) {
           name_ = other.name_;
           onChanged();
         }
-        if (other.hasIsKey()) {
+        if (other.getIsKey() != false) {
           setIsKey(other.getIsKey());
         }
-        if (other.hasUpdated()) {
+        if (other.getUpdated() != false) {
           setUpdated(other.getUpdated());
-        }
-        if (other.hasIsNull()) {
-          setIsNull(other.getIsNull());
         }
         if (propsBuilder_ == null) {
           if (!other.props_.isEmpty()) {
@@ -5525,18 +5183,25 @@ public final class CanalEntry {
             }
           }
         }
-        if (other.hasValue()) {
-          bitField0_ |= 0x00000080;
+        if (!other.getValue().isEmpty()) {
           value_ = other.value_;
           onChanged();
         }
-        if (other.hasLength()) {
+        if (other.getLength() != 0) {
           setLength(other.getLength());
         }
-        if (other.hasMysqlType()) {
-          bitField0_ |= 0x00000200;
+        if (!other.getMysqlType().isEmpty()) {
           mysqlType_ = other.mysqlType_;
           onChanged();
+        }
+        switch (other.getIsNullPresentCase()) {
+          case ISNULL: {
+            setIsNull(other.getIsNull());
+            break;
+          }
+          case ISNULLPRESENT_NOT_SET: {
+            break;
+          }
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -5566,6 +5231,21 @@ public final class CanalEntry {
         }
         return this;
       }
+      private int isNullPresentCase_ = 0;
+      private java.lang.Object isNullPresent_;
+      public IsNullPresentCase
+          getIsNullPresentCase() {
+        return IsNullPresentCase.forNumber(
+            isNullPresentCase_);
+      }
+
+      public Builder clearIsNullPresent() {
+        isNullPresentCase_ = 0;
+        isNullPresent_ = null;
+        onChanged();
+        return this;
+      }
+
       private int bitField0_;
 
       private int index_ ;
@@ -5574,17 +5254,7 @@ public final class CanalEntry {
        **字段下标*
        * </pre>
        *
-       * <code>optional int32 index = 1;</code>
-       */
-      public boolean hasIndex() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <pre>
-       **字段下标*
-       * </pre>
-       *
-       * <code>optional int32 index = 1;</code>
+       * <code>int32 index = 1;</code>
        */
       public int getIndex() {
         return index_;
@@ -5594,10 +5264,10 @@ public final class CanalEntry {
        **字段下标*
        * </pre>
        *
-       * <code>optional int32 index = 1;</code>
+       * <code>int32 index = 1;</code>
        */
       public Builder setIndex(int value) {
-        bitField0_ |= 0x00000001;
+        
         index_ = value;
         onChanged();
         return this;
@@ -5607,10 +5277,10 @@ public final class CanalEntry {
        **字段下标*
        * </pre>
        *
-       * <code>optional int32 index = 1;</code>
+       * <code>int32 index = 1;</code>
        */
       public Builder clearIndex() {
-        bitField0_ = (bitField0_ & ~0x00000001);
+        
         index_ = 0;
         onChanged();
         return this;
@@ -5622,17 +5292,7 @@ public final class CanalEntry {
        **字段java中类型*
        * </pre>
        *
-       * <code>optional int32 sqlType = 2;</code>
-       */
-      public boolean hasSqlType() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <pre>
-       **字段java中类型*
-       * </pre>
-       *
-       * <code>optional int32 sqlType = 2;</code>
+       * <code>int32 sqlType = 2;</code>
        */
       public int getSqlType() {
         return sqlType_;
@@ -5642,10 +5302,10 @@ public final class CanalEntry {
        **字段java中类型*
        * </pre>
        *
-       * <code>optional int32 sqlType = 2;</code>
+       * <code>int32 sqlType = 2;</code>
        */
       public Builder setSqlType(int value) {
-        bitField0_ |= 0x00000002;
+        
         sqlType_ = value;
         onChanged();
         return this;
@@ -5655,10 +5315,10 @@ public final class CanalEntry {
        **字段java中类型*
        * </pre>
        *
-       * <code>optional int32 sqlType = 2;</code>
+       * <code>int32 sqlType = 2;</code>
        */
       public Builder clearSqlType() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        
         sqlType_ = 0;
         onChanged();
         return this;
@@ -5670,17 +5330,7 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        *
-       * <code>optional string name = 3;</code>
-       */
-      public boolean hasName() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <pre>
-       **字段名称(忽略大小写)，在mysql中是没有的*
-       * </pre>
-       *
-       * <code>optional string name = 3;</code>
+       * <code>string name = 3;</code>
        */
       public java.lang.String getName() {
         java.lang.Object ref = name_;
@@ -5688,9 +5338,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            name_ = s;
-          }
+          name_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -5701,7 +5349,7 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        *
-       * <code>optional string name = 3;</code>
+       * <code>string name = 3;</code>
        */
       public com.google.protobuf.ByteString
           getNameBytes() {
@@ -5721,14 +5369,14 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        *
-       * <code>optional string name = 3;</code>
+       * <code>string name = 3;</code>
        */
       public Builder setName(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  
         name_ = value;
         onChanged();
         return this;
@@ -5738,10 +5386,10 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        *
-       * <code>optional string name = 3;</code>
+       * <code>string name = 3;</code>
        */
       public Builder clearName() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        
         name_ = getDefaultInstance().getName();
         onChanged();
         return this;
@@ -5751,14 +5399,15 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        *
-       * <code>optional string name = 3;</code>
+       * <code>string name = 3;</code>
        */
       public Builder setNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  checkByteStringIsUtf8(value);
+        
         name_ = value;
         onChanged();
         return this;
@@ -5770,17 +5419,7 @@ public final class CanalEntry {
        **是否是主键*
        * </pre>
        *
-       * <code>optional bool isKey = 4;</code>
-       */
-      public boolean hasIsKey() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <pre>
-       **是否是主键*
-       * </pre>
-       *
-       * <code>optional bool isKey = 4;</code>
+       * <code>bool isKey = 4;</code>
        */
       public boolean getIsKey() {
         return isKey_;
@@ -5790,10 +5429,10 @@ public final class CanalEntry {
        **是否是主键*
        * </pre>
        *
-       * <code>optional bool isKey = 4;</code>
+       * <code>bool isKey = 4;</code>
        */
       public Builder setIsKey(boolean value) {
-        bitField0_ |= 0x00000008;
+        
         isKey_ = value;
         onChanged();
         return this;
@@ -5803,10 +5442,10 @@ public final class CanalEntry {
        **是否是主键*
        * </pre>
        *
-       * <code>optional bool isKey = 4;</code>
+       * <code>bool isKey = 4;</code>
        */
       public Builder clearIsKey() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        
         isKey_ = false;
         onChanged();
         return this;
@@ -5818,17 +5457,7 @@ public final class CanalEntry {
        **如果EventType=UPDATE,用于标识这个字段值是否有修改*
        * </pre>
        *
-       * <code>optional bool updated = 5;</code>
-       */
-      public boolean hasUpdated() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
-      }
-      /**
-       * <pre>
-       **如果EventType=UPDATE,用于标识这个字段值是否有修改*
-       * </pre>
-       *
-       * <code>optional bool updated = 5;</code>
+       * <code>bool updated = 5;</code>
        */
       public boolean getUpdated() {
         return updated_;
@@ -5838,10 +5467,10 @@ public final class CanalEntry {
        **如果EventType=UPDATE,用于标识这个字段值是否有修改*
        * </pre>
        *
-       * <code>optional bool updated = 5;</code>
+       * <code>bool updated = 5;</code>
        */
       public Builder setUpdated(boolean value) {
-        bitField0_ |= 0x00000010;
+        
         updated_ = value;
         onChanged();
         return this;
@@ -5851,60 +5480,42 @@ public final class CanalEntry {
        **如果EventType=UPDATE,用于标识这个字段值是否有修改*
        * </pre>
        *
-       * <code>optional bool updated = 5;</code>
+       * <code>bool updated = 5;</code>
        */
       public Builder clearUpdated() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        
         updated_ = false;
         onChanged();
         return this;
       }
 
-      private boolean isNull_ ;
       /**
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       *
-       * <code>optional bool isNull = 6 [default = false];</code>
-       */
-      public boolean hasIsNull() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
-      }
-      /**
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       *
-       * <code>optional bool isNull = 6 [default = false];</code>
+       * <code>bool isNull = 6;</code>
        */
       public boolean getIsNull() {
-        return isNull_;
+        if (isNullPresentCase_ == 6) {
+          return (java.lang.Boolean) isNullPresent_;
+        }
+        return false;
       }
       /**
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       *
-       * <code>optional bool isNull = 6 [default = false];</code>
+       * <code>bool isNull = 6;</code>
        */
       public Builder setIsNull(boolean value) {
-        bitField0_ |= 0x00000020;
-        isNull_ = value;
+        isNullPresentCase_ = 6;
+        isNullPresent_ = value;
         onChanged();
         return this;
       }
       /**
-       * <pre>
-       ** 标识是否为空  *
-       * </pre>
-       *
-       * <code>optional bool isNull = 6 [default = false];</code>
+       * <code>bool isNull = 6;</code>
        */
       public Builder clearIsNull() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        isNull_ = false;
-        onChanged();
+        if (isNullPresentCase_ == 6) {
+          isNullPresentCase_ = 0;
+          isNullPresent_ = null;
+          onChanged();
+        }
         return this;
       }
 
@@ -6226,17 +5837,7 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        *
-       * <code>optional string value = 8;</code>
-       */
-      public boolean hasValue() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
-      }
-      /**
-       * <pre>
-       ** 字段值,timestamp,Datetime是一个时间格式的文本 *
-       * </pre>
-       *
-       * <code>optional string value = 8;</code>
+       * <code>string value = 8;</code>
        */
       public java.lang.String getValue() {
         java.lang.Object ref = value_;
@@ -6244,9 +5845,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            value_ = s;
-          }
+          value_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -6257,7 +5856,7 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        *
-       * <code>optional string value = 8;</code>
+       * <code>string value = 8;</code>
        */
       public com.google.protobuf.ByteString
           getValueBytes() {
@@ -6277,14 +5876,14 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        *
-       * <code>optional string value = 8;</code>
+       * <code>string value = 8;</code>
        */
       public Builder setValue(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  
         value_ = value;
         onChanged();
         return this;
@@ -6294,10 +5893,10 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        *
-       * <code>optional string value = 8;</code>
+       * <code>string value = 8;</code>
        */
       public Builder clearValue() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        
         value_ = getDefaultInstance().getValue();
         onChanged();
         return this;
@@ -6307,14 +5906,15 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        *
-       * <code>optional string value = 8;</code>
+       * <code>string value = 8;</code>
        */
       public Builder setValueBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  checkByteStringIsUtf8(value);
+        
         value_ = value;
         onChanged();
         return this;
@@ -6326,17 +5926,7 @@ public final class CanalEntry {
        ** 对应数据对象原始长度 *
        * </pre>
        *
-       * <code>optional int32 length = 9;</code>
-       */
-      public boolean hasLength() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
-      }
-      /**
-       * <pre>
-       ** 对应数据对象原始长度 *
-       * </pre>
-       *
-       * <code>optional int32 length = 9;</code>
+       * <code>int32 length = 9;</code>
        */
       public int getLength() {
         return length_;
@@ -6346,10 +5936,10 @@ public final class CanalEntry {
        ** 对应数据对象原始长度 *
        * </pre>
        *
-       * <code>optional int32 length = 9;</code>
+       * <code>int32 length = 9;</code>
        */
       public Builder setLength(int value) {
-        bitField0_ |= 0x00000100;
+        
         length_ = value;
         onChanged();
         return this;
@@ -6359,10 +5949,10 @@ public final class CanalEntry {
        ** 对应数据对象原始长度 *
        * </pre>
        *
-       * <code>optional int32 length = 9;</code>
+       * <code>int32 length = 9;</code>
        */
       public Builder clearLength() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        
         length_ = 0;
         onChanged();
         return this;
@@ -6374,17 +5964,7 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        *
-       * <code>optional string mysqlType = 10;</code>
-       */
-      public boolean hasMysqlType() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
-      }
-      /**
-       * <pre>
-       **字段mysql类型*
-       * </pre>
-       *
-       * <code>optional string mysqlType = 10;</code>
+       * <code>string mysqlType = 10;</code>
        */
       public java.lang.String getMysqlType() {
         java.lang.Object ref = mysqlType_;
@@ -6392,9 +5972,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            mysqlType_ = s;
-          }
+          mysqlType_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -6405,7 +5983,7 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        *
-       * <code>optional string mysqlType = 10;</code>
+       * <code>string mysqlType = 10;</code>
        */
       public com.google.protobuf.ByteString
           getMysqlTypeBytes() {
@@ -6425,14 +6003,14 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        *
-       * <code>optional string mysqlType = 10;</code>
+       * <code>string mysqlType = 10;</code>
        */
       public Builder setMysqlType(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  
         mysqlType_ = value;
         onChanged();
         return this;
@@ -6442,10 +6020,10 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        *
-       * <code>optional string mysqlType = 10;</code>
+       * <code>string mysqlType = 10;</code>
        */
       public Builder clearMysqlType() {
-        bitField0_ = (bitField0_ & ~0x00000200);
+        
         mysqlType_ = getDefaultInstance().getMysqlType();
         onChanged();
         return this;
@@ -6455,14 +6033,15 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        *
-       * <code>optional string mysqlType = 10;</code>
+       * <code>string mysqlType = 10;</code>
        */
       public Builder setMysqlTypeBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  checkByteStringIsUtf8(value);
+        
         mysqlType_ = value;
         onChanged();
         return this;
@@ -6470,7 +6049,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -6493,7 +6072,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<Column>
+    private static final com.google.protobuf.Parser<Column>
         PARSER = new com.google.protobuf.AbstractParser<Column>() {
       @java.lang.Override
       public Column parsePartialFrom(
@@ -6704,7 +6283,7 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000001;
               }
               beforeColumns_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Column.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Column.parser(), extensionRegistry));
               break;
             }
             case 18: {
@@ -6713,7 +6292,7 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000002;
               }
               afterColumns_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Column.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Column.parser(), extensionRegistry));
               break;
             }
             case 26: {
@@ -6722,11 +6301,11 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000004;
               }
               props_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.parser(), extensionRegistry));
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -8322,7 +7901,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -8345,7 +7924,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<RowData>
+    private static final com.google.protobuf.Parser<RowData>
         PARSER = new com.google.protobuf.AbstractParser<RowData>() {
       @java.lang.Override
       public RowData parsePartialFrom(
@@ -8381,49 +7960,21 @@ public final class CanalEntry {
      **tableId,由数据库产生*
      * </pre>
      *
-     * <code>optional int64 tableId = 1;</code>
-     */
-    boolean hasTableId();
-    /**
-     * <pre>
-     **tableId,由数据库产生*
-     * </pre>
-     *
-     * <code>optional int64 tableId = 1;</code>
+     * <code>int64 tableId = 1;</code>
      */
     long getTableId();
 
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
      */
-    boolean hasEventType();
+    int getEventTypeValue();
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
      */
     com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType();
 
     /**
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     *
-     * <code>optional bool isDdl = 10 [default = false];</code>
-     */
-    boolean hasIsDdl();
-    /**
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     *
-     * <code>optional bool isDdl = 10 [default = false];</code>
+     * <code>bool isDdl = 10;</code>
      */
     boolean getIsDdl();
 
@@ -8432,15 +7983,7 @@ public final class CanalEntry {
      ** ddl/query的sql语句  *
      * </pre>
      *
-     * <code>optional string sql = 11;</code>
-     */
-    boolean hasSql();
-    /**
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     *
-     * <code>optional string sql = 11;</code>
+     * <code>string sql = 11;</code>
      */
     java.lang.String getSql();
     /**
@@ -8448,7 +7991,7 @@ public final class CanalEntry {
      ** ddl/query的sql语句  *
      * </pre>
      *
-     * <code>optional string sql = 11;</code>
+     * <code>string sql = 11;</code>
      */
     com.google.protobuf.ByteString
         getSqlBytes();
@@ -8546,15 +8089,7 @@ public final class CanalEntry {
      ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
      * </pre>
      *
-     * <code>optional string ddlSchemaName = 14;</code>
-     */
-    boolean hasDdlSchemaName();
-    /**
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     *
-     * <code>optional string ddlSchemaName = 14;</code>
+     * <code>string ddlSchemaName = 14;</code>
      */
     java.lang.String getDdlSchemaName();
     /**
@@ -8562,10 +8097,14 @@ public final class CanalEntry {
      ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
      * </pre>
      *
-     * <code>optional string ddlSchemaName = 14;</code>
+     * <code>string ddlSchemaName = 14;</code>
      */
     com.google.protobuf.ByteString
         getDdlSchemaNameBytes();
+
+    public com.alibaba.otter.canal.protocol.CanalEntry.RowChange.EventTypePresentCase getEventTypePresentCase();
+
+    public com.alibaba.otter.canal.protocol.CanalEntry.RowChange.IsDdlPresentCase getIsDdlPresentCase();
   }
   /**
    * <pre>
@@ -8585,8 +8124,6 @@ public final class CanalEntry {
     }
     private RowChange() {
       tableId_ = 0L;
-      eventType_ = 2;
-      isDdl_ = false;
       sql_ = "";
       rowDatas_ = java.util.Collections.emptyList();
       props_ = java.util.Collections.emptyList();
@@ -8618,31 +8155,25 @@ public final class CanalEntry {
               done = true;
               break;
             case 8: {
-              bitField0_ |= 0x00000001;
+
               tableId_ = input.readInt64();
               break;
             }
             case 16: {
               int rawValue = input.readEnum();
-                @SuppressWarnings("deprecation")
-              com.alibaba.otter.canal.protocol.CanalEntry.EventType value = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(2, rawValue);
-              } else {
-                bitField0_ |= 0x00000002;
-                eventType_ = rawValue;
-              }
+              eventTypePresentCase_ = 2;
+              eventTypePresent_ = rawValue;
               break;
             }
             case 80: {
-              bitField0_ |= 0x00000004;
-              isDdl_ = input.readBool();
+              isDdlPresentCase_ = 10;
+              isDdlPresent_ = input.readBool();
               break;
             }
             case 90: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000008;
-              sql_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              sql_ = s;
               break;
             }
             case 98: {
@@ -8651,7 +8182,7 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000010;
               }
               rowDatas_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.RowData.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.RowData.parser(), extensionRegistry));
               break;
             }
             case 106: {
@@ -8660,17 +8191,17 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000020;
               }
               props_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.parser(), extensionRegistry));
               break;
             }
             case 114: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000010;
-              ddlSchemaName_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              ddlSchemaName_ = s;
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -8708,6 +8239,78 @@ public final class CanalEntry {
     }
 
     private int bitField0_;
+    private int eventTypePresentCase_ = 0;
+    private java.lang.Object eventTypePresent_;
+    public enum EventTypePresentCase
+        implements com.google.protobuf.Internal.EnumLite {
+      EVENTTYPE(2),
+      EVENTTYPEPRESENT_NOT_SET(0);
+      private final int value;
+      private EventTypePresentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static EventTypePresentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static EventTypePresentCase forNumber(int value) {
+        switch (value) {
+          case 2: return EVENTTYPE;
+          case 0: return EVENTTYPEPRESENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public EventTypePresentCase
+    getEventTypePresentCase() {
+      return EventTypePresentCase.forNumber(
+          eventTypePresentCase_);
+    }
+
+    private int isDdlPresentCase_ = 0;
+    private java.lang.Object isDdlPresent_;
+    public enum IsDdlPresentCase
+        implements com.google.protobuf.Internal.EnumLite {
+      ISDDL(10),
+      ISDDLPRESENT_NOT_SET(0);
+      private final int value;
+      private IsDdlPresentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static IsDdlPresentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static IsDdlPresentCase forNumber(int value) {
+        switch (value) {
+          case 10: return ISDDL;
+          case 0: return ISDDLPRESENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public IsDdlPresentCase
+    getIsDdlPresentCase() {
+      return IsDdlPresentCase.forNumber(
+          isDdlPresentCase_);
+    }
+
     public static final int TABLEID_FIELD_NUMBER = 1;
     private long tableId_;
     /**
@@ -8715,68 +8318,44 @@ public final class CanalEntry {
      **tableId,由数据库产生*
      * </pre>
      *
-     * <code>optional int64 tableId = 1;</code>
-     */
-    public boolean hasTableId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <pre>
-     **tableId,由数据库产生*
-     * </pre>
-     *
-     * <code>optional int64 tableId = 1;</code>
+     * <code>int64 tableId = 1;</code>
      */
     public long getTableId() {
       return tableId_;
     }
 
     public static final int EVENTTYPE_FIELD_NUMBER = 2;
-    private int eventType_;
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
      */
-    public boolean hasEventType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+    public int getEventTypeValue() {
+      if (eventTypePresentCase_ == 2) {
+        return (java.lang.Integer) eventTypePresent_;
+      }
+      return 0;
     }
     /**
-     * <pre>
-     **数据变更类型*
-     * </pre>
-     *
-     * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+     * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
      */
     public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
-      @SuppressWarnings("deprecation")
-      com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(eventType_);
-      return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE : result;
+      if (eventTypePresentCase_ == 2) {
+        @SuppressWarnings("deprecation")
+        com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(
+            (java.lang.Integer) eventTypePresent_);
+        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UNRECOGNIZED : result;
+      }
+      return EventType.UPDATE;
     }
 
     public static final int ISDDL_FIELD_NUMBER = 10;
-    private boolean isDdl_;
     /**
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     *
-     * <code>optional bool isDdl = 10 [default = false];</code>
-     */
-    public boolean hasIsDdl() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <pre>
-     ** 标识是否是ddl语句  *
-     * </pre>
-     *
-     * <code>optional bool isDdl = 10 [default = false];</code>
+     * <code>bool isDdl = 10;</code>
      */
     public boolean getIsDdl() {
-      return isDdl_;
+      if (isDdlPresentCase_ == 10) {
+        return (java.lang.Boolean) isDdlPresent_;
+      }
+      return false;
     }
 
     public static final int SQL_FIELD_NUMBER = 11;
@@ -8786,17 +8365,7 @@ public final class CanalEntry {
      ** ddl/query的sql语句  *
      * </pre>
      *
-     * <code>optional string sql = 11;</code>
-     */
-    public boolean hasSql() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <pre>
-     ** ddl/query的sql语句  *
-     * </pre>
-     *
-     * <code>optional string sql = 11;</code>
+     * <code>string sql = 11;</code>
      */
     public java.lang.String getSql() {
       java.lang.Object ref = sql_;
@@ -8806,9 +8375,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          sql_ = s;
-        }
+        sql_ = s;
         return s;
       }
     }
@@ -8817,7 +8384,7 @@ public final class CanalEntry {
      ** ddl/query的sql语句  *
      * </pre>
      *
-     * <code>optional string sql = 11;</code>
+     * <code>string sql = 11;</code>
      */
     public com.google.protobuf.ByteString
         getSqlBytes() {
@@ -8950,17 +8517,7 @@ public final class CanalEntry {
      ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
      * </pre>
      *
-     * <code>optional string ddlSchemaName = 14;</code>
-     */
-    public boolean hasDdlSchemaName() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    /**
-     * <pre>
-     ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-     * </pre>
-     *
-     * <code>optional string ddlSchemaName = 14;</code>
+     * <code>string ddlSchemaName = 14;</code>
      */
     public java.lang.String getDdlSchemaName() {
       java.lang.Object ref = ddlSchemaName_;
@@ -8970,9 +8527,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          ddlSchemaName_ = s;
-        }
+        ddlSchemaName_ = s;
         return s;
       }
     }
@@ -8981,7 +8536,7 @@ public final class CanalEntry {
      ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
      * </pre>
      *
-     * <code>optional string ddlSchemaName = 14;</code>
+     * <code>string ddlSchemaName = 14;</code>
      */
     public com.google.protobuf.ByteString
         getDdlSchemaNameBytes() {
@@ -9011,16 +8566,17 @@ public final class CanalEntry {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (tableId_ != 0L) {
         output.writeInt64(1, tableId_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeEnum(2, eventType_);
+      if (eventTypePresentCase_ == 2) {
+        output.writeEnum(2, ((java.lang.Integer) eventTypePresent_));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBool(10, isDdl_);
+      if (isDdlPresentCase_ == 10) {
+        output.writeBool(
+            10, (boolean)((java.lang.Boolean) isDdlPresent_));
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (!getSqlBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 11, sql_);
       }
       for (int i = 0; i < rowDatas_.size(); i++) {
@@ -9029,7 +8585,7 @@ public final class CanalEntry {
       for (int i = 0; i < props_.size(); i++) {
         output.writeMessage(13, props_.get(i));
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (!getDdlSchemaNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 14, ddlSchemaName_);
       }
       unknownFields.writeTo(output);
@@ -9041,19 +8597,20 @@ public final class CanalEntry {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (tableId_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, tableId_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (eventTypePresentCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(2, eventType_);
+          .computeEnumSize(2, ((java.lang.Integer) eventTypePresent_));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (isDdlPresentCase_ == 10) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(10, isDdl_);
+          .computeBoolSize(
+              10, (boolean)((java.lang.Boolean) isDdlPresent_));
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (!getSqlBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(11, sql_);
       }
       for (int i = 0; i < rowDatas_.size(); i++) {
@@ -9064,7 +8621,7 @@ public final class CanalEntry {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(13, props_.get(i));
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (!getDdlSchemaNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(14, ddlSchemaName_);
       }
       size += unknownFields.getSerializedSize();
@@ -9083,33 +8640,37 @@ public final class CanalEntry {
       com.alibaba.otter.canal.protocol.CanalEntry.RowChange other = (com.alibaba.otter.canal.protocol.CanalEntry.RowChange) obj;
 
       boolean result = true;
-      result = result && (hasTableId() == other.hasTableId());
-      if (hasTableId()) {
-        result = result && (getTableId()
-            == other.getTableId());
-      }
-      result = result && (hasEventType() == other.hasEventType());
-      if (hasEventType()) {
-        result = result && eventType_ == other.eventType_;
-      }
-      result = result && (hasIsDdl() == other.hasIsDdl());
-      if (hasIsDdl()) {
-        result = result && (getIsDdl()
-            == other.getIsDdl());
-      }
-      result = result && (hasSql() == other.hasSql());
-      if (hasSql()) {
-        result = result && getSql()
-            .equals(other.getSql());
-      }
+      result = result && (getTableId()
+          == other.getTableId());
+      result = result && getSql()
+          .equals(other.getSql());
       result = result && getRowDatasList()
           .equals(other.getRowDatasList());
       result = result && getPropsList()
           .equals(other.getPropsList());
-      result = result && (hasDdlSchemaName() == other.hasDdlSchemaName());
-      if (hasDdlSchemaName()) {
-        result = result && getDdlSchemaName()
-            .equals(other.getDdlSchemaName());
+      result = result && getDdlSchemaName()
+          .equals(other.getDdlSchemaName());
+      result = result && getEventTypePresentCase().equals(
+          other.getEventTypePresentCase());
+      if (!result) return false;
+      switch (eventTypePresentCase_) {
+        case 2:
+          result = result && getEventTypeValue()
+              == other.getEventTypeValue();
+          break;
+        case 0:
+        default:
+      }
+      result = result && getIsDdlPresentCase().equals(
+          other.getIsDdlPresentCase());
+      if (!result) return false;
+      switch (isDdlPresentCase_) {
+        case 10:
+          result = result && (getIsDdl()
+              == other.getIsDdl());
+          break;
+        case 0:
+        default:
       }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
@@ -9122,24 +8683,11 @@ public final class CanalEntry {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasTableId()) {
-        hash = (37 * hash) + TABLEID_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getTableId());
-      }
-      if (hasEventType()) {
-        hash = (37 * hash) + EVENTTYPE_FIELD_NUMBER;
-        hash = (53 * hash) + eventType_;
-      }
-      if (hasIsDdl()) {
-        hash = (37 * hash) + ISDDL_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-            getIsDdl());
-      }
-      if (hasSql()) {
-        hash = (37 * hash) + SQL_FIELD_NUMBER;
-        hash = (53 * hash) + getSql().hashCode();
-      }
+      hash = (37 * hash) + TABLEID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTableId());
+      hash = (37 * hash) + SQL_FIELD_NUMBER;
+      hash = (53 * hash) + getSql().hashCode();
       if (getRowDatasCount() > 0) {
         hash = (37 * hash) + ROWDATAS_FIELD_NUMBER;
         hash = (53 * hash) + getRowDatasList().hashCode();
@@ -9148,9 +8696,24 @@ public final class CanalEntry {
         hash = (37 * hash) + PROPS_FIELD_NUMBER;
         hash = (53 * hash) + getPropsList().hashCode();
       }
-      if (hasDdlSchemaName()) {
-        hash = (37 * hash) + DDLSCHEMANAME_FIELD_NUMBER;
-        hash = (53 * hash) + getDdlSchemaName().hashCode();
+      hash = (37 * hash) + DDLSCHEMANAME_FIELD_NUMBER;
+      hash = (53 * hash) + getDdlSchemaName().hashCode();
+      switch (eventTypePresentCase_) {
+        case 2:
+          hash = (37 * hash) + EVENTTYPE_FIELD_NUMBER;
+          hash = (53 * hash) + getEventTypeValue();
+          break;
+        case 0:
+        default:
+      }
+      switch (isDdlPresentCase_) {
+        case 10:
+          hash = (37 * hash) + ISDDL_FIELD_NUMBER;
+          hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+              getIsDdl());
+          break;
+        case 0:
+        default:
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -9292,13 +8855,9 @@ public final class CanalEntry {
       public Builder clear() {
         super.clear();
         tableId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        eventType_ = 2;
-        bitField0_ = (bitField0_ & ~0x00000002);
-        isDdl_ = false;
-        bitField0_ = (bitField0_ & ~0x00000004);
+
         sql_ = "";
-        bitField0_ = (bitField0_ & ~0x00000008);
+
         if (rowDatasBuilder_ == null) {
           rowDatas_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000010);
@@ -9312,7 +8871,11 @@ public final class CanalEntry {
           propsBuilder_.clear();
         }
         ddlSchemaName_ = "";
-        bitField0_ = (bitField0_ & ~0x00000040);
+
+        eventTypePresentCase_ = 0;
+        eventTypePresent_ = null;
+        isDdlPresentCase_ = 0;
+        isDdlPresent_ = null;
         return this;
       }
 
@@ -9341,20 +8904,12 @@ public final class CanalEntry {
         com.alibaba.otter.canal.protocol.CanalEntry.RowChange result = new com.alibaba.otter.canal.protocol.CanalEntry.RowChange(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
         result.tableId_ = tableId_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
+        if (eventTypePresentCase_ == 2) {
+          result.eventTypePresent_ = eventTypePresent_;
         }
-        result.eventType_ = eventType_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        result.isDdl_ = isDdl_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
+        if (isDdlPresentCase_ == 10) {
+          result.isDdlPresent_ = isDdlPresent_;
         }
         result.sql_ = sql_;
         if (rowDatasBuilder_ == null) {
@@ -9375,11 +8930,10 @@ public final class CanalEntry {
         } else {
           result.props_ = propsBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
-          to_bitField0_ |= 0x00000010;
-        }
         result.ddlSchemaName_ = ddlSchemaName_;
         result.bitField0_ = to_bitField0_;
+        result.eventTypePresentCase_ = eventTypePresentCase_;
+        result.isDdlPresentCase_ = isDdlPresentCase_;
         onBuilt();
         return result;
       }
@@ -9428,17 +8982,10 @@ public final class CanalEntry {
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalEntry.RowChange other) {
         if (other == com.alibaba.otter.canal.protocol.CanalEntry.RowChange.getDefaultInstance()) return this;
-        if (other.hasTableId()) {
+        if (other.getTableId() != 0L) {
           setTableId(other.getTableId());
         }
-        if (other.hasEventType()) {
-          setEventType(other.getEventType());
-        }
-        if (other.hasIsDdl()) {
-          setIsDdl(other.getIsDdl());
-        }
-        if (other.hasSql()) {
-          bitField0_ |= 0x00000008;
+        if (!other.getSql().isEmpty()) {
           sql_ = other.sql_;
           onChanged();
         }
@@ -9494,10 +9041,27 @@ public final class CanalEntry {
             }
           }
         }
-        if (other.hasDdlSchemaName()) {
-          bitField0_ |= 0x00000040;
+        if (!other.getDdlSchemaName().isEmpty()) {
           ddlSchemaName_ = other.ddlSchemaName_;
           onChanged();
+        }
+        switch (other.getEventTypePresentCase()) {
+          case EVENTTYPE: {
+            setEventTypeValue(other.getEventTypeValue());
+            break;
+          }
+          case EVENTTYPEPRESENT_NOT_SET: {
+            break;
+          }
+        }
+        switch (other.getIsDdlPresentCase()) {
+          case ISDDL: {
+            setIsDdl(other.getIsDdl());
+            break;
+          }
+          case ISDDLPRESENT_NOT_SET: {
+            break;
+          }
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -9527,6 +9091,36 @@ public final class CanalEntry {
         }
         return this;
       }
+      private int eventTypePresentCase_ = 0;
+      private java.lang.Object eventTypePresent_;
+      public EventTypePresentCase
+          getEventTypePresentCase() {
+        return EventTypePresentCase.forNumber(
+            eventTypePresentCase_);
+      }
+
+      public Builder clearEventTypePresent() {
+        eventTypePresentCase_ = 0;
+        eventTypePresent_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int isDdlPresentCase_ = 0;
+      private java.lang.Object isDdlPresent_;
+      public IsDdlPresentCase
+          getIsDdlPresentCase() {
+        return IsDdlPresentCase.forNumber(
+            isDdlPresentCase_);
+      }
+
+      public Builder clearIsDdlPresent() {
+        isDdlPresentCase_ = 0;
+        isDdlPresent_ = null;
+        onChanged();
+        return this;
+      }
+
       private int bitField0_;
 
       private long tableId_ ;
@@ -9535,17 +9129,7 @@ public final class CanalEntry {
        **tableId,由数据库产生*
        * </pre>
        *
-       * <code>optional int64 tableId = 1;</code>
-       */
-      public boolean hasTableId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <pre>
-       **tableId,由数据库产生*
-       * </pre>
-       *
-       * <code>optional int64 tableId = 1;</code>
+       * <code>int64 tableId = 1;</code>
        */
       public long getTableId() {
         return tableId_;
@@ -9555,10 +9139,10 @@ public final class CanalEntry {
        **tableId,由数据库产生*
        * </pre>
        *
-       * <code>optional int64 tableId = 1;</code>
+       * <code>int64 tableId = 1;</code>
        */
       public Builder setTableId(long value) {
-        bitField0_ |= 0x00000001;
+        
         tableId_ = value;
         onChanged();
         return this;
@@ -9568,113 +9152,96 @@ public final class CanalEntry {
        **tableId,由数据库产生*
        * </pre>
        *
-       * <code>optional int64 tableId = 1;</code>
+       * <code>int64 tableId = 1;</code>
        */
       public Builder clearTableId() {
-        bitField0_ = (bitField0_ & ~0x00000001);
+        
         tableId_ = 0L;
         onChanged();
         return this;
       }
 
-      private int eventType_ = 2;
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
        */
-      public boolean hasEventType() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+      public int getEventTypeValue() {
+        if (eventTypePresentCase_ == 2) {
+          return ((java.lang.Integer) eventTypePresent_).intValue();
+        }
+        return 0;
       }
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
+       */
+      public Builder setEventTypeValue(int value) {
+        eventTypePresentCase_ = 2;
+        eventTypePresent_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
        */
       public com.alibaba.otter.canal.protocol.CanalEntry.EventType getEventType() {
-        @SuppressWarnings("deprecation")
-        com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(eventType_);
-        return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UPDATE : result;
+        if (eventTypePresentCase_ == 2) {
+          @SuppressWarnings("deprecation")
+          com.alibaba.otter.canal.protocol.CanalEntry.EventType result = com.alibaba.otter.canal.protocol.CanalEntry.EventType.valueOf(
+              (java.lang.Integer) eventTypePresent_);
+          return result == null ? com.alibaba.otter.canal.protocol.CanalEntry.EventType.UNRECOGNIZED : result;
+        }
+        return com.alibaba.otter.canal.protocol.CanalEntry.EventType.EVENTTYPECOMPATIBLEPROTO2;
       }
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
        */
       public Builder setEventType(com.alibaba.otter.canal.protocol.CanalEntry.EventType value) {
         if (value == null) {
           throw new NullPointerException();
         }
-        bitField0_ |= 0x00000002;
-        eventType_ = value.getNumber();
+        eventTypePresentCase_ = 2;
+        eventTypePresent_ = value.getNumber();
         onChanged();
         return this;
       }
       /**
-       * <pre>
-       **数据变更类型*
-       * </pre>
-       *
-       * <code>optional .com.alibaba.otter.canal.protocol.EventType eventType = 2 [default = UPDATE];</code>
+       * <code>.com.alibaba.otter.canal.protocol.EventType eventType = 2;</code>
        */
       public Builder clearEventType() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        eventType_ = 2;
-        onChanged();
+        if (eventTypePresentCase_ == 2) {
+          eventTypePresentCase_ = 0;
+          eventTypePresent_ = null;
+          onChanged();
+        }
         return this;
       }
 
-      private boolean isDdl_ ;
       /**
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       *
-       * <code>optional bool isDdl = 10 [default = false];</code>
-       */
-      public boolean hasIsDdl() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       *
-       * <code>optional bool isDdl = 10 [default = false];</code>
+       * <code>bool isDdl = 10;</code>
        */
       public boolean getIsDdl() {
-        return isDdl_;
+        if (isDdlPresentCase_ == 10) {
+          return (java.lang.Boolean) isDdlPresent_;
+        }
+        return false;
       }
       /**
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       *
-       * <code>optional bool isDdl = 10 [default = false];</code>
+       * <code>bool isDdl = 10;</code>
        */
       public Builder setIsDdl(boolean value) {
-        bitField0_ |= 0x00000004;
-        isDdl_ = value;
+        isDdlPresentCase_ = 10;
+        isDdlPresent_ = value;
         onChanged();
         return this;
       }
       /**
-       * <pre>
-       ** 标识是否是ddl语句  *
-       * </pre>
-       *
-       * <code>optional bool isDdl = 10 [default = false];</code>
+       * <code>bool isDdl = 10;</code>
        */
       public Builder clearIsDdl() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        isDdl_ = false;
-        onChanged();
+        if (isDdlPresentCase_ == 10) {
+          isDdlPresentCase_ = 0;
+          isDdlPresent_ = null;
+          onChanged();
+        }
         return this;
       }
 
@@ -9684,17 +9251,7 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        *
-       * <code>optional string sql = 11;</code>
-       */
-      public boolean hasSql() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <pre>
-       ** ddl/query的sql语句  *
-       * </pre>
-       *
-       * <code>optional string sql = 11;</code>
+       * <code>string sql = 11;</code>
        */
       public java.lang.String getSql() {
         java.lang.Object ref = sql_;
@@ -9702,9 +9259,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            sql_ = s;
-          }
+          sql_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -9715,7 +9270,7 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        *
-       * <code>optional string sql = 11;</code>
+       * <code>string sql = 11;</code>
        */
       public com.google.protobuf.ByteString
           getSqlBytes() {
@@ -9735,14 +9290,14 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        *
-       * <code>optional string sql = 11;</code>
+       * <code>string sql = 11;</code>
        */
       public Builder setSql(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000008;
+  
         sql_ = value;
         onChanged();
         return this;
@@ -9752,10 +9307,10 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        *
-       * <code>optional string sql = 11;</code>
+       * <code>string sql = 11;</code>
        */
       public Builder clearSql() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        
         sql_ = getDefaultInstance().getSql();
         onChanged();
         return this;
@@ -9765,14 +9320,15 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        *
-       * <code>optional string sql = 11;</code>
+       * <code>string sql = 11;</code>
        */
       public Builder setSqlBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000008;
+  checkByteStringIsUtf8(value);
+        
         sql_ = value;
         onChanged();
         return this;
@@ -10408,17 +9964,7 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        *
-       * <code>optional string ddlSchemaName = 14;</code>
-       */
-      public boolean hasDdlSchemaName() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
-      }
-      /**
-       * <pre>
-       ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
-       * </pre>
-       *
-       * <code>optional string ddlSchemaName = 14;</code>
+       * <code>string ddlSchemaName = 14;</code>
        */
       public java.lang.String getDdlSchemaName() {
         java.lang.Object ref = ddlSchemaName_;
@@ -10426,9 +9972,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            ddlSchemaName_ = s;
-          }
+          ddlSchemaName_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -10439,7 +9983,7 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        *
-       * <code>optional string ddlSchemaName = 14;</code>
+       * <code>string ddlSchemaName = 14;</code>
        */
       public com.google.protobuf.ByteString
           getDdlSchemaNameBytes() {
@@ -10459,14 +10003,14 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        *
-       * <code>optional string ddlSchemaName = 14;</code>
+       * <code>string ddlSchemaName = 14;</code>
        */
       public Builder setDdlSchemaName(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000040;
+  
         ddlSchemaName_ = value;
         onChanged();
         return this;
@@ -10476,10 +10020,10 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        *
-       * <code>optional string ddlSchemaName = 14;</code>
+       * <code>string ddlSchemaName = 14;</code>
        */
       public Builder clearDdlSchemaName() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        
         ddlSchemaName_ = getDefaultInstance().getDdlSchemaName();
         onChanged();
         return this;
@@ -10489,14 +10033,15 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        *
-       * <code>optional string ddlSchemaName = 14;</code>
+       * <code>string ddlSchemaName = 14;</code>
        */
       public Builder setDdlSchemaNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000040;
+  checkByteStringIsUtf8(value);
+        
         ddlSchemaName_ = value;
         onChanged();
         return this;
@@ -10504,7 +10049,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -10527,7 +10072,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<RowChange>
+    private static final com.google.protobuf.Parser<RowChange>
         PARSER = new com.google.protobuf.AbstractParser<RowChange>() {
       @java.lang.Override
       public RowChange parsePartialFrom(
@@ -10563,15 +10108,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      *
-     * <code>optional int64 executeTime = 1;</code>
-     */
-    boolean hasExecuteTime();
-    /**
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     *
-     * <code>optional int64 executeTime = 1;</code>
+     * <code>int64 executeTime = 1;</code>
      */
     long getExecuteTime();
 
@@ -10580,15 +10117,7 @@ public final class CanalEntry {
      **已废弃，Begin里不提供事务id*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
-     */
-    boolean hasTransactionId();
-    /**
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     java.lang.String getTransactionId();
     /**
@@ -10596,7 +10125,7 @@ public final class CanalEntry {
      **已废弃，Begin里不提供事务id*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     com.google.protobuf.ByteString
         getTransactionIdBytes();
@@ -10650,15 +10179,7 @@ public final class CanalEntry {
      **执行的thread Id*
      * </pre>
      *
-     * <code>optional int64 threadId = 4;</code>
-     */
-    boolean hasThreadId();
-    /**
-     * <pre>
-     **执行的thread Id*
-     * </pre>
-     *
-     * <code>optional int64 threadId = 4;</code>
+     * <code>int64 threadId = 4;</code>
      */
     long getThreadId();
   }
@@ -10710,14 +10231,14 @@ public final class CanalEntry {
               done = true;
               break;
             case 8: {
-              bitField0_ |= 0x00000001;
+
               executeTime_ = input.readInt64();
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000002;
-              transactionId_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              transactionId_ = s;
               break;
             }
             case 26: {
@@ -10726,16 +10247,16 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000004;
               }
               props_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.parser(), extensionRegistry));
               break;
             }
             case 32: {
-              bitField0_ |= 0x00000004;
+
               threadId_ = input.readInt64();
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -10777,17 +10298,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      *
-     * <code>optional int64 executeTime = 1;</code>
-     */
-    public boolean hasExecuteTime() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     *
-     * <code>optional int64 executeTime = 1;</code>
+     * <code>int64 executeTime = 1;</code>
      */
     public long getExecuteTime() {
       return executeTime_;
@@ -10800,17 +10311,7 @@ public final class CanalEntry {
      **已废弃，Begin里不提供事务id*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
-     */
-    public boolean hasTransactionId() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <pre>
-     **已废弃，Begin里不提供事务id*
-     * </pre>
-     *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     public java.lang.String getTransactionId() {
       java.lang.Object ref = transactionId_;
@@ -10820,9 +10321,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          transactionId_ = s;
-        }
+        transactionId_ = s;
         return s;
       }
     }
@@ -10831,7 +10330,7 @@ public final class CanalEntry {
      **已废弃，Begin里不提供事务id*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     public com.google.protobuf.ByteString
         getTransactionIdBytes() {
@@ -10909,17 +10408,7 @@ public final class CanalEntry {
      **执行的thread Id*
      * </pre>
      *
-     * <code>optional int64 threadId = 4;</code>
-     */
-    public boolean hasThreadId() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <pre>
-     **执行的thread Id*
-     * </pre>
-     *
-     * <code>optional int64 threadId = 4;</code>
+     * <code>int64 threadId = 4;</code>
      */
     public long getThreadId() {
       return threadId_;
@@ -10939,16 +10428,16 @@ public final class CanalEntry {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (executeTime_ != 0L) {
         output.writeInt64(1, executeTime_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getTransactionIdBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, transactionId_);
       }
       for (int i = 0; i < props_.size(); i++) {
         output.writeMessage(3, props_.get(i));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (threadId_ != 0L) {
         output.writeInt64(4, threadId_);
       }
       unknownFields.writeTo(output);
@@ -10960,18 +10449,18 @@ public final class CanalEntry {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (executeTime_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, executeTime_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getTransactionIdBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, transactionId_);
       }
       for (int i = 0; i < props_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, props_.get(i));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (threadId_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, threadId_);
       }
@@ -10991,23 +10480,14 @@ public final class CanalEntry {
       com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin other = (com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin) obj;
 
       boolean result = true;
-      result = result && (hasExecuteTime() == other.hasExecuteTime());
-      if (hasExecuteTime()) {
-        result = result && (getExecuteTime()
-            == other.getExecuteTime());
-      }
-      result = result && (hasTransactionId() == other.hasTransactionId());
-      if (hasTransactionId()) {
-        result = result && getTransactionId()
-            .equals(other.getTransactionId());
-      }
+      result = result && (getExecuteTime()
+          == other.getExecuteTime());
+      result = result && getTransactionId()
+          .equals(other.getTransactionId());
       result = result && getPropsList()
           .equals(other.getPropsList());
-      result = result && (hasThreadId() == other.hasThreadId());
-      if (hasThreadId()) {
-        result = result && (getThreadId()
-            == other.getThreadId());
-      }
+      result = result && (getThreadId()
+          == other.getThreadId());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -11019,24 +10499,18 @@ public final class CanalEntry {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasExecuteTime()) {
-        hash = (37 * hash) + EXECUTETIME_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getExecuteTime());
-      }
-      if (hasTransactionId()) {
-        hash = (37 * hash) + TRANSACTIONID_FIELD_NUMBER;
-        hash = (53 * hash) + getTransactionId().hashCode();
-      }
+      hash = (37 * hash) + EXECUTETIME_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExecuteTime());
+      hash = (37 * hash) + TRANSACTIONID_FIELD_NUMBER;
+      hash = (53 * hash) + getTransactionId().hashCode();
       if (getPropsCount() > 0) {
         hash = (37 * hash) + PROPS_FIELD_NUMBER;
         hash = (53 * hash) + getPropsList().hashCode();
       }
-      if (hasThreadId()) {
-        hash = (37 * hash) + THREADID_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getThreadId());
-      }
+      hash = (37 * hash) + THREADID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getThreadId());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -11176,9 +10650,9 @@ public final class CanalEntry {
       public Builder clear() {
         super.clear();
         executeTime_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000001);
+
         transactionId_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
+
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000004);
@@ -11186,7 +10660,7 @@ public final class CanalEntry {
           propsBuilder_.clear();
         }
         threadId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000008);
+
         return this;
       }
 
@@ -11215,13 +10689,7 @@ public final class CanalEntry {
         com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin result = new com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
         result.executeTime_ = executeTime_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
         result.transactionId_ = transactionId_;
         if (propsBuilder_ == null) {
           if (((bitField0_ & 0x00000004) == 0x00000004)) {
@@ -11231,9 +10699,6 @@ public final class CanalEntry {
           result.props_ = props_;
         } else {
           result.props_ = propsBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000004;
         }
         result.threadId_ = threadId_;
         result.bitField0_ = to_bitField0_;
@@ -11285,11 +10750,10 @@ public final class CanalEntry {
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin other) {
         if (other == com.alibaba.otter.canal.protocol.CanalEntry.TransactionBegin.getDefaultInstance()) return this;
-        if (other.hasExecuteTime()) {
+        if (other.getExecuteTime() != 0L) {
           setExecuteTime(other.getExecuteTime());
         }
-        if (other.hasTransactionId()) {
-          bitField0_ |= 0x00000002;
+        if (!other.getTransactionId().isEmpty()) {
           transactionId_ = other.transactionId_;
           onChanged();
         }
@@ -11319,7 +10783,7 @@ public final class CanalEntry {
             }
           }
         }
-        if (other.hasThreadId()) {
+        if (other.getThreadId() != 0L) {
           setThreadId(other.getThreadId());
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -11358,17 +10822,7 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        *
-       * <code>optional int64 executeTime = 1;</code>
-       */
-      public boolean hasExecuteTime() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       *
-       * <code>optional int64 executeTime = 1;</code>
+       * <code>int64 executeTime = 1;</code>
        */
       public long getExecuteTime() {
         return executeTime_;
@@ -11378,10 +10832,10 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        *
-       * <code>optional int64 executeTime = 1;</code>
+       * <code>int64 executeTime = 1;</code>
        */
       public Builder setExecuteTime(long value) {
-        bitField0_ |= 0x00000001;
+        
         executeTime_ = value;
         onChanged();
         return this;
@@ -11391,10 +10845,10 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        *
-       * <code>optional int64 executeTime = 1;</code>
+       * <code>int64 executeTime = 1;</code>
        */
       public Builder clearExecuteTime() {
-        bitField0_ = (bitField0_ & ~0x00000001);
+        
         executeTime_ = 0L;
         onChanged();
         return this;
@@ -11406,17 +10860,7 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
-       */
-      public boolean hasTransactionId() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <pre>
-       **已废弃，Begin里不提供事务id*
-       * </pre>
-       *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public java.lang.String getTransactionId() {
         java.lang.Object ref = transactionId_;
@@ -11424,9 +10868,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            transactionId_ = s;
-          }
+          transactionId_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -11437,7 +10879,7 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public com.google.protobuf.ByteString
           getTransactionIdBytes() {
@@ -11457,14 +10899,14 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public Builder setTransactionId(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  
         transactionId_ = value;
         onChanged();
         return this;
@@ -11474,10 +10916,10 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public Builder clearTransactionId() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        
         transactionId_ = getDefaultInstance().getTransactionId();
         onChanged();
         return this;
@@ -11487,14 +10929,15 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public Builder setTransactionIdBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  checkByteStringIsUtf8(value);
+        
         transactionId_ = value;
         onChanged();
         return this;
@@ -11818,17 +11261,7 @@ public final class CanalEntry {
        **执行的thread Id*
        * </pre>
        *
-       * <code>optional int64 threadId = 4;</code>
-       */
-      public boolean hasThreadId() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <pre>
-       **执行的thread Id*
-       * </pre>
-       *
-       * <code>optional int64 threadId = 4;</code>
+       * <code>int64 threadId = 4;</code>
        */
       public long getThreadId() {
         return threadId_;
@@ -11838,10 +11271,10 @@ public final class CanalEntry {
        **执行的thread Id*
        * </pre>
        *
-       * <code>optional int64 threadId = 4;</code>
+       * <code>int64 threadId = 4;</code>
        */
       public Builder setThreadId(long value) {
-        bitField0_ |= 0x00000008;
+        
         threadId_ = value;
         onChanged();
         return this;
@@ -11851,10 +11284,10 @@ public final class CanalEntry {
        **执行的thread Id*
        * </pre>
        *
-       * <code>optional int64 threadId = 4;</code>
+       * <code>int64 threadId = 4;</code>
        */
       public Builder clearThreadId() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        
         threadId_ = 0L;
         onChanged();
         return this;
@@ -11862,7 +11295,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -11885,7 +11318,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<TransactionBegin>
+    private static final com.google.protobuf.Parser<TransactionBegin>
         PARSER = new com.google.protobuf.AbstractParser<TransactionBegin>() {
       @java.lang.Override
       public TransactionBegin parsePartialFrom(
@@ -11921,15 +11354,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      *
-     * <code>optional int64 executeTime = 1;</code>
-     */
-    boolean hasExecuteTime();
-    /**
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     *
-     * <code>optional int64 executeTime = 1;</code>
+     * <code>int64 executeTime = 1;</code>
      */
     long getExecuteTime();
 
@@ -11938,15 +11363,7 @@ public final class CanalEntry {
      **事务号*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
-     */
-    boolean hasTransactionId();
-    /**
-     * <pre>
-     **事务号*
-     * </pre>
-     *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     java.lang.String getTransactionId();
     /**
@@ -11954,7 +11371,7 @@ public final class CanalEntry {
      **事务号*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     com.google.protobuf.ByteString
         getTransactionIdBytes();
@@ -12050,14 +11467,14 @@ public final class CanalEntry {
               done = true;
               break;
             case 8: {
-              bitField0_ |= 0x00000001;
+
               executeTime_ = input.readInt64();
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000002;
-              transactionId_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              transactionId_ = s;
               break;
             }
             case 26: {
@@ -12066,11 +11483,11 @@ public final class CanalEntry {
                 mutable_bitField0_ |= 0x00000004;
               }
               props_.add(
-                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.PARSER, extensionRegistry));
+                  input.readMessage(com.alibaba.otter.canal.protocol.CanalEntry.Pair.parser(), extensionRegistry));
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -12112,17 +11529,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      *
-     * <code>optional int64 executeTime = 1;</code>
-     */
-    public boolean hasExecuteTime() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <pre>
-     **已废弃，请使用header里的executeTime*
-     * </pre>
-     *
-     * <code>optional int64 executeTime = 1;</code>
+     * <code>int64 executeTime = 1;</code>
      */
     public long getExecuteTime() {
       return executeTime_;
@@ -12135,17 +11542,7 @@ public final class CanalEntry {
      **事务号*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
-     */
-    public boolean hasTransactionId() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <pre>
-     **事务号*
-     * </pre>
-     *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     public java.lang.String getTransactionId() {
       java.lang.Object ref = transactionId_;
@@ -12155,9 +11552,7 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          transactionId_ = s;
-        }
+        transactionId_ = s;
         return s;
       }
     }
@@ -12166,7 +11561,7 @@ public final class CanalEntry {
      **事务号*
      * </pre>
      *
-     * <code>optional string transactionId = 2;</code>
+     * <code>string transactionId = 2;</code>
      */
     public com.google.protobuf.ByteString
         getTransactionIdBytes() {
@@ -12251,10 +11646,10 @@ public final class CanalEntry {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (executeTime_ != 0L) {
         output.writeInt64(1, executeTime_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getTransactionIdBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, transactionId_);
       }
       for (int i = 0; i < props_.size(); i++) {
@@ -12269,11 +11664,11 @@ public final class CanalEntry {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (executeTime_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, executeTime_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getTransactionIdBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, transactionId_);
       }
       for (int i = 0; i < props_.size(); i++) {
@@ -12296,16 +11691,10 @@ public final class CanalEntry {
       com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd other = (com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd) obj;
 
       boolean result = true;
-      result = result && (hasExecuteTime() == other.hasExecuteTime());
-      if (hasExecuteTime()) {
-        result = result && (getExecuteTime()
-            == other.getExecuteTime());
-      }
-      result = result && (hasTransactionId() == other.hasTransactionId());
-      if (hasTransactionId()) {
-        result = result && getTransactionId()
-            .equals(other.getTransactionId());
-      }
+      result = result && (getExecuteTime()
+          == other.getExecuteTime());
+      result = result && getTransactionId()
+          .equals(other.getTransactionId());
       result = result && getPropsList()
           .equals(other.getPropsList());
       result = result && unknownFields.equals(other.unknownFields);
@@ -12319,15 +11708,11 @@ public final class CanalEntry {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasExecuteTime()) {
-        hash = (37 * hash) + EXECUTETIME_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getExecuteTime());
-      }
-      if (hasTransactionId()) {
-        hash = (37 * hash) + TRANSACTIONID_FIELD_NUMBER;
-        hash = (53 * hash) + getTransactionId().hashCode();
-      }
+      hash = (37 * hash) + EXECUTETIME_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExecuteTime());
+      hash = (37 * hash) + TRANSACTIONID_FIELD_NUMBER;
+      hash = (53 * hash) + getTransactionId().hashCode();
       if (getPropsCount() > 0) {
         hash = (37 * hash) + PROPS_FIELD_NUMBER;
         hash = (53 * hash) + getPropsList().hashCode();
@@ -12471,9 +11856,9 @@ public final class CanalEntry {
       public Builder clear() {
         super.clear();
         executeTime_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000001);
+
         transactionId_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
+
         if (propsBuilder_ == null) {
           props_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000004);
@@ -12508,13 +11893,7 @@ public final class CanalEntry {
         com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd result = new com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
         result.executeTime_ = executeTime_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
         result.transactionId_ = transactionId_;
         if (propsBuilder_ == null) {
           if (((bitField0_ & 0x00000004) == 0x00000004)) {
@@ -12574,11 +11953,10 @@ public final class CanalEntry {
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd other) {
         if (other == com.alibaba.otter.canal.protocol.CanalEntry.TransactionEnd.getDefaultInstance()) return this;
-        if (other.hasExecuteTime()) {
+        if (other.getExecuteTime() != 0L) {
           setExecuteTime(other.getExecuteTime());
         }
-        if (other.hasTransactionId()) {
-          bitField0_ |= 0x00000002;
+        if (!other.getTransactionId().isEmpty()) {
           transactionId_ = other.transactionId_;
           onChanged();
         }
@@ -12644,17 +12022,7 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        *
-       * <code>optional int64 executeTime = 1;</code>
-       */
-      public boolean hasExecuteTime() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <pre>
-       **已废弃，请使用header里的executeTime*
-       * </pre>
-       *
-       * <code>optional int64 executeTime = 1;</code>
+       * <code>int64 executeTime = 1;</code>
        */
       public long getExecuteTime() {
         return executeTime_;
@@ -12664,10 +12032,10 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        *
-       * <code>optional int64 executeTime = 1;</code>
+       * <code>int64 executeTime = 1;</code>
        */
       public Builder setExecuteTime(long value) {
-        bitField0_ |= 0x00000001;
+        
         executeTime_ = value;
         onChanged();
         return this;
@@ -12677,10 +12045,10 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        *
-       * <code>optional int64 executeTime = 1;</code>
+       * <code>int64 executeTime = 1;</code>
        */
       public Builder clearExecuteTime() {
-        bitField0_ = (bitField0_ & ~0x00000001);
+        
         executeTime_ = 0L;
         onChanged();
         return this;
@@ -12692,17 +12060,7 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
-       */
-      public boolean hasTransactionId() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <pre>
-       **事务号*
-       * </pre>
-       *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public java.lang.String getTransactionId() {
         java.lang.Object ref = transactionId_;
@@ -12710,9 +12068,7 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            transactionId_ = s;
-          }
+          transactionId_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -12723,7 +12079,7 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public com.google.protobuf.ByteString
           getTransactionIdBytes() {
@@ -12743,14 +12099,14 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public Builder setTransactionId(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  
         transactionId_ = value;
         onChanged();
         return this;
@@ -12760,10 +12116,10 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public Builder clearTransactionId() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        
         transactionId_ = getDefaultInstance().getTransactionId();
         onChanged();
         return this;
@@ -12773,14 +12129,15 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        *
-       * <code>optional string transactionId = 2;</code>
+       * <code>string transactionId = 2;</code>
        */
       public Builder setTransactionIdBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  checkByteStringIsUtf8(value);
+        
         transactionId_ = value;
         onChanged();
         return this;
@@ -13100,7 +12457,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -13123,7 +12480,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<TransactionEnd>
+    private static final com.google.protobuf.Parser<TransactionEnd>
         PARSER = new com.google.protobuf.AbstractParser<TransactionEnd>() {
       @java.lang.Override
       public TransactionEnd parsePartialFrom(
@@ -13155,29 +12512,21 @@ public final class CanalEntry {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string key = 1;</code>
-     */
-    boolean hasKey();
-    /**
-     * <code>optional string key = 1;</code>
+     * <code>string key = 1;</code>
      */
     java.lang.String getKey();
     /**
-     * <code>optional string key = 1;</code>
+     * <code>string key = 1;</code>
      */
     com.google.protobuf.ByteString
         getKeyBytes();
 
     /**
-     * <code>optional string value = 2;</code>
-     */
-    boolean hasValue();
-    /**
-     * <code>optional string value = 2;</code>
+     * <code>string value = 2;</code>
      */
     java.lang.String getValue();
     /**
-     * <code>optional string value = 2;</code>
+     * <code>string value = 2;</code>
      */
     com.google.protobuf.ByteString
         getValueBytes();
@@ -13228,19 +12577,19 @@ public final class CanalEntry {
               done = true;
               break;
             case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000001;
-              key_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              key_ = s;
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000002;
-              value_ = bs;
+              java.lang.String s = input.readStringRequireUtf8();
+
+              value_ = s;
               break;
             }
             default: {
-              if (!parseUnknownField(
+              if (!parseUnknownFieldProto3(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -13271,17 +12620,10 @@ public final class CanalEntry {
               com.alibaba.otter.canal.protocol.CanalEntry.Pair.class, com.alibaba.otter.canal.protocol.CanalEntry.Pair.Builder.class);
     }
 
-    private int bitField0_;
     public static final int KEY_FIELD_NUMBER = 1;
     private volatile java.lang.Object key_;
     /**
-     * <code>optional string key = 1;</code>
-     */
-    public boolean hasKey() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional string key = 1;</code>
+     * <code>string key = 1;</code>
      */
     public java.lang.String getKey() {
       java.lang.Object ref = key_;
@@ -13291,14 +12633,12 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          key_ = s;
-        }
+        key_ = s;
         return s;
       }
     }
     /**
-     * <code>optional string key = 1;</code>
+     * <code>string key = 1;</code>
      */
     public com.google.protobuf.ByteString
         getKeyBytes() {
@@ -13317,13 +12657,7 @@ public final class CanalEntry {
     public static final int VALUE_FIELD_NUMBER = 2;
     private volatile java.lang.Object value_;
     /**
-     * <code>optional string value = 2;</code>
-     */
-    public boolean hasValue() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string value = 2;</code>
+     * <code>string value = 2;</code>
      */
     public java.lang.String getValue() {
       java.lang.Object ref = value_;
@@ -13333,14 +12667,12 @@ public final class CanalEntry {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          value_ = s;
-        }
+        value_ = s;
         return s;
       }
     }
     /**
-     * <code>optional string value = 2;</code>
+     * <code>string value = 2;</code>
      */
     public com.google.protobuf.ByteString
         getValueBytes() {
@@ -13370,10 +12702,10 @@ public final class CanalEntry {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!getKeyBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, key_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getValueBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, value_);
       }
       unknownFields.writeTo(output);
@@ -13385,10 +12717,10 @@ public final class CanalEntry {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!getKeyBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, key_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!getValueBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, value_);
       }
       size += unknownFields.getSerializedSize();
@@ -13407,16 +12739,10 @@ public final class CanalEntry {
       com.alibaba.otter.canal.protocol.CanalEntry.Pair other = (com.alibaba.otter.canal.protocol.CanalEntry.Pair) obj;
 
       boolean result = true;
-      result = result && (hasKey() == other.hasKey());
-      if (hasKey()) {
-        result = result && getKey()
-            .equals(other.getKey());
-      }
-      result = result && (hasValue() == other.hasValue());
-      if (hasValue()) {
-        result = result && getValue()
-            .equals(other.getValue());
-      }
+      result = result && getKey()
+          .equals(other.getKey());
+      result = result && getValue()
+          .equals(other.getValue());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -13428,14 +12754,10 @@ public final class CanalEntry {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasKey()) {
-        hash = (37 * hash) + KEY_FIELD_NUMBER;
-        hash = (53 * hash) + getKey().hashCode();
-      }
-      if (hasValue()) {
-        hash = (37 * hash) + VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + getValue().hashCode();
-      }
+      hash = (37 * hash) + KEY_FIELD_NUMBER;
+      hash = (53 * hash) + getKey().hashCode();
+      hash = (37 * hash) + VALUE_FIELD_NUMBER;
+      hash = (53 * hash) + getValue().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -13574,9 +12896,9 @@ public final class CanalEntry {
       public Builder clear() {
         super.clear();
         key_ = "";
-        bitField0_ = (bitField0_ & ~0x00000001);
+
         value_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
+
         return this;
       }
 
@@ -13603,17 +12925,8 @@ public final class CanalEntry {
       @java.lang.Override
       public com.alibaba.otter.canal.protocol.CanalEntry.Pair buildPartial() {
         com.alibaba.otter.canal.protocol.CanalEntry.Pair result = new com.alibaba.otter.canal.protocol.CanalEntry.Pair(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
         result.key_ = key_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
         result.value_ = value_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
@@ -13662,13 +12975,11 @@ public final class CanalEntry {
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalEntry.Pair other) {
         if (other == com.alibaba.otter.canal.protocol.CanalEntry.Pair.getDefaultInstance()) return this;
-        if (other.hasKey()) {
-          bitField0_ |= 0x00000001;
+        if (!other.getKey().isEmpty()) {
           key_ = other.key_;
           onChanged();
         }
-        if (other.hasValue()) {
-          bitField0_ |= 0x00000002;
+        if (!other.getValue().isEmpty()) {
           value_ = other.value_;
           onChanged();
         }
@@ -13700,17 +13011,10 @@ public final class CanalEntry {
         }
         return this;
       }
-      private int bitField0_;
 
       private java.lang.Object key_ = "";
       /**
-       * <code>optional string key = 1;</code>
-       */
-      public boolean hasKey() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional string key = 1;</code>
+       * <code>string key = 1;</code>
        */
       public java.lang.String getKey() {
         java.lang.Object ref = key_;
@@ -13718,16 +13022,14 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            key_ = s;
-          }
+          key_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional string key = 1;</code>
+       * <code>string key = 1;</code>
        */
       public com.google.protobuf.ByteString
           getKeyBytes() {
@@ -13743,36 +13045,37 @@ public final class CanalEntry {
         }
       }
       /**
-       * <code>optional string key = 1;</code>
+       * <code>string key = 1;</code>
        */
       public Builder setKey(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
+  
         key_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string key = 1;</code>
+       * <code>string key = 1;</code>
        */
       public Builder clearKey() {
-        bitField0_ = (bitField0_ & ~0x00000001);
+        
         key_ = getDefaultInstance().getKey();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string key = 1;</code>
+       * <code>string key = 1;</code>
        */
       public Builder setKeyBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
+  checkByteStringIsUtf8(value);
+        
         key_ = value;
         onChanged();
         return this;
@@ -13780,13 +13083,7 @@ public final class CanalEntry {
 
       private java.lang.Object value_ = "";
       /**
-       * <code>optional string value = 2;</code>
-       */
-      public boolean hasValue() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional string value = 2;</code>
+       * <code>string value = 2;</code>
        */
       public java.lang.String getValue() {
         java.lang.Object ref = value_;
@@ -13794,16 +13091,14 @@ public final class CanalEntry {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            value_ = s;
-          }
+          value_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional string value = 2;</code>
+       * <code>string value = 2;</code>
        */
       public com.google.protobuf.ByteString
           getValueBytes() {
@@ -13819,36 +13114,37 @@ public final class CanalEntry {
         }
       }
       /**
-       * <code>optional string value = 2;</code>
+       * <code>string value = 2;</code>
        */
       public Builder setValue(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  
         value_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string value = 2;</code>
+       * <code>string value = 2;</code>
        */
       public Builder clearValue() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        
         value_ = getDefaultInstance().getValue();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string value = 2;</code>
+       * <code>string value = 2;</code>
        */
       public Builder setValueBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  checkByteStringIsUtf8(value);
+        
         value_ = value;
         onChanged();
         return this;
@@ -13856,7 +13152,7 @@ public final class CanalEntry {
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
+        return super.setUnknownFieldsProto3(unknownFields);
       }
 
       @java.lang.Override
@@ -13879,7 +13175,7 @@ public final class CanalEntry {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<Pair>
+    private static final com.google.protobuf.Parser<Pair>
         PARSER = new com.google.protobuf.AbstractParser<Pair>() {
       @java.lang.Override
       public Pair parsePartialFrom(
@@ -13956,55 +13252,59 @@ public final class CanalEntry {
   static {
     java.lang.String[] descriptorData = {
       "\n\023EntryProtocol.proto\022 com.alibaba.otter" +
-      ".canal.protocol\"\236\001\n\005Entry\0228\n\006header\030\001 \001(" +
+      ".canal.protocol\"\254\001\n\005Entry\0228\n\006header\030\001 \001(" +
       "\0132(.com.alibaba.otter.canal.protocol.Hea" +
-      "der\022G\n\tentryType\030\002 \001(\0162+.com.alibaba.ott" +
-      "er.canal.protocol.EntryType:\007ROWDATA\022\022\n\n" +
-      "storeValue\030\003 \001(\014\"\221\003\n\006Header\022\022\n\007version\030\001" +
-      " \001(\005:\0011\022\023\n\013logfileName\030\002 \001(\t\022\025\n\rlogfileO" +
-      "ffset\030\003 \001(\003\022\020\n\010serverId\030\004 \001(\003\022\024\n\014servere" +
-      "nCode\030\005 \001(\t\022\023\n\013executeTime\030\006 \001(\003\022A\n\nsour" +
-      "ceType\030\007 \001(\0162&.com.alibaba.otter.canal.p" +
-      "rotocol.Type:\005MYSQL\022\022\n\nschemaName\030\010 \001(\t\022" +
-      "\021\n\ttableName\030\t \001(\t\022\023\n\013eventLength\030\n \001(\003\022" +
-      "F\n\teventType\030\013 \001(\0162+.com.alibaba.otter.c" +
-      "anal.protocol.EventType:\006UPDATE\0225\n\005props" +
-      "\030\014 \003(\0132&.com.alibaba.otter.canal.protoco" +
-      "l.Pair\022\014\n\004gtid\030\r \001(\t\"\326\001\n\006Column\022\r\n\005index" +
-      "\030\001 \001(\005\022\017\n\007sqlType\030\002 \001(\005\022\014\n\004name\030\003 \001(\t\022\r\n" +
-      "\005isKey\030\004 \001(\010\022\017\n\007updated\030\005 \001(\010\022\025\n\006isNull\030" +
-      "\006 \001(\010:\005false\0225\n\005props\030\007 \003(\0132&.com.alibab" +
-      "a.otter.canal.protocol.Pair\022\r\n\005value\030\010 \001" +
-      "(\t\022\016\n\006length\030\t \001(\005\022\021\n\tmysqlType\030\n \001(\t\"\301\001" +
-      "\n\007RowData\022?\n\rbeforeColumns\030\001 \003(\0132(.com.a" +
-      "libaba.otter.canal.protocol.Column\022>\n\014af" +
-      "terColumns\030\002 \003(\0132(.com.alibaba.otter.can" +
-      "al.protocol.Column\0225\n\005props\030\003 \003(\0132&.com." +
-      "alibaba.otter.canal.protocol.Pair\"\222\002\n\tRo" +
-      "wChange\022\017\n\007tableId\030\001 \001(\003\022F\n\teventType\030\002 " +
-      "\001(\0162+.com.alibaba.otter.canal.protocol.E" +
-      "ventType:\006UPDATE\022\024\n\005isDdl\030\n \001(\010:\005false\022\013" +
-      "\n\003sql\030\013 \001(\t\022;\n\010rowDatas\030\014 \003(\0132).com.alib" +
-      "aba.otter.canal.protocol.RowData\0225\n\005prop" +
-      "s\030\r \003(\0132&.com.alibaba.otter.canal.protoc" +
-      "ol.Pair\022\025\n\rddlSchemaName\030\016 \001(\t\"\207\001\n\020Trans" +
-      "actionBegin\022\023\n\013executeTime\030\001 \001(\003\022\025\n\rtran" +
-      "sactionId\030\002 \001(\t\0225\n\005props\030\003 \003(\0132&.com.ali" +
-      "baba.otter.canal.protocol.Pair\022\020\n\010thread" +
-      "Id\030\004 \001(\003\"s\n\016TransactionEnd\022\023\n\013executeTim" +
-      "e\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\0225\n\005props\030" +
-      "\003 \003(\0132&.com.alibaba.otter.canal.protocol" +
-      ".Pair\"\"\n\004Pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t*^\n\tEntryType\022\024\n\020TRANSACTIONBEGIN\020\001\022\013\n\007" +
-      "ROWDATA\020\002\022\022\n\016TRANSACTIONEND\020\003\022\r\n\tHEARTBE" +
-      "AT\020\004\022\013\n\007GTIDLOG\020\005*\306\001\n\tEventType\022\n\n\006INSER" +
-      "T\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006CREATE\020\004\022" +
-      "\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006\022\t\n\005QUERY\020\007\022\014\n\010TRUN" +
-      "CATE\020\010\022\n\n\006RENAME\020\t\022\n\n\006CINDEX\020\n\022\n\n\006DINDEX" +
-      "\020\013\022\010\n\004GTID\020\014\022\014\n\010XACOMMIT\020\r\022\016\n\nXAROLLBACK" +
-      "\020\016\022\016\n\nMHEARTBEAT\020\017*(\n\004Type\022\n\n\006ORACLE\020\001\022\t" +
-      "\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.otte" +
-      "r.canal.protocolB\nCanalEntryH\001"
+      "der\022@\n\tentryType\030\002 \001(\0162+.com.alibaba.ott" +
+      "er.canal.protocol.EntryTypeH\000\022\022\n\nstoreVa" +
+      "lue\030\003 \001(\014B\023\n\021entryType_present\"\303\003\n\006Heade" +
+      "r\022\021\n\007version\030\001 \001(\005H\000\022\023\n\013logfileName\030\002 \001(" +
+      "\t\022\025\n\rlogfileOffset\030\003 \001(\003\022\020\n\010serverId\030\004 \001" +
+      "(\003\022\024\n\014serverenCode\030\005 \001(\t\022\023\n\013executeTime\030" +
+      "\006 \001(\003\022<\n\nsourceType\030\007 \001(\0162&.com.alibaba." +
+      "otter.canal.protocol.TypeH\001\022\022\n\nschemaNam" +
+      "e\030\010 \001(\t\022\021\n\ttableName\030\t \001(\t\022\023\n\013eventLengt" +
+      "h\030\n \001(\003\022@\n\teventType\030\013 \001(\0162+.com.alibaba" +
+      ".otter.canal.protocol.EventTypeH\002\0225\n\005pro" +
+      "ps\030\014 \003(\0132&.com.alibaba.otter.canal.proto" +
+      "col.Pair\022\014\n\004gtid\030\r \001(\tB\021\n\017version_presen" +
+      "tB\024\n\022sourceType_presentB\023\n\021eventType_pre" +
+      "sent\"\343\001\n\006Column\022\r\n\005index\030\001 \001(\005\022\017\n\007sqlTyp" +
+      "e\030\002 \001(\005\022\014\n\004name\030\003 \001(\t\022\r\n\005isKey\030\004 \001(\010\022\017\n\007" +
+      "updated\030\005 \001(\010\022\020\n\006isNull\030\006 \001(\010H\000\0225\n\005props" +
+      "\030\007 \003(\0132&.com.alibaba.otter.canal.protoco" +
+      "l.Pair\022\r\n\005value\030\010 \001(\t\022\016\n\006length\030\t \001(\005\022\021\n" +
+      "\tmysqlType\030\n \001(\tB\020\n\016isNull_present\"\301\001\n\007R" +
+      "owData\022?\n\rbeforeColumns\030\001 \003(\0132(.com.alib" +
+      "aba.otter.canal.protocol.Column\022>\n\014after" +
+      "Columns\030\002 \003(\0132(.com.alibaba.otter.canal." +
+      "protocol.Column\0225\n\005props\030\003 \003(\0132&.com.ali" +
+      "baba.otter.canal.protocol.Pair\"\255\002\n\tRowCh" +
+      "ange\022\017\n\007tableId\030\001 \001(\003\022@\n\teventType\030\002 \001(\016" +
+      "2+.com.alibaba.otter.canal.protocol.Even" +
+      "tTypeH\000\022\017\n\005isDdl\030\n \001(\010H\001\022\013\n\003sql\030\013 \001(\t\022;\n" +
+      "\010rowDatas\030\014 \003(\0132).com.alibaba.otter.cana" +
+      "l.protocol.RowData\0225\n\005props\030\r \003(\0132&.com." +
+      "alibaba.otter.canal.protocol.Pair\022\025\n\rddl" +
+      "SchemaName\030\016 \001(\tB\023\n\021eventType_presentB\017\n" +
+      "\risDdl_present\"\207\001\n\020TransactionBegin\022\023\n\013e" +
+      "xecuteTime\030\001 \001(\003\022\025\n\rtransactionId\030\002 \001(\t\022" +
+      "5\n\005props\030\003 \003(\0132&.com.alibaba.otter.canal" +
+      ".protocol.Pair\022\020\n\010threadId\030\004 \001(\003\"s\n\016Tran" +
+      "sactionEnd\022\023\n\013executeTime\030\001 \001(\003\022\025\n\rtrans" +
+      "actionId\030\002 \001(\t\0225\n\005props\030\003 \003(\0132&.com.alib" +
+      "aba.otter.canal.protocol.Pair\"\"\n\004Pair\022\013\n" +
+      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t*^\n\tEntryType\022\024" +
+      "\n\020TRANSACTIONBEGIN\020\000\022\013\n\007ROWDATA\020\001\022\022\n\016TRA" +
+      "NSACTIONEND\020\002\022\r\n\tHEARTBEAT\020\003\022\013\n\007GTIDLOG\020" +
+      "\004*\345\001\n\tEventType\022\035\n\031EVENTTYPECOMPATIBLEPR" +
+      "OTO2\020\000\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE" +
+      "\020\003\022\n\n\006CREATE\020\004\022\t\n\005ALTER\020\005\022\t\n\005ERASE\020\006\022\t\n\005" +
+      "QUERY\020\007\022\014\n\010TRUNCATE\020\010\022\n\n\006RENAME\020\t\022\n\n\006CIN" +
+      "DEX\020\n\022\n\n\006DINDEX\020\013\022\010\n\004GTID\020\014\022\014\n\010XACOMMIT\020" +
+      "\r\022\016\n\nXAROLLBACK\020\016\022\016\n\nMHEARTBEAT\020\017*B\n\004Typ" +
+      "e\022\030\n\024TYPECOMPATIBLEPROTO2\020\000\022\n\n\006ORACLE\020\001\022" +
+      "\t\n\005MYSQL\020\002\022\t\n\005PGSQL\020\003B0\n com.alibaba.ott" +
+      "er.canal.protocolB\nCanalEntryH\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -14023,19 +13323,19 @@ public final class CanalEntry {
     internal_static_com_alibaba_otter_canal_protocol_Entry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_com_alibaba_otter_canal_protocol_Entry_descriptor,
-        new java.lang.String[] { "Header", "EntryType", "StoreValue", });
+        new java.lang.String[] { "Header", "EntryType", "StoreValue", "EntryTypePresent", });
     internal_static_com_alibaba_otter_canal_protocol_Header_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_com_alibaba_otter_canal_protocol_Header_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_com_alibaba_otter_canal_protocol_Header_descriptor,
-        new java.lang.String[] { "Version", "LogfileName", "LogfileOffset", "ServerId", "ServerenCode", "ExecuteTime", "SourceType", "SchemaName", "TableName", "EventLength", "EventType", "Props", "Gtid", });
+        new java.lang.String[] { "Version", "LogfileName", "LogfileOffset", "ServerId", "ServerenCode", "ExecuteTime", "SourceType", "SchemaName", "TableName", "EventLength", "EventType", "Props", "Gtid", "VersionPresent", "SourceTypePresent", "EventTypePresent", });
     internal_static_com_alibaba_otter_canal_protocol_Column_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_com_alibaba_otter_canal_protocol_Column_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_com_alibaba_otter_canal_protocol_Column_descriptor,
-        new java.lang.String[] { "Index", "SqlType", "Name", "IsKey", "Updated", "IsNull", "Props", "Value", "Length", "MysqlType", });
+        new java.lang.String[] { "Index", "SqlType", "Name", "IsKey", "Updated", "IsNull", "Props", "Value", "Length", "MysqlType", "IsNullPresent", });
     internal_static_com_alibaba_otter_canal_protocol_RowData_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_com_alibaba_otter_canal_protocol_RowData_fieldAccessorTable = new
@@ -14047,7 +13347,7 @@ public final class CanalEntry {
     internal_static_com_alibaba_otter_canal_protocol_RowChange_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_com_alibaba_otter_canal_protocol_RowChange_descriptor,
-        new java.lang.String[] { "TableId", "EventType", "IsDdl", "Sql", "RowDatas", "Props", "DdlSchemaName", });
+        new java.lang.String[] { "TableId", "EventType", "IsDdl", "Sql", "RowDatas", "Props", "DdlSchemaName", "EventTypePresent", "IsDdlPresent", });
     internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_fieldAccessorTable = new
