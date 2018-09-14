@@ -156,18 +156,14 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                         TimeUnit.SECONDS.sleep(1L);
                     }
                 }
-            } catch (
-
-            Exception e) {
+            } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
 
         executor.shutdown();
 
-        try
-
-        {
+        try {
             connector.unsubscribe();
         } catch (WakeupException e) {
             // No-op. Continue process
