@@ -38,6 +38,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean              filterRows                = false;
     protected boolean              filterTableError          = false;
     protected boolean              useDruidDdlFilter         = true;
+    // instance received binlog bytes
+    protected final AtomicLong     receivedBinlogBytes       = new AtomicLong(0L);
     private final AtomicLong       eventsPublishBlockingTime = new AtomicLong(0L);
 
     protected BinlogParser buildParser() {
@@ -202,6 +204,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public AtomicLong getEventsPublishBlockingTime() {
         return this.eventsPublishBlockingTime;
+    }
+
+    public AtomicLong getReceivedBinlogBytes() {
+        return this.receivedBinlogBytes;
     }
 
 }
