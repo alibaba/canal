@@ -79,8 +79,8 @@ public class CanalKafkaProducer {
                 } else {
                     record = new ProducerRecord<String, Message>(topic.getTopic(), message);
                 }
-                Future<RecordMetadata> future = producer.send(record);
-                future.get();
+
+                producer.send(record);
             } else {
                 // 发送扁平数据json
                 List<FlatMessage> flatMessages = FlatMessage.messageConverter(message);
