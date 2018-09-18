@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.support;
 import java.util.*;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -63,8 +64,7 @@ public class MessageUtil {
 
                     for (CanalEntry.Column column : columns) {
                         row.put(column.getName(),
-                            JdbcTypeUtil.typeConvert(dml.getTable(),
-                                column.getName(),
+                            JdbcTypeUtil.typeConvert(column.getName(),
                                 column.getValue(),
                                 column.getSqlType(),
                                 column.getMysqlType()));
@@ -82,8 +82,7 @@ public class MessageUtil {
                         for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
                             if (updateSet.contains(column.getName())) {
                                 rowOld.put(column.getName(),
-                                    JdbcTypeUtil.typeConvert(dml.getTable(),
-                                        column.getName(),
+                                    JdbcTypeUtil.typeConvert(column.getName(),
                                         column.getValue(),
                                         column.getSqlType(),
                                         column.getMysqlType()));
@@ -104,6 +103,57 @@ public class MessageUtil {
                 consumer.accept(dml);
             }
         }
+    }
+
+    public static Dml flatMessage2Dml(FlatMessage flatMessage) {
+        if (flatMessage == null) {
+            return null;
+        }
+        Dml dml = new Dml();
+        dml.setDatabase(flatMessage.getDatabase());
+        dml.setTable(flatMessage.getTable());
+        dml.setType(flatMessage.getType());
+        dml.setTs(flatMessage.getTs());
+        dml.setSql(flatMessage.getSql());
+        if (flatMessage.getSqlType() == null || flatMessage.getMysqlType() == null) {
+            throw new RuntimeException("SqlType or mysqlType is null");
+        }
+        List<Map<String, String>> data = flatMessage.getData();
+        if (data != null) {
+            dml.setData(changeRows(data, flatMessage.getSqlType(), flatMessage.getMysqlType()));
+        }
+        List<Map<String, String>> old = flatMessage.getOld();
+        if (old != null) {
+            dml.setOld(changeRows(old, flatMessage.getSqlType(), flatMessage.getMysqlType()));
+        }
+        return dml;
+    }
+
+    private static List<Map<String, Object>> changeRows(List<Map<String, String>> rows, Map<String, Integer> sqlTypes,
+                                                        Map<String, String> mysqlTypes) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, String> row : rows) {
+            Map<String, Object> resultRow = new LinkedHashMap<>();
+            for (Map.Entry<String, String> entry : row.entrySet()) {
+                String columnName = entry.getKey();
+                String columnValue = entry.getValue();
+
+                Integer sqlType = sqlTypes.get(columnName);
+                if (sqlType == null) {
+                    continue;
+                }
+
+                String mysqlType = mysqlTypes.get(columnName);
+                if (mysqlType == null) {
+                    continue;
+                }
+
+                Object finalValue = JdbcTypeUtil.typeConvert(columnName, columnValue, sqlType, mysqlType);
+                resultRow.put(columnName, finalValue);
+            }
+            result.add(resultRow);
+        }
+        return result;
     }
 
     public interface Consumer<T> {

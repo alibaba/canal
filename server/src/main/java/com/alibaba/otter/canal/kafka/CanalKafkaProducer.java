@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.kafka;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
@@ -11,6 +12,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -25,7 +28,12 @@ public class CanalKafkaProducer {
 
     private Producer<String, Message> producer;
 
+    private Producer<String, String>  producer2;                                                 // 用于扁平message的数据投递
+
+    private KafkaProperties           kafkaProperties;
+
     public void init(KafkaProperties kafkaProperties) {
+        this.kafkaProperties = kafkaProperties;
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
         properties.put("acks", "all");
@@ -34,15 +42,26 @@ public class CanalKafkaProducer {
         properties.put("linger.ms", kafkaProperties.getLingerMs());
         properties.put("buffer.memory", kafkaProperties.getBufferMemory());
         properties.put("key.serializer", StringSerializer.class.getName());
-        properties.put("value.serializer", MessageSerializer.class.getName());
-        producer = new KafkaProducer<String, Message>(properties);
+        if (!kafkaProperties.getFlatMessage()) {
+            properties.put("value.serializer", MessageSerializer.class.getName());
+            producer = new KafkaProducer<String, Message>(properties);
+        } else {
+            properties.put("value.serializer", StringSerializer.class.getName());
+            producer2 = new KafkaProducer<String, String>(properties);
+        }
+
         // producer.initTransactions();
     }
 
     public void stop() {
         try {
             logger.info("## stop the kafka producer");
-            producer.close();
+            if (producer != null) {
+                producer.close();
+            }
+            if (producer2 != null) {
+                producer2.close();
+            }
         } catch (Throwable e) {
             logger.warn("##something goes wrong when stopping kafka producer:", e);
         } finally {
@@ -53,14 +72,27 @@ public class CanalKafkaProducer {
     public void send(KafkaProperties.Topic topic, Message message, Callback callback) {
         try {
             // producer.beginTransaction();
-            ProducerRecord<String, Message> record;
-            if (topic.getPartition() != null) {
-                record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
+            if (!kafkaProperties.getFlatMessage()) {
+                ProducerRecord<String, Message> record;
+                if (topic.getPartition() != null) {
+                    record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
+                } else {
+                    record = new ProducerRecord<String, Message>(topic.getTopic(), message);
+                }
+
+                producer.send(record);
             } else {
-                record = new ProducerRecord<String, Message>(topic.getTopic(), message);
+                // 发送扁平数据json
+                List<FlatMessage> flatMessages = FlatMessage.messageConverter(message);
+                if (flatMessages != null) {
+                    for (FlatMessage flatMessage : flatMessages) {
+                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(topic.getTopic(),
+                            JSON.toJSONString(flatMessage));
+                        producer2.send(record);
+                    }
+                }
             }
-            Future<RecordMetadata> future = producer.send(record);
-            future.get();
+
             // producer.commitTransaction();
             callback.commit();
             if (logger.isDebugEnabled()) {

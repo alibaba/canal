@@ -36,7 +36,8 @@ public class MessageDeserializer implements Deserializer<Message> {
                 CanalPacket.Packet p = CanalPacket.Packet.parseFrom(data);
                 switch (p.getType()) {
                     case MESSAGES: {
-                        if (!p.getCompression().equals(CanalPacket.Compression.NONE)) {
+                        if (!p.getCompression().equals(CanalPacket.Compression.NONE)
+                                && !p.getCompression().equals(CanalPacket.Compression.COMPRESSIONCOMPATIBLEPROTO2)) {
                             throw new CanalClientException("compression is not supported in this connector");
                         }
 
