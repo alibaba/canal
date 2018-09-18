@@ -71,9 +71,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private int                  dumpErrorCount                    = 0;                 // binlogDump失败异常计数
     private int                  dumpErrorCountThreshold           = 2;                 // binlogDump失败异常计数阀值
 
-    // instance received binlog bytes
-    private final AtomicLong     receivedBinlogBytes               = new AtomicLong(0L);
-
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
     }
@@ -905,10 +902,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
-    }
-
-    public AtomicLong getReceivedBinlogBytes() {
-        return this.receivedBinlogBytes;
     }
 
 }

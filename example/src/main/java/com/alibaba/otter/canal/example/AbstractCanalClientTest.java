@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
@@ -297,6 +298,57 @@ public class AbstractCanalClientTest {
 
     public void setConnector(CanalConnector connector) {
         this.connector = connector;
+    }
+
+    /**
+     * 获取当前Entry的 GTID信息示例
+     * @param header
+     * @return
+     */
+    public static String getCurrentGtid(CanalEntry.Header header) {
+        List<CanalEntry.Pair> props = header.getPropsList();
+        if (props != null && props.size() > 0) {
+            for (CanalEntry.Pair pair : props) {
+                if ("curtGtid".equals(pair.getKey())) {
+                    return pair.getValue();
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 获取当前Entry的 GTID Sequence No信息示例
+     * @param header
+     * @return
+     */
+    public static String getCurrentGtidSn(CanalEntry.Header header) {
+        List<CanalEntry.Pair> props = header.getPropsList();
+        if (props != null && props.size() > 0) {
+            for (CanalEntry.Pair pair : props) {
+                if ("curtGtidSn".equals(pair.getKey())) {
+                    return pair.getValue();
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 获取当前Entry的 GTID Last Committed信息示例
+     * @param header
+     * @return
+     */
+    public static String getCurrentGtidLct(CanalEntry.Header header) {
+        List<CanalEntry.Pair> props = header.getPropsList();
+        if (props != null && props.size() > 0) {
+            for (CanalEntry.Pair pair : props) {
+                if ("curtGtidLct".equals(pair.getKey())) {
+                    return pair.getValue();
+                }
+            }
+        }
+        return "";
     }
 
 }

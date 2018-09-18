@@ -323,7 +323,6 @@ public class SimpleCanalConnector implements CanalConnector {
         Packet p = Packet.parseFrom(data);
         switch (p.getType()) {
             case MESSAGES: {
-                // if (!p.getCompression().equals(Compression.NONE)) {
                 if (!p.getCompression().equals(Compression.NONE)
                     && !p.getCompression().equals(Compression.COMPRESSIONCOMPATIBLEPROTO2)) {
                     throw new CanalClientException("compression is not supported in this connector");

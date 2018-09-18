@@ -4,6 +4,9 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * The Common-Header, documented in the table @ref Table_common_header "below",
  * always has the same form and length within one version of MySQL. Each event
@@ -121,7 +124,12 @@ public final class LogHeader {
      */
     protected String    logFileName;
 
-    protected String    gtidStr;
+    protected Map<String, String> gtidMap = new HashMap<>();
+
+    private static final String CURRENT_GTID_STRING = "curt_gtid";
+    private static final String CURRENT_GTID_SN = "curt_gtid_sn";
+    private static final String CURRENT_GTID_LAST_COMMIT = "curt_gtid_lct";
+    private static final String GTID_SET_STRING = "gtid_str";
 
     /* for Start_event_v3 */
     public LogHeader(final int type){
@@ -292,13 +300,30 @@ public final class LogHeader {
         }
     }
 
-    public String getGtidStr() {
-        return gtidStr;
+    public String getGtidSetStr() {
+        return gtidMap.get(GTID_SET_STRING);
     }
 
-    public void putGtidStr(GTIDSet gtidSet) {
+    public String getCurrentGtid() {
+        return gtidMap.get(CURRENT_GTID_STRING);
+    }
+
+    public String getCurrentGtidSn() {
+        return gtidMap.get(CURRENT_GTID_SN);
+    }
+
+    public String getCurrentGtidLastCommit() {
+        return gtidMap.get(CURRENT_GTID_LAST_COMMIT);
+    }
+
+    public void putGtid(GTIDSet gtidSet, GtidLogEvent event) {
         if (gtidSet != null) {
-            this.gtidStr = gtidSet.toString();
+            gtidMap.put(GTID_SET_STRING, gtidSet.toString());
+            if (event != null) {
+                gtidMap.put(CURRENT_GTID_STRING, event.getGtidStr());
+                gtidMap.put(CURRENT_GTID_SN, String.valueOf(event.getSequenceNumber()));
+                gtidMap.put(CURRENT_GTID_LAST_COMMIT, String.valueOf(event.getLastCommitted()));
+            }
         }
     }
 }
