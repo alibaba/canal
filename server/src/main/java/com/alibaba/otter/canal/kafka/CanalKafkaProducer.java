@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.kafka;
 
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -18,13 +20,14 @@ import com.alibaba.otter.canal.protocol.Message;
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
-public class CanalKafkaProducer {
+public class CanalKafkaProducer implements CanalMQProducer {
 
-    private static final Logger       logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
     private Producer<String, Message> producer;
 
-    public void init(KafkaProperties kafkaProperties) {
+    @Override
+    public void init(MQProperties kafkaProperties) {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
         properties.put("acks", "all");
@@ -37,6 +40,7 @@ public class CanalKafkaProducer {
         producer = new KafkaProducer<String, Message>(properties);
     }
 
+    @Override
     public void stop() {
         try {
             logger.info("## stop the kafka producer");
@@ -48,33 +52,8 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(KafkaProperties.Topic topic, Message message) throws IOException {
-        // set canal.instance.filter.transaction.entry = true
-
-        // boolean valid = false;
-        // if (message != null) {
-        // if (message.isRaw() && !message.getRawEntries().isEmpty()) {
-        // for (ByteString byteString : message.getRawEntries()) {
-        // CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(byteString);
-        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-        // valid = true;
-        // break;
-        // }
-        // }
-        // } else if (!message.getEntries().isEmpty()){
-        // for (CanalEntry.Entry entry : message.getEntries()) {
-        // if (entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONBEGIN
-        // && entry.getEntryType() != CanalEntry.EntryType.TRANSACTIONEND) {
-        // valid = true;
-        // break;
-        // }
-        // }
-        // }
-        // }
-        // if (!valid) {
-        // return;
-        // }
+    @Override
+    public void send(MQProperties.Topic topic, Message message) throws IOException {
         ProducerRecord<String, Message> record;
         if (topic.getPartition() != null) {
             record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);

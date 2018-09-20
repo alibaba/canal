@@ -20,7 +20,7 @@ public class CanalClientConfig {
 
     private String              bootstrapServers;
 
-    private List<KafkaTopic>    kafkaTopics;
+    private List<MQTopic>       mqTopics;
 
     private List<CanalInstance> canalInstances;
 
@@ -56,12 +56,12 @@ public class CanalClientConfig {
         this.bootstrapServers = bootstrapServers;
     }
 
-    public List<KafkaTopic> getKafkaTopics() {
-        return kafkaTopics;
+    public List<MQTopic> getMqTopics() {
+        return mqTopics;
     }
 
-    public void setKafkaTopics(List<KafkaTopic> kafkaTopics) {
-        this.kafkaTopics = kafkaTopics;
+    public void setMqTopics(List<MQTopic> mqTopics) {
+        this.mqTopics = mqTopics;
     }
 
     public List<CanalInstance> getCanalInstances() {
@@ -110,7 +110,7 @@ public class CanalClientConfig {
         }
     }
 
-    public static class KafkaTopic {
+    public static class MQTopic {
 
         private String      topic;
 

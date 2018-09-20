@@ -1,4 +1,4 @@
-servers: slave1:6667,slave2:6667,slave3:6667
+servers: localhost:9876 #for rocketmq: means the nameserver
 retries: 0
 batchSize: 16384
 lingerMs: 1

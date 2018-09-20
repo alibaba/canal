@@ -17,34 +17,34 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 外部适配器的加载器
+ * RocktMQ外部适配器的加载器
  *
- * @author machengyuan 2018-8-19 下午11:45:49
  * @version 1.0.0
  */
 public class CanalAdapterLoader {
 
-    private static final Logger                  logger            = LoggerFactory.getLogger(CanalAdapterLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(CanalAdapterLoader.class);
 
-    private CanalClientConfig                    canalClientConfig;
+    private CanalClientConfig canalClientConfig;
 
-    private Map<String, CanalAdapterWorker>      canalWorkers      = new HashMap<>();
+    private Map<String, CanalAdapterWorker> canalWorkers = new HashMap<>();
 
     private Map<String, CanalAdapterKafkaWorker> canalKafkaWorkers = new HashMap<>();
+    private Map<String, CanalAdapterRocketMQWorker> canalMQWorker = new HashMap<>();
 
-    private ExtensionLoader<CanalOuterAdapter>   loader;
+    private ExtensionLoader<CanalOuterAdapter> loader;
 
-    public CanalAdapterLoader(CanalClientConfig canalClientConfig){
+    public CanalAdapterLoader(CanalClientConfig canalClientConfig) {
         this.canalClientConfig = canalClientConfig;
     }
 
     /**
-     * 初始化canal-client、 canal-client-kafka的适配器
+     * 初始化canal-client、 canal-client-rocketmq的适配器
      */
     public void init() {
-        // canal instances 和 kafka topics 配置不能同时为空
-        if (canalClientConfig.getCanalInstances() == null && canalClientConfig.getKafkaTopics() == null) {
-            throw new RuntimeException("Blank config property: canalInstances or canalKafkaTopics");
+        // canal instances 和 rocketmq topics 配置不能同时为空
+        if (canalClientConfig.getCanalInstances() == null && canalClientConfig.getMqTopics() == null) {
+            throw new RuntimeException("Blank config property: canalInstances or canalMQTopics");
         }
 
         loader = ExtensionLoader.getExtensionLoader(CanalOuterAdapter.class,
@@ -87,10 +87,10 @@ public class CanalAdapterLoader {
             }
         }
 
-        // 初始化canal-client-kafka的适配器
-        if (canalClientConfig.getKafkaTopics() != null) {
-            for (CanalClientConfig.KafkaTopic kafkaTopic : canalClientConfig.getKafkaTopics()) {
-                for (CanalClientConfig.Group group : kafkaTopic.getGroups()) {
+        // 初始化canal-client-rocketmq的适配器
+        if (canalClientConfig.getMqTopics() != null) {
+            for (CanalClientConfig.MQTopic topic : canalClientConfig.getMqTopics()) {
+                for (CanalClientConfig.Group group : topic.getGroups()) {
                     List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
 
                     List<CanalOuterAdapter> canalOuterAdapters = new ArrayList<>();
@@ -102,16 +102,15 @@ public class CanalAdapterLoader {
                     }
                     canalOuterAdapterGroups.add(canalOuterAdapters);
 
-                    // String zkServers = canalClientConfig.getZookeeperHosts();
-                    CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(zkHosts,
+                    CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(
                         canalClientConfig.getBootstrapServers(),
-                        kafkaTopic.getTopic(),
+                        topic.getTopic(),
                         group.getGroupId(),
                         canalOuterAdapterGroups);
-                    canalKafkaWorkers.put(kafkaTopic.getTopic() + "-" + group.getGroupId(), canalKafkaWorker);
-                    canalKafkaWorker.start();
-                    logger.info("Start adapter for canal-client kafka topic: {} succeed",
-                        kafkaTopic.getTopic() + "-" + group.getGroupId());
+                    canalMQWorker.put(topic.getTopic() + "-" + group.getGroupId(), rocketMQWorker);
+                    rocketMQWorker.start();
+                    logger.info("Start adapter for canal-client rocketmq topic: {} succeed",
+                        topic.getTopic() + "-" + group.getGroupId());
                 }
             }
         }

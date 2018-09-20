@@ -1,69 +1,63 @@
-package com.alibaba.otter.canal.kafka;
+package com.alibaba.otter.canal.server;
 
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.protocol.ClientIdentity;
+import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
 import java.io.FileInputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
-import com.alibaba.otter.canal.kafka.KafkaProperties.CanalDestination;
-import com.alibaba.otter.canal.kafka.KafkaProperties.Topic;
-import com.alibaba.otter.canal.protocol.ClientIdentity;
-import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.server.CanalServerStarter;
-import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
-
-/**
- * kafka 启动类
- *
- * @author machengyuan 2018-6-11 下午05:30:49
- * @version 1.0.0
- */
-public class CanalKafkaStarter implements CanalServerStarter {
-
-    private static final Logger logger               = LoggerFactory.getLogger(CanalKafkaStarter.class);
+public class CanalMQStarter {
+    private static final Logger logger               = LoggerFactory.getLogger(CanalMQStarter.class);
 
     private static final String CLASSPATH_URL_PREFIX = "classpath:";
 
     private volatile boolean    running              = false;
 
-    private ExecutorService     executorService;
+    private ExecutorService executorService;
 
-    private CanalKafkaProducer canalKafkaProducer;
+    private CanalMQProducer canalMQProducer;
 
-    private KafkaProperties kafkaProperties;
+    private MQProperties properties;
+
+    public CanalMQStarter(CanalMQProducer canalMQProducer){
+        this.canalMQProducer = canalMQProducer;
+    }
 
     public void init() {
         try {
-            logger.info("## load kafka configurations");
-            String conf = System.getProperty("kafka.conf", "classpath:kafka.yml");
+            logger.info("## load MQ configurations");
+            String conf = System.getProperty("mq.conf", "classpath:mq.yml");
 
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
-                kafkaProperties = new Yaml().loadAs(CanalKafkaStarter.class.getClassLoader().getResourceAsStream(conf),
-                    KafkaProperties.class);
+                properties = new Yaml().loadAs(CanalMQStarter.class.getClassLoader().getResourceAsStream(conf),
+                    MQProperties.class);
             } else {
-                kafkaProperties = new Yaml().loadAs(new FileInputStream(conf), KafkaProperties.class);
+                properties = new Yaml().loadAs(new FileInputStream(conf), MQProperties.class);
             }
 
             // 初始化 kafka producer
-            canalKafkaProducer = new CanalKafkaProducer();
-            canalKafkaProducer.init(kafkaProperties);
+//            canalMQProducer = new CanalKafkaProducer();
+            canalMQProducer.init(properties);
             // set filterTransactionEntry
-            if (kafkaProperties.isFilterTransactionEntry()) {
+            if (properties.isFilterTransactionEntry()) {
                 System.setProperty("canal.instance.filter.transaction.entry", "true");
             }
             // 对应每个instance启动一个worker线程
-            List<CanalDestination> destinations = kafkaProperties.getCanalDestinations();
+            List<MQProperties.CanalDestination> destinations = properties.getCanalDestinations();
 
             executorService = Executors.newFixedThreadPool(destinations.size());
 
-            logger.info("## start the kafka workers.");
-            for (final CanalDestination destination : destinations) {
+            logger.info("## start the MQ workers.");
+            for (final MQProperties.CanalDestination destination : destinations) {
                 executorService.execute(new Runnable() {
 
                     @Override
@@ -73,31 +67,31 @@ public class CanalKafkaStarter implements CanalServerStarter {
                 });
             }
             running = true;
-            logger.info("## the kafka workers is running now ......");
+            logger.info("## the MQ workers is running now ......");
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
                 public void run() {
                     try {
-                        logger.info("## stop the kafka workers");
+                        logger.info("## stop the MQ workers");
                         running = false;
                         executorService.shutdown();
-                        canalKafkaProducer.stop();
+                        canalMQProducer.stop();
                     } catch (Throwable e) {
-                        logger.warn("##something goes wrong when stopping kafka workers:", e);
+                        logger.warn("##something goes wrong when stopping MQ workers:", e);
                     } finally {
-                        logger.info("## canal kafka is down.");
+                        logger.info("## canal MQ is down.");
                     }
                 }
 
             });
 
         } catch (Throwable e) {
-            logger.error("## Something goes wrong when starting up the canal kafka workers:", e);
+            logger.error("## Something goes wrong when starting up the canal MQ workers:", e);
             System.exit(0);
         }
     }
 
-    private void worker(CanalDestination destination) {
+    private void worker(MQProperties.CanalDestination destination) {
         while (!running)
             ;
         logger.info("## start the canal consumer: {}.", destination.getCanalDestination());
@@ -117,19 +111,19 @@ public class CanalKafkaStarter implements CanalServerStarter {
                 logger.info("## the canal consumer {} is running now ......", destination.getCanalDestination());
 
                 while (running) {
-                    Message message = server.getWithoutAck(clientIdentity, kafkaProperties.getCanalBatchSize()); // 获取指定数量的数据
+                    Message message = server.getWithoutAck(clientIdentity, properties.getCanalBatchSize()); // 获取指定数量的数据
                     long batchId = message.getId();
                     try {
                         int size = message.isRaw() ? message.getRawEntries().size() : message.getEntries().size();
                         if (batchId != -1 && size != 0) {
                             if (!StringUtils.isEmpty(destination.getTopic())) {
-                                Topic topic = new Topic();
+                                MQProperties.Topic topic = new MQProperties.Topic();
                                 topic.setTopic(destination.getTopic());
                                 topic.setPartition(destination.getPartition());
                                 destination.getTopics().add(topic);
                             }
-                            for (Topic topic : destination.getTopics()) {
-                                canalKafkaProducer.send(topic, message); // 发送message到所有topic
+                            for (MQProperties.Topic topic : destination.getTopics()) {
+                                canalMQProducer.send(topic, message); // 发送message到所有topic
                             }
                         }
 
