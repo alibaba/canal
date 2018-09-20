@@ -99,16 +99,15 @@ public class CanalKafkaProducer {
                                     canalDestination.getPartitionHash());
                                 int length = partitionFlatMessage.length;
                                 for (int i = 0; i < length; i++) {
-                                    FlatMessage flatMessage1 = partitionFlatMessage[i];
-                                    if (flatMessage1 == null) {
-                                        continue;
+                                    FlatMessage flatMessagePart = partitionFlatMessage[i];
+                                    if (flatMessagePart != null) {
+                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(
+                                                canalDestination.getTopic(),
+                                                i,
+                                                null,
+                                                JSON.toJSONString(flatMessagePart));
+                                        producer2.send(record);
                                     }
-                                    ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                        canalDestination.getTopic(),
-                                        i,
-                                        null,
-                                        JSON.toJSONString(partitionFlatMessage[i]));
-                                    producer2.send(record);
                                 }
                             } else {
                                 ProducerRecord<String, String> record = new ProducerRecord<String, String>(

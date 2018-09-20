@@ -12,9 +12,11 @@ flatMessage: true
 
 canalDestinations:
   - canalDestination: example
-    topic: expample
-    #partitionsNum: 3
-    #partitionHash:
-    #  mytest.person: id
+    topic: example
+#    #对应topic分区数量
+#    partitionsNum: 3
+#    partitionHash:
+#      #库名.表名: 唯一主键
+#      mytest.person: id
 
 
