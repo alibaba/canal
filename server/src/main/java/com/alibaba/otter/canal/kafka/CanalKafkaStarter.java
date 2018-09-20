@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import com.alibaba.otter.canal.kafka.KafkaProperties.CanalDestination;
-import com.alibaba.otter.canal.kafka.KafkaProperties.Topic;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.CanalServerStarter;
