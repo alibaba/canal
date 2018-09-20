@@ -28,6 +28,7 @@ public class MessageSerializer implements Serializer<Message> {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public byte[] serialize(String topic, Message data) {
         try {
             if (data != null) {
@@ -47,11 +48,9 @@ public class MessageSerializer implements Serializer<Message> {
                         messageSize += 1 * rowEntries.size();
                         // packet size
                         int size = 0;
-                        size += CodedOutputStream.computeEnumSize(3,
-                            PacketType.MESSAGES.getNumber());
+                        size += CodedOutputStream.computeEnumSize(3, PacketType.MESSAGES.getNumber());
                         size += CodedOutputStream.computeTagSize(5)
-                                + CodedOutputStream.computeRawVarint32Size(messageSize)
-                                + messageSize;
+                                + CodedOutputStream.computeRawVarint32Size(messageSize) + messageSize;
                         // build data
                         byte[] body = new byte[size];
                         CodedOutputStream output = CodedOutputStream.newInstance(body);

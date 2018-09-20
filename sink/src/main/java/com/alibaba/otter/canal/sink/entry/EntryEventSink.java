@@ -33,10 +33,13 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     private static final Logger    logger                        = LoggerFactory.getLogger(EntryEventSink.class);
     private static final int       maxFullTimes                  = 10;
     private CanalEventStore<Event> eventStore;
-    protected boolean              filterTransactionEntry        = false;                                        // 是否需要过滤事务头/尾
+    protected boolean              filterTransactionEntry        = false;                                        // 是否需要尽可能过滤事务头/尾
     protected boolean              filterEmtryTransactionEntry   = true;                                         // 是否需要过滤空的事务头/尾
     protected long                 emptyTransactionInterval      = 5 * 1000;                                     // 空的事务输出的频率
-    protected long                 emptyTransctionThresold       = 8192;                                         // 超过1024个事务头，输出一个
+    protected long                 emptyTransctionThresold       = 8192;                                         // 超过8192个事务头，输出一个
+
+    protected volatile long        lastTransactionTimestamp      = 0L;
+    protected AtomicLong           lastTransactionCount          = new AtomicLong(0L);
     protected volatile long        lastEmptyTransactionTimestamp = 0L;
     protected AtomicLong           lastEmptyTransactionCount     = new AtomicLong(0L);
     private AtomicLong             eventsSinkBlockingTime        = new AtomicLong(0L);
@@ -74,17 +77,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
     public boolean sink(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                            throws CanalSinkException,
                                                                                                            InterruptedException {
-        List rowDatas = entrys;
-        if (filterTransactionEntry) {
-            rowDatas = new ArrayList<CanalEntry.Entry>();
-            for (CanalEntry.Entry entry : entrys) {
-                if (entry.getEntryType() == EntryType.ROWDATA) {
-                    rowDatas.add(entry);
-                }
-            }
-        }
-
-        return sinkData(rowDatas, remoteAddress);
+        return sinkData(entrys, remoteAddress);
     }
 
     private boolean sinkData(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress)
@@ -97,17 +90,26 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
                 continue;
             }
 
-            Event event = new Event(new LogIdentity(remoteAddress, -1L), entry);
-            events.add(event);
+            if (filterTransactionEntry
+                && (entry.getEntryType() == EntryType.TRANSACTIONBEGIN || entry.getEntryType() == EntryType.TRANSACTIONEND)) {
+                long currentTimestamp = entry.getHeader().getExecuteTime();
+                // 基于一定的策略控制，放过空的事务头和尾，便于及时更新数据库位点，表明工作正常
+                if (Math.abs(currentTimestamp - lastTransactionTimestamp) > emptyTransactionInterval
+                    || lastTransactionCount.incrementAndGet() > emptyTransctionThresold) {
+                    lastTransactionCount.set(0L);
+                    lastTransactionTimestamp = currentTimestamp;
+                    continue;
+                }
+            }
+
             hasRowData |= (entry.getEntryType() == EntryType.ROWDATA);
             hasHeartBeat |= (entry.getEntryType() == EntryType.HEARTBEAT);
+            Event event = new Event(new LogIdentity(remoteAddress, -1L), entry);
+            events.add(event);
         }
 
-        if (hasRowData) {
-            // 存在row记录
-            return doSink(events);
-        } else if (hasHeartBeat) {
-            // 存在heartbeat记录，直接跳给后续处理
+        if (hasRowData || hasHeartBeat) {
+            // 存在row记录 或者 存在heartbeat记录，直接跳给后续处理
             return doSink(events);
         } else {
             // 需要过滤的数据
