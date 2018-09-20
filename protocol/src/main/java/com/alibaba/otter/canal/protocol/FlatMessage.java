@@ -1,7 +1,12 @@
 package com.alibaba.otter.canal.protocol;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Table;
 import com.google.protobuf.ByteString;
@@ -243,6 +248,8 @@ public class FlatMessage implements Serializable {
                     }
                     int hash = value.hashCode();
                     int pkHash = Math.abs(hash) % partitionsNum;
+                    // math.abs可能返回负值，这里再取反，把出现负值的数据还是写到固定的分区，仍然可以保证消费顺序
+                    pkHash = Math.abs(pkHash);
 
                     FlatMessage flatMessageTmp = partitionMessages[pkHash];
                     if (flatMessageTmp == null) {
