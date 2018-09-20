@@ -12,7 +12,9 @@ flatMessage: true
 
 canalDestinations:
   - canalDestination: example
-    topic: example
-    partition:
+    topic: expample
+    #partitionsNum: 3
+    #partitionHash:
+    #  mytest.person: id
 
 

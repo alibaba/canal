@@ -1,14 +1,8 @@
 package com.alibaba.otter.canal.protocol;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import com.google.common.collect.Table;
 import com.google.protobuf.ByteString;
 
 /**
@@ -31,7 +25,7 @@ public class FlatMessage implements Serializable {
     private List<Map<String, String>> data;
     private List<Map<String, String>> old;
 
-    public FlatMessage() {
+    public FlatMessage(){
     }
 
     public FlatMessage(long id){
@@ -126,6 +120,12 @@ public class FlatMessage implements Serializable {
         this.old = old;
     }
 
+    /**
+     * 将Message转换为FlatMessage
+     * 
+     * @param message 原生message
+     * @return FlatMessage列表
+     */
     public static List<FlatMessage> messageConverter(Message message) {
         try {
             if (message == null) {
@@ -231,11 +231,22 @@ public class FlatMessage implements Serializable {
         }
     }
 
+    /**
+     * 将FlatMessage按指定的字段值hash拆分
+     * 
+     * @param flatMessage flatMessage
+     * @param partitionsNum 分区数量
+     * @param pkHashConfig hash映射
+     * @return 拆分后的flatMessage数组
+     */
     public static FlatMessage[] messagePartition(FlatMessage flatMessage, Integer partitionsNum,
-                                                 Table<String, String, String> pkHashConfig) {
+                                                 Map<String, String> pkHashConfig) {
+        if (partitionsNum == null) {
+            partitionsNum = 1;
+        }
         FlatMessage[] partitionMessages = new FlatMessage[partitionsNum];
 
-        String pk = pkHashConfig.get(flatMessage.getDatabase(), flatMessage.getTable());
+        String pk = pkHashConfig.get(flatMessage.getDatabase() + "." + flatMessage.getTable());
         if (pk == null || flatMessage.getIsDdl()) {
             partitionMessages[0] = flatMessage;
         } else {

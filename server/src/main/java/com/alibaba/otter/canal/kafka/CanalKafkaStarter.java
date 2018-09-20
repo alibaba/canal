@@ -132,10 +132,7 @@ public class CanalKafkaStarter implements CanalServerStarter {
                     try {
                         int size = message.isRaw() ? message.getRawEntries().size() : message.getEntries().size();
                         if (batchId != -1 && size != 0) {
-                            Topic topic = new Topic();
-                            topic.setTopic(destination.getTopic());
-                            topic.setPartition(destination.getPartition());
-                            canalKafkaProducer.send(topic, message, new CanalKafkaProducer.Callback() {
+                            canalKafkaProducer.send(destination, message, new CanalKafkaProducer.Callback() {
 
                                 @Override
                                 public void commit() {

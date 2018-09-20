@@ -1,9 +1,8 @@
 package com.alibaba.otter.canal.kafka;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * kafka 配置项
@@ -27,10 +26,11 @@ public class KafkaProperties {
 
     public static class CanalDestination {
 
-        private String     canalDestination;
-        private String     topic;
-        private Integer    partition;
-        private Set<Topic> topics = new HashSet<Topic>();
+        private String              canalDestination;
+        private String              topic;
+        private Integer             partition;
+        private Integer             partitionsNum;
+        private Map<String, String> partitionHash;
 
         public String getCanalDestination() {
             return canalDestination;
@@ -56,52 +56,20 @@ public class KafkaProperties {
             this.partition = partition;
         }
 
-        public Set<Topic> getTopics() {
-            return topics;
+        public Integer getPartitionsNum() {
+            return partitionsNum;
         }
 
-        public void setTopics(Set<Topic> topics) {
-            this.topics = topics;
-        }
-    }
-
-    public static class Topic {
-
-        private String  topic;
-        private Integer partition;
-
-        public String getTopic() {
-            return topic;
+        public void setPartitionsNum(Integer partitionsNum) {
+            this.partitionsNum = partitionsNum;
         }
 
-        public void setTopic(String topic) {
-            this.topic = topic;
+        public Map<String, String> getPartitionHash() {
+            return partitionHash;
         }
 
-        public Integer getPartition() {
-            return partition;
-        }
-
-        public void setPartition(Integer partition) {
-            this.partition = partition;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Topic topic1 = (Topic) o;
-
-            if (topic != null ? !topic.equals(topic1.topic) : topic1.topic != null) return false;
-            return partition != null ? partition.equals(topic1.partition) : topic1.partition == null;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = topic != null ? topic.hashCode() : 0;
-            result = 31 * result + (partition != null ? partition.hashCode() : 0);
-            return result;
+        public void setPartitionHash(Map<String, String> partitionHash) {
+            this.partitionHash = partitionHash;
         }
     }
 
