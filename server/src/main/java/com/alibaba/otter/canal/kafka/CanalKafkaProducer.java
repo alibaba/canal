@@ -75,7 +75,7 @@ public class CanalKafkaProducer {
                 if (topic.getPartition() != null) {
                     record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
                 } else {
-                    record = new ProducerRecord<String, Message>(topic.getTopic(), message);
+                    record = new ProducerRecord<String, Message>(topic.getTopic(), 0, null, message);
                 }
 
                 producer.send(record);
@@ -84,8 +84,18 @@ public class CanalKafkaProducer {
                 List<FlatMessage> flatMessages = FlatMessage.messageConverter(message);
                 if (flatMessages != null) {
                     for (FlatMessage flatMessage : flatMessages) {
-                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(topic.getTopic(),
-                            JSON.toJSONString(flatMessage));
+                        ProducerRecord<String, String> record;
+                        if (topic.getPartition() != null) {
+                            record = new ProducerRecord<String, String>(topic.getTopic(),
+                                topic.getPartition(),
+                                null,
+                                JSON.toJSONString(flatMessage));
+                        } else {
+                            record = new ProducerRecord<String, String>(topic.getTopic(),
+                                0,
+                                null,
+                                JSON.toJSONString(flatMessage));
+                        }
                         producer2.send(record);
                     }
                 }
