@@ -10,7 +10,7 @@ filterTransactionEntry: true
 canalDestinations:
   - canalDestination: example
     topic: example
-    partition:
+    partition: 0
     # 一个destination可以对应多个topic
     #topics:
     #  - topic: example

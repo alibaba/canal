@@ -4,6 +4,7 @@ import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * RocktMQ外部适配器的加载器
+ * MQ外部适配器的加载器
  *
  * @version 1.0.0
  */
@@ -29,8 +30,7 @@ public class CanalAdapterLoader {
 
     private Map<String, CanalAdapterWorker> canalWorkers = new HashMap<>();
 
-    private Map<String, CanalAdapterKafkaWorker> canalKafkaWorkers = new HashMap<>();
-    private Map<String, CanalAdapterRocketMQWorker> canalMQWorker = new HashMap<>();
+    private Map<String, AbstractCanalAdapterWorker> canalMQWorker = new HashMap<>();
 
     private ExtensionLoader<CanalOuterAdapter> loader;
 
@@ -42,7 +42,7 @@ public class CanalAdapterLoader {
      * 初始化canal-client、 canal-client-rocketmq的适配器
      */
     public void init() {
-        // canal instances 和 rocketmq topics 配置不能同时为空
+        // canal instances 和 mq topics 配置不能同时为空
         if (canalClientConfig.getCanalInstances() == null && canalClientConfig.getMqTopics() == null) {
             throw new RuntimeException("Blank config property: canalInstances or canalMQTopics");
         }
@@ -57,11 +57,6 @@ public class CanalAdapterLoader {
             sa = new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1]));
         }
         String zkHosts = this.canalClientConfig.getZookeeperHosts();
-
-        // if (zkHosts == null && sa == null) {
-        // throw new RuntimeException("Blank config property: canalServerHost or
-        // zookeeperHosts");
-        // }
 
         // 初始化canal-client的适配器
         if (canalClientConfig.getCanalInstances() != null) {
@@ -96,19 +91,27 @@ public class CanalAdapterLoader {
                     List<CanalOuterAdapter> canalOuterAdapters = new ArrayList<>();
 
                     for (CanalOuterAdapterConfiguration config : group.getOutAdapters()) {
-                        // for (CanalOuterAdapterConfiguration config : adaptor.getOutAdapters()) {
                         loadConnector(config, canalOuterAdapters);
-                        // }
                     }
                     canalOuterAdapterGroups.add(canalOuterAdapters);
 
-                    CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(
-                        canalClientConfig.getBootstrapServers(),
-                        topic.getTopic(),
-                        group.getGroupId(),
-                        canalOuterAdapterGroups);
-                    canalMQWorker.put(topic.getTopic() + "-" + group.getGroupId(), rocketMQWorker);
-                    rocketMQWorker.start();
+                    if (StringUtils.isBlank(topic.getMqMode()) || "rocketmq".equalsIgnoreCase(topic.getMqMode())) {
+                        CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(
+                            canalClientConfig.getBootstrapServers(),
+                            topic.getTopic(),
+                            group.getGroupId(),
+                            canalOuterAdapterGroups);
+                        canalMQWorker.put(topic.getTopic() + "-rocketmq-" + group.getGroupId(), rocketMQWorker);
+                        rocketMQWorker.start();
+                    } else if ("kafka".equalsIgnoreCase(topic.getMqMode())) {
+                        CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(zkHosts,
+                            canalClientConfig.getBootstrapServers(),
+                            topic.getTopic(),
+                            group.getGroupId(),
+                            canalOuterAdapterGroups);
+                        canalMQWorker.put(topic.getTopic() + "-kafka-" + group.getGroupId(), canalKafkaWorker);
+                        canalKafkaWorker.start();
+                    }
                     logger.info("Start adapter for canal-client rocketmq topic: {} succeed",
                         topic.getTopic() + "-" + group.getGroupId());
                 }
@@ -149,15 +152,14 @@ public class CanalAdapterLoader {
             }
             stopExecutorService.shutdown();
         }
-        if (canalKafkaWorkers.size() > 0) {
-            ExecutorService stopKafkaExecutorService = Executors.newFixedThreadPool(canalKafkaWorkers.size());
-            for (CanalAdapterKafkaWorker v : canalKafkaWorkers.values()) {
-                final CanalAdapterKafkaWorker cakw = v;
+        if (canalMQWorker.size() > 0) {
+            ExecutorService stopKafkaExecutorService = Executors.newFixedThreadPool(canalMQWorker.size());
+            for (AbstractCanalAdapterWorker tmp : canalMQWorker.values()) {
+                final AbstractCanalAdapterWorker worker = tmp;
                 stopKafkaExecutorService.submit(new Runnable() {
-
                     @Override
                     public void run() {
-                        cakw.stop();
+                        worker.stop();
                     }
                 });
             }

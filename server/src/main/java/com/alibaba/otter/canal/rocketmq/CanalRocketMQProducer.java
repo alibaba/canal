@@ -35,14 +35,13 @@ public class CanalRocketMQProducer implements CanalMQProducer {
     }
 
     @Override
-    public void send(MQProperties.Topic topic, com.alibaba.otter.canal.protocol.Message data) {
+    public void send(final MQProperties.Topic topic, com.alibaba.otter.canal.protocol.Message data) {
         try {
             Message message = new Message(topic.getTopic(), CanalMessageSerializer.serializer(data));
             this.defaultMQProducer.send(message, new MessageQueueSelector() {
                 @Override
                 public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
-                 //   int index = (arg.hashCode() % mqs.size());
-                    return mqs.get(1);
+                    return mqs.get(topic.getPartition());
                 }
             }, null);
         } catch (MQClientException | RemotingException | MQBrokerException | InterruptedException e) {

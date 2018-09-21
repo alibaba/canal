@@ -10,7 +10,9 @@ canalServerHost: 127.0.0.1:11111
 #    - name: hbase
 #      hosts: slave1:2181
 #      properties: {znodeParent: "/hbase-unsecure"}
+
 mqTopics:
+- mqMode: rocketmq
 - topic: example
   groups:
   - groupId: example_g1

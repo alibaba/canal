@@ -111,10 +111,19 @@ public class CanalClientConfig {
     }
 
     public static class MQTopic {
+        private String      mqMode;
 
         private String      topic;
 
         private List<Group> groups = new ArrayList<>();
+
+        public String getMqMode() {
+            return mqMode;
+        }
+
+        public void setMqMode(String mqMode) {
+            this.mqMode = mqMode;
+        }
 
         public String getTopic() {
             return topic;
