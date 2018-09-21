@@ -67,15 +67,18 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(KafkaProperties.Topic topic, Message message, Callback callback) {
+    public void send(KafkaProperties.CanalDestination canalDestination, Message message, Callback callback) {
         try {
             // producer.beginTransaction();
             if (!kafkaProperties.getFlatMessage()) {
                 ProducerRecord<String, Message> record;
-                if (topic.getPartition() != null) {
-                    record = new ProducerRecord<String, Message>(topic.getTopic(), topic.getPartition(), null, message);
+                if (canalDestination.getPartition() != null) {
+                    record = new ProducerRecord<String, Message>(canalDestination.getTopic(),
+                        canalDestination.getPartition(),
+                        null,
+                        message);
                 } else {
-                    record = new ProducerRecord<String, Message>(topic.getTopic(), message);
+                    record = new ProducerRecord<String, Message>(canalDestination.getTopic(), 0, null, message);
                 }
 
                 producer.send(record);
@@ -84,9 +87,38 @@ public class CanalKafkaProducer {
                 List<FlatMessage> flatMessages = FlatMessage.messageConverter(message);
                 if (flatMessages != null) {
                     for (FlatMessage flatMessage : flatMessages) {
-                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(topic.getTopic(),
-                            JSON.toJSONString(flatMessage));
-                        producer2.send(record);
+                        if (canalDestination.getPartition() != null) {
+                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination
+                                .getTopic(), canalDestination.getPartition(), null, JSON.toJSONString(flatMessage));
+                            producer2.send(record);
+                        } else {
+                            if (canalDestination.getPartitionHash() != null
+                                && !canalDestination.getPartitionHash().isEmpty()) {
+                                FlatMessage[] partitionFlatMessage = FlatMessage.messagePartition(flatMessage,
+                                    canalDestination.getPartitionsNum(),
+                                    canalDestination.getPartitionHash());
+                                int length = partitionFlatMessage.length;
+                                for (int i = 0; i < length; i++) {
+                                    FlatMessage flatMessagePart = partitionFlatMessage[i];
+                                    if (flatMessagePart != null) {
+                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(
+                                                canalDestination.getTopic(),
+                                                i,
+                                                null,
+                                                JSON.toJSONString(flatMessagePart));
+                                        producer2.send(record);
+                                    }
+                                }
+                            } else {
+                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(
+                                    canalDestination.getTopic(),
+                                    0,
+                                    null,
+                                    JSON.toJSONString(flatMessage));
+                                producer2.send(record);
+                            }
+                        }
+
                     }
                 }
             }
@@ -94,7 +126,7 @@ public class CanalKafkaProducer {
             // producer.commitTransaction();
             callback.commit();
             if (logger.isDebugEnabled()) {
-                logger.debug("send message to kafka topic: {}", topic.getTopic());
+                logger.debug("send message to kafka topic: {}", canalDestination.getTopic());
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

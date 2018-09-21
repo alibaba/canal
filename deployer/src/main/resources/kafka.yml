@@ -11,8 +11,12 @@ canalGetTimeout: 100
 flatMessage: true
 
 canalDestinations:
-  - canalDestination: example
-    topic: example
-    partition:
+- canalDestination: example
+  topic: exp3
+#  #对应topic分区数量
+#  partitionsNum: 3
+#  partitionHash:
+#    #库名.表名: 唯一主键
+#    mytest.person: id
 
 
