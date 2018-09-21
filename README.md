@@ -3,9 +3,11 @@
 
 <h3>最新更新</h3>
 <ol>
+<li>canal发布重大版本更新1.1.0，具体releaseNode参考：<a href="https://github.com/alibaba/canal/releases/tag/canal-1.1.0">https://github.com/alibaba/canal/releases/tag/canal-1.1.0</a></li>
+<li>canal c#客户端开源项目地址：<a href="https://github.com/CanalSharp/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>，推荐! </li>
 <li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
 <li>canal消费端项目开源: Otter(分布式数据库同步系统)，地址：<a href="https://github.com/alibaba/otter">https://github.com/alibaba/otter</a></li>
-<li>canal c#客户端开源项目地址：<a href="https://github.com/CanalSharp/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>，推荐! </li>
+
 <li>Canal已在阿里云推出商业化版本 <a href="https://www.aliyun.com/product/dts?spm=a2c4g.11186623.cloudEssentials.80.srdwr7">数据传输服务DTS</a>， 开通即用，免去部署维护的昂贵使用成本。DTS针对阿里云RDS、DRDS等产品进行了适配，解决了Binlog日志回收，主备切换、VPC网络切换等场景下的订阅高可用问题。同时，针对RDS进行了针对性的性能优化。出于稳定性、性能及成本的考虑，强烈推荐阿里云用户使用DTS产品。<a href="https://help.aliyun.com/document_detail/26592.html?spm=a2c4g.11174283.6.539.t1Y91E">DTS产品使用文档</a></li>
 DTS支持阿里云RDS&DRDS的Binlog日志实时订阅，现推出首月免费体验，限时限量，<a href="https://common-buy.aliyun.com/?commodityCode=dtspre&request=%7b%22dts_function%22%3a%22data_subscribe%22%7d">立即体验>>></a>
 </ol>
@@ -47,6 +49,16 @@ DTS支持阿里云RDS&DRDS的Binlog日志实时订阅，现推出首月免费体
 <li>canal解析binary log对象(原始为byte流)</li>
 </ol>
 
+<h1>重要版本更新说明</h1>
+
+canal 1.1.x系列，参考release文档：<a href="https://github.com/alibaba/canal/releases">版本发布信息</a>：
+
+1. 整体性能测试&优化,提升了150%. #726 参考: 【[Performance](https://github.com/alibaba/canal/wiki/Performance)】
+2. 原生支持prometheus监控 #765 【[Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)】
+3. 原生支持kafka消息投递 #695 【[Canal Kafka QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-QuickStart)】
+4. 原生支持aliyun rds的binlog订阅 (解决自动主备切换/oss binlog离线解析) 参考: 【[Aliyun RDS QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)】
+5. 原生支持docker镜像 #801 参考:  【[Docker QuickStart](https://github.com/alibaba/canal/wiki/Docker-QuickStart)】
+
 <h1>相关文档</h1>
 
 See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文档</a>
@@ -77,7 +89,7 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li><a class="internal present" href="/alibaba/canal/wiki/FAQ">FAQ</a></li>
 </ul>
 
-<h1>多语言业务使用</h1>
+<h1>多语言业务</h1>
 
 1. canal整体交互协议设计上使用了protobuf3.0，理论上可以支持绝大部分的多语言场景，欢迎大家提交多客户端的PR
     * canal java客户端: <a href="https://github.com/alibaba/canal/wiki/ClientExample"> https://github.com/alibaba/canal/wiki/ClientExample </a>
@@ -111,3 +123,4 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li>新浪微博： agapple0002 </li>
 <li>报告issue：<a href="https://github.com/alibaba/canal/issues">issues</a></li>
 </ol>
+
