@@ -51,7 +51,7 @@ DTS支持阿里云RDS&DRDS的Binlog日志实时订阅，现推出首月免费体
 
 <h1>重要版本更新说明</h1>
 
-canal 1.1.x系列，参考release文档：<a href="https://github.com/alibaba/canal/releases">版本发布信息</a>：
+canal 1.1.x系列，参考release文档：<a href="https://github.com/alibaba/canal/releases">版本发布信息</a>
 
 1. 整体性能测试&优化,提升了150%. #726 参考: 【[Performance](https://github.com/alibaba/canal/wiki/Performance)】
 2. 原生支持prometheus监控 #765 【[Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)】
