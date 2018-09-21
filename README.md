@@ -1,17 +1,6 @@
 <div class="blog_content">
     <div class="iteye-blog-content-contain">
-
-<h3>最新更新</h3>
-<ol>
-<li>canal发布重大版本更新1.1.0，具体releaseNode参考：<a href="https://github.com/alibaba/canal/releases/tag/canal-1.1.0">https://github.com/alibaba/canal/releases/tag/canal-1.1.0</a></li>
-<li>canal c#客户端开源项目地址：<a href="https://github.com/CanalSharp/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>，推荐! </li>
-<li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
-<li>canal消费端项目开源: Otter(分布式数据库同步系统)，地址：<a href="https://github.com/alibaba/otter">https://github.com/alibaba/otter</a></li>
-
-<li>Canal已在阿里云推出商业化版本 <a href="https://www.aliyun.com/product/dts?spm=a2c4g.11186623.cloudEssentials.80.srdwr7">数据传输服务DTS</a>， 开通即用，免去部署维护的昂贵使用成本。DTS针对阿里云RDS、DRDS等产品进行了适配，解决了Binlog日志回收，主备切换、VPC网络切换等场景下的订阅高可用问题。同时，针对RDS进行了针对性的性能优化。出于稳定性、性能及成本的考虑，强烈推荐阿里云用户使用DTS产品。<a href="https://help.aliyun.com/document_detail/26592.html?spm=a2c4g.11174283.6.539.t1Y91E">DTS产品使用文档</a></li>
-DTS支持阿里云RDS&DRDS的Binlog日志实时订阅，现推出首月免费体验，限时限量，<a href="https://common-buy.aliyun.com/?commodityCode=dtspre&request=%7b%22dts_function%22%3a%22data_subscribe%22%7d">立即体验>>></a>
-</ol>
-
+    	
 <h1>背景</h1>
 <p style="font-size: 14px;">   早期，阿里巴巴B2B公司因为存在杭州和美国双机房部署，存在跨机房同步的业务需求。不过早期的数据库同步业务，主要是基于trigger的方式获取增量变更，不过从2010年开始，阿里系公司开始逐步的尝试基于数据库的日志解析，获取增量变更进行同步，由此衍生出了增量订阅&amp;消费的业务，从此开启了一段新纪元。</p>
 <p style="font-size: 14px;">   ps. 目前内部版本已经支持mysql和oracle部分版本的日志解析，当前的canal开源版本支持5.7及以下的版本(阿里内部mysql 5.7.13, 5.6.10, mysql 5.5.18和5.1.40/48)</p>
@@ -124,3 +113,13 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li>报告issue：<a href="https://github.com/alibaba/canal/issues">issues</a></li>
 </ol>
 
+<h3>最新更新</h3>
+<ol>
+<li>canal发布重大版本更新1.1.0，具体releaseNode参考：<a href="https://github.com/alibaba/canal/releases/tag/canal-1.1.0">https://github.com/alibaba/canal/releases/tag/canal-1.1.0</a></li>
+<li>canal c#客户端开源项目地址：<a href="https://github.com/CanalSharp/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>，推荐! </li>
+<li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
+<li>canal消费端项目开源: Otter(分布式数据库同步系统)，地址：<a href="https://github.com/alibaba/otter">https://github.com/alibaba/otter</a></li>
+
+<li>Canal已在阿里云推出商业化版本 <a href="https://www.aliyun.com/product/dts?spm=a2c4g.11186623.cloudEssentials.80.srdwr7">数据传输服务DTS</a>， 开通即用，免去部署维护的昂贵使用成本。DTS针对阿里云RDS、DRDS等产品进行了适配，解决了Binlog日志回收，主备切换、VPC网络切换等场景下的订阅高可用问题。同时，针对RDS进行了针对性的性能优化。出于稳定性、性能及成本的考虑，强烈推荐阿里云用户使用DTS产品。<a href="https://help.aliyun.com/document_detail/26592.html?spm=a2c4g.11174283.6.539.t1Y91E">DTS产品使用文档</a></li>
+DTS支持阿里云RDS&DRDS的Binlog日志实时订阅，现推出首月免费体验，限时限量，<a href="https://common-buy.aliyun.com/?commodityCode=dtspre&request=%7b%22dts_function%22%3a%22data_subscribe%22%7d">立即体验>>></a>
+</ol>
