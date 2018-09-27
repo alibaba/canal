@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -49,30 +48,27 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     private CanalHAController    haController                      = null;
 
-    private int                  defaultConnectionTimeoutInSeconds = 30;                // sotimeout
+    private int                  defaultConnectionTimeoutInSeconds = 30;       // sotimeout
     private int                  receiveBufferSize                 = 64 * 1024;
     private int                  sendBufferSize                    = 64 * 1024;
     // 数据库信息
-    protected AuthenticationInfo masterInfo;                                            // 主库
-    protected AuthenticationInfo standbyInfo;                                           // 备库
+    protected AuthenticationInfo masterInfo;                                   // 主库
+    protected AuthenticationInfo standbyInfo;                                  // 备库
     // binlog信息
     protected EntryPosition      masterPosition;
     protected EntryPosition      standbyPosition;
-    private long                 slaveId;                                               // 链接到mysql的slave
+    private long                 slaveId;                                      // 链接到mysql的slave
     // 心跳检查信息
-    private String               detectingSQL;                                          // 心跳sql
-    private MysqlConnection      metaConnection;                                        // 查询meta信息的链接
-    private TableMetaCache       tableMetaCache;                                        // 对应meta
-    private int                  fallbackIntervalInSeconds         = 60;                // 切换回退时间
-    private BinlogFormat[]       supportBinlogFormats;                                  // 支持的binlogFormat,如果设置会执行强校验
-    private BinlogImage[]        supportBinlogImages;                                   // 支持的binlogImage,如果设置会执行强校验
+    private String               detectingSQL;                                 // 心跳sql
+    private MysqlConnection      metaConnection;                               // 查询meta信息的链接
+    private TableMetaCache       tableMetaCache;                               // 对应meta
+    private int                  fallbackIntervalInSeconds         = 60;       // 切换回退时间
+    private BinlogFormat[]       supportBinlogFormats;                         // 支持的binlogFormat,如果设置会执行强校验
+    private BinlogImage[]        supportBinlogImages;                          // 支持的binlogImage,如果设置会执行强校验
 
     // update by yishun.chen,特殊异常处理参数
-    private int                  dumpErrorCount                    = 0;                 // binlogDump失败异常计数
-    private int                  dumpErrorCountThreshold           = 2;                 // binlogDump失败异常计数阀值
-
-    // instance received binlog bytes
-    private final AtomicLong     receivedBinlogBytes               = new AtomicLong(0L);
+    private int                  dumpErrorCount                    = 0;        // binlogDump失败异常计数
+    private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -905,10 +901,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
-    }
-
-    public AtomicLong getReceivedBinlogBytes() {
-        return this.receivedBinlogBytes;
     }
 
 }

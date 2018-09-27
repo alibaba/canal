@@ -8,8 +8,8 @@ import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeserializerUtil {
-    private static Logger logger = LoggerFactory.getLogger(DeserializerUtil.class);
+public class CanalMessageDeserializer {
+    private static Logger logger = LoggerFactory.getLogger(CanalMessageDeserializer.class);
 
     public static Message deserializer(byte[] data) {
         try {
@@ -19,9 +19,9 @@ public class DeserializerUtil {
                 CanalPacket.Packet p = CanalPacket.Packet.parseFrom(data);
                 switch (p.getType()) {
                     case MESSAGES: {
-                        if (!p.getCompression().equals(CanalPacket.Compression.NONE)) {
-                            throw new CanalClientException("compression is not supported in this connector");
-                        }
+//                        if (!p.getCompression().equals(CanalPacket.Compression.NONE)) {
+//                            throw new CanalClientException("compression is not supported in this connector");
+//                        }
 
                         CanalPacket.Messages messages = CanalPacket.Messages.parseFrom(p.getBody());
                         Message result = new Message(messages.getBatchId());

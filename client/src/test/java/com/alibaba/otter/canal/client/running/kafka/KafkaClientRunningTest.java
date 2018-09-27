@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.running.kafka;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -39,9 +40,9 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
                 connector.subscribe();
                 while (running) {
                     try {
-                        Message message = connector.getWithoutAck(3L, TimeUnit.SECONDS);
-                        if (message != null) {
-                            System.out.println(message);
+                        List<Message> messages = connector.getWithoutAck(3L, TimeUnit.SECONDS);
+                        if (messages != null) {
+                            System.out.println(messages);
                         }
                         connector.ack();
                     } catch (WakeupException e) {
@@ -49,7 +50,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
                     }
                 }
                 connector.unsubscribe();
-                connector.disconnnect();
+                connector.disconnect();
             }
         });
 

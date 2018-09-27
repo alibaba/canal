@@ -3,17 +3,21 @@ retries: 0
 batchSize: 16384
 lingerMs: 1
 bufferMemory: 33554432
-# canal的批次大小，单位 k，量大建议改为1M
+
+# Canal的batch size, 默认50K, 由于kafka最大消息体限制请勿超过1M(900K以下)
 canalBatchSize: 50
-filterTransactionEntry: true
+# Canal get数据的超时时间, 单位: 毫秒, 空为不限超时
+canalGetTimeout: 100
+flatMessage: true
 
 canalDestinations:
   - canalDestination: example
     topic: example
     partition: 1
-    # 一个destination可以对应多个topic
-    #topics:
-    #  - topic: example
-    #    partition:
+#  #对应topic分区数量
+#  partitionsNum: 3
+#  partitionHash:
+#    #库名.表名: 唯一主键
+#    mytest.person: id
 
 

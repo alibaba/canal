@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.common;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalPacket;
+import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -31,14 +32,14 @@ public class CanalMessageSerializer {
                         // packet size
                         int size = 0;
                         size += CodedOutputStream.computeEnumSize(3,
-                            CanalPacket.PacketType.MESSAGES.getNumber());
+                            PacketType.MESSAGES.getNumber());
                         size += CodedOutputStream.computeTagSize(5)
                             + CodedOutputStream.computeRawVarint32Size(messageSize)
                             + messageSize;
                         // build data
                         byte[] body = new byte[size];
                         CodedOutputStream output = CodedOutputStream.newInstance(body);
-                        output.writeEnum(3, CanalPacket.PacketType.MESSAGES.getNumber());
+                        output.writeEnum(3, PacketType.MESSAGES.getNumber());
 
                         output.writeTag(5, WireFormat.WIRETYPE_LENGTH_DELIMITED);
                         output.writeRawVarint32(messageSize);
@@ -56,7 +57,7 @@ public class CanalMessageSerializer {
                         }
 
                         CanalPacket.Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
-                        packetBuilder.setType(CanalPacket.PacketType.MESSAGES);
+                        packetBuilder.setType(PacketType.MESSAGES);
                         packetBuilder.setBody(messageBuilder.build().toByteString());
                         return packetBuilder.build().toByteArray();
                     }

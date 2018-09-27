@@ -311,9 +311,10 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             }
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
-                logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result is null",
-                    clientIdentity.getClientId(),
-                    batchSize);
+                // logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result
+                // is null",
+                // clientIdentity.getClientId(),
+                // batchSize);
                 return new Message(-1, true, new ArrayList()); // 返回空包，避免生成batchId，浪费性能
             } else {
                 // 记录到流式信息

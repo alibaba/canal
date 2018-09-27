@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.client.kafka;
 
-import com.alibaba.otter.canal.client.DeserializerUtil;
+import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.protocol.Message;
 import java.util.Map;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -23,7 +23,7 @@ public class MessageDeserializer implements Deserializer<Message> {
 
     @Override
     public Message deserialize(String topic1, byte[] data) {
-        return DeserializerUtil.deserializer(data);
+        return CanalMessageDeserializer.deserializer(data);
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
@@ -39,6 +38,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean              filterRows                = false;
     protected boolean              filterTableError          = false;
     protected boolean              useDruidDdlFilter         = true;
+    // instance received binlog bytes
+    protected final AtomicLong     receivedBinlogBytes       = new AtomicLong(0L);
     private final AtomicLong       eventsPublishBlockingTime = new AtomicLong(0L);
 
     protected BinlogParser buildParser() {
@@ -76,13 +77,6 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
      * @return
      */
     protected boolean processTableMeta(EntryPosition position) {
-        if (isGTIDMode()) {
-            if (binlogParser instanceof LogEventConvert) {
-                // 记录gtid
-                ((LogEventConvert) binlogParser).setGtidSet(MysqlGTIDSet.parse(position.getGtid()));
-            }
-        }
-
         if (tableMetaTSDB != null) {
             if (position.getTimestamp() == null || position.getTimestamp() <= 0) {
                 throw new CanalParseException("use gtid and TableMeta TSDB should be config timestamp > 0");
@@ -210,6 +204,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public AtomicLong getEventsPublishBlockingTime() {
         return this.eventsPublishBlockingTime;
+    }
+
+    public AtomicLong getReceivedBinlogBytes() {
+        return this.receivedBinlogBytes;
     }
 
 }

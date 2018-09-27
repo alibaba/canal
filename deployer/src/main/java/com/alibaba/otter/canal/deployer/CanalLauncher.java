@@ -6,7 +6,6 @@ import com.alibaba.otter.canal.server.CanalMQStarter;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
 import java.io.FileInputStream;
 import java.util.Properties;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +56,7 @@ public class CanalLauncher {
             });
 
             CanalMQProducer canalMQProducer = null;
-            String serverMode = properties.getProperty(CanalConstants.CANAL_SERVER_MODE, "tcp");
+            String serverMode = controller.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
             if (serverMode.equalsIgnoreCase("kafka")) {
                 canalMQProducer = new CanalKafkaProducer();
             } else if (serverMode.equalsIgnoreCase("rocketmq")) {
@@ -68,6 +67,7 @@ public class CanalLauncher {
                 if (canalServerStarter != null) {
                     canalServerStarter.init();
                 }
+
             }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:", e);

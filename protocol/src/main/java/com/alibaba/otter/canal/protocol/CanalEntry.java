@@ -1792,7 +1792,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -1812,7 +1812,7 @@ public final class CanalEntry {
         getLogfileNameBytes() {
       Object ref = logfileName_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         logfileName_ = b;
@@ -1892,7 +1892,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -1912,7 +1912,7 @@ public final class CanalEntry {
         getServerenCodeBytes() {
       Object ref = serverenCode_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         serverenCode_ = b;
@@ -1992,7 +1992,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -2012,7 +2012,7 @@ public final class CanalEntry {
         getSchemaNameBytes() {
       Object ref = schemaName_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         schemaName_ = b;
@@ -2046,7 +2046,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -2066,7 +2066,7 @@ public final class CanalEntry {
         getTableNameBytes() {
       Object ref = tableName_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         tableName_ = b;
@@ -2201,7 +2201,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -2221,7 +2221,7 @@ public final class CanalEntry {
         getGtidBytes() {
       Object ref = gtid_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         gtid_ = b;
@@ -2671,7 +2671,7 @@ public final class CanalEntry {
               propsBuilder_ = null;
               props_ = other.props_;
               bitField0_ = (bitField0_ & ~0x00000800);
-              propsBuilder_ = 
+              propsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getPropsFieldBuilder() : null;
             } else {
@@ -2802,7 +2802,7 @@ public final class CanalEntry {
           getLogfileNameBytes() {
         Object ref = logfileName_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           logfileName_ = b;
@@ -2998,7 +2998,7 @@ public final class CanalEntry {
           getServerenCodeBytes() {
         Object ref = serverenCode_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           serverenCode_ = b;
@@ -3197,7 +3197,7 @@ public final class CanalEntry {
           getSchemaNameBytes() {
         Object ref = schemaName_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           schemaName_ = b;
@@ -3297,7 +3297,7 @@ public final class CanalEntry {
           getTableNameBytes() {
         Object ref = tableName_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           tableName_ = b;
@@ -3808,7 +3808,7 @@ public final class CanalEntry {
           getGtidBytes() {
         Object ref = gtid_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           gtid_ = b;
@@ -4328,7 +4328,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -4348,7 +4348,7 @@ public final class CanalEntry {
         getNameBytes() {
       Object ref = name_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         name_ = b;
@@ -4506,7 +4506,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -4526,7 +4526,7 @@ public final class CanalEntry {
         getValueBytes() {
       Object ref = value_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         value_ = b;
@@ -4583,7 +4583,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -4603,7 +4603,7 @@ public final class CanalEntry {
         getMysqlTypeBytes() {
       Object ref = mysqlType_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         mysqlType_ = b;
@@ -4990,7 +4990,7 @@ public final class CanalEntry {
               propsBuilder_ = null;
               props_ = other.props_;
               bitField0_ = (bitField0_ & ~0x00000040);
-              propsBuilder_ = 
+              propsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getPropsFieldBuilder() : null;
             } else {
@@ -5177,7 +5177,7 @@ public final class CanalEntry {
           getNameBytes() {
         Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           name_ = b;
@@ -5733,7 +5733,7 @@ public final class CanalEntry {
           getValueBytes() {
         Object ref = value_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           value_ = b;
@@ -5881,7 +5881,7 @@ public final class CanalEntry {
           getMysqlTypeBytes() {
         Object ref = mysqlType_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           mysqlType_ = b;
@@ -6644,7 +6644,7 @@ public final class CanalEntry {
               beforeColumnsBuilder_ = null;
               beforeColumns_ = other.beforeColumns_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              beforeColumnsBuilder_ = 
+              beforeColumnsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getBeforeColumnsFieldBuilder() : null;
             } else {
@@ -6670,7 +6670,7 @@ public final class CanalEntry {
               afterColumnsBuilder_ = null;
               afterColumns_ = other.afterColumns_;
               bitField0_ = (bitField0_ & ~0x00000002);
-              afterColumnsBuilder_ = 
+              afterColumnsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getAfterColumnsFieldBuilder() : null;
             } else {
@@ -6696,7 +6696,7 @@ public final class CanalEntry {
               propsBuilder_ = null;
               props_ = other.props_;
               bitField0_ = (bitField0_ & ~0x00000004);
-              propsBuilder_ = 
+              propsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getPropsFieldBuilder() : null;
             } else {
@@ -8115,7 +8115,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -8135,7 +8135,7 @@ public final class CanalEntry {
         getSqlBytes() {
       Object ref = sql_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         sql_ = b;
@@ -8279,7 +8279,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -8299,7 +8299,7 @@ public final class CanalEntry {
         getDdlSchemaNameBytes() {
       Object ref = ddlSchemaName_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         ddlSchemaName_ = b;
@@ -8648,7 +8648,7 @@ public final class CanalEntry {
               rowDatasBuilder_ = null;
               rowDatas_ = other.rowDatas_;
               bitField0_ = (bitField0_ & ~0x00000010);
-              rowDatasBuilder_ = 
+              rowDatasBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getRowDatasFieldBuilder() : null;
             } else {
@@ -8674,7 +8674,7 @@ public final class CanalEntry {
               propsBuilder_ = null;
               props_ = other.props_;
               bitField0_ = (bitField0_ & ~0x00000020);
-              propsBuilder_ = 
+              propsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getPropsFieldBuilder() : null;
             } else {
@@ -8904,7 +8904,7 @@ public final class CanalEntry {
           getSqlBytes() {
         Object ref = sql_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           sql_ = b;
@@ -9628,7 +9628,7 @@ public final class CanalEntry {
           getDdlSchemaNameBytes() {
         Object ref = ddlSchemaName_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           ddlSchemaName_ = b;
@@ -9973,7 +9973,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -9993,7 +9993,7 @@ public final class CanalEntry {
         getTransactionIdBytes() {
       Object ref = transactionId_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         transactionId_ = b;
@@ -10362,7 +10362,7 @@ public final class CanalEntry {
               propsBuilder_ = null;
               props_ = other.props_;
               bitField0_ = (bitField0_ & ~0x00000004);
-              propsBuilder_ = 
+              propsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getPropsFieldBuilder() : null;
             } else {
@@ -10491,7 +10491,7 @@ public final class CanalEntry {
           getTransactionIdBytes() {
         Object ref = transactionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           transactionId_ = b;
@@ -11174,7 +11174,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -11194,7 +11194,7 @@ public final class CanalEntry {
         getTransactionIdBytes() {
       Object ref = transactionId_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         transactionId_ = b;
@@ -11526,7 +11526,7 @@ public final class CanalEntry {
               propsBuilder_ = null;
               props_ = other.props_;
               bitField0_ = (bitField0_ & ~0x00000004);
-              propsBuilder_ = 
+              propsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getPropsFieldBuilder() : null;
             } else {
@@ -11652,7 +11652,7 @@ public final class CanalEntry {
           getTransactionIdBytes() {
         Object ref = transactionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           transactionId_ = b;
@@ -12188,7 +12188,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -12204,7 +12204,7 @@ public final class CanalEntry {
         getKeyBytes() {
       Object ref = key_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         key_ = b;
@@ -12230,7 +12230,7 @@ public final class CanalEntry {
       if (ref instanceof String) {
         return (String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
@@ -12246,7 +12246,7 @@ public final class CanalEntry {
         getValueBytes() {
       Object ref = value_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         value_ = b;
@@ -12541,7 +12541,7 @@ public final class CanalEntry {
           getKeyBytes() {
         Object ref = key_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           key_ = b;
@@ -12617,7 +12617,7 @@ public final class CanalEntry {
           getValueBytes() {
         Object ref = value_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (String) ref);
           value_ = b;

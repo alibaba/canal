@@ -1,20 +1,9 @@
 package com.alibaba.otter.canal.kafka;
 
 import com.alibaba.otter.canal.common.CanalMessageSerializer;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.kafka.common.errors.SerializationException;
-import org.apache.kafka.common.serialization.Serializer;
-import org.springframework.util.CollectionUtils;
-
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.CanalPacket;
-import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.alibaba.otter.canal.protocol.Message;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.CodedOutputStream;
-import com.google.protobuf.WireFormat;
+import java.util.Map;
+import org.apache.kafka.common.serialization.Serializer;
 
 /**
  * Kafka Message类的序列化

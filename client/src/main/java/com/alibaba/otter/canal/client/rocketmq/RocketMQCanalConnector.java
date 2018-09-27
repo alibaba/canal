@@ -1,7 +1,7 @@
 package com.alibaba.otter.canal.client.rocketmq;
 
 import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.client.DeserializerUtil;
+import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import java.util.List;
@@ -94,7 +94,7 @@ public class RocketMQCanalConnector implements CanalConnector {
         BlockingQueue<Message> messageList = new LinkedBlockingQueue<>();
         for (MessageExt messageExt : messageExts) {
             byte[] data = messageExt.getBody();
-            Message message = DeserializerUtil.deserializer(data);
+            Message message = CanalMessageDeserializer.deserializer(data);
             try {
                 messageList.put(message);
             } catch (InterruptedException ex) {

@@ -22,6 +22,9 @@ public class CanalClientConfig {
 
     private List<MQTopic>       mqTopics;
 
+    private Boolean             flatMessage = true;
+
+
     private List<CanalInstance> canalInstances;
 
     public String getCanalServerHost() {
@@ -58,6 +61,14 @@ public class CanalClientConfig {
 
     public List<MQTopic> getMqTopics() {
         return mqTopics;
+    }
+
+    public Boolean getFlatMessage() {
+        return flatMessage;
+    }
+
+    public void setFlatMessage(Boolean flatMessage) {
+        this.flatMessage = flatMessage;
     }
 
     public void setMqTopics(List<MQTopic> mqTopics) {
@@ -166,25 +177,6 @@ public class CanalClientConfig {
             this.outAdapters = outAdapters;
         }
 
-        // public List<Adaptor> getAdapters() {
-        // return adapters;
-        // }
-        //
-        // public void setAdapters(List<Adaptor> adapters) {
-        // this.adapters = adapters;
-        // }
     }
 
-    // public static class Adaptor {
-    // private List<CanalOuterAdapterConfiguration> outAdapters;
-    //
-    // public List<CanalOuterAdapterConfiguration> getOutAdapters() {
-    // return outAdapters;
-    // }
-    //
-    // public void setOutAdapters(List<CanalOuterAdapterConfiguration> outAdapters)
-    // {
-    // this.outAdapters = outAdapters;
-    // }
-    // }
 }

@@ -159,7 +159,7 @@ public class SimpleCanalConnector implements CanalConnector {
             }
             //
             Handshake handshake = Handshake.parseFrom(p.getBody());
-            supportedCompressions.addAll(handshake.getSupportedCompressionsList());
+            supportedCompressions.add(handshake.getSupportedCompressions());
             //
             ClientAuth ca = ClientAuth.newBuilder()
                 .setUsername(username != null ? username : "")
@@ -180,8 +180,8 @@ public class SimpleCanalConnector implements CanalConnector {
 
             Ack ackBody = Ack.parseFrom(ack.getBody());
             if (ackBody.getErrorCode() > 0) {
-                throw new CanalClientException("something goes wrong when doing authentication: "
-                                               + ackBody.getErrorMessage());
+                throw new CanalClientException(
+                    "something goes wrong when doing authentication: " + ackBody.getErrorMessage());
             }
 
             connected = true;
@@ -323,7 +323,8 @@ public class SimpleCanalConnector implements CanalConnector {
         Packet p = Packet.parseFrom(data);
         switch (p.getType()) {
             case MESSAGES: {
-                if (!p.getCompression().equals(Compression.NONE)) {
+                if (!p.getCompression().equals(Compression.NONE)
+                    && !p.getCompression().equals(Compression.COMPRESSIONCOMPATIBLEPROTO2)) {
                     throw new CanalClientException("compression is not supported in this connector");
                 }
 
@@ -360,11 +361,8 @@ public class SimpleCanalConnector implements CanalConnector {
             .setBatchId(batchId)
             .build();
         try {
-            writeWithHeader(Packet.newBuilder()
-                .setType(PacketType.CLIENTACK)
-                .setBody(ca.toByteString())
-                .build()
-                .toByteArray());
+            writeWithHeader(
+                Packet.newBuilder().setType(PacketType.CLIENTACK).setBody(ca.toByteString()).build().toByteArray());
         } catch (IOException e) {
             throw new CanalClientException(e);
         }

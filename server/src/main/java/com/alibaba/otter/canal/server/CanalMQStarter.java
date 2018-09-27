@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.server;
 
 import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
@@ -9,17 +10,18 @@ import java.io.FileInputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 public class CanalMQStarter {
-    private static final Logger logger               = LoggerFactory.getLogger(CanalMQStarter.class);
+    private static final Logger logger = LoggerFactory.getLogger(CanalMQStarter.class);
 
     private static final String CLASSPATH_URL_PREFIX = "classpath:";
 
-    private volatile boolean    running              = false;
+    private volatile boolean running = false;
 
     private ExecutorService executorService;
 
@@ -27,7 +29,7 @@ public class CanalMQStarter {
 
     private MQProperties properties;
 
-    public CanalMQStarter(CanalMQProducer canalMQProducer){
+    public CanalMQStarter(CanalMQProducer canalMQProducer) {
         this.canalMQProducer = canalMQProducer;
     }
 
@@ -51,6 +53,7 @@ public class CanalMQStarter {
             if (properties.isFilterTransactionEntry()) {
                 System.setProperty("canal.instance.filter.transaction.entry", "true");
             }
+
             // 对应每个instance启动一个worker线程
             List<MQProperties.CanalDestination> destinations = properties.getCanalDestinations();
 
@@ -95,8 +98,8 @@ public class CanalMQStarter {
         while (!running)
             ;
         logger.info("## start the canal consumer: {}.", destination.getCanalDestination());
-        CanalServerWithEmbedded server = CanalServerWithEmbedded.instance();
-        ClientIdentity clientIdentity = new ClientIdentity(destination.getCanalDestination(), (short) 1001, "");
+        final CanalServerWithEmbedded server = CanalServerWithEmbedded.instance();
+        final ClientIdentity clientIdentity = new ClientIdentity(destination.getCanalDestination(), (short) 1001, "");
         while (running) {
             try {
                 if (!server.getCanalInstances().containsKey(clientIdentity.getDestination())) {
@@ -111,27 +114,41 @@ public class CanalMQStarter {
                 logger.info("## the canal consumer {} is running now ......", destination.getCanalDestination());
 
                 while (running) {
-                    Message message = server.getWithoutAck(clientIdentity, properties.getCanalBatchSize()); // 获取指定数量的数据
-                    long batchId = message.getId();
+                    Message message;
+                    if (properties.getCanalGetTimeout() != null) {
+                        message = server.getWithoutAck(clientIdentity,
+                            properties.getCanalBatchSize(),
+                            properties.getCanalGetTimeout(),
+                            TimeUnit.MILLISECONDS);
+                    } else {
+                        message = server.getWithoutAck(clientIdentity, properties.getCanalBatchSize());
+                    }
+
+                    final long batchId = message.getId();
                     try {
                         int size = message.isRaw() ? message.getRawEntries().size() : message.getEntries().size();
                         if (batchId != -1 && size != 0) {
-                            if (!StringUtils.isEmpty(destination.getTopic())) {
-                                MQProperties.Topic topic = new MQProperties.Topic();
-                                topic.setTopic(destination.getTopic());
-                                topic.setPartition(destination.getPartition());
-                                destination.getTopics().add(topic);
-                            }
-                            for (MQProperties.Topic topic : destination.getTopics()) {
-                                canalMQProducer.send(topic, message); // 发送message到所有topic
+                            canalMQProducer.send(destination, message, new CanalKafkaProducer.Callback() {
+
+                                @Override
+                                public void commit() {
+                                    server.ack(clientIdentity, batchId); // 提交确认
+                                }
+
+                                @Override
+                                public void rollback() {
+                                    server.rollback(clientIdentity, batchId);
+                                }
+                            }); // 发送message到topic
+                        } else {
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {
+                                // ignore
                             }
                         }
 
-                        if (batchId != -1) {
-                            server.ack(clientIdentity, batchId); // 提交确认
-                        }
                     } catch (Exception e) {
-                        server.rollback(clientIdentity);
                         logger.error(e.getMessage(), e);
                     }
                 }

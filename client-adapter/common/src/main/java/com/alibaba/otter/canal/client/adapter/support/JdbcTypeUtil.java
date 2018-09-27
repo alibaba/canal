@@ -21,7 +21,7 @@ public class JdbcTypeUtil {
 
     private static Logger logger = LoggerFactory.getLogger(JdbcTypeUtil.class);
 
-    public static Object typeConvert(String tableName, String columnName, String value, int sqlType, String mysqlType) {
+    public static Object typeConvert(String columnName, String value, int sqlType, String mysqlType) {
         if (value == null || value.equals("")) {
             return null;
         }
@@ -96,7 +96,7 @@ public class JdbcTypeUtil {
             }
             return res;
         } catch (Exception e) {
-            logger.error("table: {} column: {}, failed convert type {} to {}", tableName, columnName, value, sqlType);
+            logger.error("table: {} column: {}, failed convert type {} to {}", columnName, value, sqlType);
             return value;
         }
     }
