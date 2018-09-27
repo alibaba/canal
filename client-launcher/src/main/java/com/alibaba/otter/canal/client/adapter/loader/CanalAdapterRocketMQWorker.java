@@ -55,29 +55,11 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
             if (!running) {
                 return;
             }
-
             connector.stopRunning();
             running = false;
-
-            // if (switcher != null && !switcher.state()) {
-            // switcher.set(true);
-            // }
-
-            if (thread != null) {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-            groupInnerExecutorService.shutdown();
-            logger.info("topic {} connectors' worker thread dead!", this.topic);
-            for (List<CanalOuterAdapter> outerAdapters : canalOuterAdapters) {
-                for (CanalOuterAdapter adapter : outerAdapters) {
-                    adapter.destroy();
-                }
-            }
-            logger.info("topic {} all connectors destroyed!", this.topic);
+            logger.info("Stop topic {} out adapters begin", this.topic);
+            stopOutAdapters();
+            logger.info("Stop topic {} out adapters end", this.topic);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -87,7 +69,6 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
         while (!running)
             ;
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        final AtomicBoolean executing = new AtomicBoolean(true);
         while (running) {
             try {
                 logger.info("=============> Start to connect topic: {} <=============", this.topic);
@@ -100,41 +81,17 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                         // switcher.get(); //等待开关开启
 
                         final Message message = connector.getWithoutAck(1);
-
-                        executing.set(true);
                         if (message != null) {
                             executor.submit(new Runnable() {
 
                                 @Override
                                 public void run() {
                                     try {
-                                        if (logger.isDebugEnabled()) {
-                                            logger.debug("topic: {} batchId: {} batchSize: {} ",
-                                                topic,
-                                                message.getId(),
-                                                message.getEntries().size());
-                                        }
-                                        long begin = System.currentTimeMillis();
-                                        writeOut(message);
-                                        long now = System.currentTimeMillis();
-                                        if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
-                                            logger.error("topic: {} batchId {} elapsed time: {} ms",
-                                                topic,
-                                                message.getId(),
-                                                now - begin);
-                                        }
-                                        if (logger.isDebugEnabled()) {
-                                            logger.debug("topic: {} batchId {} elapsed time: {} ms",
-                                                topic,
-                                                message.getId(),
-                                                now - begin);
-                                        }
-                                        connector.ack(message.getId());
+                                        writeOut(message, topic);
                                     } catch (Exception e) {
                                         logger.error(e.getMessage(), e);
-                                    } finally {
-                                        executing.compareAndSet(true, false);
                                     }
+                                    connector.ack(message.getId());
                                 }
                             });
                         } else {

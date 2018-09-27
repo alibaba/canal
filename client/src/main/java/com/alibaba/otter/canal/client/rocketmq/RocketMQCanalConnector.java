@@ -75,6 +75,7 @@ public class RocketMQCanalConnector implements CanalConnector {
                     context.setAutoCommit(true);
                     boolean isSuccess = process(messageExts);
                     if (isSuccess) {
+                        logger.info("Dispatch success!");
                         return ConsumeOrderlyStatus.SUCCESS;
                     } else {
                         return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
@@ -155,7 +156,7 @@ public class RocketMQCanalConnector implements CanalConnector {
     @Override
     public Message getWithoutAck(int batchSize) throws CanalClientException {
         ConsumerBatchMessage batchMessage = messageBlockingQueue.poll();
-        if (batchMessage != null){
+        if (batchMessage != null) {
             return getMessage(batchMessage);
         }
         return null;
@@ -168,14 +169,16 @@ public class RocketMQCanalConnector implements CanalConnector {
             return getMessage(batchMessage);
         } catch (InterruptedException ex) {
             logger.warn("Get message timeout", ex);
-            throw new CanalClientException("failed to fetch the data after " + timeout);
+            throw new CanalClientException("Failed to fetch the data after: " + timeout);
         }
     }
 
     @Override
     public void ack(long batchId) throws CanalClientException {
         ConsumerBatchMessage batchMessage = messageCache.get(batchId);
-        batchMessage.ack();
+        if (batchMessage != null) {
+            batchMessage.ack();
+        }
     }
 
     @Override

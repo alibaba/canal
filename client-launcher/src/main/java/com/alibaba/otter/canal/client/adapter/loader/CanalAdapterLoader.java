@@ -82,7 +82,7 @@ public class CanalAdapterLoader {
             }
         }
 
-        // 初始化canal-client-rocketmq的适配器
+        // 初始化canal-client-mq的适配器
         if (canalClientConfig.getMqTopics() != null) {
             for (CanalClientConfig.MQTopic topic : canalClientConfig.getMqTopics()) {
                 for (CanalClientConfig.Group group : topic.getGroups()) {
@@ -153,17 +153,17 @@ public class CanalAdapterLoader {
             stopExecutorService.shutdown();
         }
         if (canalMQWorker.size() > 0) {
-            ExecutorService stopKafkaExecutorService = Executors.newFixedThreadPool(canalMQWorker.size());
+            ExecutorService stopMQWokerService = Executors.newFixedThreadPool(canalMQWorker.size());
             for (AbstractCanalAdapterWorker tmp : canalMQWorker.values()) {
                 final AbstractCanalAdapterWorker worker = tmp;
-                stopKafkaExecutorService.submit(new Runnable() {
+                stopMQWokerService.submit(new Runnable() {
                     @Override
                     public void run() {
                         worker.stop();
                     }
                 });
             }
-            stopKafkaExecutorService.shutdown();
+            stopMQWokerService.shutdown();
         }
         logger.info("All canal adapters destroyed");
     }
