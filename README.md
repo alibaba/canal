@@ -54,25 +54,25 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 
 <h3><a name="table-of-contents" class="anchor" href="#table-of-contents"><span class="mini-icon mini-icon-link"></span></a>wiki文档列表</h3>
 <ul>
-<li><a class="internal present" href="/alibaba/canal/wiki/Home">Home</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Introduction">Introduction</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Home">Home</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Introduction">Introduction</a></li>
 <li>
-<a class="internal present" href="/alibaba/canal/wiki/QuickStart">QuickStart</a>
+<a class="internal present" href="https://github.com/alibaba/canal/wiki/QuickStart">QuickStart</a>
 <ul>
-<li><a class="internal present" href="/alibaba/canal/wiki/Docker-QuickStart">Docker QuickStart</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Canal-Kafka-QuickStart">Canal Kafka QuickStart</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/aliyun-RDS-QuickStart">Aliyun RDS QuickStart</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Prometheus-QuickStart">Prometheus QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Docker-QuickStart">Docker QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Canal-Kafka-QuickStart">Canal Kafka QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart">Aliyun RDS QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Prometheus-QuickStart">Prometheus QuickStart</a></li>
 </ul>
 </li>
-<li><a class="internal present" href="/alibaba/canal/wiki/AdminGuide">AdminGuide</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/ClientExample">ClientExample</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/ClientAPI">ClientAPI</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Performance">Performance</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/DevGuide">DevGuide</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/BinlogChange%28mysql5.6%29">BinlogChange(Mysql5.6)</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/BinlogChange%28MariaDB%29">BinlogChange(MariaDB)</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/TableMetaTSDB">TableMetaTSDB</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/AdminGuide">AdminGuide</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/ClientExample">ClientExample</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/ClientAPI">ClientAPI</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Performance">Performance</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/DevGuide">DevGuide</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/BinlogChange%28mysql5.6%29">BinlogChange(Mysql5.6)</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/BinlogChange%28MariaDB%29">BinlogChange(MariaDB)</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/TableMetaTSDB">TableMetaTSDB</a></li>
 <li><a href="http://alibaba.github.com/canal/release.html">ReleaseNotes</a></li>
 <li><a href="https://github.com/alibaba/canal/releases">Download</a></li>
 <li><a class="internal present" href="/alibaba/canal/wiki/FAQ">FAQ</a></li>
