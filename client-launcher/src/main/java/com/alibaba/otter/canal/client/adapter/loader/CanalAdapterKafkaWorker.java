@@ -114,6 +114,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                         } else {
                             messages = connector.getFlatMessageWithoutAck(100L, TimeUnit.MILLISECONDS);
                         }
+                        connector.ack();
                         if (messages != null) {
                             for (final Object message : messages) {
                                 executing.set(true);
@@ -148,7 +149,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                                 }
                             }
                         }
-                        connector.ack();
+
                     } catch (CommitFailedException e) {
                         logger.warn(e.getMessage());
                     } catch (Exception e) {
