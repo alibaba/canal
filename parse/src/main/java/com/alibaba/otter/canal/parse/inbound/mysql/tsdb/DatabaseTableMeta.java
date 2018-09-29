@@ -48,12 +48,12 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private static Logger             logger        = LoggerFactory.getLogger(DatabaseTableMeta.class);
     private static Pattern            pattern       = Pattern.compile("Duplicate entry '.*' for key '*'");
     private static Pattern            h2Pattern     = Pattern.compile("Unique index or primary key violation");
+    private volatile EntryPosition    lastPosition;
     private String                    destination;
     private MemoryTableMeta           memoryTableMeta;
     private MysqlConnection           connection;                                                              // 查询meta信息的链接
     private CanalEventFilter          filter;
     private CanalEventFilter          blackFilter;
-    private EntryPosition             lastPosition;
     private ScheduledExecutorService  scheduler;
     private MetaHistoryDAO            metaHistoryDAO;
     private MetaSnapshotDAO           metaSnapshotDAO;
@@ -244,6 +244,9 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             for (Map.Entry<String, String> entry : schemaDdls.entrySet()) {
                 tmpMemoryTableMeta.apply(position, entry.getKey(), entry.getValue(), null);
             }
+            
+            // reset last position
+            lastPosition = null;
         }
 
         // 基于临时内存对象进行对比
