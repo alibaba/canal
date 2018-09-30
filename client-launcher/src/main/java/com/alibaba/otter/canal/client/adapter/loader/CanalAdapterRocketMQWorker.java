@@ -26,6 +26,7 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
 
     public CanalAdapterRocketMQWorker(String nameServers, String topic, String groupId,
         List<List<CanalOuterAdapter>> canalOuterAdapters) {
+        logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
         this.canalOuterAdapters = canalOuterAdapters;
         this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         this.topic = topic;

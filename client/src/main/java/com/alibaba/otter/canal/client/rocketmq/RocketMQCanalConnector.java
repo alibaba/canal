@@ -43,6 +43,9 @@ public class RocketMQCanalConnector implements CanalConnector {
     @Override
     public void connect() throws CanalClientException {
         rocketMQConsumer = new DefaultMQPushConsumer(groupName);
+        if (!StringUtils.isBlank(nameServer)) {
+            rocketMQConsumer.setNamesrvAddr(nameServer);
+        }
     }
 
     @Override
@@ -61,18 +64,16 @@ public class RocketMQCanalConnector implements CanalConnector {
             return;
         }
         try {
-            rocketMQConsumer.subscribe(topic, "*");
             if (rocketMQConsumer == null) {
-                rocketMQConsumer = new DefaultMQPushConsumer(groupName);
-                if (!StringUtils.isBlank(nameServer)) {
-                    rocketMQConsumer.setNamesrvAddr(nameServer);
-                }
+                this.connect();
             }
+            rocketMQConsumer.subscribe(topic, "*");
             rocketMQConsumer.registerMessageListener(new MessageListenerOrderly() {
                 @Override
                 public ConsumeOrderlyStatus consumeMessage(List<MessageExt> messageExts,
                     ConsumeOrderlyContext context) {
                     context.setAutoCommit(true);
+                    logger.info("xxxx");
                     boolean isSuccess = process(messageExts);
                     if (isSuccess) {
                         logger.info("Dispatch success!");
