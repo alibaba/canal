@@ -13,7 +13,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -50,7 +49,7 @@ public class KafkaCanalConnector {
         properties.put("max.poll.records", "100");
         properties.put("key.deserializer", StringDeserializer.class.getName());
         if (!flatMessage) {
-            properties.put("value.deserializer", CanalMessageDeserializer.class.getName());
+            properties.put("value.deserializer", MessageDeserializer.class.getName());
         } else {
             properties.put("value.deserializer", StringDeserializer.class.getName());
         }
