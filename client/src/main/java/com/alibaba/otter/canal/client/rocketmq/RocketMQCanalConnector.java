@@ -73,10 +73,8 @@ public class RocketMQCanalConnector implements CanalConnector {
                 public ConsumeOrderlyStatus consumeMessage(List<MessageExt> messageExts,
                     ConsumeOrderlyContext context) {
                     context.setAutoCommit(true);
-                    logger.info("xxxx");
                     boolean isSuccess = process(messageExts);
                     if (isSuccess) {
-                        logger.info("Dispatch success!");
                         return ConsumeOrderlyStatus.SUCCESS;
                     } else {
                         return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
