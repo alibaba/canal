@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka;
+package com.alibaba.otter.canal.common;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,26 +10,27 @@ import java.util.Map;
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
-public class KafkaProperties {
+public class MQProperties {
 
-    private String                 servers                = "localhost:6667";
-    private int                    retries                = 0;
-    private int                    batchSize              = 16384;
-    private int                    lingerMs               = 1;
-    private long                   bufferMemory           = 33554432L;
-    private boolean                filterTransactionEntry = true;
-    private int                    canalBatchSize         = 50;
-    private Long                   canalGetTimeout;
-    private boolean                flatMessage            = true;
+    private String servers = "localhost:6667";
+    private int retries = 0;
+    private int batchSize = 16384;
+    private int lingerMs = 1;
+    private long bufferMemory = 33554432L;
+    private boolean filterTransactionEntry = true;
+    private String producerGroup = "Canal-Producer";
+    private int canalBatchSize = 50;
+    private Long canalGetTimeout;
+    private boolean flatMessage = true;
 
-    private List<CanalDestination> canalDestinations      = new ArrayList<CanalDestination>();
+    private List<CanalDestination> canalDestinations = new ArrayList<CanalDestination>();
 
     public static class CanalDestination {
 
-        private String              canalDestination;
-        private String              topic;
-        private Integer             partition;
-        private Integer             partitionsNum;
+        private String canalDestination;
+        private String topic;
+        private Integer partition;
+        private Integer partitionsNum;
         private Map<String, String> partitionHash;
 
         public String getCanalDestination() {
@@ -72,6 +73,7 @@ public class KafkaProperties {
             this.partitionHash = partitionHash;
         }
     }
+
 
     public String getServers() {
         return servers;
@@ -153,4 +155,11 @@ public class KafkaProperties {
         this.filterTransactionEntry = filterTransactionEntry;
     }
 
+    public String getProducerGroup() {
+        return producerGroup;
+    }
+
+    public void setProducerGroup(String producerGroup) {
+        this.producerGroup = producerGroup;
+    }
 }

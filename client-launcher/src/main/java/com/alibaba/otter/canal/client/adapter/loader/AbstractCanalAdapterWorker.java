@@ -129,6 +129,47 @@ public abstract class AbstractCanalAdapterWorker {
         }
     }
 
+    protected void writeOut(Message message,String topic){
+        if (logger.isDebugEnabled()) {
+            logger.debug("topic: {} batchId: {} batchSize: {} ",
+                topic,
+                message.getId(),
+                message.getEntries().size());
+        }
+        long begin = System.currentTimeMillis();
+        writeOut(message);
+        long now = System.currentTimeMillis();
+        if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
+            logger.error("topic: {} batchId {} elapsed time: {} ms",
+                topic,
+                message.getId(),
+                now - begin);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("topic: {} batchId {} elapsed time: {} ms",
+                topic,
+                message.getId(),
+                now - begin);
+        }
+    }
+
+    protected void stopOutAdapters(){
+        if (thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        groupInnerExecutorService.shutdown();
+        logger.info("topic connectors' worker thread dead!");
+        for (List<CanalOuterAdapter> outerAdapters : canalOuterAdapters) {
+            for (CanalOuterAdapter adapter : outerAdapters) {
+                adapter.destroy();
+            }
+        }
+        logger.info("topic all connectors destroyed!");
+    }
     public abstract void start();
 
     public abstract void stop();
