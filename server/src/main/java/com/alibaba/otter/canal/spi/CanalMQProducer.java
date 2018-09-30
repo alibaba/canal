@@ -1,11 +1,12 @@
 package com.alibaba.otter.canal.spi;
 
-import com.alibaba.otter.canal.common.MQProperties;
-import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
-import com.alibaba.otter.canal.protocol.Message;
 import java.io.IOException;
 
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.protocol.Message;
+
 public interface CanalMQProducer {
+
     /**
      * Init producer.
      *

@@ -1,35 +1,38 @@
 package com.alibaba.otter.canal.server;
 
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
+
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
-import java.io.FileInputStream;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 public class CanalMQStarter {
-    private static final Logger logger = LoggerFactory.getLogger(CanalMQStarter.class);
+
+    private static final Logger logger               = LoggerFactory.getLogger(CanalMQStarter.class);
 
     private static final String CLASSPATH_URL_PREFIX = "classpath:";
 
-    private volatile boolean running = false;
+    private volatile boolean    running              = false;
 
-    private ExecutorService executorService;
+    private ExecutorService     executorService;
 
-    private CanalMQProducer canalMQProducer;
+    private CanalMQProducer     canalMQProducer;
 
-    private MQProperties properties;
+    private MQProperties        properties;
 
-    public CanalMQStarter(CanalMQProducer canalMQProducer) {
+    public CanalMQStarter(CanalMQProducer canalMQProducer){
         this.canalMQProducer = canalMQProducer;
     }
 
@@ -47,7 +50,7 @@ public class CanalMQStarter {
             }
 
             // 初始化 kafka producer
-//            canalMQProducer = new CanalKafkaProducer();
+            // canalMQProducer = new CanalKafkaProducer();
             canalMQProducer.init(properties);
             // set filterTransactionEntry
             if (properties.isFilterTransactionEntry()) {

@@ -26,10 +26,10 @@ public abstract class AbstractCanalAdapterWorker {
 
     protected final Logger                    logger  = LoggerFactory.getLogger(this.getClass());
 
-    protected String                          canalDestination;                                                 // canal实例
-    protected List<List<CanalOuterAdapter>>   canalOuterAdapters;                                               // 外部适配器
-    protected ExecutorService                 groupInnerExecutorService;                                        // 组内工作线程池
-    protected volatile boolean                running = false;                                                  // 是否运行中
+    protected String                          canalDestination;                                  // canal实例
+    protected List<List<CanalOuterAdapter>>   canalOuterAdapters;                                // 外部适配器
+    protected ExecutorService                 groupInnerExecutorService;                         // 组内工作线程池
+    protected volatile boolean                running = false;                                   // 是否运行中
     protected Thread                          thread  = null;
     protected Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
 
@@ -129,31 +129,22 @@ public abstract class AbstractCanalAdapterWorker {
         }
     }
 
-    protected void writeOut(Message message,String topic){
+    protected void writeOut(Message message, String topic) {
         if (logger.isDebugEnabled()) {
-            logger.debug("topic: {} batchId: {} batchSize: {} ",
-                topic,
-                message.getId(),
-                message.getEntries().size());
+            logger.debug("topic: {} batchId: {} batchSize: {} ", topic, message.getId(), message.getEntries().size());
         }
         long begin = System.currentTimeMillis();
         writeOut(message);
         long now = System.currentTimeMillis();
         if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
-            logger.error("topic: {} batchId {} elapsed time: {} ms",
-                topic,
-                message.getId(),
-                now - begin);
+            logger.error("topic: {} batchId {} elapsed time: {} ms", topic, message.getId(), now - begin);
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("topic: {} batchId {} elapsed time: {} ms",
-                topic,
-                message.getId(),
-                now - begin);
+            logger.debug("topic: {} batchId {} elapsed time: {} ms", topic, message.getId(), now - begin);
         }
     }
 
-    protected void stopOutAdapters(){
+    protected void stopOutAdapters() {
         if (thread != null) {
             try {
                 thread.join();
@@ -170,6 +161,7 @@ public abstract class AbstractCanalAdapterWorker {
         }
         logger.info("topic all connectors destroyed!");
     }
+
     public abstract void start();
 
     public abstract void stop();

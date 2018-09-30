@@ -1,6 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.hbase.config;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * HBase表映射配置
@@ -117,7 +121,7 @@ public class MappingConfig {
     }
 
     public enum Mode {
-                      STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
+        STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
 
         private String type;
 

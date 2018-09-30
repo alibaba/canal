@@ -1,16 +1,17 @@
 package com.alibaba.otter.canal.client.adapter.loader;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectorProvider;
-import com.alibaba.otter.canal.protocol.Message;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.common.errors.WakeupException;
+
+import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectorProvider;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * kafka对应的client适配器工作线程
@@ -22,10 +23,10 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
 
     private RocketMQCanalConnector connector;
 
-    private String topic;
+    private String                 topic;
 
     public CanalAdapterRocketMQWorker(String nameServers, String topic, String groupId,
-        List<List<CanalOuterAdapter>> canalOuterAdapters) {
+                                      List<List<CanalOuterAdapter>> canalOuterAdapters){
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
         this.canalOuterAdapters = canalOuterAdapters;
         this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());

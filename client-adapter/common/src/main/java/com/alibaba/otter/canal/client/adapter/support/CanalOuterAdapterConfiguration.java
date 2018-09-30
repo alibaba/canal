@@ -10,11 +10,11 @@ import java.util.Properties;
  */
 public class CanalOuterAdapterConfiguration {
 
-    private String     name;       // 适配器名称, 如: logger, hbase, es
+    private String     name;      // 适配器名称, 如: logger, hbase, es
 
-    private String     hosts;      // 适配器内部的地址, 比如对应es该参数可以填写es的server地址
+    private String     hosts;     // 适配器内部的地址, 比如对应es该参数可以填写es的server地址
 
-    private String     zkHosts;    // 适配器内部的ZK地址, 比如对应HBase该参数可以填写HBase对应的ZK地址
+    private String     zkHosts;   // 适配器内部的ZK地址, 比如对应HBase该参数可以填写HBase对应的ZK地址
 
     private Properties properties; // 其余参数, 可填写适配器中的所需的配置信息
 

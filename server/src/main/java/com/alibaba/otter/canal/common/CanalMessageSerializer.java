@@ -1,5 +1,10 @@
 package com.alibaba.otter.canal.common;
 
+import java.util.List;
+
+import org.apache.kafka.common.errors.SerializationException;
+import org.springframework.util.CollectionUtils;
+
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalPacket;
 import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
@@ -7,12 +12,11 @@ import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.WireFormat;
-import java.util.List;
-import org.apache.kafka.common.errors.SerializationException;
-import org.springframework.util.CollectionUtils;
 
 public class CanalMessageSerializer {
-    public static byte[] serializer(Message data){
+
+    @SuppressWarnings("deprecation")
+    public static byte[] serializer(Message data) {
         try {
             if (data != null) {
                 if (data.getId() != -1) {
@@ -31,11 +35,9 @@ public class CanalMessageSerializer {
                         messageSize += 1 * rowEntries.size();
                         // packet size
                         int size = 0;
-                        size += CodedOutputStream.computeEnumSize(3,
-                            PacketType.MESSAGES.getNumber());
+                        size += CodedOutputStream.computeEnumSize(3, PacketType.MESSAGES.getNumber());
                         size += CodedOutputStream.computeTagSize(5)
-                            + CodedOutputStream.computeRawVarint32Size(messageSize)
-                            + messageSize;
+                                + CodedOutputStream.computeRawVarint32Size(messageSize) + messageSize;
                         // build data
                         byte[] body = new byte[size];
                         CodedOutputStream output = CodedOutputStream.newInstance(body);

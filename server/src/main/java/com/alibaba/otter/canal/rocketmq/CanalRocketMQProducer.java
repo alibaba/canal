@@ -16,9 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CanalRocketMQProducer implements CanalMQProducer {
+
     private static final Logger logger = LoggerFactory.getLogger(CanalRocketMQProducer.class);
 
-    private DefaultMQProducer defaultMQProducer;
+    private DefaultMQProducer   defaultMQProducer;
 
     @Override
     public void init(MQProperties rocketMQProperties) {
@@ -36,10 +37,11 @@ public class CanalRocketMQProducer implements CanalMQProducer {
 
     @Override
     public void send(final MQProperties.CanalDestination destination, com.alibaba.otter.canal.protocol.Message data,
-        Callback callback) {
+                     Callback callback) {
         try {
             Message message = new Message(destination.getTopic(), CanalMessageSerializer.serializer(data));
             this.defaultMQProducer.send(message, new MessageQueueSelector() {
+
                 @Override
                 public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
                     int partition = 0;

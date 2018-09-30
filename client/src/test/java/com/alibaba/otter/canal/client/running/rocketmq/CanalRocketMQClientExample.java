@@ -1,13 +1,14 @@
 package com.alibaba.otter.canal.client.running.rocketmq;
 
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectorProvider;
-import com.alibaba.otter.canal.client.running.kafka.AbstractKafkaTest;
-import com.alibaba.otter.canal.protocol.Message;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectorProvider;
+import com.alibaba.otter.canal.client.running.kafka.AbstractKafkaTest;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * Kafka client example
@@ -17,32 +18,30 @@ import org.springframework.util.Assert;
  */
 public class CanalRocketMQClientExample extends AbstractRocektMQTest {
 
-    protected final static Logger logger = LoggerFactory.getLogger(CanalRocketMQClientExample.class);
+    protected final static Logger           logger  = LoggerFactory.getLogger(CanalRocketMQClientExample.class);
 
-    private RocketMQCanalConnector connector;
+    private RocketMQCanalConnector          connector;
 
-    private static volatile boolean running = false;
+    private static volatile boolean         running = false;
 
-    private Thread thread = null;
+    private Thread                          thread  = null;
 
     private Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
 
-        public void uncaughtException(Thread t, Throwable e) {
-            logger.error("parse events has an error", e);
-        }
-    };
+                                                        public void uncaughtException(Thread t, Throwable e) {
+                                                            logger.error("parse events has an error", e);
+                                                        }
+                                                    };
 
-    public CanalRocketMQClientExample(String nameServers, String topic,
-        String groupId) {
-        connector = RocketMQCanalConnectorProvider.newRocketMQConnector(nameServers,
-            topic,
-            groupId);
+    public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
+        connector = RocketMQCanalConnectorProvider.newRocketMQConnector(nameServers, topic, groupId);
     }
 
     public static void main(String[] args) {
         try {
             final CanalRocketMQClientExample rocketMQClientExample = new CanalRocketMQClientExample(nameServers,
-                topic, groupId);
+                topic,
+                groupId);
             logger.info("## Start the rocketmq consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
             rocketMQClientExample.start();
             logger.info("## The canal rocketmq consumer is running now ......");

@@ -24,7 +24,6 @@ public class CanalClientConfig {
 
     private Boolean             flatMessage = true;
 
-
     private List<CanalInstance> canalInstances;
 
     public String getCanalServerHost() {
@@ -122,6 +121,7 @@ public class CanalClientConfig {
     }
 
     public static class MQTopic {
+
         private String      mqMode;
 
         private String      topic;

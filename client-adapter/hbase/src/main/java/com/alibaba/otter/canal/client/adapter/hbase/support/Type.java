@@ -11,22 +11,12 @@ import java.util.Date;
  * @version 1.0.0
  */
 public enum Type {
-    DEFAULT("STRING"),
-    STRING("STRING"),
-    INTEGER("INTEGER"),
-    LONG("LONG"),
-    SHORT("SHORT"),
-    BOOLEAN("BOOLEAN"),
-    FLOAT("FLOAT"),
-    DOUBLE("DOUBLE"),
-    BIGDECIMAL("BIGDECIMAL"),
-    DATE("DATE"),
-    BYTE("BYTE"),
-    BYTES("BYTES");
+    DEFAULT("STRING"), STRING("STRING"), INTEGER("INTEGER"), LONG("LONG"), SHORT("SHORT"), BOOLEAN("BOOLEAN"),
+    FLOAT("FLOAT"), DOUBLE("DOUBLE"), BIGDECIMAL("BIGDECIMAL"), DATE("DATE"), BYTE("BYTE"), BYTES("BYTES");
 
     private String type;
 
-    Type(String type) {
+    Type(String type){
         this.type = type;
     }
 

@@ -1,18 +1,21 @@
 package com.alibaba.otter.canal.kafka;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.otter.canal.common.MQProperties;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.spi.CanalMQProducer;
 import java.util.List;
 import java.util.Properties;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
+;
 
 /**
  * kafka producer 主操作类
@@ -22,13 +25,13 @@ import org.slf4j.LoggerFactory;
  */
 public class CanalKafkaProducer implements CanalMQProducer {
 
-    private static final Logger logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
+    private static final Logger       logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
     private Producer<String, Message> producer;
 
-    private Producer<String, String> producer2;                                                 // 用于扁平message的数据投递
+    private Producer<String, String>  producer2;                                                 // 用于扁平message的数据投递
 
-    private MQProperties kafkaProperties;
+    private MQProperties              kafkaProperties;
 
     @Override
     public void init(MQProperties kafkaProperties) {
@@ -91,8 +94,10 @@ public class CanalKafkaProducer implements CanalMQProducer {
                 if (flatMessages != null) {
                     for (FlatMessage flatMessage : flatMessages) {
                         if (canalDestination.getPartition() != null) {
-                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination
-                                .getTopic(), canalDestination.getPartition(), null, JSON.toJSONString(flatMessage));
+                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
+                                canalDestination.getPartition(),
+                                null,
+                                JSON.toJSONString(flatMessage));
                             producer2.send(record);
                         } else {
                             if (canalDestination.getPartitionHash() != null
@@ -104,8 +109,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                 for (int i = 0; i < length; i++) {
                                     FlatMessage flatMessagePart = partitionFlatMessage[i];
                                     if (flatMessagePart != null) {
-                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                            canalDestination.getTopic(),
+                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                             i,
                                             null,
                                             JSON.toJSONString(flatMessagePart));
@@ -113,8 +117,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                     }
                                 }
                             } else {
-                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                    canalDestination.getTopic(),
+                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                     0,
                                     null,
                                     JSON.toJSONString(flatMessage));

@@ -1,9 +1,11 @@
 package com.alibaba.otter.canal.kafka;
 
+import java.util.Map;
+
+import org.apache.kafka.common.serialization.Serializer;
+
 import com.alibaba.otter.canal.common.CanalMessageSerializer;
 import com.alibaba.otter.canal.protocol.Message;
-import java.util.Map;
-import org.apache.kafka.common.serialization.Serializer;
 
 /**
  * Kafka Message类的序列化

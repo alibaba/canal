@@ -5,11 +5,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ConsumerBatchMessage<T> {
-    private final BlockingQueue<T> data;
-    private CountDownLatch latch;
-    private boolean hasFailure = false;
 
-    public ConsumerBatchMessage(BlockingQueue<T> data) {
+    private final BlockingQueue<T> data;
+    private CountDownLatch         latch;
+    private boolean                hasFailure = false;
+
+    public ConsumerBatchMessage(BlockingQueue<T> data){
         this.data = data;
         latch = new CountDownLatch(data.size());
     }

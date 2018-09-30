@@ -2,16 +2,19 @@ package com.alibaba.otter.canal.client;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalPacket;
+import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
+import com.alibaba.otter.canal.protocol.CanalPacket.Compression;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.protobuf.ByteString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CanalMessageDeserializer {
-    private static Logger logger = LoggerFactory.getLogger(CanalMessageDeserializer.class);
 
     public static Message deserializer(byte[] data) {
+        return deserializer(data, false);
+    }
+
+    public static Message deserializer(byte[] data, boolean lazyParseEntry) {
         try {
             if (data == null) {
                 return null;
@@ -19,24 +22,34 @@ public class CanalMessageDeserializer {
                 CanalPacket.Packet p = CanalPacket.Packet.parseFrom(data);
                 switch (p.getType()) {
                     case MESSAGES: {
-//                        if (!p.getCompression().equals(CanalPacket.Compression.NONE)) {
-//                            throw new CanalClientException("compression is not supported in this connector");
-//                        }
+                        if (!p.getCompression().equals(Compression.NONE)
+                            && !p.getCompression().equals(Compression.COMPRESSIONCOMPATIBLEPROTO2)) {
+                            throw new CanalClientException("compression is not supported in this connector");
+                        }
 
                         CanalPacket.Messages messages = CanalPacket.Messages.parseFrom(p.getBody());
                         Message result = new Message(messages.getBatchId());
-                        for (ByteString byteString : messages.getMessagesList()) {
-                            result.addEntry(CanalEntry.Entry.parseFrom(byteString));
+                        if (lazyParseEntry) {
+                            // byteString
+                            result.setRawEntries(messages.getMessagesList());
+                        } else {
+                            for (ByteString byteString : messages.getMessagesList()) {
+                                result.addEntry(CanalEntry.Entry.parseFrom(byteString));
+                            }
                         }
                         return result;
                     }
-                    default:
-                        break;
+                    case ACK: {
+                        Ack ack = Ack.parseFrom(p.getBody());
+                        throw new CanalClientException("something goes wrong with reason: " + ack.getErrorMessage());
+                    }
+                    default: {
+                        throw new CanalClientException("unexpected packet type: " + p.getType());
+                    }
                 }
             }
         } catch (Exception e) {
-            logger.error("Error when deserializing byte[] to message ", e);
+            throw new CanalClientException("deserializer failed", e);
         }
-        return null;
     }
 }

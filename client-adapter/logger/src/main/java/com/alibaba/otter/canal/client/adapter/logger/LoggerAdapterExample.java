@@ -14,7 +14,8 @@ import com.alibaba.otter.canal.client.adapter.support.SPI;
  * @author machengyuan 2018-8-19 下午11:45:38
  * @version 1.0.0
  */
-@SPI("logger") // logger参数对应CanalOuterAdapterConfiguration配置中的name
+@SPI("logger")
+// logger参数对应CanalOuterAdapterConfiguration配置中的name
 public class LoggerAdapterExample implements CanalOuterAdapter {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());

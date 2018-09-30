@@ -1,15 +1,12 @@
 package com.alibaba.otter.canal.client.rocketmq;
 
-import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.client.CanalMessageDeserializer;
-import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;
@@ -20,19 +17,25 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.client.CanalConnector;
+import com.alibaba.otter.canal.client.CanalMessageDeserializer;
+import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+
 public class RocketMQCanalConnector implements CanalConnector {
-    private static final Logger logger = LoggerFactory.getLogger(RocketMQCanalConnector.class);
 
-    private String nameServer;
-    private String topic;
-    private String groupName;
-    private volatile boolean connected = false;
-    private DefaultMQPushConsumer rocketMQConsumer;
+    private static final Logger                          logger              = LoggerFactory.getLogger(RocketMQCanalConnector.class);
+
+    private String                                       nameServer;
+    private String                                       topic;
+    private String                                       groupName;
+    private volatile boolean                             connected           = false;
+    private DefaultMQPushConsumer                        rocketMQConsumer;
     private BlockingQueue<ConsumerBatchMessage<Message>> messageBlockingQueue;
-    Map<Long, ConsumerBatchMessage<Message>> messageCache;
-    private long batchProcessTimeout = 10000;
+    Map<Long, ConsumerBatchMessage<Message>>             messageCache;
+    private long                                         batchProcessTimeout = 10000;
 
-    public RocketMQCanalConnector(String nameServer, String topic, String groupName) {
+    public RocketMQCanalConnector(String nameServer, String topic, String groupName){
         this.nameServer = nameServer;
         this.topic = topic;
         this.groupName = groupName;
@@ -69,9 +72,9 @@ public class RocketMQCanalConnector implements CanalConnector {
             }
             rocketMQConsumer.subscribe(topic, "*");
             rocketMQConsumer.registerMessageListener(new MessageListenerOrderly() {
+
                 @Override
-                public ConsumeOrderlyStatus consumeMessage(List<MessageExt> messageExts,
-                    ConsumeOrderlyContext context) {
+                public ConsumeOrderlyStatus consumeMessage(List<MessageExt> messageExts, ConsumeOrderlyContext context) {
                     context.setAutoCommit(true);
                     boolean isSuccess = process(messageExts);
                     if (isSuccess) {
