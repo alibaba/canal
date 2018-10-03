@@ -96,7 +96,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
         while (!running)
             ;
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        final AtomicBoolean executing = new AtomicBoolean(true);
+        // final AtomicBoolean executing = new AtomicBoolean(true);
         while (running) {
             try {
                 logger.info("=============> Start to connect topic: {} <=============", this.topic);
@@ -116,36 +116,41 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                         }
                         if (messages != null) {
                             for (final Object message : messages) {
-                                executing.set(true);
-                                if (message != null) {
-                                    executor.submit(new Runnable() {
-
-                                        @Override
-                                        public void run() {
-                                            try {
-                                                if (message instanceof FlatMessage) {
-                                                    writeOut((FlatMessage) message);
-                                                } else {
-                                                    writeOut((Message) message);
-                                                }
-                                            } catch (Exception e) {
-                                                logger.error(e.getMessage(), e);
-                                            } finally {
-                                                executing.compareAndSet(true, false);
-                                            }
-                                        }
-                                    });
-
-                                    // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
-                                    long currentTS = System.currentTimeMillis();
-                                    while (executing.get()) {
-                                        // 大于10秒未消费完ack一次keep alive
-                                        if (System.currentTimeMillis() - currentTS > 10000) {
-                                            connector.ack();
-                                            currentTS = System.currentTimeMillis();
-                                        }
-                                    }
+                                if (message instanceof FlatMessage) {
+                                    writeOut((FlatMessage) message);
+                                } else {
+                                    writeOut((Message) message);
                                 }
+                                // executing.set(true);
+                                // if (message != null) {
+                                // executor.submit(new Runnable() {
+                                //
+                                // @Override
+                                // public void run() {
+                                // try {
+                                // if (message instanceof FlatMessage) {
+                                // writeOut((FlatMessage) message);
+                                // } else {
+                                // writeOut((Message) message);
+                                // }
+                                // } catch (Exception e) {
+                                // logger.error(e.getMessage(), e);
+                                // } finally {
+                                // executing.compareAndSet(true, false);
+                                // }
+                                // }
+                                // });
+                                //
+                                // // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
+                                // long currentTS = System.currentTimeMillis();
+                                // while (executing.get()) {
+                                // // 大于10秒未消费完ack一次keep alive
+                                // if (System.currentTimeMillis() - currentTS > 10000) {
+                                // connector.ack();
+                                // currentTS = System.currentTimeMillis();
+                                // }
+                                // }
+                                // }
                             }
                         }
                         connector.ack();
