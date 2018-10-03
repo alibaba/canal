@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.example;
+
 import java.net.InetSocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
@@ -44,7 +46,7 @@ public class SimpleCanalClientPermanceTest {
             connector.connect();
             connector.subscribe();
             while (true) {
-                Message message = connector.getWithoutAck(batchSize);
+                Message message = connector.getWithoutAck(batchSize, 100L, TimeUnit.MILLISECONDS);
                 long batchId = message.getId();
                 int size = message.getRawEntries().size();
                 sum += size;
@@ -53,11 +55,13 @@ public class SimpleCanalClientPermanceTest {
                 queue.add(batchId);
                 if (count % 10 == 0) {
                     end = System.currentTimeMillis();
-                    long tps = (perSum * 1000) / (end - start);
-                    System.out.println(" total : " + sum + " , current : " + perSum + " , cost : " + (end - start)
-                                       + " , tps : " + tps);
-                    start = end;
-                    perSum = 0;
+                    if (end - start != 0) {
+                        long tps = (perSum * 1000) / (end - start);
+                        System.out.println(" total : " + sum + " , current : " + perSum + " , cost : " + (end - start)
+                                           + " , tps : " + tps);
+                        start = end;
+                        perSum = 0;
+                    }
                 }
             }
         } catch (Throwable e) {

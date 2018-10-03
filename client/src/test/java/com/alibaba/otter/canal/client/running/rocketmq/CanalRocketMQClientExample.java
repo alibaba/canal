@@ -1,15 +1,13 @@
-package com.alibaba.otter.canal.client.running.kafka;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+package com.alibaba.otter.canal.client.running.rocketmq;
 
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
-import com.alibaba.otter.canal.client.kafka.KafkaCanalConnectors;
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectorProvider;
+import com.alibaba.otter.canal.client.running.kafka.AbstractKafkaTest;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -18,11 +16,11 @@ import com.alibaba.otter.canal.protocol.Message;
  * @author machengyuan @ 2018-6-12
  * @version 1.0.0
  */
-public class CanalKafkaClientExample {
+public class CanalRocketMQClientExample extends AbstractRocektMQTest {
 
-    protected final static Logger           logger  = LoggerFactory.getLogger(CanalKafkaClientExample.class);
+    protected final static Logger           logger  = LoggerFactory.getLogger(CanalRocketMQClientExample.class);
 
-    private KafkaCanalConnector             connector;
+    private RocketMQCanalConnector          connector;
 
     private static volatile boolean         running = false;
 
@@ -35,30 +33,28 @@ public class CanalKafkaClientExample {
                                                         }
                                                     };
 
-    public CanalKafkaClientExample(String zkServers, String servers, String topic, Integer partition, String groupId){
-        connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId, false);
+    public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
+        connector = RocketMQCanalConnectorProvider.newRocketMQConnector(nameServers, topic, groupId);
     }
 
     public static void main(String[] args) {
         try {
-            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(AbstractKafkaTest.zkServers,
-                AbstractKafkaTest.servers,
-                AbstractKafkaTest.topic,
-                AbstractKafkaTest.partition,
-                AbstractKafkaTest.groupId);
-            logger.info("## start the kafka consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
-            kafkaCanalClientExample.start();
-            logger.info("## the canal kafka consumer is running now ......");
+            final CanalRocketMQClientExample rocketMQClientExample = new CanalRocketMQClientExample(nameServers,
+                topic,
+                groupId);
+            logger.info("## Start the rocketmq consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
+            rocketMQClientExample.start();
+            logger.info("## The canal rocketmq consumer is running now ......");
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
                 public void run() {
                     try {
-                        logger.info("## stop the kafka consumer");
-                        kafkaCanalClientExample.stop();
+                        logger.info("## Stop the rocketmq consumer");
+                        rocketMQClientExample.stop();
                     } catch (Throwable e) {
-                        logger.warn("##something goes wrong when stopping kafka consumer:", e);
+                        logger.warn("## Something goes wrong when stopping rocketmq consumer:", e);
                     } finally {
-                        logger.info("## kafka consumer is down.");
+                        logger.info("## Rocketmq consumer is down.");
                     }
                 }
 
@@ -66,7 +62,7 @@ public class CanalKafkaClientExample {
             while (running)
                 ;
         } catch (Throwable e) {
-            logger.error("## Something goes wrong when starting up the kafka consumer:", e);
+            logger.error("## Something going wrong when starting up the rocketmq consumer:", e);
             System.exit(0);
         }
     }
@@ -107,31 +103,21 @@ public class CanalKafkaClientExample {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
+                    Message message = connector.getWithoutAck(1); // 获取message
                     try {
-                        List<Message> messages = connector.getWithoutAck(1L, TimeUnit.SECONDS); // 获取message
-
-                        if (messages == null) {
+                        if (message == null) {
                             continue;
                         }
-                        for (Message message : messages) {
-                            long batchId = message.getId();
-                            int size = message.getEntries().size();
-                            if (batchId == -1 || size == 0) {
-                                // try {
-                                // Thread.sleep(1000);
-                                // } catch (InterruptedException e) {
-                                // }
-                            } else {
-                                // printSummary(message, batchId, size);
-                                // printEntry(message.getEntries());
-                                logger.info(message.toString());
-                            }
+                        long batchId = message.getId();
+                        int size = message.getEntries().size();
+                        if (batchId == -1 || size == 0) {
+                        } else {
+                            logger.info(message.toString());
                         }
-
-                        connector.ack(); // 提交确认
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
                     }
+                    connector.ack(message.getId()); // 提交确认
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -143,6 +129,6 @@ public class CanalKafkaClientExample {
         } catch (WakeupException e) {
             // No-op. Continue process
         }
-        connector.disconnect();
+        connector.stopRunning();
     }
 }

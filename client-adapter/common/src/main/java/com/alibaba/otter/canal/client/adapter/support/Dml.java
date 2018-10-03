@@ -90,7 +90,7 @@ public class Dml implements Serializable {
 
     @Override
     public String toString() {
-        return "Dml{" + "database='" + database + '\'' + ", table='" + table + '\'' + ", type='" + type + '\'' + ", ts="
-               + ts + ", sql='" + sql + '\'' + ", data=" + data + ", old=" + old + '}';
+        return "Dml{" + "database='" + database + '\'' + ", table='" + table + '\'' + ", type='" + type + '\''
+               + ", ts=" + ts + ", sql='" + sql + '\'' + ", data=" + data + ", old=" + old + '}';
     }
 }

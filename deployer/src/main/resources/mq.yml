@@ -1,4 +1,4 @@
-servers: slave1:6667,slave2:6667,slave3:6667
+servers: localhost:9876 #for rocketmq: means the nameserver
 retries: 0
 batchSize: 16384
 lingerMs: 1
@@ -11,8 +11,9 @@ canalGetTimeout: 100
 flatMessage: true
 
 canalDestinations:
-- canalDestination: example
-  topic: exp3
+  - canalDestination: example
+    topic: example
+    partition: 1
 #  #对应topic分区数量
 #  partitionsNum: 3
 #  partitionHash:

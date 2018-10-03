@@ -11,8 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
+;
 
 /**
  * kafka producer 主操作类
@@ -20,7 +23,7 @@ import com.alibaba.otter.canal.protocol.Message;
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
-public class CanalKafkaProducer {
+public class CanalKafkaProducer implements CanalMQProducer {
 
     private static final Logger       logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
@@ -28,9 +31,10 @@ public class CanalKafkaProducer {
 
     private Producer<String, String>  producer2;                                                 // 用于扁平message的数据投递
 
-    private KafkaProperties           kafkaProperties;
+    private MQProperties              kafkaProperties;
 
-    public void init(KafkaProperties kafkaProperties) {
+    @Override
+    public void init(MQProperties kafkaProperties) {
         this.kafkaProperties = kafkaProperties;
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
@@ -51,6 +55,7 @@ public class CanalKafkaProducer {
         // producer.initTransactions();
     }
 
+    @Override
     public void stop() {
         try {
             logger.info("## stop the kafka producer");
@@ -67,7 +72,8 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(KafkaProperties.CanalDestination canalDestination, Message message, Callback callback) {
+    @Override
+    public void send(MQProperties.CanalDestination canalDestination, Message message, Callback callback) {
         try {
             // producer.beginTransaction();
             if (!kafkaProperties.getFlatMessage()) {
@@ -88,8 +94,10 @@ public class CanalKafkaProducer {
                 if (flatMessages != null) {
                     for (FlatMessage flatMessage : flatMessages) {
                         if (canalDestination.getPartition() != null) {
-                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination
-                                .getTopic(), canalDestination.getPartition(), null, JSON.toJSONString(flatMessage));
+                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
+                                canalDestination.getPartition(),
+                                null,
+                                JSON.toJSONString(flatMessage));
                             producer2.send(record);
                         } else {
                             if (canalDestination.getPartitionHash() != null
@@ -101,17 +109,15 @@ public class CanalKafkaProducer {
                                 for (int i = 0; i < length; i++) {
                                     FlatMessage flatMessagePart = partitionFlatMessage[i];
                                     if (flatMessagePart != null) {
-                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                                canalDestination.getTopic(),
-                                                i,
-                                                null,
-                                                JSON.toJSONString(flatMessagePart));
+                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
+                                            i,
+                                            null,
+                                            JSON.toJSONString(flatMessagePart));
                                         producer2.send(record);
                                     }
                                 }
                             } else {
-                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                    canalDestination.getTopic(),
+                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                     0,
                                     null,
                                     JSON.toJSONString(flatMessage));
@@ -135,10 +141,4 @@ public class CanalKafkaProducer {
         }
     }
 
-    public interface Callback {
-
-        void commit();
-
-        void rollback();
-    }
 }

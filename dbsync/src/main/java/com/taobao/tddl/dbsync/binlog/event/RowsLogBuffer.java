@@ -1082,10 +1082,10 @@ public final class RowsLogBuffer {
                 buffer.fillBytes(binary, 0, len);
 
                 /* Warning unsupport cloumn type */
-                logger.warn(String.format("!! Unsupport column type MYSQL_TYPE_GEOMETRY: meta=%d (%04X), len = %d",
-                    meta,
-                    meta,
-                    len));
+                // logger.warn(String.format("!! Unsupport column type MYSQL_TYPE_GEOMETRY: meta=%d (%04X), len = %d",
+                // meta,
+                // meta,
+                // len));
                 javaType = Types.BINARY;
                 value = binary;
                 length = len;

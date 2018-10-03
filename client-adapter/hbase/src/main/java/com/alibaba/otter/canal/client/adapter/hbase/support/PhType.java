@@ -13,37 +13,21 @@ import java.util.Date;
  * @version 1.0.0
  */
 public enum PhType {
-    DEFAULT(-1, "VARCHAR"),
-    UNSIGNED_INT(4, "UNSIGNED_INT"),
-    UNSIGNED_LONG(8, "UNSIGNED_LONG"),
-    UNSIGNED_TINYINT(1, "UNSIGNED_TINYINT"),
-    UNSIGNED_SMALLINT(2, "UNSIGNED_SMALLINT"),
-    UNSIGNED_FLOAT(4, "UNSIGNED_FLOAT"),
-    UNSIGNED_DOUBLE(8, "UNSIGNED_DOUBLE"),
-    INTEGER(4, "INTEGER"),
-    BIGINT(8, "BIGINT"),
-    TINYINT(1, "TINYINT"),
-    SMALLINT(2, "SMALLINT"),
-    FLOAT(4, "FLOAT"),
-    DOUBLE(8, "DOUBLE"),
-    DECIMAL(-1, "DECIMAL"),
-    BOOLEAN(1, "BOOLEAN"),
-    UNSIGNED_TIME(8, "UNSIGNED_TIME"),
-    UNSIGNED_DATE(8, "UNSIGNED_DATE"),
-    UNSIGNED_TIMESTAMP(12, "UNSIGNED_TIMESTAMP"),
-    TIME(8, "TIME"),
-    DATE(8, "DATE"),
-    TIMESTAMP(12, "TIMESTAMP"),
-    VARCHAR(-1, "VARCHAR"),
-    VARBINARY(-1, "VARBINARY");
+    DEFAULT(-1, "VARCHAR"), UNSIGNED_INT(4, "UNSIGNED_INT"), UNSIGNED_LONG(8, "UNSIGNED_LONG"),
+    UNSIGNED_TINYINT(1, "UNSIGNED_TINYINT"), UNSIGNED_SMALLINT(2, "UNSIGNED_SMALLINT"),
+    UNSIGNED_FLOAT(4, "UNSIGNED_FLOAT"), UNSIGNED_DOUBLE(8, "UNSIGNED_DOUBLE"), INTEGER(4, "INTEGER"),
+    BIGINT(8, "BIGINT"), TINYINT(1, "TINYINT"), SMALLINT(2, "SMALLINT"), FLOAT(4, "FLOAT"), DOUBLE(8, "DOUBLE"),
+    DECIMAL(-1, "DECIMAL"), BOOLEAN(1, "BOOLEAN"), UNSIGNED_TIME(8, "UNSIGNED_TIME"),
+    UNSIGNED_DATE(8, "UNSIGNED_DATE"), UNSIGNED_TIMESTAMP(12, "UNSIGNED_TIMESTAMP"), TIME(8, "TIME"), DATE(8, "DATE"),
+    TIMESTAMP(12, "TIMESTAMP"), VARCHAR(-1, "VARCHAR"), VARBINARY(-1, "VARBINARY");
 
     /**
      * -1：长度可变
      */
-    private int len;
+    private int    len;
     private String type;
 
-    PhType(int len, String type) {
+    PhType(int len, String type){
         this.len = len;
         this.type = type;
     }
@@ -87,7 +71,7 @@ public enum PhType {
             phType = VARCHAR;
         } else if (BigDecimal.class.isAssignableFrom(javaType)) {
             phType = DECIMAL;
-        }  else if (BigInteger.class.isAssignableFrom(javaType)) {
+        } else if (BigInteger.class.isAssignableFrom(javaType)) {
             phType = UNSIGNED_LONG;
         } else {
             phType = DEFAULT;

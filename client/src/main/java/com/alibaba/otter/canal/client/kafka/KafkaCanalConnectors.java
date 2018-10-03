@@ -17,8 +17,7 @@ public class KafkaCanalConnectors {
      * @param groupId
      * @return
      */
-    public static KafkaCanalConnector newKafkaConnector(String servers, String topic, Integer partition,
-                                                        String groupId) {
+    public static KafkaCanalConnector newKafkaConnector(String servers, String topic, Integer partition, String groupId) {
         return new KafkaCanalConnector(servers, topic, partition, groupId, false);
     }
 
@@ -44,8 +43,8 @@ public class KafkaCanalConnectors {
      * @param flatMessage
      * @return
      */
-    public static KafkaCanalConnector newKafkaConnector( String servers, String topic,
-                                                        Integer partition, String groupId,boolean flatMessage) {
+    public static KafkaCanalConnector newKafkaConnector(String servers, String topic, Integer partition,
+                                                        String groupId, boolean flatMessage) {
         return new KafkaCanalConnector(servers, topic, partition, groupId, flatMessage);
     }
 }
