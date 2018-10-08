@@ -233,7 +233,7 @@ public class KafkaCanalConnector {
             kafkaConsumer.commitSync();
         }
         if (kafkaConsumer2 != null) {
-            kafkaConsumer2.commitAsync();
+            kafkaConsumer2.commitSync();
         }
     }
 
