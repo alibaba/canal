@@ -138,6 +138,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         try {
             parserExecutor.shutdownNow();
             while (!parserExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                if (parserExecutor.isShutdown() || parserExecutor.isTerminated()) {
+                    break;
+                }
+
                 parserExecutor.shutdownNow();
             }
         } catch (Throwable e) {
@@ -147,6 +151,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         try {
             stageExecutor.shutdownNow();
             while (!stageExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                if (stageExecutor.isShutdown() || stageExecutor.isTerminated()) {
+                    break;
+                }
+
                 stageExecutor.shutdownNow();
             }
         } catch (Throwable e) {
