@@ -37,7 +37,6 @@ import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 
-
 /**
  * 针对解析器提供一个多阶段协同的处理
  * 
@@ -53,21 +52,21 @@ import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
  */
 public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implements MultiStageCoprocessor {
 
-    private static final int             maxFullTimes = 10;
-    private LogEventConvert              logEventConvert;
-    private EventTransactionBuffer       transactionBuffer;
-    private ErosaConnection              connection;
+    private static final int                  maxFullTimes = 10;
+    private LogEventConvert                   logEventConvert;
+    private EventTransactionBuffer            transactionBuffer;
+    private ErosaConnection                   connection;
 
-    private int                          parserThreadCount;
-    private int                          ringBufferSize;
-    private RingBuffer<MessageEvent>     disruptorMsgBuffer;
-    private ExecutorService              parserExecutor;
-    private ExecutorService              stageExecutor;
-    private String                       destination;
-    private volatile CanalParseException exception;
-    private AtomicLong                   eventsPublishBlockingTime;
-    private GTIDSet                      gtidSet;
-    private WorkerPool<MessageEvent>     workerPool;
+    private int                               parserThreadCount;
+    private int                               ringBufferSize;
+    private RingBuffer<MessageEvent>          disruptorMsgBuffer;
+    private ExecutorService                   parserExecutor;
+    private ExecutorService                   stageExecutor;
+    private String                            destination;
+    private volatile CanalParseException      exception;
+    private AtomicLong                        eventsPublishBlockingTime;
+    private GTIDSet                           gtidSet;
+    private WorkerPool<MessageEvent>          workerPool;
     private BatchEventProcessor<MessageEvent> simpleParserStage;
     private BatchEventProcessor<MessageEvent> sinkStoreStage;
 
@@ -138,6 +137,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         try {
             parserExecutor.shutdownNow();
             while (!parserExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                if (parserExecutor.isShutdown() || parserExecutor.isTerminated()) {
+                    break;
+                }
+
                 parserExecutor.shutdownNow();
             }
         } catch (Throwable e) {
@@ -147,6 +150,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         try {
             stageExecutor.shutdownNow();
             while (!stageExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                if (stageExecutor.isShutdown() || stageExecutor.isTerminated()) {
+                    break;
+                }
+
                 stageExecutor.shutdownNow();
             }
         } catch (Throwable e) {
@@ -225,15 +232,6 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             LockSupport.parkNanos(100 * 1000L * newFullTimes);
         }
 
-    }
-
-    @Override
-    public void reset() {
-        if (isStart()) {
-            stop();
-        }
-
-        start();
     }
 
     private class SimpleParserStage implements EventHandler<MessageEvent>, LifecycleAware {

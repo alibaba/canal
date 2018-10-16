@@ -25,6 +25,4 @@ public interface MultiStageCoprocessor extends CanalLifeCycle {
     public boolean publish(LogBuffer buffer);
 
     public boolean publish(LogEvent event);
-
-    public void reset();
 }

@@ -45,6 +45,7 @@ public class MessageUtil {
             dml.setDatabase(entry.getHeader().getSchemaName());
             dml.setTable(entry.getHeader().getTableName());
             dml.setType(eventType.toString());
+            dml.setEs(entry.getHeader().getExecuteTime());
             dml.setTs(System.currentTimeMillis());
             dml.setSql(rowChange.getSql());
             List<Map<String, Object>> data = new ArrayList<>();
@@ -118,6 +119,7 @@ public class MessageUtil {
         dml.setTable(flatMessage.getTable());
         dml.setType(flatMessage.getType());
         dml.setTs(flatMessage.getTs());
+        dml.setEs(flatMessage.getEs());
         dml.setSql(flatMessage.getSql());
         if (flatMessage.getSqlType() == null || flatMessage.getMysqlType() == null) {
             throw new RuntimeException("SqlType or mysqlType is null");

@@ -1,7 +1,12 @@
 package com.alibaba.otter.canal.protocol;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.protobuf.ByteString;
 
@@ -18,6 +23,9 @@ public class FlatMessage implements Serializable {
     private String                    table;
     private Boolean                   isDdl;
     private String                    type;
+    // binlog executeTime
+    private Long                      es;
+    // dml build timeStamp
     private Long                      ts;
     private String                    sql;
     private Map<String, Integer>      sqlType;
@@ -120,6 +128,14 @@ public class FlatMessage implements Serializable {
         this.old = old;
     }
 
+    public Long getEs() {
+        return es;
+    }
+
+    public void setEs(Long es) {
+        this.es = es;
+    }
+
     /**
      * 将Message转换为FlatMessage
      * 
@@ -147,9 +163,8 @@ public class FlatMessage implements Serializable {
                 try {
                     rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
                 } catch (Exception e) {
-                    throw new RuntimeException(
-                        "ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
-                        e);
+                    throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
+                                               + entry.toString(), e);
                 }
 
                 CanalEntry.EventType eventType = rowChange.getEventType();
@@ -160,6 +175,7 @@ public class FlatMessage implements Serializable {
                 flatMessage.setTable(entry.getHeader().getTableName());
                 flatMessage.setIsDdl(rowChange.getIsDdl());
                 flatMessage.setType(eventType.toString());
+                flatMessage.setEs(entry.getHeader().getExecuteTime());
                 flatMessage.setTs(System.currentTimeMillis());
                 flatMessage.setSql(rowChange.getSql());
 
@@ -273,6 +289,8 @@ public class FlatMessage implements Serializable {
                         flatMessageTmp.setSql(flatMessage.getSql());
                         flatMessageTmp.setSqlType(flatMessage.getSqlType());
                         flatMessageTmp.setMysqlType(flatMessage.getMysqlType());
+                        flatMessageTmp.setEs(flatMessage.getEs());
+                        flatMessageTmp.setTs(flatMessage.getTs());
                     }
                     List<Map<String, String>> data = flatMessageTmp.getData();
                     if (data == null) {
@@ -297,8 +315,8 @@ public class FlatMessage implements Serializable {
 
     @Override
     public String toString() {
-        return "FlatMessage{" + "id=" + id + ", database='" + database + '\'' + ", table='" + table + '\'' + ", isDdl="
-               + isDdl + ", type='" + type + '\'' + ", ts=" + ts + ", sql='" + sql + '\'' + ", sqlType=" + sqlType
-               + ", mysqlType=" + mysqlType + ", data=" + data + ", old=" + old + '}';
+        return "FlatMessage [id=" + id + ", database=" + database + ", table=" + table + ", isDdl=" + isDdl + ", type="
+               + type + ", es=" + es + ", ts=" + ts + ", sql=" + sql + ", sqlType=" + sqlType + ", mysqlType="
+               + mysqlType + ", data=" + data + ", old=" + old + "]";
     }
 }
