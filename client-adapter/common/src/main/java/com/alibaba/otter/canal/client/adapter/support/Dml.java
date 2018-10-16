@@ -94,6 +94,7 @@ public class Dml implements Serializable {
         table = null;
         type = null;
         ts = null;
+        es = null;
         data = null;
         old = null;
         sql = null;
