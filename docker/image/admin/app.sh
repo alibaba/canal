@@ -87,7 +87,9 @@ function start_canal() {
         exit 1;
     else
         if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
-            mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+            if [ -d /home/admin/canal-server/conf/example ]; then
+                mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+            fi
         fi 
     fi
     su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh 1>>/tmp/start.log 2>&1'

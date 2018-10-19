@@ -20,9 +20,9 @@ public class CanalClientConfig {
 
     private String              bootstrapServers;
 
-    private Boolean             flatMessage = true;
+    private List<MQTopic>       mqTopics;
 
-    private List<KafkaTopic>    kafkaTopics;
+    private Boolean             flatMessage = true;
 
     private List<CanalInstance> canalInstances;
 
@@ -58,6 +58,10 @@ public class CanalClientConfig {
         this.bootstrapServers = bootstrapServers;
     }
 
+    public List<MQTopic> getMqTopics() {
+        return mqTopics;
+    }
+
     public Boolean getFlatMessage() {
         return flatMessage;
     }
@@ -66,12 +70,8 @@ public class CanalClientConfig {
         this.flatMessage = flatMessage;
     }
 
-    public List<KafkaTopic> getKafkaTopics() {
-        return kafkaTopics;
-    }
-
-    public void setKafkaTopics(List<KafkaTopic> kafkaTopics) {
-        this.kafkaTopics = kafkaTopics;
+    public void setMqTopics(List<MQTopic> mqTopics) {
+        this.mqTopics = mqTopics;
     }
 
     public List<CanalInstance> getCanalInstances() {
@@ -120,11 +120,21 @@ public class CanalClientConfig {
         }
     }
 
-    public static class KafkaTopic {
+    public static class MQTopic {
+
+        private String      mqMode;
 
         private String      topic;
 
         private List<Group> groups = new ArrayList<>();
+
+        public String getMqMode() {
+            return mqMode;
+        }
+
+        public void setMqMode(String mqMode) {
+            this.mqMode = mqMode;
+        }
 
         public String getTopic() {
             return topic;
@@ -167,25 +177,6 @@ public class CanalClientConfig {
             this.outAdapters = outAdapters;
         }
 
-        // public List<Adaptor> getAdapters() {
-        // return adapters;
-        // }
-        //
-        // public void setAdapters(List<Adaptor> adapters) {
-        // this.adapters = adapters;
-        // }
     }
 
-    // public static class Adaptor {
-    // private List<CanalOuterAdapterConfiguration> outAdapters;
-    //
-    // public List<CanalOuterAdapterConfiguration> getOutAdapters() {
-    // return outAdapters;
-    // }
-    //
-    // public void setOutAdapters(List<CanalOuterAdapterConfiguration> outAdapters)
-    // {
-    // this.outAdapters = outAdapters;
-    // }
-    // }
 }

@@ -17,6 +17,9 @@ public class Dml implements Serializable {
     private String                    database;
     private String                    table;
     private String                    type;
+    // binlog executeTime
+    private Long                      es;
+    // dml build timeStamp
     private Long                      ts;
     private String                    sql;
     private List<Map<String, Object>> data;
@@ -78,11 +81,20 @@ public class Dml implements Serializable {
         this.old = old;
     }
 
+    public Long getEs() {
+        return es;
+    }
+
+    public void setEs(Long es) {
+        this.es = es;
+    }
+
     public void clear() {
         database = null;
         table = null;
         type = null;
         ts = null;
+        es = null;
         data = null;
         old = null;
         sql = null;
@@ -90,7 +102,7 @@ public class Dml implements Serializable {
 
     @Override
     public String toString() {
-        return "Dml{" + "database='" + database + '\'' + ", table='" + table + '\'' + ", type='" + type + '\'' + ", ts="
-               + ts + ", sql='" + sql + '\'' + ", data=" + data + ", old=" + old + '}';
+        return "Dml [database=" + database + ", table=" + table + ", type=" + type + ", es=" + es + ", ts=" + ts
+               + ", sql=" + sql + ", data=" + data + ", old=" + old + "]";
     }
 }

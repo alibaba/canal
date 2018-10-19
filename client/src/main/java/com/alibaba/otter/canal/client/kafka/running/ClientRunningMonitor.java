@@ -24,7 +24,6 @@ import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 
-
 /**
  * kafka client running状态信息
  *
@@ -55,15 +54,15 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
     }
 
     private static final Logger        logger       = LoggerFactory.getLogger(ClientRunningMonitor.class);
-    private ZkClientx zkClient;
+    private ZkClientx                  zkClient;
     private String                     topic;
-    private ClientRunningData clientData;
+    private ClientRunningData          clientData;
     private IZkDataListener            dataListener;
-    private BooleanMutex mutex        = new BooleanMutex(false);
+    private BooleanMutex               mutex        = new BooleanMutex(false);
     private volatile boolean           release      = false;
     private volatile ClientRunningData activeData;
     private ScheduledExecutorService   delayExector = Executors.newScheduledThreadPool(1);
-    private ClientRunningListener listener;
+    private ClientRunningListener      listener;
     private int                        delayTime    = 5;
 
     private static Integer             virtualPort;

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.alibaba.otter.canal.protocol.FlatMessage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -17,9 +16,7 @@ import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfigLoader;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
 import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.MessageUtil;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
-import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * HBase外部适配器
@@ -45,8 +42,7 @@ public class HbaseAdapter implements CanalOuterAdapter {
                         mappingConfigCache = new HashMap<>();
                         for (MappingConfig mappingConfig : hbaseMapping.values()) {
                             mappingConfigCache.put(mappingConfig.getHbaseOrm().getDatabase() + "-"
-                                                   + mappingConfig.getHbaseOrm().getTable(),
-                                mappingConfig);
+                                                   + mappingConfig.getHbaseOrm().getTable(), mappingConfig);
                         }
                     }
                 }

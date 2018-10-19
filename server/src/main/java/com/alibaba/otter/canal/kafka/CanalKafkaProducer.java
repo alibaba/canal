@@ -1,18 +1,23 @@
 package com.alibaba.otter.canal.kafka;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.spi.CanalMQProducer;;
 
 /**
  * kafka producer 主操作类
@@ -20,7 +25,7 @@ import com.alibaba.otter.canal.protocol.Message;
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
-public class CanalKafkaProducer {
+public class CanalKafkaProducer implements CanalMQProducer {
 
     private static final Logger       logger = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
@@ -28,9 +33,10 @@ public class CanalKafkaProducer {
 
     private Producer<String, String>  producer2;                                                 // 用于扁平message的数据投递
 
-    private KafkaProperties           kafkaProperties;
+    private MQProperties              kafkaProperties;
 
-    public void init(KafkaProperties kafkaProperties) {
+    @Override
+    public void init(MQProperties kafkaProperties) {
         this.kafkaProperties = kafkaProperties;
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
@@ -51,6 +57,7 @@ public class CanalKafkaProducer {
         // producer.initTransactions();
     }
 
+    @Override
     public void stop() {
         try {
             logger.info("## stop the kafka producer");
@@ -67,10 +74,12 @@ public class CanalKafkaProducer {
         }
     }
 
-    public void send(KafkaProperties.CanalDestination canalDestination, Message message, Callback callback) {
-        try {
-            // producer.beginTransaction();
-            if (!kafkaProperties.getFlatMessage()) {
+    @Override
+    public void send(MQProperties.CanalDestination canalDestination, Message message, Callback callback) {
+
+        // producer.beginTransaction();
+        if (!kafkaProperties.getFlatMessage()) {
+            try {
                 ProducerRecord<String, Message> record;
                 if (canalDestination.getPartition() != null) {
                     record = new ProducerRecord<String, Message>(canalDestination.getTopic(),
@@ -81,64 +90,76 @@ public class CanalKafkaProducer {
                     record = new ProducerRecord<String, Message>(canalDestination.getTopic(), 0, null, message);
                 }
 
-                producer.send(record);
-            } else {
-                // 发送扁平数据json
-                List<FlatMessage> flatMessages = FlatMessage.messageConverter(message);
-                if (flatMessages != null) {
-                    for (FlatMessage flatMessage : flatMessages) {
-                        if (canalDestination.getPartition() != null) {
+                producer.send(record).get();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                // producer.abortTransaction();
+                callback.rollback();
+            }
+        } else {
+            // 发送扁平数据json
+            List<FlatMessage> flatMessages = FlatMessage.messageConverter(message);
+            if (flatMessages != null) {
+                for (FlatMessage flatMessage : flatMessages) {
+                    if (canalDestination.getPartition() != null) {
+                        try {
                             ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination
                                 .getTopic(), canalDestination.getPartition(), null, JSON.toJSONString(flatMessage));
                             producer2.send(record);
-                        } else {
-                            if (canalDestination.getPartitionHash() != null
-                                && !canalDestination.getPartitionHash().isEmpty()) {
-                                FlatMessage[] partitionFlatMessage = FlatMessage.messagePartition(flatMessage,
-                                    canalDestination.getPartitionsNum(),
-                                    canalDestination.getPartitionHash());
-                                int length = partitionFlatMessage.length;
-                                for (int i = 0; i < length; i++) {
-                                    FlatMessage flatMessagePart = partitionFlatMessage[i];
-                                    if (flatMessagePart != null) {
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
+                            // producer.abortTransaction();
+                            callback.rollback();
+                        }
+                    } else {
+                        if (canalDestination.getPartitionHash() != null
+                            && !canalDestination.getPartitionHash().isEmpty()) {
+                            FlatMessage[] partitionFlatMessage = FlatMessage.messagePartition(flatMessage,
+                                canalDestination.getPartitionsNum(),
+                                canalDestination.getPartitionHash());
+                            int length = partitionFlatMessage.length;
+                            for (int i = 0; i < length; i++) {
+                                FlatMessage flatMessagePart = partitionFlatMessage[i];
+                                if (flatMessagePart != null) {
+                                    try {
                                         ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                                canalDestination.getTopic(),
-                                                i,
-                                                null,
-                                                JSON.toJSONString(flatMessagePart));
-                                        producer2.send(record);
+                                            canalDestination.getTopic(),
+                                            i,
+                                            null,
+                                            JSON.toJSONString(flatMessagePart));
+                                        producer2.send(record).get();
+                                    } catch (Exception e) {
+                                        logger.error(e.getMessage(), e);
+                                        // producer.abortTransaction();
+                                        callback.rollback();
                                     }
                                 }
-                            } else {
+                            }
+                        } else {
+                            try {
                                 ProducerRecord<String, String> record = new ProducerRecord<String, String>(
                                     canalDestination.getTopic(),
                                     0,
                                     null,
                                     JSON.toJSONString(flatMessage));
-                                producer2.send(record);
+                                producer2.send(record).get();
+                            } catch (Exception e) {
+                                logger.error(e.getMessage(), e);
+                                // producer.abortTransaction();
+                                callback.rollback();
                             }
                         }
-
                     }
                 }
             }
-
-            // producer.commitTransaction();
-            callback.commit();
-            if (logger.isDebugEnabled()) {
-                logger.debug("send message to kafka topic: {}", canalDestination.getTopic());
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            // producer.abortTransaction();
-            callback.rollback();
         }
+
+        // producer.commitTransaction();
+        callback.commit();
+        if (logger.isDebugEnabled()) {
+            logger.debug("send message to kafka topic: {}", canalDestination.getTopic());
+        }
+
     }
 
-    public interface Callback {
-
-        void commit();
-
-        void rollback();
-    }
 }

@@ -40,7 +40,7 @@
 						<exclude>**/canal.properties</exclude>
 						<exclude>**/spring/**</exclude>
 						<exclude>**/example/**</exclude>
-						<exclude>**/kafka.yml</exclude>
+						<exclude>**/mq.yml</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

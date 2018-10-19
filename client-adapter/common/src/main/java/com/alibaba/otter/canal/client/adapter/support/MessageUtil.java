@@ -1,6 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
@@ -40,6 +45,7 @@ public class MessageUtil {
             dml.setDatabase(entry.getHeader().getSchemaName());
             dml.setTable(entry.getHeader().getTableName());
             dml.setType(eventType.toString());
+            dml.setEs(entry.getHeader().getExecuteTime());
             dml.setTs(System.currentTimeMillis());
             dml.setSql(rowChange.getSql());
             List<Map<String, Object>> data = new ArrayList<>();
@@ -81,11 +87,10 @@ public class MessageUtil {
                         Map<String, Object> rowOld = new LinkedHashMap<>();
                         for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
                             if (updateSet.contains(column.getName())) {
-                                rowOld.put(column.getName(),
-                                    JdbcTypeUtil.typeConvert(column.getName(),
-                                        column.getValue(),
-                                        column.getSqlType(),
-                                        column.getMysqlType()));
+                                rowOld.put(column.getName(), JdbcTypeUtil.typeConvert(column.getName(),
+                                    column.getValue(),
+                                    column.getSqlType(),
+                                    column.getMysqlType()));
                             }
                         }
                         // update操作将记录修改前的值
@@ -114,6 +119,7 @@ public class MessageUtil {
         dml.setTable(flatMessage.getTable());
         dml.setType(flatMessage.getType());
         dml.setTs(flatMessage.getTs());
+        dml.setEs(flatMessage.getEs());
         dml.setSql(flatMessage.getSql());
         if (flatMessage.getSqlType() == null || flatMessage.getMysqlType() == null) {
             throw new RuntimeException("SqlType or mysqlType is null");

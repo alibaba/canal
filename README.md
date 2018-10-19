@@ -54,25 +54,25 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 
 <h3><a name="table-of-contents" class="anchor" href="#table-of-contents"><span class="mini-icon mini-icon-link"></span></a>wiki文档列表</h3>
 <ul>
-<li><a class="internal present" href="/alibaba/canal/wiki/Home">Home</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Introduction">Introduction</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Home">Home</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Introduction">Introduction</a></li>
 <li>
-<a class="internal present" href="/alibaba/canal/wiki/QuickStart">QuickStart</a>
+<a class="internal present" href="https://github.com/alibaba/canal/wiki/QuickStart">QuickStart</a>
 <ul>
-<li><a class="internal present" href="/alibaba/canal/wiki/Docker-QuickStart">Docker QuickStart</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Canal-Kafka-QuickStart">Canal Kafka QuickStart</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/aliyun-RDS-QuickStart">Aliyun RDS QuickStart</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Prometheus-QuickStart">Prometheus QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Docker-QuickStart">Docker QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Canal-Kafka-QuickStart">Canal Kafka QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart">Aliyun RDS QuickStart</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Prometheus-QuickStart">Prometheus QuickStart</a></li>
 </ul>
 </li>
-<li><a class="internal present" href="/alibaba/canal/wiki/AdminGuide">AdminGuide</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/ClientExample">ClientExample</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/ClientAPI">ClientAPI</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/Performance">Performance</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/DevGuide">DevGuide</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/BinlogChange%28mysql5.6%29">BinlogChange(Mysql5.6)</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/BinlogChange%28MariaDB%29">BinlogChange(MariaDB)</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/TableMetaTSDB">TableMetaTSDB</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/AdminGuide">AdminGuide</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/ClientExample">ClientExample</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/ClientAPI">ClientAPI</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/Performance">Performance</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/DevGuide">DevGuide</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/BinlogChange%28mysql5.6%29">BinlogChange(Mysql5.6)</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/BinlogChange%28MariaDB%29">BinlogChange(MariaDB)</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/TableMetaTSDB">TableMetaTSDB</a></li>
 <li><a href="http://alibaba.github.com/canal/release.html">ReleaseNotes</a></li>
 <li><a href="https://github.com/alibaba/canal/releases">Download</a></li>
 <li><a class="internal present" href="/alibaba/canal/wiki/FAQ">FAQ</a></li>
@@ -82,8 +82,8 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 
 1. canal整体交互协议设计上使用了protobuf3.0，理论上可以支持绝大部分的多语言场景，欢迎大家提交多客户端的PR
     * canal java客户端: <a href="https://github.com/alibaba/canal/wiki/ClientExample"> https://github.com/alibaba/canal/wiki/ClientExample </a>
-    * canal c#客户端开源项目地址：<a href="https://github.com/CanalSharp/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>
-    * canal go客户端，开发进行中
+    * canal c#客户端开源项目地址：<a href="https://github.com/CanalClient/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>
+    * canal go客户端开源项目地址：<a href="https://github.com/CanalClient/canal-go"> https://github.com/CanalClient/canal-go </a>
 2. canal作为MySQL binlog的增量获取工具，可以将数据投递到MQ系统中，比如Kafka/RocketMQ，可以借助于MQ的多语言能力 
 
 <h1>相关资料</h1>
@@ -116,7 +116,7 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <h3>最新更新</h3>
 <ol>
 <li>canal发布重大版本更新1.1.0，具体releaseNode参考：<a href="https://github.com/alibaba/canal/releases/tag/canal-1.1.0">https://github.com/alibaba/canal/releases/tag/canal-1.1.0</a></li>
-<li>canal c#客户端开源项目地址：<a href="https://github.com/CanalSharp/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>，推荐! </li>
+<li>canal c#客户端开源项目地址：<a href="https://github.com/CanalClient/CanalSharp"> https://github.com/CanalClient/CanalSharp </a>，推荐! </li>
 <li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
 <li>canal消费端项目开源: Otter(分布式数据库同步系统)，地址：<a href="https://github.com/alibaba/otter">https://github.com/alibaba/otter</a></li>
 

@@ -1,13 +1,14 @@
 package com.alibaba.otter.canal.client;
 
-import com.alibaba.otter.canal.client.adapter.loader.CanalAdapterLoader;
-import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import java.io.FileInputStream;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.FileInputStream;
+import com.alibaba.otter.canal.client.adapter.loader.CanalAdapterLoader;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 
 public class ClientLauncher {
 

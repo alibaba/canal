@@ -33,8 +33,7 @@ public class KafkaCanalConnector {
     private volatile boolean               running   = false;
     private boolean                        flatMessage;
 
-    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId,
-                               boolean flatMessage){
+    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, boolean flatMessage){
         this.topic = topic;
         this.partition = partition;
         this.flatMessage = flatMessage;
@@ -234,7 +233,7 @@ public class KafkaCanalConnector {
             kafkaConsumer.commitSync();
         }
         if (kafkaConsumer2 != null) {
-            kafkaConsumer2.commitAsync();
+            kafkaConsumer2.commitSync();
         }
     }
 

@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.kafka;
+package com.alibaba.otter.canal.common;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.Map;
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
-public class KafkaProperties {
+public class MQProperties {
 
     private String                 servers                = "localhost:6667";
     private int                    retries                = 0;
@@ -18,6 +18,7 @@ public class KafkaProperties {
     private int                    lingerMs               = 1;
     private long                   bufferMemory           = 33554432L;
     private boolean                filterTransactionEntry = true;
+    private String                 producerGroup          = "Canal-Producer";
     private int                    canalBatchSize         = 50;
     private Long                   canalGetTimeout;
     private boolean                flatMessage            = true;
@@ -153,4 +154,11 @@ public class KafkaProperties {
         this.filterTransactionEntry = filterTransactionEntry;
     }
 
+    public String getProducerGroup() {
+        return producerGroup;
+    }
+
+    public void setProducerGroup(String producerGroup) {
+        this.producerGroup = producerGroup;
+    }
 }
