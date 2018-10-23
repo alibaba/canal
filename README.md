@@ -85,11 +85,12 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
     * canal c#客户端开源项目地址：<a href="https://github.com/CanalClient/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>
     * canal go客户端开源项目地址：<a href="https://github.com/CanalClient/canal-go"> https://github.com/CanalClient/canal-go </a>
 2. canal作为MySQL binlog的增量获取工具，可以将数据投递到MQ系统中，比如Kafka/RocketMQ，可以借助于MQ的多语言能力 
+    * 参考文档: [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
 
 <h1>相关资料</h1>
 
 * ADC阿里技术嘉年华分享ppt (放在google docs上，可能需要翻墙): <a href="https://docs.google.com/presentation/d/1MkszUPYRDkfVPz9IqOT1LLT5d9tuwde_WC8GZvjaDRg/edit?usp=sharing">ppt下载</href>  
-* [与阿里巴巴的RocketMQ配合使用](https://github.com/alibaba/RocketMQ)
+* [与阿里巴巴的RocketMQ配合使用](https://github.com/apache/RocketMQ)
 
 <h1>相关开源</h1>
 <ol>
