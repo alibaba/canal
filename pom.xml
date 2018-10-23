@@ -99,7 +99,7 @@
         <java_source_version>1.7</java_source_version>
         <java_target_version>1.7</java_target_version>
         <file_encoding>UTF-8</file_encoding>
-        <spring_version>3.2.9.RELEASE</spring_version>
+        <spring_version>3.2.18.RELEASE</spring_version>
     </properties>
 
     <modules>
@@ -247,7 +247,7 @@
             <dependency>
                 <groupId>com.alibaba.fastsql</groupId>
                 <artifactId>fastsql</artifactId>
-                <version>2.0.0_preview_617</version>
+                <version>2.0.0_preview_630</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
