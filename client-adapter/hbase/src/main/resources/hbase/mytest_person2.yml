@@ -1,8 +1,9 @@
+dataSourceKey: defaultDS
 hbaseOrm:
   mode: PHOENIX  #NATIVE   #STRING
   database: mytest  # 数据库名
   table: person2     # 数据库表名
-  hbaseTable: MYTEST.PERSON2   # HBase表名
+  hbaseTable: MYTEST_PERSON2   # HBase表名
   family: CF  # 默认统一Family名称
   uppercaseQualifier: true  # 字段名转大写, 默认为true
   commitBatch: 3000 # 批量提交的大小

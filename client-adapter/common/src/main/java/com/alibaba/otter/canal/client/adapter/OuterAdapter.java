@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client.adapter;
 
+import java.util.Map;
+
 import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
@@ -11,7 +13,7 @@ import com.alibaba.otter.canal.client.adapter.support.SPI;
  * @version 1.0.0
  */
 @SPI("logger")
-public interface CanalOuterAdapter {
+public interface OuterAdapter {
 
     /**
      * 外部适配器初始化接口
@@ -21,11 +23,11 @@ public interface CanalOuterAdapter {
     void init(CanalOuterAdapterConfiguration configuration);
 
     /**
-     * 往适配器中写入数据
+     * 往适配器中同步数据
      *
      * @param dml 数据包
      */
-    void writeOut(Dml dml);
+    void sync(Dml dml);
 
     // void writeOut(FlatMessage flatMessage);
 
@@ -33,4 +35,14 @@ public interface CanalOuterAdapter {
      * 外部适配器销毁接口
      */
     void destroy();
+
+    /**
+     * Etl操作
+     * 
+     * @param criteriaSql 条件拼接sql
+     */
+    default void etl(String criteriaSql) {
+        throw new UnsupportedOperationException();
+    }
+
 }

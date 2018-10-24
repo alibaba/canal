@@ -37,7 +37,7 @@ public class MappingConfigLoader {
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        Collection<String> configs = AdapterConfigs.configs.get("hbase");
+        Collection<String> configs = AdapterConfigs.get("hbase");
         for (String c : configs) {
             if (c == null) {
                 continue;

@@ -3,7 +3,7 @@ package com.alibaba.otter.canal.client.adapter.logger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
@@ -16,7 +16,7 @@ import com.alibaba.otter.canal.client.adapter.support.SPI;
  */
 @SPI("logger")
 // logger参数对应CanalOuterAdapterConfiguration配置中的name
-public class LoggerAdapterExample implements CanalOuterAdapter {
+public class LoggerAdapterExample implements OuterAdapter {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -26,7 +26,7 @@ public class LoggerAdapterExample implements CanalOuterAdapter {
     }
 
     @Override
-    public void writeOut(Dml dml) {
+    public void sync(Dml dml) {
         logger.info(dml.toString());
     }
 

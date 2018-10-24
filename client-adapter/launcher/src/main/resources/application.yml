@@ -16,6 +16,11 @@ canal.conf:
 #        hosts: slave1:2181
 #        properties: {znodeParent: "/hbase-unsecure"}
 
-adapter.conf.path:
+adapter.conf:
+  datasourceConfigs:
+    defaultDS:
+      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
+      username: root
+      password: 121212
   adapterConfigs:
   - hbase/mytest_person2.yml

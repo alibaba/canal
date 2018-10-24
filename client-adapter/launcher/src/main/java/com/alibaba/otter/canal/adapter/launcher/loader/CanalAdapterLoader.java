@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 import org.slf4j.Logger;
@@ -24,15 +24,15 @@ import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
  */
 public class CanalAdapterLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(CanalAdapterLoader.class);
+    private static final Logger                logger       = LoggerFactory.getLogger(CanalAdapterLoader.class);
 
-    private CanalClientConfig canalClientConfig;
+    private CanalClientConfig                  canalClientConfig;
 
-    private Map<String, CanalAdapterWorker> canalWorkers = new HashMap<>();
+    private Map<String, CanalAdapterWorker>    canalWorkers = new HashMap<>();
 
-    private ExtensionLoader<CanalOuterAdapter> loader;
+    private ExtensionLoader<OuterAdapter> loader;
 
-    public CanalAdapterLoader(CanalClientConfig canalClientConfig) {
+    public CanalAdapterLoader(CanalClientConfig canalClientConfig){
         this.canalClientConfig = canalClientConfig;
     }
 
@@ -40,12 +40,7 @@ public class CanalAdapterLoader {
      * 初始化canal-client
      */
     public void init() {
-        // canal instances 和 mq topics 配置不能同时为空
-        // if (canalClientConfig.getCanalInstances() == null && canalClientConfig.getMqTopics() == null) {
-        //    throw new RuntimeException("Blank config property: canalInstances or canalMQTopics");
-        // }
-
-        loader = ExtensionLoader.getExtensionLoader(CanalOuterAdapter.class);
+        loader = ExtensionLoader.getExtensionLoader(OuterAdapter.class);
 
         String canalServerHost = this.canalClientConfig.getCanalServerHost();
         SocketAddress sa = null;
@@ -58,10 +53,10 @@ public class CanalAdapterLoader {
         // 初始化canal-client的适配器
         if (canalClientConfig.getCanalInstances() != null) {
             for (CanalClientConfig.CanalInstance instance : canalClientConfig.getCanalInstances()) {
-                List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
+                List<List<OuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
 
                 for (CanalClientConfig.AdapterGroup connectorGroup : instance.getAdapterGroups()) {
-                    List<CanalOuterAdapter> canalOutConnectors = new ArrayList<>();
+                    List<OuterAdapter> canalOutConnectors = new ArrayList<>();
                     for (CanalOuterAdapterConfiguration c : connectorGroup.getOutAdapters()) {
                         loadConnector(c, canalOutConnectors);
                     }
@@ -80,9 +75,9 @@ public class CanalAdapterLoader {
         }
     }
 
-    private void loadConnector(CanalOuterAdapterConfiguration config, List<CanalOuterAdapter> canalOutConnectors) {
+    private void loadConnector(CanalOuterAdapterConfiguration config, List<OuterAdapter> canalOutConnectors) {
         try {
-            CanalOuterAdapter adapter = loader.getExtension(config.getName());
+            OuterAdapter adapter = loader.getExtension(config.getName());
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
             // 替换ClassLoader
             Thread.currentThread().setContextClassLoader(adapter.getClass().getClassLoader());

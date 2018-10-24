@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.common.errors.WakeupException;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectorProvider;
 import com.alibaba.otter.canal.protocol.Message;
@@ -26,7 +26,7 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
     private String                 topic;
 
     public CanalAdapterRocketMQWorker(String nameServers, String topic, String groupId,
-                                      List<List<CanalOuterAdapter>> canalOuterAdapters){
+                                      List<List<OuterAdapter>> canalOuterAdapters){
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
         this.canalOuterAdapters = canalOuterAdapters;
         this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());

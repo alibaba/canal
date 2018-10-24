@@ -81,6 +81,7 @@
     </dependencies>
 
     <build>
+        <finalName>canal-client-launcher</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -31,7 +31,7 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      * @param canalOuterAdapters 外部适配器组
      */
     public CanalAdapterWorker(String canalDestination, SocketAddress address,
-                              List<List<CanalOuterAdapter>> canalOuterAdapters){
+                              List<List<OuterAdapter>> canalOuterAdapters){
         this.canalOuterAdapters = canalOuterAdapters;
         this.canalDestination = canalDestination;
         groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
@@ -46,7 +46,7 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      * @param canalOuterAdapters 外部适配器组
      */
     public CanalAdapterWorker(String canalDestination, String zookeeperHosts,
-                              List<List<CanalOuterAdapter>> canalOuterAdapters){
+                              List<List<OuterAdapter>> canalOuterAdapters){
         this.canalOuterAdapters = canalOuterAdapters;
         this.canalDestination = canalDestination;
         groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
@@ -96,8 +96,8 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
             }
             groupInnerExecutorService.shutdown();
             logger.info("destination {} adapters' worker thread dead!", canalDestination);
-            for (List<CanalOuterAdapter> outerAdapters : canalOuterAdapters) {
-                for (CanalOuterAdapter adapter : outerAdapters) {
+            for (List<OuterAdapter> outerAdapters : canalOuterAdapters) {
+                for (OuterAdapter adapter : outerAdapters) {
                     adapter.destroy();
                 }
             }

@@ -10,7 +10,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfigLoader;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
@@ -25,7 +25,7 @@ import com.alibaba.otter.canal.client.adapter.support.SPI;
  * @version 1.0.0
  */
 @SPI("hbase")
-public class HbaseAdapter implements CanalOuterAdapter {
+public class HbaseAdapter implements OuterAdapter {
 
     private static volatile Map<String, MappingConfig> mappingConfigCache = null;
 
@@ -83,7 +83,7 @@ public class HbaseAdapter implements CanalOuterAdapter {
     }
 
     @Override
-    public void writeOut(Dml dml) {
+    public void sync(Dml dml) {
         if (dml == null) {
             return;
         }

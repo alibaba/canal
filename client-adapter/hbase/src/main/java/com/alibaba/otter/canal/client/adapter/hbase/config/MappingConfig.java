@@ -13,8 +13,17 @@ import java.util.Set;
  * @version 1.0.0
  */
 public class MappingConfig {
+    private String dataSourceKey;
 
     private HbaseOrm hbaseOrm;
+
+    public String getDataSourceKey() {
+        return dataSourceKey;
+    }
+
+    public void setDataSourceKey(String dataSourceKey) {
+        this.dataSourceKey = dataSourceKey;
+    }
 
     public HbaseOrm getHbaseOrm() {
         return hbaseOrm;
