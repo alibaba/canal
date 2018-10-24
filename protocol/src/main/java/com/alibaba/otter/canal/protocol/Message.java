@@ -38,6 +38,7 @@ public class Message implements Serializable {
         } else {
             this.entries = entries == null ? new ArrayList<Entry>() : entries;
         }
+        this.raw = raw;
     }
 
     public Message(long id){
