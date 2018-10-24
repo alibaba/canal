@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
-    <artifactId>example</artifactId>
+    <artifactId>client-adapter.example</artifactId>
     <packaging>jar</packaging>
     <name>canal client adapter example module for otter ${project.version}</name>
 
