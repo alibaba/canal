@@ -24,7 +24,6 @@
         <module>logger</module>
         <module>hbase</module>
         <module>adapter-launcher</module>
-        <module>adapter-connector</module>
     </modules>
 
     <build>
