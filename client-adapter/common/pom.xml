@@ -16,7 +16,7 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.protocol</artifactId>
-            <version>${project.version}</version>
+            <version>${canal_version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

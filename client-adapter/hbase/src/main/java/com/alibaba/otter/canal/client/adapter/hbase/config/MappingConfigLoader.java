@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -12,12 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
+
 /**
  * HBase表映射配置加载器
- * <p>
- * 配置统一从hbase-mapping/configs.conf文件作为入口, 该文件包含所有表映射配置的名称或者文件名列表。
- * 每个对应的表配置可以yml配置文件或者以database.table为配置名的简化形式
- * </p>
  *
  * @author machengyuan 2018-8-21 下午06:45:49
  * @version 1.0.0
@@ -26,7 +25,7 @@ public class MappingConfigLoader {
 
     private static Logger       logger    = LoggerFactory.getLogger(MappingConfigLoader.class);
 
-    private static final String BASE_PATH = "hbase-mapping/";
+    private static final String BASE_PATH = "hbase";
 
     /**
      * 加载HBase表映射配置
@@ -35,12 +34,11 @@ public class MappingConfigLoader {
      */
     public static Map<String, MappingConfig> load() {
         logger.info("## Start loading mapping config ... ");
-        String mappingConfigContent = readConfigContent(BASE_PATH + "configs.conf");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        String[] configLines = mappingConfigContent.split("\n");
-        for (String c : configLines) {
+        Collection<String> configs = AdapterConfigs.configs.get("hbase");
+        for (String c : configs) {
             if (c == null) {
                 continue;
             }
