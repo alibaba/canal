@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.client.adapter.hbase;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,8 +10,11 @@ import javax.sql.DataSource;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
@@ -29,12 +33,15 @@ import com.alibaba.otter.canal.client.adapter.support.*;
 @SPI("hbase")
 public class HbaseAdapter implements OuterAdapter {
 
-    private static volatile Map<String, MappingConfig> hbaseMapping       = null; // 文件名对应配置
-    private static volatile Map<String, MappingConfig> mappingConfigCache = null; // 库名-表名对应配置
+    private static Logger                              logger             = LoggerFactory.getLogger(HbaseAdapter.class);
+
+    private static volatile Map<String, MappingConfig> hbaseMapping       = null;                                       // 文件名对应配置
+    private static volatile Map<String, MappingConfig> mappingConfigCache = null;                                       // 库名-表名对应配置
 
     private Connection                                 conn;
     private HbaseSyncService                           hbaseSyncService;
     private HbaseTemplate                              hbaseTemplate;
+    private Configuration                              hbaseConfig;
 
     @Override
     public void init(OuterAdapterConfig configuration) {
@@ -55,7 +62,7 @@ public class HbaseAdapter implements OuterAdapter {
 
             Map<String, String> propertites = configuration.getProperties();
 
-            Configuration hbaseConfig = HBaseConfiguration.create();
+            hbaseConfig = HBaseConfiguration.create();
             propertites.forEach(hbaseConfig::set);
             conn = ConnectionFactory.createConnection(hbaseConfig);
             hbaseTemplate = new HbaseTemplate(conn);
@@ -88,6 +95,28 @@ public class HbaseAdapter implements OuterAdapter {
             etlResult.setErrorMessage("DataSource not found");
             return etlResult;
         }
+    }
+
+    @Override
+    public Map<String, Object> count(String task) {
+        MappingConfig config = hbaseMapping.get(task);
+        String hbaseTable = config.getHbaseOrm().getHbaseTable();
+        long rowCount = 0L;
+        try {
+            HTable table = new HTable(hbaseConfig, hbaseTable);
+            Scan scan = new Scan();
+            scan.setFilter(new FirstKeyOnlyFilter());
+            ResultScanner resultScanner = table.getScanner(scan);
+            for (Result result : resultScanner) {
+                rowCount += result.size();
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("hbaseTable", hbaseTable);
+        res.put("count", rowCount);
+        return res;
     }
 
     @Override

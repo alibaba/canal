@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.adapter;
 
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
@@ -42,7 +43,16 @@ public interface OuterAdapter {
      * @param params etl筛选条件
      */
     default EtlResult etl(String task, List<String> params) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("unsupported operation");
     }
 
+    /**
+     * 计算总数
+     * 
+     * @param task 任务名, 对应配置名
+     * @return 总数
+     */
+    default Map<String, Object> count(String task) {
+        throw new UnsupportedOperationException("unsupported operation");
+    }
 }

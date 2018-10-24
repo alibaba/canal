@@ -68,7 +68,7 @@ public class HbaseEtlService {
             // 判断hbase表是否存在，不存在则建表
             MappingConfig.HbaseOrm hbaseOrm = config.getHbaseOrm();
             if (!hbaseTemplate.tableExists(hbaseOrm.getHbaseTable())) {
-                hbaseTemplate.createTable(hbaseOrm.getHbaseTable(), hbaseOrm.getFamilies().toArray(new String[0]));
+                hbaseTemplate.createTable(hbaseOrm.getHbaseTable(), hbaseOrm.getFamily());
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

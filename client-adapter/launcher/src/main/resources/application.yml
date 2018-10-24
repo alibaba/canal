@@ -18,7 +18,7 @@ canal.conf:
   - instance: example
     adapterGroups:
     - outAdapters:
-#      - name: logger
+      - name: logger
       - name: hbase
         properties:
           hbase.zookeeper.quorum: slave1
@@ -40,3 +40,4 @@ adapter.conf:
       password: 121212
   adapterConfigs:
   - hbase/mytest_person2.yml
+#  - hbase/mytest.person2@defaultDS
