@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,8 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 @Component
 @ConfigurationProperties(prefix = "adapter.conf")
 public class AdapterConfig {
+
+    private static Logger                 logger = LoggerFactory.getLogger(AdapterConfig.class);
 
     private Map<String, DatasourceConfig> datasourceConfigs;
 
@@ -51,7 +55,7 @@ public class AdapterConfig {
                 try {
                     ds.init();
                 } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                    logger.error("#Failed to initial datasource: " + datasourceConfig.getUrl(), e);
                 }
                 DatasourceConfig.DATA_SOURCES.put(entry.getKey(), ds);
             }

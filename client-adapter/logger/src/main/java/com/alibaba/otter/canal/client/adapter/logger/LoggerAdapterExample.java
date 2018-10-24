@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
-import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
 
@@ -21,7 +21,7 @@ public class LoggerAdapterExample implements OuterAdapter {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public void init(CanalOuterAdapterConfiguration configuration) {
+    public void init(OuterAdapterConfig configuration) {
 
     }
 

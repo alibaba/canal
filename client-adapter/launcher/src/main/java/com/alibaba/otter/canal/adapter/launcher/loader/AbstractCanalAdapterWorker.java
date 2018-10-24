@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +26,10 @@ public abstract class AbstractCanalAdapterWorker {
 
     protected final Logger                    logger  = LoggerFactory.getLogger(this.getClass());
 
-    protected String                          canalDestination;                                                 // canal实例
-    protected List<List<OuterAdapter>>        canalOuterAdapters;                                               // 外部适配器
-    protected ExecutorService                 groupInnerExecutorService;                                        // 组内工作线程池
-    protected volatile boolean                running = false;                                                  // 是否运行中
+    protected String                          canalDestination;                                                // canal实例
+    protected List<List<OuterAdapter>>        canalOuterAdapters;                                              // 外部适配器
+    protected ExecutorService                 groupInnerExecutorService;                                       // 组内工作线程池
+    protected volatile boolean                running = false;                                                 // 是否运行中
     protected Thread                          thread  = null;
     protected Thread.UncaughtExceptionHandler handler = (t, e) -> logger.error("parse events has an error", e);
 
@@ -69,47 +71,47 @@ public abstract class AbstractCanalAdapterWorker {
         }
     }
 
-    // protected void writeOut(final FlatMessage flatMessage) {
-    // List<Future<Boolean>> futures = new ArrayList<>();
-    // // 组间适配器并行运行
-    // for (List<CanalOuterAdapter> outerAdapters : canalOuterAdapters) {
-    // final List<CanalOuterAdapter> adapters = outerAdapters;
-    // futures.add(groupInnerExecutorService.submit(new Callable<Boolean>() {
-    //
-    // @Override
-    // public Boolean call() {
-    // try {
-    // // 组内适配器穿行运行，尽量不要配置组内适配器
-    // for (CanalOuterAdapter c : adapters) {
-    // long begin = System.currentTimeMillis();
-    // Dml dml = MessageUtil.flatMessage2Dml(flatMessage);
-    // c.writeOut(dml);
-    // if (logger.isDebugEnabled()) {
-    // logger.debug("{} elapsed time: {}",
-    // c.getClass().getName(),
-    // (System.currentTimeMillis() - begin));
-    // }
-    // }
-    // return true;
-    // } catch (Exception e) {
-    // return false;
-    // }
-    // }
-    // }));
-    //
-    // // 等待所有适配器写入完成
-    // // 由于是组间并发操作，所以将阻塞直到耗时最久的工作组操作完成
-    // for (Future<Boolean> f : futures) {
-    // try {
-    // if (!f.get()) {
-    // logger.error("Outer adapter write failed");
-    // }
-    // } catch (InterruptedException | ExecutionException e) {
-    // // ignore
-    // }
-    // }
-    // }
-    // }
+    protected void writeOut(final FlatMessage flatMessage) {
+        List<Future<Boolean>> futures = new ArrayList<>();
+        // 组间适配器并行运行
+        for (List<OuterAdapter> outerAdapters : canalOuterAdapters) {
+            final List<OuterAdapter> adapters = outerAdapters;
+            futures.add(groupInnerExecutorService.submit(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() {
+                    try {
+                        // 组内适配器穿行运行，尽量不要配置组内适配器
+                        for (OuterAdapter c : adapters) {
+                            long begin = System.currentTimeMillis();
+                            Dml dml = MessageUtil.flatMessage2Dml(flatMessage);
+                            c.sync(dml);
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("{} elapsed time: {}",
+                                    c.getClass().getName(),
+                                    (System.currentTimeMillis() - begin));
+                            }
+                        }
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }
+            }));
+
+            // 等待所有适配器写入完成
+            // 由于是组间并发操作，所以将阻塞直到耗时最久的工作组操作完成
+            for (Future<Boolean> f : futures) {
+                try {
+                    if (!f.get()) {
+                        logger.error("Outer adapter write failed");
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    // ignore
+                }
+            }
+        }
+    }
 
     protected void writeOut(Message message, String topic) {
         if (logger.isDebugEnabled()) {

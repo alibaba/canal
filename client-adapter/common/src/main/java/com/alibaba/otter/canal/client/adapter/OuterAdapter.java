@@ -1,8 +1,8 @@
 package com.alibaba.otter.canal.client.adapter;
 
-import java.util.Map;
+import java.util.List;
 
-import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
 
@@ -20,7 +20,7 @@ public interface OuterAdapter {
      *
      * @param configuration 外部适配器配置信息
      */
-    void init(CanalOuterAdapterConfiguration configuration);
+    void init(OuterAdapterConfig configuration);
 
     /**
      * 往适配器中同步数据
@@ -28,8 +28,6 @@ public interface OuterAdapter {
      * @param dml 数据包
      */
     void sync(Dml dml);
-
-    // void writeOut(FlatMessage flatMessage);
 
     /**
      * 外部适配器销毁接口
@@ -39,9 +37,10 @@ public interface OuterAdapter {
     /**
      * Etl操作
      * 
-     * @param criteriaSql 条件拼接sql
+     * @param task 任务名, 对应配置名
+     * @param params etl筛选条件
      */
-    default void etl(String criteriaSql) {
+    default void etl(String task, List<String> params) {
         throw new UnsupportedOperationException();
     }
 

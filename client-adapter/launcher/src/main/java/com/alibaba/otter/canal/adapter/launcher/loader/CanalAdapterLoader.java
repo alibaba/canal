@@ -9,13 +9,14 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.alibaba.otter.canal.client.adapter.OuterAdapter;
-import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
-import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 
 /**
  * 外部适配器的加载器
@@ -24,13 +25,15 @@ import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
  */
 public class CanalAdapterLoader {
 
-    private static final Logger                logger       = LoggerFactory.getLogger(CanalAdapterLoader.class);
+    private static final Logger                     logger        = LoggerFactory.getLogger(CanalAdapterLoader.class);
 
-    private CanalClientConfig                  canalClientConfig;
+    private CanalClientConfig                       canalClientConfig;
 
-    private Map<String, CanalAdapterWorker>    canalWorkers = new HashMap<>();
+    private Map<String, CanalAdapterWorker>         canalWorkers  = new HashMap<>();
 
-    private ExtensionLoader<OuterAdapter> loader;
+    private Map<String, AbstractCanalAdapterWorker> canalMQWorker = new HashMap<>();
+
+    private ExtensionLoader<OuterAdapter>           loader;
 
     public CanalAdapterLoader(CanalClientConfig canalClientConfig){
         this.canalClientConfig = canalClientConfig;
@@ -57,7 +60,7 @@ public class CanalAdapterLoader {
 
                 for (CanalClientConfig.AdapterGroup connectorGroup : instance.getAdapterGroups()) {
                     List<OuterAdapter> canalOutConnectors = new ArrayList<>();
-                    for (CanalOuterAdapterConfiguration c : connectorGroup.getOutAdapters()) {
+                    for (OuterAdapterConfig c : connectorGroup.getOutAdapters()) {
                         loadConnector(c, canalOutConnectors);
                     }
                     canalOuterAdapterGroups.add(canalOutConnectors);
@@ -73,9 +76,43 @@ public class CanalAdapterLoader {
                 logger.info("Start adapter for canal instance: {} succeed", instance.getInstance());
             }
         }
+
+        // 初始化canal-client-mq的适配器
+        if (canalClientConfig.getMqTopics() != null) {
+            for (CanalClientConfig.MQTopic topic : canalClientConfig.getMqTopics()) {
+                for (CanalClientConfig.Group group : topic.getGroups()) {
+                    List<List<OuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
+
+                    List<OuterAdapter> canalOuterAdapters = new ArrayList<>();
+
+                    for (OuterAdapterConfig config : group.getOutAdapters()) {
+                        loadConnector(config, canalOuterAdapters);
+                    }
+                    canalOuterAdapterGroups.add(canalOuterAdapters);
+                    if (StringUtils.isBlank(topic.getMqMode()) || "rocketmq".equalsIgnoreCase(topic.getMqMode())) {
+                        CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(canalClientConfig
+                            .getBootstrapServers(), topic.getTopic(), group.getGroupId(), canalOuterAdapterGroups);
+                        canalMQWorker.put(topic.getTopic() + "-rocketmq-" + group.getGroupId(), rocketMQWorker);
+                        rocketMQWorker.start();
+                    } else if ("kafka".equalsIgnoreCase(topic.getMqMode())) {
+                        CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(
+                            canalClientConfig.getBootstrapServers(),
+                            topic.getTopic(),
+                            group.getGroupId(),
+                            canalOuterAdapterGroups,
+                            canalClientConfig.getFlatMessage());
+                        canalMQWorker.put(topic.getTopic() + "-kafka-" + group.getGroupId(), canalKafkaWorker);
+                        canalKafkaWorker.start();
+                    }
+                    logger.info("Start adapter for canal-client rocketmq topic: {} succeed",
+                        topic.getTopic() + "-" + group.getGroupId());
+
+                }
+            }
+        }
     }
 
-    private void loadConnector(CanalOuterAdapterConfiguration config, List<OuterAdapter> canalOutConnectors) {
+    private void loadConnector(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
         try {
             OuterAdapter adapter = loader.getExtension(config.getName());
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -98,9 +135,18 @@ public class CanalAdapterLoader {
             ExecutorService stopExecutorService = Executors.newFixedThreadPool(canalWorkers.size());
             for (CanalAdapterWorker v : canalWorkers.values()) {
                 final CanalAdapterWorker caw = v;
-                stopExecutorService.submit(() -> caw.stop());
+                stopExecutorService.submit(caw::stop);
             }
             stopExecutorService.shutdown();
+        }
+
+        if (canalMQWorker.size() > 0) {
+            ExecutorService stopMQWokerService = Executors.newFixedThreadPool(canalMQWorker.size());
+            for (AbstractCanalAdapterWorker tmp : canalMQWorker.values()) {
+                final AbstractCanalAdapterWorker worker = tmp;
+                stopMQWokerService.submit(worker::stop);
+            }
+            stopMQWokerService.shutdown();
         }
         logger.info("All canal adapters destroyed");
     }

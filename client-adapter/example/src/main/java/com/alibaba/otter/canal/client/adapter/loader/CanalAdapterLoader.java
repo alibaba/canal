@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
-import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 
 /**
@@ -72,7 +72,7 @@ public class CanalAdapterLoader {
 
                 for (CanalClientConfig.AdapterGroup connectorGroup : instance.getAdapterGroups()) {
                     List<OuterAdapter> canalOutConnectors = new ArrayList<>();
-                    for (CanalOuterAdapterConfiguration c : connectorGroup.getOutAdapters()) {
+                    for (OuterAdapterConfig c : connectorGroup.getOutAdapters()) {
                         loadConnector(c, canalOutConnectors);
                     }
                     canalOuterAdapterGroups.add(canalOutConnectors);
@@ -97,7 +97,7 @@ public class CanalAdapterLoader {
 
                     List<OuterAdapter> canalOuterAdapters = new ArrayList<>();
 
-                    for (CanalOuterAdapterConfiguration config : group.getOutAdapters()) {
+                    for (OuterAdapterConfig config : group.getOutAdapters()) {
                         loadConnector(config, canalOuterAdapters);
                     }
                     canalOuterAdapterGroups.add(canalOuterAdapters);
@@ -125,7 +125,7 @@ public class CanalAdapterLoader {
         }
     }
 
-    private void loadConnector(CanalOuterAdapterConfiguration config, List<OuterAdapter> canalOutConnectors) {
+    private void loadConnector(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
         try {
             OuterAdapter adapter = loader.getExtension(config.getName());
             ClassLoader cl = Thread.currentThread().getContextClassLoader();

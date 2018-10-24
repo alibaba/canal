@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.util.Properties;
+import java.util.Map;
 
 /**
  * 外部适配器配置信息类
@@ -8,15 +8,15 @@ import java.util.Properties;
  * @author machengyuan 2018-8-18 下午10:15:12
  * @version 1.0.0
  */
-public class CanalOuterAdapterConfiguration {
+public class OuterAdapterConfig {
 
-    private String     name;      // 适配器名称, 如: logger, hbase, es
+    private String              name;       // 适配器名称, 如: logger, hbase, es
 
-    private String     hosts;     // 适配器内部的地址, 比如对应es该参数可以填写es的server地址
+    private String              hosts;      // 适配器内部的地址, 比如对应es该参数可以填写es的server地址
 
-    private String     zkHosts;   // 适配器内部的ZK地址, 比如对应HBase该参数可以填写HBase对应的ZK地址
+    private String              zkHosts;    // 适配器内部的ZK地址, 比如对应HBase该参数可以填写HBase对应的ZK地址
 
-    private Properties properties; // 其余参数, 可填写适配器中的所需的配置信息
+    private Map<String, String> properties; // 其余参数, 可填写适配器中的所需的配置信息
 
     public String getName() {
         return name;
@@ -34,11 +34,11 @@ public class CanalOuterAdapterConfiguration {
         this.hosts = hosts;
     }
 
-    public Properties getProperties() {
+    public Map<String, String> getProperties() {
         return properties;
     }
 
-    public void setProperties(Properties properties) {
+    public void setProperties(Map<String, String> properties) {
         this.properties = properties;
     }
 

@@ -109,13 +109,13 @@ public class CanalClientConfig {
 
     public static class AdapterGroup {
 
-        private List<CanalOuterAdapterConfiguration> outAdapters;
+        private List<OuterAdapterConfig> outAdapters;
 
-        public List<CanalOuterAdapterConfiguration> getOutAdapters() {
+        public List<OuterAdapterConfig> getOutAdapters() {
             return outAdapters;
         }
 
-        public void setOutAdapters(List<CanalOuterAdapterConfiguration> outAdapters) {
+        public void setOutAdapters(List<OuterAdapterConfig> outAdapters) {
             this.outAdapters = outAdapters;
         }
     }
@@ -159,7 +159,7 @@ public class CanalClientConfig {
 
         // private List<Adaptor> adapters = new ArrayList<>();
 
-        private List<CanalOuterAdapterConfiguration> outAdapters;
+        private List<OuterAdapterConfig> outAdapters;
 
         public String getGroupId() {
             return groupId;
@@ -169,11 +169,11 @@ public class CanalClientConfig {
             this.groupId = groupId;
         }
 
-        public List<CanalOuterAdapterConfiguration> getOutAdapters() {
+        public List<OuterAdapterConfig> getOutAdapters() {
             return outAdapters;
         }
 
-        public void setOutAdapters(List<CanalOuterAdapterConfiguration> outAdapters) {
+        public void setOutAdapters(List<OuterAdapterConfig> outAdapters) {
             this.outAdapters = outAdapters;
         }
 

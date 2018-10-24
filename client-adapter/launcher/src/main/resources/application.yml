@@ -1,20 +1,32 @@
 server:
   port: 8081
 
+logging:
+  level:
+    com.alibaba.otter.canal.client.adapter.hbase: DEBUG
+
 canal.conf:
   canalServerHost: 127.0.0.1:11111
-  #zookeeperHosts: slave1:2181
-  #bootstrapServers: localhost:9092 #or rocketmq nameservers:host1:9876;host2:9876
-  flatMessage: false
-
+#  zookeeperHosts: slave1:2181
+#  bootstrapServers: slave1:6667 #or rocketmq nameservers:host1:9876;host2:9876
+  flatMessage: true
   canalInstances:
   - instance: example
     adapterGroups:
     - outAdapters:
-      - name: logger
-#      - name: hbase
-#        hosts: slave1:2181
-#        properties: {znodeParent: "/hbase-unsecure"}
+#      - name: logger
+      - name: hbase
+        properties:
+          hbase.zookeeper.quorum: slave1
+          hbase.zookeeper.property.clientPort: 2181
+          zookeeper.znode.parent: /hbase-unsecure
+#  mqTopics:
+#  - mqMode: kafka
+#    topic: example
+#    groups:
+#    - groupId: g2
+#      outAdapters:
+#      - name: logger
 
 adapter.conf:
   datasourceConfigs:
