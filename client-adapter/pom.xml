@@ -23,7 +23,7 @@
         <module>common</module>
         <module>logger</module>
         <module>hbase</module>
-        <module>adapter-launcher</module>
+        <module>launcher</module>
     </modules>
 
     <build>

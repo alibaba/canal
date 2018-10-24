@@ -74,7 +74,7 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${project.basedir}/../adapter-launcher/target/config/hbase" overwrite="true" >
+                                <copy todir="${project.basedir}/../launcher/target/config/hbase" overwrite="true" >
                                     <fileset dir="${project.basedir}/src/main/resources/hbase" erroronmissingdir="true">
                                         <include name="*.yml"/>
                                     </fileset>

@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
-    <artifactId>adapter-launcher</artifactId>
+    <artifactId>launcher</artifactId>
     <packaging>jar</packaging>
     <name>canal client adapter launcher module for otter ${project.version}</name>
 
