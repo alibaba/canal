@@ -204,7 +204,11 @@ public class FlatMessage implements Serializable {
                         for (CanalEntry.Column column : columns) {
                             sqlType.put(column.getName(), column.getSqlType());
                             mysqlType.put(column.getName(), column.getMysqlType());
-                            row.put(column.getName(), column.getValue());
+                            if (column.getIsNull()) {
+                                row.put(column.getName(), null);
+                            } else  {
+                                row.put(column.getName(), column.getValue());
+                            }
                             // 获取update为true的字段
                             if (column.getUpdated()) {
                                 updateSet.add(column.getName());
@@ -218,7 +222,11 @@ public class FlatMessage implements Serializable {
                             Map<String, String> rowOld = new LinkedHashMap<>();
                             for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
                                 if (updateSet.contains(column.getName())) {
-                                    rowOld.put(column.getName(), column.getValue());
+                                    if (column.getIsNull()) {
+                                        rowOld.put(column.getName(), null);
+                                    } else {
+                                        rowOld.put(column.getName(), column.getValue());
+                                    }
                                 }
                             }
                             // update操作将记录修改前的值

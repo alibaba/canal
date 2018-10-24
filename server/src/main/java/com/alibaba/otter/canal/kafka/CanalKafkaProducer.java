@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -141,7 +142,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                     canalDestination.getTopic(),
                                     0,
                                     null,
-                                    JSON.toJSONString(flatMessage));
+                                    JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
                                 producer2.send(record).get();
                             } catch (Exception e) {
                                 logger.error(e.getMessage(), e);
