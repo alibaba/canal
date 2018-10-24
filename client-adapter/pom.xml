@@ -24,6 +24,7 @@
         <module>logger</module>
         <module>hbase</module>
         <module>launcher</module>
+        <module>example</module>
     </modules>
 
     <build>
