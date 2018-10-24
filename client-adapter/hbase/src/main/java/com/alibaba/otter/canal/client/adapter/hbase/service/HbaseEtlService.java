@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.hbase.support.*;
+import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.JdbcTypeUtil;
 import com.google.common.base.Joiner;
 
@@ -75,19 +76,19 @@ public class HbaseEtlService {
         }
     }
 
-    public static void importData(DataSource ds, HbaseTemplate hbaseTemplate, MappingConfig config,
-                                  List<String> params) {
-        // EtlResult etlResult = new EtlResult();
+    public static EtlResult importData(DataSource ds, HbaseTemplate hbaseTemplate, MappingConfig config,
+                                       List<String> params) {
+        EtlResult etlResult = new EtlResult();
         AtomicLong successCount = new AtomicLong();
         List<String> errMsg = new ArrayList<>();
         String hbaseTable = "";
         try {
-            // if (config == null) {
-            // logger.error("Config is null!");
-            // etlResult.setSucceeded(false);
-            // etlResult.setErrorMessage("Config is null!");
-            // return etlResult;
-            // }
+            if (config == null) {
+                logger.error("Config is null!");
+                etlResult.setSucceeded(false);
+                etlResult.setErrorMessage("Config is null!");
+                return etlResult;
+            }
             MappingConfig.HbaseOrm hbaseOrm = config.getHbaseOrm();
             hbaseTable = hbaseOrm.getHbaseTable();
 
@@ -158,7 +159,7 @@ public class HbaseEtlService {
 
             // 当大于1万条记录时开启多线程
             if (cnt >= 10000) {
-                int threadCount = 3; // TODO 从配置读取默认为3
+                int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
                 ExecutorService executor = Executors.newFixedThreadPool(threadCount);
                 List<Future<Boolean>> futures = new ArrayList<>(threadCount);
@@ -191,19 +192,18 @@ public class HbaseEtlService {
             logger.info(
                 hbaseOrm.getHbaseTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000 + "s!");
 
-            // etlResult.setResultMessage("导入HBase表 " + hbaseOrm.getHbaseTable() + " 数据：" +
-            // successCount.get() + " 条");
+            etlResult.setResultMessage("导入HBase表 " + hbaseOrm.getHbaseTable() + " 数据：" + successCount.get() + " 条");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             errMsg.add(hbaseTable + " etl failed! ==>" + e.getMessage());
         }
 
-        // if (errMsg.isEmpty()) {
-        // etlResult.setSucceeded(true);
-        // } else {
-        // etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
-        // }
-        // return etlResult;
+        if (errMsg.isEmpty()) {
+            etlResult.setSucceeded(true);
+        } else {
+            etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
+        }
+        return etlResult;
     }
 
     private static boolean executeSqlImport(DataSource ds, String sql, MappingConfig.HbaseOrm hbaseOrm,

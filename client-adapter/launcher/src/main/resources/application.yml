@@ -1,9 +1,13 @@
 server:
   port: 8081
-
 logging:
   level:
     com.alibaba.otter.canal.client.adapter.hbase: DEBUG
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
 
 canal.conf:
   canalServerHost: 127.0.0.1:11111

@@ -2,8 +2,9 @@ package com.alibaba.otter.canal.client.adapter;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
 
 /**
@@ -40,7 +41,7 @@ public interface OuterAdapter {
      * @param task 任务名, 对应配置名
      * @param params etl筛选条件
      */
-    default void etl(String task, List<String> params) {
+    default EtlResult etl(String task, List<String> params) {
         throw new UnsupportedOperationException();
     }
 

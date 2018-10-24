@@ -18,10 +18,7 @@ import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfigLoader;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
 import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
-import com.alibaba.otter.canal.client.adapter.support.SPI;
+import com.alibaba.otter.canal.client.adapter.support.*;
 
 /**
  * HBase外部适配器
@@ -80,11 +77,16 @@ public class HbaseAdapter implements OuterAdapter {
     }
 
     @Override
-    public void etl(String task, List<String> params) {
+    public EtlResult etl(String task, List<String> params) {
         MappingConfig config = hbaseMapping.get(task);
         DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (dataSource != null) {
-            HbaseEtlService.importData(dataSource, hbaseTemplate, config, params);
+            return HbaseEtlService.importData(dataSource, hbaseTemplate, config, params);
+        } else {
+            EtlResult etlResult = new EtlResult();
+            etlResult.setSucceeded(false);
+            etlResult.setErrorMessage("DataSource not found");
+            return etlResult;
         }
     }
 
