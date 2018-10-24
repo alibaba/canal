@@ -6,7 +6,7 @@
 			</pattern>
 		</encoder>
 	</appender>
-	
+
 	<appender name="CANAL-ROOT" class="ch.qos.logback.classic.sift.SiftingAppender">
 		<discriminator>
 			<Key>destination</Key>
@@ -16,7 +16,7 @@
 			<appender name="FILE-${destination}" class="ch.qos.logback.core.rolling.RollingFileAppender">
 				<File>../logs/${destination}/${destination}.log</File>
 				<rollingPolicy
-					class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+						class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 					<!-- rollover daily -->
 					<fileNamePattern>../logs/${destination}/%d{yyyy-MM-dd}/${destination}-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
 					<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -33,7 +33,7 @@
 			</appender>
 		</sift>
 	</appender>
-	
+
 	<appender name="CANAL-META" class="ch.qos.logback.classic.sift.SiftingAppender">
 		<discriminator>
 			<Key>destination</Key>
@@ -43,7 +43,7 @@
 			<appender name="META-FILE-${destination}" class="ch.qos.logback.core.rolling.RollingFileAppender">
 				<File>../logs/${destination}/meta.log</File>
 				<rollingPolicy
-					class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+						class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 					<!-- rollover daily -->
 					<fileNamePattern>../logs/${destination}/%d{yyyy-MM-dd}/meta-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
 					<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -60,26 +60,26 @@
 			</appender>
 		</sift>
 	</appender>
-	
-    <logger name="com.alibaba.otter.canal.instance" additivity="false">  
-        <level value="INFO" />  
-        <appender-ref ref="CANAL-ROOT" />
-    </logger>
-    <logger name="com.alibaba.otter.canal.deployer" additivity="false">  
-        <level value="INFO" />  
-        <appender-ref ref="CANAL-ROOT" />
-    </logger>
-    <logger name="com.alibaba.otter.canal.meta.FileMixedMetaManager" additivity="false">  
-        <level value="INFO" />
-        <appender-ref ref="CANAL-META" />
-    </logger>
+
+	<logger name="com.alibaba.otter.canal.instance" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+	<logger name="com.alibaba.otter.canal.deployer" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+	<logger name="com.alibaba.otter.canal.meta.FileMixedMetaManager" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-META" />
+	</logger>
 	<logger name="com.alibaba.otter.canal.kafka" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
-    
+
 	<root level="WARN">
-		<!-- <appender-ref ref="STDOUT"/> -->
+		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="CANAL-ROOT" />
 	</root>
 </configuration>
