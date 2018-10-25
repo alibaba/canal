@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;
@@ -41,7 +42,6 @@ public class HbaseAdapter implements OuterAdapter {
     private Connection                                 conn;
     private HbaseSyncService                           hbaseSyncService;
     private HbaseTemplate                              hbaseTemplate;
-    private Configuration                              hbaseConfig;
 
     @Override
     public void init(OuterAdapterConfig configuration) {
@@ -62,7 +62,7 @@ public class HbaseAdapter implements OuterAdapter {
 
             Map<String, String> propertites = configuration.getProperties();
 
-            hbaseConfig = HBaseConfiguration.create();
+            Configuration hbaseConfig = HBaseConfiguration.create();
             propertites.forEach(hbaseConfig::set);
             conn = ConnectionFactory.createConnection(hbaseConfig);
             hbaseTemplate = new HbaseTemplate(conn);
@@ -103,7 +103,7 @@ public class HbaseAdapter implements OuterAdapter {
         String hbaseTable = config.getHbaseOrm().getHbaseTable();
         long rowCount = 0L;
         try {
-            HTable table = new HTable(hbaseConfig, hbaseTable);
+            HTable table = (HTable) conn.getTable(TableName.valueOf(hbaseTable));
             Scan scan = new Scan();
             scan.setFilter(new FirstKeyOnlyFilter());
             ResultScanner resultScanner = table.getScanner(scan);

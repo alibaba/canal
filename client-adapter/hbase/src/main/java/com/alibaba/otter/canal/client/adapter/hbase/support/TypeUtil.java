@@ -92,6 +92,7 @@ public class TypeUtil {
         return b;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T toObject(byte[] bytes, Class<T> clazz) {
         if (bytes == null) {
             return null;
@@ -132,10 +133,10 @@ public class TypeUtil {
         } else {
             throw new IllegalArgumentException("mismatch class type");
         }
-        // noinspection unchecked
         return (T) res;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T toObject(byte[] bytes, Type type) {
         if (bytes == null) {
             return null;
@@ -182,7 +183,6 @@ public class TypeUtil {
         } else {
             throw new IllegalArgumentException("mismatch class type");
         }
-        // noinspection unchecked
         return (T) res;
     }
 }

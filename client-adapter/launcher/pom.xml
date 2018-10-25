@@ -93,7 +93,7 @@
     </dependencies>
 
     <build>
-        <finalName>canal-client-launcher</finalName>
+        <finalName>canal-adapter-launcher</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -142,6 +142,24 @@
                             <includeClassifiers>jar-with-dependencies</includeClassifiers>
                             <outputDirectory>${project.basedir}/target/lib</outputDirectory>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptors>
+                        <descriptor>assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
