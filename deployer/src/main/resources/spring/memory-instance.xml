@@ -41,6 +41,7 @@
 		<property name="bufferMemUnit" value="${canal.instance.memory.buffer.memunit:1024}" />
 		<property name="batchMode" value="${canal.instance.memory.batch.mode:MEMSIZE}" />
 		<property name="ddlIsolation" value="${canal.instance.get.ddl.isolation:false}" />
+		<property name="raw" value="${canal.instance.memory.rawEntry:true}" />
 	</bean>
 	
 	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">

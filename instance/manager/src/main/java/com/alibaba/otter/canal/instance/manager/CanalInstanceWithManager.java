@@ -147,6 +147,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             memoryEventStore.setBufferMemUnit(parameters.getMemoryStorageBufferMemUnit());
             memoryEventStore.setBatchMode(BatchMode.valueOf(parameters.getStorageBatchMode().name()));
             memoryEventStore.setDdlIsolation(parameters.getDdlIsolation());
+            memoryEventStore.setRaw(parameters.getMemoryStorageRawEntry());
             eventStore = memoryEventStore;
         } else if (mode.isFile()) {
             // 后续版本支持
