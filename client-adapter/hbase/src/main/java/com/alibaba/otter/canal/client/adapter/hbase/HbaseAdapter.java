@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
@@ -52,7 +53,8 @@ public class HbaseAdapter implements OuterAdapter {
                         hbaseMapping = MappingConfigLoader.load();
                         mappingConfigCache = new HashMap<>();
                         for (MappingConfig mappingConfig : hbaseMapping.values()) {
-                            mappingConfigCache.put(mappingConfig.getHbaseOrm().getDatabase() + "-"
+                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getHbaseOrm().getDestination())
+                                                   + "." + mappingConfig.getHbaseOrm().getDatabase() + "."
                                                    + mappingConfig.getHbaseOrm().getTable(),
                                 mappingConfig);
                         }
@@ -77,9 +79,10 @@ public class HbaseAdapter implements OuterAdapter {
         if (dml == null) {
             return;
         }
+        String destination = StringUtils.trimToEmpty(dml.getDestination());
         String database = dml.getDatabase();
         String table = dml.getTable();
-        MappingConfig config = mappingConfigCache.get(database + "-" + table);
+        MappingConfig config = mappingConfigCache.get(destination + "." + database + "." + table);
         hbaseSyncService.sync(config, dml);
     }
 

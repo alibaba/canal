@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 
 /**
  * 外部适配器的加载器
@@ -66,10 +66,12 @@ public class CanalAdapterLoader {
                     canalOuterAdapterGroups.add(canalOutConnectors);
                 }
                 CanalAdapterWorker worker;
-                if (zkHosts != null) {
+                if (sa != null) {
+                    worker = new CanalAdapterWorker(instance.getInstance(), sa, canalOuterAdapterGroups);
+                } else if (zkHosts != null) {
                     worker = new CanalAdapterWorker(instance.getInstance(), zkHosts, canalOuterAdapterGroups);
                 } else {
-                    worker = new CanalAdapterWorker(instance.getInstance(), sa, canalOuterAdapterGroups);
+                    throw new RuntimeException("No canal server connector found");
                 }
                 canalWorkers.put(instance.getInstance(), worker);
                 worker.start();

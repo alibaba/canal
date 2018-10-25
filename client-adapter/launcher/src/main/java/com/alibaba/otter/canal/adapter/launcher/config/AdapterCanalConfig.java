@@ -13,7 +13,7 @@ import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 @ConfigurationProperties(prefix = "canal.conf")
 public class AdapterCanalConfig extends CanalClientConfig {
 
-    public static final Set<String> DESTINATIONS = new LinkedHashSet<>();
+    public final Set<String> DESTINATIONS = new LinkedHashSet<>();
 
     @Override
     public void setCanalInstances(List<CanalInstance> canalInstances) {

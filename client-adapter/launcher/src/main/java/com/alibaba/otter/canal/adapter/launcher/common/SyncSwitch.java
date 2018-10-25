@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.adapter.launcher.common;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -8,41 +9,113 @@ import java.util.concurrent.TimeoutException;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.otter.canal.adapter.launcher.config.AdapterCanalConfig;
+import com.alibaba.otter.canal.adapter.launcher.config.CuratorClient;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 
 @Component
 public class SyncSwitch {
 
-    private static final Map<String, BooleanMutex> LOCAL_LOCK = new ConcurrentHashMap<>();
+    private static final String                    SYN_SWITCH_ZKNODE = "/sync-switch/";
 
-    private Mode                                   mode       = Mode.LOCAL;
+    private static final Map<String, BooleanMutex> LOCAL_LOCK        = new ConcurrentHashMap<>();
+
+    private static final Map<String, BooleanMutex> DISTRIBUTED_LOCK  = new ConcurrentHashMap<>();
+
+    private static Mode                            mode              = Mode.LOCAL;
 
     @Resource
     private AdapterCanalConfig                     adapterCanalConfig;
+    @Resource
+    private CuratorClient                          curatorClient;
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isEmpty(adapterCanalConfig.getZookeeperHosts())) {
+        CuratorFramework curator = curatorClient.getCurator();
+        if (curator != null) {
+            mode = Mode.DISTRIBUTED;
+            DISTRIBUTED_LOCK.clear();
+            for (String destination : adapterCanalConfig.DESTINATIONS) {
+                // 对应每个destination注册锁
+                BooleanMutex mutex = new BooleanMutex(true);
+                initMutex(curator, destination, mutex);
+                DISTRIBUTED_LOCK.put(destination, mutex);
+                startListen(destination, mutex);
+            }
+        } else {
             mode = Mode.LOCAL;
             LOCAL_LOCK.clear();
-            for (String destination : AdapterCanalConfig.DESTINATIONS) {
+            for (String destination : adapterCanalConfig.DESTINATIONS) {
                 // 对应每个destination注册锁
                 LOCAL_LOCK.put(destination, new BooleanMutex(true));
             }
-        } else {
-            mode = Mode.DISTRIBUTED;
+        }
+    }
+
+    private synchronized void startListen(String destination, BooleanMutex mutex) {
+        try {
+            String path = SYN_SWITCH_ZKNODE + destination;
+            CuratorFramework curator = curatorClient.getCurator();
+            final NodeCache nodeCache = new NodeCache(curator, path);
+            nodeCache.start();
+            nodeCache.getListenable().addListener(() -> initMutex(curator, destination, mutex));
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    private synchronized void initMutex(CuratorFramework curator, String destination, BooleanMutex mutex) {
+        try {
+            String path = SYN_SWITCH_ZKNODE + destination;
+            Stat stat = curator.checkExists().forPath(path);
+            if (stat == null) {
+                if (!mutex.state()) {
+                    mutex.set(true);
+                }
+            } else {
+                String data = new String(curator.getData().forPath(path), StandardCharsets.UTF_8);
+                if ("on".equals(data)) {
+                    if (!mutex.state()) {
+                        mutex.set(true);
+                    }
+                } else {
+                    if (mutex.state()) {
+                        mutex.set(false);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
     public synchronized void off(String destination) {
+
         if (mode == Mode.LOCAL) {
             BooleanMutex mutex = LOCAL_LOCK.get(destination);
             if (mutex != null && mutex.state()) {
                 mutex.set(false);
+            }
+        } else {
+            try {
+                String path = SYN_SWITCH_ZKNODE + destination;
+                try {
+                    curatorClient.getCurator()
+                        .create()
+                        .creatingParentContainersIfNeeded()
+                        .withMode(CreateMode.PERSISTENT)
+                        .forPath(path, "off".getBytes(StandardCharsets.UTF_8));
+                } catch (Exception e) {
+                    curatorClient.getCurator().setData().forPath(path, "off".getBytes(StandardCharsets.UTF_8));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -53,14 +126,35 @@ public class SyncSwitch {
             if (mutex != null && !mutex.state()) {
                 mutex.set(true);
             }
+        } else {
+            try {
+                String path = SYN_SWITCH_ZKNODE + destination;
+                try {
+                    curatorClient.getCurator()
+                        .create()
+                        .creatingParentContainersIfNeeded()
+                        .withMode(CreateMode.PERSISTENT)
+                        .forPath(path, "on".getBytes(StandardCharsets.UTF_8));
+                } catch (Exception e) {
+                    curatorClient.getCurator().setData().forPath(path, "on".getBytes(StandardCharsets.UTF_8));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     public synchronized void release(String destination) {
         if (mode == Mode.LOCAL) {
             BooleanMutex mutex = LOCAL_LOCK.get(destination);
-            if (mutex != null && mutex.state()) {
-                mutex.set(false);
+            if (mutex != null && !mutex.state()) {
+                mutex.set(true);
+            }
+        }
+        if (mode == Mode.DISTRIBUTED) {
+            BooleanMutex mutex = DISTRIBUTED_LOCK.get(destination);
+            if (mutex != null && !mutex.state()) {
+                mutex.set(true);
             }
         }
     }
@@ -73,13 +167,24 @@ public class SyncSwitch {
             } else {
                 return null;
             }
+        } else {
+            BooleanMutex mutex = DISTRIBUTED_LOCK.get(destination);
+            if (mutex != null) {
+                return mutex.state();
+            } else {
+                return null;
+            }
         }
-        return null;
     }
 
     public void get(String destination) throws InterruptedException {
         if (mode == Mode.LOCAL) {
             BooleanMutex mutex = LOCAL_LOCK.get(destination);
+            if (mutex != null) {
+                mutex.get();
+            }
+        } else {
+            BooleanMutex mutex = DISTRIBUTED_LOCK.get(destination);
             if (mutex != null) {
                 mutex.get();
             }
@@ -89,6 +194,11 @@ public class SyncSwitch {
     public void get(String destination, long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
         if (mode == Mode.LOCAL) {
             BooleanMutex mutex = LOCAL_LOCK.get(destination);
+            if (mutex != null) {
+                mutex.get(timeout, unit);
+            }
+        } else {
+            BooleanMutex mutex = DISTRIBUTED_LOCK.get(destination);
             if (mutex != null) {
                 mutex.get(timeout, unit);
             }

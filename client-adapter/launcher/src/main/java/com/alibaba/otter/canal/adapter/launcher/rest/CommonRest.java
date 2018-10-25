@@ -26,6 +26,9 @@ public class CommonRest {
     @Resource
     private SyncSwitch                    syncSwitch;
 
+    @Resource
+    private AdapterCanalConfig            adapterCanalConfig;
+
     @PostConstruct
     public void init() {
         loader = ExtensionLoader.getExtensionLoader(OuterAdapter.class);
@@ -82,7 +85,7 @@ public class CommonRest {
     @GetMapping("/destinations")
     public List<Map<String, String>> destinations() {
         List<Map<String, String>> result = new ArrayList<>();
-        Set<String> destinations = AdapterCanalConfig.DESTINATIONS;
+        Set<String> destinations = adapterCanalConfig.DESTINATIONS;
         for (String destination : destinations) {
             Map<String, String> resMap = new LinkedHashMap<>();
             Boolean status = syncSwitch.status(destination);

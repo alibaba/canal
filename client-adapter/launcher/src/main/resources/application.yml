@@ -16,14 +16,14 @@ hbase.zookeeper.znode.parent: /hbase-unsecure
 
 canal.conf:
   canalServerHost: 127.0.0.1:11111
-#  zookeeperHosts: slave1:2181
+  zookeeperHosts: slave1:2181
 #  bootstrapServers: slave1:6667 #or rocketmq nameservers:host1:9876;host2:9876
   flatMessage: true
   canalInstances:
   - instance: example
     adapterGroups:
     - outAdapters:
-      - name: logger
+#      - name: logger
       - name: hbase
         properties:
           hbase.zookeeper.quorum: ${hbase.zookeeper.quorum}
@@ -45,4 +45,3 @@ adapter.conf:
       password: 121212
   adapterConfigs:
   - hbase/mytest_person2.yml
-#  - hbase/mytest.person2@defaultDS

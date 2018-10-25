@@ -54,8 +54,6 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
         groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         connector = CanalConnectors.newClusterConnector(zookeeperHosts, canalDestination, "", "");
         ((ClusterCanalConnector) connector).setSoTimeout(SO_TIMEOUT);
-
-        // super.initSwitcher(canalDestination);
     }
 
     @Override
