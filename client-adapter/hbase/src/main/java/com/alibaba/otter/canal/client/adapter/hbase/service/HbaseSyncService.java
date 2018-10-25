@@ -1,23 +1,13 @@
 package com.alibaba.otter.canal.client.adapter.hbase.service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.hbase.support.HRow;
-import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
-import com.alibaba.otter.canal.client.adapter.hbase.support.PhType;
-import com.alibaba.otter.canal.client.adapter.hbase.support.PhTypeUtil;
-import com.alibaba.otter.canal.client.adapter.hbase.support.Type;
-import com.alibaba.otter.canal.client.adapter.hbase.support.TypeUtil;
+import com.alibaba.otter.canal.client.adapter.hbase.support.*;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 /**
@@ -32,8 +22,8 @@ public class HbaseSyncService {
 
     private HbaseTemplate hbaseTemplate;                                    // HBase操作模板
 
-    public HbaseSyncService(Connection conn){
-        hbaseTemplate = new HbaseTemplate(conn);
+    public HbaseSyncService(HbaseTemplate hbaseTemplate){
+        this.hbaseTemplate = hbaseTemplate;
     }
 
     public void sync(MappingConfig config, Dml dml) {
@@ -375,7 +365,8 @@ public class HbaseSyncService {
      * @param value 值
      * @return 复合字段rowKey
      */
-    private static byte[] typeConvert(MappingConfig.ColumnItem columnItem, MappingConfig.HbaseOrm hbaseOrm, Object value) {
+    private static byte[] typeConvert(MappingConfig.ColumnItem columnItem, MappingConfig.HbaseOrm hbaseOrm,
+                                      Object value) {
         if (value == null) {
             return null;
         }

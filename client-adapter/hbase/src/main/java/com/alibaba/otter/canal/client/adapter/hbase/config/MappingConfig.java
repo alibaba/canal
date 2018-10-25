@@ -13,8 +13,17 @@ import java.util.Set;
  * @version 1.0.0
  */
 public class MappingConfig {
+    private String dataSourceKey;
 
     private HbaseOrm hbaseOrm;
+
+    public String getDataSourceKey() {
+        return dataSourceKey;
+    }
+
+    public void setDataSourceKey(String dataSourceKey) {
+        this.dataSourceKey = dataSourceKey;
+    }
 
     public HbaseOrm getHbaseOrm() {
         return hbaseOrm;
@@ -137,6 +146,7 @@ public class MappingConfig {
     public static class HbaseOrm {
 
         private Mode                    mode               = Mode.STRING;
+        private String                  destination;
         private String                  database;
         private String                  table;
         private String                  hbaseTable;
@@ -159,6 +169,14 @@ public class MappingConfig {
 
         public void setMode(Mode mode) {
             this.mode = mode;
+        }
+
+        public String getDestination() {
+            return destination;
+        }
+
+        public void setDestination(String destination) {
+            this.destination = destination;
         }
 
         public String getDatabase() {

@@ -13,9 +13,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
-import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 
 /**
@@ -33,7 +33,7 @@ public class CanalAdapterLoader {
 
     private Map<String, AbstractCanalAdapterWorker> canalMQWorker = new HashMap<>();
 
-    private ExtensionLoader<CanalOuterAdapter>      loader;
+    private ExtensionLoader<OuterAdapter>      loader;
 
     public CanalAdapterLoader(CanalClientConfig canalClientConfig){
         this.canalClientConfig = canalClientConfig;
@@ -48,7 +48,7 @@ public class CanalAdapterLoader {
             throw new RuntimeException("Blank config property: canalInstances or canalMQTopics");
         }
 
-        loader = ExtensionLoader.getExtensionLoader(CanalOuterAdapter.class, "" /*
+        loader = ExtensionLoader.getExtensionLoader(OuterAdapter.class, "" /*
                                                                                  * TODO
                                                                                  * canalClientConfig
                                                                                  * .
@@ -68,11 +68,11 @@ public class CanalAdapterLoader {
         // 初始化canal-client的适配器
         if (canalClientConfig.getCanalInstances() != null) {
             for (CanalClientConfig.CanalInstance instance : canalClientConfig.getCanalInstances()) {
-                List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
+                List<List<OuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
 
                 for (CanalClientConfig.AdapterGroup connectorGroup : instance.getAdapterGroups()) {
-                    List<CanalOuterAdapter> canalOutConnectors = new ArrayList<>();
-                    for (CanalOuterAdapterConfiguration c : connectorGroup.getOutAdapters()) {
+                    List<OuterAdapter> canalOutConnectors = new ArrayList<>();
+                    for (OuterAdapterConfig c : connectorGroup.getOutAdapters()) {
                         loadConnector(c, canalOutConnectors);
                     }
                     canalOuterAdapterGroups.add(canalOutConnectors);
@@ -93,11 +93,11 @@ public class CanalAdapterLoader {
         if (canalClientConfig.getMqTopics() != null) {
             for (CanalClientConfig.MQTopic topic : canalClientConfig.getMqTopics()) {
                 for (CanalClientConfig.Group group : topic.getGroups()) {
-                    List<List<CanalOuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
+                    List<List<OuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
 
-                    List<CanalOuterAdapter> canalOuterAdapters = new ArrayList<>();
+                    List<OuterAdapter> canalOuterAdapters = new ArrayList<>();
 
-                    for (CanalOuterAdapterConfiguration config : group.getOutAdapters()) {
+                    for (OuterAdapterConfig config : group.getOutAdapters()) {
                         loadConnector(config, canalOuterAdapters);
                     }
                     canalOuterAdapterGroups.add(canalOuterAdapters);
@@ -125,9 +125,9 @@ public class CanalAdapterLoader {
         }
     }
 
-    private void loadConnector(CanalOuterAdapterConfiguration config, List<CanalOuterAdapter> canalOutConnectors) {
+    private void loadConnector(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
         try {
-            CanalOuterAdapter adapter = loader.getExtension(config.getName());
+            OuterAdapter adapter = loader.getExtension(config.getName());
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
             // 替换ClassLoader
             Thread.currentThread().setContextClassLoader(adapter.getClass().getClassLoader());

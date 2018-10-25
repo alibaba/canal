@@ -37,7 +37,7 @@ public class MappingConfigLoader {
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        Collection<String> configs = AdapterConfigs.configs.get("hbase");
+        Collection<String> configs = AdapterConfigs.get("hbase");
         for (String c : configs) {
             if (c == null) {
                 continue;
@@ -72,6 +72,7 @@ public class MappingConfigLoader {
                 String[] dbTable;
                 if (dsKey == null) {
                     dbTable = srcMeta.split("\\.");
+
                 } else {
                     dbTable = srcMeta.split("@")[0].split("\\.");
                 }
@@ -84,7 +85,7 @@ public class MappingConfigLoader {
                     hbaseOrm.setAutoCreateTable(true);
                     hbaseOrm.setDatabase(dbTable[0]);
                     hbaseOrm.setTable(dbTable[1]);
-                    hbaseOrm.setMode(MappingConfig.Mode.STRING);
+                    hbaseOrm.setMode(MappingConfig.Mode.PHOENIX);
                     hbaseOrm.setRowKey(rowKey);
                     // 有定义rowKey
                     if (rowKey != null) {
@@ -94,6 +95,7 @@ public class MappingConfigLoader {
                         hbaseOrm.setRowKeyColumn(columnItem);
                     }
                     config.setHbaseOrm(hbaseOrm);
+                    config.setDataSourceKey(dsKey);
 
                 } else {
                     throw new RuntimeException(String.format("配置项[%s]内容为空, 或格式不符合database.table", c));

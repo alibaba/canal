@@ -14,6 +14,7 @@ public class Dml implements Serializable {
 
     private static final long         serialVersionUID = 2611556444074013268L;
 
+    private String                    destination;
     private String                    database;
     private String                    table;
     private String                    type;
@@ -24,6 +25,14 @@ public class Dml implements Serializable {
     private String                    sql;
     private List<Map<String, Object>> data;
     private List<Map<String, Object>> old;
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
 
     public String getDatabase() {
         return database;
@@ -102,7 +111,8 @@ public class Dml implements Serializable {
 
     @Override
     public String toString() {
-        return "Dml [database=" + database + ", table=" + table + ", type=" + type + ", es=" + es + ", ts=" + ts
-               + ", sql=" + sql + ", data=" + data + ", old=" + old + "]";
+        return "Dml{" + "destination='" + destination + '\'' + ", database='" + database + '\'' + ", table='" + table
+               + '\'' + ", type='" + type + '\'' + ", es=" + es + ", ts=" + ts + ", sql='" + sql + '\'' + ", data="
+               + data + ", old=" + old + '}';
     }
 }

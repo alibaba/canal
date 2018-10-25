@@ -3,10 +3,12 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 import java.net.SocketAddress;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -31,7 +33,7 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      * @param canalOuterAdapters 外部适配器组
      */
     public CanalAdapterWorker(String canalDestination, SocketAddress address,
-                              List<List<CanalOuterAdapter>> canalOuterAdapters){
+                              List<List<OuterAdapter>> canalOuterAdapters){
         this.canalOuterAdapters = canalOuterAdapters;
         this.canalDestination = canalDestination;
         groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
@@ -46,26 +48,18 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      * @param canalOuterAdapters 外部适配器组
      */
     public CanalAdapterWorker(String canalDestination, String zookeeperHosts,
-                              List<List<CanalOuterAdapter>> canalOuterAdapters){
+                              List<List<OuterAdapter>> canalOuterAdapters){
         this.canalOuterAdapters = canalOuterAdapters;
         this.canalDestination = canalDestination;
         groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         connector = CanalConnectors.newClusterConnector(zookeeperHosts, canalDestination, "", "");
         ((ClusterCanalConnector) connector).setSoTimeout(SO_TIMEOUT);
-
-        // super.initSwitcher(canalDestination);
     }
 
     @Override
     public void start() {
         if (!running) {
-            thread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    process();
-                }
-            });
+            thread = new Thread(this::process);
             thread.setUncaughtExceptionHandler(handler);
             thread.start();
             running = true;
@@ -79,12 +73,10 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                 return;
             }
 
-            // if (switcher != null && !switcher.state()) {
-            // switcher.set(true);
-            // }
-
             connector.stopRunning();
             running = false;
+
+            syncSwitch.release(canalDestination);
 
             logger.info("destination {} is waiting for adapters' worker thread die!", canalDestination);
             if (thread != null) {
@@ -96,8 +88,8 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
             }
             groupInnerExecutorService.shutdown();
             logger.info("destination {} adapters' worker thread dead!", canalDestination);
-            for (List<CanalOuterAdapter> outerAdapters : canalOuterAdapters) {
-                for (CanalOuterAdapter adapter : outerAdapters) {
+            for (List<OuterAdapter> outerAdapters : canalOuterAdapters) {
+                for (OuterAdapter adapter : outerAdapters) {
                     adapter.destroy();
                 }
             }
@@ -112,22 +104,22 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
             ; // waiting until running == true
         while (running) {
             try {
-                // if (switcher != null) {
-                // switcher.get();
-                // }
+                syncSwitch.get(canalDestination);
+
                 logger.info("=============> Start to connect destination: {} <=============", this.canalDestination);
                 connector.connect();
                 logger.info("=============> Start to subscribe destination: {} <=============", this.canalDestination);
                 connector.subscribe();
                 logger.info("=============> Subscribe destination: {} succeed <=============", this.canalDestination);
                 while (running) {
-                    // try {
-                    // if (switcher != null) {
-                    // switcher.get();
-                    // }
-                    // } catch (TimeoutException e) {
-                    // break;
-                    // }
+                    try {
+                        syncSwitch.get(canalDestination, 1L, TimeUnit.MINUTES);
+                    } catch (TimeoutException e) {
+                        break;
+                    }
+                    if (!running) {
+                        break;
+                    }
 
                     // server配置canal.instance.network.soTimeout(默认: 30s)
                     // 范围内未与server交互，server将关闭本次socket连接

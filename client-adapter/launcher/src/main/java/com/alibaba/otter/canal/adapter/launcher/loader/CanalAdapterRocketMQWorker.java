@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.client.adapter.loader;
+package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -89,7 +89,15 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                                 @Override
                                 public void run() {
                                     try {
-                                        writeOut(message, topic);
+                                        if (logger.isDebugEnabled()) {
+                                            logger.debug("topic: {} batchId: {} batchSize: {} ", topic, message.getId(), message.getEntries().size());
+                                        }
+                                        long begin = System.currentTimeMillis();
+                                        writeOut(message);
+                                        long now = System.currentTimeMillis();
+                                        if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
+                                            logger.error("topic: {} batchId {} elapsed time: {} ms", topic, message.getId(), now - begin);
+                                        }
                                     } catch (Exception e) {
                                         logger.error(e.getMessage(), e);
                                     }

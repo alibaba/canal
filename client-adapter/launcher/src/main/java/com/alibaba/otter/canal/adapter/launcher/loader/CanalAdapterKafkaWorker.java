@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.client.adapter.loader;
+package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -44,13 +44,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     @Override
     public void start() {
         if (!running) {
-            thread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    process();
-                }
-            });
+            thread = new Thread(() -> process());
             thread.setUncaughtExceptionHandler(handler);
             running = true;
             thread.start();
@@ -120,36 +114,6 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                                 } else {
                                     writeOut((Message) message);
                                 }
-                                // executing.set(true);
-                                // if (message != null) {
-                                // executor.submit(new Runnable() {
-                                //
-                                // @Override
-                                // public void run() {
-                                // try {
-                                // if (message instanceof FlatMessage) {
-                                // writeOut((FlatMessage) message);
-                                // } else {
-                                // writeOut((Message) message);
-                                // }
-                                // } catch (Exception e) {
-                                // logger.error(e.getMessage(), e);
-                                // } finally {
-                                // executing.compareAndSet(true, false);
-                                // }
-                                // }
-                                // });
-                                //
-                                // // 间隔一段时间ack一次, 防止因超时未响应切换到另外台客户端
-                                // long currentTS = System.currentTimeMillis();
-                                // while (executing.get()) {
-                                // // 大于10秒未消费完ack一次keep alive
-                                // if (System.currentTimeMillis() - currentTS > 10000) {
-                                // connector.ack();
-                                // currentTS = System.currentTimeMillis();
-                                // }
-                                // }
-                                // }
                             }
                         }
                         connector.ack();
