@@ -9,7 +9,7 @@ import com.alibaba.otter.canal.protocol.Message;
 /**
  * Message对象解析工具类
  *
- * @author machengyuan 2018-8-19 下午06:14:23
+ * @author rewerma 2018-8-19 下午06:14:23
  * @version 1.0.0
  */
 public class MessageUtil {

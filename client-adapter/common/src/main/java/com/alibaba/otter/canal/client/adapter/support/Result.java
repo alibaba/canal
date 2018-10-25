@@ -3,9 +3,15 @@ package com.alibaba.otter.canal.client.adapter.support;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * 用于rest的结果返回对象
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 public class Result implements Serializable {
 
-    public Integer code    = 20000;
+    public Integer code = 20000;
     public Object  data;
     public String  message;
     public Date    sysTime;

@@ -24,6 +24,12 @@ import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.JdbcTypeUtil;
 import com.google.common.base.Joiner;
 
+/**
+ * HBase ETL 操作业务类
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 public class HbaseEtlService {
 
     private static Logger logger = LoggerFactory.getLogger(HbaseEtlService.class);
@@ -66,6 +72,12 @@ public class HbaseEtlService {
         }
     }
 
+    /**
+     * 建表
+     * 
+     * @param hbaseTemplate
+     * @param config
+     */
     public static void createTable(HbaseTemplate hbaseTemplate, MappingConfig config) {
         try {
             // 判断hbase表是否存在，不存在则建表
@@ -79,6 +91,15 @@ public class HbaseEtlService {
         }
     }
 
+    /**
+     * 导入数据
+     * 
+     * @param ds 数据源
+     * @param hbaseTemplate hbaseTemplate
+     * @param config 配置
+     * @param params 筛选条件
+     * @return 导入结果
+     */
     public static EtlResult importData(DataSource ds, HbaseTemplate hbaseTemplate, MappingConfig config,
                                        List<String> params) {
         EtlResult etlResult = new EtlResult();
@@ -209,6 +230,17 @@ public class HbaseEtlService {
         return etlResult;
     }
 
+    /**
+     * 执行导入
+     * 
+     * @param ds
+     * @param sql
+     * @param hbaseOrm
+     * @param hbaseTemplate
+     * @param successCount
+     * @param errMsg
+     * @return
+     */
     private static boolean executeSqlImport(DataSource ds, String sql, MappingConfig.HbaseOrm hbaseOrm,
                                             HbaseTemplate hbaseTemplate, AtomicLong successCount, List<String> errMsg) {
         try {

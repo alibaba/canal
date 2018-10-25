@@ -1,21 +1,18 @@
 package com.alibaba.otter.canal.client.adapter.hbase.config;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * HBase表映射配置
  *
- * @author machengyuan 2018-8-21 下午06:45:49
+ * @author rewerma 2018-8-21 下午06:45:49
  * @version 1.0.0
  */
 public class MappingConfig {
-    private String dataSourceKey;
 
-    private HbaseOrm hbaseOrm;
+    private String   dataSourceKey; // 数据源key
+
+    private HbaseOrm hbaseOrm;      // hbase映射配置
 
     public String getDataSourceKey() {
         return dataSourceKey;
@@ -130,7 +127,7 @@ public class MappingConfig {
     }
 
     public enum Mode {
-        STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
+                      STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
 
         private String type;
 
@@ -145,23 +142,23 @@ public class MappingConfig {
 
     public static class HbaseOrm {
 
-        private Mode                    mode               = Mode.STRING;
-        private String                  destination;
-        private String                  database;
-        private String                  table;
-        private String                  hbaseTable;
-        private String                  family             = "CF";
-        private boolean                 uppercaseQualifier = true;
-        private boolean                 autoCreateTable    = false;                // 同步时HBase中表不存在的情况下自动建表
-        private String                  rowKey;                                    // 指定复合主键为rowKey
-        private Map<String, String>     columns;
-        private ColumnItem              rowKeyColumn;
-        private String                  etlCondition;
+        private Mode                    mode               = Mode.STRING;           // hbase默认转换格式
+        private String                  destination;                                // canal实例或MQ的topic
+        private String                  database;                                   // 数据库名或schema名
+        private String                  table;                                      // 表面名
+        private String                  hbaseTable;                                 // hbase表名
+        private String                  family             = "CF";                  // 默认统一column family
+        private boolean                 uppercaseQualifier = true;                  // 是否转大写
+        private boolean                 autoCreateTable    = false;                 // 同步时HBase中表不存在的情况下自动建表
+        private String                  rowKey;                                     // 指定复合主键为rowKey
+        private Map<String, String>     columns;                                    // 字段映射
+        private ColumnItem              rowKeyColumn;                               // rowKey字段
+        private String                  etlCondition;                               // etl条件sql
 
-        private Map<String, ColumnItem> columnItems        = new LinkedHashMap<>();
-        private Set<String>             families           = new LinkedHashSet<>();
+        private Map<String, ColumnItem> columnItems        = new LinkedHashMap<>(); // 转换后的字段映射列表
+        private Set<String>             families           = new LinkedHashSet<>(); // column family列表
         private int                     readBatch          = 5000;
-        private int                     commitBatch        = 5000;
+        private int                     commitBatch        = 5000;                  // etl等批量提交大小
 
         public Mode getMode() {
             return mode;

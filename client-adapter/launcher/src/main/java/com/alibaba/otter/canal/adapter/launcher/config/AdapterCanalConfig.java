@@ -9,6 +9,12 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 
+/**
+ * canal 的相关配置类
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 @Component
 @ConfigurationProperties(prefix = "canal.conf")
 public class AdapterCanalConfig extends CanalClientConfig {

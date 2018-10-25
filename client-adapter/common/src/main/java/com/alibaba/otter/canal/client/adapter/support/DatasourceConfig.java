@@ -1,21 +1,27 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import com.alibaba.druid.pool.DruidDataSource;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.alibaba.druid.pool.DruidDataSource;
+
+/**
+ * 数据源配置
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 public class DatasourceConfig {
 
-    public final static Map<String, DruidDataSource> DATA_SOURCES = new ConcurrentHashMap<>();
+    public final static Map<String, DruidDataSource> DATA_SOURCES = new ConcurrentHashMap<>(); // key对应的数据源
 
-    private String                                   driver       = "com.mysql.jdbc.Driver";
-    private String                                   url;
-    private String                                   database;
-    private String                                   type         = "mysql";
-    private String                                   username;
-    private String                                   password;
-    private Integer                                  maxActive    = 3;
+    private String                                   driver       = "com.mysql.jdbc.Driver";   // 默认为mysql jdbc驱动
+    private String                                   url;                                      // jdbc url
+    private String                                   database;                                 // jdbc database
+    private String                                   type         = "mysql";                   // 类型, 默认为mysql
+    private String                                   username;                                 // jdbc username
+    private String                                   password;                                 // jdbc password
+    private Integer                                  maxActive    = 3;                         // 连接池最大连接数,默认为3
 
     public String getDriver() {
         return driver;

@@ -13,7 +13,7 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
 /**
  * HBase同步操作业务
  *
- * @author machengyuan 2018-8-21 下午06:45:49
+ * @author rewerma 2018-8-21 下午06:45:49
  * @version 1.0.0
  */
 public class HbaseSyncService {
