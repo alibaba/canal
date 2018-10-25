@@ -323,12 +323,11 @@ public class HbaseEtlService {
                             rows.clear();
                             complete = true;
                         }
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("import count:" + i);
-                        }
-                        // System.out.println(i);
                         i++;
                         successCount.incrementAndGet();
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("successful import count:" + successCount.get());
+                        }
                     }
 
                     if (!complete && !rows.isEmpty()) {
@@ -338,7 +337,7 @@ public class HbaseEtlService {
                 } catch (Exception e) {
                     logger.error(hbaseOrm.getHbaseTable() + " etl failed! ==>" + e.getMessage(), e);
                     errMsg.add(hbaseOrm.getHbaseTable() + " etl failed! ==>" + e.getMessage());
-                    throw new RuntimeException(e);
+                    // throw new RuntimeException(e);
                 }
                 return i;
             });

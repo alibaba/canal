@@ -85,16 +85,49 @@ public class HbaseAdapter implements OuterAdapter {
 
     @Override
     public EtlResult etl(String task, List<String> params) {
+        EtlResult etlResult = new EtlResult();
         MappingConfig config = hbaseMapping.get(task);
-        DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        if (dataSource != null) {
-            return HbaseEtlService.importData(dataSource, hbaseTemplate, config, params);
+        if (config != null) {
+            DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+            if (dataSource != null) {
+                return HbaseEtlService.importData(dataSource, hbaseTemplate, config, params);
+            } else {
+                etlResult.setSucceeded(false);
+                etlResult.setErrorMessage("DataSource not found");
+                return etlResult;
+            }
         } else {
-            EtlResult etlResult = new EtlResult();
-            etlResult.setSucceeded(false);
-            etlResult.setErrorMessage("DataSource not found");
-            return etlResult;
+            DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(task);
+            if (dataSource != null) {
+                StringBuilder resultMsg = new StringBuilder();
+                boolean resSucc = true;
+                // ds不为空说明传入的是datasourceKey
+                for (MappingConfig configTmp : hbaseMapping.values()) {
+                    // 取所有的datasourceKey为task的配置
+                    if (configTmp.getDataSourceKey().equals(task)) {
+                        EtlResult etlRes = HbaseEtlService.importData(dataSource, hbaseTemplate, configTmp, params);
+                        if (!etlRes.getSucceeded()) {
+                            resSucc = false;
+                            resultMsg.append(etlRes.getErrorMessage()).append("\n");
+                        } else {
+                            resultMsg.append(etlRes.getResultMessage()).append("\n");
+                        }
+                    }
+                }
+                if (resultMsg.length() > 0) {
+                    etlResult.setSucceeded(resSucc);
+                    if (resSucc) {
+                        etlResult.setResultMessage(resultMsg.toString());
+                    } else {
+                        etlResult.setErrorMessage(resultMsg.toString());
+                    }
+                    return etlResult;
+                }
+            }
         }
+        etlResult.setSucceeded(false);
+        etlResult.setErrorMessage("Task not found");
+        return etlResult;
     }
 
     @Override

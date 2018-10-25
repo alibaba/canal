@@ -23,11 +23,11 @@ public class CommonRest {
     }
 
     /**
-     * Demo: POST: http://127.0.0.1:8081/etl/hbase/mytest_person2.yml
+     * Demo: curl http://127.0.0.1:8081/etl/hbase/mytest_person2.yml -X POST -d "params=0,1,2"
      */
     @PostMapping("/etl/{type}/{task}")
     public EtlResult etl(@PathVariable String type, @PathVariable String task,
-                         @RequestParam(required = false) String params) {
+                         @RequestParam(name = "params", required = false) String params) {
         OuterAdapter adapter = loader.getExtension(type);
         List<String> paramArr = null;
         if (params != null) {
@@ -39,7 +39,7 @@ public class CommonRest {
     }
 
     /**
-     * Demo: GET: http://127.0.0.1:8081/count/hbase/mytest_person2.yml
+     * Demo: curl http://127.0.0.1:8081/count/hbase/mytest_person2.yml
      */
     @GetMapping("/count/{type}/{task}")
     public Map<String, Object> count(@PathVariable String type, @PathVariable String task) {
