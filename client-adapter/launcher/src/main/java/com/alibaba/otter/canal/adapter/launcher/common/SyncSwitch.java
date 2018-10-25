@@ -22,7 +22,7 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 @Component
 public class SyncSwitch {
 
-    private static final String                    SYN_SWITCH_ZKNODE = "/sync-switch/";
+    private static final String                    SYN_SWITCH_ZK_NODE = "/sync-switch/";
 
     private static final Map<String, BooleanMutex> LOCAL_LOCK        = new ConcurrentHashMap<>();
 
@@ -60,7 +60,7 @@ public class SyncSwitch {
 
     private synchronized void startListen(String destination, BooleanMutex mutex) {
         try {
-            String path = SYN_SWITCH_ZKNODE + destination;
+            String path = SYN_SWITCH_ZK_NODE + destination;
             CuratorFramework curator = curatorClient.getCurator();
             final NodeCache nodeCache = new NodeCache(curator, path);
             nodeCache.start();
@@ -72,7 +72,7 @@ public class SyncSwitch {
 
     private synchronized void initMutex(CuratorFramework curator, String destination, BooleanMutex mutex) {
         try {
-            String path = SYN_SWITCH_ZKNODE + destination;
+            String path = SYN_SWITCH_ZK_NODE + destination;
             Stat stat = curator.checkExists().forPath(path);
             if (stat == null) {
                 if (!mutex.state()) {
@@ -96,7 +96,6 @@ public class SyncSwitch {
     }
 
     public synchronized void off(String destination) {
-
         if (mode == Mode.LOCAL) {
             BooleanMutex mutex = LOCAL_LOCK.get(destination);
             if (mutex != null && mutex.state()) {
@@ -104,7 +103,7 @@ public class SyncSwitch {
             }
         } else {
             try {
-                String path = SYN_SWITCH_ZKNODE + destination;
+                String path = SYN_SWITCH_ZK_NODE + destination;
                 try {
                     curatorClient.getCurator()
                         .create()
@@ -128,7 +127,7 @@ public class SyncSwitch {
             }
         } else {
             try {
-                String path = SYN_SWITCH_ZKNODE + destination;
+                String path = SYN_SWITCH_ZK_NODE + destination;
                 try {
                     curatorClient.getCurator()
                         .create()
@@ -205,8 +204,5 @@ public class SyncSwitch {
         }
     }
 
-    enum Mode {
-               LOCAL, // 本地模式
-               DISTRIBUTED // 分布式
-    }
+
 }

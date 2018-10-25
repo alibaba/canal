@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import com.alibaba.otter.canal.adapter.launcher.common.EtlLock;
 import com.alibaba.otter.canal.adapter.launcher.common.SyncSwitch;
 import com.alibaba.otter.canal.adapter.launcher.config.AdapterCanalConfig;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
@@ -19,12 +20,16 @@ import com.alibaba.otter.canal.client.adapter.support.Result;
 @RestController
 public class CommonRest {
 
-    private static Logger                 logger = LoggerFactory.getLogger(CommonRest.class);
+    private static Logger                 logger           = LoggerFactory.getLogger(CommonRest.class);
+
+    private static final String           ETL_LOCK_ZK_NODE = "/sync-etl/";
 
     private ExtensionLoader<OuterAdapter> loader;
 
     @Resource
     private SyncSwitch                    syncSwitch;
+    @Resource
+    private EtlLock                       etlLock;
 
     @Resource
     private AdapterCanalConfig            adapterCanalConfig;
@@ -45,23 +50,39 @@ public class CommonRest {
     @PostMapping("/etl/{type}/{task}")
     public EtlResult etl(@PathVariable String type, @PathVariable String task,
                          @RequestParam(name = "params", required = false) String params) {
-        OuterAdapter adapter = loader.getExtension(type);
-        String destination = adapter.getDestination(task);
-        Boolean oriSwithcStatus = null;
-        if (destination != null) {
-            oriSwithcStatus = syncSwitch.status(destination);
-            syncSwitch.off(destination);
+
+        boolean locked = etlLock.tryLock(ETL_LOCK_ZK_NODE + type + "-" + task);
+        if (!locked) {
+            EtlResult result = new EtlResult();
+            result.setSucceeded(false);
+            result.setErrorMessage(task + " 有其他进程正在导入中, 请稍后再试");
+            return result;
         }
         try {
-            List<String> paramArr = null;
-            if (params != null) {
-                String[] parmaArray = params.trim().split(";");
-                paramArr = Arrays.asList(parmaArray);
+            OuterAdapter adapter = loader.getExtension(type);
+            String destination = adapter.getDestination(task);
+            Boolean oriSwithcStatus = null;
+            if (destination != null) {
+                oriSwithcStatus = syncSwitch.status(destination);
+                syncSwitch.off(destination);
             }
-            return adapter.etl(task, paramArr);
+            try {
+                List<String> paramArr = null;
+                if (params != null) {
+                    String[] parmaArray = params.trim().split(";");
+                    paramArr = Arrays.asList(parmaArray);
+                }
+                return adapter.etl(task, paramArr);
+            } finally {
+                if (destination != null && oriSwithcStatus != null && oriSwithcStatus) {
+                    syncSwitch.on(destination);
+                }
+            }
         } finally {
-            if (destination != null && oriSwithcStatus != null && oriSwithcStatus) {
-                syncSwitch.on(destination);
+            try {
+                etlLock.unlock(ETL_LOCK_ZK_NODE + type + "-" + task);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
             }
         }
     }
