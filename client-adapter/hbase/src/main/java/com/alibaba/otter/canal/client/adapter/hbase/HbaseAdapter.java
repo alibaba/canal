@@ -162,4 +162,13 @@ public class HbaseAdapter implements OuterAdapter {
             }
         }
     }
+
+    @Override
+    public String getDestination(String task) {
+        MappingConfig config = hbaseMapping.get(task);
+        if (config != null && config.getHbaseOrm() != null) {
+            return config.getHbaseOrm().getDestination();
+        }
+        return null;
+    }
 }

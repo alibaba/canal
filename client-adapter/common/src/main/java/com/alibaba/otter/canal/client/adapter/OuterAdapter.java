@@ -55,4 +55,14 @@ public interface OuterAdapter {
     default Map<String, Object> count(String task) {
         throw new UnsupportedOperationException("unsupported operation");
     }
+
+    /**
+     * 通过task获取对应的destination
+     * 
+     * @param task 任务名, 对应配置名
+     * @return destination
+     */
+    default String getDestination(String task) {
+        return null;
+    }
 }

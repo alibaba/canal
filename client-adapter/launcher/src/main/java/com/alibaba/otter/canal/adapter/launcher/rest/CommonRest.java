@@ -32,24 +32,43 @@ public class CommonRest {
     }
 
     /**
-     * Demo: curl http://127.0.0.1:8081/etl/hbase/mytest_person2.yml -X POST -d
-     * "params=0,1,2"
+     * ETL curl http://127.0.0.1:8081/etl/hbase/mytest_person2.yml -X POST
+     * 
+     * @param type 类型 hbase, es
+     * @param task 任务名对应配置文件名 mytest_person2.yml
+     * @param params etl where条件参数, 为空全部导入
+     * @return
      */
     @PostMapping("/etl/{type}/{task}")
     public EtlResult etl(@PathVariable String type, @PathVariable String task,
                          @RequestParam(name = "params", required = false) String params) {
         OuterAdapter adapter = loader.getExtension(type);
-        List<String> paramArr = null;
-        if (params != null) {
-            String[] parmaArray = params.trim().split(";");
-            paramArr = Arrays.asList(parmaArray);
+        String destination = adapter.getDestination(task);
+        Boolean oriSwithcStatus = null;
+        if (destination != null) {
+            oriSwithcStatus = syncSwitch.status(destination);
+            syncSwitch.off(destination);
         }
-
-        return adapter.etl(task, paramArr);
+        try {
+            List<String> paramArr = null;
+            if (params != null) {
+                String[] parmaArray = params.trim().split(";");
+                paramArr = Arrays.asList(parmaArray);
+            }
+            return adapter.etl(task, paramArr);
+        } finally {
+            if (destination != null && oriSwithcStatus != null && oriSwithcStatus) {
+                syncSwitch.on(destination);
+            }
+        }
     }
 
     /**
-     * Demo: curl http://127.0.0.1:8081/count/hbase/mytest_person2.yml
+     * 统计总数 curl http://127.0.0.1:8081/count/hbase/mytest_person2.yml
+     * 
+     * @param type 类型 hbase, es
+     * @param task 任务名对应配置文件名 mytest_person2.yml
+     * @return
      */
     @GetMapping("/count/{type}/{task}")
     public Map<String, Object> count(@PathVariable String type, @PathVariable String task) {
@@ -57,6 +76,9 @@ public class CommonRest {
         return adapter.count(task);
     }
 
+    /**
+     * 返回所有实例 curl http://127.0.0.1:8081/destinations
+     */
     @GetMapping("/destinations")
     public List<Map<String, String>> destinations() {
         List<Map<String, String>> result = new ArrayList<>();
@@ -77,6 +99,13 @@ public class CommonRest {
         return result;
     }
 
+    /**
+     * 实例同步开关 curl http://127.0.0.1:8081/syncSwitch/example/off -X PUT
+     * 
+     * @param destination 实例名称
+     * @param status 开关状态: off on
+     * @return
+     */
     @PutMapping("/syncSwitch/{destination}/{status}")
     public Result etl(@PathVariable String destination, @PathVariable String status) {
         if (status.equals("on")) {
@@ -95,6 +124,12 @@ public class CommonRest {
         }
     }
 
+    /**
+     * 获取实例开关状态 curl http://127.0.0.1:8081/syncSwitch/example
+     * 
+     * @param destination 实例名称
+     * @return
+     */
     @GetMapping("/syncSwitch/{destination}")
     public Map<String, String> etl(@PathVariable String destination) {
         Boolean status = syncSwitch.status(destination);
