@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * 外部适配器配置信息类
  *
- * @author machengyuan 2018-8-18 下午10:15:12
+ * @author rewerma 2018-8-18 下午10:15:12
  * @version 1.0.0
  */
 public class OuterAdapterConfig {

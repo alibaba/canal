@@ -2,14 +2,21 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.io.Serializable;
 
+/**
+ * ETL的结果对象
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 public class EtlResult implements Serializable {
+
     private static final long serialVersionUID = 4250522736289866505L;
 
-    private boolean succeeded = false;
+    private boolean           succeeded        = false;
 
-    private String resultMessage;
+    private String            resultMessage;
 
-    private String errorMessage;
+    private String            errorMessage;
 
     public boolean getSucceeded() {
         return succeeded;

@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 类型转换工具类
  *
- * @author machengyuan 2018-8-19 下午06:14:23
+ * @author rewerma 2018-8-19 下午06:14:23
  * @version 1.0.0
  */
 public class JdbcTypeUtil {
@@ -30,7 +30,7 @@ public class JdbcTypeUtil {
         switch (jdbcType) {
             case Types.BIT:
             case Types.BOOLEAN:
-//                return Boolean.class;
+                // return Boolean.class;
             case Types.TINYINT:
                 return Byte.TYPE;
             case Types.SMALLINT:

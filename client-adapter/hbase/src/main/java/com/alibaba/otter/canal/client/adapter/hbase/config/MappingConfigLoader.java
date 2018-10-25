@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
 /**
  * HBase表映射配置加载器
  *
- * @author machengyuan 2018-8-21 下午06:45:49
+ * @author rewerma 2018-8-21 下午06:45:49
  * @version 1.0.0
  */
 public class MappingConfigLoader {

@@ -14,6 +14,12 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.otter.canal.adapter.launcher.config.CuratorClient;
 
+/**
+ * Etl 同步锁
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 @Component
 public class EtlLock {
 

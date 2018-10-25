@@ -17,6 +17,12 @@ import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 import com.alibaba.otter.canal.client.adapter.support.Result;
 
+/**
+ * 适配器操作Rest
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 @RestController
 public class CommonRest {
 

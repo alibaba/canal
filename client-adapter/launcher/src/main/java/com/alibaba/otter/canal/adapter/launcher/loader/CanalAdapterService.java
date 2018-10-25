@@ -15,6 +15,12 @@ import com.alibaba.otter.canal.adapter.launcher.config.AdapterCanalConfig;
 import com.alibaba.otter.canal.adapter.launcher.config.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
+/**
+ * 适配器启动业务类
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 @Component
 public class CanalAdapterService {
 

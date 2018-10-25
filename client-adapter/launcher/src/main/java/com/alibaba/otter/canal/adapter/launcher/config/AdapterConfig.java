@@ -13,6 +13,12 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
+/**
+ * 适配器数据源及配置文件列表配置类
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 @Component
 @ConfigurationProperties(prefix = "adapter.conf")
 public class AdapterConfig {
@@ -55,7 +61,7 @@ public class AdapterConfig {
                 try {
                     ds.init();
                 } catch (SQLException e) {
-                    logger.error("#Failed to initial datasource: " + datasourceConfig.getUrl(), e);
+                    logger.error("ERROR ## failed to initial datasource: " + datasourceConfig.getUrl(), e);
                 }
                 DatasourceConfig.DATA_SOURCES.put(entry.getKey(), ds);
             }

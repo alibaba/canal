@@ -19,16 +19,22 @@ import com.alibaba.otter.canal.adapter.launcher.config.AdapterCanalConfig;
 import com.alibaba.otter.canal.adapter.launcher.config.CuratorClient;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 
+/**
+ * 同步开关
+ *
+ * @author rewerma @ 2018-10-20
+ * @version 1.0.0
+ */
 @Component
 public class SyncSwitch {
 
     private static final String                    SYN_SWITCH_ZK_NODE = "/sync-switch/";
 
-    private static final Map<String, BooleanMutex> LOCAL_LOCK        = new ConcurrentHashMap<>();
+    private static final Map<String, BooleanMutex> LOCAL_LOCK         = new ConcurrentHashMap<>();
 
-    private static final Map<String, BooleanMutex> DISTRIBUTED_LOCK  = new ConcurrentHashMap<>();
+    private static final Map<String, BooleanMutex> DISTRIBUTED_LOCK   = new ConcurrentHashMap<>();
 
-    private static Mode                            mode              = Mode.LOCAL;
+    private static Mode                            mode               = Mode.LOCAL;
 
     @Resource
     private AdapterCanalConfig                     adapterCanalConfig;
@@ -203,6 +209,5 @@ public class SyncSwitch {
             }
         }
     }
-
 
 }

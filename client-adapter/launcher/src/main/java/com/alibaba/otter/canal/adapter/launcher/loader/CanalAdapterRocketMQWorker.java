@@ -16,7 +16,7 @@ import com.alibaba.otter.canal.protocol.Message;
 /**
  * kafka对应的client适配器工作线程
  *
- * @author machengyuan 2018-8-19 下午11:30:49
+ * @author rewerma 2018-8-19 下午11:30:49
  * @version 1.0.0
  */
 public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {

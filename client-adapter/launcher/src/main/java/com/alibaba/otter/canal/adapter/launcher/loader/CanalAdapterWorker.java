@@ -15,7 +15,7 @@ import com.alibaba.otter.canal.protocol.Message;
 /**
  * 原生canal-server对应的client适配器工作线程
  *
- * @author machengyuan 2018-8-19 下午11:30:49
+ * @author rewrema 2018-8-19 下午11:30:49
  * @version 1.0.0
  */
 public class CanalAdapterWorker extends AbstractCanalAdapterWorker {

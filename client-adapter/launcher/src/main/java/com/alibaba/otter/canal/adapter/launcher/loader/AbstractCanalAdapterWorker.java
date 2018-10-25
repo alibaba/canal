@@ -21,7 +21,7 @@ import com.alibaba.otter.canal.protocol.Message;
 /**
  * 适配器工作线程抽象类
  *
- * @author machengyuan 2018-8-19 下午11:30:49
+ * @author rewerma 2018-8-19 下午11:30:49
  * @version 1.0.0
  */
 public abstract class AbstractCanalAdapterWorker {

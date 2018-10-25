@@ -11,7 +11,7 @@ import com.alibaba.otter.canal.client.adapter.support.SPI;
 /**
  * 外部适配器接口
  *
- * @author machengyuan 2018-8-18 下午10:14:02
+ * @author reweerma 2018-8-18 下午10:14:02
  * @version 1.0.0
  */
 @SPI("logger")
