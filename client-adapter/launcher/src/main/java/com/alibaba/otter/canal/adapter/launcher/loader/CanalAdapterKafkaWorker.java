@@ -44,13 +44,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     @Override
     public void start() {
         if (!running) {
-            thread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    process();
-                }
-            });
+            thread = new Thread(() -> process());
             thread.setUncaughtExceptionHandler(handler);
             running = true;
             thread.start();

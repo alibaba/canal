@@ -1,11 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
@@ -19,7 +14,7 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class MessageUtil {
 
-    public static void parse4Dml(Message message, Consumer<Dml> consumer) {
+    public static void parse4Dml(String destination, Message message, Consumer<Dml> consumer) {
         if (message == null) {
             return;
         }
@@ -42,6 +37,7 @@ public class MessageUtil {
             CanalEntry.EventType eventType = rowChange.getEventType();
 
             final Dml dml = new Dml();
+            dml.setDestination(destination);
             dml.setDatabase(entry.getHeader().getSchemaName());
             dml.setTable(entry.getHeader().getTableName());
             dml.setType(eventType.toString());
@@ -87,10 +83,11 @@ public class MessageUtil {
                         Map<String, Object> rowOld = new LinkedHashMap<>();
                         for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
                             if (updateSet.contains(column.getName())) {
-                                rowOld.put(column.getName(), JdbcTypeUtil.typeConvert(column.getName(),
-                                    column.getValue(),
-                                    column.getSqlType(),
-                                    column.getMysqlType()));
+                                rowOld.put(column.getName(),
+                                    JdbcTypeUtil.typeConvert(column.getName(),
+                                        column.getValue(),
+                                        column.getSqlType(),
+                                        column.getMysqlType()));
                             }
                         }
                         // update操作将记录修改前的值
@@ -110,11 +107,12 @@ public class MessageUtil {
         }
     }
 
-    public static Dml flatMessage2Dml(FlatMessage flatMessage) {
+    public static Dml flatMessage2Dml(String destination, FlatMessage flatMessage) {
         if (flatMessage == null) {
             return null;
         }
         Dml dml = new Dml();
+        dml.setDestination(destination);
         dml.setDatabase(flatMessage.getDatabase());
         dml.setTable(flatMessage.getTable());
         dml.setType(flatMessage.getType());

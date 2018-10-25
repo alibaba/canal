@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import com.alibaba.otter.canal.adapter.launcher.common.SyncSwitch;
+import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import org.slf4j.Logger;
@@ -33,6 +35,12 @@ public abstract class AbstractCanalAdapterWorker {
     protected Thread                          thread  = null;
     protected Thread.UncaughtExceptionHandler handler = (t, e) -> logger.error("parse events has an error", e);
 
+    protected SyncSwitch                      syncSwitch;
+
+    public AbstractCanalAdapterWorker(){
+        syncSwitch = (SyncSwitch) SpringContext.getBean(SyncSwitch.class);
+    }
+
     protected void writeOut(final Message message) {
         List<Future<Boolean>> futures = new ArrayList<>();
         // 组间适配器并行运行
@@ -43,7 +51,7 @@ public abstract class AbstractCanalAdapterWorker {
                     // 组内适配器穿行运行，尽量不要配置组内适配器
                     for (final OuterAdapter c : adapters) {
                         long begin = System.currentTimeMillis();
-                        MessageUtil.parse4Dml(message, c::sync);
+                        MessageUtil.parse4Dml(canalDestination, message, c::sync);
 
                         if (logger.isDebugEnabled()) {
                             logger.debug("{} elapsed time: {}",
@@ -84,7 +92,7 @@ public abstract class AbstractCanalAdapterWorker {
                         // 组内适配器穿行运行，尽量不要配置组内适配器
                         for (OuterAdapter c : adapters) {
                             long begin = System.currentTimeMillis();
-                            Dml dml = MessageUtil.flatMessage2Dml(flatMessage);
+                            Dml dml = MessageUtil.flatMessage2Dml(canalDestination, flatMessage);
                             c.sync(dml);
                             if (logger.isDebugEnabled()) {
                                 logger.debug("{} elapsed time: {}",
@@ -110,18 +118,6 @@ public abstract class AbstractCanalAdapterWorker {
                     // ignore
                 }
             }
-        }
-    }
-
-    protected void writeOut(Message message, String topic) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("topic: {} batchId: {} batchSize: {} ", topic, message.getId(), message.getEntries().size());
-        }
-        long begin = System.currentTimeMillis();
-        writeOut(message);
-        long now = System.currentTimeMillis();
-        if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
-            logger.error("topic: {} batchId {} elapsed time: {} ms", topic, message.getId(), now - begin);
         }
     }
 

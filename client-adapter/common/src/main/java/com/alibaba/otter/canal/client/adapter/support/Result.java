@@ -8,11 +8,11 @@ public class Result implements Serializable {
     public Integer code    = 20000;
     public Object  data;
     public String  message;
-    public Date    sysTime = new Date();
+    public Date    sysTime;
 
-    public static Result createSuccess(Object data) {
+    public static Result createSuccess(String message) {
         Result result = new Result();
-        result.setData(data);
+        result.setMessage(message);
         return result;
     }
 

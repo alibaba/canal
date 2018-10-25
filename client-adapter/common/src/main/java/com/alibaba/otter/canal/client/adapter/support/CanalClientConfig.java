@@ -62,16 +62,16 @@ public class CanalClientConfig {
         return mqTopics;
     }
 
+    public void setMqTopics(List<MQTopic> mqTopics) {
+        this.mqTopics = mqTopics;
+    }
+
     public Boolean getFlatMessage() {
         return flatMessage;
     }
 
     public void setFlatMessage(Boolean flatMessage) {
         this.flatMessage = flatMessage;
-    }
-
-    public void setMqTopics(List<MQTopic> mqTopics) {
-        this.mqTopics = mqTopics;
     }
 
     public List<CanalInstance> getCanalInstances() {
@@ -155,7 +155,7 @@ public class CanalClientConfig {
 
     public static class Group {
 
-        private String                               groupId;
+        private String                   groupId;
 
         // private List<Adaptor> adapters = new ArrayList<>();
 

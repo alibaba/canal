@@ -4,6 +4,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
+import com.alibaba.otter.canal.adapter.launcher.common.SyncSwitch;
+import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -23,9 +25,13 @@ public class CanalAdapterService {
     @Resource
     private AdapterCanalConfig        adapterCanalConfig;
 
-    // 注入配置保证配置优先先注册
+    // 注入bean保证优先注册
     @Resource
     private AdapterConfig             adapterConfig;
+    @Resource
+    private SpringContext             springContext;
+    @Resource
+    private SyncSwitch                syncSwitch;
 
     @PostConstruct
     public void init() {

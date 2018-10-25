@@ -52,7 +52,7 @@ public abstract class AbstractCanalAdapterWorker {
                         // 组内适配器穿行运行，尽量不要配置组内适配器
                         for (final OuterAdapter c : adapters) {
                             long begin = System.currentTimeMillis();
-                            MessageUtil.parse4Dml(message, new MessageUtil.Consumer<Dml>() {
+                            MessageUtil.parse4Dml(canalDestination, message, new MessageUtil.Consumer<Dml>() {
 
                                 @Override
                                 public void accept(Dml dml) {
@@ -100,7 +100,7 @@ public abstract class AbstractCanalAdapterWorker {
                         // 组内适配器穿行运行，尽量不要配置组内适配器
                         for (OuterAdapter c : adapters) {
                             long begin = System.currentTimeMillis();
-                            Dml dml = MessageUtil.flatMessage2Dml(flatMessage);
+                            Dml dml = MessageUtil.flatMessage2Dml(canalDestination, flatMessage);
                             c.sync(dml);
                             if (logger.isDebugEnabled()) {
                                 logger.debug("{} elapsed time: {}",

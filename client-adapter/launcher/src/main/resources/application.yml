@@ -9,6 +9,11 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
+
+hbase.zookeeper.quorum: slave1
+hbase.zookeeper.property.clientPort: 2181
+hbase.zookeeper.znode.parent: /hbase-unsecure
+
 canal.conf:
   canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
@@ -21,9 +26,9 @@ canal.conf:
       - name: logger
       - name: hbase
         properties:
-          hbase.zookeeper.quorum: slave1
-          hbase.zookeeper.property.clientPort: 2181
-          zookeeper.znode.parent: /hbase-unsecure
+          hbase.zookeeper.quorum: ${hbase.zookeeper.quorum}
+          hbase.zookeeper.property.clientPort: ${hbase.zookeeper.property.clientPort}
+          zookeeper.znode.parent: ${hbase.zookeeper.znode.parent}
 #  mqTopics:
 #  - mqMode: kafka
 #    topic: example

@@ -30,13 +30,13 @@ public class HbaseEtlService {
 
     public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) throws SQLException {
         Connection conn = null;
-        Statement smt = null;
+        Statement stmt = null;
         ResultSet rs = null;
         try {
             conn = ds.getConnection();
-            smt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            smt.setFetchSize(Integer.MIN_VALUE);
-            rs = smt.executeQuery(sql);
+            stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            stmt.setFetchSize(Integer.MIN_VALUE);
+            rs = stmt.executeQuery(sql);
             return fun.apply(rs);
         } finally {
             if (rs != null) {
@@ -46,9 +46,9 @@ public class HbaseEtlService {
                     logger.error(e.getMessage(), e);
                 }
             }
-            if (smt != null) {
+            if (stmt != null) {
                 try {
-                    smt.close();
+                    stmt.close();
                 } catch (SQLException e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -60,6 +60,9 @@ public class HbaseEtlService {
                     logger.error(e.getMessage(), e);
                 }
             }
+            rs = null;
+            stmt = null;
+            conn = null;
         }
     }
 
