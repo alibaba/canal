@@ -99,12 +99,16 @@ public class EtlLock {
         }
     }
 
-    public void unlock(String key) throws Exception {
+    public void unlock(String key) {
         if (mode == Mode.LOCAL) {
             getLock(key).unlock();
         } else {
             InterProcessMutex lock = getRemoteLock(key);
-            lock.release();
+            try {
+                lock.release();
+            } catch (Exception e) {
+                // ignore
+            }
         }
     }
 }

@@ -79,11 +79,7 @@ public class CommonRest {
                 }
             }
         } finally {
-            try {
-                etlLock.unlock(ETL_LOCK_ZK_NODE + type + "-" + task);
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
+            etlLock.unlock(ETL_LOCK_ZK_NODE + type + "-" + task);
         }
     }
 
