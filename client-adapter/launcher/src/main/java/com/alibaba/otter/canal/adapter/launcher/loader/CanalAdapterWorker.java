@@ -57,49 +57,12 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
     }
 
     @Override
-    public void start() {
-        if (!running) {
-            thread = new Thread(this::process);
-            thread.setUncaughtExceptionHandler(handler);
-            thread.start();
-            running = true;
-        }
+    protected void closeConnection() {
+        connector.stopRunning();
     }
 
     @Override
-    public void stop() {
-        try {
-            if (!running) {
-                return;
-            }
-
-            connector.stopRunning();
-            running = false;
-
-            syncSwitch.release(canalDestination);
-
-            logger.info("destination {} is waiting for adapters' worker thread die!", canalDestination);
-            if (thread != null) {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-            groupInnerExecutorService.shutdown();
-            logger.info("destination {} adapters' worker thread dead!", canalDestination);
-            for (List<OuterAdapter> outerAdapters : canalOuterAdapters) {
-                for (OuterAdapter adapter : outerAdapters) {
-                    adapter.destroy();
-                }
-            }
-            logger.info("destination {} all adapters destroyed!", canalDestination);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    private void process() {
+    protected void process() {
         while (!running)
             ; // waiting until running == true
         while (running) {
@@ -129,11 +92,7 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                         int size = message.getEntries().size();
 
                         if (batchId == -1 || size == 0) {
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                // ignore
-                            }
+                            Thread.sleep(1000);
                         } else {
                             if (logger.isDebugEnabled()) {
                                 logger.debug("destination: {} batchId: {} batchSize: {} ",
@@ -143,18 +102,18 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                             }
                             long begin = System.currentTimeMillis();
                             writeOut(message);
-                            long now = System.currentTimeMillis();
                             if (logger.isDebugEnabled()) {
                                 logger.debug("destination: {} batchId: {} elapsed time: {} ms",
                                     this.canalDestination,
                                     batchId,
-                                    now - begin);
+                                    System.currentTimeMillis() - begin);
                             }
                         }
                         connector.ack(batchId); // 提交确认
                     } catch (Exception e) {
                         connector.rollback(batchId); // 处理失败, 回滚数据
-                        throw e;
+                        logger.error("sync error!", e);
+                        Thread.sleep(500);
                     }
                 }
 

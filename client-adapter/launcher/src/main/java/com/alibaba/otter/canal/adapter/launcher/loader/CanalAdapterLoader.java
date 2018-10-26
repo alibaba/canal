@@ -135,20 +135,18 @@ public class CanalAdapterLoader {
     public void destroy() {
         if (canalWorkers.size() > 0) {
             ExecutorService stopExecutorService = Executors.newFixedThreadPool(canalWorkers.size());
-            for (CanalAdapterWorker v : canalWorkers.values()) {
-                final CanalAdapterWorker caw = v;
-                stopExecutorService.submit(caw::stop);
+            for (CanalAdapterWorker canalAdapterWorker : canalWorkers.values()) {
+                stopExecutorService.submit(canalAdapterWorker::stop);
             }
             stopExecutorService.shutdown();
         }
 
         if (canalMQWorker.size() > 0) {
-            ExecutorService stopMQWokerService = Executors.newFixedThreadPool(canalMQWorker.size());
-            for (AbstractCanalAdapterWorker tmp : canalMQWorker.values()) {
-                final AbstractCanalAdapterWorker worker = tmp;
-                stopMQWokerService.submit(worker::stop);
+            ExecutorService stopMQWorkerService = Executors.newFixedThreadPool(canalMQWorker.size());
+            for (AbstractCanalAdapterWorker canalAdapterMQWorker : canalMQWorker.values()) {
+                stopMQWorkerService.submit(canalAdapterMQWorker::stop);
             }
-            stopMQWokerService.shutdown();
+            stopMQWorkerService.shutdown();
         }
         logger.info("All canal adapters destroyed");
     }
