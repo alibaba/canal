@@ -110,6 +110,9 @@ public class HbaseSyncService {
         Map<String, MappingConfig.ColumnItem> columnItems = hbaseOrm.getColumnItems();
         int i = 0;
         for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (hbaseOrm.getExcludeColumns() != null && hbaseOrm.getExcludeColumns().contains(entry.getKey())) {
+                continue;
+            }
             if (entry.getValue() != null) {
                 MappingConfig.ColumnItem columnItem = columnItems.get(entry.getKey());
 
@@ -196,6 +199,9 @@ public class HbaseSyncService {
             Map<String, MappingConfig.ColumnItem> columnItems = hbaseOrm.getColumnItems();
             HRow hRow = new HRow(rowKeyBytes);
             for (String updateColumn : old.get(index).keySet()) {
+                if (hbaseOrm.getExcludeColumns() != null && hbaseOrm.getExcludeColumns().contains(updateColumn)) {
+                    continue;
+                }
                 MappingConfig.ColumnItem columnItem = columnItems.get(updateColumn);
                 if (columnItem == null) {
                     String family = hbaseOrm.getFamily();

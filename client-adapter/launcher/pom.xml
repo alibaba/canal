@@ -139,6 +139,11 @@
                                         <include name="*.yml"/>
                                     </fileset>
                                 </copy>
+                                <copy todir="${project.basedir}/target/config/hbase" overwrite="true" >
+                                    <fileset dir="${project.basedir}/../hbase/src/main/resources/hbase" erroronmissingdir="true">
+                                        <include name="*.yml"/>
+                                    </fileset>
+                                </copy>
                             </tasks>
                         </configuration>
                     </execution>
