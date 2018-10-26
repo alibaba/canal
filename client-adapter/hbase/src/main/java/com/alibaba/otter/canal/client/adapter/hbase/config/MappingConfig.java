@@ -152,6 +152,7 @@ public class MappingConfig {
         private boolean                 autoCreateTable    = false;                 // 同步时HBase中表不存在的情况下自动建表
         private String                  rowKey;                                     // 指定复合主键为rowKey
         private Map<String, String>     columns;                                    // 字段映射
+        private List<String>            excludeColumns;                             // 不映射的字段
         private ColumnItem              rowKeyColumn;                               // rowKey字段
         private String                  etlCondition;                               // etl条件sql
 
@@ -290,6 +291,14 @@ public class MappingConfig {
             } else {
                 this.columns = new LinkedHashMap<>();
             }
+        }
+
+        public List<String> getExcludeColumns() {
+            return excludeColumns;
+        }
+
+        public void setExcludeColumns(List<String> excludeColumns) {
+            this.excludeColumns = excludeColumns;
         }
 
         public String getFamily() {

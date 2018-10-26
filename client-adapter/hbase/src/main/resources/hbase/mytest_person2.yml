@@ -17,6 +17,8 @@ hbaseOrm:
     type: $DECIMAL
     c_time: C_TIME$UNSIGNED_TIMESTAMP
     birthday: BIRTHDAY$DATE
+  excludeColumns:
+    - lat
 
 # -- NATIVE类型
 # $DEFAULT
