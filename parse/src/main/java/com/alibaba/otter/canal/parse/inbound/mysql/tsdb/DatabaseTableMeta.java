@@ -44,19 +44,21 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
  */
 public class DatabaseTableMeta implements TableMetaTSDB {
 
-    public static final EntryPosition INIT_POSITION = new EntryPosition("0", 0L, -2L, -1L);
-    private static Logger             logger        = LoggerFactory.getLogger(DatabaseTableMeta.class);
-    private static Pattern            pattern       = Pattern.compile("Duplicate entry '.*' for key '*'");
-    private static Pattern            h2Pattern     = Pattern.compile("Unique index or primary key violation");
+    public static final EntryPosition INIT_POSITION    = new EntryPosition("0", 0L, -2L, -1L);
+    private static Logger             logger           = LoggerFactory.getLogger(DatabaseTableMeta.class);
+    private static Pattern            pattern          = Pattern.compile("Duplicate entry '.*' for key '*'");
+    private static Pattern            h2Pattern        = Pattern.compile("Unique index or primary key violation");
     private String                    destination;
     private MemoryTableMeta           memoryTableMeta;
-    private MysqlConnection           connection;                                                              // 查询meta信息的链接
+    private MysqlConnection           connection;                                                                 // 查询meta信息的链接
     private CanalEventFilter          filter;
     private CanalEventFilter          blackFilter;
     private EntryPosition             lastPosition;
     private ScheduledExecutorService  scheduler;
     private MetaHistoryDAO            metaHistoryDAO;
     private MetaSnapshotDAO           metaSnapshotDAO;
+    private int                       snapshotInterval = 24;
+    private int                       snapshotExpire   = 360;
 
     public DatabaseTableMeta(){
 
@@ -77,18 +79,27 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         });
 
         // 24小时生成一份snapshot
-        scheduler.scheduleWithFixedDelay(new Runnable() {
+        if (snapshotInterval > 0) {
+            scheduler.scheduleWithFixedDelay(new Runnable() {
 
-            @Override
-            public void run() {
-                try {
-                    MDC.put("destination", destination);
-                    applySnapshotToDB(lastPosition, false);
-                } catch (Throwable e) {
-                    logger.error("scheudle applySnapshotToDB faield", e);
+                @Override
+                public void run() {
+                    try {
+                        MDC.put("destination", destination);
+                        applySnapshotToDB(lastPosition, false);
+                    } catch (Throwable e) {
+                        logger.error("scheudle applySnapshotToDB faield", e);
+                    }
+
+                    try {
+                        MDC.put("destination", destination);
+                        snapshotExpire((int) TimeUnit.HOURS.toSeconds(snapshotExpire));
+                    } catch (Throwable e) {
+                        logger.error("scheudle snapshotExpire faield", e);
+                    }
                 }
-            }
-        }, 24, 24, TimeUnit.HOURS);
+            }, snapshotInterval, snapshotInterval, TimeUnit.HOURS);
+        }
         return true;
     }
 
@@ -461,6 +472,10 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         return true;
     }
 
+    private int snapshotExpire(int expireTimestamp) {
+        return metaSnapshotDAO.deleteByTimestamp(destination, expireTimestamp);
+    }
+
     public void setConnection(MysqlConnection connection) {
         this.connection = connection;
     }
@@ -487,6 +502,22 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
     public void setBlackFilter(CanalEventFilter blackFilter) {
         this.blackFilter = blackFilter;
+    }
+
+    public int getSnapshotInterval() {
+        return snapshotInterval;
+    }
+
+    public void setSnapshotInterval(int snapshotInterval) {
+        this.snapshotInterval = snapshotInterval;
+    }
+
+    public int getSnapshotExpire() {
+        return snapshotExpire;
+    }
+
+    public void setSnapshotExpire(int snapshotExpire) {
+        this.snapshotExpire = snapshotExpire;
     }
 
     public MysqlConnection getConnection() {
