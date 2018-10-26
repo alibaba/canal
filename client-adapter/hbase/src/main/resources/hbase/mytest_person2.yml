@@ -45,7 +45,7 @@ hbaseOrm:
 # $TINYINT                  对应PHOENIX里的TINYINT                1字节
 # $SMALLINT                 对应PHOENIX里的SMALLINT               2字节
 # $FLOAT                    对应PHOENIX里的FLOAT                  4字节
-# DOUBLE                    对应PHOENIX里的DOUBLE                 8字节
+# $DOUBLE                    对应PHOENIX里的DOUBLE                 8字节
 # $BOOLEAN                  对应PHOENIX里的BOOLEAN                1字节
 # $TIME                     对应PHOENIX里的TIME                   8字节
 # $DATE                     对应PHOENIX里的DATE                   8字节
