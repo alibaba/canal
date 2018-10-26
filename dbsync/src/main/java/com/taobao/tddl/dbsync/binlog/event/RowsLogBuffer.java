@@ -859,7 +859,7 @@ public final class RowsLogBuffer {
                     // 转化为unsign long
                     switch (len) {
                         case 1:
-                            value = buffer.getInt8();
+                            value = buffer.getUint8();
                             break;
                         case 2:
                             value = buffer.getUint16();

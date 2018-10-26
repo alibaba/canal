@@ -19,7 +19,6 @@ public class Message implements Serializable {
     private static final long      serialVersionUID = 1234034768477580009L;
 
     private long                   id;
-    @Deprecated
     private List<CanalEntry.Entry> entries          = new ArrayList<CanalEntry.Entry>();
     // row data for performance, see:
     // https://github.com/alibaba/canal/issues/726
@@ -39,6 +38,7 @@ public class Message implements Serializable {
         } else {
             this.entries = entries == null ? new ArrayList<Entry>() : entries;
         }
+        this.raw = raw;
     }
 
     public Message(long id){

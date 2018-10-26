@@ -68,7 +68,7 @@ adapter.conf:
   adapterConfigs:                   # 适配器内部配置列表
   - hbase/mytest_person2.yml        # 类型/配置文件名, 这里示例就是对应HBase适配器hbase目录下的mytest_person2.yml文件
 ```
-## 2.2 适配器管理REST接口
+## 2.2 同步管理REST接口
 #### 2.2.1 查询所有订阅同步的canal destination或MQ topic
 ```
 curl http://127.0.0.1:8081/destinations
@@ -224,7 +224,7 @@ $BIGINT                   对应PHOENIX里的BIGINT                 8字节
 $TINYINT                  对应PHOENIX里的TINYINT                1字节
 $SMALLINT                 对应PHOENIX里的SMALLINT               2字节
 $FLOAT                    对应PHOENIX里的FLOAT                  4字节
-$DOUBLE                    对应PHOENIX里的DOUBLE                 8字节
+$DOUBLE                   对应PHOENIX里的DOUBLE                 8字节
 $BOOLEAN                  对应PHOENIX里的BOOLEAN                1字节
 $TIME                     对应PHOENIX里的TIME                   8字节
 $DATE                     对应PHOENIX里的DATE                   8字节

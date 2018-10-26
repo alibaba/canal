@@ -70,6 +70,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     private BatchMode         batchMode     = BatchMode.ITEMSIZE;                        // 默认为内存大小模式
     private boolean           ddlIsolation  = false;
+    private boolean           raw           = true;                                      // 针对entry是否开启raw模式
 
     public MemoryEventStoreWithBuffer(){
 
@@ -628,6 +629,14 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         this.ddlIsolation = ddlIsolation;
     }
 
+    public boolean isRaw() {
+        return raw;
+    }
+
+    public void setRaw(boolean raw) {
+        this.raw = raw;
+    }
+
     public AtomicLong getPutSequence() {
         return putSequence;
     }
@@ -671,4 +680,6 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     public AtomicLong getAckTableRows() {
         return ackTableRows;
     }
+
+
 }
