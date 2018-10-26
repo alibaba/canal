@@ -36,38 +36,12 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
     }
 
     @Override
-    public void start() {
-        if (!running) {
-            thread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    process();
-                }
-            });
-            thread.setUncaughtExceptionHandler(handler);
-            running = true;
-            thread.start();
-        }
+    protected void closeConnection() {
+        connector.stopRunning();
     }
 
     @Override
-    public void stop() {
-        try {
-            if (!running) {
-                return;
-            }
-            connector.stopRunning();
-            running = false;
-            logger.info("Stop topic {} out adapters begin", this.topic);
-            stopOutAdapters();
-            logger.info("Stop topic {} out adapters end", this.topic);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    private void process() {
+    protected void process() {
         while (!running)
             ;
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -84,25 +58,27 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
 
                         final Message message = connector.getWithoutAck(1);
                         if (message != null) {
-                            executor.submit(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    try {
-                                        if (logger.isDebugEnabled()) {
-                                            logger.debug("topic: {} batchId: {} batchSize: {} ", topic, message.getId(), message.getEntries().size());
-                                        }
-                                        long begin = System.currentTimeMillis();
-                                        writeOut(message);
-                                        long now = System.currentTimeMillis();
-                                        if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
-                                            logger.error("topic: {} batchId {} elapsed time: {} ms", topic, message.getId(), now - begin);
-                                        }
-                                    } catch (Exception e) {
-                                        logger.error(e.getMessage(), e);
+                            executor.submit(() -> {
+                                try {
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("topic: {} batchId: {} batchSize: {} ",
+                                            topic,
+                                            message.getId(),
+                                            message.getEntries().size());
                                     }
-                                    connector.ack(message.getId());
+                                    long begin = System.currentTimeMillis();
+                                    writeOut(message);
+                                    long now = System.currentTimeMillis();
+                                    if ((System.currentTimeMillis() - begin) > 5 * 60 * 1000) {
+                                        logger.error("topic: {} batchId {} elapsed time: {} ms",
+                                            topic,
+                                            message.getId(),
+                                            now - begin);
+                                    }
+                                } catch (Exception e) {
+                                    logger.error(e.getMessage(), e);
                                 }
+                                connector.ack(message.getId());
                             });
                         } else {
                             logger.debug("Message is null");

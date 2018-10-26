@@ -37,59 +37,18 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
         this.flatMessage = flatMessage;
         connector = KafkaCanalConnectors.newKafkaConnector(bootstrapServers, topic, null, groupId, flatMessage);
         // connector.setSessionTimeout(1L, TimeUnit.MINUTES);
-
-        // super.initSwitcher(topic);
     }
 
     @Override
-    public void start() {
-        if (!running) {
-            thread = new Thread(() -> process());
-            thread.setUncaughtExceptionHandler(handler);
-            running = true;
-            thread.start();
-        }
+    protected  void closeConnection(){
+        connector.stopRunning();
     }
 
     @Override
-    public void stop() {
-        try {
-            if (!running) {
-                return;
-            }
-
-            connector.stopRunning();
-            running = false;
-
-            // if (switcher != null && !switcher.state()) {
-            // switcher.set(true);
-            // }
-
-            if (thread != null) {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-            groupInnerExecutorService.shutdown();
-            logger.info("topic {} connectors' worker thread dead!", this.topic);
-            for (List<OuterAdapter> outerAdapters : canalOuterAdapters) {
-                for (OuterAdapter adapter : outerAdapters) {
-                    adapter.destroy();
-                }
-            }
-            logger.info("topic {} all connectors destroyed!", this.topic);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    private void process() {
+    protected void process() {
         while (!running)
             ;
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        // final AtomicBoolean executing = new AtomicBoolean(true);
         while (running) {
             try {
                 logger.info("=============> Start to connect topic: {} <=============", this.topic);
@@ -99,7 +58,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 logger.info("=============> Subscribe topic: {} succeed <=============", this.topic);
                 while (running) {
                     try {
-                        // switcher.get(); //等待开关开启
+                        syncSwitch.get(canalDestination);
 
                         List<?> messages;
                         if (!flatMessage) {
