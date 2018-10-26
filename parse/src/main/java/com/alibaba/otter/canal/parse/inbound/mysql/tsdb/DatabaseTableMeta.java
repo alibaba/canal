@@ -84,16 +84,19 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
                 @Override
                 public void run() {
+                    boolean applyResult = false;
                     try {
                         MDC.put("destination", destination);
-                        applySnapshotToDB(lastPosition, false);
+                        applyResult = applySnapshotToDB(lastPosition, false);
                     } catch (Throwable e) {
                         logger.error("scheudle applySnapshotToDB faield", e);
                     }
 
                     try {
                         MDC.put("destination", destination);
-                        snapshotExpire((int) TimeUnit.HOURS.toSeconds(snapshotExpire));
+                        if (applyResult) {
+                            snapshotExpire((int) TimeUnit.HOURS.toSeconds(snapshotExpire));
+                        }
                     } catch (Throwable e) {
                         logger.error("scheudle snapshotExpire faield", e);
                     }
