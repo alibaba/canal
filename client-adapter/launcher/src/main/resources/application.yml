@@ -10,9 +10,9 @@ spring:
     default-property-inclusion: non_null
 
 
-hbase.zookeeper.quorum: slave1
+hbasezookeeper.quorum: 127.0.0.1
 hbase.zookeeper.property.clientPort: 2181
-hbase.zookeeper.znode.parent: /hbase-unsecure
+hbase.zookeeper.znode.parent: /hbase
 
 canal.conf:
   canalServerHost: 127.0.0.1:11111
@@ -23,12 +23,12 @@ canal.conf:
   - instance: example
     adapterGroups:
     - outAdapters:
-#      - name: logger
-      - name: hbase
-        properties:
-          hbase.zookeeper.quorum: ${hbase.zookeeper.quorum}
-          hbase.zookeeper.property.clientPort: ${hbase.zookeeper.property.clientPort}
-          zookeeper.znode.parent: ${hbase.zookeeper.znode.parent}
+      - name: logger
+#      - name: hbase
+#        properties:
+#          hbase.zookeeper.quorum: ${hbase.zookeeper.quorum}
+#          hbase.zookeeper.property.clientPort: ${hbase.zookeeper.property.clientPort}
+#          zookeeper.znode.parent: ${hbase.zookeeper.znode.parent}
 #  mqTopics:
 #  - mqMode: kafka
 #    topic: example
@@ -37,11 +37,11 @@ canal.conf:
 #      outAdapters:
 #      - name: logger
 
-adapter.conf:
-  datasourceConfigs:
-    defaultDS:
-      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
-      username: root
-      password: 121212
-  adapterConfigs:
-  - hbase/mytest_person2.yml
+#adapter.conf:
+#  datasourceConfigs:
+#    defaultDS:
+#      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
+#      username: root
+#      password: 121212
+#  adapterConfigs:
+#  - hbase/mytest_person2.yml

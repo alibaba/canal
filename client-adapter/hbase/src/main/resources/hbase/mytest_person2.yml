@@ -1,5 +1,5 @@
 dataSourceKey: defaultDS
-hbaseOrm:
+hbaseMapping:
   mode: PHOENIX  #NATIVE   #STRING
   destination: example
   database: mytest  # 数据库名
@@ -18,7 +18,7 @@ hbaseOrm:
     c_time: C_TIME$UNSIGNED_TIMESTAMP
     birthday: BIRTHDAY$DATE
   excludeColumns:
-    - lat
+    - lat   # 忽略字段
 
 # -- NATIVE类型
 # $DEFAULT

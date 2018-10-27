@@ -80,21 +80,21 @@ public class MappingConfigLoader {
                 if (dbTable.length == 2) {
                     config = new MappingConfig();
 
-                    MappingConfig.HbaseOrm hbaseOrm = new MappingConfig.HbaseOrm();
-                    hbaseOrm.setHbaseTable(dbTable[0].toUpperCase() + "." + dbTable[1].toUpperCase());
-                    hbaseOrm.setAutoCreateTable(true);
-                    hbaseOrm.setDatabase(dbTable[0]);
-                    hbaseOrm.setTable(dbTable[1]);
-                    hbaseOrm.setMode(MappingConfig.Mode.PHOENIX);
-                    hbaseOrm.setRowKey(rowKey);
+                    MappingConfig.HbaseMapping hbaseMapping = new MappingConfig.HbaseMapping();
+                    hbaseMapping.setHbaseTable(dbTable[0].toUpperCase() + "." + dbTable[1].toUpperCase());
+                    hbaseMapping.setAutoCreateTable(true);
+                    hbaseMapping.setDatabase(dbTable[0]);
+                    hbaseMapping.setTable(dbTable[1]);
+                    hbaseMapping.setMode(MappingConfig.Mode.PHOENIX);
+                    hbaseMapping.setRowKey(rowKey);
                     // 有定义rowKey
                     if (rowKey != null) {
                         MappingConfig.ColumnItem columnItem = new MappingConfig.ColumnItem();
                         columnItem.setRowKey(true);
                         columnItem.setColumn(rowKey);
-                        hbaseOrm.setRowKeyColumn(columnItem);
+                        hbaseMapping.setRowKeyColumn(columnItem);
                     }
-                    config.setHbaseOrm(hbaseOrm);
+                    config.setHbaseMapping(hbaseMapping);
                     config.setDataSourceKey(dsKey);
 
                 } else {

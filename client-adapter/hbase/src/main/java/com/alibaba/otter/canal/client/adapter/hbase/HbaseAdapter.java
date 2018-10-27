@@ -53,9 +53,9 @@ public class HbaseAdapter implements OuterAdapter {
                         hbaseMapping = MappingConfigLoader.load();
                         mappingConfigCache = new HashMap<>();
                         for (MappingConfig mappingConfig : hbaseMapping.values()) {
-                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getHbaseOrm().getDestination())
-                                                   + "." + mappingConfig.getHbaseOrm().getDatabase() + "."
-                                                   + mappingConfig.getHbaseOrm().getTable(),
+                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getHbaseMapping().getDestination())
+                                                   + "." + mappingConfig.getHbaseMapping().getDatabase() + "."
+                                                   + mappingConfig.getHbaseMapping().getTable(),
                                 mappingConfig);
                         }
                     }
@@ -136,7 +136,7 @@ public class HbaseAdapter implements OuterAdapter {
     @Override
     public Map<String, Object> count(String task) {
         MappingConfig config = hbaseMapping.get(task);
-        String hbaseTable = config.getHbaseOrm().getHbaseTable();
+        String hbaseTable = config.getHbaseMapping().getHbaseTable();
         long rowCount = 0L;
         try {
             HTable table = (HTable) conn.getTable(TableName.valueOf(hbaseTable));
@@ -169,8 +169,8 @@ public class HbaseAdapter implements OuterAdapter {
     @Override
     public String getDestination(String task) {
         MappingConfig config = hbaseMapping.get(task);
-        if (config != null && config.getHbaseOrm() != null) {
-            return config.getHbaseOrm().getDestination();
+        if (config != null && config.getHbaseMapping() != null) {
+            return config.getHbaseMapping().getDestination();
         }
         return null;
     }
