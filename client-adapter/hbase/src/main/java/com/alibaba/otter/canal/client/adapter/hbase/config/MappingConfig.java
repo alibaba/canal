@@ -10,9 +10,9 @@ import java.util.*;
  */
 public class MappingConfig {
 
-    private String   dataSourceKey; // 数据源key
+    private String       dataSourceKey; // 数据源key
 
-    private HbaseOrm hbaseOrm;      // hbase映射配置
+    private HbaseMapping hbaseMapping;  // hbase映射配置
 
     public String getDataSourceKey() {
         return dataSourceKey;
@@ -22,28 +22,28 @@ public class MappingConfig {
         this.dataSourceKey = dataSourceKey;
     }
 
-    public HbaseOrm getHbaseOrm() {
-        return hbaseOrm;
+    public HbaseMapping getHbaseMapping() {
+        return hbaseMapping;
     }
 
-    public void setHbaseOrm(HbaseOrm hbaseOrm) {
-        this.hbaseOrm = hbaseOrm;
+    public void setHbaseMapping(HbaseMapping hbaseMapping) {
+        this.hbaseMapping = hbaseMapping;
     }
 
     public void validate() {
-        if (hbaseOrm.database == null || hbaseOrm.database.isEmpty()) {
-            throw new NullPointerException("hbaseOrm.database");
+        if (hbaseMapping.database == null || hbaseMapping.database.isEmpty()) {
+            throw new NullPointerException("hbaseMapping.database");
         }
-        if (hbaseOrm.table == null || hbaseOrm.table.isEmpty()) {
-            throw new NullPointerException("hbaseOrm.table");
+        if (hbaseMapping.table == null || hbaseMapping.table.isEmpty()) {
+            throw new NullPointerException("hbaseMapping.table");
         }
-        if (hbaseOrm.hbaseTable == null || hbaseOrm.hbaseTable.isEmpty()) {
-            throw new NullPointerException("hbaseOrm.hbaseTable");
+        if (hbaseMapping.hbaseTable == null || hbaseMapping.hbaseTable.isEmpty()) {
+            throw new NullPointerException("hbaseMapping.hbaseTable");
         }
-        if (hbaseOrm.mode == null) {
-            throw new NullPointerException("hbaseOrm.mode");
+        if (hbaseMapping.mode == null) {
+            throw new NullPointerException("hbaseMapping.mode");
         }
-        if (hbaseOrm.rowKey != null && hbaseOrm.rowKeyColumn != null) {
+        if (hbaseMapping.rowKey != null && hbaseMapping.rowKeyColumn != null) {
             throw new RuntimeException("已配置了复合主键作为RowKey，无需再指定RowKey列");
         }
     }
@@ -55,12 +55,12 @@ public class MappingConfig {
 
         MappingConfig config = (MappingConfig) o;
 
-        return hbaseOrm != null ? hbaseOrm.equals(config.hbaseOrm) : config.hbaseOrm == null;
+        return hbaseMapping != null ? hbaseMapping.equals(config.hbaseMapping) : config.hbaseMapping == null;
     }
 
     @Override
     public int hashCode() {
-        return hbaseOrm != null ? hbaseOrm.hashCode() : 0;
+        return hbaseMapping != null ? hbaseMapping.hashCode() : 0;
     }
 
     public static class ColumnItem {
@@ -140,7 +140,7 @@ public class MappingConfig {
         }
     }
 
-    public static class HbaseOrm {
+    public static class HbaseMapping {
 
         private Mode                    mode               = Mode.STRING;           // hbase默认转换格式
         private String                  destination;                                // canal实例或MQ的topic
@@ -349,10 +349,10 @@ public class MappingConfig {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            HbaseOrm hbaseOrm = (HbaseOrm) o;
+            HbaseMapping hbaseMapping = (HbaseMapping) o;
 
-            if (table != null ? !table.equals(hbaseOrm.table) : hbaseOrm.table != null) return false;
-            return hbaseTable != null ? hbaseTable.equals(hbaseOrm.hbaseTable) : hbaseOrm.hbaseTable == null;
+            if (table != null ? !table.equals(hbaseMapping.table) : hbaseMapping.table != null) return false;
+            return hbaseTable != null ? hbaseTable.equals(hbaseMapping.hbaseTable) : hbaseMapping.hbaseTable == null;
         }
 
         @Override

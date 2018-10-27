@@ -81,9 +81,9 @@ public class HbaseEtlService {
     public static void createTable(HbaseTemplate hbaseTemplate, MappingConfig config) {
         try {
             // 判断hbase表是否存在，不存在则建表
-            MappingConfig.HbaseOrm hbaseOrm = config.getHbaseOrm();
-            if (!hbaseTemplate.tableExists(hbaseOrm.getHbaseTable())) {
-                hbaseTemplate.createTable(hbaseOrm.getHbaseTable(), hbaseOrm.getFamily());
+            MappingConfig.HbaseMapping hbaseMapping = config.getHbaseMapping();
+            if (!hbaseTemplate.tableExists(hbaseMapping.getHbaseTable())) {
+                hbaseTemplate.createTable(hbaseMapping.getHbaseTable(), hbaseMapping.getFamily());
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -113,29 +113,29 @@ public class HbaseEtlService {
                 etlResult.setErrorMessage("Config is null!");
                 return etlResult;
             }
-            MappingConfig.HbaseOrm hbaseOrm = config.getHbaseOrm();
-            hbaseTable = hbaseOrm.getHbaseTable();
+            MappingConfig.HbaseMapping hbaseMapping = config.getHbaseMapping();
+            hbaseTable = hbaseMapping.getHbaseTable();
 
             long start = System.currentTimeMillis();
 
             if (params != null && params.size() == 1 && "rebuild".equalsIgnoreCase(params.get(0))) {
-                logger.info(hbaseOrm.getHbaseTable() + " rebuild is starting!");
+                logger.info(hbaseMapping.getHbaseTable() + " rebuild is starting!");
                 // 如果表存在则删除
-                if (hbaseTemplate.tableExists(hbaseOrm.getHbaseTable())) {
-                    hbaseTemplate.disableTable(hbaseOrm.getHbaseTable());
-                    hbaseTemplate.deleteTable(hbaseOrm.getHbaseTable());
+                if (hbaseTemplate.tableExists(hbaseMapping.getHbaseTable())) {
+                    hbaseTemplate.disableTable(hbaseMapping.getHbaseTable());
+                    hbaseTemplate.deleteTable(hbaseMapping.getHbaseTable());
                 }
                 params = null;
             } else {
-                logger.info(hbaseOrm.getHbaseTable() + " etl is starting!");
+                logger.info(hbaseMapping.getHbaseTable() + " etl is starting!");
             }
             createTable(hbaseTemplate, config);
 
             // 拼接sql
-            String sql = "SELECT * FROM " + config.getHbaseOrm().getDatabase() + "." + hbaseOrm.getTable();
+            String sql = "SELECT * FROM " + config.getHbaseMapping().getDatabase() + "." + hbaseMapping.getTable();
 
             // 拼接条件
-            if (params != null && params.size() == 1 && hbaseOrm.getEtlCondition() == null) {
+            if (params != null && params.size() == 1 && hbaseMapping.getEtlCondition() == null) {
                 AtomicBoolean stExists = new AtomicBoolean(false);
                 // 验证是否有SYS_TIME字段
                 sqlRS(ds, sql, rs -> {
@@ -157,8 +157,8 @@ public class HbaseEtlService {
                 if (stExists.get()) {
                     sql += " WHERE SYS_TIME >= '" + params.get(0) + "' ";
                 }
-            } else if (hbaseOrm.getEtlCondition() != null && params != null) {
-                String etlCondition = hbaseOrm.getEtlCondition();
+            } else if (hbaseMapping.getEtlCondition() != null && params != null) {
+                String etlCondition = hbaseMapping.getEtlCondition();
                 int size = params.size();
                 for (int i = 0; i < size; i++) {
                     etlCondition = etlCondition.replace("{" + i + "}", params.get(i));
@@ -200,7 +200,7 @@ public class HbaseEtlService {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
                     Future<Boolean> future = executor
-                        .submit(() -> executeSqlImport(ds, sqlFinal, hbaseOrm, hbaseTemplate, successCount, errMsg));
+                        .submit(() -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
                     futures.add(future);
                 }
 
@@ -210,13 +210,13 @@ public class HbaseEtlService {
 
                 executor.shutdown();
             } else {
-                executeSqlImport(ds, sql, hbaseOrm, hbaseTemplate, successCount, errMsg);
+                executeSqlImport(ds, sql, hbaseMapping, hbaseTemplate, successCount, errMsg);
             }
 
             logger.info(
-                hbaseOrm.getHbaseTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000 + "s!");
+                hbaseMapping.getHbaseTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000 + "s!");
 
-            etlResult.setResultMessage("导入HBase表 " + hbaseOrm.getHbaseTable() + " 数据：" + successCount.get() + " 条");
+            etlResult.setResultMessage("导入HBase表 " + hbaseMapping.getHbaseTable() + " 数据：" + successCount.get() + " 条");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             errMsg.add(hbaseTable + " etl failed! ==>" + e.getMessage());
@@ -235,13 +235,13 @@ public class HbaseEtlService {
      * 
      * @param ds
      * @param sql
-     * @param hbaseOrm
+     * @param hbaseMapping
      * @param hbaseTemplate
      * @param successCount
      * @param errMsg
      * @return
      */
-    private static boolean executeSqlImport(DataSource ds, String sql, MappingConfig.HbaseOrm hbaseOrm,
+    private static boolean executeSqlImport(DataSource ds, String sql, MappingConfig.HbaseMapping hbaseMapping,
                                             HbaseTemplate hbaseTemplate, AtomicLong successCount, List<String> errMsg) {
         try {
             sqlRS(ds, sql, rs -> {
@@ -251,8 +251,8 @@ public class HbaseEtlService {
                     boolean complete = false;
                     List<HRow> rows = new ArrayList<>();
                     String[] rowKeyColumns = null;
-                    if (hbaseOrm.getRowKey() != null) {
-                        rowKeyColumns = hbaseOrm.getRowKey().trim().split(",");
+                    if (hbaseMapping.getRowKey() != null) {
+                        rowKeyColumns = hbaseMapping.getRowKey().trim().split(",");
                     }
                     while (rs.next()) {
                         int cc = rs.getMetaData().getColumnCount();
@@ -290,30 +290,30 @@ public class HbaseEtlService {
                                 continue;
                             }
 
-                            MappingConfig.ColumnItem columnItem = hbaseOrm.getColumnItems().get(columnName);
+                            MappingConfig.ColumnItem columnItem = hbaseMapping.getColumnItems().get(columnName);
                             // 没有配置映射
                             if (columnItem == null) {
-                                String family = hbaseOrm.getFamily();
+                                String family = hbaseMapping.getFamily();
                                 String qualifile = columnName;
-                                if (hbaseOrm.isUppercaseQualifier()) {
+                                if (hbaseMapping.isUppercaseQualifier()) {
                                     qualifile = qualifile.toUpperCase();
                                 }
-                                if (MappingConfig.Mode.STRING == hbaseOrm.getMode()) {
-                                    if (hbaseOrm.getRowKey() == null && j == 1) {
+                                if (MappingConfig.Mode.STRING == hbaseMapping.getMode()) {
+                                    if (hbaseMapping.getRowKey() == null && j == 1) {
                                         row.setRowKey(Bytes.toBytes(val.toString()));
                                     } else {
                                         row.addCell(family, qualifile, Bytes.toBytes(val.toString()));
                                     }
-                                } else if (MappingConfig.Mode.NATIVE == hbaseOrm.getMode()) {
+                                } else if (MappingConfig.Mode.NATIVE == hbaseMapping.getMode()) {
                                     Type type = Type.getType(classes[j - 1]);
-                                    if (hbaseOrm.getRowKey() == null && j == 1) {
+                                    if (hbaseMapping.getRowKey() == null && j == 1) {
                                         row.setRowKey(TypeUtil.toBytes(val, type));
                                     } else {
                                         row.addCell(family, qualifile, TypeUtil.toBytes(val, type));
                                     }
-                                } else if (MappingConfig.Mode.PHOENIX == hbaseOrm.getMode()) {
+                                } else if (MappingConfig.Mode.PHOENIX == hbaseMapping.getMode()) {
                                     PhType phType = PhType.getType(classes[j - 1]);
-                                    if (hbaseOrm.getRowKey() == null && j == 1) {
+                                    if (hbaseMapping.getRowKey() == null && j == 1) {
                                         row.setRowKey(PhTypeUtil.toBytes(val, phType));
                                     } else {
                                         row.addCell(family, qualifile, PhTypeUtil.toBytes(val, phType));
@@ -353,8 +353,8 @@ public class HbaseEtlService {
 
                         rows.add(row);
                         complete = false;
-                        if (i % hbaseOrm.getCommitBatch() == 0 && !rows.isEmpty()) {
-                            hbaseTemplate.puts(hbaseOrm.getHbaseTable(), rows);
+                        if (i % hbaseMapping.getCommitBatch() == 0 && !rows.isEmpty()) {
+                            hbaseTemplate.puts(hbaseMapping.getHbaseTable(), rows);
                             rows.clear();
                             complete = true;
                         }
@@ -366,12 +366,12 @@ public class HbaseEtlService {
                     }
 
                     if (!complete && !rows.isEmpty()) {
-                        hbaseTemplate.puts(hbaseOrm.getHbaseTable(), rows);
+                        hbaseTemplate.puts(hbaseMapping.getHbaseTable(), rows);
                     }
 
                 } catch (Exception e) {
-                    logger.error(hbaseOrm.getHbaseTable() + " etl failed! ==>" + e.getMessage(), e);
-                    errMsg.add(hbaseOrm.getHbaseTable() + " etl failed! ==>" + e.getMessage());
+                    logger.error(hbaseMapping.getHbaseTable() + " etl failed! ==>" + e.getMessage(), e);
+                    errMsg.add(hbaseMapping.getHbaseTable() + " etl failed! ==>" + e.getMessage());
                     // throw new RuntimeException(e);
                 }
                 return i;
