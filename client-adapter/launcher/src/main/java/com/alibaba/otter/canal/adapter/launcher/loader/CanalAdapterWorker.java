@@ -34,7 +34,7 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      */
     public CanalAdapterWorker(String canalDestination, SocketAddress address,
                               List<List<OuterAdapter>> canalOuterAdapters){
-        this.canalOuterAdapters = canalOuterAdapters;
+        super(canalOuterAdapters);
         this.canalDestination = canalDestination;
         groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         connector = CanalConnectors.newSingleConnector(address, canalDestination, "", "");
@@ -49,7 +49,7 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      */
     public CanalAdapterWorker(String canalDestination, String zookeeperHosts,
                               List<List<OuterAdapter>> canalOuterAdapters){
-        this.canalOuterAdapters = canalOuterAdapters;
+        super(canalOuterAdapters);
         this.canalDestination = canalDestination;
         groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         connector = CanalConnectors.newClusterConnector(zookeeperHosts, canalDestination, "", "");

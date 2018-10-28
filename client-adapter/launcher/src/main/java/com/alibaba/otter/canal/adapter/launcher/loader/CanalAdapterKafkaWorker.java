@@ -26,7 +26,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
 
     public CanalAdapterKafkaWorker(String bootstrapServers, String topic, String groupId,
                                    List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
-        this.canalOuterAdapters = canalOuterAdapters;
+        super(canalOuterAdapters);
         this.topic = topic;
         this.canalDestination = topic;
         this.flatMessage = flatMessage;

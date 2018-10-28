@@ -24,12 +24,12 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
 
     public CanalAdapterRocketMQWorker(String nameServers, String topic, String groupId,
                                       List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
-        logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
-        this.canalOuterAdapters = canalOuterAdapters;
+        super(canalOuterAdapters);
         this.topic = topic;
         this.flatMessage = flatMessage;
         this.canalDestination = topic;
         this.connector = RocketMQCanalConnectors.newRocketMQConnector(nameServers, topic, groupId, flatMessage);
+        logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
     }
 
     @Override
