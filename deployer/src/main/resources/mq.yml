@@ -6,7 +6,7 @@ bufferMemory: 33554432
 
 # Canal的batch size, 默认50K, 由于kafka最大消息体限制请勿超过1M(900K以下)
 canalBatchSize: 50
-# Canal get数据的超时时间, 单位: 毫秒, 空为不限超时
+# Canal get数据的超时时间, 单位: 毫秒, 0为不限超时
 canalGetTimeout: 100
 flatMessage: true
 

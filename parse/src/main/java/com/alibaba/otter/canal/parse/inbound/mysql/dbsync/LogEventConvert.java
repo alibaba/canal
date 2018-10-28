@@ -671,9 +671,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             int javaType = buffer.getJavaType();
-            if (isSingleBit && javaType == Types.TINYINT) {
-                javaType = Types.BIT;
-            }
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
             } else {
@@ -721,6 +718,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         } else {
                             // 对象为number类型，直接valueof即可
                             columnBuilder.setValue(String.valueOf(value));
+                        }
+
+                        if (isSingleBit && javaType == Types.TINYINT) {
+                            javaType = Types.BIT;
                         }
                         break;
                     case Types.REAL: // float

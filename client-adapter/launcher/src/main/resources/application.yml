@@ -21,7 +21,7 @@ canal.conf:
   flatMessage: true
   canalInstances:
   - instance: example
-    adapterGroups:
+    groups:
     - outAdapters:
       - name: logger
 #      - name: hbase
@@ -31,6 +31,13 @@ canal.conf:
 #          zookeeper.znode.parent: ${hbase.zookeeper.znode.parent}
 #  mqTopics:
 #  - mqMode: kafka
+#    topic: example
+#    groups:
+#    - groupId: g2
+#      outAdapters:
+#      - name: logger
+#  mqTopics:
+#  - mqMode: rocketmq
 #    topic: example
 #    groups:
 #    - groupId: g2
