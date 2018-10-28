@@ -35,7 +35,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     }
 
     @Override
-    protected  void closeConnection(){
+    protected void closeConnection() {
         connector.stopRunning();
     }
 
@@ -45,6 +45,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
             ;
         while (running) {
             try {
+                syncSwitch.get(canalDestination);
                 logger.info("=============> Start to connect topic: {} <=============", this.topic);
                 connector.connect();
                 logger.info("=============> Start to subscribe topic: {} <=============", this.topic);
@@ -52,7 +53,11 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 logger.info("=============> Subscribe topic: {} succeed <=============", this.topic);
                 while (running) {
                     try {
-                        syncSwitch.get(canalDestination);
+                        Boolean status = syncSwitch.status(canalDestination);
+                        if (status != null && !status) {
+                            connector.disconnect();
+                            break;
+                        }
 
                         List<?> messages;
                         if (!flatMessage) {
