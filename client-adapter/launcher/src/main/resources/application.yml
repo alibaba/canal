@@ -21,7 +21,7 @@ canal.conf:
   flatMessage: true
   canalInstances:
   - instance: example
-    adapterGroups:
+    groups:
     - outAdapters:
       - name: logger
 #      - name: hbase
