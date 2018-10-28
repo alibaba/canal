@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
@@ -36,7 +37,9 @@ public abstract class AbstractCanalAdapterWorker {
 
     protected SyncSwitch                      syncSwitch;
 
-    public AbstractCanalAdapterWorker(){
+    public AbstractCanalAdapterWorker(List<List<OuterAdapter>> canalOuterAdapters){
+        this.canalOuterAdapters = canalOuterAdapters;
+        this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         syncSwitch = (SyncSwitch) SpringContext.getBean(SyncSwitch.class);
     }
 
