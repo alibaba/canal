@@ -3,7 +3,7 @@ package com.alibaba.otter.canal.client.rocketmq;
 /**
  * RocketMQ connector provider.
  */
-public class RocketMQCanalConnectorProvider {
+public class RocketMQCanalConnectors {
 
     /**
      * Create RocketMQ connector
@@ -18,7 +18,7 @@ public class RocketMQCanalConnectorProvider {
     }
 
     public static RocketMQCanalConnector newRocketMQConnector(String nameServers, String topic, String groupId,
-        boolean flatMessage) {
+                                                              boolean flatMessage) {
         return new RocketMQCanalConnector(nameServers, topic, groupId, flatMessage);
     }
 }

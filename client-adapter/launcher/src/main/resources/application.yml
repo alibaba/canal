@@ -36,6 +36,13 @@ canal.conf:
 #    - groupId: g2
 #      outAdapters:
 #      - name: logger
+#  mqTopics:
+#  - mqMode: rocketmq
+#    topic: example
+#    groups:
+#    - groupId: g2
+#      outAdapters:
+#      - name: logger
 
 #adapter.conf:
 #  datasourceConfigs:
