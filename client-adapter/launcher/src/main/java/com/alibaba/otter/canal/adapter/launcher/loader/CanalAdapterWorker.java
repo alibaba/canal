@@ -36,7 +36,6 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                               List<List<OuterAdapter>> canalOuterAdapters){
         super(canalOuterAdapters);
         this.canalDestination = canalDestination;
-        groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         connector = CanalConnectors.newSingleConnector(address, canalDestination, "", "");
     }
 
@@ -51,7 +50,6 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                               List<List<OuterAdapter>> canalOuterAdapters){
         super(canalOuterAdapters);
         this.canalDestination = canalDestination;
-        groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         connector = CanalConnectors.newClusterConnector(zookeeperHosts, canalDestination, "", "");
         ((ClusterCanalConnector) connector).setSoTimeout(SO_TIMEOUT);
     }
