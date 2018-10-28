@@ -65,6 +65,7 @@ public class RocketMQCanalConnector implements CanalMQConnector {
 
     public void disconnect() throws CanalClientException {
         rocketMQConsumer.shutdown();
+        connected = false;
     }
 
     public boolean checkValid() throws CanalClientException {
@@ -257,12 +258,6 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     @Override
     public void rollback(long batchId) throws CanalClientException {
         throw new CanalClientException("mq not support this method");
-    }
-
-    @Override
-    public void stopRunning() throws CanalClientException {
-        this.rocketMQConsumer.shutdown();
-        connected = false;
     }
 
 }

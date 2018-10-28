@@ -87,7 +87,6 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
         if (!running) {
             return;
         }
-        connector.stopRunning();
         running = false;
         if (thread != null) {
             try {
@@ -134,6 +133,6 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
         } catch (WakeupException e) {
             // No-op. Continue process
         }
-        connector.stopRunning();
+//        connector.stopRunning();
     }
 }

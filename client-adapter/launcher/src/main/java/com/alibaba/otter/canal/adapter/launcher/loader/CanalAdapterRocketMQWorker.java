@@ -33,11 +33,6 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
     }
 
     @Override
-    protected void closeConnection() {
-        connector.stopRunning();
-    }
-
-    @Override
     protected void process() {
         while (!running)
             ;
@@ -88,7 +83,7 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
         } catch (WakeupException e) {
             // No-op. Continue process
         }
-        connector.stopRunning();
+        connector.disconnect();
         logger.info("=============> Disconnect topic: {} <=============", this.topic);
     }
 }

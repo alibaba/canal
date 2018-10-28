@@ -35,11 +35,6 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     }
 
     @Override
-    protected void closeConnection() {
-        connector.stopRunning();
-    }
-
-    @Override
     protected void process() {
         while (!running)
             ;
