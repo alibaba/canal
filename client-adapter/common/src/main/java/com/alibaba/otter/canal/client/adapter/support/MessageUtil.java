@@ -1,6 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
@@ -102,8 +107,9 @@ public class MessageUtil {
                 if (!old.isEmpty()) {
                     dml.setOld(old);
                 }
-                consumer.accept(dml);
             }
+
+            consumer.accept(dml);
         }
     }
 
