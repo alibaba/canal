@@ -119,7 +119,6 @@
         <module>example</module>
         <module>prometheus</module>
         <module>client-adapter</module>
-        <module>client-launcher</module>
     </modules>
 
     <dependencyManagement>

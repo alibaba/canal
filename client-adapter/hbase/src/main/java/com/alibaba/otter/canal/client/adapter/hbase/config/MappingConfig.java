@@ -1,43 +1,49 @@
 package com.alibaba.otter.canal.client.adapter.hbase.config;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * HBase表映射配置
  *
- * @author machengyuan 2018-8-21 下午06:45:49
+ * @author rewerma 2018-8-21 下午06:45:49
  * @version 1.0.0
  */
 public class MappingConfig {
 
-    private HbaseOrm hbaseOrm;
+    private String       dataSourceKey; // 数据源key
 
-    public HbaseOrm getHbaseOrm() {
-        return hbaseOrm;
+    private HbaseMapping hbaseMapping;  // hbase映射配置
+
+    public String getDataSourceKey() {
+        return dataSourceKey;
     }
 
-    public void setHbaseOrm(HbaseOrm hbaseOrm) {
-        this.hbaseOrm = hbaseOrm;
+    public void setDataSourceKey(String dataSourceKey) {
+        this.dataSourceKey = dataSourceKey;
+    }
+
+    public HbaseMapping getHbaseMapping() {
+        return hbaseMapping;
+    }
+
+    public void setHbaseMapping(HbaseMapping hbaseMapping) {
+        this.hbaseMapping = hbaseMapping;
     }
 
     public void validate() {
-        if (hbaseOrm.database == null || hbaseOrm.database.isEmpty()) {
-            throw new NullPointerException("hbaseOrm.database");
+        if (hbaseMapping.database == null || hbaseMapping.database.isEmpty()) {
+            throw new NullPointerException("hbaseMapping.database");
         }
-        if (hbaseOrm.table == null || hbaseOrm.table.isEmpty()) {
-            throw new NullPointerException("hbaseOrm.table");
+        if (hbaseMapping.table == null || hbaseMapping.table.isEmpty()) {
+            throw new NullPointerException("hbaseMapping.table");
         }
-        if (hbaseOrm.hbaseTable == null || hbaseOrm.hbaseTable.isEmpty()) {
-            throw new NullPointerException("hbaseOrm.hbaseTable");
+        if (hbaseMapping.hbaseTable == null || hbaseMapping.hbaseTable.isEmpty()) {
+            throw new NullPointerException("hbaseMapping.hbaseTable");
         }
-        if (hbaseOrm.mode == null) {
-            throw new NullPointerException("hbaseOrm.mode");
+        if (hbaseMapping.mode == null) {
+            throw new NullPointerException("hbaseMapping.mode");
         }
-        if (hbaseOrm.rowKey != null && hbaseOrm.rowKeyColumn != null) {
+        if (hbaseMapping.rowKey != null && hbaseMapping.rowKeyColumn != null) {
             throw new RuntimeException("已配置了复合主键作为RowKey，无需再指定RowKey列");
         }
     }
@@ -49,12 +55,12 @@ public class MappingConfig {
 
         MappingConfig config = (MappingConfig) o;
 
-        return hbaseOrm != null ? hbaseOrm.equals(config.hbaseOrm) : config.hbaseOrm == null;
+        return hbaseMapping != null ? hbaseMapping.equals(config.hbaseMapping) : config.hbaseMapping == null;
     }
 
     @Override
     public int hashCode() {
-        return hbaseOrm != null ? hbaseOrm.hashCode() : 0;
+        return hbaseMapping != null ? hbaseMapping.hashCode() : 0;
     }
 
     public static class ColumnItem {
@@ -121,7 +127,7 @@ public class MappingConfig {
     }
 
     public enum Mode {
-        STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
+                      STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
 
         private String type;
 
@@ -134,24 +140,26 @@ public class MappingConfig {
         }
     }
 
-    public static class HbaseOrm {
+    public static class HbaseMapping {
 
-        private Mode                    mode               = Mode.STRING;
-        private String                  database;
-        private String                  table;
-        private String                  hbaseTable;
-        private String                  family             = "CF";
-        private boolean                 uppercaseQualifier = true;
-        private boolean                 autoCreateTable    = false;                // 同步时HBase中表不存在的情况下自动建表
-        private String                  rowKey;                                    // 指定复合主键为rowKey
-        private Map<String, String>     columns;
-        private ColumnItem              rowKeyColumn;
-        private String                  etlCondition;
+        private Mode                    mode               = Mode.STRING;           // hbase默认转换格式
+        private String                  destination;                                // canal实例或MQ的topic
+        private String                  database;                                   // 数据库名或schema名
+        private String                  table;                                      // 表面名
+        private String                  hbaseTable;                                 // hbase表名
+        private String                  family             = "CF";                  // 默认统一column family
+        private boolean                 uppercaseQualifier = true;                  // 是否转大写
+        private boolean                 autoCreateTable    = false;                 // 同步时HBase中表不存在的情况下自动建表
+        private String                  rowKey;                                     // 指定复合主键为rowKey
+        private Map<String, String>     columns;                                    // 字段映射
+        private List<String>            excludeColumns;                             // 不映射的字段
+        private ColumnItem              rowKeyColumn;                               // rowKey字段
+        private String                  etlCondition;                               // etl条件sql
 
-        private Map<String, ColumnItem> columnItems        = new LinkedHashMap<>();
-        private Set<String>             families           = new LinkedHashSet<>();
+        private Map<String, ColumnItem> columnItems        = new LinkedHashMap<>(); // 转换后的字段映射列表
+        private Set<String>             families           = new LinkedHashSet<>(); // column family列表
         private int                     readBatch          = 5000;
-        private int                     commitBatch        = 5000;
+        private int                     commitBatch        = 5000;                  // etl等批量提交大小
 
         public Mode getMode() {
             return mode;
@@ -159,6 +167,14 @@ public class MappingConfig {
 
         public void setMode(Mode mode) {
             this.mode = mode;
+        }
+
+        public String getDestination() {
+            return destination;
+        }
+
+        public void setDestination(String destination) {
+            this.destination = destination;
         }
 
         public String getDatabase() {
@@ -277,6 +293,14 @@ public class MappingConfig {
             }
         }
 
+        public List<String> getExcludeColumns() {
+            return excludeColumns;
+        }
+
+        public void setExcludeColumns(List<String> excludeColumns) {
+            this.excludeColumns = excludeColumns;
+        }
+
         public String getFamily() {
             return family;
         }
@@ -325,10 +349,10 @@ public class MappingConfig {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            HbaseOrm hbaseOrm = (HbaseOrm) o;
+            HbaseMapping hbaseMapping = (HbaseMapping) o;
 
-            if (table != null ? !table.equals(hbaseOrm.table) : hbaseOrm.table != null) return false;
-            return hbaseTable != null ? hbaseTable.equals(hbaseOrm.hbaseTable) : hbaseOrm.hbaseTable == null;
+            if (table != null ? !table.equals(hbaseMapping.table) : hbaseMapping.table != null) return false;
+            return hbaseTable != null ? hbaseTable.equals(hbaseMapping.hbaseTable) : hbaseMapping.hbaseTable == null;
         }
 
         @Override

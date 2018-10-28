@@ -2,29 +2,26 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * 配置信息类
  *
- * @author machengyuan 2018-8-18 下午10:40:12
+ * @author rewerma 2018-8-18 下午10:40:12
  * @version 1.0.0
  */
 public class CanalClientConfig {
 
-    private String              canalServerHost;
+    private String              canalServerHost;    // 单机模式下canal server的 ip:port
 
-    private String              zookeeperHosts;
+    private String              zookeeperHosts;     // 集群模式下的zk地址, 如果配置了单机地址则以单机为准!!
 
-    private Properties          properties;
+    private String              bootstrapServers;   // kafka or rocket mq 地址
 
-    private String              bootstrapServers;
+    private Boolean             flatMessage = true; // 是否已flatMessage模式传输, 只适用于mq模式
 
-    private List<MQTopic>       mqTopics;
+    private List<MQTopic>       mqTopics;           // mq topic 列表
 
-    private Boolean             flatMessage = true;
-
-    private List<CanalInstance> canalInstances;
+    private List<CanalInstance> canalInstances;     // tcp 模式下 canal 实例列表, 与mq模式不能共存!!
 
     public String getCanalServerHost() {
         return canalServerHost;
@@ -42,14 +39,6 @@ public class CanalClientConfig {
         this.zookeeperHosts = zookeeperHosts;
     }
 
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
-
     public String getBootstrapServers() {
         return bootstrapServers;
     }
@@ -62,16 +51,16 @@ public class CanalClientConfig {
         return mqTopics;
     }
 
+    public void setMqTopics(List<MQTopic> mqTopics) {
+        this.mqTopics = mqTopics;
+    }
+
     public Boolean getFlatMessage() {
         return flatMessage;
     }
 
     public void setFlatMessage(Boolean flatMessage) {
         this.flatMessage = flatMessage;
-    }
-
-    public void setMqTopics(List<MQTopic> mqTopics) {
-        this.mqTopics = mqTopics;
     }
 
     public List<CanalInstance> getCanalInstances() {
@@ -84,9 +73,9 @@ public class CanalClientConfig {
 
     public static class CanalInstance {
 
-        private String             instance;
+        private String             instance;      // 实例名
 
-        private List<AdapterGroup> adapterGroups;
+        private List<AdapterGroup> adapterGroups; // 适配器分组列表
 
         public String getInstance() {
             return instance;
@@ -109,24 +98,24 @@ public class CanalClientConfig {
 
     public static class AdapterGroup {
 
-        private List<CanalOuterAdapterConfiguration> outAdapters;
+        private List<OuterAdapterConfig> outAdapters; // 适配器列表
 
-        public List<CanalOuterAdapterConfiguration> getOutAdapters() {
+        public List<OuterAdapterConfig> getOutAdapters() {
             return outAdapters;
         }
 
-        public void setOutAdapters(List<CanalOuterAdapterConfiguration> outAdapters) {
+        public void setOutAdapters(List<OuterAdapterConfig> outAdapters) {
             this.outAdapters = outAdapters;
         }
     }
 
     public static class MQTopic {
 
-        private String      mqMode;
+        private String      mqMode;                     // mq模式 kafka or rocketMQ
 
-        private String      topic;
+        private String      topic;                      // topic名
 
-        private List<Group> groups = new ArrayList<>();
+        private List<Group> groups = new ArrayList<>(); // 分组列表
 
         public String getMqMode() {
             return mqMode;
@@ -155,11 +144,11 @@ public class CanalClientConfig {
 
     public static class Group {
 
-        private String                               groupId;
+        private String                   groupId;     // group id
 
         // private List<Adaptor> adapters = new ArrayList<>();
 
-        private List<CanalOuterAdapterConfiguration> outAdapters;
+        private List<OuterAdapterConfig> outAdapters; // 适配器配置列表
 
         public String getGroupId() {
             return groupId;
@@ -169,11 +158,11 @@ public class CanalClientConfig {
             this.groupId = groupId;
         }
 
-        public List<CanalOuterAdapterConfiguration> getOutAdapters() {
+        public List<OuterAdapterConfig> getOutAdapters() {
             return outAdapters;
         }
 
-        public void setOutAdapters(List<CanalOuterAdapterConfiguration> outAdapters) {
+        public void setOutAdapters(List<OuterAdapterConfig> outAdapters) {
             this.outAdapters = outAdapters;
         }
 

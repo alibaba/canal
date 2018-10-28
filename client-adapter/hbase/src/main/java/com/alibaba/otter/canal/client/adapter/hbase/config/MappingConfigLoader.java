@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -12,21 +13,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
+
 /**
  * HBase表映射配置加载器
- * <p>
- * 配置统一从hbase-mapping/configs.conf文件作为入口, 该文件包含所有表映射配置的名称或者文件名列表。
- * 每个对应的表配置可以yml配置文件或者以database.table为配置名的简化形式
- * </p>
  *
- * @author machengyuan 2018-8-21 下午06:45:49
+ * @author rewerma 2018-8-21 下午06:45:49
  * @version 1.0.0
  */
 public class MappingConfigLoader {
 
     private static Logger       logger    = LoggerFactory.getLogger(MappingConfigLoader.class);
 
-    private static final String BASE_PATH = "hbase-mapping/";
+    private static final String BASE_PATH = "hbase";
 
     /**
      * 加载HBase表映射配置
@@ -35,12 +34,11 @@ public class MappingConfigLoader {
      */
     public static Map<String, MappingConfig> load() {
         logger.info("## Start loading mapping config ... ");
-        String mappingConfigContent = readConfigContent(BASE_PATH + "configs.conf");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        String[] configLines = mappingConfigContent.split("\n");
-        for (String c : configLines) {
+        Collection<String> configs = AdapterConfigs.get("hbase");
+        for (String c : configs) {
             if (c == null) {
                 continue;
             }
@@ -74,6 +72,7 @@ public class MappingConfigLoader {
                 String[] dbTable;
                 if (dsKey == null) {
                     dbTable = srcMeta.split("\\.");
+
                 } else {
                     dbTable = srcMeta.split("@")[0].split("\\.");
                 }
@@ -81,21 +80,22 @@ public class MappingConfigLoader {
                 if (dbTable.length == 2) {
                     config = new MappingConfig();
 
-                    MappingConfig.HbaseOrm hbaseOrm = new MappingConfig.HbaseOrm();
-                    hbaseOrm.setHbaseTable(dbTable[0].toUpperCase() + "." + dbTable[1].toUpperCase());
-                    hbaseOrm.setAutoCreateTable(true);
-                    hbaseOrm.setDatabase(dbTable[0]);
-                    hbaseOrm.setTable(dbTable[1]);
-                    hbaseOrm.setMode(MappingConfig.Mode.STRING);
-                    hbaseOrm.setRowKey(rowKey);
+                    MappingConfig.HbaseMapping hbaseMapping = new MappingConfig.HbaseMapping();
+                    hbaseMapping.setHbaseTable(dbTable[0].toUpperCase() + "." + dbTable[1].toUpperCase());
+                    hbaseMapping.setAutoCreateTable(true);
+                    hbaseMapping.setDatabase(dbTable[0]);
+                    hbaseMapping.setTable(dbTable[1]);
+                    hbaseMapping.setMode(MappingConfig.Mode.PHOENIX);
+                    hbaseMapping.setRowKey(rowKey);
                     // 有定义rowKey
                     if (rowKey != null) {
                         MappingConfig.ColumnItem columnItem = new MappingConfig.ColumnItem();
                         columnItem.setRowKey(true);
                         columnItem.setColumn(rowKey);
-                        hbaseOrm.setRowKeyColumn(columnItem);
+                        hbaseMapping.setRowKeyColumn(columnItem);
                     }
-                    config.setHbaseOrm(hbaseOrm);
+                    config.setHbaseMapping(hbaseMapping);
+                    config.setDataSourceKey(dsKey);
 
                 } else {
                     throw new RuntimeException(String.format("配置项[%s]内容为空, 或格式不符合database.table", c));

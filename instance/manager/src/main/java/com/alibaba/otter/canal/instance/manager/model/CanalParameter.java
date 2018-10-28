@@ -39,6 +39,7 @@ public class CanalParameter implements Serializable {
     private BatchMode                storageBatchMode                   = BatchMode.MEMSIZE;         // 基于大小返回结果
     private Integer                  memoryStorageBufferSize            = 16 * 1024;                 // 内存存储的buffer大小
     private Integer                  memoryStorageBufferMemUnit         = 1024;                      // 内存存储的buffer内存占用单位，默认为1kb
+    private Boolean                  memoryStorageRawEntry              = Boolean.TRUE;              // 内存存储的对象是否启用raw的ByteString模式
     private String                   fileStorageDirectory;                                           // 文件存储的目录位置
     private Integer                  fileStorageStoreCount;                                          // 每个文件store存储的记录数
     private Integer                  fileStorageRollverCount;                                        // store文件的个数
@@ -97,6 +98,12 @@ public class CanalParameter implements Serializable {
     private String                   tsdbJdbcUrl;
     private String                   tsdbJdbcUserName;
     private String                   tsdbJdbcPassword;
+    private Integer                  tsdbSnapshotInterval               = 24;
+    private Integer                  tsdbSnapshotExpire                 = 360;
+    private String                   rdsAccesskey;
+    private String                   rdsSecretkey;
+    private String                   rdsInstanceId;
+    private Boolean                  gtidEnable                         = Boolean.FALSE;             // 是否开启gtid
     // ================================== 兼容字段处理
     private InetSocketAddress        masterAddress;                                                  // 主库信息
     private String                   masterUsername;                                                 // 帐号
@@ -917,6 +924,62 @@ public class CanalParameter implements Serializable {
 
     public void setTsdbJdbcPassword(String tsdbJdbcPassword) {
         this.tsdbJdbcPassword = tsdbJdbcPassword;
+    }
+
+    public String getRdsAccesskey() {
+        return rdsAccesskey;
+    }
+
+    public void setRdsAccesskey(String rdsAccesskey) {
+        this.rdsAccesskey = rdsAccesskey;
+    }
+
+    public String getRdsSecretkey() {
+        return rdsSecretkey;
+    }
+
+    public void setRdsSecretkey(String rdsSecretkey) {
+        this.rdsSecretkey = rdsSecretkey;
+    }
+
+    public String getRdsInstanceId() {
+        return rdsInstanceId;
+    }
+
+    public void setRdsInstanceId(String rdsInstanceId) {
+        this.rdsInstanceId = rdsInstanceId;
+    }
+
+    public Boolean getGtidEnable() {
+        return gtidEnable;
+    }
+
+    public void setGtidEnable(Boolean gtidEnable) {
+        this.gtidEnable = gtidEnable;
+    }
+
+    public Boolean getMemoryStorageRawEntry() {
+        return memoryStorageRawEntry;
+    }
+
+    public void setMemoryStorageRawEntry(Boolean memoryStorageRawEntry) {
+        this.memoryStorageRawEntry = memoryStorageRawEntry;
+    }
+
+    public Integer getTsdbSnapshotInterval() {
+        return tsdbSnapshotInterval;
+    }
+
+    public void setTsdbSnapshotInterval(Integer tsdbSnapshotInterval) {
+        this.tsdbSnapshotInterval = tsdbSnapshotInterval;
+    }
+
+    public Integer getTsdbSnapshotExpire() {
+        return tsdbSnapshotExpire;
+    }
+
+    public void setTsdbSnapshotExpire(Integer tsdbSnapshotExpire) {
+        this.tsdbSnapshotExpire = tsdbSnapshotExpire;
     }
 
     public String toString() {

@@ -2,10 +2,7 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -14,12 +11,61 @@ import org.slf4j.LoggerFactory;
 /**
  * 类型转换工具类
  *
- * @author machengyuan 2018-8-19 下午06:14:23
+ * @author rewerma 2018-8-19 下午06:14:23
  * @version 1.0.0
  */
 public class JdbcTypeUtil {
 
     private static Logger logger = LoggerFactory.getLogger(JdbcTypeUtil.class);
+
+    public static Object getRSData(ResultSet rs, String columnName, int jdbcType) throws SQLException {
+        if (jdbcType == Types.BIT || jdbcType == Types.BOOLEAN) {
+            return rs.getByte(columnName);
+        } else {
+            return rs.getObject(columnName);
+        }
+    }
+
+    public static Class<?> jdbcType2javaType(int jdbcType) {
+        switch (jdbcType) {
+            case Types.BIT:
+            case Types.BOOLEAN:
+                // return Boolean.class;
+            case Types.TINYINT:
+                return Byte.TYPE;
+            case Types.SMALLINT:
+                return Short.class;
+            case Types.INTEGER:
+                return Integer.class;
+            case Types.BIGINT:
+                return Long.class;
+            case Types.DECIMAL:
+            case Types.NUMERIC:
+                return BigDecimal.class;
+            case Types.REAL:
+                return Float.class;
+            case Types.FLOAT:
+            case Types.DOUBLE:
+                return Double.class;
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+                return String.class;
+            case Types.BINARY:
+            case Types.VARBINARY:
+            case Types.LONGVARBINARY:
+            case Types.BLOB:
+                return byte[].class;
+            case Types.DATE:
+                return java.sql.Date.class;
+            case Types.TIME:
+                return Time.class;
+            case Types.TIMESTAMP:
+                return Timestamp.class;
+            default:
+                return String.class;
+        }
+    }
 
     public static Object typeConvert(String columnName, String value, int sqlType, String mysqlType) {
         if (value == null || value.equals("")) {

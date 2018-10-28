@@ -22,7 +22,8 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.17</version>
+            <version>1.19</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
@@ -44,38 +45,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <addMavenDescriptor>true</addMavenDescriptor>
-                    </archive>
-                    <excludes>
-                        <exclude>**/hbase-mapping/**</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${project.basedir}/../../client-launcher/target/canal_client/conf/hbase-mapping" overwrite="true" >
-                                    <fileset dir="${project.basedir}/src/main/resources/hbase-mapping" erroronmissingdir="true">
-                                        <include name="*.conf"/>
-                                        <include name="*.yml"/>
-                                    </fileset>
-                                </copy>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

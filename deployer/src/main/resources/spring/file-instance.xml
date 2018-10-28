@@ -44,6 +44,7 @@
 		<property name="bufferMemUnit" value="${canal.instance.memory.buffer.memunit:1024}" />
 		<property name="batchMode" value="${canal.instance.memory.batch.mode:MEMSIZE}" />
 		<property name="ddlIsolation" value="${canal.instance.get.ddl.isolation:false}" />
+		<property name="raw" value="${canal.instance.memory.rawEntry:true}" />
 	</bean>
 	
 	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
@@ -160,6 +161,8 @@
 		<!--表结构相关-->
 		<property name="enableTsdb" value="${canal.instance.tsdb.enable:true}"/>
 		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
+		<property name="tsdbSnapshotInterval" value="${canal.instance.tsdb.snapshot.interval:24}" />
+		<property name="tsdbSnapshotExpire" value="${canal.instance.tsdb.snapshot.expire:360}" />
 
 		<!--是否启用GTID模式-->
 		<property name="isGTIDMode" value="${canal.instance.gtidon:false}"/>

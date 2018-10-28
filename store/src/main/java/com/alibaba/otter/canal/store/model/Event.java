@@ -34,10 +34,17 @@ public class Event implements Serializable {
     private long              rawLength;
     private int               rowsCount;
 
+    // ==== https://github.com/alibaba/canal/issues/1019
+    private CanalEntry.Entry  entry;
+
     public Event(){
     }
 
     public Event(LogIdentity logIdentity, CanalEntry.Entry entry){
+        this(logIdentity, entry, true);
+    }
+
+    public Event(LogIdentity logIdentity, CanalEntry.Entry entry, boolean raw){
         this.logIdentity = logIdentity;
         this.entryType = entry.getEntryType();
         this.executeTime = entry.getHeader().getExecuteTime();
@@ -46,9 +53,6 @@ public class Event implements Serializable {
         this.serverId = entry.getHeader().getServerId();
         this.gtid = entry.getHeader().getGtid();
         this.eventType = entry.getHeader().getEventType();
-        // build raw
-        this.rawEntry = entry.toByteString();
-        this.rawLength = rawEntry.size();
         if (entryType == EntryType.ROWDATA) {
             List<CanalEntry.Pair> props = entry.getHeader().getPropsList();
             if (props != null) {
@@ -59,6 +63,16 @@ public class Event implements Serializable {
                     }
                 }
             }
+        }
+
+        if (raw) {
+            // build raw
+            this.rawEntry = entry.toByteString();
+            this.rawLength = rawEntry.size();
+        } else {
+            this.entry = entry;
+            // 按照3倍的event length预估
+            this.rawLength = entry.getHeader().getEventLength() * 3;
         }
     }
 
@@ -148,6 +162,14 @@ public class Event implements Serializable {
 
     public void setRowsCount(int rowsCount) {
         this.rowsCount = rowsCount;
+    }
+
+    public CanalEntry.Entry getEntry() {
+        return entry;
+    }
+
+    public void setEntry(CanalEntry.Entry entry) {
+        this.entry = entry;
     }
 
     public String toString() {
