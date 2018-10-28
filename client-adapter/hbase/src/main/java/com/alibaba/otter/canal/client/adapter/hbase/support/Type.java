@@ -1,5 +1,8 @@
 package com.alibaba.otter.canal.client.adapter.hbase.support;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
@@ -11,50 +14,20 @@ import java.util.Date;
  * @version 1.0.0
  */
 public enum Type {
-    DEFAULT("STRING"), STRING("STRING"), INTEGER("INTEGER"), LONG("LONG"), SHORT("SHORT"), BOOLEAN("BOOLEAN"),
-    FLOAT("FLOAT"), DOUBLE("DOUBLE"), BIGDECIMAL("BIGDECIMAL"), DATE("DATE"), BYTE("BYTE"), BYTES("BYTES");
+                  DEFAULT, STRING, INTEGER, LONG, SHORT, BOOLEAN, FLOAT, DOUBLE, BIGDECIMAL, DATE, BYTE, BYTES;
 
-    private String type;
-
-    Type(String type){
-        this.type = type;
-    }
-
-    public String getType() {
-        return type;
-    }
+    private static Logger logger = LoggerFactory.getLogger(Type.class);
 
     public static Type getType(String type) {
         if (type == null) {
             return DEFAULT;
         }
-        Type res;
-        if (type.equalsIgnoreCase("STRING")) {
-            res = STRING;
-        } else if (type.equalsIgnoreCase("INTEGER")) {
-            res = INTEGER;
-        } else if (type.equalsIgnoreCase("LONG")) {
-            res = LONG;
-        } else if (type.equalsIgnoreCase("SHORT")) {
-            res = SHORT;
-        } else if (type.equalsIgnoreCase("BOOLEAN")) {
-            res = BOOLEAN;
-        } else if (type.equalsIgnoreCase("FLOAT")) {
-            res = FLOAT;
-        } else if (type.equalsIgnoreCase("DOUBLE")) {
-            res = DOUBLE;
-        } else if (type.equalsIgnoreCase("BIGDECIMAL")) {
-            res = BIGDECIMAL;
-        } else if (type.equalsIgnoreCase("DATE")) {
-            res = DATE;
-        } else if (type.equalsIgnoreCase("BYTE")) {
-            res = BYTE;
-        } else if (type.equalsIgnoreCase("BYTES")) {
-            res = BYTES;
-        } else {
-            res = DEFAULT;
+        try {
+            return Type.valueOf(type);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return DEFAULT;
         }
-        return res;
     }
 
     public static Type getType(Class<?> javaType) {
@@ -62,29 +35,29 @@ public enum Type {
             return DEFAULT;
         }
         Type type;
-        if (Integer.class.isAssignableFrom(javaType) || int.class.isAssignableFrom(javaType)) {
+        if (Integer.class == javaType || int.class == javaType) {
             type = INTEGER;
-        } else if (Long.class.isAssignableFrom(javaType) || long.class.isAssignableFrom(javaType)) {
+        } else if (Long.class == javaType || long.class == javaType) {
             type = LONG;
-        } else if (Byte.class.isAssignableFrom(javaType) || byte.class.isAssignableFrom(javaType)) {
+        } else if (Byte.class == javaType || byte.class == javaType) {
             type = BYTE;
-        } else if (Short.class.isAssignableFrom(javaType) || short.class.isAssignableFrom(javaType)) {
+        } else if (Short.class == javaType || short.class == javaType) {
             type = SHORT;
-        } else if (Float.class.isAssignableFrom(javaType) || float.class.isAssignableFrom(javaType)) {
+        } else if (Float.class == javaType || float.class == javaType) {
             type = FLOAT;
-        } else if (Double.class.isAssignableFrom(javaType) || double.class.isAssignableFrom(javaType)) {
+        } else if (Double.class == javaType || double.class == javaType) {
             type = DOUBLE;
-        } else if (Boolean.class.isAssignableFrom(javaType) || boolean.class.isAssignableFrom(javaType)) {
+        } else if (Boolean.class == javaType || boolean.class == javaType) {
             type = BOOLEAN;
-        } else if (Date.class.isAssignableFrom(javaType)) {
+        } else if (Date.class == javaType) {
             type = DATE;
-        } else if (byte[].class.isAssignableFrom(javaType)) {
+        } else if (byte[].class == javaType) {
             type = BYTES;
-        } else if (String.class.isAssignableFrom(javaType)) {
+        } else if (String.class == javaType) {
             type = STRING;
-        } else if (BigDecimal.class.isAssignableFrom(javaType)) {
+        } else if (BigDecimal.class == javaType) {
             type = BIGDECIMAL;
-        } else if (BigInteger.class.isAssignableFrom(javaType)) {
+        } else if (BigInteger.class == javaType) {
             type = LONG;
         } else {
             type = DEFAULT;

@@ -40,7 +40,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
                 connector.subscribe();
                 while (running) {
                     try {
-                        List<Message> messages = connector.getWithoutAck(3L, TimeUnit.SECONDS);
+                        List<Message> messages = connector.getList(3L, TimeUnit.SECONDS);
                         if (messages != null) {
                             System.out.println(messages);
                         }

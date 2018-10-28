@@ -164,7 +164,7 @@ adapter.conf:
 修改 config/hbase/mytest_person.yml文件:
 ```
 dataSourceKey: defaultDS            # 对应application.yml中的datasourceConfigs下的配置
-hbaseOrm:                           # mysql--HBase的单表映射配置
+hbaseMapping:                       # mysql--HBase的单表映射配置
   mode: STRING                      # HBase中的存储类型, 默认统一存为String, 可选: #PHOENIX  #NATIVE   #STRING 
                                     # NATIVE: 以java类型为主, PHOENIX: 将类型转换为Phoenix对应的类型
   destination: example              # 对应 canal destination/MQ topic 名称
