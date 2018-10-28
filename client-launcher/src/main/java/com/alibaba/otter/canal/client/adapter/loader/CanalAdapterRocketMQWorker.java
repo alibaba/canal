@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.loader;
 
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,16 +24,19 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
 
     private RocketMQCanalConnector connector;
 
-    private String                 topic;
+    private String topic;
+
+    private boolean flatMessage;
 
     public CanalAdapterRocketMQWorker(String nameServers, String topic, String groupId,
-                                      List<List<CanalOuterAdapter>> canalOuterAdapters){
+        List<List<CanalOuterAdapter>> canalOuterAdapters, boolean flatMessage) {
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
         this.canalOuterAdapters = canalOuterAdapters;
         this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         this.topic = topic;
+        this.flatMessage = flatMessage;
         this.canalDestination = topic;
-        connector = RocketMQCanalConnectorProvider.newRocketMQConnector(nameServers, topic, groupId);
+        connector = RocketMQCanalConnectorProvider.newRocketMQConnector(nameServers, topic, groupId, flatMessage);
     }
 
     @Override
@@ -80,20 +84,32 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                 logger.info("=============> Subscribe topic: {} succeed<=============", this.topic);
                 while (running) {
                     try {
-                        // switcher.get(); //等待开关开启
-
-                        final Message message = connector.getWithoutAck(1);
+                        Object message = null;
+                        if (!flatMessage) {
+                            message = connector.getWithoutAck(1);
+                        } else {
+                            message = connector.getFlatMessageWithoutAck();
+                        }
                         if (message != null) {
+                            final Object msg = message;
                             executor.submit(new Runnable() {
-
                                 @Override
                                 public void run() {
                                     try {
-                                        writeOut(message, topic);
+                                        if (msg != null) {
+                                            if (msg instanceof Message) {
+                                                Message receive = (Message) msg;
+                                                writeOut(receive, topic);
+                                                connector.ack(receive.getId());
+                                            } else {
+                                                FlatMessage receive = (FlatMessage) msg;
+                                                writeOut(receive);
+                                                connector.ack(receive.getId());
+                                            }
+                                        }
                                     } catch (Exception e) {
                                         logger.error(e.getMessage(), e);
                                     }
-                                    connector.ack(message.getId());
                                 }
                             });
                         } else {

@@ -57,6 +57,7 @@ public class CanalLauncher {
 
             CanalMQProducer canalMQProducer = null;
             String serverMode = controller.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
+            serverMode = "rocketmq";
             if (serverMode.equalsIgnoreCase("kafka")) {
                 canalMQProducer = new CanalKafkaProducer();
             } else if (serverMode.equalsIgnoreCase("rocketmq")) {

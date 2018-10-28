@@ -14,7 +14,11 @@ public class RocketMQCanalConnectorProvider {
      * @return {@link RocketMQCanalConnector}
      */
     public static RocketMQCanalConnector newRocketMQConnector(String nameServers, String topic, String groupId) {
-        return new RocketMQCanalConnector(nameServers, topic, groupId);
+        return new RocketMQCanalConnector(nameServers, topic, groupId, false);
     }
 
+    public static RocketMQCanalConnector newRocketMQConnector(String nameServers, String topic, String groupId,
+        boolean flatMessage) {
+        return new RocketMQCanalConnector(nameServers, topic, groupId, flatMessage);
+    }
 }
