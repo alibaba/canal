@@ -238,15 +238,6 @@ public class KafkaCanalConnector implements CanalMQConnector {
         }
     }
 
-    public void stopRunning() {
-        if (running) {
-            running = false; // 设置为非running状态
-            // if (!mutex.state()) {
-            // mutex.set(true); // 中断阻塞
-            // }
-        }
-    }
-
     @Override
     public void subscribe(String filter) throws CanalClientException {
         throw new CanalClientException("mq not support this method");

@@ -134,7 +134,6 @@ public abstract class AbstractCanalAdapterWorker {
                 return;
             }
 
-            closeConnection();
             running = false;
 
             syncSwitch.release(canalDestination);
@@ -155,7 +154,5 @@ public abstract class AbstractCanalAdapterWorker {
             logger.error(e.getMessage(), e);
         }
     }
-
-    protected abstract void closeConnection();
 
 }
