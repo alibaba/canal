@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class MQProperties {
 
-    private String                 servers                = "localhost:6667";
+    private String                 servers                = "127.0.0.1:6667";
     private int                    retries                = 0;
     private int                    batchSize              = 16384;
     private int                    lingerMs               = 1;
@@ -20,7 +20,7 @@ public class MQProperties {
     private boolean                filterTransactionEntry = true;
     private String                 producerGroup          = "Canal-Producer";
     private int                    canalBatchSize         = 50;
-    private Long                   canalGetTimeout;
+    private Long                   canalGetTimeout        = 100L;
     private boolean                flatMessage            = true;
 
     private List<CanalDestination> canalDestinations      = new ArrayList<CanalDestination>();

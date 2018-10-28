@@ -1,12 +1,15 @@
 package com.alibaba.otter.canal.client.running.rocketmq;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectorProvider;
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectors;
 import com.alibaba.otter.canal.client.running.kafka.AbstractKafkaTest;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -34,7 +37,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                                                     };
 
     public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
-        connector = RocketMQCanalConnectorProvider.newRocketMQConnector(nameServers, topic, groupId);
+        connector = RocketMQCanalConnectors.newRocketMQConnector(nameServers, topic, groupId);
     }
 
     public static void main(String[] args) {
@@ -103,21 +106,23 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    Message message = connector.getWithoutAck(1); // 获取message
-                    try {
-                        if (message == null) {
-                            continue;
-                        }
+                    List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
+                    for (Message message : messages) {
                         long batchId = message.getId();
                         int size = message.getEntries().size();
                         if (batchId == -1 || size == 0) {
+                            // try {
+                            // Thread.sleep(1000);
+                            // } catch (InterruptedException e) {
+                            // }
                         } else {
+                            // printSummary(message, batchId, size);
+                            // printEntry(message.getEntries());
                             logger.info(message.toString());
                         }
-                    } catch (Exception e) {
-                        logger.error(e.getMessage(), e);
                     }
-                    connector.ack(message.getId()); // 提交确认
+
+                    connector.ack(); // 提交确认
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

@@ -38,6 +38,19 @@ public class CanalLauncher {
                 properties.load(new FileInputStream(conf));
             }
 
+            CanalMQProducer canalMQProducer = null;
+            String serverMode = CanalController.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
+            if (serverMode.equalsIgnoreCase("kafka")) {
+                canalMQProducer = new CanalKafkaProducer();
+            } else if (serverMode.equalsIgnoreCase("rocketmq")) {
+                canalMQProducer = new CanalRocketMQProducer();
+            }
+
+            if (canalMQProducer != null) {
+                // disable netty
+                System.setProperty(CanalConstants.CANAL_WITHOUT_NETTY, "true");
+            }
+
             logger.info("## start the canal server.");
             final CanalController controller = new CanalController(properties);
             controller.start();
@@ -57,19 +70,11 @@ public class CanalLauncher {
 
             });
 
-            CanalMQProducer canalMQProducer = null;
-            String serverMode = controller.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
-            if (serverMode.equalsIgnoreCase("kafka")) {
-                canalMQProducer = new CanalKafkaProducer();
-            } else if (serverMode.equalsIgnoreCase("rocketmq")) {
-                canalMQProducer = new CanalRocketMQProducer();
-            }
             if (canalMQProducer != null) {
                 CanalMQStarter canalServerStarter = new CanalMQStarter(canalMQProducer);
                 if (canalServerStarter != null) {
                     canalServerStarter.init();
                 }
-
             }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:", e);

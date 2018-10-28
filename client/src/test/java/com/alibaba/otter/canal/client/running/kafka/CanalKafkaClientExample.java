@@ -108,8 +108,7 @@ public class CanalKafkaClientExample {
                 connector.subscribe();
                 while (running) {
                     try {
-                        List<Message> messages = connector.getWithoutAck(1L, TimeUnit.SECONDS); // 获取message
-
+                        List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
                         if (messages == null) {
                             continue;
                         }
