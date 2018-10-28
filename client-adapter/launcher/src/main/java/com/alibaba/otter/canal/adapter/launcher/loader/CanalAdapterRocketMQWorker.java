@@ -43,6 +43,7 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
             ;
         while (running) {
             try {
+                syncSwitch.get(canalDestination);
                 logger.info("=============> Start to connect topic: {} <=============", this.topic);
                 connector.connect();
                 logger.info("=============> Start to subscribe topic: {}<=============", this.topic);
@@ -50,6 +51,12 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                 logger.info("=============> Subscribe topic: {} succeed<=============", this.topic);
                 while (running) {
                     try {
+                        Boolean status = syncSwitch.status(canalDestination);
+                        if (status != null && !status) {
+                            connector.disconnect();
+                            break;
+                        }
+
                         List<?> messages;
                         if (!flatMessage) {
                             messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
