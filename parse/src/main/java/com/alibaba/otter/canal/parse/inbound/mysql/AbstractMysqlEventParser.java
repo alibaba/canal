@@ -26,6 +26,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     protected TableMetaTSDBFactory tableMetaTSDBFactory      = new DefaultTableMetaTSDBFactory();
     protected boolean              enableTsdb                = false;
+    protected int                  tsdbSnapshotInterval      = 24;
+    protected int                  tsdbSnapshotExpire        = 360;
     protected String               tsdbSpringXml;
     protected TableMetaTSDB        tableMetaTSDB;
 
@@ -208,6 +210,22 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public AtomicLong getReceivedBinlogBytes() {
         return this.receivedBinlogBytes;
+    }
+
+    public int getTsdbSnapshotInterval() {
+        return tsdbSnapshotInterval;
+    }
+
+    public void setTsdbSnapshotInterval(int tsdbSnapshotInterval) {
+        this.tsdbSnapshotInterval = tsdbSnapshotInterval;
+    }
+
+    public int getTsdbSnapshotExpire() {
+        return tsdbSnapshotExpire;
+    }
+
+    public void setTsdbSnapshotExpire(int tsdbSnapshotExpire) {
+        this.tsdbSnapshotExpire = tsdbSnapshotExpire;
     }
 
 }

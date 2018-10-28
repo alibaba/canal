@@ -90,7 +90,6 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                     long batchId = message.getId();
                     try {
                         int size = message.getEntries().size();
-
                         if (batchId == -1 || size == 0) {
                             Thread.sleep(1000);
                         } else {
@@ -131,7 +130,6 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                     // ignore
                 }
             }
-
         }
     }
 }

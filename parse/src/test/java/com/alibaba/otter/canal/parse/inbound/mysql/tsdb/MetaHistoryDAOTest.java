@@ -16,7 +16,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDO;
  * Created by wanshao Date: 2017/9/20 Time: 下午5:00
  **/
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "/tsdb/mysql-tsdb.xml" })
+@ContextConfiguration(locations = { "/tsdb/h2-tsdb.xml" })
 public class MetaHistoryDAOTest {
 
     @Resource
@@ -24,7 +24,22 @@ public class MetaHistoryDAOTest {
 
     @Test
     public void testSimple() {
-        List<MetaHistoryDO> metaHistoryDOList = metaHistoryDAO.findByTimestamp("test", 0L, 0L);
+        MetaHistoryDO historyDO = new MetaHistoryDO();
+        historyDO.setDestination("test");
+        historyDO.setBinlogFile("000001");
+        historyDO.setBinlogOffest(4L);
+        historyDO.setBinlogMasterId("1");
+        historyDO.setBinlogTimestamp(System.currentTimeMillis() - 7300 * 1000);
+        historyDO.setSqlSchema("test");
+        historyDO.setUseSchema("test");
+        historyDO.setSqlTable("testTable");
+        historyDO.setSqlTable("drop table testTable");
+        metaHistoryDAO.insert(historyDO);
+
+        int count = metaHistoryDAO.deleteByTimestamp("test", 7200);
+        System.out.println(count);
+
+        List<MetaHistoryDO> metaHistoryDOList = metaHistoryDAO.findByTimestamp("test", 0L, System.currentTimeMillis());
         for (MetaHistoryDO metaHistoryDO : metaHistoryDOList) {
             System.out.println(metaHistoryDO.getId());
         }

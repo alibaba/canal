@@ -1,8 +1,6 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.CommitFailedException;
@@ -23,19 +21,16 @@ import com.alibaba.otter.canal.protocol.Message;
 public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
 
     private KafkaCanalConnector connector;
-
     private String              topic;
-
     private boolean             flatMessage;
 
     public CanalAdapterKafkaWorker(String bootstrapServers, String topic, String groupId,
                                    List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
         this.canalOuterAdapters = canalOuterAdapters;
-        this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
         this.topic = topic;
         this.canalDestination = topic;
         this.flatMessage = flatMessage;
-        connector = KafkaCanalConnectors.newKafkaConnector(bootstrapServers, topic, null, groupId, flatMessage);
+        this.connector = KafkaCanalConnectors.newKafkaConnector(bootstrapServers, topic, null, groupId, flatMessage);
         // connector.setSessionTimeout(1L, TimeUnit.MINUTES);
     }
 
@@ -48,7 +43,6 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     protected void process() {
         while (!running)
             ;
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         while (running) {
             try {
                 logger.info("=============> Start to connect topic: {} <=============", this.topic);
@@ -62,9 +56,9 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
 
                         List<?> messages;
                         if (!flatMessage) {
-                            messages = connector.getWithoutAck();
+                            messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
                         } else {
-                            messages = connector.getFlatMessageWithoutAck(100L, TimeUnit.MILLISECONDS);
+                            messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);
                         }
                         if (messages != null) {
                             for (final Object message : messages) {
@@ -78,7 +72,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                         connector.ack();
                     } catch (CommitFailedException e) {
                         logger.warn(e.getMessage());
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         logger.error(e.getMessage(), e);
                         TimeUnit.SECONDS.sleep(1L);
                     }
@@ -87,8 +81,6 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 logger.error(e.getMessage(), e);
             }
         }
-
-        executor.shutdown();
 
         try {
             connector.unsubscribe();

@@ -387,7 +387,7 @@ public class CanalController {
         return config;
     }
 
-    public String getProperty(Properties properties, String key) {
+    public static String getProperty(Properties properties, String key) {
         key = StringUtils.trim(key);
         String value = System.getProperty(key);
 

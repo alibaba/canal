@@ -51,7 +51,6 @@ public abstract class AbstractCanalAdapterWorker {
                     adapters.forEach(adapter -> {
                         long begin = System.currentTimeMillis();
                         MessageUtil.parse4Dml(canalDestination, message, adapter::sync);
-
                         if (logger.isDebugEnabled()) {
                             logger.debug("{} elapsed time: {}",
                                 adapter.getClass().getName(),

@@ -98,6 +98,8 @@ public class CanalParameter implements Serializable {
     private String                   tsdbJdbcUrl;
     private String                   tsdbJdbcUserName;
     private String                   tsdbJdbcPassword;
+    private Integer                  tsdbSnapshotInterval               = 24;
+    private Integer                  tsdbSnapshotExpire                 = 360;
     private String                   rdsAccesskey;
     private String                   rdsSecretkey;
     private String                   rdsInstanceId;
@@ -962,6 +964,22 @@ public class CanalParameter implements Serializable {
 
     public void setMemoryStorageRawEntry(Boolean memoryStorageRawEntry) {
         this.memoryStorageRawEntry = memoryStorageRawEntry;
+    }
+
+    public Integer getTsdbSnapshotInterval() {
+        return tsdbSnapshotInterval;
+    }
+
+    public void setTsdbSnapshotInterval(Integer tsdbSnapshotInterval) {
+        this.tsdbSnapshotInterval = tsdbSnapshotInterval;
+    }
+
+    public Integer getTsdbSnapshotExpire() {
+        return tsdbSnapshotExpire;
+    }
+
+    public void setTsdbSnapshotExpire(Integer tsdbSnapshotExpire) {
+        this.tsdbSnapshotExpire = tsdbSnapshotExpire;
     }
 
     public String toString() {

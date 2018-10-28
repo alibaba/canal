@@ -75,7 +75,7 @@ public class CanalClientConfig {
 
         private String             instance;      // 实例名
 
-        private List<AdapterGroup> adapterGroups; // 适配器分组列表
+        private List<Group> groups;  // 适配器分组列表
 
         public String getInstance() {
             return instance;
@@ -87,16 +87,17 @@ public class CanalClientConfig {
             }
         }
 
-        public List<AdapterGroup> getAdapterGroups() {
-            return adapterGroups;
+        public List<Group> getGroups() {
+            return groups;
         }
 
-        public void setAdapterGroups(List<AdapterGroup> adapterGroups) {
-            this.adapterGroups = adapterGroups;
+        public void setGroups(List<Group> groups) {
+            this.groups = groups;
         }
+
     }
 
-    public static class AdapterGroup {
+    public static class Group {
 
         private List<OuterAdapterConfig> outAdapters; // 适配器列表
 
@@ -115,7 +116,7 @@ public class CanalClientConfig {
 
         private String      topic;                      // topic名
 
-        private List<Group> groups = new ArrayList<>(); // 分组列表
+        private List<MQGroup> groups = new ArrayList<>(); // 分组列表
 
         public String getMqMode() {
             return mqMode;
@@ -133,20 +134,18 @@ public class CanalClientConfig {
             this.topic = topic;
         }
 
-        public List<Group> getGroups() {
+        public List<MQGroup> getGroups() {
             return groups;
         }
 
-        public void setGroups(List<Group> groups) {
+        public void setGroups(List<MQGroup> groups) {
             this.groups = groups;
         }
     }
 
-    public static class Group {
+    public static class MQGroup {
 
         private String                   groupId;     // group id
-
-        // private List<Adaptor> adapters = new ArrayList<>();
 
         private List<OuterAdapterConfig> outAdapters; // 适配器配置列表
 

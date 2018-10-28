@@ -11,6 +11,7 @@ import java.util.Date;
  */
 public class Result implements Serializable {
 
+    private static final long serialVersionUID = -3276409502352405716L;
     public Integer code = 20000;
     public Object  data;
     public String  message;
