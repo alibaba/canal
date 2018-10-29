@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.1-SNAPSHOT</version>
+        <version>1.1.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
@@ -34,7 +32,7 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.client</artifactId>
-            <version>1.1.1-SNAPSHOT</version>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
@@ -134,14 +132,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${project.basedir}/target/config" overwrite="true" >
+                                <copy todir="${project.basedir}/target/config" overwrite="true">
                                     <fileset dir="${project.basedir}/src/main/resources" erroronmissingdir="true">
-                                        <include name="*.yml"/>
+                                        <include name="*.yml" />
                                     </fileset>
                                 </copy>
-                                <copy todir="${project.basedir}/target/config/hbase" overwrite="true" >
+                                <copy todir="${project.basedir}/target/config/hbase" overwrite="true">
                                     <fileset dir="${project.basedir}/../hbase/src/main/resources/hbase" erroronmissingdir="true">
-                                        <include name="*.yml"/>
+                                        <include name="*.yml" />
                                     </fileset>
                                 </copy>
                             </tasks>
