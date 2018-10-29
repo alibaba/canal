@@ -981,4 +981,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public void setFilterRows(boolean filterRows) {
         this.filterRows = filterRows;
     }
+
+    public void setUseDruidDdlFilter(boolean useDruidDdlFilter) {
+        this.useDruidDdlFilter = useDruidDdlFilter;
+    }
 }
