@@ -41,7 +41,7 @@ canal.conf:
   flatMessage: true                 # 扁平message开关, 是否以json字符串形式投递数据, 仅在kafka/rocketMQ模式下有效
   canalInstances:                   # canal实例组, 如果是tcp模式可配置此项
   - instance: example               # 对应canal destination
-    adapterGroups:                  # 对应适配器分组, 分组间的适配器并行运行
+    groups:                  # 对应适配器分组, 分组间的适配器并行运行
     - outAdapters:                  # 适配器列表, 分组内的适配串行运行
       - name: logger                # 适配器SPI名
       - name: hbase
