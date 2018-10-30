@@ -233,7 +233,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             if (useDruidDdlFilter) {
                 List<DdlResult> results = DruidDdlParser.parse(queryString, event.getDbName());
                 for (DdlResult result : results) {
-                    if (!processFilter(queryString, result, event, isSeek)) {
+                    if (!processFilter(queryString, result)) {
                         // 只要有一个数据不进行过滤
                         notFilter = true;
                     }
@@ -246,7 +246,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
             } else {
                 DdlResult result = SimpleDdlParser.parse(queryString, event.getDbName());
-                if (!processFilter(queryString, result, event, isSeek)) {
+                if (!processFilter(queryString, result)) {
                     notFilter = true;
                 }
 
@@ -258,6 +258,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             if (!notFilter) {
                 // 如果是过滤的数据就不处理了
                 return null;
+            }
+
+            if (!isSeek) {
+                // 使用新的表结构元数据管理方式
+                EntryPosition position = createPosition(event.getHeader());
+                tableMetaCache.apply(position, event.getDbName(), queryString, null);
             }
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
@@ -279,7 +285,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return StringUtils.substringAfter(queryString, type);
     }
 
-    private boolean processFilter(String queryString, DdlResult result, QueryLogEvent event, boolean isSeek) {
+    private boolean processFilter(String queryString, DdlResult result) {
         String schemaName = result.getSchemaName();
         String tableName = result.getTableName();
         // fixed issue https://github.com/alibaba/canal/issues/58
@@ -305,6 +311,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             || result.getType() == EventType.CREATE || result.getType() == EventType.TRUNCATE
             || result.getType() == EventType.RENAME || result.getType() == EventType.CINDEX
             || result.getType() == EventType.DINDEX) { // 针对DDL类型
+
+            if (filterQueryDdl) {
+                return true;
+            }
 
             if (StringUtils.isEmpty(tableName)
                 || (result.getType() == EventType.RENAME && StringUtils.isEmpty(result.getOriTableName()))) {
@@ -340,16 +350,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         return true;
                     }
                 }
-            }
-            
-            if (!isSeek) {
-                // 使用新的表结构元数据管理方式
-                EntryPosition position = createPosition(event.getHeader());
-                tableMetaCache.apply(position, event.getDbName(), queryString, null);
-            }
-            
-            if (filterQueryDdl) {
-                return true;
             }
         } else if (result.getType() == EventType.INSERT || result.getType() == EventType.UPDATE
                    || result.getType() == EventType.DELETE) {
