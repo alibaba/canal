@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.client</artifactId>
-            <version>1.1.2-SNAPSHOT</version>
+            <version>${canal_version}</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
@@ -93,6 +93,19 @@
             <classifier>jar-with-dependencies</classifier>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>client-adapter.elasticsearch</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
@@ -106,11 +119,15 @@
                     <excludes>
                         <exclude>
                             <groupId>com.alibaba.otter</groupId>
+                            <artifactId>client-adapter.logger</artifactId>
+                        </exclude>
+                        <exclude>
+                            <groupId>com.alibaba.otter</groupId>
                             <artifactId>client-adapter.hbase</artifactId>
                         </exclude>
                         <exclude>
                             <groupId>com.alibaba.otter</groupId>
-                            <artifactId>client-adapter.logger</artifactId>
+                            <artifactId>client-adapter.elasticsearch</artifactId>
                         </exclude>
                     </excludes>
                 </configuration>
@@ -139,6 +156,11 @@
                                 </copy>
                                 <copy todir="${project.basedir}/target/config/hbase" overwrite="true">
                                     <fileset dir="${project.basedir}/../hbase/src/main/resources/hbase" erroronmissingdir="true">
+                                        <include name="*.yml" />
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.basedir}/target/config/es" overwrite="true">
+                                    <fileset dir="${project.basedir}/../elasticsearch/src/main/resources/es" erroronmissingdir="true">
                                         <include name="*.yml" />
                                     </fileset>
                                 </copy>
