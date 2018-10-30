@@ -15,27 +15,30 @@ hbase.zookeeper.property.clientPort: 2181
 hbase.zookeeper.znode.parent: /hbase
 
 canal.conf:
-  canalServerHost: 127.0.0.1:11111
+#  canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
-#  bootstrapServers: slave1:6667 #or rocketmq nameservers:host1:9876;host2:9876
+  bootstrapServers: slave1:6667 #or rocketmq nameservers:host1:9876;host2:9876
   flatMessage: true
-  canalInstances:
-  - instance: example
-    groups:
-    - outAdapters:
-      - name: logger
+  retry: 3
+  timeout: 20000
+  batchSize: 50
+#  canalInstances:
+#  - instance: example
+#    groups:
+#    - outAdapters:
+#      - name: logger
 #      - name: hbase
 #        properties:
 #          hbase.zookeeper.quorum: ${hbase.zookeeper.quorum}
 #          hbase.zookeeper.property.clientPort: ${hbase.zookeeper.property.clientPort}
 #          zookeeper.znode.parent: ${hbase.zookeeper.znode.parent}
-#  mqTopics:
-#  - mqMode: kafka
-#    topic: example
-#    groups:
-#    - groupId: g2
-#      outAdapters:
-#      - name: logger
+  mqTopics:
+  - mqMode: kafka
+    topic: example
+    groups:
+    - groupId: g2
+      outAdapters:
+      - name: logger
 #  mqTopics:
 #  - mqMode: rocketmq
 #    topic: example

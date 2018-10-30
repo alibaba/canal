@@ -2,11 +2,10 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
+import com.alibaba.otter.canal.client.CanalConnector;
+import com.alibaba.otter.canal.client.CanalMQConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,6 +114,52 @@ public abstract class AbstractCanalAdapterWorker {
                 }
             });
         });
+    }
+
+    protected void mqWriteOutData(int retry, long timeout, boolean flatMessage, CanalMQConnector connector,
+                        ExecutorService workerExecutor) {
+        for (int i = 0; i < retry; i++) {
+            try {
+                List<?> messages;
+                if (!flatMessage) {
+                    messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
+                } else {
+                    messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);
+                }
+                if (messages != null) {
+                    Future<Boolean> future = workerExecutor.submit(() -> {
+                        for (final Object message : messages) {
+                            if (message instanceof FlatMessage) {
+                                writeOut((FlatMessage) message);
+                            } else {
+                                writeOut((Message) message);
+                            }
+                        }
+                        return true;
+                    });
+
+                    try {
+                        future.get(timeout, TimeUnit.MILLISECONDS);
+                    } catch (Exception e) {
+                        future.cancel(true);
+                        throw e;
+                    }
+                }
+                connector.ack();
+                break;
+            } catch (Throwable e) {
+                if (i == retry - 1) {
+                    connector.ack();
+                }
+
+                logger.error(e.getMessage(), e);
+                try {
+                    TimeUnit.SECONDS.sleep(1L);
+                } catch (InterruptedException e1) {
+                    // ignore
+                }
+            }
+        }
     }
 
     public void start() {

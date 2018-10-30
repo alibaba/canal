@@ -14,13 +14,6 @@ public class SqlParseTest {
 
     @Test
     public void parseTest() {
-        // String sql = "select a.id,d.user_id2, concat(name,'_', a.nick) as name,
-        // b.name as roleNme, d.name as typeName,concat(d.label,'_') as label,"
-        // + " c.name as refName from user a left join role b on b.user_id=a.id "
-        // + "left join type d on d.user_id=a.id and d.user_id2=a.p_id "
-        // + "left join ( select ref_id,group_concat(name,',') as name from role group
-        // by ref_id ) c on c.ref_id=a.id "
-        // + "where a.id=1";
         String sql = "select a.id, concat(a.name,'_test') as name, a.role_id, b.name as role_name, c.labels from user a "
                      + "left join role b on a.role_id=b.id "
                      + "left join (select user_id, group_concat(label,',') as labels from user_label "

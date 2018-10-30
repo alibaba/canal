@@ -30,7 +30,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
     public void testKafkaConsumer() {
         final ExecutorService executor = Executors.newFixedThreadPool(1);
 
-        final KafkaCanalConnector connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
+        final KafkaCanalConnector connector = new KafkaCanalConnector(servers, topic, partition, groupId, null, false);
 
         executor.submit(new Runnable() {
 

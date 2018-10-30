@@ -3,7 +3,6 @@ package com.alibaba.otter.canal.client.adapter.es;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.otter.canal.client.adapter.es.service.ESSyncService;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
@@ -13,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
+import com.alibaba.otter.canal.client.adapter.es.service.ESSyncService;
+import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
@@ -50,7 +51,8 @@ public class ESAdapter implements OuterAdapter {
             properties.forEach(settingBuilder::put);
             Settings settings = settingBuilder.build();
             transportClient = new PreBuiltTransportClient(settings);
-            esSyncService = new ESSyncService(transportClient);
+            ESTemplate esTemplate = new ESTemplate(transportClient);
+            esSyncService = new ESSyncService(esTemplate);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -72,7 +74,9 @@ public class ESAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
-
+        if (transportClient != null) {
+            transportClient.close();
+        }
     }
 
     @Override

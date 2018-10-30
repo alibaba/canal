@@ -1,15 +1,17 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
+import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import org.elasticsearch.client.transport.TransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ESSyncService {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private TransportClient transportClient;
+    private static Logger logger = LoggerFactory.getLogger(ESSyncService.class);
 
-    public ESSyncService(TransportClient transportClient) {
-        this.transportClient = transportClient;
+    private ESTemplate    esTemplate;
+
+    public ESSyncService(ESTemplate esTemplate){
+        this.esTemplate = esTemplate;
     }
 }

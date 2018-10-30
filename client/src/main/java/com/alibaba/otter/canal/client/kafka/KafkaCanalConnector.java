@@ -42,7 +42,8 @@ public class KafkaCanalConnector implements CanalMQConnector {
     private volatile boolean               running   = false;
     private boolean                        flatMessage;
 
-    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, boolean flatMessage){
+    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, Integer batchSize,
+                               boolean flatMessage){
         this.topic = topic;
         this.partition = partition;
         this.flatMessage = flatMessage;
@@ -55,7 +56,10 @@ public class KafkaCanalConnector implements CanalMQConnector {
         properties.put("auto.offset.reset", "latest"); // 如果没有offset则从最后的offset开始读
         properties.put("request.timeout.ms", "40000"); // 必须大于session.timeout.ms的设置
         properties.put("session.timeout.ms", "30000"); // 默认为30秒
-        properties.put("max.poll.records", "100");
+        if (batchSize == null) {
+            batchSize = 100;
+        }
+        properties.put("max.poll.records", batchSize.toString());
         properties.put("key.deserializer", StringDeserializer.class.getName());
         if (!flatMessage) {
             properties.put("value.deserializer", MessageDeserializer.class.getName());
