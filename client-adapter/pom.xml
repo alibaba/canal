@@ -21,6 +21,7 @@
         <module>common</module>
         <module>logger</module>
         <module>hbase</module>
+        <module>elasticsearch</module>
         <module>launcher</module>
     </modules>
 

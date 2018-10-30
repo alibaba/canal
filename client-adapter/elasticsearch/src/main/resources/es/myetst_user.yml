@@ -1,0 +1,12 @@
+dataSourceKey: defaultDS
+esMapping:
+  _index: mytest_user
+  _type: _doc
+  _id: id
+#  pk: id
+  sql: "select a.id, concat(a.name,'_test') as name, a.role_id, b.name as role_name, c.labels from user.a
+        left join role b on a.role_id=b.id
+        left join (select user_id, group_concat(label,',') as labels from user_label
+        group by user_id) c on c.user_id=a.id"
+  commitBatch: 3000
+  etlCondition: "where a.c_time>='{0}' or b.c_time>='{0}' or c.c_time>='{0}'"
