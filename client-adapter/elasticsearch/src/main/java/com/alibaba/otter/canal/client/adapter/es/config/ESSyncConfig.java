@@ -53,6 +53,8 @@ public class ESSyncConfig {
         private int          commitBatch = 1000;
         private String       etlCondition;
 
+        private SchemaItem   schemaItem;                     // sql解析结果模型
+
         public String get_index() {
             return _index;
         }
@@ -133,5 +135,12 @@ public class ESSyncConfig {
             this.etlCondition = etlCondition;
         }
 
+        public SchemaItem getSchemaItem() {
+            return schemaItem;
+        }
+
+        public void setSchemaItem(SchemaItem schemaItem) {
+            this.schemaItem = schemaItem;
+        }
     }
 }

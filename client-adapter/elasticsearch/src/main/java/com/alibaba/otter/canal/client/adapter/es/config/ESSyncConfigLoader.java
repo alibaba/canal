@@ -5,27 +5,38 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
+import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
 public class ESSyncConfigLoader {
 
-    private static Logger       logger    = LoggerFactory.getLogger(ESSyncConfigLoader.class);
+    private static Logger                                   logger              = LoggerFactory
+        .getLogger(ESSyncConfigLoader.class);
 
-    private static final String BASE_PATH = "es";
+    private static final String                             BASE_PATH           = "es";
 
-    public static Map<String, ESSyncConfig> load() {
+    private static volatile Map<String, ESSyncConfig>       esSyncConfig        = new LinkedHashMap<>(); // 文件名对应配置
+    private static volatile Map<String, List<ESSyncConfig>> dbTableEsSyncConfig = new LinkedHashMap<>(); // schema-table对应配置
+
+    public static Map<String, ESSyncConfig> getEsSyncConfig() {
+        return esSyncConfig;
+    }
+
+    public static Map<String, List<ESSyncConfig>> getDbTableEsSyncConfig() {
+        return dbTableEsSyncConfig;
+    }
+
+    public static synchronized void load() {
         logger.info("## Start loading mapping config ... ");
-
-        Map<String, ESSyncConfig> result = new LinkedHashMap<>();
-
         Collection<String> configs = AdapterConfigs.get("es");
         for (String c : configs) {
             if (c == null) {
@@ -47,17 +58,35 @@ public class ESSyncConfigLoader {
 
             try {
                 config.validate();
+                SchemaItem schemaItem = SqlParser.parse(config.getEsMapping().getSql());
+                config.getEsMapping().setSchemaItem(schemaItem);
+
+                DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+                if (dataSource == null || dataSource.getUrl() == null) {
+                    throw new RuntimeException("No data source found: " + config.getDataSourceKey());
+                }
+                Pattern pattern = Pattern.compile(".*:(.*)://.*/(.*)\\?.*$");
+                Matcher matcher = pattern.matcher(dataSource.getUrl());
+                if (!matcher.find()){
+                    throw new RuntimeException("No found the schema of jdbc-url: " + config.getDataSourceKey());
+                }
+                String schema = matcher.group(2);
+
+                schemaItem.getAliasTableItems().values().forEach(tableItem -> {
+                    List<ESSyncConfig> esSyncConfigs = dbTableEsSyncConfig
+                        .computeIfAbsent(schema + "-" + tableItem.getTableName(), k -> new ArrayList<>());
+                    esSyncConfigs.add(config);
+                });
             } catch (Exception e) {
-                throw new RuntimeException("ERROR Config: " + c + " " + e.getMessage(), e);
+                throw new RuntimeException("ERROR Config: " + c, e);
             }
-            result.put(c, config);
+            esSyncConfig.put(c, config);
         }
 
         logger.info("## Mapping config loaded");
-        return result;
     }
 
-    public static String readConfigContent(String config) {
+    private static String readConfigContent(String config) {
         InputStream in = null;
         try {
             // 先取本地文件，再取类路径
@@ -68,7 +97,7 @@ public class ESSyncConfigLoader {
                 in = ESSyncConfigLoader.class.getClassLoader().getResourceAsStream(config);
             }
             if (in == null) {
-                throw new RuntimeException("Config file not found.");
+                throw new RuntimeException("Config file: " + config + " not found.");
             }
 
             byte[] bytes = new byte[in.available()];

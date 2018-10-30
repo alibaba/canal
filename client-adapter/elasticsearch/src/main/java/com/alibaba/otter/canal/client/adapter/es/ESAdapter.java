@@ -28,24 +28,17 @@ import com.alibaba.otter.canal.client.adapter.support.SPI;
 @SPI("es")
 public class ESAdapter implements OuterAdapter {
 
-    private static Logger                             logger       = LoggerFactory.getLogger(ESAdapter.class);
+    private static Logger   logger = LoggerFactory.getLogger(ESAdapter.class);
 
-    private static volatile Map<String, ESSyncConfig> esSyncConfig = null;                                    // 文件名对应配置
+    private TransportClient transportClient;
 
-    private TransportClient                           transportClient;
-
-    private ESSyncService                             esSyncService;
+    private ESSyncService   esSyncService;
 
     @Override
     public void init(OuterAdapterConfig configuration) {
         try {
-            if (esSyncConfig == null) {
-                synchronized (ESSyncConfig.class) {
-                    if (esSyncConfig == null) {
-                        esSyncConfig = ESSyncConfigLoader.load();
-                    }
-                }
-            }
+            ESSyncConfigLoader.load();
+
             Map<String, String> properties = configuration.getProperties();
             Settings.Builder settingBuilder = Settings.builder();
             properties.forEach(settingBuilder::put);
