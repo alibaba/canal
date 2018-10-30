@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es.test;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -16,8 +15,8 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 public class ConfigLoadTest {
 
     @Before
-    public void before() throws SQLException {
-        AdapterConfigs.put("es", "myetst_user.yml");
+    public void before() {
+        AdapterConfigs.put("es", "mytest_user.yml");
         // 加载数据源连接池
         DatasourceConfig.DATA_SOURCES.put("defaultDS", DataSourceConstant.dataSource);
     }
@@ -26,7 +25,7 @@ public class ConfigLoadTest {
     public void testLoad() {
         ESSyncConfigLoader.load();
         Map<String, ESSyncConfig> configMap = ESSyncConfigLoader.getEsSyncConfig();
-        ESSyncConfig config = configMap.get("myetst_user.yml");
+        ESSyncConfig config = configMap.get("mytest_user.yml");
         Assert.assertNotNull(config);
         Assert.assertEquals("defaultDS", config.getDataSourceKey());
         ESSyncConfig.ESMapping esMapping = config.getEsMapping();

@@ -2,7 +2,10 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -11,6 +14,8 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
@@ -101,29 +106,29 @@ public class ESTemplate {
     }
 
     public void append4Update(BulkRequestBuilder bulkRequestBuilder, ESSyncConfig esSyncConfig, Object pkVal,
-                                      Map<String, Object> esFieldData) {
+                              Map<String, Object> esFieldData) {
         ESMapping mapping = esSyncConfig.getEsMapping();
         if (mapping.get_id() != null) {
             bulkRequestBuilder
-                    .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
-                            .setDoc(esFieldData));
+                .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
+                    .setDoc(esFieldData));
         } else {
             SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-                    .setTypes(mapping.get_type())
-                    .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
-                    .setSize(MAX_BATCH_SIZE)
-                    .get();
+                .setTypes(mapping.get_type())
+                .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
+                .setSize(MAX_BATCH_SIZE)
+                .get();
             for (SearchHit hit : response.getHits()) { // 理论上只有一条
                 bulkRequestBuilder
-                        .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), hit.getId())
-                                .setDoc(esFieldData));
+                    .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), hit.getId())
+                        .setDoc(esFieldData));
             }
         }
     }
 
     /**
      * update by query
-     * 
+     *
      * @param esSyncConfig
      * @param queryBuilder
      * @param esFieldData
@@ -215,7 +220,7 @@ public class ESTemplate {
 
     /**
      * 通过主键删除数据
-     * 
+     *
      * @param esSyncConfig
      * @param pkVal
      * @return
@@ -242,7 +247,7 @@ public class ESTemplate {
 
     /**
      * 批量提交
-     * 
+     *
      * @param bulkRequestBuilder
      * @return
      */
@@ -265,7 +270,72 @@ public class ESTemplate {
 
             return !response.hasFailures();
         }
-
         return true;
+    }
+
+    public Object getDataValue(ESMapping config, Map<String, Object> data, String fieldName) {
+        String esType = getEsType(config, fieldName);
+        Object value = data.get(fieldName);
+        if (value instanceof Byte) {
+            if ("boolean".equals(esType)) {
+                value = ((Byte) value).intValue() != 0;
+            }
+        }
+        return value;
+    }
+
+    public Object convertType(ESMapping config, String fieldName, Object val) {
+        // 从mapping中获取类型来转换
+        String esType = getEsType(config, fieldName);
+        return ESSyncUtil.typeConvert(val, esType);
+    }
+
+    /**
+     * es 字段类型本地缓存
+     */
+    private static ConcurrentMap<String, Map<String, String>> esFieldTypes = new ConcurrentHashMap<>();
+
+    @SuppressWarnings("unchecked")
+    public String getEsType(ESMapping config, String fieldName) {
+        String key = config.get_index() + "-" + config.get_type();
+        Map<String, String> fieldType = esFieldTypes.get(key);
+        if (fieldType == null) {
+            ImmutableOpenMap<String, MappingMetaData> mappings;
+            try {
+                mappings = transportClient.admin()
+                    .cluster()
+                    .prepareState()
+                    .execute()
+                    .actionGet()
+                    .getState()
+                    .getMetaData()
+                    .getIndices()
+                    .get(config.get_index())
+                    .getMappings();
+            } catch (NullPointerException e) {
+                throw new IllegalArgumentException("Not found the mapping info of index: " + config.get_index());
+            }
+            MappingMetaData mappingMetaData = mappings.get(config.get_type());
+            if (mappingMetaData == null) {
+                throw new IllegalArgumentException("Not found the mapping info of index: " + config.get_index());
+            }
+
+            Map<String, String> fieldTypeTmp = new LinkedHashMap<>();
+
+            Map<String, Object> sourceMap = mappingMetaData.getSourceAsMap();
+            Map<String, Object> mapping = (Map<String, Object>) sourceMap.get("properties");
+            mapping.forEach((k, v) -> {
+                Map<String, Object> value = (Map<String, Object>) v;
+                if (value.containsKey("properties")) {
+                    fieldTypeTmp.put(k, "object");
+                } else {
+                    fieldTypeTmp.put(k, (String) value.get("type"));
+                }
+            });
+            fieldType = fieldTypeTmp;
+            esFieldTypes.put(key, fieldType);
+        }
+
+        return fieldType.get(fieldName);
     }
 }

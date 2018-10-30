@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 
 public class SchemaItem {
 
@@ -13,10 +14,12 @@ public class SchemaItem {
 
     private volatile Map<String, List<TableItem>> tableItemAliases;
     private volatile Map<String, List<FieldItem>> columnFields;
+    private volatile Boolean                      allFieldsSimple;
 
     public void init() {
         this.getTableItemAliases();
         this.getColumnFields();
+        this.isAllFieldsSimple();
         aliasTableItems.values().forEach(tableItem -> {
             tableItem.getRelationTableFields();
             tableItem.getRelationSelectFields();
@@ -89,7 +92,25 @@ public class SchemaItem {
             }
         }
         return columnFields;
+    }
 
+    public boolean isAllFieldsSimple() {
+        if (allFieldsSimple == null) {
+            synchronized (SchemaItem.class) {
+                if (allFieldsSimple == null) {
+                    allFieldsSimple = true;
+
+                    for (FieldItem fieldItem : getSelectFields().values()) {
+                        if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
+                            allFieldsSimple = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return allFieldsSimple;
     }
 
     public TableItem getMainTable() {
@@ -97,6 +118,14 @@ public class SchemaItem {
             return aliasTableItems.values().iterator().next();
         } else {
             return null;
+        }
+    }
+
+    public FieldItem getIdFieldItem(ESMapping mapping) {
+        if (mapping.get_id() != null) {
+            return getSelectFields().get(mapping.get_id());
+        } else {
+            return getSelectFields().get(mapping.getPk());
         }
     }
 

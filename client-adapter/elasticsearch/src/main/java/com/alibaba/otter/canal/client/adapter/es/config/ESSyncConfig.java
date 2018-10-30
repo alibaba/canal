@@ -7,6 +7,8 @@ public class ESSyncConfig {
 
     private String    dataSourceKey; // 数据源key
 
+    private String    destination;   // canal destination
+
     private ESMapping esMapping;
 
     public void validate() {
@@ -30,6 +32,14 @@ public class ESSyncConfig {
 
     public void setDataSourceKey(String dataSourceKey) {
         this.dataSourceKey = dataSourceKey;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 
     public ESMapping getEsMapping() {

@@ -1,16 +1,17 @@
 package com.alibaba.otter.canal.client.adapter.es;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
-import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
 import com.alibaba.otter.canal.client.adapter.es.service.ESSyncService;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
@@ -44,6 +45,12 @@ public class ESAdapter implements OuterAdapter {
             properties.forEach(settingBuilder::put);
             Settings settings = settingBuilder.build();
             transportClient = new PreBuiltTransportClient(settings);
+            String[] hostArray = configuration.getHosts().split(",");
+            for (String host : hostArray) {
+                int i = host.indexOf(":");
+                transportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.substring(0, i)),
+                    Integer.parseInt(host.substring(i + 1))));
+            }
             ESTemplate esTemplate = new ESTemplate(transportClient);
             esSyncService = new ESSyncService(esTemplate);
         } catch (Exception e) {
@@ -53,6 +60,7 @@ public class ESAdapter implements OuterAdapter {
 
     @Override
     public void sync(Dml dml) {
+        esSyncService.sync(dml);
     }
 
     @Override

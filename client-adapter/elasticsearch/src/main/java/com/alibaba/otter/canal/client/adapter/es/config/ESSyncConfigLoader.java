@@ -68,7 +68,7 @@ public class ESSyncConfigLoader {
                 Pattern pattern = Pattern.compile(".*:(.*)://.*/(.*)\\?.*$");
                 Matcher matcher = pattern.matcher(dataSource.getUrl());
                 if (!matcher.find()){
-                    throw new RuntimeException("No found the schema of jdbc-url: " + config.getDataSourceKey());
+                    throw new RuntimeException("Not found the schema of jdbc-url: " + config.getDataSourceKey());
                 }
                 String schema = matcher.group(2);
 

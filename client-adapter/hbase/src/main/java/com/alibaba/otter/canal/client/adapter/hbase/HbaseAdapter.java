@@ -53,7 +53,7 @@ public class HbaseAdapter implements OuterAdapter {
                         hbaseMapping = MappingConfigLoader.load();
                         mappingConfigCache = new HashMap<>();
                         for (MappingConfig mappingConfig : hbaseMapping.values()) {
-                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getHbaseMapping().getDestination())
+                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination())
                                                    + "." + mappingConfig.getHbaseMapping().getDatabase() + "."
                                                    + mappingConfig.getHbaseMapping().getTable(),
                                 mappingConfig);
@@ -170,7 +170,7 @@ public class HbaseAdapter implements OuterAdapter {
     public String getDestination(String task) {
         MappingConfig config = hbaseMapping.get(task);
         if (config != null && config.getHbaseMapping() != null) {
-            return config.getHbaseMapping().getDestination();
+            return config.getDestination();
         }
         return null;
     }
