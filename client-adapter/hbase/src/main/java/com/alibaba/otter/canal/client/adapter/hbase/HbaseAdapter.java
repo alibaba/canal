@@ -62,10 +62,10 @@ public class HbaseAdapter implements OuterAdapter {
                 }
             }
 
-            Map<String, String> propertites = configuration.getProperties();
+            Map<String, String> properties = configuration.getProperties();
 
             Configuration hbaseConfig = HBaseConfiguration.create();
-            propertites.forEach(hbaseConfig::set);
+            properties.forEach(hbaseConfig::set);
             conn = ConnectionFactory.createConnection(hbaseConfig);
             hbaseTemplate = new HbaseTemplate(conn);
             hbaseSyncService = new HbaseSyncService(hbaseTemplate);
