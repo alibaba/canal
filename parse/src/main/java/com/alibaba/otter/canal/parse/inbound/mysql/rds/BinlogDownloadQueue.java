@@ -135,7 +135,7 @@ public class BinlogDownloadQueue {
         if (StringUtils.isNotEmpty(needCompareName) && StringUtils.endsWith(needCompareName, "tar")) {
             needCompareName = needCompareName.substring(0, needCompareName.indexOf("."));
         }
-        return fileName.equalsIgnoreCase(needCompareName) && binlogList.isEmpty();
+        return (needCompareName == null || fileName.equalsIgnoreCase(needCompareName)) && binlogList.isEmpty();
     }
 
     public void prepare() throws InterruptedException {
@@ -166,7 +166,14 @@ public class BinlogDownloadQueue {
         this.currentSize = 0;
         binlogList.clear();
         downloadQueue.clear();
-        downloadThread = null;
+        try {
+            downloadThread.interrupt();
+            downloadThread.join();// 等待其结束
+        } catch (InterruptedException e) {
+            // ignore
+        } finally {
+            downloadThread = null;
+        }
     }
 
     private void download(BinlogFile binlogFile) throws Throwable {

@@ -752,14 +752,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                             logPosition.setPostion(entryPosition);
                         }
 
-                        if (entry == null) {
-                            return true;
-                        }
-
-                        String logfilename = entry.getHeader().getLogfileName();
-                        Long logfileoffset = entry.getHeader().getLogfileOffset();
-                        Long logposTimestamp = entry.getHeader().getExecuteTime();
-                        Long serverId = entry.getHeader().getServerId();
+                        // 直接用event的位点来处理,解决一个binlog文件里没有任何事件导致死循环无法退出的问题
+                        String logfilename = event.getHeader().getLogFileName();
+                        // 记录的是binlog end offest,
+                        // 因为与其对比的offest是show master status里的end offest
+                        Long logfileoffset = event.getHeader().getLogPos();
+                        Long logposTimestamp = event.getHeader().getWhen() * 1000;
+                        Long serverId = event.getHeader().getServerId();
 
                         // 如果最小的一条记录都不满足条件，可直接退出
                         if (logposTimestamp >= startTimestamp) {
@@ -769,6 +768,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
                             && endPosition.getPosition() <= logfileoffset) {
                             return false;
+                        }
+
+                        if (entry == null) {
+                            return true;
                         }
 
                         // 记录一下上一个事务结束的位置，即下一个事务的position
