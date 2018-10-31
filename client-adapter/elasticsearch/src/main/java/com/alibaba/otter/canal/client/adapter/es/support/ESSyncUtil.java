@@ -208,7 +208,7 @@ public class ESSyncUtil {
      * @param data
      * @return
      */
-    public static String pkConditaionSql(ESMapping mapping, Map<String, Object> data) {
+    public static String pkConditionSql(ESMapping mapping, Map<String, Object> data) {
         Set<ColumnItem> idColumns = new LinkedHashSet<>();
         SchemaItem schemaItem = mapping.getSchemaItem();
 
@@ -252,7 +252,7 @@ public class ESSyncUtil {
     /**
      * 执行查询sql
      */
-    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) throws SQLException {
+    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun)  {
         Connection conn = null;
         Statement smt = null;
         ResultSet rs = null;
@@ -265,7 +265,7 @@ public class ESSyncUtil {
             return fun.apply(rs);
         } catch (SQLException e) {
             logger.error("sqlRs has error, sql: {} ", sql);
-            throw e;
+            throw new RuntimeException(e);
         } finally {
             if (rs != null) {
                 try {

@@ -150,6 +150,8 @@ public abstract class AbstractCanalAdapterWorker {
             } catch (Throwable e) {
                 if (i == retry - 1) {
                     connector.ack();
+                } else {
+                    connector.rollback();
                 }
 
                 logger.error(e.getMessage(), e);

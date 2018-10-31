@@ -18,7 +18,7 @@ public class ConfigLoadTest {
     public void before() {
         AdapterConfigs.put("es", "mytest_user.yml");
         // 加载数据源连接池
-        DatasourceConfig.DATA_SOURCES.put("defaultDS", DataSourceConstant.dataSource);
+        DatasourceConfig.DATA_SOURCES.put("defaultDS", TestConstant.dataSource);
     }
 
     @Test

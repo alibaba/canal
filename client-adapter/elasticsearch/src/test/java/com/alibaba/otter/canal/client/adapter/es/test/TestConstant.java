@@ -4,18 +4,26 @@ import java.sql.SQLException;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
-public class DataSourceConstant {
+public class TestConstant {
 
-    static DruidDataSource dataSource;
+    public final static String    jdbcUrl      = "jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true";
+    public final static String    jdbcUser     = "root";
+    public final static String    jdbcPassword = "121212";
+
+    public final static String    esHosts      = "127.0.0.1:9300";
+    public final static String    clusterNmae  = "elasticsearch";
+
+    public static DruidDataSource dataSource;
+
     static {
         dataSource = new DruidDataSource();
         dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true");
-        dataSource.setUsername("root");
-        dataSource.setPassword("121212");
+        dataSource.setUrl(jdbcUrl);
+        dataSource.setUsername(jdbcUser);
+        dataSource.setPassword(jdbcPassword);
         dataSource.setInitialSize(1);
         dataSource.setMinIdle(1);
-        dataSource.setMaxActive(3);
+        dataSource.setMaxActive(1);
         dataSource.setMaxWait(60000);
         dataSource.setTimeBetweenEvictionRunsMillis(60000);
         dataSource.setMinEvictableIdleTimeMillis(300000);
@@ -28,4 +36,5 @@ public class DataSourceConstant {
             e.printStackTrace();
         }
     }
+
 }

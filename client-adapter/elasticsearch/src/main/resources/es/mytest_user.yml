@@ -9,6 +9,7 @@ esMapping:
 #        left join role b on a.role_id=b.id
 #        left join (select user_id, group_concat(label,',') as labels from user_label
 #        group by user_id) c on c.user_id=a.id"
-  sql: "select id, name, c_time from user "
+#  sql: "select id, name, c_time from user "
+  sql: "select id, concat(name, '_') as name, c_time from user "
   commitBatch: 3000
   etlCondition: "where a.c_time>='{0}' or b.c_time>='{0}' or c.c_time>='{0}'"

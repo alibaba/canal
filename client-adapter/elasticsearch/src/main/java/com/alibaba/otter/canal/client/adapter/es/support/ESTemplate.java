@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.es.support;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,6 +33,8 @@ import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
 
 public class ESTemplate {
 
@@ -177,8 +181,8 @@ public class ESTemplate {
             }
         });
         String scriptLine = sb.toString();
-        if (logger.isDebugEnabled()) {
-            logger.debug(scriptLine);
+        if (logger.isTraceEnabled()) {
+            logger.trace(scriptLine);
         }
 
         UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(transportClient);
@@ -188,8 +192,8 @@ public class ESTemplate {
             .script(new Script(ScriptType.INLINE, "painless", scriptLine, Collections.emptyMap()));
 
         BulkByScrollResponse response = updateByQuery.get();
-        if (logger.isDebugEnabled()) {
-            logger.debug("updateByQuery response: {}", response.getStatus());
+        if (logger.isTraceEnabled()) {
+            logger.trace("updateByQuery response: {}", response.getStatus());
         }
         if (!CollectionUtils.isEmpty(response.getSearchFailures())) {
             logger.error("script update_for_search has search error: " + response.getBulkFailures());
@@ -273,21 +277,122 @@ public class ESTemplate {
         return true;
     }
 
-    public Object getDataValue(ESMapping config, Map<String, Object> data, String fieldName) {
-        String esType = getEsType(config, fieldName);
-        Object value = data.get(fieldName);
-        if (value instanceof Byte) {
-            if ("boolean".equals(esType)) {
-                value = ((Byte) value).intValue() != 0;
+    // public Object getRSDataValue(ESMapping mapping, ResultSet rs, String
+    // fieldName) throws SQLException {
+    // String esType = getEsType(mapping, fieldName);
+    // Object value = rs.getObject(fieldName);
+    // if (value instanceof Boolean) {
+    // // 判断es类型
+    // if (!"boolean".equals(esType)) {
+    // value = rs.getByte(fieldName);
+    // }
+    // }
+    // return value;
+    // }
+    //
+    // public Object getDataValue(ESMapping mapping, Map<String, Object> data,
+    // String fieldName) {
+    // String esType = getEsType(mapping, fieldName);
+    // Object value = data.get(fieldName);
+    // if (value instanceof Byte) {
+    // if ("boolean".equals(esType)) {
+    // value = ((Byte) value).intValue() != 0;
+    // }
+    // }
+    // return value;
+    // }
+
+    // public Object convertType(ESMapping mapping, String fieldName, Object val) {
+    // // 从mapping中获取类型来转换
+    // String esType = getEsType(mapping, fieldName);
+    // return ESSyncUtil.typeConvert(val, esType);
+    // }
+
+    public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet,
+                                  Map<String, Object> esFieldData) throws SQLException {
+        SchemaItem schemaItem = mapping.getSchemaItem();
+        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        Object resultIdVal = null;
+        for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
+            String fieldName = Util.cleanColumn(fieldItem.getColumnItems().iterator().next().getColumnName());
+            String esType = getEsType(mapping, fieldName);
+
+            Object value = resultSet.getObject(fieldName);
+            if (value instanceof Boolean) {
+                // 判断es类型
+                if (!"boolean".equals(esType)) {
+                    value = resultSet.getByte(fieldName);
+                }
+            }
+
+            if (fieldItem.getFieldName().equals(idFieldName)) {
+                resultIdVal = ESSyncUtil.typeConvert(value, esType);
+            }
+
+            if (!fieldItem.getFieldName().equals(mapping.get_id()) && !mapping.getSkips().contains(fieldName)) {
+                esFieldData.put(fieldName, ESSyncUtil.typeConvert(value, esType));
             }
         }
-        return value;
+        return resultIdVal;
     }
 
-    public Object convertType(ESMapping config, String fieldName, Object val) {
-        // 从mapping中获取类型来转换
-        String esType = getEsType(config, fieldName);
-        return ESSyncUtil.typeConvert(val, esType);
+    // public Object getIdValFromDmlData(ESMapping mapping, Map<String, Object>
+    // dmlData) {
+    // SchemaItem schemaItem = mapping.getSchemaItem();
+    // String idFieldName = mapping.get_id() == null ? mapping.getPk() :
+    // mapping.get_id();
+    //
+    // for (SchemaItem.FieldItem fieldItem : schemaItem.getSelectFields().values())
+    // {
+    // if (fieldItem.getFieldName().equals(idFieldName)) {
+    // String fieldName =
+    // Util.cleanColumn(fieldItem.getColumnItems().iterator().next().getColumnName());
+    // String esType = getEsType(mapping, fieldName);
+    // Object value = dmlData.get(fieldName);
+    // if (value instanceof Byte) {
+    // if ("boolean".equals(esType)) {
+    // value = ((Byte) value).intValue() != 0;
+    // }
+    // }
+    //
+    // return ESSyncUtil.typeConvert(value, esType);
+    // }
+    // }
+    // return null;
+    // }
+
+    /**
+     * 将dml的data转换为es的data
+     *
+     * @param mapping 配置mapping
+     * @param dmlData dml data
+     * @param esFieldData es data
+     * @return 返回 id 值
+     */
+    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData,
+                                       Map<String, Object> esFieldData) {
+        SchemaItem schemaItem = mapping.getSchemaItem();
+        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        Object resultIdVal = null;
+        for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
+            String fieldName = Util.cleanColumn(fieldItem.getColumnItems().iterator().next().getColumnName());
+            String esType = getEsType(mapping, fieldName);
+            Object value = dmlData.get(fieldName);
+            if (value instanceof Byte) {
+                if ("boolean".equals(esType)) {
+                    value = ((Byte) value).intValue() != 0;
+                }
+            }
+
+            if (fieldItem.getFieldName().equals(idFieldName)) {
+                resultIdVal = ESSyncUtil.typeConvert(value, esType);
+            }
+
+            if (!fieldItem.getFieldName().equals(mapping.get_id()) && !mapping.getSkips().contains(fieldName)) {
+                esFieldData.put(fieldName, ESSyncUtil.typeConvert(value, esType));
+            }
+        }
+        return resultIdVal;
     }
 
     /**
@@ -295,9 +400,16 @@ public class ESTemplate {
      */
     private static ConcurrentMap<String, Map<String, String>> esFieldTypes = new ConcurrentHashMap<>();
 
+    /**
+     * 获取es mapping中的属性类型
+     *
+     * @param mapping mapping配置
+     * @param fieldName 属性名
+     * @return 类型
+     */
     @SuppressWarnings("unchecked")
-    public String getEsType(ESMapping config, String fieldName) {
-        String key = config.get_index() + "-" + config.get_type();
+    private String getEsType(ESMapping mapping, String fieldName) {
+        String key = mapping.get_index() + "-" + mapping.get_type();
         Map<String, String> fieldType = esFieldTypes.get(key);
         if (fieldType == null) {
             ImmutableOpenMap<String, MappingMetaData> mappings;
@@ -310,29 +422,28 @@ public class ESTemplate {
                     .getState()
                     .getMetaData()
                     .getIndices()
-                    .get(config.get_index())
+                    .get(mapping.get_index())
                     .getMappings();
             } catch (NullPointerException e) {
-                throw new IllegalArgumentException("Not found the mapping info of index: " + config.get_index());
+                throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());
             }
-            MappingMetaData mappingMetaData = mappings.get(config.get_type());
+            MappingMetaData mappingMetaData = mappings.get(mapping.get_type());
             if (mappingMetaData == null) {
-                throw new IllegalArgumentException("Not found the mapping info of index: " + config.get_index());
+                throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());
             }
 
-            Map<String, String> fieldTypeTmp = new LinkedHashMap<>();
+            fieldType = new LinkedHashMap<>();
 
             Map<String, Object> sourceMap = mappingMetaData.getSourceAsMap();
-            Map<String, Object> mapping = (Map<String, Object>) sourceMap.get("properties");
-            mapping.forEach((k, v) -> {
-                Map<String, Object> value = (Map<String, Object>) v;
+            Map<String, Object> esMapping = (Map<String, Object>) sourceMap.get("properties");
+            for (Map.Entry<String, Object> entry : esMapping.entrySet()) {
+                Map<String, Object> value = (Map<String, Object>) entry.getValue();
                 if (value.containsKey("properties")) {
-                    fieldTypeTmp.put(k, "object");
+                    fieldType.put(entry.getKey(), "object");
                 } else {
-                    fieldTypeTmp.put(k, (String) value.get("type"));
+                    fieldType.put(entry.getKey(), (String) value.get("type"));
                 }
-            });
-            fieldType = fieldTypeTmp;
+            }
             esFieldTypes.put(key, fieldType);
         }
 

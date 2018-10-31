@@ -35,6 +35,14 @@ public class ESAdapter implements OuterAdapter {
 
     private ESSyncService   esSyncService;
 
+    public TransportClient getTransportClient() {
+        return transportClient;
+    }
+
+    public ESSyncService getEsSyncService() {
+        return esSyncService;
+    }
+
     @Override
     public void init(OuterAdapterConfig configuration) {
         try {
