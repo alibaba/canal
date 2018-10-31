@@ -6,6 +6,8 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +16,8 @@ import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
 import com.alibaba.otter.canal.client.adapter.es.support.ESSyncUtil;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
@@ -164,6 +168,66 @@ public class ESSyncService {
                     }
                     return 0;
                 });
+            }
+
+            // 从表的操作
+            for (TableItem tableItem : schemaItem.getAliasTableItems().values()) {
+                if (tableItem.isMain()) {
+                    continue;
+                }
+                if (!tableItem.getTableName().equals(dml.getTable())) {
+                    continue;
+                }
+                // ------关联条件出现在主表查询条件------
+                boolean allFieldsSimple = true;
+                for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                    if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
+                        allFieldsSimple = false;
+                        break;
+                    }
+                }
+                // 所有查询字段均为简单字段
+                if (allFieldsSimple) {
+                    // 不是子查询
+                    if (!tableItem.isSubQuery()) {
+
+                        Map<String, Object> esFieldData = new LinkedHashMap<>();
+                        for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                            Object value = esTemplate
+                                .getValFromData(mapping, data, fieldItem.getColumn().getColumnName());
+                            esFieldData.put(fieldItem.getFieldName(), value);
+                        }
+                        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+                        for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields()
+                            .entrySet()) {
+                            Object value = esTemplate
+                                .getValFromData(mapping, data, entry.getKey().getColumn().getColumnName());
+                            for (FieldItem fieldItem : entry.getValue()) {
+                                queryBuilder.must(QueryBuilders.termsQuery(fieldItem.getFieldName(), value));
+                            }
+                        }
+
+                        //
+                        // for (FieldItem fieldItem : tableItem.getRelationTableFields()) {
+                        // Object value = esTemplate
+                        // .getValFromData(mapping, data, fieldItem.getColumn().getColumnName());
+                        //
+                        // }
+
+                        // if (logger.isDebugEnabled()) {
+                        // logger.debug("从表insert, 且均为简单字段，对es进行update_by_query, queryBuilder: {},
+                        // esFieldData:{}", queryBuilder.toString(), esFieldData);
+                        // }
+                        boolean result = esTemplate.updateByQuery(mapping, queryBuilder, esFieldData);
+                        // if (!result) {
+                        // logger.error("从表insert，均为简单字段，直接对es进行update_by_query, es更新存在错误, table: {},
+                        // index: {}, dml: {}", dml.getTable(), config.getEsSyn().getIndex(), dml);
+                        // }
+                    }
+                    // TODO
+                } else {
+                    // TODO 查询总sql
+                }
             }
         }
     }

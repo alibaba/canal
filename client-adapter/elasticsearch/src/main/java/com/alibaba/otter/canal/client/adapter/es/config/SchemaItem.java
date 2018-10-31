@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 
 public class SchemaItem {
@@ -22,7 +23,8 @@ public class SchemaItem {
         this.isAllFieldsSimple();
         aliasTableItems.values().forEach(tableItem -> {
             tableItem.getRelationTableFields();
-            tableItem.getRelationSelectFields();
+            tableItem.getRelationKeyFieldItems();
+            tableItem.getRelationSelectFieldItems();
         });
     }
 
@@ -131,20 +133,21 @@ public class SchemaItem {
 
     public static class TableItem {
 
-        private SchemaItem               schemaItem;
+        private SchemaItem                               schemaItem;
 
-        private String                   schema;
-        private String                   tableName;
-        private String                   alias;
-        private String                   subQuerySql;
-        private List<FieldItem>          subQueryFields = new ArrayList<>();
-        private List<RelationFieldsPair> relationFields = new ArrayList<>();
+        private String                                   schema;
+        private String                                   tableName;
+        private String                                   alias;
+        private String                                   subQuerySql;
+        private List<FieldItem>                          subQueryFields = new ArrayList<>();
+        private List<RelationFieldsPair>                 relationFields = new ArrayList<>();
 
-        private boolean                  main;
-        private boolean                  subQuery;
+        private boolean                                  main;
+        private boolean                                  subQuery;
 
-        private volatile List<FieldItem> relationTableFields;               // 当前表关联条件字段
-        private volatile List<FieldItem> relationSelectFieldItem;           // 关联条件字段在select中的对应字段
+        private volatile Map<FieldItem, List<FieldItem>> relationTableFields;               // 当前表关联条件字段
+        private volatile List<FieldItem>                 relationKeyFieldItems;             // 关联条件字段在select中的对应字段
+        private volatile List<FieldItem>                 relationSelectFieldItems;          // 子表所在主表的查询字段
 
         public TableItem(SchemaItem schemaItem){
             this.schemaItem = schemaItem;
@@ -222,18 +225,40 @@ public class SchemaItem {
             this.relationFields = relationFields;
         }
 
-        public List<FieldItem> getRelationTableFields() {
+        public Map<FieldItem, List<FieldItem>> getRelationTableFields() {
             if (relationTableFields == null) {
                 synchronized (SchemaItem.class) {
                     if (relationTableFields == null) {
-                        relationTableFields = new ArrayList<>();
+                        relationTableFields = new LinkedHashMap<>();
+
                         getRelationFields().forEach(relationFieldsPair -> {
                             FieldItem leftFieldItem = relationFieldsPair.getLeftFieldItem();
                             FieldItem rightFieldItem = relationFieldsPair.getRightFieldItem();
+                            FieldItem currentTableRelField = null;
                             if (getAlias().equals(leftFieldItem.getOwner())) {
-                                relationTableFields.add(leftFieldItem);
+                                // relationTableFields.add(leftFieldItem);
+                                currentTableRelField = leftFieldItem;
                             } else if (getAlias().equals(rightFieldItem.getOwner())) {
-                                relationTableFields.add(rightFieldItem);
+                                // relationTableFields.add(rightFieldItem);
+                                currentTableRelField = rightFieldItem;
+                            }
+
+                            if (currentTableRelField != null) {
+                                List<FieldItem> selectFieldItem = getSchemaItem().getColumnFields()
+                                    .get(leftFieldItem.getOwner() + "." + leftFieldItem.getColumn().getColumnName());
+                                if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
+                                    relationTableFields.put(currentTableRelField, selectFieldItem);
+                                } else {
+                                    selectFieldItem = getSchemaItem().getColumnFields()
+                                        .get(rightFieldItem.getOwner() + "."
+                                             + rightFieldItem.getColumn().getColumnName());
+                                    if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
+                                        relationTableFields.put(currentTableRelField, selectFieldItem);
+                                    } else {
+                                        throw new UnsupportedOperationException(
+                                            "Relation condition column must in select columns.");
+                                    }
+                                }
                             }
                         });
                     }
@@ -242,23 +267,23 @@ public class SchemaItem {
             return relationTableFields;
         }
 
-        public List<FieldItem> getRelationSelectFields() {
-            if (relationSelectFieldItem == null) {
+        public List<FieldItem> getRelationKeyFieldItems() {
+            if (relationKeyFieldItems == null) {
                 synchronized (SchemaItem.class) {
-                    if (relationSelectFieldItem == null) {
-                        relationSelectFieldItem = new ArrayList<>();
+                    if (relationKeyFieldItems == null) {
+                        relationKeyFieldItems = new ArrayList<>();
                         getRelationFields().forEach(relationFieldsPair -> {
                             FieldItem leftFieldItem = relationFieldsPair.getLeftFieldItem();
                             List<FieldItem> selectFieldItem = getSchemaItem().getColumnFields()
                                 .get(leftFieldItem.getOwner() + "." + leftFieldItem.getColumn().getColumnName());
                             if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
-                                relationSelectFieldItem.addAll(selectFieldItem);
+                                relationKeyFieldItems.addAll(selectFieldItem);
                             } else {
                                 FieldItem rightFieldItem = relationFieldsPair.getRightFieldItem();
                                 selectFieldItem = getSchemaItem().getColumnFields()
                                     .get(rightFieldItem.getOwner() + "." + rightFieldItem.getColumn().getColumnName());
                                 if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
-                                    relationSelectFieldItem.addAll(selectFieldItem);
+                                    relationKeyFieldItems.addAll(selectFieldItem);
                                 } else {
                                     throw new UnsupportedOperationException(
                                         "Relation condition column must in select columns.");
@@ -268,7 +293,23 @@ public class SchemaItem {
                     }
                 }
             }
-            return relationSelectFieldItem;
+            return relationKeyFieldItems;
+        }
+
+        public List<FieldItem> getRelationSelectFieldItems() {
+            if (relationSelectFieldItems == null) {
+                synchronized (SchemaItem.class) {
+                    if (relationSelectFieldItems == null) {
+                        relationSelectFieldItems = new ArrayList<>();
+                        for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
+                            if (fieldItem.getOwners().contains(getAlias())) {
+                                relationSelectFieldItems.add(fieldItem);
+                            }
+                        }
+                    }
+                }
+            }
+            return relationSelectFieldItems;
         }
     }
 
@@ -366,6 +407,21 @@ public class SchemaItem {
             } else {
                 return null;
             }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            FieldItem fieldItem = (FieldItem) o;
+
+            return fieldName != null ? fieldName.equals(fieldItem.fieldName) : fieldItem.fieldName == null;
+        }
+
+        @Override
+        public int hashCode() {
+            return fieldName != null ? fieldName.hashCode() : 0;
         }
     }
 

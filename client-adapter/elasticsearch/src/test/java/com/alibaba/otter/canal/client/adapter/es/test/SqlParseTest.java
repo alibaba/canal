@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.es.test;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,11 +34,12 @@ public class SqlParseTest {
             fieldItem -> Assert.assertEquals("c.labels", fieldItem.getOwner() + "." + fieldItem.getFieldName()));
 
         // 获取当前表关联条件字段
-        List<FieldItem> relationTableFields = tableItem.getRelationTableFields();
-        relationTableFields.forEach(fieldItem -> Assert.assertEquals("user_id", fieldItem.getColumn().getColumnName()));
+        Map<FieldItem, List<FieldItem>> relationTableFields = tableItem.getRelationTableFields();
+        relationTableFields.keySet()
+            .forEach(fieldItem -> Assert.assertEquals("user_id", fieldItem.getColumn().getColumnName()));
 
         // 获取关联字段在select中的对应字段
-        List<FieldItem> relationSelectFieldItem = tableItem.getRelationSelectFields();
+        List<FieldItem> relationSelectFieldItem = tableItem.getRelationKeyFieldItems();
         relationSelectFieldItem.forEach(fieldItem -> Assert.assertEquals("c.labels",
             fieldItem.getOwner() + "." + fieldItem.getColumn().getColumnName()));
     }

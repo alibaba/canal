@@ -89,6 +89,25 @@ public class UserSyncTest {
         Assert.assertEquals("Eric_", response.getSource().get("name"));
     }
 
+    @Test
+    public void insertTest03() {
+        Dml dml = new Dml();
+        dml.setDestination("example");
+        dml.setTs(new Date().getTime());
+        dml.setType("INSERT");
+        dml.setDatabase("mytest");
+        dml.setTable("role");
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        Map<String, Object> data = new LinkedHashMap<>();
+        dataList.add(data);
+        data.put("id", 1L);
+        data.put("role_name", "admin");
+
+        dml.setData(dataList);
+
+        esAdapter.getEsSyncService().sync(dml);
+    }
+
     @After
     public void after() {
         esAdapter.destroy();

@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -148,14 +149,10 @@ public class ESSyncUtil {
                 Base64 base64 = new Base64();
                 res = base64.encodeAsString(b);
             } else if (val instanceof String) {
-                try {
-                    // 对应canal中的单字节编码
-                    byte[] b = ((String) val).getBytes("ISO-8859-1");
-                    Base64 base64 = new Base64();
-                    res = base64.encodeAsString(b);
-                } catch (UnsupportedEncodingException e) {
-                    logger.error(e.getMessage());
-                }
+                // 对应canal中的单字节编码
+                byte[] b = ((String) val).getBytes(StandardCharsets.ISO_8859_1);
+                Base64 base64 = new Base64();
+                res = base64.encodeAsString(b);
             }
         } else if ("geo_point".equals(esType)) {
             if (!(val instanceof String)) {
