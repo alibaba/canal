@@ -190,41 +190,46 @@ public class ESSyncService {
                 if (allFieldsSimple) {
                     // 不是子查询
                     if (!tableItem.isSubQuery()) {
-
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
                         for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
                             Object value = esTemplate
                                 .getValFromData(mapping, data, fieldItem.getColumn().getColumnName());
                             esFieldData.put(fieldItem.getFieldName(), value);
                         }
+
                         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
                         for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields()
                             .entrySet()) {
                             Object value = esTemplate
                                 .getValFromData(mapping, data, entry.getKey().getColumn().getColumnName());
                             for (FieldItem fieldItem : entry.getValue()) {
-                                queryBuilder.must(QueryBuilders.termsQuery(fieldItem.getFieldName(), value));
+                                String fieldName = fieldItem.getFieldName();
+                                // 判断是否是主键
+                                if (fieldName.equals(mapping.get_id())) {
+                                    fieldName = "_id";
+                                }
+                                queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
                             }
                         }
 
-                        //
-                        // for (FieldItem fieldItem : tableItem.getRelationTableFields()) {
-                        // Object value = esTemplate
-                        // .getValFromData(mapping, data, fieldItem.getColumn().getColumnName());
-                        //
-                        // }
-
-                        // if (logger.isDebugEnabled()) {
-                        // logger.debug("从表insert, 且均为简单字段，对es进行update_by_query, queryBuilder: {},
-                        // esFieldData:{}", queryBuilder.toString(), esFieldData);
-                        // }
+                        if (logger.isDebugEnabled()) {
+                            logger.trace(
+                                "Join table update es index by foreign key, destination:{}, table: {}, index: {}",
+                                config.getDestination(),
+                                dml.getTable(),
+                                mapping.get_index());
+                        }
                         boolean result = esTemplate.updateByQuery(mapping, queryBuilder, esFieldData);
-                        // if (!result) {
-                        // logger.error("从表insert，均为简单字段，直接对es进行update_by_query, es更新存在错误, table: {},
-                        // index: {}, dml: {}", dml.getTable(), config.getEsSyn().getIndex(), dml);
-                        // }
+                        if (!result) {
+                            logger.error(
+                                "Join table update es index by foreign key error, destination:{}, table: {}, index: {}",
+                                config.getDestination(),
+                                dml.getTable(),
+                                mapping.get_index());
+                        }
+                    } else {
+                        // TODO
                     }
-                    // TODO
                 } else {
                     // TODO 查询总sql
                 }

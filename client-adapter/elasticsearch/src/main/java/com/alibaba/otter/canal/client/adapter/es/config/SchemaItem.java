@@ -23,7 +23,7 @@ public class SchemaItem {
         this.isAllFieldsSimple();
         aliasTableItems.values().forEach(tableItem -> {
             tableItem.getRelationTableFields();
-            tableItem.getRelationKeyFieldItems();
+            // tableItem.getRelationKeyFieldItems();
             tableItem.getRelationSelectFieldItems();
         });
     }
@@ -145,8 +145,9 @@ public class SchemaItem {
         private boolean                                  main;
         private boolean                                  subQuery;
 
-        private volatile Map<FieldItem, List<FieldItem>> relationTableFields;               // 当前表关联条件字段
-        private volatile List<FieldItem>                 relationKeyFieldItems;             // 关联条件字段在select中的对应字段
+        private volatile Map<FieldItem, List<FieldItem>> relationTableFields;               // 当前表关联条件字段对应主表查询字段
+        // private volatile List<FieldItem> relationKeyFieldItems; //
+        // 关联条件字段在select中的对应字段
         private volatile List<FieldItem>                 relationSelectFieldItems;          // 子表所在主表的查询字段
 
         public TableItem(SchemaItem schemaItem){
@@ -267,34 +268,36 @@ public class SchemaItem {
             return relationTableFields;
         }
 
-        public List<FieldItem> getRelationKeyFieldItems() {
-            if (relationKeyFieldItems == null) {
-                synchronized (SchemaItem.class) {
-                    if (relationKeyFieldItems == null) {
-                        relationKeyFieldItems = new ArrayList<>();
-                        getRelationFields().forEach(relationFieldsPair -> {
-                            FieldItem leftFieldItem = relationFieldsPair.getLeftFieldItem();
-                            List<FieldItem> selectFieldItem = getSchemaItem().getColumnFields()
-                                .get(leftFieldItem.getOwner() + "." + leftFieldItem.getColumn().getColumnName());
-                            if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
-                                relationKeyFieldItems.addAll(selectFieldItem);
-                            } else {
-                                FieldItem rightFieldItem = relationFieldsPair.getRightFieldItem();
-                                selectFieldItem = getSchemaItem().getColumnFields()
-                                    .get(rightFieldItem.getOwner() + "." + rightFieldItem.getColumn().getColumnName());
-                                if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
-                                    relationKeyFieldItems.addAll(selectFieldItem);
-                                } else {
-                                    throw new UnsupportedOperationException(
-                                        "Relation condition column must in select columns.");
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-            return relationKeyFieldItems;
-        }
+        // public List<FieldItem> getRelationKeyFieldItems() {
+        // if (relationKeyFieldItems == null) {
+        // synchronized (SchemaItem.class) {
+        // if (relationKeyFieldItems == null) {
+        // relationKeyFieldItems = new ArrayList<>();
+        // getRelationFields().forEach(relationFieldsPair -> {
+        // FieldItem leftFieldItem = relationFieldsPair.getLeftFieldItem();
+        // List<FieldItem> selectFieldItem = getSchemaItem().getColumnFields()
+        // .get(leftFieldItem.getOwner() + "." +
+        // leftFieldItem.getColumn().getColumnName());
+        // if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
+        // relationKeyFieldItems.addAll(selectFieldItem);
+        // } else {
+        // FieldItem rightFieldItem = relationFieldsPair.getRightFieldItem();
+        // selectFieldItem = getSchemaItem().getColumnFields()
+        // .get(rightFieldItem.getOwner() + "." +
+        // rightFieldItem.getColumn().getColumnName());
+        // if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
+        // relationKeyFieldItems.addAll(selectFieldItem);
+        // } else {
+        // throw new UnsupportedOperationException(
+        // "Relation condition column must in select columns.");
+        // }
+        // }
+        // });
+        // }
+        // }
+        // }
+        // return relationKeyFieldItems;
+        // }
 
         public List<FieldItem> getRelationSelectFieldItems() {
             if (relationSelectFieldItems == null) {

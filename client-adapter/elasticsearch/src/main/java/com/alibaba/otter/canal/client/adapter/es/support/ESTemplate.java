@@ -264,7 +264,7 @@ public class ESTemplate {
                     if (itemResponse.getFailure().getStatus() == RestStatus.NOT_FOUND) {
                         logger.warn(itemResponse.getFailureMessage());
                     } else {
-                        logger.error("ES 同步数据错误 {}", itemResponse.getFailureMessage());
+                        logger.error("ES sync commit error: {}", itemResponse.getFailureMessage());
                     }
                 }
             }
@@ -314,7 +314,7 @@ public class ESTemplate {
                 value = resultSet.getByte(fieldName);
             }
         }
-        return value;
+        return ESSyncUtil.typeConvert(value, esType);
     }
 
     public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet,

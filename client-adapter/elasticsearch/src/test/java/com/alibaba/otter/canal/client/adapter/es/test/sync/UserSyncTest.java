@@ -3,6 +3,9 @@ package com.alibaba.otter.canal.client.adapter.es.test.sync;
 import java.util.*;
 
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,6 +56,7 @@ public class UserSyncTest {
         dataList.add(data);
         data.put("id", 1L);
         data.put("name", "Eric");
+        data.put("role_id", 1L);
         data.put("c_time", new Date());
 
         dml.setData(dataList);
@@ -79,6 +83,7 @@ public class UserSyncTest {
         dataList.add(data);
         data.put("id", 1L);
         data.put("name", "Eric");
+        data.put("role_id", 1L);
         data.put("c_time", new Date());
 
         dml.setData(dataList);
@@ -106,6 +111,18 @@ public class UserSyncTest {
         dml.setData(dataList);
 
         esAdapter.getEsSyncService().sync(dml);
+    }
+
+    @Test
+    public void ttt(){
+        SearchResponse response = esAdapter.getTransportClient().prepareSearch("mytest_user")
+                .setTypes("_doc")
+                .setQuery(QueryBuilders.termQuery("_id", 1L))
+                .setSize(100)
+                .get();
+        for (SearchHit hit : response.getHits()) {
+            System.out.println(hit.getSourceAsMap().get("name"));
+        }
     }
 
     @After
