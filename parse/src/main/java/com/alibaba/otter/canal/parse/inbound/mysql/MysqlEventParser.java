@@ -69,6 +69,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     // update by yishun.chen,特殊异常处理参数
     private int                  dumpErrorCount                    = 0;        // binlogDump失败异常计数
     private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
+    private boolean              rdsOssMode                        = false;
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -352,7 +353,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 return logPosition.getPostion();
             }
 
-            if (masterPosition!=null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
+            if (masterPosition != null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
                 return masterPosition;
             }
         }
@@ -492,6 +493,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         // 重新置为一下
                         dumpErrorCount = 0;
                         return findPosition;
+                    }
+
+                    Long timestamp = logPosition.getPostion().getTimestamp();
+                    if (isRdsOssMode() && (timestamp != null && timestamp > 0)) {
+                        // 如果binlog位点不存在，并且属于timestamp不为空,可以返回null走到oss binlog处理
+                        return null;
                     }
                 }
                 // 其余情况
@@ -903,6 +910,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
+    }
+
+    public boolean isRdsOssMode() {
+        return rdsOssMode;
+    }
+
+    public void setRdsOssMode(boolean rdsOssMode) {
+        this.rdsOssMode = rdsOssMode;
     }
 
 }

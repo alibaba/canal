@@ -41,6 +41,7 @@ import org.apache.http.ssl.TrustStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
 
 /**
@@ -103,6 +104,9 @@ public class BinlogDownloadQueue {
 
     public BinlogFile tryOne() throws Throwable {
         BinlogFile binlogFile = binlogList.poll();
+        if (binlogFile == null) {
+            throw new CanalParseException("download binlog is null");
+        }
         download(binlogFile);
         hostId = binlogFile.getHostInstanceID();
         this.currentSize++;
@@ -162,6 +166,7 @@ public class BinlogDownloadQueue {
         this.currentSize = 0;
         binlogList.clear();
         downloadQueue.clear();
+        downloadThread = null;
     }
 
     private void download(BinlogFile binlogFile) throws Throwable {
