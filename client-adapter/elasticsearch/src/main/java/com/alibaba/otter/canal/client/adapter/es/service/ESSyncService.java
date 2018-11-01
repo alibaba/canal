@@ -65,7 +65,7 @@ public class ESSyncService {
                 }
             }
             if (logger.isTraceEnabled()) {
-                logger.trace("Sync elapsed time: {}, effect index count：{}, destination: {}",
+                logger.trace("Sync elapsed time: {} ms, effect index count：{}, destination: {}",
                     (System.currentTimeMillis() - begin),
                     esSyncConfigs.size(),
                     dml.getDestination());
@@ -81,13 +81,13 @@ public class ESSyncService {
             if (type != null && type.equalsIgnoreCase("INSERT")) {
                 insert(config, dml);
             } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                // update(config, dml);
+                update(config, dml);
             } else if (type != null && type.equalsIgnoreCase("DELETE")) {
-                // delete(config, dml);
+                delete(config, dml);
             }
 
             if (logger.isTraceEnabled()) {
-                logger.trace("Sync elapsed time: {},destination: {}, es index: {}",
+                logger.trace("Sync elapsed time: {} ms,destination: {}, es index: {}",
                     (System.currentTimeMillis() - begin),
                     dml.getDestination(),
                     config.getEsMapping().get_index());
@@ -96,6 +96,14 @@ public class ESSyncService {
             logger.error("sync error, es index: {}, DML : {}", config.getEsMapping().get_index(), dml);
             logger.error(e.getMessage(), e);
         }
+    }
+
+    private void delete(ESSyncConfig config, Dml dml) {
+
+    }
+
+    private void update(ESSyncConfig config, Dml dml) {
+
     }
 
     /**
