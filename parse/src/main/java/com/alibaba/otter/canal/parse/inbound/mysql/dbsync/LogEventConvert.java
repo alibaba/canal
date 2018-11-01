@@ -260,7 +260,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return null;
             }
 
-            if (!isSeek) {
+            boolean isDml = (type == EventType.INSERT || type == EventType.UPDATE || type == EventType.DELETE);
+            
+            if (!isSeek && !isDml) {
                 // 使用新的表结构元数据管理方式
                 EntryPosition position = createPosition(event.getHeader());
                 tableMetaCache.apply(position, event.getDbName(), queryString, null);
@@ -268,8 +270,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
-            if (type != EventType.QUERY && type != EventType.INSERT && type != EventType.UPDATE
-                && type != EventType.DELETE) {
+            if (type != EventType.QUERY && !isDml) {
                 rowChangeBuider.setIsDdl(true);
             }
             rowChangeBuider.setSql(queryString);
@@ -980,5 +981,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setFilterRows(boolean filterRows) {
         this.filterRows = filterRows;
+    }
+
+    public void setUseDruidDdlFilter(boolean useDruidDdlFilter) {
+        this.useDruidDdlFilter = useDruidDdlFilter;
     }
 }
