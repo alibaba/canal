@@ -50,6 +50,34 @@ public class RoleSyncJoinSub2Test {
         Assert.assertEquals("a;b_", response.getSource().get("_labels"));
     }
 
+    @Test
+    public void updateTest02() {
+        Dml dml = new Dml();
+        dml.setDestination("example");
+        dml.setTs(new Date().getTime());
+        dml.setType("UPDATE");
+        dml.setDatabase("mytest");
+        dml.setTable("label");
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        Map<String, Object> data = new LinkedHashMap<>();
+        dataList.add(data);
+        data.put("id", 1L);
+        data.put("user_id",1L);
+        data.put("label", "aa");
+        dml.setData(dataList);
+
+        List<Map<String, Object>> oldList = new ArrayList<>();
+        Map<String, Object> old = new LinkedHashMap<>();
+        oldList.add(old);
+        old.put("label", "a");
+        dml.setOld(oldList);
+
+        esAdapter.getEsSyncService().sync(dml);
+
+        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        Assert.assertEquals("aa;b_", response.getSource().get("_labels"));
+    }
+
     @After
     public void after() {
         esAdapter.destroy();

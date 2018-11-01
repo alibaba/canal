@@ -18,6 +18,10 @@ canal.conf:
   - instance: example
     groups:
     - outAdapters:
+#      - name: es
+#        hosts: 127.0.0.1:9300
+#        properties:
+#          cluster.name: elasticsearch
       - name: logger
 #      - name: hbase
 #        properties:
@@ -39,11 +43,11 @@ canal.conf:
 #      outAdapters:
 #      - name: logger
 #
-#adapter.conf:
-#  datasourceConfigs:
-#    defaultDS:
-#      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
-#      username: root
-#      password: 121212
-#  adapterConfigs:
-#  - hbase/mytest_person2.yml
+adapter.conf:
+  datasourceConfigs:
+    defaultDS:
+      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
+      username: root
+      password: 121212
+  adapterConfigs:
+  - hbase/mytest_person2.yml

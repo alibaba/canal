@@ -15,9 +15,9 @@ import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
-import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.support.ESSyncUtil;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
@@ -120,7 +120,7 @@ public class ESSyncService {
                 // ------单表 & 所有字段都为简单字段------
                 singleTableSimpleFiledUpdate(config, dml, data, old);
             } else {
-                // ------是主表 查询sql来更新------
+                // ------主表 查询sql来更新------
                 if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
                     ESMapping mapping = config.getEsMapping();
                     String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
@@ -146,6 +146,50 @@ public class ESSyncService {
                         singleTableSimpleFiledUpdate(config, dml, data, old);
                     } else {
                         mainTableUpdate(config, dml, data, old);
+                    }
+                }
+
+                // 从表的操作
+                for (TableItem tableItem : schemaItem.getAliasTableItems().values()) {
+                    if (tableItem.isMain()) {
+                        continue;
+                    }
+                    if (!tableItem.getTableName().equals(dml.getTable())) {
+                        continue;
+                    }
+
+                    // 关联条件出现在主表查询条件是否为简单字段
+                    boolean allFieldsSimple = true;
+                    for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                        if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
+                            allFieldsSimple = false;
+                            break;
+                        }
+                    }
+
+                    // 所有查询字段均为简单字段
+                    if (allFieldsSimple) {
+                        // 不是子查询
+                        if (!tableItem.isSubQuery()) {
+                            // ------关联表简单字段更新------
+                            Map<String, Object> esFieldData = new LinkedHashMap<>();
+                            for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                                if (old.containsKey(fieldItem.getColumn().getColumnName())) {
+                                    Object value = esTemplate.getValFromData(config.getEsMapping(),
+                                        data,
+                                        fieldItem.getFieldName(),
+                                        fieldItem.getColumn().getColumnName());
+                                    esFieldData.put(fieldItem.getFieldName(), value);
+                                }
+                            }
+                            joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
+                        } else {
+                            // ------关联子表简单字段更新------
+                            subTableSimpleFieldOperation(config, dml, data, old, tableItem);
+                        }
+                    } else {
+                        // ------关联子表复杂字段更新 执行全sql更新es------
+                        jonTableWholeSqlOperation(config, dml, data, old, tableItem);
                     }
                 }
             }
@@ -201,14 +245,23 @@ public class ESSyncService {
                         // 不是子查询
                         if (!tableItem.isSubQuery()) {
                             // ------关联表简单字段插入------
-                            joinTableSimpleFieldOperation(config, dml, data, tableItem);
+                            Map<String, Object> esFieldData = new LinkedHashMap<>();
+                            for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                                Object value = esTemplate.getValFromData(config.getEsMapping(),
+                                    data,
+                                    fieldItem.getFieldName(),
+                                    fieldItem.getColumn().getColumnName());
+                                esFieldData.put(fieldItem.getFieldName(), value);
+                            }
+
+                            joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
                         } else {
                             // ------关联子表简单字段插入------
-                            subTableSimpleFieldOperation(config, dml, data, tableItem);
+                            subTableSimpleFieldOperation(config, dml, data, null, tableItem);
                         }
                     } else {
                         // ------关联子表复杂字段插入 执行全sql更新es------
-                        jonTableWholeSqlOperation(config, dml, data, tableItem);
+                        jonTableWholeSqlOperation(config, dml, data, null, tableItem);
                     }
                 }
             }
@@ -304,14 +357,8 @@ public class ESSyncService {
      * @param tableItem 当前表配置
      */
     private void joinTableSimpleFieldOperation(ESSyncConfig config, Dml dml, Map<String, Object> data,
-                                               TableItem tableItem) {
+                                               TableItem tableItem, Map<String, Object> esFieldData) {
         ESMapping mapping = config.getEsMapping();
-        Map<String, Object> esFieldData = new LinkedHashMap<>();
-        for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-            Object value = esTemplate
-                .getValFromData(mapping, data, fieldItem.getFieldName(), fieldItem.getColumn().getColumnName());
-            esFieldData.put(fieldItem.getFieldName(), value);
-        }
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
         for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
@@ -353,10 +400,11 @@ public class ESSyncService {
      * @param config es配置
      * @param dml dml信息
      * @param data 单行dml数据
+     * @param old 单行old数据
      * @param tableItem 当前表配置
      */
     private void subTableSimpleFieldOperation(ESSyncConfig config, Dml dml, Map<String, Object> data,
-                                              TableItem tableItem) {
+                                              Map<String, Object> old, TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
         StringBuilder sql = new StringBuilder(
             "SELECT * FROM (" + tableItem.getSubQuerySql() + ") " + tableItem.getAlias() + " WHERE ");
@@ -396,10 +444,31 @@ public class ESSyncService {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
+
                     for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-                        Object val = esTemplate
-                            .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getColumn().getColumnName());
-                        esFieldData.put(fieldItem.getFieldName(), val);
+                        if (old != null) {
+                            out: for (FieldItem fieldItem1 : tableItem.getSubQueryFields()) {
+                                for (ColumnItem columnItem0 : fieldItem.getColumnItems()) {
+                                    if (fieldItem1.getFieldName().equals(columnItem0.getColumnName()))
+                                        for (ColumnItem columnItem : fieldItem1.getColumnItems()) {
+                                            if (old.containsKey(columnItem.getColumnName())) {
+                                                Object val = esTemplate.getValFromRS(mapping,
+                                                    rs,
+                                                    fieldItem.getFieldName(),
+                                                    fieldItem.getColumn().getColumnName());
+                                                esFieldData.put(fieldItem.getFieldName(), val);
+                                                break out;
+                                            }
+                                        }
+                                }
+                            }
+                        } else {
+                            Object val = esTemplate.getValFromRS(mapping,
+                                rs,
+                                fieldItem.getFieldName(),
+                                fieldItem.getColumn().getColumnName());
+                            esFieldData.put(fieldItem.getFieldName(), val);
+                        }
                     }
 
                     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -451,7 +520,7 @@ public class ESSyncService {
      * @param tableItem 当前表配置
      */
     private void jonTableWholeSqlOperation(ESSyncConfig config, Dml dml, Map<String, Object> data,
-                                           TableItem tableItem) {
+                                           Map<String, Object> old, TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
         StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
 
@@ -491,9 +560,43 @@ public class ESSyncService {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
                     for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-                        Object val = esTemplate
-                            .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
-                        esFieldData.put(fieldItem.getFieldName(), val);
+                        if (old != null) {
+                            // 从表子查询
+                            out: for (FieldItem fieldItem1 : tableItem.getSubQueryFields()) {
+                                for (ColumnItem columnItem0 : fieldItem.getColumnItems()) {
+                                    if (fieldItem1.getFieldName().equals(columnItem0.getColumnName()))
+                                        for (ColumnItem columnItem : fieldItem1.getColumnItems()) {
+                                            if (old.containsKey(columnItem.getColumnName())) {
+                                                Object val = esTemplate.getValFromRS(mapping,
+                                                    rs,
+                                                    fieldItem.getFieldName(),
+                                                    fieldItem.getFieldName());
+                                                esFieldData.put(fieldItem.getFieldName(), val);
+                                                break out;
+                                            }
+                                        }
+                                }
+                            }
+                            // 从表非子查询
+                            for (FieldItem fieldItem1 : tableItem.getRelationSelectFieldItems()) {
+                                if (fieldItem1.equals(fieldItem)) {
+                                    for (ColumnItem columnItem : fieldItem1.getColumnItems()) {
+                                        if (old.containsKey(columnItem.getColumnName())) {
+                                            Object val = esTemplate.getValFromRS(mapping,
+                                                rs,
+                                                fieldItem.getFieldName(),
+                                                fieldItem.getFieldName());
+                                            esFieldData.put(fieldItem.getFieldName(), val);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Object val = esTemplate
+                                .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
+                            esFieldData.put(fieldItem.getFieldName(), val);
+                        }
                     }
 
                     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
