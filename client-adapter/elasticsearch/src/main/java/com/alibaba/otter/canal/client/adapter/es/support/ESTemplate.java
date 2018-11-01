@@ -142,7 +142,7 @@ public class ESTemplate {
         return updateByQuery(mapping, queryBuilder, esFieldData, 1);
     }
 
-    public boolean updateByQuery(ESMapping mapping, QueryBuilder queryBuilder, Map<String, Object> esFieldData,
+    private boolean updateByQuery(ESMapping mapping, QueryBuilder queryBuilder, Map<String, Object> esFieldData,
                                  int counter) {
         if (CollectionUtils.isEmpty(esFieldData)) {
             return true;
@@ -204,10 +204,10 @@ public class ESTemplate {
 
         if (response.getStatus().getVersionConflicts() > 0) {
             if (counter >= 3) {
-                logger.error("第 {} 次执行updateByQuery, 依旧存在版本冲突，不再继续重试。", counter);
+                logger.error("第 {} 次执行updateByQuery, 依旧存在分片版本冲突，不再继续重试。", counter);
                 return false;
             }
-            logger.warn("本次updateByQuery存在版本冲突，准备重新执行...");
+            logger.warn("本次updateByQuery存在分片版本冲突，准备重新执行...");
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
