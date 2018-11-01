@@ -567,8 +567,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
 
     private EntryPosition createPosition(LogHeader logHeader) {
-        return new EntryPosition(logHeader.getLogFileName(),
-            logHeader.getLogPos(),
+        return new EntryPosition(logHeader.getLogFileName(), logHeader.getLogPos() - logHeader.getEventLen(), // startPos
             logHeader.getWhen() * 1000L,
             logHeader.getServerId()); // 记录到秒
     }
@@ -818,6 +817,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setVersion(version);
         headerBuilder.setLogfileName(logHeader.getLogFileName());
+        // 记录的是该binlog的start offest
         headerBuilder.setLogfileOffset(logHeader.getLogPos() - logHeader.getEventLen());
         headerBuilder.setServerId(logHeader.getServerId());
         headerBuilder.setServerenCode(UTF_8);// 经过java输出后所有的编码为unicode

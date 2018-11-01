@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.kafka;
 
 import java.util.Map;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.kafka.common.serialization.Serializer;
 
 import com.alibaba.otter.canal.common.CanalMessageSerializer;
@@ -15,13 +16,20 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class MessageSerializer implements Serializer<Message> {
 
+    private boolean filterTransactionEntry = false;
+
+    public MessageSerializer(){
+        this.filterTransactionEntry = BooleanUtils.toBoolean(System.getProperty("canal.instance.filter.transaction.entry",
+            "false"));
+    }
+
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
     }
 
     @Override
     public byte[] serialize(String topic, Message data) {
-        return CanalMessageSerializer.serializer(data);
+        return CanalMessageSerializer.serializer(data, filterTransactionEntry);
     }
 
     @Override

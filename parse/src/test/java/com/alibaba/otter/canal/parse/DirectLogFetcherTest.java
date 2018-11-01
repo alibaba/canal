@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -10,21 +11,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlConnector;
+import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlUpdateExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.RegisterSlaveCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
+import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
 
 public class DirectLogFetcherTest {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private boolean        isMariaDB;
+    private int            binlogChecksum;
 
     @Test
     public void testSimple() {
@@ -33,6 +40,7 @@ public class DirectLogFetcherTest {
             MysqlConnector connector = new MysqlConnector(new InetSocketAddress("127.0.0.1", 3306), "xxxx", "xxxx");
             connector.connect();
             updateSettings(connector);
+            loadBinlogChecksum(connector);
             sendRegisterSlave(connector, 3);
             sendBinlogDump(connector, "mysql-bin.000001", 4L, 3);
 
@@ -40,6 +48,8 @@ public class DirectLogFetcherTest {
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
+            context.setFormatDescription(new FormatDescriptionLogEvent(4, binlogChecksum));
+
             while (fetcher.fetch()) {
                 LogEvent event = null;
                 event = decoder.decode(fetcher, context);
@@ -186,6 +196,44 @@ public class DirectLogFetcherTest {
         } catch (Exception e) {
             logger.warn("update mariadb_slave_capability failed", e);
         }
+    }
+
+    private void loadBinlogChecksum(MysqlConnector connector) {
+        checkMariaDB(connector);
+        if (isMariaDB) {
+            ResultSetPacket rs = null;
+            try {
+                rs = query("select @@global.binlog_checksum", connector);
+            } catch (IOException e) {
+                throw new CanalParseException(e);
+            }
+
+            List<String> columnValues = rs.getFieldValues();
+            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
+                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
+            } else {
+                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
+            }
+        }
+    }
+
+    private void checkMariaDB(MysqlConnector connector) {
+        ResultSetPacket rs = null;
+        try {
+            rs = query("SELECT @@version", connector);
+        } catch (IOException e) {
+            throw new CanalParseException(e);
+        }
+
+        List<String> columnValues = rs.getFieldValues();
+        if (columnValues != null && columnValues.size() >= 1) {
+            isMariaDB = StringUtils.containsIgnoreCase(columnValues.get(0), "MariaDB");
+        }
+    }
+
+    public ResultSetPacket query(String cmd, MysqlConnector connector) throws IOException {
+        MysqlQueryExecutor exector = new MysqlQueryExecutor(connector);
+        return exector.query(cmd);
     }
 
     public void update(String cmd, MysqlConnector connector) throws IOException {

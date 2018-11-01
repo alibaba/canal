@@ -41,6 +41,7 @@ import org.apache.http.ssl.TrustStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
 
 /**
@@ -103,6 +104,9 @@ public class BinlogDownloadQueue {
 
     public BinlogFile tryOne() throws Throwable {
         BinlogFile binlogFile = binlogList.poll();
+        if (binlogFile == null) {
+            throw new CanalParseException("download binlog is null");
+        }
         download(binlogFile);
         hostId = binlogFile.getHostInstanceID();
         this.currentSize++;
@@ -131,7 +135,7 @@ public class BinlogDownloadQueue {
         if (StringUtils.isNotEmpty(needCompareName) && StringUtils.endsWith(needCompareName, "tar")) {
             needCompareName = needCompareName.substring(0, needCompareName.indexOf("."));
         }
-        return fileName.equalsIgnoreCase(needCompareName) && binlogList.isEmpty();
+        return (needCompareName == null || fileName.equalsIgnoreCase(needCompareName)) && binlogList.isEmpty();
     }
 
     public void prepare() throws InterruptedException {
@@ -162,6 +166,14 @@ public class BinlogDownloadQueue {
         this.currentSize = 0;
         binlogList.clear();
         downloadQueue.clear();
+        try {
+            downloadThread.interrupt();
+            downloadThread.join();// 等待其结束
+        } catch (InterruptedException e) {
+            // ignore
+        } finally {
+            downloadThread = null;
+        }
     }
 
     private void download(BinlogFile binlogFile) throws Throwable {
