@@ -5,6 +5,7 @@ esMapping:
   _type: _doc
   _id: _id
   sql: "select a.id as _id, concat(a.name,'_') as _name, a.role_id as _role_id,
-        b.role_name as _role_name, a.c_time as _c_time from user a
-        left join (select id, role_name from role ) b on b.id=a.role_id"
+        b.labels _labels, a.c_time as _c_time from user a
+        left join (select user_id, group_concat(label separator ';') as labels from label
+        group by user_id) b on b.user_id=a.id"
   commitBatch: 3000

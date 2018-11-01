@@ -25,7 +25,7 @@ public class RoleSyncJoinSubTest {
     }
 
     /**
-     * 非子查询从表插入 (确保主表记录必须有数据)
+     * 子查询从表插入 (确保主表记录必须有数据)
      */
     @Test
     public void insertTest01() {
@@ -34,19 +34,20 @@ public class RoleSyncJoinSubTest {
         dml.setTs(new Date().getTime());
         dml.setType("INSERT");
         dml.setDatabase("mytest");
-        dml.setTable("role");
+        dml.setTable("label");
         List<Map<String, Object>> dataList = new ArrayList<>();
         Map<String, Object> data = new LinkedHashMap<>();
         dataList.add(data);
         data.put("id", 1L);
-        data.put("role_name", "admin2");
+        data.put("user_id",1L);
+        data.put("label", "a");
 
         dml.setData(dataList);
 
         esAdapter.getEsSyncService().sync(dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
-        Assert.assertEquals("admin2", response.getSource().get("_role_name"));
+        Assert.assertEquals("a;b", response.getSource().get("_labels"));
     }
 
     @After
