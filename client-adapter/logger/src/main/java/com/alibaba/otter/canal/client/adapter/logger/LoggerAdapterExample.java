@@ -27,7 +27,7 @@ public class LoggerAdapterExample implements OuterAdapter {
 
     @Override
     public void sync(Dml dml) {
-        logger.info("DML: ", dml.toString());
+        logger.info("DML: {}", dml.toString());
     }
 
     @Override

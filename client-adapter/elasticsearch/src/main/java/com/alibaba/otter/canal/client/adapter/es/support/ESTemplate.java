@@ -34,6 +34,7 @@ import org.springframework.util.CollectionUtils;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
 
 public class ESTemplate {
@@ -143,7 +144,7 @@ public class ESTemplate {
     }
 
     private boolean updateByQuery(ESMapping mapping, QueryBuilder queryBuilder, Map<String, Object> esFieldData,
-                                 int counter) {
+                                  int counter) {
         if (CollectionUtils.isEmpty(esFieldData)) {
             return true;
         }
@@ -307,6 +308,28 @@ public class ESTemplate {
         return resultIdVal;
     }
 
+    public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet, Map<String, Object> dmlOld,
+                                  Map<String, Object> esFieldData) throws SQLException {
+        SchemaItem schemaItem = mapping.getSchemaItem();
+        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        Object resultIdVal = null;
+        for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
+            if (fieldItem.getFieldName().equals(idFieldName)) {
+                resultIdVal = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
+            }
+
+            for (ColumnItem columnItem : fieldItem.getColumnItems()) {
+                if (dmlOld.get(columnItem.getColumnName()) != null
+                    && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                    esFieldData.put(fieldItem.getFieldName(),
+                        getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName()));
+                    break;
+                }
+            }
+        }
+        return resultIdVal;
+    }
+
     public Object getValFromData(ESMapping mapping, Map<String, Object> dmlData, String fieldName, String columnName) {
         String esType = getEsType(mapping, fieldName);
         Object value = dmlData.get(columnName);
@@ -342,6 +365,34 @@ public class ESTemplate {
             if (!fieldItem.getFieldName().equals(mapping.get_id())
                 && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(fieldItem.getFieldName(), value);
+            }
+        }
+        return resultIdVal;
+    }
+
+    /**
+     * 将dml的data, old转换为es的data
+     *
+     * @param mapping 配置mapping
+     * @param dmlData dml data
+     * @param esFieldData es data
+     * @return 返回 id 值
+     */
+    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> dmlOld,
+                                       Map<String, Object> esFieldData) {
+        SchemaItem schemaItem = mapping.getSchemaItem();
+        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        Object resultIdVal = null;
+        for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
+            String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
+
+            if (fieldItem.getFieldName().equals(idFieldName)) {
+                resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
+            }
+
+            if (dmlOld.get(columnName) != null && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                esFieldData.put(fieldItem.getFieldName(),
+                    getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }
         }
         return resultIdVal;
