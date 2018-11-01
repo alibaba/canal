@@ -9,26 +9,21 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
-
-hbasezookeeper.quorum: 127.0.0.1
-hbase.zookeeper.property.clientPort: 2181
-hbase.zookeeper.znode.parent: /hbase
-
-canal.conf:
-  canalServerHost: 127.0.0.1:11111
+#canal.conf:
+#  canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
-#  bootstrapServers: slave1:6667 #or rocketmq nameservers:host1:9876;host2:9876
-  flatMessage: true
-  canalInstances:
-  - instance: example
-    groups:
-    - outAdapters:
-      - name: logger
+#  bootstrapServers: slave1:6667 #or rocketmq
+#  flatMessage: true
+#  canalInstances:
+#  - instance: example
+#    groups:
+#    - outAdapters:
+#      - name: logger
 #      - name: hbase
 #        properties:
-#          hbase.zookeeper.quorum: ${hbase.zookeeper.quorum}
-#          hbase.zookeeper.property.clientPort: ${hbase.zookeeper.property.clientPort}
-#          zookeeper.znode.parent: ${hbase.zookeeper.znode.parent}
+#          hbase.zookeeper.quorum: 127.0.0.1
+#          hbase.zookeeper.property.clientPort: 2181
+#          zookeeper.znode.parent: /hbase
 #  mqTopics:
 #  - mqMode: kafka
 #    topic: example
@@ -43,7 +38,7 @@ canal.conf:
 #    - groupId: g2
 #      outAdapters:
 #      - name: logger
-
+#
 #adapter.conf:
 #  datasourceConfigs:
 #    defaultDS:
