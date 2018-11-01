@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
@@ -20,6 +19,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
 
 public class ESSyncUtil {
@@ -249,7 +249,7 @@ public class ESSyncUtil {
     /**
      * 执行查询sql
      */
-    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun)  {
+    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) {
         Connection conn = null;
         Statement smt = null;
         ResultSet rs = null;

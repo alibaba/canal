@@ -274,44 +274,14 @@ public class ESTemplate {
         return true;
     }
 
-    // public Object getRSDataValue(ESMapping mapping, ResultSet rs, String
-    // fieldName) throws SQLException {
-    // String esType = getEsType(mapping, fieldName);
-    // Object value = rs.getObject(fieldName);
-    // if (value instanceof Boolean) {
-    // // 判断es类型
-    // if (!"boolean".equals(esType)) {
-    // value = rs.getByte(fieldName);
-    // }
-    // }
-    // return value;
-    // }
-    //
-    // public Object getDataValue(ESMapping mapping, Map<String, Object> data,
-    // String fieldName) {
-    // String esType = getEsType(mapping, fieldName);
-    // Object value = data.get(fieldName);
-    // if (value instanceof Byte) {
-    // if ("boolean".equals(esType)) {
-    // value = ((Byte) value).intValue() != 0;
-    // }
-    // }
-    // return value;
-    // }
-
-    // public Object convertType(ESMapping mapping, String fieldName, Object val) {
-    // // 从mapping中获取类型来转换
-    // String esType = getEsType(mapping, fieldName);
-    // return ESSyncUtil.typeConvert(val, esType);
-    // }
-
-    public Object getValFromRS(ESMapping mapping, ResultSet resultSet, String fieldName) throws SQLException {
+    public Object getValFromRS(ESMapping mapping, ResultSet resultSet, String fieldName,
+                               String columnName) throws SQLException {
         String esType = getEsType(mapping, fieldName);
 
-        Object value = resultSet.getObject(fieldName);
+        Object value = resultSet.getObject(columnName);
         if (value instanceof Boolean) {
             if (!"boolean".equals(esType)) {
-                value = resultSet.getByte(fieldName);
+                value = resultSet.getByte(columnName);
             }
         }
         return ESSyncUtil.typeConvert(value, esType);
@@ -323,48 +293,23 @@ public class ESTemplate {
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
-            String fieldName = Util.cleanColumn(fieldItem.getColumnItems().iterator().next().getColumnName());
-            Object value = getValFromRS(mapping, resultSet, fieldName);
+            Object value = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
 
             if (fieldItem.getFieldName().equals(idFieldName)) {
                 resultIdVal = value;
             }
 
-            if (!fieldItem.getFieldName().equals(mapping.get_id()) && !mapping.getSkips().contains(fieldName)) {
-                esFieldData.put(fieldName, value);
+            if (!fieldItem.getFieldName().equals(mapping.get_id())
+                && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                esFieldData.put(fieldItem.getFieldName(), value);
             }
         }
         return resultIdVal;
     }
 
-    // public Object getIdValFromDmlData(ESMapping mapping, Map<String, Object>
-    // dmlData) {
-    // SchemaItem schemaItem = mapping.getSchemaItem();
-    // String idFieldName = mapping.get_id() == null ? mapping.getPk() :
-    // mapping.get_id();
-    //
-    // for (SchemaItem.FieldItem fieldItem : schemaItem.getSelectFields().values())
-    // {
-    // if (fieldItem.getFieldName().equals(idFieldName)) {
-    // String fieldName =
-    // Util.cleanColumn(fieldItem.getColumnItems().iterator().next().getColumnName());
-    // String esType = getEsType(mapping, fieldName);
-    // Object value = dmlData.get(fieldName);
-    // if (value instanceof Byte) {
-    // if ("boolean".equals(esType)) {
-    // value = ((Byte) value).intValue() != 0;
-    // }
-    // }
-    //
-    // return ESSyncUtil.typeConvert(value, esType);
-    // }
-    // }
-    // return null;
-    // }
-
-    public Object getValFromData(ESMapping mapping, Map<String, Object> dmlData, String fieldName) {
+    public Object getValFromData(ESMapping mapping, Map<String, Object> dmlData, String fieldName, String columnName) {
         String esType = getEsType(mapping, fieldName);
-        Object value = dmlData.get(fieldName);
+        Object value = dmlData.get(columnName);
         if (value instanceof Byte) {
             if ("boolean".equals(esType)) {
                 value = ((Byte) value).intValue() != 0;
@@ -387,15 +332,16 @@ public class ESTemplate {
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
-            String fieldName = Util.cleanColumn(fieldItem.getColumnItems().iterator().next().getColumnName());
-            Object value = getValFromData(mapping, dmlData, fieldName);
+            String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
+            Object value = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
 
             if (fieldItem.getFieldName().equals(idFieldName)) {
                 resultIdVal = value;
             }
 
-            if (!fieldItem.getFieldName().equals(mapping.get_id()) && !mapping.getSkips().contains(fieldName)) {
-                esFieldData.put(fieldName, value);
+            if (!fieldItem.getFieldName().equals(mapping.get_id())
+                && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                esFieldData.put(fieldItem.getFieldName(), value);
             }
         }
         return resultIdVal;

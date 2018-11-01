@@ -133,12 +133,20 @@ public class ESSyncService {
                 continue; // 单表插入完成
             }
 
-            // ------是否主表 查询sql来插入------
+            // ------是主表 查询sql来插入------
             if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
                 String sql = mapping.getSql();
                 String condition = ESSyncUtil.pkConditionSql(mapping, data);
                 sql = ESSyncUtil.appendCondition(sql, condition);
                 DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+                if (logger.isTraceEnabled()) {
+                    logger.trace(
+                        "Single table insert ot es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
+                        config.getDestination(),
+                        dml.getTable(),
+                        mapping.get_index(),
+                        sql.replace("\n", " "));
+                }
                 ESSyncUtil.sqlRS(ds, sql, rs -> {
                     try {
                         while (rs.next()) {
@@ -192,23 +200,30 @@ public class ESSyncService {
                     if (!tableItem.isSubQuery()) {
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
                         for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-                            Object value = esTemplate
-                                .getValFromData(mapping, data, fieldItem.getColumn().getColumnName());
+                            Object value = esTemplate.getValFromData(mapping,
+                                data,
+                                fieldItem.getFieldName(),
+                                fieldItem.getColumn().getColumnName());
                             esFieldData.put(fieldItem.getFieldName(), value);
                         }
 
                         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
                         for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields()
                             .entrySet()) {
-                            Object value = esTemplate
-                                .getValFromData(mapping, data, entry.getKey().getColumn().getColumnName());
                             for (FieldItem fieldItem : entry.getValue()) {
-                                String fieldName = fieldItem.getFieldName();
-                                // 判断是否是主键
-                                if (fieldName.equals(mapping.get_id())) {
-                                    fieldName = "_id";
+                                if (fieldItem.getColumnItems().size() == 1) {
+                                    Object value = esTemplate.getValFromData(mapping,
+                                            data,
+                                            fieldItem.getFieldName(),
+                                            entry.getKey().getColumn().getColumnName());
+
+                                    String fieldName = fieldItem.getFieldName();
+                                    // 判断是否是主键
+                                    if (fieldName.equals(mapping.get_id())) {
+                                        fieldName = "_id";
+                                    }
+                                    queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
                                 }
-                                queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
                             }
                         }
 
@@ -228,7 +243,95 @@ public class ESSyncService {
                                 mapping.get_index());
                         }
                     } else {
-                        // TODO
+                        StringBuilder sql = new StringBuilder(
+                            "SELECT * FROM (" + tableItem.getSubQuerySql() + ") " + tableItem.getAlias() + " WHERE ");
+
+                        for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
+                            String columnName = fkFieldItem.getColumn().getColumnName();
+                            Object value = esTemplate
+                                .getValFromData(mapping, data, fkFieldItem.getFieldName(), columnName);
+                            if (value instanceof String) {
+                                sql.append(tableItem.getAlias())
+                                    .append(".")
+                                    .append(columnName)
+                                    .append("='")
+                                    .append(value)
+                                    .append("' ")
+                                    .append(" AND ");
+                            } else {
+                                sql.append(tableItem.getAlias())
+                                    .append(".")
+                                    .append(columnName)
+                                    .append("=")
+                                    .append(value)
+                                    .append(" ")
+                                    .append(" AND ");
+                            }
+                        }
+                        int len = sql.length();
+                        sql.delete(len - 5, len);
+                        DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+                        if (logger.isTraceEnabled()) {
+                            logger.trace(
+                                "Join table update es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
+                                config.getDestination(),
+                                dml.getTable(),
+                                mapping.get_index(),
+                                sql.toString().replace("\n", " "));
+                        }
+                        ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+                            try {
+                                while (rs.next()) {
+                                    Map<String, Object> esFieldData = new LinkedHashMap<>();
+                                    for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                                        Object val = esTemplate.getValFromRS(mapping,
+                                            rs,
+                                            fieldItem.getFieldName(),
+                                            fieldItem.getColumn().getColumnName());
+                                        esFieldData.put(fieldItem.getFieldName(), val);
+                                    }
+
+                                    BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+                                    for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem
+                                        .getRelationTableFields()
+                                        .entrySet()) {
+                                        for (FieldItem fieldItem : entry.getValue()) {
+                                            if (fieldItem.getColumnItems().size() == 1) {
+                                                Object value = esTemplate.getValFromRS(mapping,
+                                                    rs,
+                                                    fieldItem.getFieldName(),
+                                                    entry.getKey().getColumn().getColumnName());
+                                                String fieldName = fieldItem.getFieldName();
+                                                // 判断是否是主键
+                                                if (fieldName.equals(mapping.get_id())) {
+                                                    fieldName = "_id";
+                                                }
+                                                queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
+                                            }
+                                        }
+                                    }
+
+                                    if (logger.isDebugEnabled()) {
+                                        logger.trace(
+                                            "Join table update es index by foreign key, destination:{}, table: {}, index: {}",
+                                            config.getDestination(),
+                                            dml.getTable(),
+                                            mapping.get_index());
+                                    }
+                                    boolean result = esTemplate.updateByQuery(mapping, queryBuilder, esFieldData);
+                                    if (!result) {
+                                        logger.error(
+                                            "Join table update es index by foreign key error, destination:{}, table: {}, index: {}",
+                                            config.getDestination(),
+                                            dml.getTable(),
+                                            mapping.get_index());
+                                    }
+                                }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            return 0;
+                        });
                     }
                 } else {
                     // TODO 查询总sql
