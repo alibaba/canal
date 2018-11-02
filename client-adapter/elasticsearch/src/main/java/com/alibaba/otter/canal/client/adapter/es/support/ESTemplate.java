@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
@@ -56,14 +55,13 @@ public class ESTemplate {
     /**
      * 插入数据
      * 
-     * @param esSyncConfig
+     * @param mapping
      * @param pkVal
      * @param esFieldData
      * @return
      */
-    public boolean insert(ESSyncConfig esSyncConfig, Object pkVal, Map<String, Object> esFieldData) {
+    public boolean insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-        ESMapping mapping = esSyncConfig.getEsMapping();
         if (mapping.get_id() != null) {
             bulkRequestBuilder
                 .add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type(), pkVal.toString())
@@ -87,14 +85,14 @@ public class ESTemplate {
     /**
      * 根据主键更新数据
      * 
-     * @param esSyncConfig
+     * @param mapping
      * @param pkVal
      * @param esFieldData
      * @return
      */
-    public boolean update(ESSyncConfig esSyncConfig, Object pkVal, Map<String, Object> esFieldData) {
+    public boolean update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-        append4Update(bulkRequestBuilder, esSyncConfig, pkVal, esFieldData);
+        append4Update(bulkRequestBuilder, mapping, pkVal, esFieldData);
         return commitBulkRequest(bulkRequestBuilder);
     }
 
@@ -110,9 +108,8 @@ public class ESTemplate {
         return commitBulkRequest(bulkRequestBuilder);
     }
 
-    public void append4Update(BulkRequestBuilder bulkRequestBuilder, ESSyncConfig esSyncConfig, Object pkVal,
+    public void append4Update(BulkRequestBuilder bulkRequestBuilder, ESMapping mapping, Object pkVal,
                               Map<String, Object> esFieldData) {
-        ESMapping mapping = esSyncConfig.getEsMapping();
         if (mapping.get_id() != null) {
             bulkRequestBuilder
                 .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
@@ -223,13 +220,12 @@ public class ESTemplate {
     /**
      * 通过主键删除数据
      *
-     * @param esSyncConfig
+     * @param mapping
      * @param pkVal
      * @return
      */
-    public boolean delete(ESSyncConfig esSyncConfig, Object pkVal) {
+    public boolean delete(ESMapping mapping, Object pkVal) {
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-        ESMapping mapping = esSyncConfig.getEsMapping();
         if (mapping.get_id() != null) {
             bulkRequestBuilder
                 .add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(), pkVal.toString()));
@@ -303,6 +299,21 @@ public class ESTemplate {
             if (!fieldItem.getFieldName().equals(mapping.get_id())
                 && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(fieldItem.getFieldName(), value);
+            }
+        }
+        return resultIdVal;
+    }
+
+    public Object getIdValFromRS(ESMapping mapping, ResultSet resultSet) throws SQLException {
+        SchemaItem schemaItem = mapping.getSchemaItem();
+        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        Object resultIdVal = null;
+        for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
+            Object value = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
+
+            if (fieldItem.getFieldName().equals(idFieldName)) {
+                resultIdVal = value;
+                break;
             }
         }
         return resultIdVal;

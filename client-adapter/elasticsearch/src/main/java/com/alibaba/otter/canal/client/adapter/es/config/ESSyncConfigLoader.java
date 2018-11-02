@@ -38,6 +38,9 @@ public class ESSyncConfigLoader {
     public static synchronized void load() {
         logger.info("## Start loading mapping config ... ");
         Collection<String> configs = AdapterConfigs.get("es");
+        if (configs == null) {
+            return;
+        }
         for (String c : configs) {
             if (c == null) {
                 continue;
@@ -67,7 +70,7 @@ public class ESSyncConfigLoader {
                 }
                 Pattern pattern = Pattern.compile(".*:(.*)://.*/(.*)\\?.*$");
                 Matcher matcher = pattern.matcher(dataSource.getUrl());
-                if (!matcher.find()){
+                if (!matcher.find()) {
                     throw new RuntimeException("Not found the schema of jdbc-url: " + config.getDataSourceKey());
                 }
                 String schema = matcher.group(2);

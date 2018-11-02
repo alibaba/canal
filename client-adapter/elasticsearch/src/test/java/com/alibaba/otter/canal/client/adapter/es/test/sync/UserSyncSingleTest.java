@@ -3,9 +3,6 @@ package com.alibaba.otter.canal.client.adapter.es.test.sync;
 import java.util.*;
 
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -83,17 +80,31 @@ public class UserSyncSingleTest {
         Assert.assertEquals("Eric2", response.getSource().get("_name"));
     }
 
+    /**
+     * 单表删除
+     */
     @Test
-    public void ttt() {
-        SearchResponse response = esAdapter.getTransportClient()
-            .prepareSearch("mytest_user")
-            .setTypes("_doc")
-            .setQuery(QueryBuilders.termQuery("_id", 1L))
-            .setSize(100)
-            .get();
-        for (SearchHit hit : response.getHits()) {
-            System.out.println(hit.getSourceAsMap().get("name"));
-        }
+    public void deleteTest03() {
+        Dml dml = new Dml();
+        dml.setDestination("example");
+        dml.setTs(new Date().getTime());
+        dml.setType("DELETE");
+        dml.setDatabase("mytest");
+        dml.setTable("user");
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        Map<String, Object> data = new LinkedHashMap<>();
+        dataList.add(data);
+        data.put("id", 1L);
+        data.put("name", "Eric");
+        data.put("role_id", 1L);
+        data.put("c_time", new Date());
+
+        dml.setData(dataList);
+
+        esAdapter.getEsSyncService().sync(dml);
+
+        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        Assert.assertNull(response.getSource());
     }
 
     @After
