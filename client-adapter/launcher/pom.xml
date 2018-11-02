@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
@@ -151,12 +152,13 @@
                             <tasks>
                                 <copy todir="${project.basedir}/target/config" overwrite="true">
                                     <fileset dir="${project.basedir}/src/main/resources" erroronmissingdir="true">
-                                        <include name="*.yml" />
+                                        <include name="*.yml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${project.basedir}/target/config/hbase" overwrite="true">
-                                    <fileset dir="${project.basedir}/../hbase/src/main/resources/hbase" erroronmissingdir="true">
-                                        <include name="*.yml" />
+                                    <fileset dir="${project.basedir}/../hbase/src/main/resources/hbase"
+                                             erroronmissingdir="true">
+                                        <include name="*.yml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${project.basedir}/target/config/es" overwrite="true">
@@ -223,6 +225,14 @@
                         </executions>
                     </plugin>
                 </plugins>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <excludes>
+                            <exclude>application.yml</exclude>
+                        </excludes>
+                    </resource>
+                </resources>
             </build>
         </profile>
     </profiles>
