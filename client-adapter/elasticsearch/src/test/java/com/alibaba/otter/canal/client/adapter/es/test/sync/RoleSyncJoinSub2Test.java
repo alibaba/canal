@@ -69,7 +69,7 @@ public class RoleSyncJoinSub2Test {
         List<Map<String, Object>> oldList = new ArrayList<>();
         Map<String, Object> old = new LinkedHashMap<>();
         oldList.add(old);
-        old.put("label", "a");
+        old.put("label", "v");
         dml.setOld(oldList);
 
         esAdapter.getEsSyncService().sync(dml);

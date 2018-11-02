@@ -19,7 +19,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
-import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
 
 public class ESSyncUtil {
@@ -161,7 +160,7 @@ public class ESSyncUtil {
             }
 
             if (!((String) val).contains(",")) {
-                logger.error("es type is geo_point, source value not contains ',' spit");
+                logger.error("es type is geo_point, source value not contains ',' separator");
                 return val;
             }
 
@@ -225,7 +224,7 @@ public class ESSyncUtil {
         // 拼接condition
         StringBuilder condition = new StringBuilder(" ");
         for (ColumnItem idColumn : idColumns) {
-            Object idVal = data.get(Util.cleanColumn(idColumn.getColumnName()));
+            Object idVal = data.get(idColumn.getColumnName());
             if (mainTable.getAlias() != null) condition.append(mainTable.getAlias()).append(".");
             condition.append(idColumn.getColumnName()).append("=");
             if (idVal instanceof String) {
@@ -244,6 +243,14 @@ public class ESSyncUtil {
 
     public static String appendCondition(String sql, String condition) {
         return sql + " WHERE " + condition + " ";
+    }
+
+    public static void appendCondition(StringBuilder sql, Object value, String owner, String columnName) {
+        if (value instanceof String) {
+            sql.append(owner).append(".").append(columnName).append("='").append(value).append("'  AND ");
+        } else {
+            sql.append(owner).append(".").append(columnName).append("=").append(value).append("  AND ");
+        }
     }
 
     /**

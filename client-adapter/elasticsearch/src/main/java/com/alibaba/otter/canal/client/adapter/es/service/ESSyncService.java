@@ -102,6 +102,82 @@ public class ESSyncService {
 
     }
 
+    /**
+     * 插入操作dml
+     * 
+     * @param config es配置
+     * @param dml dml数据
+     */
+    private void insert(ESSyncConfig config, Dml dml) {
+        List<Map<String, Object>> dataList = dml.getData();
+        if (dataList == null || dataList.isEmpty()) {
+            return;
+        }
+        SchemaItem schemaItem = config.getEsMapping().getSchemaItem();
+        for (Map<String, Object> data : dataList) {
+            if (data == null || data.isEmpty()) {
+                continue;
+            }
+
+            if (schemaItem.getAliasTableItems().size() == 1 && schemaItem.isAllFieldsSimple()) {
+                // ------单表 & 所有字段都为简单字段------
+                singleTableSimpleFiledInsert(config, dml, data);
+            } else {
+                // ------是主表 查询sql来插入------
+                if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
+                    mainTableInsert(config, dml, data);
+                }
+
+                // 从表的操作
+                for (TableItem tableItem : schemaItem.getAliasTableItems().values()) {
+                    if (tableItem.isMain()) {
+                        continue;
+                    }
+                    if (!tableItem.getTableName().equals(dml.getTable())) {
+                        continue;
+                    }
+                    // 关联条件出现在主表查询条件是否为简单字段
+                    boolean allFieldsSimple = true;
+                    for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                        if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
+                            allFieldsSimple = false;
+                            break;
+                        }
+                    }
+                    // 所有查询字段均为简单字段
+                    if (allFieldsSimple) {
+                        // 不是子查询
+                        if (!tableItem.isSubQuery()) {
+                            // ------关联表简单字段插入------
+                            Map<String, Object> esFieldData = new LinkedHashMap<>();
+                            for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
+                                Object value = esTemplate.getValFromData(config.getEsMapping(),
+                                    data,
+                                    fieldItem.getFieldName(),
+                                    fieldItem.getColumn().getColumnName());
+                                esFieldData.put(fieldItem.getFieldName(), value);
+                            }
+
+                            joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
+                        } else {
+                            // ------关联子表简单字段插入------
+                            subTableSimpleFieldOperation(config, dml, data, null, tableItem);
+                        }
+                    } else {
+                        // ------关联子表复杂字段插入 执行全sql更新es------
+                        jonTableWholeSqlOperation(config, dml, data, null, tableItem);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 更新操作dml
+     *
+     * @param config es配置
+     * @param dml dml数据
+     */
     private void update(ESSyncConfig config, Dml dml) {
         List<Map<String, Object>> dataList = dml.getData();
         List<Map<String, Object>> oldList = dml.getOld();
@@ -195,76 +271,6 @@ public class ESSyncService {
             }
 
             i++;
-        }
-    }
-
-    /**
-     * 插入dml操作
-     * 
-     * @param config es配置
-     * @param dml dml数据
-     */
-    private void insert(ESSyncConfig config, Dml dml) {
-        List<Map<String, Object>> dataList = dml.getData();
-        if (dataList == null || dataList.isEmpty()) {
-            return;
-        }
-        SchemaItem schemaItem = config.getEsMapping().getSchemaItem();
-        for (Map<String, Object> data : dataList) {
-            if (data == null || data.isEmpty()) {
-                continue;
-            }
-
-            if (schemaItem.getAliasTableItems().size() == 1 && schemaItem.isAllFieldsSimple()) {
-                // ------单表 & 所有字段都为简单字段------
-                singleTableSimpleFiledInsert(config, dml, data);
-            } else {
-                // ------是主表 查询sql来插入------
-                if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
-                    mainTableInsert(config, dml, data);
-                }
-
-                // 从表的操作
-                for (TableItem tableItem : schemaItem.getAliasTableItems().values()) {
-                    if (tableItem.isMain()) {
-                        continue;
-                    }
-                    if (!tableItem.getTableName().equals(dml.getTable())) {
-                        continue;
-                    }
-                    // 关联条件出现在主表查询条件是否为简单字段
-                    boolean allFieldsSimple = true;
-                    for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-                        if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
-                            allFieldsSimple = false;
-                            break;
-                        }
-                    }
-                    // 所有查询字段均为简单字段
-                    if (allFieldsSimple) {
-                        // 不是子查询
-                        if (!tableItem.isSubQuery()) {
-                            // ------关联表简单字段插入------
-                            Map<String, Object> esFieldData = new LinkedHashMap<>();
-                            for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-                                Object value = esTemplate.getValFromData(config.getEsMapping(),
-                                    data,
-                                    fieldItem.getFieldName(),
-                                    fieldItem.getColumn().getColumnName());
-                                esFieldData.put(fieldItem.getFieldName(), value);
-                            }
-
-                            joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
-                        } else {
-                            // ------关联子表简单字段插入------
-                            subTableSimpleFieldOperation(config, dml, data, null, tableItem);
-                        }
-                    } else {
-                        // ------关联子表复杂字段插入 执行全sql更新es------
-                        jonTableWholeSqlOperation(config, dml, data, null, tableItem);
-                    }
-                }
-            }
         }
     }
 
@@ -412,23 +418,7 @@ public class ESSyncService {
         for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
             String columnName = fkFieldItem.getColumn().getColumnName();
             Object value = esTemplate.getValFromData(mapping, data, fkFieldItem.getFieldName(), columnName);
-            if (value instanceof String) {
-                sql.append(tableItem.getAlias())
-                    .append(".")
-                    .append(columnName)
-                    .append("='")
-                    .append(value)
-                    .append("' ")
-                    .append(" AND ");
-            } else {
-                sql.append(tableItem.getAlias())
-                    .append(".")
-                    .append(columnName)
-                    .append("=")
-                    .append(value)
-                    .append(" ")
-                    .append(" AND ");
-            }
+            ESSyncUtil.appendCondition(sql, value, tableItem.getAlias(), columnName);
         }
         int len = sql.length();
         sql.delete(len - 5, len);
@@ -527,23 +517,7 @@ public class ESSyncService {
         for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
             String columnName = fkFieldItem.getColumn().getColumnName();
             Object value = esTemplate.getValFromData(mapping, data, fkFieldItem.getFieldName(), columnName);
-            if (value instanceof String) {
-                sql.append(tableItem.getAlias())
-                    .append(".")
-                    .append(columnName)
-                    .append("='")
-                    .append(value)
-                    .append("' ")
-                    .append(" AND ");
-            } else {
-                sql.append(tableItem.getAlias())
-                    .append(".")
-                    .append(columnName)
-                    .append("=")
-                    .append(value)
-                    .append(" ")
-                    .append(" AND ");
-            }
+            ESSyncUtil.appendCondition(sql, value, tableItem.getAlias(), columnName);
         }
         int len = sql.length();
         sql.delete(len - 5, len);
@@ -602,16 +576,14 @@ public class ESSyncService {
                     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
                     for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
                         for (FieldItem fieldItem : entry.getValue()) {
-                            if (fieldItem.getColumnItems().size() == 1) {
-                                Object value = esTemplate
-                                    .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
-                                String fieldName = fieldItem.getFieldName();
-                                // 判断是否是主键
-                                if (fieldName.equals(mapping.get_id())) {
-                                    fieldName = "_id";
-                                }
-                                queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
+                            Object value = esTemplate
+                                .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
+                            String fieldName = fieldItem.getFieldName();
+                            // 判断是否是主键
+                            if (fieldName.equals(mapping.get_id())) {
+                                fieldName = "_id";
                             }
+                            queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
                         }
                     }
 
