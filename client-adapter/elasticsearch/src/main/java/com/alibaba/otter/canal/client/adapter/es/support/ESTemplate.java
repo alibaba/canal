@@ -40,7 +40,7 @@ public class ESTemplate {
 
     private static final Logger logger         = LoggerFactory.getLogger(ESTemplate.class);
 
-    private static final int    MAX_BATCH_SIZE = 1000;
+    private static final int    MAX_BATCH_SIZE = 10000;
 
     private TransportClient     transportClient;
 

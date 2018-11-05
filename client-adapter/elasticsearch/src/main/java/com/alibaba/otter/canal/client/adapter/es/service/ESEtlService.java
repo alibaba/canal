@@ -13,8 +13,11 @@ import javax.sql.DataSource;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,8 +207,18 @@ public class ESEtlService {
                                 // ignore
                             }
                         } else {
+                            idVal = rs.getObject(mapping.getPk());
                             if (mapping.getParent() == null) {
-                                // TODO 删除pk对应的数据
+                                // 删除pk对应的数据
+                                SearchResponse response = transportClient.prepareSearch(mapping.get_index())
+                                    .setTypes(mapping.get_type())
+                                    .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
+                                    .get();
+                                for (SearchHit hit : response.getHits()) {
+                                    bulkRequestBuilder.add(transportClient
+                                        .prepareDelete(mapping.get_index(), mapping.get_type(), hit.getId()));
+                                }
+
                                 bulkRequestBuilder
                                     .add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type())
                                         .setSource(esFieldData));
