@@ -47,7 +47,8 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                      Callback callback) {
         if (!mqProperties.getFlatMessage()) {
             try {
-                Message message = new Message(destination.getTopic(), CanalMessageSerializer.serializer(data));
+                Message message = new Message(destination.getTopic(), CanalMessageSerializer.serializer(data,
+                    mqProperties.isFilterTransactionEntry()));
                 logger.debug("send message:{} to destination:{}, partition: {}",
                     message,
                     destination.getCanalDestination(),

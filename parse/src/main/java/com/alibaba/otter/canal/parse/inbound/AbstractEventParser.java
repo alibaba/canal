@@ -353,7 +353,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         eventSink.interrupt();
 
         if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
-            multiStageCoprocessor.stop();
+            try {
+                multiStageCoprocessor.stop();
+            } catch (Throwable t) {
+                logger.debug("multi processor rejected:", t);
+            }
         }
 
         try {

@@ -16,7 +16,7 @@ import com.google.protobuf.WireFormat;
 public class CanalMessageSerializer {
 
     @SuppressWarnings("deprecation")
-    public static byte[] serializer(Message data) {
+    public static byte[] serializer(Message data, boolean filterTransactionEntry) {
         try {
             if (data != null) {
                 if (data.getId() != -1) {
@@ -53,8 +53,14 @@ public class CanalMessageSerializer {
                         output.checkNoSpaceLeft();
                         return body;
                     } else if (!CollectionUtils.isEmpty(data.getEntries())) {
+                        // mq模式只会走到非rowEntry模式
                         CanalPacket.Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
                         for (CanalEntry.Entry entry : data.getEntries()) {
+                            if (filterTransactionEntry
+                                && (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND)) {
+                                continue;
+                            }
+
                             messageBuilder.addMessages(entry.toByteString());
                         }
 

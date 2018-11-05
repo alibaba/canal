@@ -1,5 +1,9 @@
 package com.taobao.tddl.dbsync.binlog;
 
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber2;
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber4;
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.usecondsToStr;
+
 /**
  * 处理下MySQL json二进制转化为可读的字符串
  * 
@@ -330,12 +334,30 @@ public class JsonConversion {
                             long ultime = Math.abs(packed_value);
                             long intpart = ultime >> 24;
                             int frac = (int) (ultime % (1L << 24));
-                            text = String.format("%s%02d:%02d:%02d",
-                                packed_value >= 0 ? "" : "-",
-                                (int) ((intpart >> 12) % (1 << 10)),
-                                (int) ((intpart >> 6) % (1 << 6)),
-                                (int) (intpart % (1 << 6)));
-                            text = text + "." + usecondsToStr(frac, 6);
+                            // text = String.format("%s%02d:%02d:%02d",
+                            // packed_value >= 0 ? "" : "-",
+                            // (int) ((intpart >> 12) % (1 << 10)),
+                            // (int) ((intpart >> 6) % (1 << 6)),
+                            // (int) (intpart % (1 << 6)));
+                            // text = text + "." + usecondsToStr(frac, 6);
+                            StringBuilder builder = new StringBuilder(17);
+                            if (packed_value < 0) {
+                                builder.append('-');
+                            }
+
+                            int d = (int) ((intpart >> 12) % (1 << 10));
+                            if (d > 100) {
+                                builder.append(String.valueOf(d));
+                            } else {
+                                appendNumber2(builder, d);
+                            }
+                            builder.append(':');
+                            appendNumber2(builder, (int) ((intpart >> 6) % (1 << 6)));
+                            builder.append(':');
+                            appendNumber2(builder, (int) (intpart % (1 << 6)));
+
+                            builder.append('.').append(usecondsToStr(frac, 6));
+                            text = builder.toString();
                         }
                         buf.append('"').append(text).append('"');
                     } else if (m_field_type == LogEvent.MYSQL_TYPE_DATE || m_field_type == LogEvent.MYSQL_TYPE_DATETIME
@@ -351,14 +373,28 @@ public class JsonConversion {
                             long ymd = intpart >> 17;
                             long ym = ymd >> 5;
                             long hms = intpart % (1 << 17);
-                            text = String.format("%04d-%02d-%02d %02d:%02d:%02d",
-                                (int) (ym / 13),
-                                (int) (ym % 13),
-                                (int) (ymd % (1 << 5)),
-                                (int) (hms >> 12),
-                                (int) ((hms >> 6) % (1 << 6)),
-                                (int) (hms % (1 << 6)));
-                            text = text + "." + usecondsToStr(frac, 6);
+                            // text =
+                            // String.format("%04d-%02d-%02d %02d:%02d:%02d",
+                            // (int) (ym / 13),
+                            // (int) (ym % 13),
+                            // (int) (ymd % (1 << 5)),
+                            // (int) (hms >> 12),
+                            // (int) ((hms >> 6) % (1 << 6)),
+                            // (int) (hms % (1 << 6)));
+                            StringBuilder builder = new StringBuilder(26);
+                            appendNumber4(builder, (int) (ym / 13));
+                            builder.append('-');
+                            appendNumber2(builder, (int) (ym % 13));
+                            builder.append('-');
+                            appendNumber2(builder, (int) (ymd % (1 << 5)));
+                            builder.append(' ');
+                            appendNumber2(builder, (int) (hms >> 12));
+                            builder.append(':');
+                            appendNumber2(builder, (int) ((hms >> 6) % (1 << 6)));
+                            builder.append(':');
+                            appendNumber2(builder, (int) (hms % (1 << 6)));
+                            builder.append('.').append(usecondsToStr(frac, 6));
+                            text = builder.toString();
                         }
                         buf.append('"').append(text).append('"');
                     } else {
@@ -397,22 +433,4 @@ public class JsonConversion {
         OBJECT, ARRAY, STRING, INT, UINT, DOUBLE, LITERAL_NULL, LITERAL_TRUE, LITERAL_FALSE, OPAQUE, ERROR
     }
 
-    private static String usecondsToStr(int frac, int meta) {
-        String sec = String.valueOf(frac);
-        if (meta > 6) {
-            throw new IllegalArgumentException("unknow useconds meta : " + meta);
-        }
-
-        if (sec.length() < 6) {
-            StringBuilder result = new StringBuilder(6);
-            int len = 6 - sec.length();
-            for (; len > 0; len--) {
-                result.append('0');
-            }
-            result.append(sec);
-            sec = result.toString();
-        }
-
-        return sec.substring(0, meta);
-    }
 }

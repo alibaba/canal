@@ -372,6 +372,14 @@ public final class LogDecoder {
                 header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
+            case LogEvent.PARTIAL_UPDATE_ROWS_EVENT: {
+                RowsLogEvent event = new UpdateRowsLogEvent(header, buffer, descriptionEvent, true);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
+                return event;
+            }
             case LogEvent.GTID_LOG_EVENT:
             case LogEvent.ANONYMOUS_GTID_LOG_EVENT: {
                 GtidLogEvent event = new GtidLogEvent(header, buffer, descriptionEvent);
