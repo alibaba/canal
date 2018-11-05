@@ -7,10 +7,16 @@ import java.util.Map;
 
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 
+/**
+ * ES 映射配置视图
+ *
+ * @author rewerma 2018-11-01
+ * @version 1.0.0
+ */
 public class SchemaItem {
 
-    private Map<String, TableItem>                aliasTableItems = new LinkedHashMap<>();
-    private Map<String, FieldItem>                selectFields    = new LinkedHashMap<>();
+    private Map<String, TableItem>                aliasTableItems = new LinkedHashMap<>(); // 别名对应表名
+    private Map<String, FieldItem>                selectFields    = new LinkedHashMap<>(); // 查询字段
     private String                                sql;
 
     private volatile Map<String, List<TableItem>> tableItemAliases;

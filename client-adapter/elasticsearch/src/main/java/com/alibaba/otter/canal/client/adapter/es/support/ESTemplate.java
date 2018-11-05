@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+
+import javax.sql.DataSource;
 
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -18,6 +19,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
@@ -31,24 +33,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
+import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
+import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
+/**
+ * ES 操作模板
+ *
+ * @author rewerma 2018-11-01
+ * @version 1.0.0
+ */
 public class ESTemplate {
 
     private static final Logger logger         = LoggerFactory.getLogger(ESTemplate.class);
 
-    private static final int    MAX_BATCH_SIZE = 10000;
+    private static final int    MAX_BATCH_SIZE = 1000;
 
     private TransportClient     transportClient;
 
     public ESTemplate(TransportClient transportClient){
-        this.transportClient = transportClient;
-    }
-
-    public void setTransportClient(TransportClient transportClient) {
         this.transportClient = transportClient;
     }
 
@@ -96,18 +102,6 @@ public class ESTemplate {
         return commitBulkRequest(bulkRequestBuilder);
     }
 
-    /**
-     * 结合 addBulkRequest4Update 批量更新
-     * 
-     * @param consumer
-     * @return
-     */
-    public boolean updateBatch(Consumer<BulkRequestBuilder> consumer) {
-        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-        consumer.accept(bulkRequestBuilder);
-        return commitBulkRequest(bulkRequestBuilder);
-    }
-
     public void append4Update(BulkRequestBuilder bulkRequestBuilder, ESMapping mapping, Object pkVal,
                               Map<String, Object> esFieldData) {
         if (mapping.get_id() != null) {
@@ -120,7 +114,7 @@ public class ESTemplate {
                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
                 .setSize(MAX_BATCH_SIZE)
                 .get();
-            for (SearchHit hit : response.getHits()) { // 理论上只有一条
+            for (SearchHit hit : response.getHits()) {
                 bulkRequestBuilder
                     .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), hit.getId())
                         .setDoc(esFieldData));
@@ -131,13 +125,63 @@ public class ESTemplate {
     /**
      * update by query
      *
-     * @param mapping
-     * @param queryBuilder
+     * @param config
+     * @param paramsTmp
      * @param esFieldData
      * @return
      */
-    public boolean updateByQuery(ESMapping mapping, QueryBuilder queryBuilder, Map<String, Object> esFieldData) {
-        return updateByQuery(mapping, queryBuilder, esFieldData, 1);
+    public boolean updateByQuery(ESSyncConfig config, Map<String, Object> paramsTmp, Map<String, Object> esFieldData) {
+        if (paramsTmp.isEmpty()) {
+            return false;
+        }
+        ESMapping mapping = config.getEsMapping();
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        paramsTmp.forEach((fieldName, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
+
+        SearchResponse response = transportClient.prepareSearch(mapping.get_index())
+            .setTypes(mapping.get_type())
+            .setSize(0)
+            .setQuery(queryBuilder)
+            .get();
+        long count = response.getHits().getTotalHits();
+        // 如果更新量大于Max, 查询sql批量更新
+        if (count > MAX_BATCH_SIZE) {
+            BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
+
+            DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+            // 查询sql更新
+            StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
+            paramsTmp.forEach(
+                (fieldName, value) -> sql.append("_v.").append(fieldName).append("=").append(value).append(" AND "));
+            int len = sql.length();
+            sql.delete(len - 4, len);
+            ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+                int exeCount = 1;
+                try {
+                    BulkRequestBuilder bulkRequestBuilderTmp = bulkRequestBuilder;
+                    while (rs.next()) {
+                        Object idVal = getIdValFromRS(mapping, rs);
+                        append4Update(bulkRequestBuilderTmp, mapping, idVal, esFieldData);
+
+                        if (exeCount % mapping.getCommitBatch() == 0 && bulkRequestBuilderTmp.numberOfActions() > 0) {
+                            commitBulkRequest(bulkRequestBuilderTmp);
+                            bulkRequestBuilderTmp = transportClient.prepareBulk();
+                        }
+                        exeCount++;
+                    }
+
+                    if (bulkRequestBuilder.numberOfActions() > 0) {
+                        commitBulkRequest(bulkRequestBuilderTmp);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                return 0;
+            });
+            return true;
+        } else {
+            return updateByQuery(mapping, queryBuilder, esFieldData, 1);
+        }
     }
 
     private boolean updateByQuery(ESMapping mapping, QueryBuilder queryBuilder, Map<String, Object> esFieldData,

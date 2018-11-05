@@ -31,6 +31,12 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.google.common.base.Joiner;
 
+/**
+ * ES ETL Service
+ *
+ * @author rewerma 2018-11-01
+ * @version 1.0.0
+ */
 public class ESEtlService {
 
     private static Logger   logger = LoggerFactory.getLogger(ESEtlService.class);

@@ -34,8 +34,8 @@ public class SqlParser {
     /**
      * 解析sql
      * 
-     * @param sql
-     * @return
+     * @param sql sql
+     * @return 视图对象
      */
     public static SchemaItem parse(String sql) {
         try {
@@ -67,8 +67,8 @@ public class SqlParser {
     /**
      * 归集字段
      * 
-     * @param sqlSelectQueryBlock
-     * @return
+     * @param sqlSelectQueryBlock sqlSelectQueryBlock
+     * @return 字段属性列表
      */
     private static List<FieldItem> collectSelectQueryFields(MySqlSelectQueryBlock sqlSelectQueryBlock) {
         return sqlSelectQueryBlock.getSelectList().stream().map(selectItem -> {
@@ -82,8 +82,8 @@ public class SqlParser {
     /**
      * 解析字段
      * 
-     * @param expr
-     * @param fieldItem
+     * @param expr sql expr
+     * @param fieldItem 字段属性
      */
     private static void visitColumn(SQLExpr expr, FieldItem fieldItem) {
         if (expr instanceof SQLIdentifierExpr) {
@@ -123,6 +123,11 @@ public class SqlParser {
 
     /**
      * 解析表
+     * 
+     * @param schemaItem 视图对象
+     * @param sqlTableSource sqlTableSource
+     * @param tableItems 表对象列表
+     * @param tableItemTmp 表对象(临时)
      */
     private static void visitSelectTable(SchemaItem schemaItem, SQLTableSource sqlTableSource,
                                          List<TableItem> tableItems, TableItem tableItemTmp) {
@@ -174,8 +179,8 @@ public class SqlParser {
     /**
      * 解析on条件
      * 
-     * @param expr
-     * @param tableItem
+     * @param expr sql expr
+     * @param tableItem 表对象
      */
     private static void visitOnCondition(SQLExpr expr, TableItem tableItem) {
         if (!(expr instanceof SQLBinaryOpExpr)) {

@@ -3,6 +3,12 @@ package com.alibaba.otter.canal.client.adapter.es.config;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ES 映射配置
+ *
+ * @author rewerma 2018-11-01
+ * @version 1.0.0
+ */
 public class ESSyncConfig {
 
     private String    dataSourceKey; // 数据源key

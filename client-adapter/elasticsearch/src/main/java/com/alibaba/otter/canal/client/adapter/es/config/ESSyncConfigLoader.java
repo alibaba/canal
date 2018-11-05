@@ -17,6 +17,12 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
+/**
+ * ES 配置装载器
+ *
+ * @author rewerma 2018-11-01
+ * @version 1.0.0
+ */
 public class ESSyncConfigLoader {
 
     private static Logger                                   logger              = LoggerFactory

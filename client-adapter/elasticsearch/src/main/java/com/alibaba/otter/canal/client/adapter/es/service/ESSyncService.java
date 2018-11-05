@@ -6,8 +6,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +21,12 @@ import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
+/**
+ * ES 同步 Service
+ *
+ * @author rewerma 2018-11-01
+ * @version 1.0.0
+ */
 public class ESSyncService {
 
     private static Logger logger = LoggerFactory.getLogger(ESSyncService.class);
@@ -530,7 +534,7 @@ public class ESSyncService {
                                                TableItem tableItem, Map<String, Object> esFieldData) {
         ESMapping mapping = config.getEsMapping();
 
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        Map<String, Object> paramsTmp = new LinkedHashMap<>();
         for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
             for (FieldItem fieldItem : entry.getValue()) {
                 if (fieldItem.getColumnItems().size() == 1) {
@@ -544,7 +548,7 @@ public class ESSyncService {
                     if (fieldName.equals(mapping.get_id())) {
                         fieldName = "_id";
                     }
-                    queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
+                    paramsTmp.put(fieldName, value);
                 }
             }
         }
@@ -555,7 +559,7 @@ public class ESSyncService {
                 dml.getTable(),
                 mapping.get_index());
         }
-        boolean result = esTemplate.updateByQuery(mapping, queryBuilder, esFieldData);
+        boolean result = esTemplate.updateByQuery(config, paramsTmp, esFieldData);
         if (!result) {
             logger.error("Join table update es index by foreign key error, destination:{}, table: {}, index: {}",
                 config.getDestination(),
@@ -625,7 +629,7 @@ public class ESSyncService {
                         }
                     }
 
-                    BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+                    Map<String, Object> paramsTmp = new LinkedHashMap<>();
                     for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
                         for (FieldItem fieldItem : entry.getValue()) {
                             if (fieldItem.getColumnItems().size() == 1) {
@@ -638,7 +642,7 @@ public class ESSyncService {
                                 if (fieldName.equals(mapping.get_id())) {
                                     fieldName = "_id";
                                 }
-                                queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
+                                paramsTmp.put(fieldName, value);
                             }
                         }
                     }
@@ -649,7 +653,7 @@ public class ESSyncService {
                             dml.getTable(),
                             mapping.get_index());
                     }
-                    boolean result = esTemplate.updateByQuery(mapping, queryBuilder, esFieldData);
+                    boolean result = esTemplate.updateByQuery(config, paramsTmp, esFieldData);
                     if (!result) {
                         logger.error(
                             "Join table update es index by query sql error, destination:{}, table: {}, index: {}",
@@ -737,7 +741,7 @@ public class ESSyncService {
                         }
                     }
 
-                    BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+                    Map<String, Object> paramsTmp = new LinkedHashMap<>();
                     for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
                         for (FieldItem fieldItem : entry.getValue()) {
                             Object value = esTemplate
@@ -747,7 +751,7 @@ public class ESSyncService {
                             if (fieldName.equals(mapping.get_id())) {
                                 fieldName = "_id";
                             }
-                            queryBuilder.must(QueryBuilders.termsQuery(fieldName, value));
+                            paramsTmp.put(fieldName, value);
                         }
                     }
 
@@ -758,7 +762,7 @@ public class ESSyncService {
                             dml.getTable(),
                             mapping.get_index());
                     }
-                    boolean result = esTemplate.updateByQuery(mapping, queryBuilder, esFieldData);
+                    boolean result = esTemplate.updateByQuery(config, paramsTmp, esFieldData);
                     if (!result) {
                         logger.error(
                             "Join table update es index by query whole sql error, destination:{}, table: {}, index: {}",

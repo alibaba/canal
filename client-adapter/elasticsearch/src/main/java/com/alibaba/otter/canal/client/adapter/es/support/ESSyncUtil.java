@@ -21,6 +21,12 @@ import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
 
+/**
+ * ES 同步工具同类
+ *
+ * @author rewerma 2018-11-01
+ * @version 1.0.0
+ */
 public class ESSyncUtil {
 
     private static Logger logger = LoggerFactory.getLogger(ESSyncUtil.class);
@@ -169,6 +175,24 @@ public class ESSyncUtil {
             location.put("lat", Double.valueOf(point[0].trim()));
             location.put("lon", Double.valueOf(point[1].trim()));
             return location;
+        } else if ("array".equals(esType)) {
+            if ("".equals(val.toString().trim())) {
+                res = new ArrayList<>();
+            } else {
+                String value = val.toString();
+                String separator = ",";
+                if (!value.contains(",")) {
+                    if (value.contains(";")) {
+                        separator = ";";
+                    } else if (value.contains("|")) {
+                        separator = "|";
+                    } else if (value.contains("-")) {
+                        separator = "-";
+                    }
+                }
+                String[] values = value.split(separator);
+                return Arrays.asList(values);
+            }
         } else if ("object".equals(esType)) {
             if ("".equals(val.toString().trim())) {
                 res = new HashMap<>();

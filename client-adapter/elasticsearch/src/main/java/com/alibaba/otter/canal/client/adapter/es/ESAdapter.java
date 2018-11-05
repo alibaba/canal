@@ -12,8 +12,6 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
@@ -32,8 +30,6 @@ import com.alibaba.otter.canal.client.adapter.support.*;
  */
 @SPI("es")
 public class ESAdapter implements OuterAdapter {
-
-    private static Logger   logger = LoggerFactory.getLogger(ESAdapter.class);
 
     private TransportClient transportClient;
 
