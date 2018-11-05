@@ -72,7 +72,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
             @Override
             public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r, "[scheduler-table-meta-snapshot]");
+                Thread thread = new Thread(r, String.format("[scheduler-table-meta-snapshot-%s]", destination));
                 thread.setDaemon(true);
                 return thread;
             }
@@ -104,6 +104,26 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             }, snapshotInterval, snapshotInterval, TimeUnit.HOURS);
         }
         return true;
+    }
+    
+    @Override
+    public void destory() {
+        if (memoryTableMeta != null) {
+            memoryTableMeta.destory();
+        }
+        
+        if (connection != null) {
+            try {
+                connection.disconnect();
+            } catch (IOException e) {
+                logger.error("ERROR # disconnect meta connection for address:{}", connection.getConnector()
+                    .getAddress(), e);
+            }
+        }
+        
+        if (scheduler != null) {
+            scheduler.shutdown();
+        }
     }
 
     @Override

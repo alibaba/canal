@@ -58,6 +58,11 @@ public class MemoryTableMeta implements TableMetaTSDB {
     public boolean init(String destination) {
         return true;
     }
+    
+    @Override
+    public void destory() {
+        tableMetas.clear();
+    }
 
     public boolean apply(EntryPosition position, String schema, String ddl, String extra) {
         tableMetas.clear();
