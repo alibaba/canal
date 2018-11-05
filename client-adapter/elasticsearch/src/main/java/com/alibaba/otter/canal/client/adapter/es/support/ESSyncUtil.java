@@ -31,6 +31,20 @@ public class ESSyncUtil {
 
     private static Logger logger = LoggerFactory.getLogger(ESSyncUtil.class);
 
+    public static Object convertToEsObj(Object val, String fieldInfo) {
+        if (val == null) {
+            return null;
+        }
+        if (fieldInfo.startsWith("array:")) {
+            String separator = fieldInfo.substring("array:".length()).trim();
+            String[] values = val.toString().split(separator);
+            return Arrays.asList(values);
+        } else if (fieldInfo.startsWith("object")) {
+            return JSON.parse(val.toString());
+        }
+        return null;
+    }
+
     /**
      * 类型转换为Mapping中对应的类型
      */

@@ -2,16 +2,14 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import com.alibaba.fastjson.JSON;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -205,8 +203,14 @@ public class ESTemplate {
                         .append(mapValue.get("lat"))
                         .append("];");
                 } else {
-                    logger.warn("Unsupported object type for script_update");
+                    sb.append("ctx._source").append("[\"").append(key).append("\"]").append(" = ");
+                    sb.append(JSON.toJSONString(value));
+                    sb.append(";");
                 }
+            } else if (value instanceof List) {
+                sb.append("ctx._source").append("[\"").append(key).append("\"]").append(" = ");
+                sb.append(JSON.toJSONString(value));
+                sb.append(";");
             } else if (value instanceof String) {
                 sb.append("ctx._source")
                     .append("['")
@@ -325,7 +329,13 @@ public class ESTemplate {
                 value = resultSet.getByte(columnName);
             }
         }
-        return ESSyncUtil.typeConvert(value, esType);
+
+        // 如果是对象类型
+        if (mapping.getObjFields().containsKey(fieldName)) {
+            return ESSyncUtil.convertToEsObj(value, mapping.getObjFields().get(fieldName));
+        } else {
+            return ESSyncUtil.typeConvert(value, esType);
+        }
     }
 
     public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet,
@@ -393,7 +403,13 @@ public class ESTemplate {
                 value = ((Byte) value).intValue() != 0;
             }
         }
-        return ESSyncUtil.typeConvert(value, esType);
+
+        // 如果是对象类型
+        if (mapping.getObjFields().containsKey(fieldName)) {
+            return ESSyncUtil.convertToEsObj(value, mapping.getObjFields().get(fieldName));
+        } else {
+            return ESSyncUtil.typeConvert(value, esType);
+        }
     }
 
     /**

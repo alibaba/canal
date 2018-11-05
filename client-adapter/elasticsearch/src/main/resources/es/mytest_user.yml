@@ -10,5 +10,7 @@ esMapping:
         left join role b on b.id=a.role_id
         left join (select user_id, group_concat(label order by id desc separator ';') as labels from label
         group by user_id) c on c.user_id=a.id"
+#  objFields:
+#    _labels: array:;
   etlCondition: "where a.c_time>='{0}'"
   commitBatch: 3000

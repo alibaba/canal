@@ -1,7 +1,9 @@
 package com.alibaba.otter.canal.client.adapter.es.config;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * ES 映射配置
@@ -58,19 +60,22 @@ public class ESSyncConfig {
 
     public static class ESMapping {
 
-        private String       _index;
-        private String       _type;
-        private String       _id;
-        private String       pk;
-        private String       parent;
-        private String       sql;
-        private List<String> skips           = new ArrayList<>();
-        private int          commitBatch     = 1000;
-        private String       etlCondition;
-        private boolean      syncByTimestamp = false;            // 是否按时间戳定时同步
-        private Long         syncInterval;                       // 同步时间间隔
+        private String              _index;
+        private String              _type;
+        private String              _id;
+        private String              pk;
+        private String              parent;
+        private String              sql;
+        // 对象字段, 例: objFields:
+        //              - _labels: array:;
+        private Map<String, String> objFields     = new LinkedHashMap<>();
+        private List<String>        skips           = new ArrayList<>();
+        private int                 commitBatch     = 1000;
+        private String              etlCondition;
+        private boolean             syncByTimestamp = false;                 // 是否按时间戳定时同步
+        private Long                syncInterval;                            // 同步时间间隔
 
-        private SchemaItem   schemaItem;                         // sql解析结果模型
+        private SchemaItem          schemaItem;                              // sql解析结果模型
 
         public String get_index() {
             return _index;
@@ -110,6 +115,14 @@ public class ESSyncConfig {
 
         public void setParent(String parent) {
             this.parent = parent;
+        }
+
+        public Map<String, String> getObjFields() {
+            return objFields;
+        }
+
+        public void setObjFields(Map<String, String> objFields) {
+            this.objFields = objFields;
         }
 
         public List<String> getSkips() {
