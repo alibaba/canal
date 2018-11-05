@@ -3,6 +3,7 @@ server:
 logging:
   level:
     com.alibaba.otter.canal.client.adapter.hbase: DEBUG
+    com.alibaba.otter.canal.client.adapter.es: TRACE
 spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -24,6 +25,10 @@ spring:
 #          hbase.zookeeper.quorum: 127.0.0.1
 #          hbase.zookeeper.property.clientPort: 2181
 #          zookeeper.znode.parent: /hbase
+#      - name: es
+#        hosts: 127.0.0.1:9300
+#        properties:
+#          cluster.name: elasticsearch
 #  mqTopics:
 #  - mqMode: kafka
 #    topic: example
@@ -38,7 +43,7 @@ spring:
 #    - groupId: g2
 #      outAdapters:
 #      - name: logger
-#
+
 #adapter.conf:
 #  datasourceConfigs:
 #    defaultDS:
@@ -47,3 +52,4 @@ spring:
 #      password: 121212
 #  adapterConfigs:
 #  - hbase/mytest_person2.yml
+#  - es/mytest_user.yml

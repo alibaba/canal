@@ -1,0 +1,10 @@
+dataSourceKey: defaultDS
+destination: example
+esMapping:
+  _index: mytest_user
+  _type: _doc
+  _id: _id
+  sql: "select a.id as _id, concat(a.name,'_') as _name, a.role_id as _role_id,
+        concat(b.role_name,'_') as _role_name, a.c_time as _c_time from user a
+        left join role b on b.id=a.role_id"
+  commitBatch: 3000

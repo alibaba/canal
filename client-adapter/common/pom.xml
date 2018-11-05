@@ -14,7 +14,7 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.protocol</artifactId>
-            <version>1.1.2-SNAPSHOT</version>
+            <version>${canal_version}</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>

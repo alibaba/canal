@@ -53,8 +53,8 @@ public class HbaseAdapter implements OuterAdapter {
                         hbaseMapping = MappingConfigLoader.load();
                         mappingConfigCache = new HashMap<>();
                         for (MappingConfig mappingConfig : hbaseMapping.values()) {
-                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getHbaseMapping().getDestination())
-                                                   + "." + mappingConfig.getHbaseMapping().getDatabase() + "."
+                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
+                                                   + mappingConfig.getHbaseMapping().getDatabase() + "."
                                                    + mappingConfig.getHbaseMapping().getTable(),
                                 mappingConfig);
                         }
@@ -100,32 +100,33 @@ public class HbaseAdapter implements OuterAdapter {
                 return etlResult;
             }
         } else {
-            DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(task);
-            if (dataSource != null) {
-                StringBuilder resultMsg = new StringBuilder();
-                boolean resSucc = true;
-                // ds不为空说明传入的是datasourceKey
-                for (MappingConfig configTmp : hbaseMapping.values()) {
-                    // 取所有的datasourceKey为task的配置
-                    if (configTmp.getDataSourceKey().equals(task)) {
-                        EtlResult etlRes = HbaseEtlService.importData(dataSource, hbaseTemplate, configTmp, params);
-                        if (!etlRes.getSucceeded()) {
-                            resSucc = false;
-                            resultMsg.append(etlRes.getErrorMessage()).append("\n");
-                        } else {
-                            resultMsg.append(etlRes.getResultMessage()).append("\n");
-                        }
+            StringBuilder resultMsg = new StringBuilder();
+            boolean resSucc = true;
+            // ds不为空说明传入的是datasourceKey
+            for (MappingConfig configTmp : hbaseMapping.values()) {
+                // 取所有的destination为task的配置
+                if (configTmp.getDestination().equals(task)) {
+                    DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(configTmp.getDataSourceKey());
+                    if (dataSource == null) {
+                        continue;
                     }
-                }
-                if (resultMsg.length() > 0) {
-                    etlResult.setSucceeded(resSucc);
-                    if (resSucc) {
-                        etlResult.setResultMessage(resultMsg.toString());
+                    EtlResult etlRes = HbaseEtlService.importData(dataSource, hbaseTemplate, configTmp, params);
+                    if (!etlRes.getSucceeded()) {
+                        resSucc = false;
+                        resultMsg.append(etlRes.getErrorMessage()).append("\n");
                     } else {
-                        etlResult.setErrorMessage(resultMsg.toString());
+                        resultMsg.append(etlRes.getResultMessage()).append("\n");
                     }
-                    return etlResult;
                 }
+            }
+            if (resultMsg.length() > 0) {
+                etlResult.setSucceeded(resSucc);
+                if (resSucc) {
+                    etlResult.setResultMessage(resultMsg.toString());
+                } else {
+                    etlResult.setErrorMessage(resultMsg.toString());
+                }
+                return etlResult;
             }
         }
         etlResult.setSucceeded(false);
@@ -170,7 +171,7 @@ public class HbaseAdapter implements OuterAdapter {
     public String getDestination(String task) {
         MappingConfig config = hbaseMapping.get(task);
         if (config != null && config.getHbaseMapping() != null) {
-            return config.getHbaseMapping().getDestination();
+            return config.getDestination();
         }
         return null;
     }

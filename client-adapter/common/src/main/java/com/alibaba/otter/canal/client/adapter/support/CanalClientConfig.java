@@ -19,6 +19,12 @@ public class CanalClientConfig {
 
     private Boolean             flatMessage = true; // 是否已flatMessage模式传输, 只适用于mq模式
 
+    private Integer             batchSize;          // 批大小
+
+    private Integer             retry;              // 重试次数
+
+    private Long                timeout;            // 消费超时时间
+
     private List<MQTopic>       mqTopics;           // mq topic 列表
 
     private List<CanalInstance> canalInstances;     // tcp 模式下 canal 实例列表, 与mq模式不能共存!!
@@ -63,6 +69,30 @@ public class CanalClientConfig {
         this.flatMessage = flatMessage;
     }
 
+    public Integer getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(Integer batchSize) {
+        this.batchSize = batchSize;
+    }
+
+    public Integer getRetry() {
+        return retry;
+    }
+
+    public void setRetry(Integer retry) {
+        this.retry = retry;
+    }
+
+    public Long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Long timeout) {
+        this.timeout = timeout;
+    }
+
     public List<CanalInstance> getCanalInstances() {
         return canalInstances;
     }
@@ -73,9 +103,9 @@ public class CanalClientConfig {
 
     public static class CanalInstance {
 
-        private String             instance;      // 实例名
+        private String      instance; // 实例名
 
-        private List<Group> groups;  // 适配器分组列表
+        private List<Group> groups;   // 适配器分组列表
 
         public String getInstance() {
             return instance;
@@ -112,9 +142,9 @@ public class CanalClientConfig {
 
     public static class MQTopic {
 
-        private String      mqMode;                     // mq模式 kafka or rocketMQ
+        private String        mqMode;                     // mq模式 kafka or rocketMQ
 
-        private String      topic;                      // topic名
+        private String        topic;                      // topic名
 
         private List<MQGroup> groups = new ArrayList<>(); // 分组列表
 

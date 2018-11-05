@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
-import com.alibaba.otter.canal.client.kafka.KafkaCanalConnectors;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -36,12 +35,13 @@ public class CanalKafkaClientExample {
                                                     };
 
     public CanalKafkaClientExample(String zkServers, String servers, String topic, Integer partition, String groupId){
-        connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId, false);
+        connector = new KafkaCanalConnector(servers, topic, partition, groupId, null, false);
     }
 
     public static void main(String[] args) {
         try {
-            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(AbstractKafkaTest.zkServers,
+            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(
+                AbstractKafkaTest.zkServers,
                 AbstractKafkaTest.servers,
                 AbstractKafkaTest.topic,
                 AbstractKafkaTest.partition,

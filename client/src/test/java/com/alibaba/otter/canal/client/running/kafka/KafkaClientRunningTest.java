@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
-import com.alibaba.otter.canal.client.kafka.KafkaCanalConnectors;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -30,7 +29,7 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
     public void testKafkaConsumer() {
         final ExecutorService executor = Executors.newFixedThreadPool(1);
 
-        final KafkaCanalConnector connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId);
+        final KafkaCanalConnector connector = new KafkaCanalConnector(servers, topic, partition, groupId, null, false);
 
         executor.submit(new Runnable() {
 

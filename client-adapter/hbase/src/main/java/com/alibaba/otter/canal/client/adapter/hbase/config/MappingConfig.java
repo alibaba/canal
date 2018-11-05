@@ -12,6 +12,8 @@ public class MappingConfig {
 
     private String       dataSourceKey; // 数据源key
 
+    private String       destination;   // canal实例或MQ的topic
+
     private HbaseMapping hbaseMapping;  // hbase映射配置
 
     public String getDataSourceKey() {
@@ -20,6 +22,14 @@ public class MappingConfig {
 
     public void setDataSourceKey(String dataSourceKey) {
         this.dataSourceKey = dataSourceKey;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 
     public HbaseMapping getHbaseMapping() {
@@ -143,7 +153,6 @@ public class MappingConfig {
     public static class HbaseMapping {
 
         private Mode                    mode               = Mode.STRING;           // hbase默认转换格式
-        private String                  destination;                                // canal实例或MQ的topic
         private String                  database;                                   // 数据库名或schema名
         private String                  table;                                      // 表面名
         private String                  hbaseTable;                                 // hbase表名
@@ -167,14 +176,6 @@ public class MappingConfig {
 
         public void setMode(Mode mode) {
             this.mode = mode;
-        }
-
-        public String getDestination() {
-            return destination;
-        }
-
-        public void setDestination(String destination) {
-            this.destination = destination;
         }
 
         public String getDatabase() {

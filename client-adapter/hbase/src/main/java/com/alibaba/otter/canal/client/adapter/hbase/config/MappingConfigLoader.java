@@ -38,6 +38,9 @@ public class MappingConfigLoader {
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
         Collection<String> configs = AdapterConfigs.get("hbase");
+        if (configs == null) {
+            return result;
+        }
         for (String c : configs) {
             if (c == null) {
                 continue;

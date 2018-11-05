@@ -38,8 +38,7 @@ public class HbaseSyncService {
                     delete(config, dml);
                 }
                 if (logger.isDebugEnabled()) {
-                    String res = dml.toString();
-                    logger.debug(res);
+                    logger.debug("DML: {}", dml.toString());
                 }
             }
         } catch (Exception e) {
@@ -199,7 +198,8 @@ public class HbaseSyncService {
             Map<String, MappingConfig.ColumnItem> columnItems = hbaseMapping.getColumnItems();
             HRow hRow = new HRow(rowKeyBytes);
             for (String updateColumn : old.get(index).keySet()) {
-                if (hbaseMapping.getExcludeColumns() != null && hbaseMapping.getExcludeColumns().contains(updateColumn)) {
+                if (hbaseMapping.getExcludeColumns() != null
+                    && hbaseMapping.getExcludeColumns().contains(updateColumn)) {
                     continue;
                 }
                 MappingConfig.ColumnItem columnItem = columnItems.get(updateColumn);

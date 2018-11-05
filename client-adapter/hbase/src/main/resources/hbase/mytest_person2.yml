@@ -1,7 +1,7 @@
 dataSourceKey: defaultDS
+destination: example
 hbaseMapping:
   mode: PHOENIX  #NATIVE   #STRING
-  destination: example
   database: mytest  # 数据库名
   table: person2     # 数据库表名
   hbaseTable: MYTEST.PERSON2   # HBase表名

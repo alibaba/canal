@@ -1,0 +1,11 @@
+dataSourceKey: defaultDS
+destination: example
+esMapping:
+  _index: mytest_user
+  _type: _doc
+  _id: _id
+  sql: "select a.id as _id, concat(a.name,'_') as _name, a.role_id as _role_id,
+        b.labels _labels, a.c_time as _c_time from user a
+        left join (select user_id, group_concat(label order by id desc separator ';') as labels from label
+        group by user_id) b on b.user_id=a.id"
+  commitBatch: 3000
