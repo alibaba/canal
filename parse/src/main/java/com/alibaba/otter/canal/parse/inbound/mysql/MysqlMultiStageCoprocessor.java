@@ -275,6 +275,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                         needDmlParse = true;
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
+                    case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
                         needDmlParse = true;
