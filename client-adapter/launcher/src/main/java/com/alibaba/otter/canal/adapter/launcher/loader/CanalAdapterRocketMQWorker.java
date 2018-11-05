@@ -1,13 +1,16 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectors;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -18,17 +21,19 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
 
+    private CanalClientConfig      canalClientConfig;
     private RocketMQCanalConnector connector;
     private String                 topic;
     private boolean                flatMessage;
 
-    public CanalAdapterRocketMQWorker(String nameServers, String topic, String groupId,
-                                      List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
+    public CanalAdapterRocketMQWorker(CanalClientConfig canalClientConfig, String nameServers, String topic,
+                                      String groupId, List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
         super(canalOuterAdapters);
+        this.canalClientConfig = canalClientConfig;
         this.topic = topic;
         this.flatMessage = flatMessage;
         this.canalDestination = topic;
-        this.connector = RocketMQCanalConnectors.newRocketMQConnector(nameServers, topic, groupId, flatMessage);
+        this.connector = new RocketMQCanalConnector(nameServers, topic, groupId, flatMessage);
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
     }
 
@@ -36,6 +41,11 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
     protected void process() {
         while (!running)
             ;
+
+        ExecutorService workerExecutor = Executors.newSingleThreadExecutor();
+        int retry = canalClientConfig.getRetry() == null ? 1 : canalClientConfig.getRetry();
+        long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
+
         while (running) {
             try {
                 syncSwitch.get(canalDestination);
@@ -45,33 +55,12 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                 connector.subscribe();
                 logger.info("=============> Subscribe topic: {} succeed<=============", this.topic);
                 while (running) {
-                    try {
-                        Boolean status = syncSwitch.status(canalDestination);
-                        if (status != null && !status) {
-                            connector.disconnect();
-                            break;
-                        }
-
-                        List<?> messages;
-                        if (!flatMessage) {
-                            messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
-                        } else {
-                            messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);
-                        }
-                        if (messages != null) {
-                            for (final Object message : messages) {
-                                if (message instanceof FlatMessage) {
-                                    writeOut((FlatMessage) message);
-                                } else {
-                                    writeOut((Message) message);
-                                }
-                            }
-                        }
-                        connector.ack();
-                    } catch (Throwable e) {
-                        logger.error(e.getMessage(), e);
-                        TimeUnit.SECONDS.sleep(1L);
+                    Boolean status = syncSwitch.status(canalDestination);
+                    if (status != null && !status) {
+                        connector.disconnect();
+                        break;
                     }
+                    mqWriteOutData(retry, timeout, flatMessage, connector, workerExecutor);
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

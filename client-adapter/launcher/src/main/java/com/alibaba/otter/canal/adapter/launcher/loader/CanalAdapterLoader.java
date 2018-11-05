@@ -67,9 +67,15 @@ public class CanalAdapterLoader {
                 }
                 CanalAdapterWorker worker;
                 if (sa != null) {
-                    worker = new CanalAdapterWorker(instance.getInstance(), sa, canalOuterAdapterGroups);
+                    worker = new CanalAdapterWorker(canalClientConfig,
+                        instance.getInstance(),
+                        sa,
+                        canalOuterAdapterGroups);
                 } else if (zkHosts != null) {
-                    worker = new CanalAdapterWorker(instance.getInstance(), zkHosts, canalOuterAdapterGroups);
+                    worker = new CanalAdapterWorker(canalClientConfig,
+                        instance.getInstance(),
+                        zkHosts,
+                        canalOuterAdapterGroups);
                 } else {
                     throw new RuntimeException("No canal server connector found");
                 }
@@ -90,7 +96,8 @@ public class CanalAdapterLoader {
                     }
                     canalOuterAdapterGroups.add(canalOuterAdapters);
                     if (StringUtils.isBlank(topic.getMqMode()) || "rocketmq".equalsIgnoreCase(topic.getMqMode())) {
-                        CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(canalClientConfig.getBootstrapServers(),
+                        CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(canalClientConfig,
+                            canalClientConfig.getBootstrapServers(),
                             topic.getTopic(),
                             group.getGroupId(),
                             canalOuterAdapterGroups,
@@ -98,7 +105,8 @@ public class CanalAdapterLoader {
                         canalMQWorker.put(topic.getTopic() + "-rocketmq-" + group.getGroupId(), rocketMQWorker);
                         rocketMQWorker.start();
                     } else if ("kafka".equalsIgnoreCase(topic.getMqMode())) {
-                        CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(canalClientConfig.getBootstrapServers(),
+                        CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(canalClientConfig,
+                            canalClientConfig.getBootstrapServers(),
                             topic.getTopic(),
                             group.getGroupId(),
                             canalOuterAdapterGroups,

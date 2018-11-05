@@ -292,10 +292,13 @@ public class ExtensionLoader<T> {
 
     private String getJarDirectoryPath() {
         URL url = Thread.currentThread().getContextClassLoader().getResource("");
-        if (url == null) {
-            throw new IllegalStateException("failed to get class loader resource");
+        String dirtyPath;
+        if (url != null) {
+            dirtyPath = url.toString();
+        } else {
+            File file = new File("");
+            dirtyPath = file.getAbsolutePath();
         }
-        String dirtyPath = url.toString();
         String jarPath = dirtyPath.replaceAll("^.*file:/", ""); // removes
                                                                 // file:/ and
                                                                 // everything

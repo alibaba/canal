@@ -33,6 +33,7 @@ import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
@@ -69,6 +70,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private WorkerPool<MessageEvent>          workerPool;
     private BatchEventProcessor<MessageEvent> simpleParserStage;
     private BatchEventProcessor<MessageEvent> sinkStoreStage;
+    private LogContext                        logContext;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination){
@@ -95,9 +97,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         SequenceBarrier sequenceBarrier = disruptorMsgBuffer.newBarrier();
         ExceptionHandler exceptionHandler = new SimpleFatalExceptionHandler();
         // stage 2
+        this.logContext = new LogContext();
         simpleParserStage = new BatchEventProcessor<MessageEvent>(disruptorMsgBuffer,
             sequenceBarrier,
-            new SimpleParserStage());
+            new SimpleParserStage(logContext));
         simpleParserStage.setExceptionHandler(exceptionHandler);
         disruptorMsgBuffer.addGatingSequences(simpleParserStage.getSequence());
 
@@ -126,6 +129,12 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         stageExecutor.submit(simpleParserStage);
         stageExecutor.submit(sinkStoreStage);
         workerPool.start(parserExecutor);
+    }
+
+    public void setBinlogChecksum(int binlogChecksum) {
+        if (binlogChecksum != LogEvent.BINLOG_CHECKSUM_ALG_OFF) {
+            logContext.setFormatDescription(new FormatDescriptionLogEvent(4, binlogChecksum));
+        }
     }
 
     @Override
@@ -239,9 +248,9 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         private LogDecoder decoder;
         private LogContext context;
 
-        public SimpleParserStage(){
+        public SimpleParserStage(LogContext context){
             decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
-            context = new LogContext();
+            this.context = context;
             if (gtidSet != null) {
                 context.setGtidSet(gtidSet);
             }
@@ -266,6 +275,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                         needDmlParse = true;
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
+                    case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
                         needDmlParse = true;
@@ -468,4 +478,5 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     public void setGtidSet(GTIDSet gtidSet) {
         this.gtidSet = gtidSet;
     }
+
 }

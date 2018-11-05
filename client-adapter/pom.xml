@@ -14,13 +14,15 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
-        <canal_version>1.1.1-SNAPSHOT</canal_version>
+
+        <canal_version>1.1.2-SNAPSHOT</canal_version>
     </properties>
 
     <modules>
         <module>common</module>
         <module>logger</module>
         <module>hbase</module>
+        <module>elasticsearch</module>
         <module>launcher</module>
     </modules>
 

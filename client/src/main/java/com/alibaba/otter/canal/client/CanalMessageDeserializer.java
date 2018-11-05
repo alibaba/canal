@@ -32,10 +32,12 @@ public class CanalMessageDeserializer {
                         if (lazyParseEntry) {
                             // byteString
                             result.setRawEntries(messages.getMessagesList());
+                            result.setRaw(true);
                         } else {
                             for (ByteString byteString : messages.getMessagesList()) {
                                 result.addEntry(CanalEntry.Entry.parseFrom(byteString));
                             }
+                            result.setRaw(false);
                         }
                         return result;
                     }
