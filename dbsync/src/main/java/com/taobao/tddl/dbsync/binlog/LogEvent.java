@@ -169,9 +169,15 @@ public abstract class LogEvent {
     /* Prepared XA transaction terminal event similar to Xid */
     public static final int    XA_PREPARE_LOG_EVENT                     = 38;
 
+    /**
+     * Extension of UPDATE_ROWS_EVENT, allowing partial values according to
+     * binlog_row_value_options.
+     */
+    public static final int    PARTIAL_UPDATE_ROWS_EVENT                = 39;
+
     // mariaDb 5.5.34
     /* New MySQL/Sun events are to be added right above this comment */
-    public static final int    MYSQL_EVENTS_END                         = 39;
+    public static final int    MYSQL_EVENTS_END                         = 49;
 
     public static final int    MARIA_EVENTS_BEGIN                       = 160;
     /* New Maria event numbers start from here */
@@ -361,6 +367,8 @@ public abstract class LogEvent {
                 return "Anonymous_Gtid";
             case PREVIOUS_GTIDS_LOG_EVENT:
                 return "Previous_gtids";
+            case PARTIAL_UPDATE_ROWS_EVENT:
+                return "Update_rows_partial";
             default:
                 return "Unknown"; /* impossible */
         }

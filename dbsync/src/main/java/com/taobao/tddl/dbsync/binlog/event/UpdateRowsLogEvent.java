@@ -14,6 +14,11 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
 public final class UpdateRowsLogEvent extends RowsLogEvent {
 
     public UpdateRowsLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
-        super(header, buffer, descriptionEvent);
+        super(header, buffer, descriptionEvent, false);
+    }
+
+    public UpdateRowsLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent,
+                              boolean partial){
+        super(header, buffer, descriptionEvent, partial);
     }
 }

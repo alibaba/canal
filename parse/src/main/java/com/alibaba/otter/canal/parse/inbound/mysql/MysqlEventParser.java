@@ -69,6 +69,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     // update by yishun.chen,特殊异常处理参数
     private int                  dumpErrorCount                    = 0;        // binlogDump失败异常计数
     private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
+    private boolean              rdsOssMode                        = false;
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -352,7 +353,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 return logPosition.getPostion();
             }
 
-            if (masterPosition!=null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
+            if (masterPosition != null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
                 return masterPosition;
             }
         }
@@ -492,6 +493,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         // 重新置为一下
                         dumpErrorCount = 0;
                         return findPosition;
+                    }
+
+                    Long timestamp = logPosition.getPostion().getTimestamp();
+                    if (isRdsOssMode() && (timestamp != null && timestamp > 0)) {
+                        // 如果binlog位点不存在，并且属于timestamp不为空,可以返回null走到oss binlog处理
+                        return null;
                     }
                 }
                 // 其余情况
@@ -745,14 +752,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                             logPosition.setPostion(entryPosition);
                         }
 
-                        if (entry == null) {
-                            return true;
-                        }
-
-                        String logfilename = entry.getHeader().getLogfileName();
-                        Long logfileoffset = entry.getHeader().getLogfileOffset();
-                        Long logposTimestamp = entry.getHeader().getExecuteTime();
-                        Long serverId = entry.getHeader().getServerId();
+                        // 直接用event的位点来处理,解决一个binlog文件里没有任何事件导致死循环无法退出的问题
+                        String logfilename = event.getHeader().getLogFileName();
+                        // 记录的是binlog end offest,
+                        // 因为与其对比的offest是show master status里的end offest
+                        Long logfileoffset = event.getHeader().getLogPos();
+                        Long logposTimestamp = event.getHeader().getWhen() * 1000;
+                        Long serverId = event.getHeader().getServerId();
 
                         // 如果最小的一条记录都不满足条件，可直接退出
                         if (logposTimestamp >= startTimestamp) {
@@ -762,6 +768,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
                             && endPosition.getPosition() <= logfileoffset) {
                             return false;
+                        }
+
+                        if (entry == null) {
+                            return true;
                         }
 
                         // 记录一下上一个事务结束的位置，即下一个事务的position
@@ -903,6 +913,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDumpErrorCountThreshold(int dumpErrorCountThreshold) {
         this.dumpErrorCountThreshold = dumpErrorCountThreshold;
+    }
+
+    public boolean isRdsOssMode() {
+        return rdsOssMode;
+    }
+
+    public void setRdsOssMode(boolean rdsOssMode) {
+        this.rdsOssMode = rdsOssMode;
     }
 
 }
