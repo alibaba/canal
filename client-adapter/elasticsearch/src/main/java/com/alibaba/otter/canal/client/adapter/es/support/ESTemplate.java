@@ -330,7 +330,7 @@ public class ESTemplate {
             }
 
             for (ColumnItem columnItem : fieldItem.getColumnItems()) {
-                if (dmlOld.get(columnItem.getColumnName()) != null
+                if (dmlOld.containsKey(columnItem.getColumnName())
                     && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                     esFieldData.put(fieldItem.getFieldName(),
                         getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName()));

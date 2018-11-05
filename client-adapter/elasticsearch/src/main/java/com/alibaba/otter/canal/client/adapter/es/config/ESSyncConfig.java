@@ -58,12 +58,13 @@ public class ESSyncConfig {
         private String       pk;
         private String       parent;
         private String       sql;
-        private List<String> skips       = new ArrayList<>();
-        private boolean      alwaysSql   = false;
-        private int          commitBatch = 1000;
+        private List<String> skips           = new ArrayList<>();
+        private int          commitBatch     = 1000;
         private String       etlCondition;
+        private boolean      syncByTimestamp = false;            // 是否按时间戳定时同步
+        private Long         syncInterval;                       // 同步时间间隔
 
-        private SchemaItem   schemaItem;                     // sql解析结果模型
+        private SchemaItem   schemaItem;                         // sql解析结果模型
 
         public String get_index() {
             return _index;
@@ -121,14 +122,6 @@ public class ESSyncConfig {
             this.sql = sql;
         }
 
-        public boolean isAlwaysSql() {
-            return alwaysSql;
-        }
-
-        public void setAlwaysSql(boolean alwaysSql) {
-            this.alwaysSql = alwaysSql;
-        }
-
         public int getCommitBatch() {
             return commitBatch;
         }
@@ -143,6 +136,22 @@ public class ESSyncConfig {
 
         public void setEtlCondition(String etlCondition) {
             this.etlCondition = etlCondition;
+        }
+
+        public Long getSyncInterval() {
+            return syncInterval;
+        }
+
+        public void setSyncInterval(Long syncInterval) {
+            this.syncInterval = syncInterval;
+        }
+
+        public boolean isSyncByTimestamp() {
+            return syncByTimestamp;
+        }
+
+        public void setSyncByTimestamp(boolean syncByTimestamp) {
+            this.syncByTimestamp = syncByTimestamp;
         }
 
         public SchemaItem getSchemaItem() {
