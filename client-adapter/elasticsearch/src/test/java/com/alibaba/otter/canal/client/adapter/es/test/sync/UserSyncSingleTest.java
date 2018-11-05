@@ -28,7 +28,7 @@ public class UserSyncSingleTest {
      * 单表插入
      */
     @Test
-    public void insertTest01() {
+    public void test01() {
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -55,7 +55,7 @@ public class UserSyncSingleTest {
      * 单表更新
      */
     @Test
-    public void updateTest02() {
+    public void test02() {
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -84,7 +84,7 @@ public class UserSyncSingleTest {
      * 单表删除
      */
     @Test
-    public void deleteTest03() {
+    public void test03() {
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -107,9 +107,9 @@ public class UserSyncSingleTest {
         Assert.assertNull(response.getSource());
     }
 
-    @After
-    public void after() {
-        esAdapter.destroy();
-        DatasourceConfig.DATA_SOURCES.values().forEach(DruidDataSource::close);
-    }
+    // @After
+    // public void after() {
+    // esAdapter.destroy();
+    // DatasourceConfig.DATA_SOURCES.values().forEach(DruidDataSource::close);
+    // }
 }

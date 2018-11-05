@@ -2,13 +2,13 @@ package com.alibaba.otter.canal.client.adapter.es.test.sync;
 
 import java.util.*;
 
+import javax.sql.DataSource;
+
 import org.elasticsearch.action.get.GetResponse;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.es.ESAdapter;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
@@ -25,10 +25,14 @@ public class RoleSyncJoinOneTest {
     }
 
     /**
-     * 非子查询从表插入 (确保主表记录必须有数据)
+     * 非子查询从表插入
      */
     @Test
-    public void insertTest01() {
+    public void test01() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds, "delete from role where id=1");
+        Common.sqlExe(ds, "insert into role (id,role_name) values (1,'admin')");
+
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -49,8 +53,14 @@ public class RoleSyncJoinOneTest {
         Assert.assertEquals("admin", response.getSource().get("_role_name"));
     }
 
+    /**
+     * 非子查询从表更新
+     */
     @Test
-    public void updateTest02() {
+    public void test02() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds, "update role set role_name='admin2' where id=1");
+
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -76,8 +86,72 @@ public class RoleSyncJoinOneTest {
         Assert.assertEquals("admin2", response.getSource().get("_role_name"));
     }
 
+    /**
+     * 主表更新外键值
+     */
     @Test
-    public void deleteTest03() {
+    public void test03() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds, "delete from role where id=2");
+        Common.sqlExe(ds, "insert into role (id,role_name) values (2,'operator')");
+        Common.sqlExe(ds, "update user set role_id=2 where id=1");
+
+         Dml dml = new Dml();
+         dml.setDestination("example");
+         dml.setTs(new Date().getTime());
+         dml.setType("UPDATE");
+         dml.setDatabase("mytest");
+         dml.setTable("user");
+         List<Map<String, Object>> dataList = new ArrayList<>();
+         Map<String, Object> data = new LinkedHashMap<>();
+         dataList.add(data);
+         data.put("id", 1L);
+         data.put("role_id", 2L);
+         dml.setData(dataList);
+         List<Map<String, Object>> oldList = new ArrayList<>();
+         Map<String, Object> old = new LinkedHashMap<>();
+         oldList.add(old);
+         old.put("role_id", 1L);
+         dml.setOld(oldList);
+         esAdapter.getEsSyncService().sync(dml);
+
+         GetResponse response =
+         esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+         Assert.assertEquals("operator", response.getSource().get("_role_name"));
+
+        Common.sqlExe(ds, "update user set role_id=1 where id=1");
+
+        Dml dml2 = new Dml();
+        dml2.setDestination("example");
+        dml2.setTs(new Date().getTime());
+        dml2.setType("UPDATE");
+        dml2.setDatabase("mytest");
+        dml2.setTable("user");
+        List<Map<String, Object>> dataList2 = new ArrayList<>();
+        Map<String, Object> data2 = new LinkedHashMap<>();
+        dataList2.add(data2);
+        data2.put("id", 1L);
+        data2.put("role_id", 1L);
+        dml2.setData(dataList2);
+        List<Map<String, Object>> oldList2 = new ArrayList<>();
+        Map<String, Object> old2 = new LinkedHashMap<>();
+        oldList2.add(old2);
+        old2.put("role_id", 2L);
+        dml2.setOld(oldList2);
+        esAdapter.getEsSyncService().sync(dml2);
+
+        GetResponse response2 = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        Assert.assertEquals("admin2", response2.getSource().get("_role_name"));
+    }
+
+    /**
+     * 非子查询从表删除
+     */
+    @Test
+    public void test04() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds, "delete from role where id=1");
+
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -96,11 +170,5 @@ public class RoleSyncJoinOneTest {
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertNull(response.getSource().get("_role_name"));
-    }
-
-    @After
-    public void after() {
-        esAdapter.destroy();
-        DatasourceConfig.DATA_SOURCES.values().forEach(DruidDataSource::close);
     }
 }

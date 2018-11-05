@@ -2,6 +2,8 @@ package com.alibaba.otter.canal.client.adapter.es.test.sync;
 
 import java.util.*;
 
+import javax.sql.DataSource;
+
 import org.elasticsearch.action.get.GetResponse;
 import org.junit.After;
 import org.junit.Assert;
@@ -25,10 +27,14 @@ public class UserSyncJoinOneTest {
     }
 
     /**
-     * 主表带函数插入, 数据库里内容必须和单测一致
+     * 主表带函数插入
      */
     @Test
-    public void insertTest01() {
+    public void test01() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds,"delete from user where id=1");
+        Common.sqlExe(ds,"insert into user (id,name,role_id) values (1,'Eric',1)");
+
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -51,8 +57,14 @@ public class UserSyncJoinOneTest {
         Assert.assertEquals("Eric_", response.getSource().get("_name"));
     }
 
+    /**
+     * 主表带函数更新
+     */
     @Test
-    public void updateTest02() {
+    public void test02() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds,"update user set name='Eric2' where id=1");
+
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -63,23 +75,17 @@ public class UserSyncJoinOneTest {
         Map<String, Object> data = new LinkedHashMap<>();
         dataList.add(data);
         data.put("id", 1L);
-        data.put("name", "Eric");
+        data.put("name", "Eric2");
         dml.setData(dataList);
         List<Map<String, Object>> oldList = new ArrayList<>();
         Map<String, Object> old = new LinkedHashMap<>();
         oldList.add(old);
-        old.put("name", "Eric2");
+        old.put("name", "Eric");
         dml.setOld(oldList);
 
         esAdapter.getEsSyncService().sync(dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
-        Assert.assertEquals("Eric_", response.getSource().get("_name"));
-    }
-
-    @After
-    public void after() {
-        esAdapter.destroy();
-        DatasourceConfig.DATA_SOURCES.values().forEach(DruidDataSource::close);
+        Assert.assertEquals("Eric2_", response.getSource().get("_name"));
     }
 }

@@ -14,6 +14,8 @@ import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
+import javax.sql.DataSource;
+
 public class RoleSyncJoinOne2Test {
 
     private ESAdapter esAdapter;
@@ -25,10 +27,14 @@ public class RoleSyncJoinOne2Test {
     }
 
     /**
-     * 非子查询从表插入 (确保主表记录必须有数据)
+     * 带函数非子查询从表插入
      */
     @Test
-    public void insertTest01() {
+    public void test01() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds,"delete from role where id=1");
+        Common.sqlExe(ds,"insert into role (id,role_name) values (1,'admin')");
+
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -39,18 +45,24 @@ public class RoleSyncJoinOne2Test {
         Map<String, Object> data = new LinkedHashMap<>();
         dataList.add(data);
         data.put("id", 1L);
-        data.put("role_name", "admin2");
+        data.put("role_name", "admin");
 
         dml.setData(dataList);
 
         esAdapter.getEsSyncService().sync(dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
-        Assert.assertEquals("admin2_", response.getSource().get("_role_name"));
+        Assert.assertEquals("admin_", response.getSource().get("_role_name"));
     }
 
+    /**
+     * 带函数非子查询从表更新
+     */
     @Test
-    public void updateTest02() {
+    public void test02() {
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
+        Common.sqlExe(ds,"update role set role_name='admin3' where id=1");
+
         Dml dml = new Dml();
         dml.setDestination("example");
         dml.setTs(new Date().getTime());
@@ -74,11 +86,5 @@ public class RoleSyncJoinOne2Test {
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("admin3_", response.getSource().get("_role_name"));
-    }
-
-    @After
-    public void after() {
-        esAdapter.destroy();
-        DatasourceConfig.DATA_SOURCES.values().forEach(DruidDataSource::close);
     }
 }
