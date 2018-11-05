@@ -1,7 +1,11 @@
 package com.alibaba.otter.canal.rocketmq;
 
-import java.util.List;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.common.CanalMessageSerializer;
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.alibaba.otter.canal.server.exception.CanalServerException;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -12,12 +16,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.otter.canal.common.CanalMessageSerializer;
-import com.alibaba.otter.canal.common.MQProperties;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.server.exception.CanalServerException;
-import com.alibaba.otter.canal.spi.CanalMQProducer;
+import java.util.List;
 
 public class CanalRocketMQProducer implements CanalMQProducer {
 
@@ -67,6 +66,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
             } catch (MQClientException | RemotingException | MQBrokerException | InterruptedException e) {
                 logger.error("Send message error!", e);
                 callback.rollback();
+                return;
             }
         } else {
             List<FlatMessage> flatMessages = FlatMessage.messageConverter(data);
@@ -90,6 +90,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                         } catch (Exception e) {
                             logger.error("send flat message to fixed partition error", e);
                             callback.rollback();
+                            return;
                         }
                     } else {
                         if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
@@ -124,6 +125,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                                     } catch (Exception e) {
                                         logger.error("send flat message to hashed partition error", e);
                                         callback.rollback();
+                                        return;
                                     }
                                 }
                             }
