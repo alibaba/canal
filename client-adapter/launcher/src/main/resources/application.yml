@@ -3,7 +3,7 @@ server:
 logging:
   level:
     com.alibaba.otter.canal.client.adapter.hbase: DEBUG
-    com.alibaba.otter.canal.client.adapter.es: TRACE
+    com.alibaba.otter.canal.client.adapter.es: DEBUG
 spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
