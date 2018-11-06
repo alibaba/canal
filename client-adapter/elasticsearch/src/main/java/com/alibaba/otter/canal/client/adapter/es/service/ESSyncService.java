@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
@@ -38,9 +39,6 @@ public class ESSyncService {
     }
 
     public void sync(Dml dml) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("DML: {}", dml.toString());
-        }
         long begin = System.currentTimeMillis();
         String database = dml.getDatabase();
         String table = dml.getTable();
@@ -73,6 +71,9 @@ public class ESSyncService {
                     (System.currentTimeMillis() - begin),
                     esSyncConfigs.size(),
                     dml.getDestination());
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("DML: {}", JSON.toJSONString(dml));
             }
         }
     }

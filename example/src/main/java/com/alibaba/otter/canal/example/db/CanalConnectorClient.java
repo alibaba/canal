@@ -359,7 +359,7 @@ public abstract class CanalConnectorClient extends AbstractCanalLifeCycle implem
                 logger.warn("parse delete index event, table: {}, sql: {}", table, sql);
                 return;
             default:
-                logger.warn("parse unknown event: {}, table: {}, sql: {}", new String[]{eventType.name(), table, sql});
+                logger.warn("parse unknown event: {}, table: {}, sql: {}", eventType.name(), table, sql);
                 break;
         }
     }
@@ -375,7 +375,7 @@ public abstract class CanalConnectorClient extends AbstractCanalLifeCycle implem
     public void whenOthers(CanalEntry.Header header, String sql) {
         String schema = header.getSchemaName();
         String table = header.getTableName();
-        logger.error("ignore event,schema: {},table: {},SQL: {}", new String[]{schema, table, sql});
+        logger.error("ignore event,schema: {},table: {},SQL: {}", schema, table, sql);
     }
 
     public enum ExceptionStrategy {
