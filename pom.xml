@@ -371,6 +371,7 @@
                 </configuration>
             </plugin>
             <!-- javadoc -->
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -389,61 +390,7 @@
                   <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
-            <!--
-            <plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.7</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-							<goals>
-								<goal>jar</goal>
-							</goals>
-						</execution>
-					</executions>
-				<configuration>
-				  <encoding>${file_encoding}</encoding>
-				  <charset>${file_encoding}</charset>
-				  <doclet>org.jboss.apiviz.APIviz</doclet>
-				  <docletArtifact>
-					<groupId>org.jboss.apiviz</groupId>
-					<artifactId>apiviz</artifactId>
-					<version>1.3.0.GA</version>
-				  </docletArtifact>
-				  <useStandardDocletOptions>true</useStandardDocletOptions>
-				  <breakiterator>true</breakiterator>
-				  <version>true</version>
-				  <author>true</author>
-				  <keywords>true</keywords>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jxr-plugin</artifactId>
-				<version>2.2</version>
-				<configuration>
-					<aggregate>true</aggregate>
-					<destDir>${project.basedir}/docs/sources</destDir>
-					<linkJavadoc>true</linkJavadoc>
-					<javadocDir>${project.basedir}/docs/javadoc</javadocDir>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.1.2</version>
-				<executions>
-					<execution>
-					<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			-->
+            -->
         </plugins>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>
