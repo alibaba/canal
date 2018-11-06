@@ -67,10 +67,18 @@ public class CommonRest {
         try {
             OuterAdapter adapter = loader.getExtension(type);
             String destination = adapter.getDestination(task);
-            Boolean oriSwithcStatus = null;
+            Boolean oriSwitchStatus;
             if (destination != null) {
-                oriSwithcStatus = syncSwitch.status(destination);
-                syncSwitch.off(destination);
+                oriSwitchStatus = syncSwitch.status(destination);
+                if (oriSwitchStatus != null && oriSwitchStatus) {
+                    syncSwitch.off(destination);
+                }
+            } else {
+                // task可能为destination，直接锁task
+                oriSwitchStatus = syncSwitch.status(task);
+                if (oriSwitchStatus != null && oriSwitchStatus) {
+                    syncSwitch.off(task);
+                }
             }
             try {
                 List<String> paramArr = null;
@@ -80,8 +88,10 @@ public class CommonRest {
                 }
                 return adapter.etl(task, paramArr);
             } finally {
-                if (destination != null && oriSwithcStatus != null && oriSwithcStatus) {
+                if (destination != null && oriSwitchStatus != null && oriSwitchStatus) {
                     syncSwitch.on(destination);
+                } else if (destination == null && oriSwitchStatus != null && oriSwitchStatus) {
+                    syncSwitch.on(task);
                 }
             }
         } finally {
