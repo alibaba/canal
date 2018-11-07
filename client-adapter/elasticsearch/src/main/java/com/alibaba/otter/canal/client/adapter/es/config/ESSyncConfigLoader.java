@@ -99,11 +99,11 @@ public class ESSyncConfigLoader {
         InputStream in = null;
         try {
             // 先取本地文件，再取类路径
-            File configFile = new File("config/" + config);
+            File configFile = new File("../config/" + config);
             if (configFile.exists()) {
                 in = new FileInputStream(configFile);
             } else {
-                in = ESSyncConfigLoader.class.getClassLoader().getResourceAsStream(config);
+                    in = ESSyncConfigLoader.class.getClassLoader().getResourceAsStream(config);
             }
             if (in == null) {
                 throw new RuntimeException("Config file: " + config + " not found.");

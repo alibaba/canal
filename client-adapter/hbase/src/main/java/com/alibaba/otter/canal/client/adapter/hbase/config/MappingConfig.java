@@ -76,6 +76,7 @@ public class MappingConfig {
     public static class ColumnItem {
 
         private boolean isRowKey = false;
+        private Integer rowKeyLen;
         private String  column;
         private String  family;
         private String  qualifier;
@@ -87,6 +88,14 @@ public class MappingConfig {
 
         public void setRowKey(boolean rowKey) {
             isRowKey = rowKey;
+        }
+
+        public Integer getRowKeyLen() {
+            return rowKeyLen;
+        }
+
+        public void setRowKeyLen(Integer rowKeyLen) {
+            this.rowKeyLen = rowKeyLen;
         }
 
         public String getColumn() {
@@ -264,7 +273,16 @@ public class MappingConfig {
                     ColumnItem columnItem = new ColumnItem();
                     columnItem.setColumn(columnField.getKey());
                     columnItem.setType(type);
-                    if ("rowKey".equalsIgnoreCase(field)) {
+                    if (field != null && field.toUpperCase().startsWith("ROWKEY")) {
+                        int idx = field.toUpperCase().indexOf("LEN:");
+                        if (idx > -1) {
+                            String len = field.substring(idx + 4);
+                            try {
+                                columnItem.setRowKeyLen(Integer.parseInt(len));
+                            } catch (Exception e) {
+                                // ignore
+                            }
+                        }
                         columnItem.setRowKey(true);
                         rowKeyColumn = columnItem;
                     } else {

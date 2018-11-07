@@ -56,8 +56,11 @@ public class CommonRest {
     @PostMapping("/etl/{type}/{task}")
     public EtlResult etl(@PathVariable String type, @PathVariable String task,
                          @RequestParam(name = "params", required = false) String params) {
+        OuterAdapter adapter = loader.getExtension(type);
+        String destination = adapter.getDestination(task);
+        String lockKey = destination == null ? task : destination;
 
-        boolean locked = etlLock.tryLock(ETL_LOCK_ZK_NODE + type + "-" + task);
+        boolean locked = etlLock.tryLock(ETL_LOCK_ZK_NODE + type + "-" + lockKey);
         if (!locked) {
             EtlResult result = new EtlResult();
             result.setSucceeded(false);
@@ -65,12 +68,19 @@ public class CommonRest {
             return result;
         }
         try {
-            OuterAdapter adapter = loader.getExtension(type);
-            String destination = adapter.getDestination(task);
-            Boolean oriSwithcStatus = null;
+
+            Boolean oriSwitchStatus;
             if (destination != null) {
-                oriSwithcStatus = syncSwitch.status(destination);
-                syncSwitch.off(destination);
+                oriSwitchStatus = syncSwitch.status(destination);
+                if (oriSwitchStatus != null && oriSwitchStatus) {
+                    syncSwitch.off(destination);
+                }
+            } else {
+                // task可能为destination，直接锁task
+                oriSwitchStatus = syncSwitch.status(task);
+                if (oriSwitchStatus != null && oriSwitchStatus) {
+                    syncSwitch.off(task);
+                }
             }
             try {
                 List<String> paramArr = null;
@@ -80,12 +90,14 @@ public class CommonRest {
                 }
                 return adapter.etl(task, paramArr);
             } finally {
-                if (destination != null && oriSwithcStatus != null && oriSwithcStatus) {
+                if (destination != null && oriSwitchStatus != null && oriSwitchStatus) {
                     syncSwitch.on(destination);
+                } else if (destination == null && oriSwitchStatus != null && oriSwitchStatus) {
+                    syncSwitch.on(task);
                 }
             }
         } finally {
-            etlLock.unlock(ETL_LOCK_ZK_NODE + type + "-" + task);
+            etlLock.unlock(ETL_LOCK_ZK_NODE + type + "-" + lockKey);
         }
     }
 

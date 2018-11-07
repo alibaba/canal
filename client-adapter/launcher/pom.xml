@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
@@ -79,7 +79,7 @@
                 </exclusion>
             </exclusions>
             <classifier>jar-with-dependencies</classifier>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.alibaba.otter</groupId>
@@ -92,7 +92,7 @@
                 </exclusion>
             </exclusions>
             <classifier>jar-with-dependencies</classifier>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.alibaba.otter</groupId>
@@ -105,72 +105,12 @@
                 </exclusion>
             </exclusions>
             <classifier>jar-with-dependencies</classifier>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
-        <finalName>canal-adapter-launcher</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.0.1.RELEASE</version>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>com.alibaba.otter</groupId>
-                            <artifactId>client-adapter.logger</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>com.alibaba.otter</groupId>
-                            <artifactId>client-adapter.hbase</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>com.alibaba.otter</groupId>
-                            <artifactId>client-adapter.elasticsearch</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${project.basedir}/target/config" overwrite="true">
-                                    <fileset dir="${project.basedir}/src/main/resources" erroronmissingdir="true">
-                                        <include name="*.yml"/>
-                                    </fileset>
-                                </copy>
-                                <copy todir="${project.basedir}/target/config/hbase" overwrite="true">
-                                    <fileset dir="${project.basedir}/../hbase/src/main/resources/hbase"
-                                             erroronmissingdir="true">
-                                        <include name="*.yml"/>
-                                    </fileset>
-                                </copy>
-                                <copy todir="${project.basedir}/target/config/es" overwrite="true">
-                                    <fileset dir="${project.basedir}/../elasticsearch/src/main/resources/es" erroronmissingdir="true">
-                                        <include name="*.yml" />
-                                    </fileset>
-                                </copy>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -184,15 +124,81 @@
                         </goals>
                         <configuration>
                             <includeClassifiers>jar-with-dependencies</includeClassifiers>
-                            <outputDirectory>${project.basedir}/target/lib</outputDirectory>
+                            <outputDirectory>${project.basedir}/target/canal-adapter/lib</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>assemble</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <attach>false</attach>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>com.alibaba.otter.canal.adapter.launcher.CanalAdapterApplication</mainClass>
+                        </manifest>
+                    </archive>
+                    <excludes>
+                        <exclude>**/*.properties</exclude>
+                        <exclude>**/*.xml</exclude>
+                        <exclude>**/*.yml</exclude>
+                        <exclude>static/**</exclude>
+                        <exclude>templates/**</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>env</name>
+                    <value>!release</value>
+                </property>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>${basedir}/src/main/assembly/dev.xml</descriptor>
+                            </descriptors>
+                            <finalName>canal-adapter</finalName>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
+
         <profile>
             <id>release</id>
             <activation>
@@ -207,32 +213,14 @@
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <configuration>
-                            <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>${basedir}/src/main/assembly/release.xml</descriptor>
                             </descriptors>
-                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <finalName>canal.adapter-${project.version}</finalName>
                             <outputDirectory>${project.basedir}/../../target</outputDirectory>
                         </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
-                <resources>
-                    <resource>
-                        <directory>src/main/resources</directory>
-                        <excludes>
-                            <exclude>application.yml</exclude>
-                        </excludes>
-                    </resource>
-                </resources>
             </build>
         </profile>
     </profiles>
