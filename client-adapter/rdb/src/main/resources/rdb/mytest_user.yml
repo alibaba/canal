@@ -1,0 +1,12 @@
+dataSourceKey: defaultDS
+destination: example
+dbMapping:
+  database: mytest
+  table: user
+  targetTable: mytest.tb_user
+  commitBatch: 3000
+  mapAll: false
+  columns:
+    id:
+    name:
+    role_id:

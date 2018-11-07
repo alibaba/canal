@@ -22,6 +22,7 @@
         <module>hbase</module>
         <module>elasticsearch</module>
         <module>launcher</module>
+        <module>rdb</module>
     </modules>
 
     <build>
