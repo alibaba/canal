@@ -105,7 +105,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                 canalDestination.getPartition(),
                                 null,
                                 JSON.toJSONString(flatMessage));
-                            producer2.send(record);
+                            producer2.send(record).get();
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
                             // producer.abortTransaction();

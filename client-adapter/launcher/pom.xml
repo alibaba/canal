@@ -216,7 +216,7 @@
                             <descriptors>
                                 <descriptor>${basedir}/src/main/assembly/release.xml</descriptor>
                             </descriptors>
-                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <finalName>canal.adapter-${project.version}</finalName>
                             <outputDirectory>${project.basedir}/../../target</outputDirectory>
                         </configuration>
                     </plugin>

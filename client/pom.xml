@@ -149,6 +149,7 @@
 							<exclude>commons-logging:commons-logging</exclude>
 							<exclude>aopalliance:aopalliance</exclude>
 							<exclude>com.google.protobuf:protobuf-java</exclude>
+							<exclude>com.google.code.findbugs:jsr305</exclude>
 							<exclude>io.netty:*</exclude>
 							<exclude>junit:junit</exclude>
 						</excludes>
