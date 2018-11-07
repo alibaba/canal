@@ -56,8 +56,11 @@ public class CommonRest {
     @PostMapping("/etl/{type}/{task}")
     public EtlResult etl(@PathVariable String type, @PathVariable String task,
                          @RequestParam(name = "params", required = false) String params) {
+        OuterAdapter adapter = loader.getExtension(type);
+        String destination = adapter.getDestination(task);
+        String lockKey = destination == null ? task : destination;
 
-        boolean locked = etlLock.tryLock(ETL_LOCK_ZK_NODE + type + "-" + task);
+        boolean locked = etlLock.tryLock(ETL_LOCK_ZK_NODE + type + "-" + lockKey);
         if (!locked) {
             EtlResult result = new EtlResult();
             result.setSucceeded(false);
@@ -65,8 +68,7 @@ public class CommonRest {
             return result;
         }
         try {
-            OuterAdapter adapter = loader.getExtension(type);
-            String destination = adapter.getDestination(task);
+
             Boolean oriSwitchStatus;
             if (destination != null) {
                 oriSwitchStatus = syncSwitch.status(destination);
@@ -95,7 +97,7 @@ public class CommonRest {
                 }
             }
         } finally {
-            etlLock.unlock(ETL_LOCK_ZK_NODE + type + "-" + task);
+            etlLock.unlock(ETL_LOCK_ZK_NODE + type + "-" + lockKey);
         }
     }
 
