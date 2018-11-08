@@ -181,6 +181,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             serverId = queryServerId;
                         }
                         // 4. 获取最后的位置信息
+                        long start = System.currentTimeMillis();
+                        logger.warn("---> begin to find start position, it will be long time for reset or first position");
                         EntryPosition position = findStartPosition(erosaConnection);
                         final EntryPosition startPosition = position;
                         if (startPosition == null) {
@@ -191,7 +193,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             throw new CanalParseException("can't find init table meta for " + destination
                                                           + " with position : " + startPosition);
                         }
-                        logger.warn("find start position : {}", startPosition.toString());
+                        long end = System.currentTimeMillis();
+                        logger.warn("---> find start position successfully, {}", startPosition.toString() + " cost : "
+                                                                                 + (end - start)
+                                                                                 + "ms , the next step is binlog dump");
                         // 重新链接，因为在找position过程中可能有状态，需要断开后重建
                         erosaConnection.reconnect();
 
@@ -417,7 +422,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     }
 
     protected LogPosition buildLastTransactionPosition(List<CanalEntry.Entry> entries) { // 初始化一下
-        for (int i = entries.size() - 1; i >= 0; i--) {
+        for (int i = entries.size() - 1; i > 0; i--) {
             CanalEntry.Entry entry = entries.get(i);
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {// 尽量记录一个事务做为position
                 return buildLastPosition(entry);
