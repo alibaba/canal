@@ -6,7 +6,7 @@ dbMapping:
   targetTable: mytest.tb_user
   commitBatch: 3000
   mapAll: false
-  columns:
+  targetColumns:
     id:
     name:
     role_id:
