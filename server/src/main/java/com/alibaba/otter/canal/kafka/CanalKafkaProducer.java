@@ -104,7 +104,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                             ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                 canalDestination.getPartition(),
                                 null,
-                                JSON.toJSONString(flatMessage));
+                                JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
                             producer2.send(record).get();
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
@@ -126,7 +126,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                         ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                             i,
                                             null,
-                                            JSON.toJSONString(flatMessagePart));
+                                            JSON.toJSONString(flatMessagePart, SerializerFeature.WriteMapNullValue));
                                         producer2.send(record).get();
                                     } catch (Exception e) {
                                         logger.error(e.getMessage(), e);
