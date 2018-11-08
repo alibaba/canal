@@ -1,7 +1,12 @@
 package com.alibaba.otter.canal.rocketmq;
 
-import java.util.List;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.otter.canal.common.CanalMessageSerializer;
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.alibaba.otter.canal.server.exception.CanalServerException;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -12,12 +17,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.otter.canal.common.CanalMessageSerializer;
-import com.alibaba.otter.canal.common.MQProperties;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.server.exception.CanalServerException;
-import com.alibaba.otter.canal.spi.CanalMQProducer;
+import java.util.List;
 
 public class CanalRocketMQProducer implements CanalMQProducer {
 
@@ -47,7 +47,8 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                      Callback callback) {
         if (!mqProperties.getFlatMessage()) {
             try {
-                Message message = new Message(destination.getTopic(), CanalMessageSerializer.serializer(data));
+                Message message = new Message(destination.getTopic(), CanalMessageSerializer.serializer(data,
+                    mqProperties.isFilterTransactionEntry()));
                 logger.debug("send message:{} to destination:{}, partition: {}",
                     message,
                     destination.getCanalDestination(),
@@ -66,6 +67,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
             } catch (MQClientException | RemotingException | MQBrokerException | InterruptedException e) {
                 logger.error("Send message error!", e);
                 callback.rollback();
+                return;
             }
         } else {
             List<FlatMessage> flatMessages = FlatMessage.messageConverter(data);
@@ -74,11 +76,11 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                     if (destination.getPartition() != null) {
                         try {
                             logger.info("send flat message: {} to topic: {} fixed partition: {}",
-                                JSON.toJSONString(flatMessage),
+                                JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue),
                                 destination.getTopic(),
                                 destination.getPartition());
-                            Message message = new Message(destination.getTopic(), JSON.toJSONString(flatMessage)
-                                .getBytes());
+                            Message message = new Message(destination.getTopic(),
+                                JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue).getBytes());
                             this.defaultMQProducer.send(message, new MessageQueueSelector() {
 
                                 @Override
@@ -89,6 +91,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                         } catch (Exception e) {
                             logger.error("send flat message to fixed partition error", e);
                             callback.rollback();
+                            return;
                         }
                     } else {
                         if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
@@ -98,28 +101,33 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                             int length = partitionFlatMessage.length;
                             for (int i = 0; i < length; i++) {
                                 FlatMessage flatMessagePart = partitionFlatMessage[i];
-                                logger.debug("flatMessagePart: {}, partition: {}",
-                                    JSON.toJSONString(flatMessagePart),
-                                    i);
-                                final int index = i;
-                                try {
-                                    Message message = new Message(destination.getTopic(),
-                                        JSON.toJSONString(flatMessagePart).getBytes());
-                                    this.defaultMQProducer.send(message, new MessageQueueSelector() {
+                                if (flatMessagePart != null) {
+                                    logger.debug("flatMessagePart: {}, partition: {}",
+                                        JSON.toJSONString(flatMessagePart, SerializerFeature.WriteMapNullValue),
+                                        i);
+                                    final int index = i;
+                                    try {
+                                        Message message = new Message(destination.getTopic(),
+                                            JSON.toJSONString(flatMessagePart, SerializerFeature.WriteMapNullValue).getBytes());
+                                        this.defaultMQProducer.send(message, new MessageQueueSelector() {
 
-                                        @Override
-                                        public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
-                                            if (index > mqs.size()) {
-                                                throw new CanalServerException("partition number is error,config num:"
-                                                                               + destination.getPartitionsNum()
-                                                                               + ", mq num: " + mqs.size());
+                                            @Override
+                                            public MessageQueue select(List<MessageQueue> mqs, Message msg,
+                                                                       Object arg) {
+                                                if (index > mqs.size()) {
+                                                    throw new CanalServerException(
+                                                        "partition number is error,config num:"
+                                                                                   + destination.getPartitionsNum()
+                                                                                   + ", mq num: " + mqs.size());
+                                                }
+                                                return mqs.get(index);
                                             }
-                                            return mqs.get(index);
-                                        }
-                                    }, null);
-                                } catch (Exception e) {
-                                    logger.error("send flat message to hashed partition error", e);
-                                    callback.rollback();
+                                        }, null);
+                                    } catch (Exception e) {
+                                        logger.error("send flat message to hashed partition error", e);
+                                        callback.rollback();
+                                        return;
+                                    }
                                 }
                             }
                         }

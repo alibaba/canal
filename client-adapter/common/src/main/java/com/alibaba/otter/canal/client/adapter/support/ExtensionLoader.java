@@ -1,6 +1,9 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -83,47 +86,6 @@ public class ExtensionLoader<T> {
         this.classLoaderPolicy = classLoaderPolicy;
     }
 
-    public String getExtensionName(T extensionInstance) {
-        return getExtensionName(extensionInstance.getClass());
-    }
-
-    public String getExtensionName(Class<?> extensionClass) {
-        return cachedNames.get(extensionClass);
-    }
-
-    public ConcurrentHashMap<String, IllegalStateException> getExceptions() {
-        return exceptions;
-    }
-
-    /**
-     * 返回扩展点实例，如果没有指定的扩展点或是还没加载（即实例化）则返回<code>null</code>注意：此方法不会触发扩展点的加载
-     * <p/>
-     * 一般应该调用{@link #getExtension(String)}方法获得扩展，这个方法会触发扩展点加载
-     *
-     * @see #getExtension(String)
-     */
-    @SuppressWarnings("unchecked")
-    public T getLoadedExtension(String name) {
-        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
-        Holder<Object> holder = cachedInstances.get(name);
-        if (holder == null) {
-            cachedInstances.putIfAbsent(name, new Holder<>());
-            holder = cachedInstances.get(name);
-        }
-        return (T) holder.get();
-    }
-
-    /**
-     * 返回已经加载的扩展点的名字
-     * <p/>
-     * 一般应该调用{@link #getSupportedExtensions()}方法获得扩展，这个方法会返回所有的扩展点
-     *
-     * @see #getSupportedExtensions()
-     */
-    public Set<String> getLoadedExtensions() {
-        return Collections.unmodifiableSet(new TreeSet<>(cachedInstances.keySet()));
-    }
-
     /**
      * 返回指定名字的扩展
      *
@@ -165,87 +127,6 @@ public class ExtensionLoader<T> {
         return getExtension(cachedDefaultName);
     }
 
-    public boolean hasExtension(String name) {
-        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
-        try {
-            return getExtensionClass(name) != null;
-        } catch (Throwable t) {
-            return false;
-        }
-    }
-
-    public Set<String> getSupportedExtensions() {
-        Map<String, Class<?>> clazzes = getExtensionClasses();
-        return Collections.unmodifiableSet(new TreeSet<String>(clazzes.keySet()));
-    }
-
-    /**
-     * 返回缺省的扩展点名，如果没有设置缺省则返回<code>null</code>
-     */
-    public String getDefaultExtensionName() {
-        getExtensionClasses();
-        return cachedDefaultName;
-    }
-
-    /**
-     * 编程方式添加新扩展点
-     *
-     * @param name 扩展点名
-     * @param clazz 扩展点类
-     * @throws IllegalStateException 要添加扩展点名已经存在
-     */
-    public void addExtension(String name, Class<?> clazz) {
-        getExtensionClasses(); // load classes
-
-        if (!type.isAssignableFrom(clazz)) {
-            throw new IllegalStateException("Input type " + clazz + "not implement Extension " + type);
-        }
-        if (clazz.isInterface()) {
-            throw new IllegalStateException("Input type " + clazz + "can not be interface!");
-        }
-
-        if (name == null || "".equals(name)) {
-            throw new IllegalStateException("Extension name is blank (Extension " + type + ")!");
-        }
-        if (cachedClasses.get().containsKey(name)) {
-            throw new IllegalStateException("Extension name " + name + " already existed(Extension " + type + ")!");
-        }
-
-        cachedNames.put(clazz, name);
-        cachedClasses.get().put(name, clazz);
-    }
-
-    /**
-     * 编程方式添加替换已有扩展点
-     *
-     * @param name 扩展点名
-     * @param clazz 扩展点类
-     * @throws IllegalStateException 要添加扩展点名已经存在
-     * @deprecated 不推荐应用使用，一般只在测试时可以使用
-     */
-    @Deprecated
-    public void replaceExtension(String name, Class<?> clazz) {
-        getExtensionClasses(); // load classes
-
-        if (!type.isAssignableFrom(clazz)) {
-            throw new IllegalStateException("Input type " + clazz + "not implement Extension " + type);
-        }
-        if (clazz.isInterface()) {
-            throw new IllegalStateException("Input type " + clazz + "can not be interface!");
-        }
-
-        if (name == null || "".equals(name)) {
-            throw new IllegalStateException("Extension name is blank (Extension " + type + ")!");
-        }
-        if (!cachedClasses.get().containsKey(name)) {
-            throw new IllegalStateException("Extension name " + name + " not existed(Extension " + type + ")!");
-        }
-
-        cachedNames.put(clazz, name);
-        cachedClasses.get().put(name, clazz);
-        cachedInstances.remove(name);
-    }
-
     @SuppressWarnings("unchecked")
     private T createExtension(String name) {
         Class<?> clazz = getExtensionClasses().get(name);
@@ -267,15 +148,6 @@ public class ExtensionLoader<T> {
         }
     }
 
-    private Class<?> getExtensionClass(String name) {
-        if (type == null) throw new IllegalArgumentException("Extension type == null");
-        if (name == null) throw new IllegalArgumentException("Extension name == null");
-        Class<?> clazz = getExtensionClasses().get(name);
-        if (clazz == null)
-            throw new IllegalStateException("No such extension \"" + name + "\" for " + type.getName() + "!");
-        return clazz;
-    }
-
     private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();
         if (classes == null) {
@@ -292,10 +164,13 @@ public class ExtensionLoader<T> {
 
     private String getJarDirectoryPath() {
         URL url = Thread.currentThread().getContextClassLoader().getResource("");
-        if (url == null) {
-            throw new IllegalStateException("failed to get class loader resource");
+        String dirtyPath;
+        if (url != null) {
+            dirtyPath = url.toString();
+        } else {
+            File file = new File("");
+            dirtyPath = file.getAbsolutePath();
         }
-        String dirtyPath = url.toString();
         String jarPath = dirtyPath.replaceAll("^.*file:/", ""); // removes
                                                                 // file:/ and
                                                                 // everything
@@ -331,23 +206,18 @@ public class ExtensionLoader<T> {
 
         // 1. lib folder，customized extension classLoader （jar_dir/lib）
         String dir = File.separator + this.getJarDirectoryPath() + File.separator + "lib";
-        logger.info("extension classpath dir: " + dir);
+
         File externalLibDir = new File(dir);
         if (!externalLibDir.exists()) {
-            externalLibDir = new File(
-                File.separator + this.getJarDirectoryPath() + File.separator + "canal_client" + File.separator + "lib");
+            externalLibDir = new File(File.separator + this.getJarDirectoryPath() + File.separator + "canal-adapter"
+                                      + File.separator + "lib");
         }
+        logger.info("extension classpath dir: " + externalLibDir.getAbsolutePath());
         if (externalLibDir.exists()) {
-            File[] files = externalLibDir.listFiles(new FilenameFilter() {
-
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".jar");
-                }
-            });
+            File[] files = externalLibDir.listFiles((dir1, name) -> name.endsWith(".jar"));
             if (files != null) {
                 for (File f : files) {
-                    URL url = null;
+                    URL url;
                     try {
                         url = f.toURI().toURL();
                     } catch (MalformedURLException e) {

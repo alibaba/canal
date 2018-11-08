@@ -199,8 +199,8 @@ public class HbaseEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor
-                        .submit(() -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
+                    Future<Boolean> future = executor.submit(
+                        () -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
                     futures.add(future);
                 }
 
@@ -213,8 +213,8 @@ public class HbaseEtlService {
                 executeSqlImport(ds, sql, hbaseMapping, hbaseTemplate, successCount, errMsg);
             }
 
-            logger.info(
-                hbaseMapping.getHbaseTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000 + "s!");
+            logger.info(hbaseMapping.getHbaseTable() + " etl completed in: "
+                        + (System.currentTimeMillis() - start) / 1000 + "s!");
 
             etlResult.setResultMessage("导入HBase表 " + hbaseMapping.getHbaseTable() + " 数据：" + successCount.get() + " 条");
         } catch (Exception e) {
@@ -332,18 +332,49 @@ public class HbaseEtlService {
 
                                     byte[] valBytes = Bytes.toBytes(val.toString());
                                     if (columnItem.isRowKey()) {
-                                        row.setRowKey(valBytes);
+                                        if (columnItem.getRowKeyLen() != null) {
+                                            valBytes = Bytes.toBytes(limitLenNum(columnItem.getRowKeyLen(), val));
+                                            row.setRowKey(valBytes);
+                                        } else {
+                                            row.setRowKey(valBytes);
+                                        }
                                     } else {
                                         row.addCell(columnItem.getFamily(), columnItem.getQualifier(), valBytes);
                                     }
                                 } else {
-                                    PhType phType = PhType.getType(columnItem.getType());
-                                    if (columnItem.isRowKey()) {
-                                        row.setRowKey(PhTypeUtil.toBytes(val, phType));
-                                    } else {
-                                        row.addCell(columnItem.getFamily(),
-                                            columnItem.getQualifier(),
-                                            PhTypeUtil.toBytes(val, phType));
+                                    if (MappingConfig.Mode.STRING == hbaseMapping.getMode()) {
+                                        byte[] valBytes = Bytes.toBytes(val.toString());
+                                        if (columnItem.isRowKey()) {
+                                            if (columnItem.getRowKeyLen() != null) {
+                                                valBytes = Bytes.toBytes(limitLenNum(columnItem.getRowKeyLen(), val));
+                                            }
+                                            row.setRowKey(valBytes);
+                                        } else {
+                                            row.addCell(columnItem.getFamily(), columnItem.getQualifier(), valBytes);
+                                        }
+                                    } else if (MappingConfig.Mode.NATIVE == hbaseMapping.getMode()) {
+                                        Type type = Type.getType(columnItem.getType());
+                                        if (columnItem.isRowKey()) {
+                                            if (columnItem.getRowKeyLen() != null) {
+                                                String v = limitLenNum(columnItem.getRowKeyLen(), val);
+                                                row.setRowKey(Bytes.toBytes(v));
+                                            } else {
+                                                row.setRowKey(TypeUtil.toBytes(val, type));
+                                            }
+                                        } else {
+                                            row.addCell(columnItem.getFamily(),
+                                                columnItem.getQualifier(),
+                                                TypeUtil.toBytes(val, type));
+                                        }
+                                    } else if (MappingConfig.Mode.PHOENIX == hbaseMapping.getMode()) {
+                                        PhType phType = PhType.getType(columnItem.getType());
+                                        if (columnItem.isRowKey()) {
+                                            row.setRowKey(PhTypeUtil.toBytes(val, phType));
+                                        } else {
+                                            row.addCell(columnItem.getFamily(),
+                                                columnItem.getQualifier(),
+                                                PhTypeUtil.toBytes(val, phType));
+                                        }
                                     }
                                 }
                             }
@@ -381,5 +412,17 @@ public class HbaseEtlService {
             logger.error(e.getMessage(), e);
             return false;
         }
+    }
+
+    private static String limitLenNum(int len, Object val) {
+        if (val == null) {
+            return null;
+        }
+        if (val instanceof Number) {
+            return String.format("%0" + len + "d", (Number) ((Number) val).longValue());
+        } else if (val instanceof String) {
+            return String.format("%0" + len + "d", Long.parseLong((String) val));
+        }
+        return null;
     }
 }

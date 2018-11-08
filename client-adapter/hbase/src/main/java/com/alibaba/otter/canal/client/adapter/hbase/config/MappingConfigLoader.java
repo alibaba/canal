@@ -38,6 +38,9 @@ public class MappingConfigLoader {
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
         Collection<String> configs = AdapterConfigs.get("hbase");
+        if (configs == null) {
+            return result;
+        }
         for (String c : configs) {
             if (c == null) {
                 continue;
@@ -121,7 +124,7 @@ public class MappingConfigLoader {
         InputStream in = null;
         try {
             // 先取本地文件，再取类路径
-            File configFile = new File("config/" + config);
+            File configFile = new File("../config/" + config);
             if (configFile.exists()) {
                 in = new FileInputStream(configFile);
             } else {
