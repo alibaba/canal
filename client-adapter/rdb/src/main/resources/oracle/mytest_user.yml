@@ -4,9 +4,12 @@ dbMapping:
   database: mytest
   table: user
   targetTable: mytest.tb_user
-  commitBatch: 3000
-  mapAll: false
-  targetColumns:
-    id:
-    name:
-    role_id:
+  targetPk:
+    id: id
+  mapAll: true
+#  targetColumns:
+#    id:
+#    name:
+#    role_id:
+#    c_time:
+#    test1:

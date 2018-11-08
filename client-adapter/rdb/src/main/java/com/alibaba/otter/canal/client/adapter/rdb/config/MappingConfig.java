@@ -58,6 +58,7 @@ public class MappingConfig {
 
         private String                       database;                            // 数据库名或schema名
         private String                       table;                               // 表面名
+        private Map<String, String>          targetPk;                            // 目标表主键字段
         private boolean                      mapAll      = false;                 // 映射所有字段
         private String                       targetTable;                         // 目标表名
         private Map<String, String>          targetColumns;                       // 目标表字段映射
@@ -84,6 +85,14 @@ public class MappingConfig {
 
         public void setTable(String table) {
             this.table = table;
+        }
+
+        public Map<String, String> getTargetPk() {
+            return targetPk;
+        }
+
+        public void setTargetPk(Map<String, String> targetPk) {
+            this.targetPk = targetPk;
         }
 
         public boolean isMapAll() {

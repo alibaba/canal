@@ -3,8 +3,9 @@ destination: example
 dbMapping:
   database: mytest
   table: user
-  targetTable: mytest.tb_user
-  commitBatch: 3000
+  targetTable: public.tb_user
+  targetPk:
+    id: id
   mapAll: true
 #  targetColumns:
 #    id:

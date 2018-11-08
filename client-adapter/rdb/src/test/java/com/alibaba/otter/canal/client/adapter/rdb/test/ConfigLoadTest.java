@@ -15,14 +15,14 @@ public class ConfigLoadTest {
 
     @Before
     public void before() {
-        AdapterConfigs.put("rdb", "mytest_user.yml");
+        AdapterConfigs.put("oracle", "mytest_user.yml");
         // 加载数据源连接池
         DatasourceConfig.DATA_SOURCES.put("defaultDS", TestConstant.dataSource);
     }
 
     @Test
     public void testLoad() {
-        Map<String, MappingConfig> configMap =  MappingConfigLoader.load();
+        Map<String, MappingConfig> configMap =  MappingConfigLoader.load("oracle");
 
         Assert.assertFalse(configMap.isEmpty());
     }

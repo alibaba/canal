@@ -25,19 +25,17 @@ public class MappingConfigLoader {
 
     private static Logger       logger    = LoggerFactory.getLogger(MappingConfigLoader.class);
 
-    private static final String BASE_PATH = "rdb";
-
     /**
      * 加载HBase表映射配置
      * 
      * @return 配置名/配置文件名--对象
      */
-    public static Map<String, MappingConfig> load() {
+    public static Map<String, MappingConfig> load(String name) {
         logger.info("## Start loading rdb mapping config ... ");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        Collection<String> configs = AdapterConfigs.get("rdb");
+        Collection<String> configs = AdapterConfigs.get(name);
         if (configs == null) {
             return result;
         }
@@ -53,7 +51,7 @@ public class MappingConfigLoader {
             String configContent = null;
 
             if (c.endsWith(".yml")) {
-                configContent = readConfigContent(BASE_PATH + "/" + c);
+                configContent = readConfigContent(name + "/" + c);
             }
 
             MappingConfig config = new Yaml().loadAs(configContent, MappingConfig.class);
