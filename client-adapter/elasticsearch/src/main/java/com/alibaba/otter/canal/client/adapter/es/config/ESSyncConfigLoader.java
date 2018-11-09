@@ -42,7 +42,7 @@ public class ESSyncConfigLoader {
     }
 
     public static synchronized void load() {
-        logger.info("## Start loading mapping config ... ");
+        logger.info("## Start loading es mapping config ... ");
         Collection<String> configs = AdapterConfigs.get("es");
         if (configs == null) {
             return;
@@ -92,7 +92,7 @@ public class ESSyncConfigLoader {
             esSyncConfig.put(c, config);
         }
 
-        logger.info("## Mapping config loaded");
+        logger.info("## ES mapping config loaded");
     }
 
     private static String readConfigContent(String config) {
@@ -113,7 +113,7 @@ public class ESSyncConfigLoader {
             in.read(bytes);
             return new String(bytes, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("Read yml config error ", e);
+            throw new RuntimeException("Read es mapping config error ", e);
         } finally {
             try {
                 if (in != null) {

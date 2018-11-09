@@ -55,8 +55,6 @@ public class AdapterConfig {
                 ds.setMaxWait(60000);
                 ds.setTimeBetweenEvictionRunsMillis(60000);
                 ds.setMinEvictableIdleTimeMillis(300000);
-                ds.setPoolPreparedStatements(false);
-                ds.setMaxPoolPreparedStatementPerConnectionSize(20);
                 ds.setValidationQuery("select 1");
                 try {
                     ds.init();

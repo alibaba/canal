@@ -4,6 +4,7 @@ logging:
   level:
     com.alibaba.otter.canal.client.adapter.hbase: DEBUG
     com.alibaba.otter.canal.client.adapter.es: DEBUG
+    com.alibaba.otter.canal.client.adapter.rdb: DEBUG
 spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -36,6 +37,18 @@ spring:
 #    - groupId: g2
 #      outAdapters:
 #      - name: logger
+#      - name: oracle
+#        properties:
+#          jdbc.driverClassName: oracle.jdbc.OracleDriver
+#          jdbc.url: jdbc:oracle:thin:@127.0.0.1:49161:XE
+#          jdbc.username: mytest
+#          jdbc.password: m121212
+#      - name: postgresql
+#        properties:
+#          jdbc.driverClassName: org.postgresql.Driver
+#          jdbc.url: jdbc:postgresql://localhost:5432/postgres
+#          jdbc.username: postgres
+#          jdbc.password: 121212
 #  mqTopics:
 #  - mqMode: rocketmq
 #    topic: example
@@ -53,3 +66,5 @@ spring:
 #  adapterConfigs:
 #  - hbase/mytest_person2.yml
 #  - es/mytest_user.yml
+#  - oracle/mytest_user.yml
+#  - postgresql/mytest_user.yml

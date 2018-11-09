@@ -14,6 +14,7 @@ import java.util.function.Function;
 
 import javax.sql.DataSource;
 
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,43 +35,6 @@ public class HbaseEtlService {
 
     private static Logger logger = LoggerFactory.getLogger(HbaseEtlService.class);
 
-    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) throws SQLException {
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            conn = ds.getConnection();
-            stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            stmt.setFetchSize(Integer.MIN_VALUE);
-            rs = stmt.executeQuery(sql);
-            return fun.apply(rs);
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            rs = null;
-            stmt = null;
-            conn = null;
-        }
-    }
 
     /**
      * 建表
@@ -138,7 +102,7 @@ public class HbaseEtlService {
             if (params != null && params.size() == 1 && hbaseMapping.getEtlCondition() == null) {
                 AtomicBoolean stExists = new AtomicBoolean(false);
                 // 验证是否有SYS_TIME字段
-                sqlRS(ds, sql, rs -> {
+                Util.sqlRS(ds, sql, rs -> {
                     try {
                         ResultSetMetaData rsmd = rs.getMetaData();
                         int cnt = rsmd.getColumnCount();
@@ -169,7 +133,7 @@ public class HbaseEtlService {
 
             // 获取总数
             String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-            long cnt = (Long) sqlRS(ds, countSql, rs -> {
+            long cnt = (Long) Util.sqlRS(ds, countSql, rs -> {
                 Long count = null;
                 try {
                     if (rs.next()) {
@@ -244,7 +208,7 @@ public class HbaseEtlService {
     private static boolean executeSqlImport(DataSource ds, String sql, MappingConfig.HbaseMapping hbaseMapping,
                                             HbaseTemplate hbaseTemplate, AtomicLong successCount, List<String> errMsg) {
         try {
-            sqlRS(ds, sql, rs -> {
+            Util.sqlRS(ds, sql, rs -> {
                 int i = 1;
 
                 try {

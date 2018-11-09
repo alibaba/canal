@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.common.errors.WakeupException;
 
@@ -36,7 +37,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
             groupId,
             canalClientConfig.getBatchSize(),
             flatMessage);
-        // connector.setSessionTimeout(1L, TimeUnit.MINUTES);
+        connector.setSessionTimeout(30L, TimeUnit.SECONDS);
     }
 
     @Override

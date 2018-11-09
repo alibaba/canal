@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class MappingConfigLoader {
      * @return 配置名/配置文件名--对象
      */
     public static Map<String, MappingConfig> load() {
-        logger.info("## Start loading mapping config ... ");
+        logger.info("## Start loading hbase mapping config ... ");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
@@ -116,7 +117,7 @@ public class MappingConfigLoader {
             result.put(c, config);
         }
 
-        logger.info("## Mapping config loaded");
+        logger.info("## Hbase mapping config loaded");
         return result;
     }
 
@@ -136,9 +137,9 @@ public class MappingConfigLoader {
 
             byte[] bytes = new byte[in.available()];
             in.read(bytes);
-            return new String(bytes, "UTF-8");
+            return new String(bytes, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("Read ds-config.yml or hbase-mappings.conf error. ", e);
+            throw new RuntimeException("Read hbase mapping config error. ", e);
         } finally {
             try {
                 if (in != null) {

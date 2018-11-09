@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.client</artifactId>
-            <version>${canal_version}</version>
+            <version>1.1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
@@ -97,6 +97,19 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>client-adapter.elasticsearch</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>client-adapter.rdb</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
