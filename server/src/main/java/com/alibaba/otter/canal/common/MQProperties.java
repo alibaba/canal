@@ -21,9 +21,6 @@ public class MQProperties {
     private Long    canalGetTimeout        = 100L;
     private boolean flatMessage            = true;
 
-    // private List<CanalDestination> canalDestinations = new
-    // ArrayList<CanalDestination>();
-
     public static class CanalDestination {
 
         private String              canalDestination;
