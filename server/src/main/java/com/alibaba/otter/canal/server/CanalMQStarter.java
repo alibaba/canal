@@ -59,7 +59,7 @@ public class CanalMQStarter {
             canalServer = CanalServerWithEmbedded.instance();
 
             // 对应每个instance启动一个worker线程
-            executorService = Executors.newFixedThreadPool(canalServer.getCanalInstances().size());
+            executorService = Executors.newCachedThreadPool();
             logger.info("## start the MQ workers.");
             for (final CanalInstance canalInstance : canalServer.getCanalInstances().values()) {
                 CanalMQRunnable canalMQRunnable = new CanalMQRunnable(canalInstance);
