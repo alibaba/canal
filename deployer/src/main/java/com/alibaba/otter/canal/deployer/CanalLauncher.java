@@ -71,10 +71,9 @@ public class CanalLauncher {
             });
 
             if (canalMQProducer != null) {
-                CanalMQStarter canalServerStarter = new CanalMQStarter(canalMQProducer);
-                if (canalServerStarter != null) {
-                    canalServerStarter.init();
-                }
+                CanalMQStarter canalMQStarter = new CanalMQStarter(canalMQProducer);
+                canalMQStarter.start(CanalController.getMQProperties(properties));
+                controller.setCanalMQStarter(canalMQStarter);
             }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:", e);

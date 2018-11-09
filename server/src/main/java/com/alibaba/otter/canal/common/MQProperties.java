@@ -1,7 +1,5 @@
 package com.alibaba.otter.canal.common;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -12,18 +10,19 @@ import java.util.Map;
  */
 public class MQProperties {
 
-    private String                 servers                = "127.0.0.1:6667";
-    private int                    retries                = 0;
-    private int                    batchSize              = 16384;
-    private int                    lingerMs               = 1;
-    private long                   bufferMemory           = 33554432L;
-    private boolean                filterTransactionEntry = true;
-    private String                 producerGroup          = "Canal-Producer";
-    private int                    canalBatchSize         = 50;
-    private Long                   canalGetTimeout        = 100L;
-    private boolean                flatMessage            = true;
+    private String  servers                = "127.0.0.1:6667";
+    private int     retries                = 0;
+    private int     batchSize              = 16384;
+    private int     lingerMs               = 1;
+    private long    bufferMemory           = 33554432L;
+    private boolean filterTransactionEntry = true;
+    private String  producerGroup          = "Canal-Producer";
+    private int     canalBatchSize         = 50;
+    private Long    canalGetTimeout        = 100L;
+    private boolean flatMessage            = true;
 
-    private List<CanalDestination> canalDestinations      = new ArrayList<CanalDestination>();
+    // private List<CanalDestination> canalDestinations = new
+    // ArrayList<CanalDestination>();
 
     public static class CanalDestination {
 
@@ -136,14 +135,6 @@ public class MQProperties {
 
     public void setFlatMessage(boolean flatMessage) {
         this.flatMessage = flatMessage;
-    }
-
-    public List<CanalDestination> getCanalDestinations() {
-        return canalDestinations;
-    }
-
-    public void setCanalDestinations(List<CanalDestination> canalDestinations) {
-        this.canalDestinations = canalDestinations;
     }
 
     public boolean isFilterTransactionEntry() {
