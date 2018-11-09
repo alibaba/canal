@@ -502,11 +502,13 @@ public class DatabaseTableMeta implements TableMetaTSDB {
                 return false;
             }
 
+            String sign = sourceField.isUnsigned() ? "unsigned" : "signed";
+            String sourceColumnType = StringUtils.removeEndIgnoreCase(sourceField.getColumnType(), sign).trim();
+            String targetColumnType = StringUtils.removeEndIgnoreCase(targetField.getColumnType(), sign).trim();
+            
             boolean columnTypeCompare = false;
-            columnTypeCompare |= StringUtils.containsIgnoreCase(sourceField.getColumnType(),
-                targetField.getColumnType());
-            columnTypeCompare |= StringUtils.containsIgnoreCase(targetField.getColumnType(),
-                sourceField.getColumnType());
+            columnTypeCompare |= StringUtils.containsIgnoreCase(sourceColumnType, targetColumnType);
+            columnTypeCompare |= StringUtils.containsIgnoreCase(targetColumnType, sourceColumnType);
             if (!columnTypeCompare) {
                 return false;
             }
