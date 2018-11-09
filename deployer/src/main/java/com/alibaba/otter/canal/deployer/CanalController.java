@@ -226,7 +226,7 @@ public class CanalController {
                         if (!config.getLazy() && !runningMonitor.isStart()) {
                             runningMonitor.start();
                             if (canalMQStarter != null) {
-                                canalMQStarter.start(getMQProperties(properties));
+                                canalMQStarter.startDestination(destination);
                             }
                         }
                     }
@@ -237,7 +237,7 @@ public class CanalController {
                     InstanceConfig config = instanceConfigs.remove(destination);
                     if (config != null) {
                         if (canalMQStarter != null) {
-                            canalMQStarter.stop();
+                            canalMQStarter.stopDestination(destination);
                         }
                         embededCanalServer.stop(destination);
                         ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
@@ -532,25 +532,5 @@ public class CanalController {
 
     public void setCanalMQStarter(CanalMQStarter canalMQStarter) {
         this.canalMQStarter = canalMQStarter;
-    }
-
-    public static MQProperties getMQProperties(Properties properties) {
-        MQProperties mqProperties = new MQProperties();
-        mqProperties.setServers(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_SERVERS));
-        mqProperties
-            .setRetries(Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_RETRIES)));
-        mqProperties
-            .setBatchSize(Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_BATCHSIZE)));
-        mqProperties
-            .setLingerMs(Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_LINGERMS)));
-        mqProperties.setBufferMemory(
-            Long.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_BUFFERMEMORY)));
-        mqProperties.setCanalBatchSize(
-            Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CANALBATCHSIZE)));
-        mqProperties.setCanalGetTimeout(
-            Long.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CANALGETTIMEOUT)));
-        mqProperties.setFlatMessage(
-            Boolean.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_FLATMESSAGE)));
-        return mqProperties;
     }
 }
