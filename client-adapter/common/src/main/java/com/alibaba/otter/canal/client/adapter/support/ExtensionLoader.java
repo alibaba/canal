@@ -148,6 +148,22 @@ public class ExtensionLoader<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public T newInstance(String name) {
+        Class<?> clazz = getExtensionClasses().get(name);
+        if (clazz == null) {
+            throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
+                                            + ")  could not be instantiated: class could not be found");
+        }
+        try {
+            return (T) clazz.newInstance();
+        } catch (Throwable t) {
+            throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
+                                            + ")  could not be instantiated: " + t.getMessage(),
+                t);
+        }
+    }
+
     private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();
         if (classes == null) {

@@ -12,11 +12,13 @@ import java.util.Set;
  */
 public class MappingConfig {
 
-    private String    dataSourceKey; // 数据源key
+    private String    dataSourceKey;   // 数据源key
 
-    private String    destination;   // canal实例或MQ的topic
+    private String    destination;     // canal实例或MQ的topic
 
-    private DbMapping dbMapping;     // db映射配置
+    private String    outerAdapterKey; // 对应适配器的key
+
+    private DbMapping dbMapping;       // db映射配置
 
     public String getDataSourceKey() {
         return dataSourceKey;
@@ -24,6 +26,14 @@ public class MappingConfig {
 
     public void setDataSourceKey(String dataSourceKey) {
         this.dataSourceKey = dataSourceKey;
+    }
+
+    public String getOuterAdapterKey() {
+        return outerAdapterKey;
+    }
+
+    public void setOuterAdapterKey(String outerAdapterKey) {
+        this.outerAdapterKey = outerAdapterKey;
     }
 
     public DbMapping getDbMapping() {

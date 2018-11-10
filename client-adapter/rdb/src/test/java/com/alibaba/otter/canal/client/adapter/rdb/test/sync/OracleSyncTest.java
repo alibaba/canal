@@ -15,7 +15,7 @@ public class OracleSyncTest {
 
     @Before
     public void init() {
-        AdapterConfigs.put("oracle", "mytest_user.yml");
+        AdapterConfigs.put("rdb", "mytest_user.yml");
         rdbAdapter = Common.init();
     }
 

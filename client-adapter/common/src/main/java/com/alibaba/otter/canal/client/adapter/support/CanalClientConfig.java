@@ -1,7 +1,9 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 配置信息类
@@ -129,7 +131,9 @@ public class CanalClientConfig {
 
     public static class Group {
 
-        private List<OuterAdapterConfig> outAdapters; // 适配器列表
+        private List<OuterAdapterConfig>        outAdapters;                           // 适配器列表
+
+        private Map<String, OuterAdapterConfig> outAdaptersMap = new LinkedHashMap<>();
 
         public List<OuterAdapterConfig> getOutAdapters() {
             return outAdapters;
@@ -137,6 +141,17 @@ public class CanalClientConfig {
 
         public void setOutAdapters(List<OuterAdapterConfig> outAdapters) {
             this.outAdapters = outAdapters;
+            if (outAdapters != null) {
+                outAdapters.forEach(outAdapter -> outAdaptersMap.put(outAdapter.getKey(), outAdapter));
+            }
+        }
+
+        public Map<String, OuterAdapterConfig> getOutAdaptersMap() {
+            return outAdaptersMap;
+        }
+
+        public void setOutAdaptersMap(Map<String, OuterAdapterConfig> outAdaptersMap) {
+            this.outAdaptersMap = outAdaptersMap;
         }
     }
 

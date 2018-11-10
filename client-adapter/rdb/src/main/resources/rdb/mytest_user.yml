@@ -1,9 +1,10 @@
 dataSourceKey: defaultDS
 destination: example
+outerAdapterKey: oracle1
 dbMapping:
   database: mytest
   table: user
-  targetTable: public.tb_user
+  targetTable: mytest.tb_user
   targetPk:
     id: id
   mapAll: true

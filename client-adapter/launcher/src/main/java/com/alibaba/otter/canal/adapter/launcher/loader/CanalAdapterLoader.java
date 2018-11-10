@@ -123,7 +123,12 @@ public class CanalAdapterLoader {
 
     private void loadConnector(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
         try {
-            OuterAdapter adapter = loader.getExtension(config.getName());
+            OuterAdapter adapter;
+            if ("rdb".equalsIgnoreCase(config.getName())) {
+                adapter = loader.newInstance(config.getName());
+            } else {
+                adapter = loader.getExtension(config.getName());
+            }
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
             // 替换ClassLoader
             Thread.currentThread().setContextClassLoader(adapter.getClass().getClassLoader());
@@ -133,6 +138,7 @@ public class CanalAdapterLoader {
             logger.info("Load canal adapter: {} succeed", config.getName());
         } catch (Exception e) {
             logger.error("Load canal adapter: {} failed", config.getName(), e);
+            System.exit(0);
         }
     }
 
