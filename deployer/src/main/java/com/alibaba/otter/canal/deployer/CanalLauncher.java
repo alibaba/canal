@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.deployer;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import com.alibaba.otter.canal.common.MQProperties;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,10 +72,25 @@ public class CanalLauncher {
             });
 
             if (canalMQProducer != null) {
-                CanalMQStarter canalServerStarter = new CanalMQStarter(canalMQProducer);
-                if (canalServerStarter != null) {
-                    canalServerStarter.init();
-                }
+                CanalMQStarter canalMQStarter = new CanalMQStarter(canalMQProducer);
+                MQProperties mqProperties = new MQProperties();
+                mqProperties.setServers(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_SERVERS));
+                mqProperties
+                        .setRetries(Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_RETRIES)));
+                mqProperties
+                        .setBatchSize(Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_BATCHSIZE)));
+                mqProperties
+                        .setLingerMs(Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_LINGERMS)));
+                mqProperties.setBufferMemory(
+                        Long.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_BUFFERMEMORY)));
+                mqProperties.setCanalBatchSize(
+                        Integer.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CANALBATCHSIZE)));
+                mqProperties.setCanalGetTimeout(
+                        Long.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CANALGETTIMEOUT)));
+                mqProperties.setFlatMessage(
+                        Boolean.valueOf(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_FLATMESSAGE)));
+                canalMQStarter.start(mqProperties);
+                controller.setCanalMQStarter(canalMQStarter);
             }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:", e);

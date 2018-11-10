@@ -29,6 +29,9 @@
 		<property name="alarmHandler">
 			<ref local="alarmHandler" />
 		</property>
+        <property name="mqConfig">
+            <ref local="mqConfig" />
+        </property>
 	</bean>
 	
 	<!-- 报警处理类 -->
@@ -171,5 +174,12 @@
 		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
 		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
+	</bean>
+
+	<bean id="mqConfig" class="com.alibaba.otter.canal.instance.core.CanalMQConfig">
+        <property name="topic" value="${canal.mq.topic}" />
+        <property name="partition" value="${canal.mq.partition}" />
+        <property name="partitionsNum" value="${canal.mq.partitionsNum}" />
+        <property name="partitionHash" value="${canal.mq.partitionHash}" />
 	</bean>
 </beans>
