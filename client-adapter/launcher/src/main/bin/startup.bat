@@ -5,7 +5,7 @@
 set ENV_PATH=.\
 if "%OS%" == "Windows_NT" set ENV_PATH=%~dp0%
 
-set conf_dir=%ENV_PATH%\..\config
+set conf_dir=%ENV_PATH%\..\conf
 
 set CLASSPATH=%conf_dir%
 set CLASSPATH=%conf_dir%\..\lib\*;%CLASSPATH%
