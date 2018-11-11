@@ -5,7 +5,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -99,7 +103,7 @@ public class ESSyncConfigLoader {
         InputStream in = null;
         try {
             // 先取本地文件，再取类路径
-            File configFile = new File("../config/" + config);
+            File configFile = new File("../conf/" + config);
             if (configFile.exists()) {
                 in = new FileInputStream(configFile);
             } else {

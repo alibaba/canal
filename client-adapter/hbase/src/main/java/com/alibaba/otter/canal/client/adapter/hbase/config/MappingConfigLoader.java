@@ -125,7 +125,7 @@ public class MappingConfigLoader {
         InputStream in = null;
         try {
             // 先取本地文件，再取类路径
-            File configFile = new File("../config/" + config);
+            File configFile = new File("../conf/" + config);
             if (configFile.exists()) {
                 in = new FileInputStream(configFile);
             } else {
