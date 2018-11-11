@@ -11,16 +11,16 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
-#canal.conf:
-#  canalServerHost: 127.0.0.1:11111
+canal.conf:
+  canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
 #  bootstrapServers: slave1:6667 #or rocketmq
 #  flatMessage: true
-#  canalInstances:
-#  - instance: example
-#    groups:
-#    - outAdapters:
-#      - name: logger
+  canalInstances:
+  - instance: example
+    groups:
+    - outAdapters:
+      - name: logger
 #      - name: rdb
 #        key: oracle1
 #        properties:

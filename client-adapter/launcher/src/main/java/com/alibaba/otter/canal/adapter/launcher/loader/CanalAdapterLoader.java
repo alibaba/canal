@@ -125,7 +125,7 @@ public class CanalAdapterLoader {
         try {
             OuterAdapter adapter;
             if ("rdb".equalsIgnoreCase(config.getName())) {
-                adapter = loader.newInstance(config.getName());
+                adapter = loader.getExtension(config.getName(), config.getKey());
             } else {
                 adapter = loader.getExtension(config.getName());
             }

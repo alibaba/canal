@@ -40,6 +40,8 @@ public class ExtensionLoader<T> {
 
     private static final ConcurrentMap<Class<?>, Object>             EXTENSION_INSTANCES        = new ConcurrentHashMap<>();
 
+    private static final ConcurrentMap<String, Object>               EXTENSION_KEY_INSTANCES    = new ConcurrentHashMap<>();
+
     private final Class<?>                                           type;
 
     private final String                                             classLoaderPolicy;
@@ -116,6 +118,30 @@ public class ExtensionLoader<T> {
         return (T) instance;
     }
 
+    @SuppressWarnings("unchecked")
+    public T getExtension(String name, String key) {
+        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
+        if ("true".equals(name)) {
+            return getDefaultExtension();
+        }
+        Holder<Object> holder = cachedInstances.get(name + "-" + key);
+        if (holder == null) {
+            cachedInstances.putIfAbsent(name + "-" + key, new Holder<>());
+            holder = cachedInstances.get(name + "-" + key);
+        }
+        Object instance = holder.get();
+        if (instance == null) {
+            synchronized (holder) {
+                instance = holder.get();
+                if (instance == null) {
+                    instance = createExtension(name, key);
+                    holder.set(instance);
+                }
+            }
+        }
+        return (T) instance;
+    }
+
     /**
      * 返回缺省的扩展，如果没有设置则返回<code>null</code>
      */
@@ -149,20 +175,43 @@ public class ExtensionLoader<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public T newInstance(String name) {
+    private T createExtension(String name, String key) {
         Class<?> clazz = getExtensionClasses().get(name);
         if (clazz == null) {
             throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
                                             + ")  could not be instantiated: class could not be found");
         }
         try {
-            return (T) clazz.newInstance();
+            T instance = (T) EXTENSION_KEY_INSTANCES.get(name + "-" + key);
+            if (instance == null) {
+                EXTENSION_KEY_INSTANCES.putIfAbsent(name + "-" + key, clazz.newInstance());
+                instance = (T) EXTENSION_KEY_INSTANCES.get(name + "-" + key);
+            }
+            return instance;
         } catch (Throwable t) {
             throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
                                             + ")  could not be instantiated: " + t.getMessage(),
                 t);
         }
     }
+
+    @SuppressWarnings("unchecked")
+    // public T newInstance(String name) {
+    // Class<?> clazz = getExtensionClasses().get(name);
+    // if (clazz == null) {
+    // throw new IllegalStateException("Extension instance(name: " + name + ",
+    // class: " + type
+    // + ") could not be instantiated: class could not be found");
+    // }
+    // try {
+    // return (T) clazz.newInstance();
+    // } catch (Throwable t) {
+    // throw new IllegalStateException("Extension instance(name: " + name + ",
+    // class: " + type
+    // + ") could not be instantiated: " + t.getMessage(),
+    // t);
+    // }
+    // }
 
     private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();
