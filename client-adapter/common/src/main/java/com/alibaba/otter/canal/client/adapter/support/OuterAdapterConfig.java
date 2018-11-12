@@ -12,6 +12,8 @@ public class OuterAdapterConfig {
 
     private String              name;       // 适配器名称, 如: logger, hbase, es
 
+    private String              key;        // 适配器唯一键
+
     private String              hosts;      // 适配器内部的地址, 比如对应es该参数可以填写es的server地址
 
     private String              zkHosts;    // 适配器内部的ZK地址, 比如对应HBase该参数可以填写HBase对应的ZK地址
@@ -24,6 +26,14 @@ public class OuterAdapterConfig {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getHosts() {

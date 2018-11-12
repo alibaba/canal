@@ -1,4 +1,1 @@
-mysql=com.alibaba.otter.canal.client.adapter.rdb.adapters.MysqlAdapter
-postgresql=com.alibaba.otter.canal.client.adapter.rdb.adapters.PostgresqlAdapter
-oracle=com.alibaba.otter.canal.client.adapter.rdb.adapters.OracleAdapter
-sqlserver=com.alibaba.otter.canal.client.adapter.rdb.adapters.SqlserverAdapter
+rdb=com.alibaba.otter.canal.client.adapter.rdb.RdbAdapter

@@ -23,7 +23,7 @@
 		</fileSet>
 		<fileSet>
 			<directory>./src/main/resources</directory>
-			<outputDirectory>/config</outputDirectory>
+			<outputDirectory>/conf</outputDirectory>
 			<includes>
 				<include>**/*</include>
 
@@ -31,21 +31,21 @@
 		</fileSet>
 		<fileSet>
 			<directory>../elasticsearch/src/main/resources/es</directory>
-			<outputDirectory>/config/es</outputDirectory>
+			<outputDirectory>/conf/es</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
 		</fileSet>
         <fileSet>
             <directory>../hbase/src/main/resources/hbase</directory>
-            <outputDirectory>/config/hbase</outputDirectory>
+            <outputDirectory>/conf/hbase</outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>
         </fileSet>
 		<fileSet>
 			<directory>../rdb/src/main/resources/</directory>
-			<outputDirectory>/config</outputDirectory>
+			<outputDirectory>/conf</outputDirectory>
             <excludes>
                 <exclude>META-INF/**</exclude>
             </excludes>

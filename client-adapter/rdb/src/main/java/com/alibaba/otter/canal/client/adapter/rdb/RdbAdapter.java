@@ -19,12 +19,13 @@ import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.support.*;
 
-public abstract class RdbAdapter implements OuterAdapter {
+@SPI("rdb")
+public class RdbAdapter implements OuterAdapter {
 
-    private static Logger                       logger             = LoggerFactory.getLogger(RdbAdapter.class);
+    private static Logger                       logger     = LoggerFactory.getLogger(RdbAdapter.class);
 
-    private volatile Map<String, MappingConfig> rdbMapping         = null;                                     // 文件名对应配置
-    private volatile Map<String, MappingConfig> mappingConfigCache = null;                                     // 库名-表名对应配置
+    private volatile Map<String, MappingConfig> rdbMapping = new HashMap<>();                          // 文件名对应配置
+    private Map<String, MappingConfig>          mappingConfigCache;                                    // 库名-表名对应配置
 
     private DruidDataSource                     dataSource;
 
@@ -32,20 +33,20 @@ public abstract class RdbAdapter implements OuterAdapter {
 
     @Override
     public void init(OuterAdapterConfig configuration) {
-        if (mappingConfigCache == null) {
-            synchronized (MappingConfig.class) {
-                if (mappingConfigCache == null) {
-                    SPI spi = this.getClass().getAnnotation(SPI.class);
-                    rdbMapping = MappingConfigLoader.load(spi.value());
-                    mappingConfigCache = new HashMap<>();
-                    for (MappingConfig mappingConfig : rdbMapping.values()) {
-                        mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                                               + mappingConfig.getDbMapping().getDatabase() + "."
-                                               + mappingConfig.getDbMapping().getTable(),
-                            mappingConfig);
-                    }
-                }
+        SPI spi = this.getClass().getAnnotation(SPI.class);
+        Map<String, MappingConfig> rdbMappingTmp = MappingConfigLoader.load(spi.value());
+        // 过滤其他key的配置
+        rdbMappingTmp.forEach((key, mappingConfig) -> {
+            if (mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey())) {
+                rdbMapping.put(key, mappingConfig);
             }
+        });
+        mappingConfigCache = new HashMap<>();
+        for (MappingConfig mappingConfig : rdbMapping.values()) {
+            mappingConfigCache
+                .put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
+                     + mappingConfig.getDbMapping().getDatabase() + "." + mappingConfig.getDbMapping().getTable(),
+                    mappingConfig);
         }
 
         Map<String, String> properties = configuration.getProperties();

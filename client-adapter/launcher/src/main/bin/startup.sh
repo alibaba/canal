@@ -10,8 +10,6 @@ case "`uname`" in
 		;;
 esac
 base=${bin_abs_path}/..
-#canal_conf=$base/config/canal.properties
-#logback_configurationFile=$base/conf/logback.xml
 export LANG=en_US.UTF-8
 export BASE=$base
 

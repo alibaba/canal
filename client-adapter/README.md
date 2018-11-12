@@ -19,14 +19,20 @@ client-adapter分为适配器和启动器两部分, 适配器为多个fat jar, �
 
 启动器为 SpringBoot 项目, 支持canal-client启动的同时提供相关REST管理接口, 运行目录结构为:
 ```
-canal-adapter-launcher.jar
+- bin
+    restart.sh
+    startup.bat
+    startup.sh
+    stop.sh
 - lib
     client-adapter.logger-1.1.1-jar-with-dependencies.jar
     client-adapter.hbase-1.1.1-jar-with-dependencies.jar
-- config
+    ...
+- conf
     application.yml
     - hbase
         mytest_person2.yml
+- logs
 ```
 以上目录结构最终会打包成 canal-adapter-launcher.tar.gz 压缩包
 
@@ -96,7 +102,7 @@ curl http://127.0.0.1:8081/count/hbase/mytest_person2.yml
 ```
 ### 2.3 启动canal-adapter示例
 #### 2.3.1 启动canal server (单机模式), 参考: [Canal QuickStart](https://github.com/alibaba/canal/wiki/QuickStart)
-#### 2.3.2 修改config/application.yml为:
+#### 2.3.2 修改conf/application.yml为:
 ```
 server:
   port: 8081
@@ -118,9 +124,9 @@ canal.conf:
     - outAdapters:
       - name: logger
 ```
-启动 canal-adapter-launcher.jar
+启动
 ```
-java -jar canal-adapter-launcher.jar
+bin/startup.sh
 ```
 
 ## 三、HBase适配器
@@ -161,7 +167,7 @@ adapter.conf:
 ```
 其中指定了一个HBase表映射文件: mytest_person.yml
 ### 3.2 适配器表映射文件
-修改 config/hbase/mytest_person.yml文件:
+修改 conf/hbase/mytest_person.yml文件:
 ```
 dataSourceKey: defaultDS            # 对应application.yml中的datasourceConfigs下的配置
 hbaseMapping:                       # mysql--HBase的单表映射配置
