@@ -1,10 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.rdb;
 
-import java.io.File;
 import java.sql.Connection;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -14,8 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
+import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.support.*;
@@ -34,10 +35,6 @@ public class RdbAdapter implements OuterAdapter {
 
     @Override
     public void init(OuterAdapterConfig configuration) {
-        System.out.println("xxxxx: " + this.getClass().getClassLoader().getResource("").getPath());
-        File file = new File(this.getClass().getClassLoader().getResource("").getPath() + "rdb" + File.separator);
-        System.out.println(file.getAbsolutePath());
-
         Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load();
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
@@ -72,55 +69,6 @@ public class RdbAdapter implements OuterAdapter {
         } catch (SQLException e) {
             logger.error("ERROR ## failed to initial datasource: " + properties.get("jdbc.url"), e);
         }
-
-        rdbMapping.values().forEach(config -> {
-            try {
-                MappingConfig.DbMapping dbMapping = config.getDbMapping();
-                // 从源表加载所有字段名
-                if (dbMapping.getAllColumns() == null) {
-                    synchronized (RdbSyncService.class) {
-                        if (dbMapping.getAllColumns() == null) {
-                            DataSource srcDS = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-                            Connection srcConn = srcDS.getConnection();
-                            String srcMetaSql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable()
-                                                + " WHERE 1=2 ";
-                            List<String> srcColumns = new ArrayList<>();
-                            Util.sqlRS(srcConn, srcMetaSql, rs -> {
-                                try {
-                                    ResultSetMetaData rmd = rs.getMetaData();
-                                    int cnt = rmd.getColumnCount();
-                                    for (int i = 1; i <= cnt; i++) {
-                                        srcColumns.add(rmd.getColumnName(i).toLowerCase());
-                                    }
-                                } catch (SQLException e) {
-                                    logger.error(e.getMessage(), e);
-                                }
-                            });
-                            Map<String, String> columnsMap = new LinkedHashMap<>();
-
-                            for (String srcColumn : srcColumns) {
-                                String targetColumn = srcColumn;
-                                if (dbMapping.getTargetColumns() != null) {
-                                    for (Map.Entry<String, String> entry : dbMapping.getTargetColumns().entrySet()) {
-                                        String targetColumnName = entry.getKey();
-                                        String srcColumnName = entry.getValue();
-
-                                        if (srcColumnName != null
-                                            && srcColumnName.toLowerCase().equals(srcColumn.toUpperCase())) {
-                                            targetColumn = targetColumnName;
-                                        }
-                                    }
-                                }
-                                columnsMap.put(targetColumn, srcColumn);
-                            }
-                            dbMapping.setAllColumns(columnsMap);
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
-            }
-        });
 
         rdbSyncService = new RdbSyncService(dataSource);
     }
