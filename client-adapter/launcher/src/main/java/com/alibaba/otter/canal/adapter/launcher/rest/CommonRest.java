@@ -46,17 +46,17 @@ public class CommonRest {
     }
 
     /**
-     * ETL curl http://127.0.0.1:8081/etl/hbase/mytest_person2.yml -X POST
-     * 
+     * ETL curl http://127.0.0.1:8081/etl/rdb/oracle1/mytest_user.yml -X POST
+     *
      * @param type 类型 hbase, es
-     * @param task 任务名对应配置文件名 mytest_person2.yml
+     * @param key adapter key
+     * @param task 任务名对应配置文件名 mytest_user.yml
      * @param params etl where条件参数, 为空全部导入
-     * @return
      */
-    @PostMapping("/etl/{type}/{task}")
-    public EtlResult etl(@PathVariable String type, @PathVariable String task,
+    @PostMapping("/etl/{type}/{key}/{task}")
+    public EtlResult etl(@PathVariable String type, @PathVariable String key, @PathVariable String task,
                          @RequestParam(name = "params", required = false) String params) {
-        OuterAdapter adapter = loader.getExtension(type);
+        OuterAdapter adapter = loader.getExtension(type, key);
         String destination = adapter.getDestination(task);
         String lockKey = destination == null ? task : destination;
 
@@ -83,12 +83,11 @@ public class CommonRest {
                 }
             }
             try {
-                List<String> paramArr = null;
+                List<String> paramArray = null;
                 if (params != null) {
-                    String[] parmaArray = params.trim().split(";");
-                    paramArr = Arrays.asList(parmaArray);
+                    paramArray = Arrays.asList(params.trim().split(";"));
                 }
-                return adapter.etl(task, paramArr);
+                return adapter.etl(task, paramArray);
             } finally {
                 if (destination != null && oriSwitchStatus != null && oriSwitchStatus) {
                     syncSwitch.on(destination);
@@ -102,6 +101,33 @@ public class CommonRest {
     }
 
     /**
+     * ETL curl http://127.0.0.1:8081/etl/hbase/mytest_person2.yml -X POST
+     * 
+     * @param type 类型 hbase, es
+     * @param task 任务名对应配置文件名 mytest_person2.yml
+     * @param params etl where条件参数, 为空全部导入
+     */
+    @PostMapping("/etl/{type}/{task}")
+    public EtlResult etl(@PathVariable String type, @PathVariable String task,
+                         @RequestParam(name = "params", required = false) String params) {
+        return etl(type, null, task, params);
+    }
+
+    /**
+     * 统计总数 curl http://127.0.0.1:8081/count/rdb/oracle1/mytest_user.yml
+     *
+     * @param type 类型 hbase, es
+     * @param key adapter key
+     * @param task 任务名对应配置文件名 mytest_person2.yml
+     * @return
+     */
+    @GetMapping("/count/{type}/{key}/{task}")
+    public Map<String, Object> count(@PathVariable String type, @PathVariable String key, @PathVariable String task) {
+        OuterAdapter adapter = loader.getExtension(type, key);
+        return adapter.count(task);
+    }
+
+    /**
      * 统计总数 curl http://127.0.0.1:8081/count/hbase/mytest_person2.yml
      * 
      * @param type 类型 hbase, es
@@ -110,8 +136,7 @@ public class CommonRest {
      */
     @GetMapping("/count/{type}/{task}")
     public Map<String, Object> count(@PathVariable String type, @PathVariable String task) {
-        OuterAdapter adapter = loader.getExtension(type);
-        return adapter.count(task);
+        return count(type, null, task);
     }
 
     /**

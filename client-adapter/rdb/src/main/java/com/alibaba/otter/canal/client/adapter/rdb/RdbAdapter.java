@@ -22,26 +22,26 @@ import com.alibaba.otter.canal.client.adapter.support.*;
 @SPI("rdb")
 public class RdbAdapter implements OuterAdapter {
 
-    private static Logger                       logger     = LoggerFactory.getLogger(RdbAdapter.class);
+    private static Logger              logger             = LoggerFactory.getLogger(RdbAdapter.class);
 
-    private volatile Map<String, MappingConfig> rdbMapping = new HashMap<>();                          // 文件名对应配置
-    private Map<String, MappingConfig>          mappingConfigCache;                                    // 库名-表名对应配置
+    private Map<String, MappingConfig> rdbMapping         = new HashMap<>();                          // 文件名对应配置
+    private Map<String, MappingConfig> mappingConfigCache = new HashMap<>();                          // 库名-表名对应配置
 
-    private DruidDataSource                     dataSource;
+    private DruidDataSource            dataSource;
 
-    private RdbSyncService                      rdbSyncService;
+    private RdbSyncService             rdbSyncService;
 
     @Override
     public void init(OuterAdapterConfig configuration) {
         SPI spi = this.getClass().getAnnotation(SPI.class);
         Map<String, MappingConfig> rdbMappingTmp = MappingConfigLoader.load(spi.value());
-        // 过滤其他key的配置
+        // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
-            if (mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey())) {
+            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
+                || mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey())) {
                 rdbMapping.put(key, mappingConfig);
             }
         });
-        mappingConfigCache = new HashMap<>();
         for (MappingConfig mappingConfig : rdbMapping.values()) {
             mappingConfigCache
                 .put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
@@ -211,6 +211,15 @@ public class RdbAdapter implements OuterAdapter {
         res.put("targetTable", dbMapping.getTargetTable());
 
         return res;
+    }
+
+    @Override
+    public String getDestination(String task) {
+        MappingConfig config = rdbMapping.get(task);
+        if (config != null) {
+            return config.getDestination();
+        }
+        return null;
     }
 
     @Override

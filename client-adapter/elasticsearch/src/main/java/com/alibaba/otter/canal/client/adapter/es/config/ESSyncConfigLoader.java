@@ -32,24 +32,14 @@ public class ESSyncConfigLoader {
     private static Logger                                   logger              = LoggerFactory
         .getLogger(ESSyncConfigLoader.class);
 
-    private static final String                             BASE_PATH           = "es";
-
-    private static volatile Map<String, ESSyncConfig>       esSyncConfig        = new LinkedHashMap<>(); // 文件名对应配置
-    private static volatile Map<String, List<ESSyncConfig>> dbTableEsSyncConfig = new LinkedHashMap<>(); // schema-table对应配置
-
-    public static Map<String, ESSyncConfig> getEsSyncConfig() {
-        return esSyncConfig;
-    }
-
-    public static Map<String, List<ESSyncConfig>> getDbTableEsSyncConfig() {
-        return dbTableEsSyncConfig;
-    }
-
-    public static synchronized void load() {
+    public static synchronized Map<String, ESSyncConfig> load(String name) {
         logger.info("## Start loading es mapping config ... ");
+
+        Map<String, ESSyncConfig> esSyncConfig = new LinkedHashMap<>();
+
         Collection<String> configs = AdapterConfigs.get("es");
         if (configs == null) {
-            return;
+            return esSyncConfig;
         }
         for (String c : configs) {
             if (c == null) {
@@ -64,32 +54,13 @@ public class ESSyncConfigLoader {
             String configContent = null;
 
             if (c.endsWith(".yml")) {
-                configContent = readConfigContent(BASE_PATH + "/" + c);
+                configContent = readConfigContent(name + "/" + c);
             }
 
             config = new Yaml().loadAs(configContent, ESSyncConfig.class);
 
             try {
                 config.validate();
-                SchemaItem schemaItem = SqlParser.parse(config.getEsMapping().getSql());
-                config.getEsMapping().setSchemaItem(schemaItem);
-
-                DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-                if (dataSource == null || dataSource.getUrl() == null) {
-                    throw new RuntimeException("No data source found: " + config.getDataSourceKey());
-                }
-                Pattern pattern = Pattern.compile(".*:(.*)://.*/(.*)\\?.*$");
-                Matcher matcher = pattern.matcher(dataSource.getUrl());
-                if (!matcher.find()) {
-                    throw new RuntimeException("Not found the schema of jdbc-url: " + config.getDataSourceKey());
-                }
-                String schema = matcher.group(2);
-
-                schemaItem.getAliasTableItems().values().forEach(tableItem -> {
-                    List<ESSyncConfig> esSyncConfigs = dbTableEsSyncConfig
-                        .computeIfAbsent(schema + "-" + tableItem.getTableName(), k -> new ArrayList<>());
-                    esSyncConfigs.add(config);
-                });
             } catch (Exception e) {
                 throw new RuntimeException("ERROR Config: " + c, e);
             }
@@ -97,6 +68,7 @@ public class ESSyncConfigLoader {
         }
 
         logger.info("## ES mapping config loaded");
+        return esSyncConfig;
     }
 
     private static String readConfigContent(String config) {

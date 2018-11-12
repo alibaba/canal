@@ -39,11 +39,8 @@ public class ESSyncService {
         this.esTemplate = esTemplate;
     }
 
-    public void sync(Dml dml) {
+    public void sync(List<ESSyncConfig> esSyncConfigs, Dml dml) {
         long begin = System.currentTimeMillis();
-        String database = dml.getDatabase();
-        String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = ESSyncConfigLoader.getDbTableEsSyncConfig().get(database + "-" + table);
         if (esSyncConfigs != null) {
             if (logger.isTraceEnabled()) {
                 logger.trace("Destination: {}, database:{}, table:{}, type:{}, effect index count: {}",

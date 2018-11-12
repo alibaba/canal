@@ -33,6 +33,8 @@ public class CanalAdapterLoader {
 
     private Map<String, AbstractCanalAdapterWorker> canalMQWorker = new HashMap<>();
 
+    private Map<String, OuterAdapter>               outerAdapters = new HashMap<>();                                  // 配置文件对应adapter
+
     private ExtensionLoader<OuterAdapter>           loader;
 
     public CanalAdapterLoader(CanalClientConfig canalClientConfig){
@@ -53,8 +55,8 @@ public class CanalAdapterLoader {
         }
         String zkHosts = this.canalClientConfig.getZookeeperHosts();
 
-        // 初始化canal-client的适配器
         if (canalClientConfig.getCanalInstances() != null) {
+            // 初始化canal-client的适配器
             for (CanalClientConfig.CanalInstance instance : canalClientConfig.getCanalInstances()) {
                 List<List<OuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
 
@@ -83,10 +85,8 @@ public class CanalAdapterLoader {
                 worker.start();
                 logger.info("Start adapter for canal instance: {} succeed", instance.getInstance());
             }
-        }
-
-        // 初始化canal-client-mq的适配器
-        if (canalClientConfig.getMqTopics() != null) {
+        } else if (canalClientConfig.getMqTopics() != null) {
+            // 初始化canal-client-mq的适配器
             for (CanalClientConfig.MQTopic topic : canalClientConfig.getMqTopics()) {
                 for (CanalClientConfig.MQGroup group : topic.getGroups()) {
                     List<List<OuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
@@ -124,11 +124,11 @@ public class CanalAdapterLoader {
     private void loadConnector(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
         try {
             OuterAdapter adapter;
-            if ("rdb".equalsIgnoreCase(config.getName())) {
-                adapter = loader.getExtension(config.getName(), config.getKey());
-            } else {
-                adapter = loader.getExtension(config.getName());
-            }
+            // if ("rdb".equalsIgnoreCase(config.getName())) {
+            adapter = loader.getExtension(config.getName(), StringUtils.trimToEmpty(config.getKey()));
+            // } else {
+            // adapter = loader.getExtension(config.getName());
+            // }
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
             // 替换ClassLoader
             Thread.currentThread().setContextClassLoader(adapter.getClass().getClassLoader());

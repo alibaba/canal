@@ -4,6 +4,7 @@ import java.util.*;
 
 import javax.sql.DataSource;
 
+import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import org.elasticsearch.action.get.GetResponse;
 import org.junit.After;
 import org.junit.Assert;
@@ -32,8 +33,8 @@ public class UserSyncJoinOneTest {
     @Test
     public void test01() {
         DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
-        Common.sqlExe(ds,"delete from user where id=1");
-        Common.sqlExe(ds,"insert into user (id,name,role_id) values (1,'Eric',1)");
+        Common.sqlExe(ds, "delete from user where id=1");
+        Common.sqlExe(ds, "insert into user (id,name,role_id) values (1,'Eric',1)");
 
         Dml dml = new Dml();
         dml.setDestination("example");
@@ -48,10 +49,13 @@ public class UserSyncJoinOneTest {
         data.put("name", "Eric");
         data.put("role_id", 1L);
         data.put("c_time", new Date());
-
         dml.setData(dataList);
 
-        esAdapter.getEsSyncService().sync(dml);
+        String database = dml.getDatabase();
+        String table = dml.getTable();
+        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+
+        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("Eric_", response.getSource().get("_name"));
@@ -63,7 +67,7 @@ public class UserSyncJoinOneTest {
     @Test
     public void test02() {
         DataSource ds = DatasourceConfig.DATA_SOURCES.get("defaultDS");
-        Common.sqlExe(ds,"update user set name='Eric2' where id=1");
+        Common.sqlExe(ds, "update user set name='Eric2' where id=1");
 
         Dml dml = new Dml();
         dml.setDestination("example");
@@ -83,7 +87,11 @@ public class UserSyncJoinOneTest {
         old.put("name", "Eric");
         dml.setOld(oldList);
 
-        esAdapter.getEsSyncService().sync(dml);
+        String database = dml.getDatabase();
+        String table = dml.getTable();
+        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+
+        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("Eric2_", response.getSource().get("_name"));

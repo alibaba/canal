@@ -26,19 +26,17 @@ public class MappingConfigLoader {
 
     private static Logger       logger    = LoggerFactory.getLogger(MappingConfigLoader.class);
 
-    private static final String BASE_PATH = "hbase";
-
     /**
      * 加载HBase表映射配置
      * 
      * @return 配置名/配置文件名--对象
      */
-    public static Map<String, MappingConfig> load() {
+    public static Map<String, MappingConfig> load(String name) {
         logger.info("## Start loading hbase mapping config ... ");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        Collection<String> configs = AdapterConfigs.get("hbase");
+        Collection<String> configs = AdapterConfigs.get(name);
         if (configs == null) {
             return result;
         }
@@ -55,7 +53,7 @@ public class MappingConfigLoader {
             String configContent = null;
 
             if (c.endsWith(".yml")) {
-                configContent = readConfigContent(BASE_PATH + "/" + c);
+                configContent = readConfigContent(name + "/" + c);
             }
 
             // 简单配置database.table@datasourcekey?rowKey=key1,key2
