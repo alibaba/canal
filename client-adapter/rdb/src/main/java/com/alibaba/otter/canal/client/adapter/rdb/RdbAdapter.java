@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.rdb;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -14,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfigLoader;
+import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.support.*;
@@ -33,12 +34,16 @@ public class RdbAdapter implements OuterAdapter {
 
     @Override
     public void init(OuterAdapterConfig configuration) {
-        SPI spi = this.getClass().getAnnotation(SPI.class);
-        Map<String, MappingConfig> rdbMappingTmp = MappingConfigLoader.load(spi.value());
+        System.out.println("xxxxx: " + this.getClass().getClassLoader().getResource("").getPath());
+        File file = new File(this.getClass().getClassLoader().getResource("").getPath() + "rdb" + File.separator);
+        System.out.println(file.getAbsolutePath());
+
+        Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load();
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
             if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey())) {
+                || (mappingConfig.getOuterAdapterKey() != null
+                    && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
                 rdbMapping.put(key, mappingConfig);
             }
         });

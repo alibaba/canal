@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.adapter.launcher.config.AdapterCanalConfig;
-import com.alibaba.otter.canal.adapter.launcher.config.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
 /**
@@ -32,8 +31,6 @@ public class CanalAdapterService {
     private AdapterCanalConfig        adapterCanalConfig;
 
     // 注入bean保证优先注册
-    @Resource
-    private AdapterConfig             adapterConfig;
     @Resource
     private SpringContext             springContext;
     @Resource

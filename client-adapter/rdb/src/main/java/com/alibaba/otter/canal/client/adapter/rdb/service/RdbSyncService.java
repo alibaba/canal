@@ -148,6 +148,7 @@ public class RdbSyncService {
                 conn.commit();
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             conn.rollback();
         } finally {
             conn.close();
@@ -230,6 +231,7 @@ public class RdbSyncService {
                 conn.commit();
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             conn.rollback();
         } finally {
             conn.close();
@@ -283,13 +285,12 @@ public class RdbSyncService {
                 conn.commit();
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             conn.rollback();
         } finally {
             conn.close();
         }
     }
-
-
 
     /**
      * 获取目标字段类型
@@ -309,7 +310,7 @@ public class RdbSyncService {
                     columnType = new LinkedHashMap<>();
                     final Map<String, Integer> columnTypeTmp = columnType;
                     String sql = "SELECT * FROM " + dbMapping.getTargetTable() + " WHERE 1=2";
-                   Util.sqlRS(conn, sql, rs -> {
+                    Util.sqlRS(conn, sql, rs -> {
                         try {
                             ResultSetMetaData rsd = rs.getMetaData();
                             int columnCount = rsd.getColumnCount();

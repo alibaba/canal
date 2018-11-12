@@ -4,14 +4,13 @@ import java.util.*;
 
 import javax.sql.DataSource;
 
-import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import org.elasticsearch.action.get.GetResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.client.adapter.es.ESAdapter;
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
+import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
@@ -21,7 +20,7 @@ public class RoleSyncJoinOneTest {
 
     @Before
     public void init() {
-        AdapterConfigs.put("es", "mytest_user_join_one.yml");
+        // AdapterConfigs.put("es", "mytest_user_join_one.yml");
         esAdapter = Common.init();
     }
 

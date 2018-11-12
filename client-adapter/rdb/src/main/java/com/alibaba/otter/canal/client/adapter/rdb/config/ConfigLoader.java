@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.client.adapter.hbase.config;
+package com.alibaba.otter.canal.client.adapter.rdb.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -10,14 +10,14 @@ import org.yaml.snakeyaml.Yaml;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
- * HBase表映射配置加载器
+ * RDB表映射配置加载器
  *
- * @author rewerma 2018-8-21 下午06:45:49
+ * @author rewerma 2018-11-07 下午02:41:34
  * @version 1.0.0
  */
-public class MappingConfigLoader {
+public class ConfigLoader {
 
-    private static Logger logger = LoggerFactory.getLogger(MappingConfigLoader.class);
+    private static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
 
     /**
      * 加载HBase表映射配置
@@ -25,22 +25,22 @@ public class MappingConfigLoader {
      * @return 配置名/配置文件名--对象
      */
     public static Map<String, MappingConfig> load() {
-        logger.info("## Start loading hbase mapping config ... ");
+        logger.info("## Start loading rdb mapping config ... ");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("hbase");
+        Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("rdb");
         configContentMap.forEach((fileName, content) -> {
             MappingConfig config = new Yaml().loadAs(content, MappingConfig.class);
             try {
                 config.validate();
             } catch (Exception e) {
-                throw new RuntimeException("ERROR load Config: " + fileName + " " + e.getMessage(), e);
+                throw new RuntimeException("ERROR Config: " + fileName + " " + e.getMessage(), e);
             }
             result.put(fileName, config);
         });
 
-        logger.info("## Hbase mapping config loaded");
+        logger.info("## Rdb mapping config loaded");
         return result;
     }
 }

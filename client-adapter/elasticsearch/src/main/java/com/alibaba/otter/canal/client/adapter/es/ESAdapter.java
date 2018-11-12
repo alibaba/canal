@@ -63,12 +63,12 @@ public class ESAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration) {
         try {
-            SPI spi = this.getClass().getAnnotation(SPI.class);
-            Map<String, ESSyncConfig> esSyncConfigTmp = ESSyncConfigLoader.load(spi.value());
+            Map<String, ESSyncConfig> esSyncConfigTmp = ESSyncConfigLoader.load();
             // 过滤不匹配的key的配置
             esSyncConfigTmp.forEach((key, config) -> {
                 if ((config.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || config.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey())) {
+                    || (config.getOuterAdapterKey() != null
+                        && config.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
                     esSyncConfig.put(key, config);
                 }
             });

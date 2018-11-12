@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es.test;
 
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -9,21 +8,20 @@ import org.junit.Test;
 
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
 public class ConfigLoadTest {
 
     @Before
     public void before() {
-        AdapterConfigs.put("es", "mytest_user.yml");
+        // AdapterConfigs.put("es", "mytest_user.yml");
         // 加载数据源连接池
         DatasourceConfig.DATA_SOURCES.put("defaultDS", TestConstant.dataSource);
     }
 
     @Test
     public void testLoad() {
-        Map<String, ESSyncConfig> configMap = ESSyncConfigLoader.load("es");
+        Map<String, ESSyncConfig> configMap = ESSyncConfigLoader.load();
         ESSyncConfig config = configMap.get("mytest_user.yml");
         Assert.assertNotNull(config);
         Assert.assertEquals("defaultDS", config.getDataSourceKey());

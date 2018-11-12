@@ -47,12 +47,12 @@ public class HbaseAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration) {
         try {
-            SPI spi = this.getClass().getAnnotation(SPI.class);
-            Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load(spi.value());
+            Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load();
             // 过滤不匹配的key的配置
             hbaseMappingTmp.forEach((key, mappingConfig) -> {
                 if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey())) {
+                    || (mappingConfig.getOuterAdapterKey() != null
+                        && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
                     hbaseMapping.put(key, mappingConfig);
                 }
             });
