@@ -646,15 +646,16 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 continue;
             }
 
-            if (fieldMeta != null && existOptionalMetaData) {
+            if (fieldMeta != null && existOptionalMetaData && tableMetaCache.isOnTSDB()) {
                 // check column info
                 boolean check = StringUtils.equalsIgnoreCase(fieldMeta.getColumnName(), info.name);
                 check &= (fieldMeta.isUnsigned() == info.unsigned);
                 check &= (fieldMeta.isNullable() == info.nullable);
 
                 if (!check) {
-                    throw new CanalParseException("MySQL8.0 unmatch column metadata & pls submit issue , db : "
-                                                  + fieldMeta.toString() + " , binlog : " + info.toString()
+                    throw new CanalParseException("MySQL8.0 unmatch column metadata & pls submit issue , table : "
+                                                  + tableMeta.getFullName() + ", db fieldMeta : "
+                                                  + fieldMeta.toString() + " , binlog fieldMeta : " + info.toString()
                                                   + " , on : " + event.getHeader().getLogFileName() + ":"
                                                   + event.getHeader().getLogPos());
                 }

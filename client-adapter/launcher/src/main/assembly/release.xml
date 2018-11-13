@@ -58,13 +58,9 @@
                 <exclude>**/*</exclude>
             </excludes>
         </fileSet>
-
         <fileSet>
-            <directory>${project.basedir}/target/canal-adapter/lib</directory>
-            <outputDirectory>/lib/</outputDirectory>
-            <includes>
-                <include>*-jar-with-dependencies.jar</include>
-            </includes>
+            <directory>${project.basedir}/target/canal-adapter/plugin</directory>
+            <outputDirectory>/plugin/</outputDirectory>
         </fileSet>
     </fileSets>
     <dependencySets>
