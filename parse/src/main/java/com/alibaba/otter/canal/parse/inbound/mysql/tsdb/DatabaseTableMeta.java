@@ -10,6 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
@@ -62,9 +63,10 @@ public class DatabaseTableMeta implements TableMetaTSDB {
                                                                  }
                                                              });
     private ReadWriteLock                   lock             = new ReentrantReadWriteLock();
+    private AtomicBoolean                   initialized      = new AtomicBoolean(false);
     private String                          destination;
     private MemoryTableMeta                 memoryTableMeta;
-    private MysqlConnection                 connection;                                                                 // 查询meta信息的链接
+    private volatile MysqlConnection        connection;                                                                 // 查询meta信息的链接
     private CanalEventFilter                filter;
     private CanalEventFilter                blackFilter;
     private EntryPosition                   lastPosition;
@@ -74,40 +76,42 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private int                             snapshotInterval = 24;
     private int                             snapshotExpire   = 360;
     private ScheduledFuture<?>              scheduleSnapshotFuture;
-
+    
     public DatabaseTableMeta(){
 
     }
 
     @Override
     public boolean init(final String destination) {
-        this.destination = destination;
-        this.memoryTableMeta = new MemoryTableMeta();
+        if (initialized.compareAndSet(false, true)) {
+            this.destination = destination;
+            this.memoryTableMeta = new MemoryTableMeta();
 
-        // 24小时生成一份snapshot
-        if (snapshotInterval > 0) {
-            scheduleSnapshotFuture = scheduler.scheduleWithFixedDelay(new Runnable() {
+            // 24小时生成一份snapshot
+            if (snapshotInterval > 0) {
+                scheduleSnapshotFuture = scheduler.scheduleWithFixedDelay(new Runnable() {
 
-                @Override
-                public void run() {
-                    boolean applyResult = false;
-                    try {
-                        MDC.put("destination", destination);
-                        applyResult = applySnapshotToDB(lastPosition, false);
-                    } catch (Throwable e) {
-                        logger.error("scheudle applySnapshotToDB faield", e);
-                    }
-
-                    try {
-                        MDC.put("destination", destination);
-                        if (applyResult) {
-                            snapshotExpire((int) TimeUnit.HOURS.toSeconds(snapshotExpire));
+                    @Override
+                    public void run() {
+                        boolean applyResult = false;
+                        try {
+                            MDC.put("destination", destination);
+                            applyResult = applySnapshotToDB(lastPosition, false);
+                        } catch (Throwable e) {
+                            logger.error("scheudle applySnapshotToDB faield", e);
                         }
-                    } catch (Throwable e) {
-                        logger.error("scheudle snapshotExpire faield", e);
+
+                        try {
+                            MDC.put("destination", destination);
+                            if (applyResult) {
+                                snapshotExpire((int) TimeUnit.HOURS.toSeconds(snapshotExpire));
+                            }
+                        } catch (Throwable e) {
+                            logger.error("scheudle snapshotExpire faield", e);
+                        }
                     }
-                }
-            }, snapshotInterval, snapshotInterval, TimeUnit.HOURS);
+                }, snapshotInterval, snapshotInterval, TimeUnit.HOURS);
+            }
         }
         return true;
     }
