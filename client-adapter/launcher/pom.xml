@@ -137,7 +137,7 @@
                         </goals>
                         <configuration>
                             <includeClassifiers>jar-with-dependencies</includeClassifiers>
-                            <outputDirectory>${project.basedir}/target/canal-adapter/lib</outputDirectory>
+                            <outputDirectory>${project.basedir}/target/canal-adapter/plugin</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

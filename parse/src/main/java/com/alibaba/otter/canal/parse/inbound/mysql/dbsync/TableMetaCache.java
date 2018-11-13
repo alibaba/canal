@@ -39,6 +39,7 @@ public class TableMetaCache {
     public static final String              EXTRA          = "EXTRA";
     private MysqlConnection                 connection;
     private boolean                         isOnRDS        = false;
+    private boolean                         isOnTSDB       = false;
 
     private TableMetaTSDB                   tableMetaTSDB;
     // 第一层tableId,第二层schema.table,解决tableId重复，对应多张表
@@ -67,6 +68,8 @@ public class TableMetaCache {
                 }
 
             });
+        } else {
+            isOnTSDB = true;
         }
 
         try {
@@ -242,6 +245,15 @@ public class TableMetaCache {
             .append(table)
             .append('`')
             .toString();
+    }
+
+
+    public boolean isOnTSDB() {
+        return isOnTSDB;
+    }
+
+    public void setOnTSDB(boolean isOnTSDB) {
+        this.isOnTSDB = isOnTSDB;
     }
 
     public boolean isOnRDS() {
