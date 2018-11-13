@@ -53,6 +53,7 @@ ADAPTER_OPTS="-DappName=canal-adapter"
 for i in $base/lib/*;
     do CLASSPATH=$i:"$CLASSPATH";
 done
+
 CLASSPATH="$base/conf:$CLASSPATH";
 
 echo "cd to $bin_abs_path for workaround relative path"
