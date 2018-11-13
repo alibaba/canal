@@ -54,9 +54,6 @@ for i in $base/lib/*;
     do CLASSPATH=$i:"$CLASSPATH";
 done
 
-for i in $base/plugin/*;
-    do CLASSPATH=$i:"$CLASSPATH";
-done
 CLASSPATH="$base/conf:$CLASSPATH";
 
 echo "cd to $bin_abs_path for workaround relative path"

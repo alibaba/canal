@@ -43,8 +43,6 @@ public class ExtensionLoader<T> {
 
     private static final ConcurrentMap<String, Object>               EXTENSION_KEY_INSTANCE     = new ConcurrentHashMap<>();
 
-    private static final ConcurrentMap<String, List<?>>              EXTENSION_KEY_INSTANCES    = new ConcurrentHashMap<>();
-
     private final Class<?>                                           type;
 
     private final String                                             classLoaderPolicy;
@@ -180,6 +178,8 @@ public class ExtensionLoader<T> {
 
     @SuppressWarnings("unchecked")
     private T createExtension(String name, String key) {
+        System.out.println("xxxxxxxxxxxxx");
+        getExtensionClasses().forEach((k, v) -> logger.info("fffff: " + k + " " + v.getName()));
         Class<?> clazz = getExtensionClasses().get(name);
         if (clazz == null) {
             throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
@@ -210,6 +210,7 @@ public class ExtensionLoader<T> {
                 }
             }
         }
+
         return classes;
     }
 
@@ -255,13 +256,13 @@ public class ExtensionLoader<T> {
 
         Map<String, Class<?>> extensionClasses = new HashMap<String, Class<?>>();
 
-        // 1. lib folder，customized extension classLoader （jar_dir/lib）
-        String dir = File.separator + this.getJarDirectoryPath() + File.separator + "lib";
+        // 1. plugin folder，customized extension classLoader （jar_dir/plugin）
+        String dir = File.separator + this.getJarDirectoryPath() + File.separator + "plugin";
 
         File externalLibDir = new File(dir);
         if (!externalLibDir.exists()) {
             externalLibDir = new File(File.separator + this.getJarDirectoryPath() + File.separator + "canal-adapter"
-                                      + File.separator + "lib");
+                                      + File.separator + "plugin");
         }
         logger.info("extension classpath dir: " + externalLibDir.getAbsolutePath());
         if (externalLibDir.exists()) {
@@ -279,49 +280,7 @@ public class ExtensionLoader<T> {
                     URLClassLoader localClassLoader;
                     if (classLoaderPolicy == null || "".equals(classLoaderPolicy)
                         || DEFAULT_CLASSLOADER_POLICY.equalsIgnoreCase(classLoaderPolicy)) {
-                        localClassLoader = new URLClassLoader(new URL[] { url }, parent) {
-
-                            @Override
-                            public Class<?> loadClass(String name) throws ClassNotFoundException {
-                                Class<?> c = findLoadedClass(name);
-                                if (c != null) {
-                                    return c;
-                                }
-
-                                if (name.startsWith("java.") || name.startsWith("org.slf4j.")
-                                    || name.startsWith("org.apache.logging")
-                                    || name.startsWith("org.apache.commons.logging.")) {
-                                    // || name.startsWith("org.apache.hadoop."))
-                                    // {
-                                    c = super.loadClass(name);
-                                }
-                                if (c != null) return c;
-
-                                try {
-                                    // 先加载jar内的class，可避免jar冲突
-                                    c = findClass(name);
-                                } catch (ClassNotFoundException e) {
-                                    c = null;
-                                }
-                                if (c != null) {
-                                    return c;
-                                }
-
-                                return super.loadClass(name);
-                            }
-
-                            @Override
-                            public Enumeration<URL> getResources(String name) throws IOException {
-                                @SuppressWarnings("unchecked")
-                                Enumeration<URL>[] tmp = (Enumeration<URL>[]) new Enumeration<?>[2];
-
-                                tmp[0] = findResources(name); // local class
-                                                              // path first
-                                // tmp[1] = super.getResources(name);
-
-                                return new CompoundEnumeration<>(tmp);
-                            }
-                        };
+                        localClassLoader = new URLClassExtensionLoader(new URL[] { url });
                     } else {
                         localClassLoader = new URLClassLoader(new URL[] { url }, parent);
                     }
@@ -331,46 +290,13 @@ public class ExtensionLoader<T> {
                 }
             }
         }
+        // 只加载外部spi, 不加载classpath
         // 2. load inner extension class with default classLoader
-        ClassLoader classLoader = findClassLoader();
-        loadFile(extensionClasses, CANAL_DIRECTORY, classLoader);
-        loadFile(extensionClasses, SERVICES_DIRECTORY, classLoader);
+        // ClassLoader classLoader = findClassLoader();
+        // loadFile(extensionClasses, CANAL_DIRECTORY, classLoader);
+        // loadFile(extensionClasses, SERVICES_DIRECTORY, classLoader);
 
         return extensionClasses;
-    }
-
-    public static class CompoundEnumeration<E> implements Enumeration<E> {
-
-        private Enumeration<E>[] enums;
-        private int              index = 0;
-
-        public CompoundEnumeration(Enumeration<E>[] enums){
-            this.enums = enums;
-        }
-
-        private boolean next() {
-            while (this.index < this.enums.length) {
-                if (this.enums[this.index] != null && this.enums[this.index].hasMoreElements()) {
-                    return true;
-                }
-
-                ++this.index;
-            }
-
-            return false;
-        }
-
-        public boolean hasMoreElements() {
-            return this.next();
-        }
-
-        public E nextElement() {
-            if (!this.next()) {
-                throw new NoSuchElementException();
-            } else {
-                return this.enums[this.index].nextElement();
-            }
-        }
     }
 
     private void loadFile(Map<String, Class<?>> extensionClasses, String dir, ClassLoader classLoader) {
