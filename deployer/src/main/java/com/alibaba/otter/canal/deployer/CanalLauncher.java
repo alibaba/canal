@@ -100,6 +100,8 @@ public class CanalLauncher {
             CanalConstants.CANAL_MQ_CANALGETTIMEOUT)));
         mqProperties.setFlatMessage(Boolean.valueOf(CanalController.getProperty(properties,
             CanalConstants.CANAL_MQ_FLATMESSAGE)));
+        mqProperties.setCompressionType(CanalController.getProperty(properties,CanalConstants.CANAL_MQ_COMPRESSION_TYPE));
+        mqProperties.setAcks(CanalController.getProperty(properties,CanalConstants.CANAL_MQ_ACKS));
         return mqProperties;
     }
 
