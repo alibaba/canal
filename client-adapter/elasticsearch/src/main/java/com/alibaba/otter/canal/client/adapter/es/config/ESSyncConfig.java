@@ -13,9 +13,11 @@ import java.util.Map;
  */
 public class ESSyncConfig {
 
-    private String    dataSourceKey; // 数据源key
+    private String    dataSourceKey;   // 数据源key
 
-    private String    destination;   // canal destination
+    private String    outerAdapterKey; // adapter key
+
+    private String    destination;     // canal destination
 
     private ESMapping esMapping;
 
@@ -40,6 +42,14 @@ public class ESSyncConfig {
 
     public void setDataSourceKey(String dataSourceKey) {
         this.dataSourceKey = dataSourceKey;
+    }
+
+    public String getOuterAdapterKey() {
+        return outerAdapterKey;
+    }
+
+    public void setOuterAdapterKey(String outerAdapterKey) {
+        this.outerAdapterKey = outerAdapterKey;
     }
 
     public String getDestination() {
@@ -67,15 +77,15 @@ public class ESSyncConfig {
         private String              parent;
         private String              sql;
         // 对象字段, 例: objFields:
-        //              - _labels: array:;
-        private Map<String, String> objFields     = new LinkedHashMap<>();
+        // - _labels: array:;
+        private Map<String, String> objFields       = new LinkedHashMap<>();
         private List<String>        skips           = new ArrayList<>();
         private int                 commitBatch     = 1000;
         private String              etlCondition;
-        private boolean             syncByTimestamp = false;                 // 是否按时间戳定时同步
-        private Long                syncInterval;                            // 同步时间间隔
+        private boolean             syncByTimestamp = false;                // 是否按时间戳定时同步
+        private Long                syncInterval;                           // 同步时间间隔
 
-        private SchemaItem          schemaItem;                              // sql解析结果模型
+        private SchemaItem          schemaItem;                             // sql解析结果模型
 
         public String get_index() {
             return _index;

@@ -10,11 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
-import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +21,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig.DbMapping;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
+import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 
 /**
  * RDB同步操作业务
@@ -84,12 +83,7 @@ public class RdbSyncService {
         Connection conn = dataSource.getConnection();
         conn.setAutoCommit(false);
         try {
-            Map<String, String> columnsMap;
-            if (dbMapping.isMapAll()) {
-                columnsMap = dbMapping.getAllColumns();
-            } else {
-                columnsMap = dbMapping.getTargetColumns();
-            }
+            Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data.get(0));
 
             StringBuilder insertSql = new StringBuilder();
             insertSql.append("INSERT INTO ").append(dbMapping.getTargetTable()).append(" (");
@@ -148,6 +142,7 @@ public class RdbSyncService {
                 conn.commit();
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             conn.rollback();
         } finally {
             conn.close();
@@ -180,12 +175,7 @@ public class RdbSyncService {
         conn.setAutoCommit(false);
 
         try {
-            Map<String, String> columnsMap;
-            if (dbMapping.isMapAll()) {
-                columnsMap = dbMapping.getAllColumns();
-            } else {
-                columnsMap = dbMapping.getTargetColumns();
-            }
+            Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data.get(0));
 
             Map<String, Integer> ctype = getTargetColumnType(conn, config);
 
@@ -230,6 +220,7 @@ public class RdbSyncService {
                 conn.commit();
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             conn.rollback();
         } finally {
             conn.close();
@@ -283,13 +274,12 @@ public class RdbSyncService {
                 conn.commit();
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             conn.rollback();
         } finally {
             conn.close();
         }
     }
-
-
 
     /**
      * 获取目标字段类型
@@ -309,7 +299,7 @@ public class RdbSyncService {
                     columnType = new LinkedHashMap<>();
                     final Map<String, Integer> columnTypeTmp = columnType;
                     String sql = "SELECT * FROM " + dbMapping.getTargetTable() + " WHERE 1=2";
-                   Util.sqlRS(conn, sql, rs -> {
+                    Util.sqlRS(conn, sql, rs -> {
                         try {
                             ResultSetMetaData rsd = rs.getMetaData();
                             int columnCount = rsd.getColumnCount();
@@ -524,4 +514,5 @@ public class RdbSyncService {
             logger.error(e.getMessage(), e);
         }
     }
+
 }

@@ -146,6 +146,11 @@ spring:
 canal.conf:
   canalServerHost: 127.0.0.1:11111
   flatMessage: true
+  srcDataSources:
+    defaultDS:
+      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
+      username: root
+      password: 121212
   canalInstances:
   - instance: example
     adapterGroups:
@@ -155,17 +160,8 @@ canal.conf:
           hbase.zookeeper.quorum: slave1
           hbase.zookeeper.property.clientPort: 2181
           zookeeper.znode.parent: /hbase
-
-adapter.conf:
-  datasourceConfigs:
-    defaultDS:
-      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
-      username: root
-      password: 121212
-  adapterConfigs:
-  - hbase/mytest_person.yml 
 ```
-其中指定了一个HBase表映射文件: mytest_person.yml
+adapter将会自动加载 conf/hbase 下的所有.yml结尾的配置文件
 ### 3.2 适配器表映射文件
 修改 conf/hbase/mytest_person.yml文件:
 ```
@@ -251,7 +247,7 @@ create 'MYTEST.PERSON', {NAME=>'CF'}
 ```
 #### 启动canal-adapter启动器
 ```
-java -jar canal-adapter-launcher.jar
+bin/startup.sh
 ```
 #### 验证
 修改mysql mytest.person表的数据, 将会自动同步到HBase的MYTEST.PERSON表下面, 并会打出DML的log

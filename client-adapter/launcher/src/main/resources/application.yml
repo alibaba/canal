@@ -16,6 +16,11 @@ canal.conf:
 #  zookeeperHosts: slave1:2181
 #  bootstrapServers: slave1:6667 #or rocketmq
 #  flatMessage: true
+#  srcDataSources:
+#    defaultDS:
+#      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
+#      username: root
+#      password: 121212
   canalInstances:
   - instance: example
     groups:
@@ -25,7 +30,7 @@ canal.conf:
 #        key: oracle1
 #        properties:
 #          jdbc.driverClassName: oracle.jdbc.OracleDriver
-#          jdbc.url: jdbc:oracle:thin:@127.0.0.1:1521:orcl
+#          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
 #          jdbc.username: mytest
 #          jdbc.password: m121212
 #      - name: rdb
@@ -45,27 +50,9 @@ canal.conf:
 #        properties:
 #          cluster.name: elasticsearch
 #  mqTopics:
-#  - mqMode: kafka
+#  - mqMode: kafka # or rocketmq
 #    topic: example
 #    groups:
 #    - groupId: g2
 #      outAdapters:
 #      - name: logger
-#  mqTopics:
-#  - mqMode: rocketmq
-#    topic: example
-#    groups:
-#    - groupId: g2
-#      outAdapters:
-#      - name: logger
-
-#adapter.conf:
-#  datasourceConfigs:
-#    defaultDS:
-#      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
-#      username: root
-#      password: 121212
-#  adapterConfigs:
-#  - hbase/mytest_person2.yml
-#  - es/mytest_user.yml
-#  - rdb/mytest_user.yml

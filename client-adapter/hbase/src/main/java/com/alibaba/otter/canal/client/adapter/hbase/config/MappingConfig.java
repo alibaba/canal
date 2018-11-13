@@ -10,11 +10,13 @@ import java.util.*;
  */
 public class MappingConfig {
 
-    private String       dataSourceKey; // 数据源key
+    private String       dataSourceKey;   // 数据源key
 
-    private String       destination;   // canal实例或MQ的topic
+    private String       outerAdapterKey; // adapter key
 
-    private HbaseMapping hbaseMapping;  // hbase映射配置
+    private String       destination;     // canal实例或MQ的topic
+
+    private HbaseMapping hbaseMapping;    // hbase映射配置
 
     public String getDataSourceKey() {
         return dataSourceKey;
@@ -22,6 +24,14 @@ public class MappingConfig {
 
     public void setDataSourceKey(String dataSourceKey) {
         this.dataSourceKey = dataSourceKey;
+    }
+
+    public String getOuterAdapterKey() {
+        return outerAdapterKey;
+    }
+
+    public void setOuterAdapterKey(String outerAdapterKey) {
+        this.outerAdapterKey = outerAdapterKey;
     }
 
     public String getDestination() {

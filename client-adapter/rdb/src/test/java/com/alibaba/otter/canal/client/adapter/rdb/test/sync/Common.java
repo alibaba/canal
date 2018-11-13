@@ -14,7 +14,7 @@ public class Common {
 
         OuterAdapterConfig outerAdapterConfig = new OuterAdapterConfig();
         outerAdapterConfig.setName("rdb");
-        outerAdapterConfig.setKey("oralce1");
+        //outerAdapterConfig.setKey("oralce1");
         Map<String, String> properties = new HashMap<>();
         properties.put("jdbc.driveClassName", "oracle.jdbc.OracleDriver");
         properties.put("jdbc.url", "jdbc:oracle:thin:@127.0.0.1:49161:XE");

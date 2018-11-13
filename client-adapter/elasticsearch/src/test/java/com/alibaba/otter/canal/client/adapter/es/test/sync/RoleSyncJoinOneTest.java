@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.client.adapter.es.ESAdapter;
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
+import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
@@ -20,7 +20,7 @@ public class RoleSyncJoinOneTest {
 
     @Before
     public void init() {
-        AdapterConfigs.put("es", "mytest_user_join_one.yml");
+        // AdapterConfigs.put("es", "mytest_user_join_one.yml");
         esAdapter = Common.init();
     }
 
@@ -47,7 +47,11 @@ public class RoleSyncJoinOneTest {
 
         dml.setData(dataList);
 
-        esAdapter.getEsSyncService().sync(dml);
+        String database = dml.getDatabase();
+        String table = dml.getTable();
+        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+
+        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("admin", response.getSource().get("_role_name"));
@@ -80,7 +84,11 @@ public class RoleSyncJoinOneTest {
         old.put("role_name", "admin");
         dml.setOld(oldList);
 
-        esAdapter.getEsSyncService().sync(dml);
+        String database = dml.getDatabase();
+        String table = dml.getTable();
+        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+
+        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("admin2", response.getSource().get("_role_name"));
@@ -96,28 +104,32 @@ public class RoleSyncJoinOneTest {
         Common.sqlExe(ds, "insert into role (id,role_name) values (2,'operator')");
         Common.sqlExe(ds, "update user set role_id=2 where id=1");
 
-         Dml dml = new Dml();
-         dml.setDestination("example");
-         dml.setTs(new Date().getTime());
-         dml.setType("UPDATE");
-         dml.setDatabase("mytest");
-         dml.setTable("user");
-         List<Map<String, Object>> dataList = new ArrayList<>();
-         Map<String, Object> data = new LinkedHashMap<>();
-         dataList.add(data);
-         data.put("id", 1L);
-         data.put("role_id", 2L);
-         dml.setData(dataList);
-         List<Map<String, Object>> oldList = new ArrayList<>();
-         Map<String, Object> old = new LinkedHashMap<>();
-         oldList.add(old);
-         old.put("role_id", 1L);
-         dml.setOld(oldList);
-         esAdapter.getEsSyncService().sync(dml);
+        Dml dml = new Dml();
+        dml.setDestination("example");
+        dml.setTs(new Date().getTime());
+        dml.setType("UPDATE");
+        dml.setDatabase("mytest");
+        dml.setTable("user");
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        Map<String, Object> data = new LinkedHashMap<>();
+        dataList.add(data);
+        data.put("id", 1L);
+        data.put("role_id", 2L);
+        dml.setData(dataList);
+        List<Map<String, Object>> oldList = new ArrayList<>();
+        Map<String, Object> old = new LinkedHashMap<>();
+        oldList.add(old);
+        old.put("role_id", 1L);
+        dml.setOld(oldList);
 
-         GetResponse response =
-         esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
-         Assert.assertEquals("operator", response.getSource().get("_role_name"));
+        String database = dml.getDatabase();
+        String table = dml.getTable();
+        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+
+        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+
+        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        Assert.assertEquals("operator", response.getSource().get("_role_name"));
 
         Common.sqlExe(ds, "update user set role_id=1 where id=1");
 
@@ -138,7 +150,8 @@ public class RoleSyncJoinOneTest {
         oldList2.add(old2);
         old2.put("role_id", 2L);
         dml2.setOld(oldList2);
-        esAdapter.getEsSyncService().sync(dml2);
+
+        esAdapter.getEsSyncService().sync(esSyncConfigs, dml2);
 
         GetResponse response2 = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("admin2", response2.getSource().get("_role_name"));
@@ -166,7 +179,11 @@ public class RoleSyncJoinOneTest {
 
         dml.setData(dataList);
 
-        esAdapter.getEsSyncService().sync(dml);
+        String database = dml.getDatabase();
+        String table = dml.getTable();
+        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+
+        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertNull(response.getSource().get("_role_name"));

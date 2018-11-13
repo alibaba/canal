@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,9 @@ public class ExtensionLoader<T> {
 
     private static final ConcurrentMap<Class<?>, Object>             EXTENSION_INSTANCES        = new ConcurrentHashMap<>();
 
-    private static final ConcurrentMap<String, Object>               EXTENSION_KEY_INSTANCES    = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, Object>               EXTENSION_KEY_INSTANCE     = new ConcurrentHashMap<>();
+
+    private static final ConcurrentMap<String, List<?>>              EXTENSION_KEY_INSTANCES    = new ConcurrentHashMap<>();
 
     private final Class<?>                                           type;
 
@@ -124,10 +127,11 @@ public class ExtensionLoader<T> {
         if ("true".equals(name)) {
             return getDefaultExtension();
         }
-        Holder<Object> holder = cachedInstances.get(name + "-" + key);
+        String extKey = name + "-" + StringUtils.trimToEmpty(key);
+        Holder<Object> holder = cachedInstances.get(extKey);
         if (holder == null) {
-            cachedInstances.putIfAbsent(name + "-" + key, new Holder<>());
-            holder = cachedInstances.get(name + "-" + key);
+            cachedInstances.putIfAbsent(extKey, new Holder<>());
+            holder = cachedInstances.get(extKey);
         }
         Object instance = holder.get();
         if (instance == null) {
@@ -182,10 +186,10 @@ public class ExtensionLoader<T> {
                                             + ")  could not be instantiated: class could not be found");
         }
         try {
-            T instance = (T) EXTENSION_KEY_INSTANCES.get(name + "-" + key);
+            T instance = (T) EXTENSION_KEY_INSTANCE.get(name + "-" + key);
             if (instance == null) {
-                EXTENSION_KEY_INSTANCES.putIfAbsent(name + "-" + key, clazz.newInstance());
-                instance = (T) EXTENSION_KEY_INSTANCES.get(name + "-" + key);
+                EXTENSION_KEY_INSTANCE.putIfAbsent(name + "-" + key, clazz.newInstance());
+                instance = (T) EXTENSION_KEY_INSTANCE.get(name + "-" + key);
             }
             return instance;
         } catch (Throwable t) {
@@ -194,24 +198,6 @@ public class ExtensionLoader<T> {
                 t);
         }
     }
-
-    @SuppressWarnings("unchecked")
-    // public T newInstance(String name) {
-    // Class<?> clazz = getExtensionClasses().get(name);
-    // if (clazz == null) {
-    // throw new IllegalStateException("Extension instance(name: " + name + ",
-    // class: " + type
-    // + ") could not be instantiated: class could not be found");
-    // }
-    // try {
-    // return (T) clazz.newInstance();
-    // } catch (Throwable t) {
-    // throw new IllegalStateException("Extension instance(name: " + name + ",
-    // class: " + type
-    // + ") could not be instantiated: " + t.getMessage(),
-    // t);
-    // }
-    // }
 
     private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();

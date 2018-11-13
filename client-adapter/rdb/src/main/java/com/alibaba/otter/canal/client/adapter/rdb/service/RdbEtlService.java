@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.sql.DataSource;
 
+import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,8 +92,8 @@ public class RdbEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor.submit(
-                        () -> executeSqlImport(params, srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
+                    Future<Boolean> future = executor
+                        .submit(() -> executeSqlImport(srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
                     futures.add(future);
                 }
 
@@ -102,7 +103,7 @@ public class RdbEtlService {
 
                 executor.shutdown();
             } else {
-                executeSqlImport(params, srcDS, targetDS, sql.toString(), dbMapping, successCount, errMsg);
+                executeSqlImport(srcDS, targetDS, sql.toString(), dbMapping, successCount, errMsg);
             }
 
             logger.info(
@@ -160,8 +161,8 @@ public class RdbEtlService {
     /**
      * 执行导入
      */
-    private static boolean executeSqlImport(List<String> params, DataSource srcDS, DataSource targetDS, String sql,
-                                            DbMapping dbMapping, AtomicLong successCount, List<String> errMsg) {
+    private static boolean executeSqlImport(DataSource srcDS, DataSource targetDS, String sql, DbMapping dbMapping,
+                                            AtomicLong successCount, List<String> errMsg) {
         try {
             Util.sqlRS(srcDS, sql, rs -> {
                 int idx = 1;
@@ -172,16 +173,18 @@ public class RdbEtlService {
                     Map<String, Integer> columnType = new LinkedHashMap<>();
                     ResultSetMetaData rsd = rs.getMetaData();
                     int columnCount = rsd.getColumnCount();
+                    List<String> columns = new ArrayList<>();
                     for (int i = 1; i <= columnCount; i++) {
                         columnType.put(rsd.getColumnName(i).toLowerCase(), rsd.getColumnType(i));
+                        columns.add(rsd.getColumnName(i));
                     }
 
-                    Map<String, String> columnsMap;
-                    if (dbMapping.isMapAll()) {
-                        columnsMap = dbMapping.getAllColumns();
-                    } else {
-                        columnsMap = dbMapping.getTargetColumns();
-                    }
+                    Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, columns);
+                    // if (dbMapping.isMapAll()) {
+                    // columnsMap = dbMapping.getAllColumns();
+                    // } else {
+                    // columnsMap = dbMapping.getTargetColumns();
+                    // }
 
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ").append(dbMapping.getTargetTable()).append(" (");

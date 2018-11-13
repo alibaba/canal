@@ -1,9 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.rdb;
 
 import java.sql.Connection;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -13,8 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.support.*;
@@ -22,26 +24,26 @@ import com.alibaba.otter.canal.client.adapter.support.*;
 @SPI("rdb")
 public class RdbAdapter implements OuterAdapter {
 
-    private static Logger                       logger     = LoggerFactory.getLogger(RdbAdapter.class);
+    private static Logger              logger             = LoggerFactory.getLogger(RdbAdapter.class);
 
-    private volatile Map<String, MappingConfig> rdbMapping = new HashMap<>();                          // 文件名对应配置
-    private Map<String, MappingConfig>          mappingConfigCache;                                    // 库名-表名对应配置
+    private Map<String, MappingConfig> rdbMapping         = new HashMap<>();                          // 文件名对应配置
+    private Map<String, MappingConfig> mappingConfigCache = new HashMap<>();                          // 库名-表名对应配置
 
-    private DruidDataSource                     dataSource;
+    private DruidDataSource            dataSource;
 
-    private RdbSyncService                      rdbSyncService;
+    private RdbSyncService             rdbSyncService;
 
     @Override
     public void init(OuterAdapterConfig configuration) {
-        SPI spi = this.getClass().getAnnotation(SPI.class);
-        Map<String, MappingConfig> rdbMappingTmp = MappingConfigLoader.load(spi.value());
-        // 过滤其他key的配置
+        Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load();
+        // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
-            if (mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey())) {
+            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
+                || (mappingConfig.getOuterAdapterKey() != null
+                    && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
                 rdbMapping.put(key, mappingConfig);
             }
         });
-        mappingConfigCache = new HashMap<>();
         for (MappingConfig mappingConfig : rdbMapping.values()) {
             mappingConfigCache
                 .put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
@@ -67,55 +69,6 @@ public class RdbAdapter implements OuterAdapter {
         } catch (SQLException e) {
             logger.error("ERROR ## failed to initial datasource: " + properties.get("jdbc.url"), e);
         }
-
-        rdbMapping.values().forEach(config -> {
-            try {
-                MappingConfig.DbMapping dbMapping = config.getDbMapping();
-                // 从源表加载所有字段名
-                if (dbMapping.getAllColumns() == null) {
-                    synchronized (RdbSyncService.class) {
-                        if (dbMapping.getAllColumns() == null) {
-                            DataSource srcDS = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-                            Connection srcConn = srcDS.getConnection();
-                            String srcMetaSql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable()
-                                                + " WHERE 1=2 ";
-                            List<String> srcColumns = new ArrayList<>();
-                            Util.sqlRS(srcConn, srcMetaSql, rs -> {
-                                try {
-                                    ResultSetMetaData rmd = rs.getMetaData();
-                                    int cnt = rmd.getColumnCount();
-                                    for (int i = 1; i <= cnt; i++) {
-                                        srcColumns.add(rmd.getColumnName(i).toLowerCase());
-                                    }
-                                } catch (SQLException e) {
-                                    logger.error(e.getMessage(), e);
-                                }
-                            });
-                            Map<String, String> columnsMap = new LinkedHashMap<>();
-
-                            for (String srcColumn : srcColumns) {
-                                String targetColumn = srcColumn;
-                                if (dbMapping.getTargetColumns() != null) {
-                                    for (Map.Entry<String, String> entry : dbMapping.getTargetColumns().entrySet()) {
-                                        String targetColumnName = entry.getKey();
-                                        String srcColumnName = entry.getValue();
-
-                                        if (srcColumnName != null
-                                            && srcColumnName.toLowerCase().equals(srcColumn.toUpperCase())) {
-                                            targetColumn = targetColumnName;
-                                        }
-                                    }
-                                }
-                                columnsMap.put(targetColumn, srcColumn);
-                            }
-                            dbMapping.setAllColumns(columnsMap);
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
-            }
-        });
 
         rdbSyncService = new RdbSyncService(dataSource);
     }
@@ -211,6 +164,15 @@ public class RdbAdapter implements OuterAdapter {
         res.put("targetTable", dbMapping.getTargetTable());
 
         return res;
+    }
+
+    @Override
+    public String getDestination(String task) {
+        MappingConfig config = rdbMapping.get(task);
+        if (config != null) {
+            return config.getDestination();
+        }
+        return null;
     }
 
     @Override

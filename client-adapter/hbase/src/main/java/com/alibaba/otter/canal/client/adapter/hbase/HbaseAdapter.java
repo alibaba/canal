@@ -35,31 +35,32 @@ import com.alibaba.otter.canal.client.adapter.support.*;
 @SPI("hbase")
 public class HbaseAdapter implements OuterAdapter {
 
-    private static Logger                              logger             = LoggerFactory.getLogger(HbaseAdapter.class);
+    private static Logger              logger             = LoggerFactory.getLogger(HbaseAdapter.class);
 
-    private static volatile Map<String, MappingConfig> hbaseMapping       = null;                                       // 文件名对应配置
-    private static volatile Map<String, MappingConfig> mappingConfigCache = null;                                       // 库名-表名对应配置
+    private Map<String, MappingConfig> hbaseMapping       = new HashMap<>();                            // 文件名对应配置
+    private Map<String, MappingConfig> mappingConfigCache = new HashMap<>();                            // 库名-表名对应配置
 
-    private Connection                                 conn;
-    private HbaseSyncService                           hbaseSyncService;
-    private HbaseTemplate                              hbaseTemplate;
+    private Connection                 conn;
+    private HbaseSyncService           hbaseSyncService;
+    private HbaseTemplate              hbaseTemplate;
 
     @Override
     public void init(OuterAdapterConfig configuration) {
         try {
-            if (mappingConfigCache == null) {
-                synchronized (MappingConfig.class) {
-                    if (mappingConfigCache == null) {
-                        hbaseMapping = MappingConfigLoader.load();
-                        mappingConfigCache = new HashMap<>();
-                        for (MappingConfig mappingConfig : hbaseMapping.values()) {
-                            mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                                                   + mappingConfig.getHbaseMapping().getDatabase() + "."
-                                                   + mappingConfig.getHbaseMapping().getTable(),
-                                mappingConfig);
-                        }
-                    }
+            Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load();
+            // 过滤不匹配的key的配置
+            hbaseMappingTmp.forEach((key, mappingConfig) -> {
+                if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
+                    || (mappingConfig.getOuterAdapterKey() != null
+                        && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
+                    hbaseMapping.put(key, mappingConfig);
                 }
+            });
+            for (MappingConfig mappingConfig : hbaseMapping.values()) {
+                mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
+                                       + mappingConfig.getHbaseMapping().getDatabase() + "."
+                                       + mappingConfig.getHbaseMapping().getTable(),
+                    mappingConfig);
             }
 
             Map<String, String> properties = configuration.getProperties();

@@ -79,7 +79,7 @@ public class MappingConfig {
         private int                          readBatch   = 5000;
         private int                          commitBatch = 5000;                  // etl等批量提交大小
 
-        private volatile Map<String, String> allColumns;                          // mapAll为true,自动设置改字段
+//        private volatile Map<String, String> allColumns;                          // mapAll为true,自动设置改字段
 
         public String getDatabase() {
             return database;
@@ -161,12 +161,12 @@ public class MappingConfig {
             this.commitBatch = commitBatch;
         }
 
-        public Map<String, String> getAllColumns() {
-            return allColumns;
-        }
-
-        public void setAllColumns(Map<String, String> allColumns) {
-            this.allColumns = allColumns;
-        }
+//        public Map<String, String> getAllColumns() {
+//            return allColumns;
+//        }
+//
+//        public void setAllColumns(Map<String, String> allColumns) {
+//            this.allColumns = allColumns;
+//        }
     }
 }

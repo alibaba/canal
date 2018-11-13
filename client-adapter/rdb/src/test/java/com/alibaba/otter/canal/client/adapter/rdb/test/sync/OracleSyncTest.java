@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.client.adapter.rdb.RdbAdapter;
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfigs;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 public class OracleSyncTest {
@@ -15,7 +14,6 @@ public class OracleSyncTest {
 
     @Before
     public void init() {
-        AdapterConfigs.put("rdb", "mytest_user.yml");
         rdbAdapter = Common.init();
     }
 
