@@ -35,8 +35,6 @@ canal.conf:
 #          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
 #          jdbc.username: mytest
 #          jdbc.password: m121212
-#          threads: 5
-#          commitSize: 3000
 #      - name: rdb
 #        key: postgres1
 #        properties:
@@ -44,7 +42,6 @@ canal.conf:
 #          jdbc.url: jdbc:postgresql://localhost:5432/postgres
 #          jdbc.username: postgres
 #          jdbc.password: 121212
-#          threads: 5
 #      - name: hbase
 #        properties:
 #          hbase.zookeeper.quorum: 127.0.0.1

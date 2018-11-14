@@ -66,6 +66,9 @@ public class RdbSyncService {
         }
     }
 
+    public void sync(MappingConfig config, List<Dml> dmlList) {
+    }
+
     public void sync(MappingConfig config, Dml dml) {
         try {
             if (config != null) {
@@ -175,7 +178,7 @@ public class RdbSyncService {
 
         for (Map<String, Object> o : old) {
             Map<String, Object> d = data.get(idx - 1);
-            int pkHash = pkHash(dbMapping, d, threads);
+            int pkHash = pkHash(dbMapping, d, o, threads);
 
             ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[pkHash];
             checkQueue(tpe);
@@ -206,7 +209,7 @@ public class RdbSyncService {
                     updateSql.delete(len - 2, len).append(" WHERE ");
 
                     // 拼接主键
-                    appendCondition(dbMapping, updateSql, ctype, values, d);
+                    appendCondition(dbMapping, updateSql, ctype, values, d, o);
 
                     if (logger.isTraceEnabled()) {
                         logger.trace("Update target table, sql: {}", updateSql);
@@ -470,6 +473,11 @@ public class RdbSyncService {
      */
     private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
                                         List<Map<String, ?>> values, Map<String, Object> d) {
+        appendCondition(dbMapping, sql, ctype, values, d, null);
+    }
+
+    private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
+                                        List<Map<String, ?>> values, Map<String, Object> d, Map<String, Object> o) {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();
@@ -479,7 +487,12 @@ public class RdbSyncService {
             }
             sql.append(targetColumnName).append("=? AND ");
             Integer type = ctype.get(targetColumnName.toLowerCase());
-            BatchExecutor.setValue(values, type, d.get(srcColumnName));
+            // 如果有修改主键的情况
+            if (o != null && o.containsKey(srcColumnName)) {
+                BatchExecutor.setValue(values, type, o.get(srcColumnName));
+            } else {
+                BatchExecutor.setValue(values, type, d.get(srcColumnName));
+            }
         }
         int len = sql.length();
         sql.delete(len - 4, len);
@@ -489,6 +502,10 @@ public class RdbSyncService {
      * 取主键hash
      */
     private static int pkHash(DbMapping dbMapping, Map<String, Object> d, int threads) {
+        return pkHash(dbMapping, d, null, threads);
+    }
+
+    private static int pkHash(DbMapping dbMapping, Map<String, Object> d, Map<String, Object> o, int threads) {
         int hash = 0;
         // 取主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
@@ -497,7 +514,12 @@ public class RdbSyncService {
             if (srcColumnName == null) {
                 srcColumnName = targetColumnName;
             }
-            Object value = d.get(srcColumnName);
+            Object value;
+            if (o != null && o.containsKey(srcColumnName)) {
+                value = o.get(srcColumnName);
+            } else {
+                value = d.get(srcColumnName);
+            }
             if (value != null) {
                 hash += value.hashCode();
             }
