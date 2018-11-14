@@ -64,7 +64,8 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
             ; // waiting until running == true
 
         ExecutorService workerExecutor = Executors.newSingleThreadExecutor();
-        int retry = canalClientConfig.getRetries() == null ? 1 : canalClientConfig.getRetries();
+        int retry = canalClientConfig.getRetries() == null
+                    || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 300000 : canalClientConfig.getTimeout(); // 默认超时5分钟
         Integer batchSize = canalClientConfig.getBatchSize();
         if (batchSize == null) {
