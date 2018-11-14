@@ -203,9 +203,13 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             }
 
             for (String schema : schemas) {
-                packet = connection.query("show tables from `" + schema + "`");
+                // filter views
+                packet = connection.query("show full tables from `" + schema + "` where Table_type = 'BASE TABLE'");
                 List<String> tables = new ArrayList<String>();
                 for (String table : packet.getFieldValues()) {
+                    if("BASE TABLE".equalsIgnoreCase(table)){
+                       continue; 
+                    }
                     String fullName = schema + "." + table;
                     if (blackFilter == null || !blackFilter.filter(fullName)) {
                         if (filter == null || filter.filter(fullName)) {
