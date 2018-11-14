@@ -23,11 +23,11 @@ canal.conf:
 #      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
 #      username: root
 #      password: 121212
-#  canalInstances:
-#  - instance: example
-#    groups:
-#    - outAdapters:
-#      - name: logger
+  canalInstances:
+  - instance: example
+    groups:
+    - outAdapters:
+      - name: logger
 #      - name: rdb
 #        key: oracle1
 #        properties:
@@ -35,6 +35,7 @@ canal.conf:
 #          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
 #          jdbc.username: mytest
 #          jdbc.password: m121212
+#          threads: 5
 #      - name: rdb
 #        key: postgres1
 #        properties:
@@ -42,6 +43,7 @@ canal.conf:
 #          jdbc.url: jdbc:postgresql://localhost:5432/postgres
 #          jdbc.username: postgres
 #          jdbc.password: 121212
+#          threads: 5
 #      - name: hbase
 #        properties:
 #          hbase.zookeeper.quorum: 127.0.0.1

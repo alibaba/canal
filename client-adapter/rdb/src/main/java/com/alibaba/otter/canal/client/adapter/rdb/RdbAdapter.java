@@ -59,7 +59,7 @@ public class RdbAdapter implements OuterAdapter {
         dataSource.setPassword(properties.get("jdbc.password"));
         dataSource.setInitialSize(1);
         dataSource.setMinIdle(1);
-        dataSource.setMaxActive(2);
+        dataSource.setMaxActive(20);
         dataSource.setMaxWait(60000);
         dataSource.setTimeBetweenEvictionRunsMillis(60000);
         dataSource.setMinEvictableIdleTimeMillis(300000);
@@ -70,7 +70,12 @@ public class RdbAdapter implements OuterAdapter {
             logger.error("ERROR ## failed to initial datasource: " + properties.get("jdbc.url"), e);
         }
 
-        rdbSyncService = new RdbSyncService(dataSource);
+        String threads = properties.get("threads");
+        if (threads != null) {
+            rdbSyncService = new RdbSyncService(Integer.valueOf(threads), dataSource);
+        } else {
+            rdbSyncService = new RdbSyncService(null, dataSource);
+        }
     }
 
     @Override
@@ -177,6 +182,9 @@ public class RdbAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
+        if (rdbSyncService != null) {
+            rdbSyncService.close();
+        }
         if (dataSource != null) {
             dataSource.close();
         }

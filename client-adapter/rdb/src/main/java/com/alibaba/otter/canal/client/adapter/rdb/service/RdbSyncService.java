@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 import javax.sql.DataSource;
 
@@ -37,10 +37,30 @@ public class RdbSyncService {
 
     private final Map<String, Map<String, Integer>> COLUMNS_TYPE_CACHE = new ConcurrentHashMap<>();
 
-    private DataSource                              dataSource;
+    private BatchExecutor[]                         batchExecutors;
 
-    public RdbSyncService(DataSource dataSource){
-        this.dataSource = dataSource;
+    private int                                     threads            = 1;
+
+    private ExecutorService[]                       threadExecutors;
+
+    public RdbSyncService(Integer threads, DataSource dataSource){
+        try {
+            if (threads != null && threads > 1 && threads < 10) {
+                this.threads = threads;
+            }
+            batchExecutors = new BatchExecutor[this.threads];
+            for (int i = 0; i < this.threads; i++) {
+                Connection conn = dataSource.getConnection();
+                conn.setAutoCommit(false);
+                this.batchExecutors[i] = new BatchExecutor(i, conn, null);
+            }
+            threadExecutors = new ExecutorService[this.threads];
+            for (int i = 0; i < this.threads; i++) {
+                threadExecutors[i] = Executors.newFixedThreadPool(1);
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     public void sync(MappingConfig config, Dml dml) {
@@ -69,7 +89,7 @@ public class RdbSyncService {
      * @param config 配置项
      * @param dml DML数据
      */
-    private void insert(MappingConfig config, Dml dml) throws SQLException {
+    private void insert(MappingConfig config, Dml dml) {
         List<Map<String, Object>> data = dml.getData();
         if (data == null || data.isEmpty()) {
             return;
@@ -77,75 +97,52 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
-        int idx = 1;
-        boolean completed = false;
+        Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data.get(0));
 
-        Connection conn = dataSource.getConnection();
-        conn.setAutoCommit(false);
-        try {
-            Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data.get(0));
+        StringBuilder insertSql = new StringBuilder();
+        insertSql.append("INSERT INTO ").append(dbMapping.getTargetTable()).append(" (");
 
-            StringBuilder insertSql = new StringBuilder();
-            insertSql.append("INSERT INTO ").append(dbMapping.getTargetTable()).append(" (");
+        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+        int len = insertSql.length();
+        insertSql.delete(len - 1, len).append(") VALUES (");
+        int mapLen = columnsMap.size();
+        for (int i = 0; i < mapLen; i++) {
+            insertSql.append("?,");
+        }
+        len = insertSql.length();
+        insertSql.delete(len - 1, len).append(")");
 
-            columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
-            int len = insertSql.length();
-            insertSql.delete(len - 1, len).append(") VALUES (");
-            int mapLen = columnsMap.size();
-            for (int i = 0; i < mapLen; i++) {
-                insertSql.append("?,");
-            }
-            len = insertSql.length();
-            insertSql.delete(len - 1, len).append(")");
+        Map<String, Integer> ctype = getTargetColumnType(batchExecutors[0].getConn(), config);
 
-            Map<String, Integer> ctype = getTargetColumnType(conn, config);
+        String sql = insertSql.toString();
+        for (Map<String, Object> d : data) {
+            int pkHash = pkHash(dbMapping, d, threads);
+            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[pkHash];
+            checkQueue(tpe);
+            tpe.submit(() -> {
+                try {
+                    BatchExecutor batchExecutor = batchExecutors[pkHash];
+                    List<Map<String, ?>> values = new ArrayList<>();
 
-            PreparedStatement pstmt = conn.prepareStatement(insertSql.toString());
-
-            for (Map<String, Object> d : data) {
-                pstmt.clearParameters();
-                int i = 1;
-                for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
-                    String targetClolumnName = entry.getKey();
-                    String srcColumnName = entry.getValue();
-                    if (srcColumnName == null) {
-                        srcColumnName = targetClolumnName;
-                    }
-
-                    Integer type = ctype.get(targetClolumnName.toLowerCase());
-
-                    Object value = d.get(srcColumnName);
-                    if (value != null) {
-                        if (type == null) {
-                            throw new RuntimeException("No column: " + targetClolumnName + " found in target db");
+                    for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
+                        String targetColumnName = entry.getKey();
+                        String srcColumnName = entry.getValue();
+                        if (srcColumnName == null) {
+                            srcColumnName = targetColumnName;
                         }
 
-                        setPStmt(type, pstmt, value, i);
-                    } else {
-                        pstmt.setNull(i, type);
+                        Integer type = ctype.get(targetColumnName.toLowerCase());
+                        if (type == null) {
+                            throw new RuntimeException("No column: " + targetColumnName + " found in target db");
+                        }
+                        Object value = d.get(srcColumnName);
+                        BatchExecutor.setValue(values, type, value);
                     }
-                    i++;
+                    batchExecutor.execute(sql, values);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
                 }
-
-                pstmt.execute();
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Insert into target table, sql: {}", insertSql);
-                }
-
-                if (idx % config.getDbMapping().getCommitBatch() == 0) {
-                    conn.commit();
-                    completed = true;
-                }
-                idx++;
-            }
-            if (!completed) {
-                conn.commit();
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            conn.rollback();
-        } finally {
-            conn.close();
+            });
         }
     }
 
@@ -155,7 +152,7 @@ public class RdbSyncService {
      * @param config 配置项
      * @param dml DML数据
      */
-    private void update(MappingConfig config, Dml dml) throws SQLException {
+    private void update(MappingConfig config, Dml dml) {
         List<Map<String, Object>> data = dml.getData();
         if (data == null || data.isEmpty()) {
             return;
@@ -169,61 +166,55 @@ public class RdbSyncService {
         DbMapping dbMapping = config.getDbMapping();
 
         int idx = 1;
-        boolean completed = false;
+        Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data.get(0));
 
-        Connection conn = dataSource.getConnection();
-        conn.setAutoCommit(false);
+        Map<String, Integer> ctype = getTargetColumnType(batchExecutors[0].getConn(), config);
 
-        try {
-            Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data.get(0));
+        for (Map<String, Object> o : old) {
+            Map<String, Object> d = data.get(idx - 1);
+            int pkHash = pkHash(dbMapping, d, threads);
 
-            Map<String, Integer> ctype = getTargetColumnType(conn, config);
+            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[pkHash];
+            checkQueue(tpe);
+            tpe.submit(() -> {
+                try {
+                    BatchExecutor batchExecutor = batchExecutors[pkHash];
 
-            for (Map<String, Object> o : old) {
-                Map<String, Object> d = data.get(idx - 1);
-                StringBuilder updateSql = new StringBuilder();
-                updateSql.append("UPDATE ").append(dbMapping.getTargetTable()).append(" SET ");
-                Map<String, Object> values = new LinkedHashMap<>();
-                for (String srcColumnName : o.keySet()) {
-                    List<String> targetColumnNames = new ArrayList<>();
-                    columnsMap.forEach((targetColumn, srcColumn) -> {
-                        if (srcColumnName.toLowerCase().equals(srcColumn)) {
-                            targetColumnNames.add(targetColumn);
-                        }
-                    });
-                    if (!targetColumnNames.isEmpty()) {
+                    StringBuilder updateSql = new StringBuilder();
+                    updateSql.append("UPDATE ").append(dbMapping.getTargetTable()).append(" SET ");
 
-                        for (String targetColumnName : targetColumnNames) {
-                            updateSql.append(targetColumnName).append("=?, ");
-                            values.put(targetColumnName, d.get(srcColumnName));
+                    List<Map<String, ?>> values = new ArrayList<>();
+                    for (String srcColumnName : o.keySet()) {
+                        List<String> targetColumnNames = new ArrayList<>();
+                        columnsMap.forEach((targetColumn, srcColumn) -> {
+                            if (srcColumnName.toLowerCase().equals(srcColumn)) {
+                                targetColumnNames.add(targetColumn);
+                            }
+                        });
+                        if (!targetColumnNames.isEmpty()) {
+                            for (String targetColumnName : targetColumnNames) {
+                                updateSql.append(targetColumnName).append("=?, ");
+                                Integer type = ctype.get(targetColumnName.toLowerCase());
+                                BatchExecutor.setValue(values, type, d.get(srcColumnName));
+                            }
                         }
                     }
-                }
-                int len = updateSql.length();
-                updateSql.delete(len - 2, len).append(" WHERE ");
+                    int len = updateSql.length();
+                    updateSql.delete(len - 2, len).append(" WHERE ");
 
-                // 拼接主键
-                appendCondition(dbMapping, updateSql, values, d);
+                    // 拼接主键
+                    appendCondition(dbMapping, updateSql, ctype, values, d);
 
-                sqlExe(conn, updateSql.toString(), ctype, values);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Update target table, sql: {}", updateSql);
+                    }
+                    batchExecutor.execute(updateSql.toString(), values);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            });
 
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Update target table, sql: {}", updateSql);
-                }
-                if (idx % config.getDbMapping().getCommitBatch() == 0) {
-                    conn.commit();
-                    completed = true;
-                }
-                idx++;
-            }
-            if (!completed) {
-                conn.commit();
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            conn.rollback();
-        } finally {
-            conn.close();
+            idx++;
         }
     }
 
@@ -234,7 +225,7 @@ public class RdbSyncService {
      * @param dml
      * @throws SQLException
      */
-    private void delete(MappingConfig config, Dml dml) throws SQLException {
+    private void delete(MappingConfig config, Dml dml) {
         List<Map<String, Object>> data = dml.getData();
         if (data == null || data.isEmpty()) {
             return;
@@ -242,42 +233,32 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
-        int idx = 1;
-        boolean completed = false;
+        Map<String, Integer> ctype = getTargetColumnType(batchExecutors[0].getConn(), config);
 
-        Connection conn = dataSource.getConnection();
-        conn.setAutoCommit(false);
+        for (Map<String, Object> d : data) {
+            int pkHash = pkHash(dbMapping, d, threads);
 
-        try {
-            Map<String, Integer> ctype = getTargetColumnType(conn, config);
+            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[pkHash];
+            checkQueue(tpe);
+            tpe.submit(() -> {
+                try {
+                    BatchExecutor batchExecutor = batchExecutors[pkHash];
+                    StringBuilder sql = new StringBuilder();
+                    sql.append("DELETE FROM ").append(dbMapping.getTargetTable()).append(" WHERE ");
 
-            for (Map<String, Object> d : data) {
-                StringBuilder sql = new StringBuilder();
-                sql.append("DELETE FROM ").append(dbMapping.getTargetTable()).append(" WHERE ");
+                    List<Map<String, ?>> values = new ArrayList<>();
 
-                Map<String, Object> values = new LinkedHashMap<>();
-                // 拼接主键
-                appendCondition(dbMapping, sql, values, d);
+                    // 拼接主键
+                    appendCondition(dbMapping, sql, ctype, values, d);
 
-                sqlExe(conn, sql.toString(), ctype, values);
-
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Delete from target table, sql: {}", sql);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Delete from target table, sql: {}", sql);
+                    }
+                    batchExecutor.execute(sql.toString(), values);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
                 }
-                if (idx % config.getDbMapping().getCommitBatch() == 0) {
-                    conn.commit();
-                    completed = true;
-                }
-                idx++;
-            }
-            if (!completed) {
-                conn.commit();
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            conn.rollback();
-        } finally {
-            conn.close();
+            });
         }
     }
 
@@ -326,6 +307,9 @@ public class RdbSyncService {
      * @param i 索引号
      */
     public static void setPStmt(int type, PreparedStatement pstmt, Object value, int i) throws SQLException {
+        if (value == null) {
+            pstmt.setObject(i, type);
+        }
         switch (type) {
             case Types.BIT:
             case Types.BOOLEAN:
@@ -431,7 +415,7 @@ public class RdbSyncService {
                 break;
             case Types.DATE:
                 if (value instanceof java.util.Date) {
-                    pstmt.setDate(i, new java.sql.Date(((java.util.Date) value).getTime()));
+                    pstmt.setDate(i, new Date(((java.util.Date) value).getTime()));
                 } else if (value instanceof String) {
                     String v = (String) value;
                     if (!v.startsWith("0000-00-00")) {
@@ -447,7 +431,7 @@ public class RdbSyncService {
                 break;
             case Types.TIME:
                 if (value instanceof java.util.Date) {
-                    pstmt.setTime(i, new java.sql.Time(((java.util.Date) value).getTime()));
+                    pstmt.setTime(i, new Time(((java.util.Date) value).getTime()));
                 } else if (value instanceof String) {
                     String v = (String) value;
                     v = "T" + v;
@@ -459,7 +443,7 @@ public class RdbSyncService {
                 break;
             case Types.TIMESTAMP:
                 if (value instanceof java.util.Date) {
-                    pstmt.setTimestamp(i, new java.sql.Timestamp(((java.util.Date) value).getTime()));
+                    pstmt.setTimestamp(i, new Timestamp(((java.util.Date) value).getTime()));
                 } else if (value instanceof String) {
                     String v = (String) value;
                     if (!v.startsWith("0000-00-00")) {
@@ -481,8 +465,8 @@ public class RdbSyncService {
     /**
      * 拼接主键 where条件
      */
-    private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values,
-                                        Map<String, Object> d) {
+    private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
+                                        List<Map<String, ?>> values, Map<String, Object> d) {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();
@@ -491,28 +475,54 @@ public class RdbSyncService {
                 srcColumnName = targetColumnName;
             }
             sql.append(targetColumnName).append("=? AND ");
-            values.put(targetColumnName, d.get(srcColumnName));
+            Integer type = ctype.get(targetColumnName.toLowerCase());
+            BatchExecutor.setValue(values, type, d.get(srcColumnName));
         }
         int len = sql.length();
         sql.delete(len - 4, len);
     }
 
     /**
-     * 执行sql
+     * 取主键hash
      */
-    private static void sqlExe(Connection conn, String sql, Map<String, Integer> ctype, Map<String, Object> values) {
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            int i = 1;
-            for (Map.Entry<String, Object> entry : values.entrySet()) {
-                String targetColumnName = entry.getKey();
-                Object value = entry.getValue();
-                Integer type = ctype.get(targetColumnName.toLowerCase());
-                setPStmt(type, pstmt, value, i++);
+    private static int pkHash(DbMapping dbMapping, Map<String, Object> d, int threads) {
+        int hash = 0;
+        // 取主键
+        for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
+            String targetColumnName = entry.getKey();
+            String srcColumnName = entry.getValue();
+            if (srcColumnName == null) {
+                srcColumnName = targetColumnName;
             }
-            pstmt.execute();
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
+            Object value = d.get(srcColumnName);
+            if (value != null) {
+                hash += value.hashCode();
+            }
+        }
+        hash = Math.abs(hash) % threads;
+        return Math.abs(hash);
+    }
+
+    public void close() {
+        for (BatchExecutor batchExecutor : batchExecutors) {
+            batchExecutor.close();
+        }
+        for (ExecutorService executorService : threadExecutors) {
+            executorService.shutdown();
         }
     }
 
+    private void checkQueue(ThreadPoolExecutor tpe) {
+        // 防止队列过大
+        while (tpe.getQueue().size() > 10000) {
+            try {
+                Thread.sleep(3000);
+                while (tpe.getQueue().size() > 5000) {
+                    Thread.sleep(1000);
+                }
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+    }
 }
