@@ -36,6 +36,7 @@ canal.conf:
 #          jdbc.username: mytest
 #          jdbc.password: m121212
 #          threads: 5
+#          commitSize: 3000
 #      - name: rdb
 #        key: postgres1
 #        properties:

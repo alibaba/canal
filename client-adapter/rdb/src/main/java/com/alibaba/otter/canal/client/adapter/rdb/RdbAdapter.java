@@ -71,11 +71,10 @@ public class RdbAdapter implements OuterAdapter {
         }
 
         String threads = properties.get("threads");
-        if (threads != null) {
-            rdbSyncService = new RdbSyncService(Integer.valueOf(threads), dataSource);
-        } else {
-            rdbSyncService = new RdbSyncService(null, dataSource);
-        }
+        String commitSize = properties.get("commitSize");
+        rdbSyncService = new RdbSyncService(commitSize != null ? Integer.valueOf(commitSize) : null,
+            threads != null ? Integer.valueOf(threads) : null,
+            dataSource);
     }
 
     @Override

@@ -9,7 +9,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.sql.DataSource;
 
@@ -43,7 +46,7 @@ public class RdbSyncService {
 
     private ExecutorService[]                       threadExecutors;
 
-    public RdbSyncService(Integer threads, DataSource dataSource){
+    public RdbSyncService(Integer commitSize, Integer threads, DataSource dataSource){
         try {
             if (threads != null && threads > 1 && threads < 10) {
                 this.threads = threads;
@@ -52,7 +55,7 @@ public class RdbSyncService {
             for (int i = 0; i < this.threads; i++) {
                 Connection conn = dataSource.getConnection();
                 conn.setAutoCommit(false);
-                this.batchExecutors[i] = new BatchExecutor(i, conn, null);
+                this.batchExecutors[i] = new BatchExecutor(i, conn, commitSize);
             }
             threadExecutors = new ExecutorService[this.threads];
             for (int i = 0; i < this.threads; i++) {
