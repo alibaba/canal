@@ -37,7 +37,8 @@ public class CanalKafkaProducer implements CanalMQProducer {
         this.kafkaProperties = kafkaProperties;
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
-        properties.put("acks", "all");
+        properties.put("acks", kafkaProperties.getAcks());
+        properties.put("compression.type",kafkaProperties.getCompressionType());
         properties.put("retries", kafkaProperties.getRetries());
         properties.put("batch.size", kafkaProperties.getBatchSize());
         properties.put("linger.ms", kafkaProperties.getLingerMs());

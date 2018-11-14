@@ -20,6 +20,8 @@ public class MQProperties {
     private int     canalBatchSize         = 50;
     private Long    canalGetTimeout        = 100L;
     private boolean flatMessage            = true;
+    private String compressionType         = "none";
+    private String acks                    = "all";
 
     public static class CanalDestination {
 
@@ -149,4 +151,21 @@ public class MQProperties {
     public void setProducerGroup(String producerGroup) {
         this.producerGroup = producerGroup;
     }
+
+    public String getCompressionType() {
+        return compressionType;
+    }
+
+    public void setCompressionType(String compressionType) {
+        this.compressionType = compressionType;
+    }
+
+    public String getAcks() {
+        return acks;
+    }
+
+    public void setAcks(String acks) {
+        this.acks = acks;
+    }
+
 }
