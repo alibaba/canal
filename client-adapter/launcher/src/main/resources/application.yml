@@ -16,6 +16,8 @@ canal.conf:
 #  zookeeperHosts: slave1:2181
 #  mqServers: slave1:6667 #or rocketmq
 #  flatMessage: true
+  retries:
+  timeout:
 #  srcDataSources:
 #    defaultDS:
 #      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true

@@ -33,8 +33,6 @@ public class CanalAdapterLoader {
 
     private Map<String, AbstractCanalAdapterWorker> canalMQWorker = new HashMap<>();
 
-    private Map<String, OuterAdapter>               outerAdapters = new HashMap<>();                                  // 配置文件对应adapter
-
     private ExtensionLoader<OuterAdapter>           loader;
 
     public CanalAdapterLoader(CanalClientConfig canalClientConfig){
