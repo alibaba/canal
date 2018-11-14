@@ -304,7 +304,6 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             }
             boolean tsdbEnable = BooleanUtils.toBoolean(parameters.getTsdbEnable());
             if (tsdbEnable) {
-                mysqlEventParser.setEnableTsdb(tsdbEnable);
                 mysqlEventParser.setTableMetaTSDBFactory(new DefaultTableMetaTSDBFactory() {
 
                     @Override
@@ -327,6 +326,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                         }
                     }
                 });
+                mysqlEventParser.setEnableTsdb(tsdbEnable);
             }
             eventParser = mysqlEventParser;
         } else if (type.isLocalBinlog()) {
