@@ -17,13 +17,13 @@ public class CanalClientConfig {
 
     private String              zookeeperHosts;     // 集群模式下的zk地址, 如果配置了单机地址则以单机为准!!
 
-    private String              bootstrapServers;   // kafka or rocket mq 地址
+    private String              mqServers;          // kafka or rocket mq 地址
 
     private Boolean             flatMessage = true; // 是否已flatMessage模式传输, 只适用于mq模式
 
     private Integer             batchSize;          // 批大小
 
-    private Integer             retry;              // 重试次数
+    private Integer             retries;            // 重试次数
 
     private Long                timeout;            // 消费超时时间
 
@@ -47,12 +47,12 @@ public class CanalClientConfig {
         this.zookeeperHosts = zookeeperHosts;
     }
 
-    public String getBootstrapServers() {
-        return bootstrapServers;
+    public String getMqServers() {
+        return mqServers;
     }
 
-    public void setBootstrapServers(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
+    public void setMqServers(String mqServers) {
+        this.mqServers = mqServers;
     }
 
     public List<MQTopic> getMqTopics() {
@@ -79,12 +79,12 @@ public class CanalClientConfig {
         this.batchSize = batchSize;
     }
 
-    public Integer getRetry() {
-        return retry;
+    public Integer getRetries() {
+        return retries;
     }
 
-    public void setRetry(Integer retry) {
-        this.retry = retry;
+    public void setRetries(Integer retries) {
+        this.retries = retries;
     }
 
     public Long getTimeout() {

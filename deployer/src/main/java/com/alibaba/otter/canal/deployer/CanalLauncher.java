@@ -85,23 +85,46 @@ public class CanalLauncher {
 
     private static MQProperties buildMQPosition(Properties properties) {
         MQProperties mqProperties = new MQProperties();
-        mqProperties.setServers(CanalController.getProperty(properties, CanalConstants.CANAL_MQ_SERVERS));
-        mqProperties.setRetries(Integer.valueOf(CanalController.getProperty(properties,
-            CanalConstants.CANAL_MQ_RETRIES)));
-        mqProperties.setBatchSize(Integer.valueOf(CanalController.getProperty(properties,
-            CanalConstants.CANAL_MQ_BATCHSIZE)));
-        mqProperties.setLingerMs(Integer.valueOf(CanalController.getProperty(properties,
-            CanalConstants.CANAL_MQ_LINGERMS)));
-        mqProperties.setBufferMemory(Long.valueOf(CanalController.getProperty(properties,
-            CanalConstants.CANAL_MQ_BUFFERMEMORY)));
-        mqProperties.setCanalBatchSize(Integer.valueOf(CanalController.getProperty(properties,
-            CanalConstants.CANAL_MQ_CANALBATCHSIZE)));
-        mqProperties.setCanalGetTimeout(Long.valueOf(CanalController.getProperty(properties,
-            CanalConstants.CANAL_MQ_CANALGETTIMEOUT)));
-        mqProperties.setFlatMessage(Boolean.valueOf(CanalController.getProperty(properties,
-            CanalConstants.CANAL_MQ_FLATMESSAGE)));
-        mqProperties.setCompressionType(CanalController.getProperty(properties,CanalConstants.CANAL_MQ_COMPRESSION_TYPE));
-        mqProperties.setAcks(CanalController.getProperty(properties,CanalConstants.CANAL_MQ_ACKS));
+        String servers = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_SERVERS);
+        if (!StringUtils.isEmpty(servers)) {
+            mqProperties.setServers(servers);
+        }
+        String retires = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_RETRIES);
+        if (!StringUtils.isEmpty(retires)) {
+            mqProperties.setRetries(Integer.valueOf(retires));
+        }
+        String batchSize = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_BATCHSIZE);
+        if (!StringUtils.isEmpty(batchSize)) {
+            mqProperties.setBatchSize(Integer.valueOf(batchSize));
+        }
+        String lingerMs = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_LINGERMS);
+        if (!StringUtils.isEmpty(lingerMs)) {
+            mqProperties.setLingerMs(Integer.valueOf(lingerMs));
+        }
+        String bufferMemory = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_BUFFERMEMORY);
+        if (!StringUtils.isEmpty(bufferMemory)) {
+            mqProperties.setBufferMemory(Long.valueOf(bufferMemory));
+        }
+        String canalBatchSize = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CANALBATCHSIZE);
+        if (!StringUtils.isEmpty(canalBatchSize)) {
+            mqProperties.setCanalBatchSize(Integer.valueOf(canalBatchSize));
+        }
+        String canalGetTimeout = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CANALGETTIMEOUT);
+        if (!StringUtils.isEmpty(canalGetTimeout)) {
+            mqProperties.setCanalGetTimeout(Long.valueOf(canalGetTimeout));
+        }
+        String flatMessage = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_FLATMESSAGE);
+        if (!StringUtils.isEmpty(flatMessage)) {
+            mqProperties.setFlatMessage(Boolean.valueOf(flatMessage));
+        }
+        String compressionType = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_COMPRESSION_TYPE);
+        if (!StringUtils.isEmpty(compressionType)) {
+            mqProperties.setCompressionType(compressionType);
+        }
+        String acks = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_ACKS);
+        if (!StringUtils.isEmpty(acks)) {
+            mqProperties.setAcks(acks);
+        }
         return mqProperties;
     }
 

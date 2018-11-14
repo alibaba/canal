@@ -180,9 +180,6 @@ public class ExtensionLoader<T> {
 
     @SuppressWarnings("unchecked")
     private T createExtension(String name, String key) {
-        // System.out.println("xxxxxxxxxxxxx");
-        // getExtensionClasses().forEach((k, v) -> logger.info("fffff: " + k +
-        // " " + v.getName()));
         Class<?> clazz = getExtensionClasses().get(name);
         if (clazz == null) {
             throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type

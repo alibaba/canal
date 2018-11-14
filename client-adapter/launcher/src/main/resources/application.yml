@@ -14,18 +14,20 @@ spring:
 canal.conf:
   canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
-#  bootstrapServers: slave1:6667 #or rocketmq
+#  mqServers: slave1:6667 #or rocketmq
 #  flatMessage: true
+  retries: 0
+  timeout:
 #  srcDataSources:
 #    defaultDS:
 #      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
 #      username: root
 #      password: 121212
-  canalInstances:
-  - instance: example
-    groups:
-    - outAdapters:
-      - name: logger
+#  canalInstances:
+#  - instance: example
+#    groups:
+#    - outAdapters:
+#      - name: logger
 #      - name: rdb
 #        key: oracle1
 #        properties:

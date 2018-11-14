@@ -33,8 +33,6 @@ public class CanalAdapterLoader {
 
     private Map<String, AbstractCanalAdapterWorker> canalMQWorker = new HashMap<>();
 
-    private Map<String, OuterAdapter>               outerAdapters = new HashMap<>();                                  // 配置文件对应adapter
-
     private ExtensionLoader<OuterAdapter>           loader;
 
     public CanalAdapterLoader(CanalClientConfig canalClientConfig){
@@ -97,7 +95,7 @@ public class CanalAdapterLoader {
                     canalOuterAdapterGroups.add(canalOuterAdapters);
                     if (StringUtils.isBlank(topic.getMqMode()) || "rocketmq".equalsIgnoreCase(topic.getMqMode())) {
                         CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(canalClientConfig,
-                            canalClientConfig.getBootstrapServers(),
+                            canalClientConfig.getMqServers(),
                             topic.getTopic(),
                             group.getGroupId(),
                             canalOuterAdapterGroups,
@@ -106,7 +104,7 @@ public class CanalAdapterLoader {
                         rocketMQWorker.start();
                     } else if ("kafka".equalsIgnoreCase(topic.getMqMode())) {
                         CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(canalClientConfig,
-                            canalClientConfig.getBootstrapServers(),
+                            canalClientConfig.getMqServers(),
                             topic.getTopic(),
                             group.getGroupId(),
                             canalOuterAdapterGroups,
