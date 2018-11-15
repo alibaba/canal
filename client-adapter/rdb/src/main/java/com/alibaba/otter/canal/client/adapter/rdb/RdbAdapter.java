@@ -2,10 +2,7 @@ package com.alibaba.otter.canal.client.adapter.rdb;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.sql.DataSource;
 
@@ -59,7 +56,7 @@ public class RdbAdapter implements OuterAdapter {
         dataSource.setPassword(properties.get("jdbc.password"));
         dataSource.setInitialSize(1);
         dataSource.setMinIdle(1);
-        dataSource.setMaxActive(2);
+        dataSource.setMaxActive(20);
         dataSource.setMaxWait(60000);
         dataSource.setTimeBetweenEvictionRunsMillis(60000);
         dataSource.setMinEvictableIdleTimeMillis(300000);
@@ -70,7 +67,11 @@ public class RdbAdapter implements OuterAdapter {
             logger.error("ERROR ## failed to initial datasource: " + properties.get("jdbc.url"), e);
         }
 
-        rdbSyncService = new RdbSyncService(dataSource);
+        String threads = properties.get("threads");
+        String commitSize = properties.get("commitSize");
+        rdbSyncService = new RdbSyncService(commitSize != null ? Integer.valueOf(commitSize) : null,
+            threads != null ? Integer.valueOf(threads) : null,
+            dataSource);
     }
 
     @Override
@@ -177,6 +178,9 @@ public class RdbAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
+        if (rdbSyncService != null) {
+            rdbSyncService.close();
+        }
         if (dataSource != null) {
             dataSource.close();
         }

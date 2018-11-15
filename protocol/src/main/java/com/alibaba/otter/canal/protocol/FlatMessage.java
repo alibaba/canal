@@ -171,8 +171,9 @@ public class FlatMessage implements Serializable {
                 try {
                     rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
                 } catch (Exception e) {
-                    throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
-                                               + entry.toString(), e);
+                    throw new RuntimeException(
+                        "ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
+                        e);
                 }
 
                 CanalEntry.EventType eventType = rowChange.getEventType();
@@ -214,7 +215,7 @@ public class FlatMessage implements Serializable {
                             mysqlType.put(column.getName(), column.getMysqlType());
                             if (column.getIsNull()) {
                                 row.put(column.getName(), null);
-                            } else  {
+                            } else {
                                 row.put(column.getName(), column.getValue());
                             }
                             // 获取update为true的字段
@@ -284,7 +285,14 @@ public class FlatMessage implements Serializable {
             if (flatMessage.getData() != null) {
                 int idx = 0;
                 for (Map<String, String> row : flatMessage.getData()) {
-                    String value = row.get(pk);
+                    Map<String, String> o = flatMessage.getOld().get(idx);
+                    String value;
+                    // 如果old中有pk值说明主键有修改, 以旧的主键值hash为准
+                    if (o != null && o.containsKey(pk)) {
+                        value = o.get(pk);
+                    } else {
+                        value = row.get(pk);
+                    }
                     if (value == null) {
                         value = "";
                     }

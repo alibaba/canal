@@ -18,6 +18,8 @@ public class MappingConfig {
 
     private String    outerAdapterKey; // 对应适配器的key
 
+    private Boolean   concurrent;      // 是否并行同步
+
     private DbMapping dbMapping;       // db映射配置
 
     public String getDataSourceKey() {
@@ -34,6 +36,14 @@ public class MappingConfig {
 
     public void setOuterAdapterKey(String outerAdapterKey) {
         this.outerAdapterKey = outerAdapterKey;
+    }
+
+    public Boolean getConcurrent() {
+        return concurrent == null ? false : concurrent;
+    }
+
+    public void setConcurrent(Boolean concurrent) {
+        this.concurrent = concurrent;
     }
 
     public DbMapping getDbMapping() {
@@ -66,20 +76,20 @@ public class MappingConfig {
 
     public static class DbMapping {
 
-        private String                       database;                            // 数据库名或schema名
-        private String                       table;                               // 表面名
-        private Map<String, String>          targetPk;                            // 目标表主键字段
-        private boolean                      mapAll      = false;                 // 映射所有字段
-        private String                       targetTable;                         // 目标表名
-        private Map<String, String>          targetColumns;                       // 目标表字段映射
+        private String              database;                            // 数据库名或schema名
+        private String              table;                               // 表面名
+        private Map<String, String> targetPk;                            // 目标表主键字段
+        private boolean             mapAll      = false;                 // 映射所有字段
+        private String              targetTable;                         // 目标表名
+        private Map<String, String> targetColumns;                       // 目标表字段映射
 
-        private String                       etlCondition;                        // etl条件sql
+        private String              etlCondition;                        // etl条件sql
 
-        private Set<String>                  families    = new LinkedHashSet<>(); // column family列表
-        private int                          readBatch   = 5000;
-        private int                          commitBatch = 5000;                  // etl等批量提交大小
+        private Set<String>         families    = new LinkedHashSet<>(); // column family列表
+        private int                 readBatch   = 5000;
+        private int                 commitBatch = 5000;                  // etl等批量提交大小
 
-//        private volatile Map<String, String> allColumns;                          // mapAll为true,自动设置改字段
+        // private volatile Map<String, String> allColumns; // mapAll为true,自动设置改字段
 
         public String getDatabase() {
             return database;
@@ -161,12 +171,12 @@ public class MappingConfig {
             this.commitBatch = commitBatch;
         }
 
-//        public Map<String, String> getAllColumns() {
-//            return allColumns;
-//        }
-//
-//        public void setAllColumns(Map<String, String> allColumns) {
-//            this.allColumns = allColumns;
-//        }
+        // public Map<String, String> getAllColumns() {
+        // return allColumns;
+        // }
+        //
+        // public void setAllColumns(Map<String, String> allColumns) {
+        // this.allColumns = allColumns;
+        // }
     }
 }

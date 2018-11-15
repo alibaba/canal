@@ -2,8 +2,10 @@ package com.alibaba.otter.canal.client.adapter.rdb.test;
 
 import java.io.BufferedReader;
 import java.io.Reader;
-import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import org.junit.Test;
 
@@ -34,30 +36,55 @@ public class DBTest {
         dataSource.init();
 
         Connection conn = dataSource.getConnection();
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery("select * from user t where 1=2");
 
-        ResultSetMetaData rsm = rs.getMetaData();
-        int cnt = rsm.getColumnCount();
-        for (int i = 1; i <= cnt; i++) {
-            System.out.println(rsm.getColumnName(i) + " " + rsm.getColumnType(i));
+        conn.setAutoCommit(false);
+        PreparedStatement pstmt = conn
+            .prepareStatement("insert into user (id,name,role_id,c_time,test1,test2) values (?,?,?,?,?,?)");
+
+        java.util.Date now = new java.util.Date();
+        for (int i = 1; i <= 100000; i++) {
+            pstmt.clearParameters();
+            pstmt.setLong(1, (long) i);
+            pstmt.setString(2, "test_" + i);
+            pstmt.setLong(3, (long) i % 4 + 1);
+            pstmt.setDate(4, new java.sql.Date(now.getTime()));
+            pstmt.setString(5, "tttt");
+            pstmt.setBytes(6, null);
+
+            pstmt.execute();
+            if (i % 5000 == 0) {
+                conn.commit();
+            }
         }
+        conn.commit();
 
-        rs.close();
-        stmt.close();
+        pstmt.close();
 
-//        PreparedStatement pstmt = conn
-//            .prepareStatement("insert into tb_user (id,name,role_id,c_time,test1,test2) values (?,?,?,?,?,?)");
-//        pstmt.setBigDecimal(1, new BigDecimal("5"));
-//        pstmt.setString(2, "test");
-//        pstmt.setBigDecimal(3, new BigDecimal("1"));
-//        pstmt.setDate(4, new Date(new java.util.Date().getTime()));
-//        byte[] a = { (byte) 1, (byte) 2 };
-//        pstmt.setBytes(5, a);
-//        pstmt.setBytes(6, a);
-//        pstmt.execute();
-//
-//        pstmt.close();
+        // Statement stmt = conn.createStatement();
+        // ResultSet rs = stmt.executeQuery("select * from user t where 1=2");
+        //
+        // ResultSetMetaData rsm = rs.getMetaData();
+        // int cnt = rsm.getColumnCount();
+        // for (int i = 1; i <= cnt; i++) {
+        // System.out.println(rsm.getColumnName(i) + " " + rsm.getColumnType(i));
+        // }
+
+        // rs.close();
+        // stmt.close();
+
+        // PreparedStatement pstmt = conn
+        // .prepareStatement("insert into tb_user (id,name,role_id,c_time,test1,test2)
+        // values (?,?,?,?,?,?)");
+        // pstmt.setBigDecimal(1, new BigDecimal("5"));
+        // pstmt.setString(2, "test");
+        // pstmt.setBigDecimal(3, new BigDecimal("1"));
+        // pstmt.setDate(4, new Date(new java.util.Date().getTime()));
+        // byte[] a = { (byte) 1, (byte) 2 };
+        // pstmt.setBytes(5, a);
+        // pstmt.setBytes(6, a);
+        // pstmt.execute();
+        //
+        // pstmt.close();
 
         conn.close();
         dataSource.close();
