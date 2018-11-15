@@ -48,7 +48,7 @@ public class RdbSyncService {
 
     public RdbSyncService(Integer commitSize, Integer threads, DataSource dataSource){
         try {
-            if (threads != null && threads > 1 && threads < 10) {
+            if (threads != null && threads > 1 && threads <= 10) {
                 this.threads = threads;
             }
             batchExecutors = new BatchExecutor[this.threads];
@@ -121,13 +121,24 @@ public class RdbSyncService {
         Map<String, Integer> ctype = getTargetColumnType(batchExecutors[0].getConn(), config);
 
         String sql = insertSql.toString();
+        Integer tbHash = null;
+        // 如果不是并行同步的表
+        if (!config.getConcurrent()) {
+            // 按表名hash到一个线程
+            tbHash = Math.abs(Math.abs(dbMapping.getTargetTable().hashCode()) % threads);
+        }
         for (Map<String, Object> d : data) {
-            int pkHash = pkHash(dbMapping, d, threads);
-            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[pkHash];
+            int hash;
+            if (tbHash != null) {
+                hash = tbHash;
+            } else {
+                hash = pkHash(dbMapping, d, threads);
+            }
+            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
             checkQueue(tpe);
             tpe.submit(() -> {
                 try {
-                    BatchExecutor batchExecutor = batchExecutors[pkHash];
+                    BatchExecutor batchExecutor = batchExecutors[hash];
                     List<Map<String, ?>> values = new ArrayList<>();
 
                     for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
@@ -176,15 +187,26 @@ public class RdbSyncService {
 
         Map<String, Integer> ctype = getTargetColumnType(batchExecutors[0].getConn(), config);
 
+        Integer tbHash = null;
+        if (!config.getConcurrent()) {
+            // 按表名hash到一个线程
+            tbHash = Math.abs(Math.abs(dbMapping.getTargetTable().hashCode()) % threads);
+        }
         for (Map<String, Object> o : old) {
             Map<String, Object> d = data.get(idx - 1);
-            int pkHash = pkHash(dbMapping, d, o, threads);
 
-            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[pkHash];
+            int hash;
+            if (tbHash != null) {
+                hash = tbHash;
+            } else {
+                hash = pkHash(dbMapping, d, o, threads);
+            }
+
+            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
             checkQueue(tpe);
             tpe.submit(() -> {
                 try {
-                    BatchExecutor batchExecutor = batchExecutors[pkHash];
+                    BatchExecutor batchExecutor = batchExecutors[hash];
 
                     StringBuilder updateSql = new StringBuilder();
                     updateSql.append("UPDATE ").append(dbMapping.getTargetTable()).append(" SET ");
@@ -211,10 +233,11 @@ public class RdbSyncService {
                     // 拼接主键
                     appendCondition(dbMapping, updateSql, ctype, values, d, o);
 
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Update target table, sql: {}", updateSql);
-                    }
                     batchExecutor.execute(updateSql.toString(), values);
+
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Execute sql: {}", updateSql);
+                    }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -240,15 +263,24 @@ public class RdbSyncService {
         DbMapping dbMapping = config.getDbMapping();
 
         Map<String, Integer> ctype = getTargetColumnType(batchExecutors[0].getConn(), config);
-
+        Integer tbHash = null;
+        if (!config.getConcurrent()) {
+            // 按表名hash到一个线程
+            tbHash = Math.abs(Math.abs(dbMapping.getTargetTable().hashCode()) % threads);
+        }
         for (Map<String, Object> d : data) {
-            int pkHash = pkHash(dbMapping, d, threads);
+            int hash;
+            if (tbHash != null) {
+                hash = tbHash;
+            } else {
+                hash = pkHash(dbMapping, d, threads);
+            }
 
-            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[pkHash];
+            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
             checkQueue(tpe);
             tpe.submit(() -> {
                 try {
-                    BatchExecutor batchExecutor = batchExecutors[pkHash];
+                    BatchExecutor batchExecutor = batchExecutors[hash];
                     StringBuilder sql = new StringBuilder();
                     sql.append("DELETE FROM ").append(dbMapping.getTargetTable()).append(" WHERE ");
 
@@ -257,10 +289,10 @@ public class RdbSyncService {
                     // 拼接主键
                     appendCondition(dbMapping, sql, ctype, values, d);
 
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Delete from target table, sql: {}", sql);
-                    }
                     batchExecutor.execute(sql.toString(), values);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Execute sql: {}", sql);
+                    }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }

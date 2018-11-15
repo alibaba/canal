@@ -1,5 +1,7 @@
 dataSourceKey: defaultDS
 destination: example
+outerAdapterKey: oracle1
+concurrent: true
 dbMapping:
   database: mytest
   table: user

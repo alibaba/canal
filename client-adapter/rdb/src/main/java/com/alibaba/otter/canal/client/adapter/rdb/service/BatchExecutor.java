@@ -78,12 +78,13 @@ public class BatchExecutor {
             executor.submit(() -> {
                 try {
                     commitLock.lock();
+                    conn.commit(); //直接提交一次
                     if (!condition.await(5, TimeUnit.SECONDS)) {
                         // 超时提交
                         commit();
                     }
-                } catch (InterruptedException e) {
-                    // ignore
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
                 } finally {
                     commitLock.unlock();
                 }
