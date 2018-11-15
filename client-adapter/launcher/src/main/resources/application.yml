@@ -2,6 +2,7 @@ server:
   port: 8081
 logging:
   level:
+#    org.springframework: WARN
     com.alibaba.otter.canal.client.adapter.hbase: DEBUG
     com.alibaba.otter.canal.client.adapter.es: DEBUG
     com.alibaba.otter.canal.client.adapter.rdb: DEBUG
