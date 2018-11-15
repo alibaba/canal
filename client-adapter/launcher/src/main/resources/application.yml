@@ -2,7 +2,7 @@ server:
   port: 8081
 logging:
   level:
-#    org.springframework: WARN
+    org.springframework: WARN
     com.alibaba.otter.canal.client.adapter.hbase: DEBUG
     com.alibaba.otter.canal.client.adapter.es: DEBUG
     com.alibaba.otter.canal.client.adapter.rdb: DEBUG
@@ -28,16 +28,16 @@ canal.conf:
   - instance: example
     groups:
     - outAdapters:
-      - name: logger
-#      - name: rdb
-#        key: oracle1
-#        properties:
-#          jdbc.driverClassName: oracle.jdbc.OracleDriver
-#          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
-#          jdbc.username: mytest
-#          jdbc.password: m121212
-#          threads: 5
-#          commitSize: 3000
+#      - name: logger
+      - name: rdb
+        key: oracle1
+        properties:
+          jdbc.driverClassName: oracle.jdbc.OracleDriver
+          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
+          jdbc.username: mytest
+          jdbc.password: m121212
+          threads: 5
+          commitSize: 5000
 #      - name: rdb
 #        key: postgres1
 #        properties:

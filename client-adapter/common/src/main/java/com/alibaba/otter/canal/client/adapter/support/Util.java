@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
+import java.io.File;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +11,7 @@ import java.util.function.Function;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,5 +89,32 @@ public class Util {
                 }
             }
         }
+    }
+
+    public static File getConfDirPath() {
+        return getConfDirPath("");
+    }
+
+    public static File getConfDirPath(String subConf) {
+        URL url = Util.class.getClassLoader().getResource("");
+        String path;
+        if (url != null) {
+            path = url.getPath();
+        } else {
+            path = new File("").getAbsolutePath();
+        }
+        File file = null;
+        if (path != null) {
+            file = new File(
+                path + ".." + File.separator + Constant.CONF_DIR + File.separator + StringUtils.trimToEmpty(subConf));
+            if (!file.exists()) {
+                file = new File(path + StringUtils.trimToEmpty(subConf));
+            }
+        }
+        if (file == null || !file.exists()) {
+            throw new RuntimeException("Config dir not found.");
+        }
+
+        return file;
     }
 }

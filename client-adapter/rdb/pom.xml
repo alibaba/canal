@@ -39,12 +39,12 @@
             <!--<version>42.1.4</version>-->
             <!--<scope>test</scope>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>com.oracle</groupId>-->
-            <!--<artifactId>ojdbc6</artifactId>-->
-            <!--<version>11.2.0.4.0-atlassian-hosted</version>-->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.4.0-atlassian-hosted</version>
             <!--<scope>test</scope>-->
-        <!--</dependency>-->
+        </dependency>
         <!--<dependency>-->
             <!--<groupId>com.microsoft.sqlserver</groupId>-->
             <!--<artifactId>mssql-jdbc</artifactId>-->

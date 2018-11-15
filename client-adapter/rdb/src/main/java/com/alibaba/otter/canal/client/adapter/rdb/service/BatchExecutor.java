@@ -71,32 +71,32 @@ public class BatchExecutor {
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
-        int i = idx.incrementAndGet();
-
-        // 批次的第一次执行设置延时
-        if (i == 1) {
-            executor.submit(() -> {
-                try {
-                    commitLock.lock();
-                    conn.commit(); //直接提交一次
-                    if (!condition.await(5, TimeUnit.SECONDS)) {
-                        // 超时提交
-                        commit();
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                } finally {
-                    commitLock.unlock();
-                }
-            });
-        }
-
-        if (i == commitSize) {
-            commit();
-        }
+        // int i = idx.incrementAndGet();
+        //
+        // // 批次的第一次执行设置延时
+        // if (i == 1) {
+        // executor.submit(() -> {
+        // try {
+        // commitLock.lock();
+        // conn.commit(); //直接提交一次
+        // if (!condition.await(5, TimeUnit.SECONDS)) {
+        // // 超时提交
+        // commit();
+        // }
+        // } catch (Exception e) {
+        // logger.error(e.getMessage(), e);
+        // } finally {
+        // commitLock.unlock();
+        // }
+        // });
+        // }
+        //
+        // if (i == commitSize) {
+        // commit();
+        // }
     }
 
-    private void commit() {
+    public void commit() {
         try {
             commitLock.lock();
             conn.commit();

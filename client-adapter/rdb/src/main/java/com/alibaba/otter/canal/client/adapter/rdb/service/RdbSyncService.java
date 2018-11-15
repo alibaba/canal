@@ -5,17 +5,13 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.sql.Date;
+import java.util.*;
+import java.util.concurrent.*;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +62,81 @@ public class RdbSyncService {
         }
     }
 
-    public void sync(MappingConfig config, List<Dml> dmlList) {
+    @SuppressWarnings("unchecked")
+    public void sync(Map<String, MappingConfig> mappingConfigCache, List<Dml> dmlList) {
+        try {
+            List<Map<String, Object>>[] dmlPartition = new ArrayList[threads];
+            for (int i = 0; i < threads; i++) {
+                dmlPartition[i] = new ArrayList<>();
+            }
+            // 根据hash拆分
+            dmlList.forEach(dml -> {
+                String destination = StringUtils.trimToEmpty(dml.getDestination());
+                String database = dml.getDatabase();
+                String table = dml.getTable();
+                MappingConfig config = mappingConfigCache.get(destination + "." + database + "." + table);
+
+                Dml[] dmls = new Dml[threads];
+                for (int i = 0; i < threads; i++) {
+                    Dml dmlTmp = new Dml();
+                    dmlTmp.setDestination(dml.getDestination());
+                    dmlTmp.setDatabase(dml.getDatabase());
+                    dmlTmp.setTable(dml.getTable());
+                    dmlTmp.setType(dml.getType());
+                    dmlTmp.setTs(dml.getTs());
+                    dmlTmp.setEs(dml.getEs());
+                    dmlTmp.setSql(dml.getSql());
+                    dmlTmp.setData(new ArrayList<>());
+                    dmlTmp.setOld(new ArrayList<>());
+                    dmls[i] = dmlTmp;
+                }
+                int idx = 0;
+                for (Map<String, Object> data : dml.getData()) {
+                    int hash;
+                    if (config.getConcurrent()) {
+                        hash = pkHash(config.getDbMapping(), data, threads);
+                    } else {
+                        hash = Math.abs(Math.abs(config.getDbMapping().getTargetTable().hashCode()) % threads);
+                    }
+                    Dml dmlTmp = dmls[hash];
+                    dmlTmp.getData().add(data);
+                    if (dml.getOld() != null) {
+                        dmlTmp.getOld().add(dml.getOld().get(idx));
+                    }
+
+                    idx++;
+                }
+                for (int i = 0; i < threads; i++) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("dml", dmls[i]);
+                    item.put("config", config);
+                    dmlPartition[i].add(item);
+                }
+
+            });
+            List<Future<Boolean>> futures = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                int j = i;
+                futures.add(threadExecutors[i].submit(() -> {
+                    dmlPartition[j].forEach(item -> {
+                        MappingConfig config = (MappingConfig) item.get("config");
+                        Dml dml = (Dml) item.get("dml");
+                        sync(config, dml);
+                    });
+                    batchExecutors[j].commit();
+                    return true;
+                }));
+            }
+            for (int i = 0; i < threads; i++) {
+                try {
+                    futures.get(i).get();
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error rdb sync for batch", e);
+        }
     }
 
     public void sync(MappingConfig config, Dml dml) {
@@ -134,32 +204,32 @@ public class RdbSyncService {
             } else {
                 hash = pkHash(dbMapping, d, threads);
             }
-            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
-            checkQueue(tpe);
-            tpe.submit(() -> {
-                try {
-                    BatchExecutor batchExecutor = batchExecutors[hash];
-                    List<Map<String, ?>> values = new ArrayList<>();
+            // ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
+            // checkQueue(tpe);
+            // tpe.submit(() -> {
+            try {
+                BatchExecutor batchExecutor = batchExecutors[hash];
+                List<Map<String, ?>> values = new ArrayList<>();
 
-                    for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
-                        String targetColumnName = entry.getKey();
-                        String srcColumnName = entry.getValue();
-                        if (srcColumnName == null) {
-                            srcColumnName = targetColumnName;
-                        }
-
-                        Integer type = ctype.get(targetColumnName.toLowerCase());
-                        if (type == null) {
-                            throw new RuntimeException("No column: " + targetColumnName + " found in target db");
-                        }
-                        Object value = d.get(srcColumnName);
-                        BatchExecutor.setValue(values, type, value);
+                for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
+                    String targetColumnName = entry.getKey();
+                    String srcColumnName = entry.getValue();
+                    if (srcColumnName == null) {
+                        srcColumnName = targetColumnName;
                     }
-                    batchExecutor.execute(sql, values);
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
+
+                    Integer type = ctype.get(targetColumnName.toLowerCase());
+                    if (type == null) {
+                        throw new RuntimeException("No column: " + targetColumnName + " found in target db");
+                    }
+                    Object value = d.get(srcColumnName);
+                    BatchExecutor.setValue(values, type, value);
                 }
-            });
+                batchExecutor.execute(sql, values);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+            // });
         }
     }
 
@@ -202,46 +272,46 @@ public class RdbSyncService {
                 hash = pkHash(dbMapping, d, o, threads);
             }
 
-            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
-            checkQueue(tpe);
-            tpe.submit(() -> {
-                try {
-                    BatchExecutor batchExecutor = batchExecutors[hash];
+            // ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
+            // checkQueue(tpe);
+            // tpe.submit(() -> {
+            try {
+                BatchExecutor batchExecutor = batchExecutors[hash];
 
-                    StringBuilder updateSql = new StringBuilder();
-                    updateSql.append("UPDATE ").append(dbMapping.getTargetTable()).append(" SET ");
+                StringBuilder updateSql = new StringBuilder();
+                updateSql.append("UPDATE ").append(dbMapping.getTargetTable()).append(" SET ");
 
-                    List<Map<String, ?>> values = new ArrayList<>();
-                    for (String srcColumnName : o.keySet()) {
-                        List<String> targetColumnNames = new ArrayList<>();
-                        columnsMap.forEach((targetColumn, srcColumn) -> {
-                            if (srcColumnName.toLowerCase().equals(srcColumn)) {
-                                targetColumnNames.add(targetColumn);
-                            }
-                        });
-                        if (!targetColumnNames.isEmpty()) {
-                            for (String targetColumnName : targetColumnNames) {
-                                updateSql.append(targetColumnName).append("=?, ");
-                                Integer type = ctype.get(targetColumnName.toLowerCase());
-                                BatchExecutor.setValue(values, type, d.get(srcColumnName));
-                            }
+                List<Map<String, ?>> values = new ArrayList<>();
+                for (String srcColumnName : o.keySet()) {
+                    List<String> targetColumnNames = new ArrayList<>();
+                    columnsMap.forEach((targetColumn, srcColumn) -> {
+                        if (srcColumnName.toLowerCase().equals(srcColumn)) {
+                            targetColumnNames.add(targetColumn);
+                        }
+                    });
+                    if (!targetColumnNames.isEmpty()) {
+                        for (String targetColumnName : targetColumnNames) {
+                            updateSql.append(targetColumnName).append("=?, ");
+                            Integer type = ctype.get(targetColumnName.toLowerCase());
+                            BatchExecutor.setValue(values, type, d.get(srcColumnName));
                         }
                     }
-                    int len = updateSql.length();
-                    updateSql.delete(len - 2, len).append(" WHERE ");
-
-                    // 拼接主键
-                    appendCondition(dbMapping, updateSql, ctype, values, d, o);
-
-                    batchExecutor.execute(updateSql.toString(), values);
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Execute sql: {}", updateSql);
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
                 }
-            });
+                int len = updateSql.length();
+                updateSql.delete(len - 2, len).append(" WHERE ");
+
+                // 拼接主键
+                appendCondition(dbMapping, updateSql, ctype, values, d, o);
+
+                batchExecutor.execute(updateSql.toString(), values);
+
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Execute sql: {}", updateSql);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+            // });
 
             idx++;
         }
@@ -276,27 +346,27 @@ public class RdbSyncService {
                 hash = pkHash(dbMapping, d, threads);
             }
 
-            ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
-            checkQueue(tpe);
-            tpe.submit(() -> {
-                try {
-                    BatchExecutor batchExecutor = batchExecutors[hash];
-                    StringBuilder sql = new StringBuilder();
-                    sql.append("DELETE FROM ").append(dbMapping.getTargetTable()).append(" WHERE ");
+            // ThreadPoolExecutor tpe = (ThreadPoolExecutor) threadExecutors[hash];
+            // checkQueue(tpe);
+            // tpe.submit(() -> {
+            try {
+                BatchExecutor batchExecutor = batchExecutors[hash];
+                StringBuilder sql = new StringBuilder();
+                sql.append("DELETE FROM ").append(dbMapping.getTargetTable()).append(" WHERE ");
 
-                    List<Map<String, ?>> values = new ArrayList<>();
+                List<Map<String, ?>> values = new ArrayList<>();
 
-                    // 拼接主键
-                    appendCondition(dbMapping, sql, ctype, values, d);
+                // 拼接主键
+                appendCondition(dbMapping, sql, ctype, values, d);
 
-                    batchExecutor.execute(sql.toString(), values);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Execute sql: {}", sql);
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
+                batchExecutor.execute(sql.toString(), values);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Execute sql: {}", sql);
                 }
-            });
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+            // });
         }
     }
 

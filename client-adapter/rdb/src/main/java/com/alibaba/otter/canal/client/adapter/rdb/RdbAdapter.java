@@ -3,6 +3,13 @@ package com.alibaba.otter.canal.client.adapter.rdb;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.sql.DataSource;
 
@@ -29,6 +36,8 @@ public class RdbAdapter implements OuterAdapter {
     private DruidDataSource            dataSource;
 
     private RdbSyncService             rdbSyncService;
+
+    private int                        commitSize         = 3000;
 
     @Override
     public void init(OuterAdapterConfig configuration) {
@@ -69,19 +78,58 @@ public class RdbAdapter implements OuterAdapter {
 
         String threads = properties.get("threads");
         String commitSize = properties.get("commitSize");
-        rdbSyncService = new RdbSyncService(commitSize != null ? Integer.valueOf(commitSize) : null,
+        if (commitSize != null) {
+            this.commitSize = Integer.valueOf(commitSize);
+        }
+        rdbSyncService = new RdbSyncService(this.commitSize,
             threads != null ? Integer.valueOf(threads) : null,
             dataSource);
     }
 
+    private AtomicInteger   batchRowNum = new AtomicInteger(0);
+    private List<Dml>       dmlList     = Collections.synchronizedList(new ArrayList<>());
+    private Lock            syncLock    = new ReentrantLock();
+    private Condition       condition   = syncLock.newCondition();
+    private ExecutorService executor    = Executors.newFixedThreadPool(1);
+
     @Override
     public void sync(Dml dml) {
-        String destination = StringUtils.trimToEmpty(dml.getDestination());
-        String database = dml.getDatabase();
-        String table = dml.getTable();
-        MappingConfig config = mappingConfigCache.get(destination + "." + database + "." + table);
+        boolean first = batchRowNum.get() == 0;
+        int currentSize = batchRowNum.addAndGet(dml.getData().size());
+        dmlList.add(dml);
 
-        rdbSyncService.sync(config, dml);
+        if (first) {
+            // 开启超时判断
+            executor.submit(() -> {
+                try {
+                    syncLock.lock();
+                    if (!condition.await(5, TimeUnit.SECONDS)) {
+                        // 批量超时
+                        sync();
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                } finally {
+                    syncLock.unlock();
+                }
+            });
+        }
+
+        if (currentSize > commitSize) {
+            sync();
+        }
+    }
+
+    private void sync() {
+        try {
+            syncLock.lock();
+            rdbSyncService.sync(mappingConfigCache, dmlList);
+            batchRowNum.set(0);
+            dmlList.clear();
+            condition.signal();
+        } finally {
+            syncLock.unlock();
+        }
     }
 
     @Override
@@ -178,9 +226,12 @@ public class RdbAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
+        executor.shutdown();
+
         if (rdbSyncService != null) {
             rdbSyncService.close();
         }
+
         if (dataSource != null) {
             dataSource.close();
         }
