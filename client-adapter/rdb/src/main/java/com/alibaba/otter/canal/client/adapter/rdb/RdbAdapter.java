@@ -3,6 +3,10 @@ package com.alibaba.otter.canal.client.adapter.rdb;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.sql.DataSource;
 
@@ -11,11 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
+import com.alibaba.otter.canal.client.adapter.rdb.support.SimpleDml;
 import com.alibaba.otter.canal.client.adapter.support.*;
 
 @SPI("rdb")
@@ -23,12 +30,20 @@ public class RdbAdapter implements OuterAdapter {
 
     private static Logger              logger             = LoggerFactory.getLogger(RdbAdapter.class);
 
-    private Map<String, MappingConfig> rdbMapping         = new HashMap<>();                          // 文件名对应配置
-    private Map<String, MappingConfig> mappingConfigCache = new HashMap<>();                          // 库名-表名对应配置
+    private Map<String, MappingConfig> rdbMapping         = new HashMap<>();                                // 文件名对应配置
+    private Map<String, MappingConfig> mappingConfigCache = new HashMap<>();                                // 库名-表名对应配置
 
     private DruidDataSource            dataSource;
 
     private RdbSyncService             rdbSyncService;
+
+    private int                        commitSize         = 3000;
+
+    private volatile boolean           running            = false;
+
+    private List<SimpleDml>            dmlList            = Collections.synchronizedList(new ArrayList<>());
+    private Lock                       syncLock           = new ReentrantLock();
+    private ExecutorService            executor           = Executors.newFixedThreadPool(1);
 
     @Override
     public void init(OuterAdapterConfig configuration) {
@@ -69,9 +84,28 @@ public class RdbAdapter implements OuterAdapter {
 
         String threads = properties.get("threads");
         String commitSize = properties.get("commitSize");
-        rdbSyncService = new RdbSyncService(commitSize != null ? Integer.valueOf(commitSize) : null,
-            threads != null ? Integer.valueOf(threads) : null,
-            dataSource);
+        if (commitSize != null) {
+            this.commitSize = Integer.valueOf(commitSize);
+        }
+        rdbSyncService = new RdbSyncService(threads != null ? Integer.valueOf(threads) : null, dataSource);
+
+        running = true;
+
+        executor.submit(() -> {
+            while (running) {
+                try {
+                    int size1 = dmlList.size();
+                    Thread.sleep(3000);
+                    int size2 = dmlList.size();
+                    if (size1 == size2) {
+                        // 超时提交
+                        sync();
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        });
     }
 
     @Override
@@ -81,7 +115,29 @@ public class RdbAdapter implements OuterAdapter {
         String table = dml.getTable();
         MappingConfig config = mappingConfigCache.get(destination + "." + database + "." + table);
 
-        rdbSyncService.sync(config, dml);
+        List<SimpleDml> simpleDmlList = SimpleDml.dml2SimpleDml(dml, config);
+
+        dmlList.addAll(simpleDmlList);
+
+        if (dmlList.size() > commitSize) {
+            sync();
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+        }
+    }
+
+    private void sync() {
+        try {
+            syncLock.lock();
+            if (!dmlList.isEmpty()) {
+                rdbSyncService.sync(dmlList);
+                dmlList.clear();
+            }
+        } finally {
+            syncLock.unlock();
+        }
     }
 
     @Override
@@ -178,9 +234,13 @@ public class RdbAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
+        running = false;
+        executor.shutdown();
+
         if (rdbSyncService != null) {
             rdbSyncService.close();
         }
+
         if (dataSource != null) {
             dataSource.close();
         }

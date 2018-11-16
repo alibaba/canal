@@ -23,18 +23,14 @@ public class BatchExecutor {
 
     private Integer             key;
     private Connection          conn;
-    private int                 commitSize = 3000;
     private AtomicInteger       idx        = new AtomicInteger(0);
     private ExecutorService     executor   = Executors.newFixedThreadPool(1);
     private Lock                commitLock = new ReentrantLock();
     private Condition           condition  = commitLock.newCondition();
 
-    public BatchExecutor(Integer key, Connection conn, Integer commitSize){
+    public BatchExecutor(Integer key, Connection conn){
         this.key = key;
         this.conn = conn;
-        if (commitSize != null) {
-            this.commitSize = commitSize;
-        }
 
         try {
             this.conn.setAutoCommit(false);
@@ -71,32 +67,9 @@ public class BatchExecutor {
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
-        int i = idx.incrementAndGet();
-
-        // 批次的第一次执行设置延时
-        if (i == 1) {
-            executor.submit(() -> {
-                try {
-                    commitLock.lock();
-                    conn.commit(); //直接提交一次
-                    if (!condition.await(5, TimeUnit.SECONDS)) {
-                        // 超时提交
-                        commit();
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                } finally {
-                    commitLock.unlock();
-                }
-            });
-        }
-
-        if (i == commitSize) {
-            commit();
-        }
     }
 
-    private void commit() {
+    public void commit() {
         try {
             commitLock.lock();
             conn.commit();

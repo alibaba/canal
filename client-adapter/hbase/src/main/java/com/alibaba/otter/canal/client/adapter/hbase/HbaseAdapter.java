@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
@@ -37,8 +38,8 @@ public class HbaseAdapter implements OuterAdapter {
 
     private static Logger              logger             = LoggerFactory.getLogger(HbaseAdapter.class);
 
-    private Map<String, MappingConfig> hbaseMapping       = new HashMap<>();                            // 文件名对应配置
-    private Map<String, MappingConfig> mappingConfigCache = new HashMap<>();                            // 库名-表名对应配置
+    private Map<String, MappingConfig> hbaseMapping       = new ConcurrentHashMap<>();                            // 文件名对应配置
+    private Map<String, MappingConfig> mappingConfigCache = new ConcurrentHashMap<>();                            // 库名-表名对应配置
 
     private Connection                 conn;
     private HbaseSyncService           hbaseSyncService;

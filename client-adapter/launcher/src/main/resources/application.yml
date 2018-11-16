@@ -2,6 +2,7 @@ server:
   port: 8081
 logging:
   level:
+    org.springframework: WARN
     com.alibaba.otter.canal.client.adapter.hbase: DEBUG
     com.alibaba.otter.canal.client.adapter.es: DEBUG
     com.alibaba.otter.canal.client.adapter.rdb: DEBUG
@@ -36,7 +37,7 @@ canal.conf:
 #          jdbc.username: mytest
 #          jdbc.password: m121212
 #          threads: 5
-#          commitSize: 3000
+#          commitSize: 5000
 #      - name: rdb
 #        key: postgres1
 #        properties:
