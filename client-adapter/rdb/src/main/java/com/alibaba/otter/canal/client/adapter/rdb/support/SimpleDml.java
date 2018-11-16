@@ -6,7 +6,6 @@ import java.util.Map;
 
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
-import org.apache.commons.lang.StringUtils;
 
 public class SimpleDml {
 
@@ -78,10 +77,6 @@ public class SimpleDml {
     public static List<SimpleDml> dml2SimpleDml(Dml dml, MappingConfig config) {
         List<SimpleDml> simpleDmlList = new ArrayList<>();
         int len = dml.getData().size();
-
-        String destination = StringUtils.trimToEmpty(dml.getDestination());
-        String database = dml.getDatabase();
-        String table = dml.getTable();
 
         for (int i = 0; i < len; i++) {
             SimpleDml simpleDml = new SimpleDml();
