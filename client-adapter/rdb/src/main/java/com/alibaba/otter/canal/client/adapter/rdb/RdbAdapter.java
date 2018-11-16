@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -47,7 +46,6 @@ public class RdbAdapter implements OuterAdapter {
     private List<SimpleDml>                         dmlList            = Collections
         .synchronizedList(new ArrayList<>());
     private Lock                                    syncLock           = new ReentrantLock();
-    private Condition                               condition          = syncLock.newCondition();
     private ExecutorService                         executor           = Executors.newFixedThreadPool(1);
 
     private RdbConfigMonitor                        rdbConfigMonitor;
@@ -112,16 +110,16 @@ public class RdbAdapter implements OuterAdapter {
 
         executor.submit(() -> {
             while (running) {
+                int beginSize = dmlList.size();
                 try {
-                    syncLock.lock();
-                    if (!condition.await(3, TimeUnit.SECONDS)) {
-                        // 超时提交
-                        sync();
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                } finally {
-                    syncLock.unlock();
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                int endSize = dmlList.size();
+
+                if (endSize - beginSize < 300) {
+                    sync();
                 }
             }
         });
@@ -156,7 +154,6 @@ public class RdbAdapter implements OuterAdapter {
         try {
             syncLock.lock();
             if (!dmlList.isEmpty()) {
-                condition.signal();
                 rdbSyncService.sync(dmlList);
                 dmlList.clear();
             }
