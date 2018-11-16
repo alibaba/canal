@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -20,6 +22,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.rdb.monitor.RdbConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SimpleDml;
@@ -44,7 +47,10 @@ public class RdbAdapter implements OuterAdapter {
     private List<SimpleDml>                         dmlList            = Collections
         .synchronizedList(new ArrayList<>());
     private Lock                                    syncLock           = new ReentrantLock();
+    private Condition                               condition          = syncLock.newCondition();
     private ExecutorService                         executor           = Executors.newFixedThreadPool(1);
+
+    private RdbConfigMonitor                        rdbConfigMonitor;
 
     public Map<String, MappingConfig> getRdbMapping() {
         return rdbMapping;
@@ -107,18 +113,21 @@ public class RdbAdapter implements OuterAdapter {
         executor.submit(() -> {
             while (running) {
                 try {
-                    int size1 = dmlList.size();
-                    Thread.sleep(3000);
-                    int size2 = dmlList.size();
-                    if (size1 == size2) {
+                    syncLock.lock();
+                    if (!condition.await(3, TimeUnit.SECONDS)) {
                         // 超时提交
                         sync();
                     }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
+                } finally {
+                    syncLock.unlock();
                 }
             }
         });
+
+        rdbConfigMonitor = new RdbConfigMonitor();
+        rdbConfigMonitor.init(configuration.getKey(), this);
     }
 
     @Override
@@ -131,10 +140,9 @@ public class RdbAdapter implements OuterAdapter {
         if (configMap != null) {
             configMap.values().forEach(config -> {
                 List<SimpleDml> simpleDmlList = SimpleDml.dml2SimpleDml(dml, config);
-
                 dmlList.addAll(simpleDmlList);
 
-                if (dmlList.size() > commitSize) {
+                if (dmlList.size() >= commitSize) {
                     sync();
                 }
             });
@@ -148,6 +156,7 @@ public class RdbAdapter implements OuterAdapter {
         try {
             syncLock.lock();
             if (!dmlList.isEmpty()) {
+                condition.signal();
                 rdbSyncService.sync(dmlList);
                 dmlList.clear();
             }
@@ -251,6 +260,10 @@ public class RdbAdapter implements OuterAdapter {
     @Override
     public void destroy() {
         running = false;
+        if (rdbConfigMonitor != null) {
+            rdbConfigMonitor.destroy();
+        }
+
         executor.shutdown();
 
         if (rdbSyncService != null) {
