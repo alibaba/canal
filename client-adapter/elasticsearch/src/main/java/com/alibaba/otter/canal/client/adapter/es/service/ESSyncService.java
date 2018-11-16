@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class ESSyncService {
         this.esTemplate = esTemplate;
     }
 
-    public void sync(List<ESSyncConfig> esSyncConfigs, Dml dml) {
+    public void sync(Collection<ESSyncConfig> esSyncConfigs, Dml dml) {
         long begin = System.currentTimeMillis();
         if (esSyncConfigs != null) {
             if (logger.isTraceEnabled()) {

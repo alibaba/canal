@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfigLoader;
+import com.alibaba.otter.canal.client.adapter.hbase.monitor.HbaseConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
 import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
@@ -36,14 +37,24 @@ import com.alibaba.otter.canal.client.adapter.support.*;
 @SPI("hbase")
 public class HbaseAdapter implements OuterAdapter {
 
-    private static Logger              logger             = LoggerFactory.getLogger(HbaseAdapter.class);
+    private static Logger                           logger             = LoggerFactory.getLogger(HbaseAdapter.class);
 
-    private Map<String, MappingConfig> hbaseMapping       = new ConcurrentHashMap<>();                            // 文件名对应配置
-    private Map<String, MappingConfig> mappingConfigCache = new ConcurrentHashMap<>();                            // 库名-表名对应配置
+    private Map<String, MappingConfig>              hbaseMapping       = new ConcurrentHashMap<>();                  // 文件名对应配置
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                  // 库名-表名对应配置
 
-    private Connection                 conn;
-    private HbaseSyncService           hbaseSyncService;
-    private HbaseTemplate              hbaseTemplate;
+    private Connection                              conn;
+    private HbaseSyncService                        hbaseSyncService;
+    private HbaseTemplate                           hbaseTemplate;
+
+    private HbaseConfigMonitor                      configMonitor;
+
+    public Map<String, MappingConfig> getHbaseMapping() {
+        return hbaseMapping;
+    }
+
+    public Map<String, Map<String, MappingConfig>> getMappingConfigCache() {
+        return mappingConfigCache;
+    }
 
     @Override
     public void init(OuterAdapterConfig configuration) {
@@ -57,11 +68,14 @@ public class HbaseAdapter implements OuterAdapter {
                     hbaseMapping.put(key, mappingConfig);
                 }
             });
-            for (MappingConfig mappingConfig : hbaseMapping.values()) {
-                mappingConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                                       + mappingConfig.getHbaseMapping().getDatabase() + "."
-                                       + mappingConfig.getHbaseMapping().getTable(),
-                    mappingConfig);
+            for (Map.Entry<String, MappingConfig> entry : hbaseMapping.entrySet()) {
+                String configName = entry.getKey();
+                MappingConfig mappingConfig = entry.getValue();
+                String k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
+                           + mappingConfig.getHbaseMapping().getDatabase() + "."
+                           + mappingConfig.getHbaseMapping().getTable();
+                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k, k1 -> new HashMap<>());
+                configMap.put(configName, mappingConfig);
             }
 
             Map<String, String> properties = configuration.getProperties();
@@ -71,6 +85,9 @@ public class HbaseAdapter implements OuterAdapter {
             conn = ConnectionFactory.createConnection(hbaseConfig);
             hbaseTemplate = new HbaseTemplate(conn);
             hbaseSyncService = new HbaseSyncService(hbaseTemplate);
+
+            configMonitor = new HbaseConfigMonitor();
+            configMonitor.init(this);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -84,8 +101,8 @@ public class HbaseAdapter implements OuterAdapter {
         String destination = StringUtils.trimToEmpty(dml.getDestination());
         String database = dml.getDatabase();
         String table = dml.getTable();
-        MappingConfig config = mappingConfigCache.get(destination + "." + database + "." + table);
-        hbaseSyncService.sync(config, dml);
+        Map<String, MappingConfig> configMap = mappingConfigCache.get(destination + "." + database + "." + table);
+        configMap.values().forEach(config -> hbaseSyncService.sync(config, dml));
     }
 
     @Override
@@ -160,6 +177,9 @@ public class HbaseAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
+        if (configMonitor != null) {
+            configMonitor.destroy();
+        }
         if (conn != null) {
             try {
                 conn.close();

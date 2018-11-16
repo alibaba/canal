@@ -43,4 +43,29 @@ public class MappingConfigsLoader {
 
         return configContentMap;
     }
+
+    public static String loadConfig(String name) {
+        // 先取本地文件，再取类路径
+        File filePath = new File(".." + File.separator + Constant.CONF_DIR + File.separator + name);
+        if (!filePath.exists()) {
+            URL url = MappingConfigsLoader.class.getClassLoader().getResource("");
+            if (url != null) {
+                filePath = new File(url.getPath() + name);
+            }
+        }
+        if (filePath.exists()) {
+            String fileName = filePath.getName();
+            if (!fileName.endsWith(".yml")) {
+                return null;
+            }
+            try (InputStream in = new FileInputStream(filePath)) {
+                byte[] bytes = new byte[in.available()];
+                in.read(bytes);
+                return new String(bytes, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException("Read mapping config: " + filePath.getAbsolutePath() + " error. ", e);
+            }
+        }
+        return null;
+    }
 }

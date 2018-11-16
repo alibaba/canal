@@ -28,22 +28,31 @@ import com.alibaba.otter.canal.client.adapter.support.*;
 @SPI("rdb")
 public class RdbAdapter implements OuterAdapter {
 
-    private static Logger              logger             = LoggerFactory.getLogger(RdbAdapter.class);
+    private static Logger                           logger             = LoggerFactory.getLogger(RdbAdapter.class);
 
-    private Map<String, MappingConfig> rdbMapping         = new HashMap<>();                                // 文件名对应配置
-    private Map<String, MappingConfig> mappingConfigCache = new HashMap<>();                                // 库名-表名对应配置
+    private Map<String, MappingConfig>              rdbMapping         = new HashMap<>();                          // 文件名对应配置
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache = new HashMap<>();                          // 库名-表名对应配置
 
-    private DruidDataSource            dataSource;
+    private DruidDataSource                         dataSource;
 
-    private RdbSyncService             rdbSyncService;
+    private RdbSyncService                          rdbSyncService;
 
-    private int                        commitSize         = 3000;
+    private int                                     commitSize         = 3000;
 
-    private volatile boolean           running            = false;
+    private volatile boolean                        running            = false;
 
-    private List<SimpleDml>            dmlList            = Collections.synchronizedList(new ArrayList<>());
-    private Lock                       syncLock           = new ReentrantLock();
-    private ExecutorService            executor           = Executors.newFixedThreadPool(1);
+    private List<SimpleDml>                         dmlList            = Collections
+        .synchronizedList(new ArrayList<>());
+    private Lock                                    syncLock           = new ReentrantLock();
+    private ExecutorService                         executor           = Executors.newFixedThreadPool(1);
+
+    public Map<String, MappingConfig> getRdbMapping() {
+        return rdbMapping;
+    }
+
+    public Map<String, Map<String, MappingConfig>> getMappingConfigCache() {
+        return mappingConfigCache;
+    }
 
     @Override
     public void init(OuterAdapterConfig configuration) {
@@ -56,11 +65,15 @@ public class RdbAdapter implements OuterAdapter {
                 rdbMapping.put(key, mappingConfig);
             }
         });
-        for (MappingConfig mappingConfig : rdbMapping.values()) {
-            mappingConfigCache
-                .put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                     + mappingConfig.getDbMapping().getDatabase() + "." + mappingConfig.getDbMapping().getTable(),
-                    mappingConfig);
+        for (Map.Entry<String, MappingConfig> entry : rdbMapping.entrySet()) {
+            String configName = entry.getKey();
+            MappingConfig mappingConfig = entry.getValue();
+            Map<String, MappingConfig> configMap = mappingConfigCache
+                .computeIfAbsent(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
+                                 + mappingConfig.getDbMapping().getDatabase() + "."
+                                 + mappingConfig.getDbMapping().getTable(),
+                    k1 -> new HashMap<>());
+            configMap.put(configName, mappingConfig);
         }
 
         Map<String, String> properties = configuration.getProperties();
@@ -113,16 +126,19 @@ public class RdbAdapter implements OuterAdapter {
         String destination = StringUtils.trimToEmpty(dml.getDestination());
         String database = dml.getDatabase();
         String table = dml.getTable();
-        MappingConfig config = mappingConfigCache.get(destination + "." + database + "." + table);
+        Map<String, MappingConfig> configMap = mappingConfigCache.get(destination + "." + database + "." + table);
 
-        List<SimpleDml> simpleDmlList = SimpleDml.dml2SimpleDml(dml, config);
+        if (configMap != null) {
+            configMap.values().forEach(config -> {
+                List<SimpleDml> simpleDmlList = SimpleDml.dml2SimpleDml(dml, config);
 
-        dmlList.addAll(simpleDmlList);
+                dmlList.addAll(simpleDmlList);
 
-        if (dmlList.size() > commitSize) {
-            sync();
+                if (dmlList.size() > commitSize) {
+                    sync();
+                }
+            });
         }
-
         if (logger.isDebugEnabled()) {
             logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
         }
