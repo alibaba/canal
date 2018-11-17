@@ -49,9 +49,9 @@ public class RoleSyncJoinOneTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("admin", response.getSource().get("_role_name"));
@@ -86,9 +86,9 @@ public class RoleSyncJoinOneTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("admin2", response.getSource().get("_role_name"));
@@ -124,9 +124,9 @@ public class RoleSyncJoinOneTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("operator", response.getSource().get("_role_name"));
@@ -151,7 +151,7 @@ public class RoleSyncJoinOneTest {
         old2.put("role_id", 2L);
         dml2.setOld(oldList2);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml2);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml2);
 
         GetResponse response2 = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("admin2", response2.getSource().get("_role_name"));
@@ -181,9 +181,9 @@ public class RoleSyncJoinOneTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertNull(response.getSource().get("_role_name"));

@@ -43,9 +43,9 @@ public class UserSyncSingleTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("Eric", response.getSource().get("_name"));
@@ -76,9 +76,9 @@ public class UserSyncSingleTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("Eric2", response.getSource().get("_name"));
@@ -106,9 +106,9 @@ public class UserSyncSingleTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertNull(response.getSource());

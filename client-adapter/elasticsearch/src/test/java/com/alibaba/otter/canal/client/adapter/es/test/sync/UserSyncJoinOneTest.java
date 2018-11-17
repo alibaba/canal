@@ -20,7 +20,7 @@ public class UserSyncJoinOneTest {
 
     @Before
     public void init() {
-//        AdapterConfigs.put("es", "mytest_user_join_one.yml");
+        // AdapterConfigs.put("es", "mytest_user_join_one.yml");
         esAdapter = Common.init();
     }
 
@@ -50,9 +50,9 @@ public class UserSyncJoinOneTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("Eric_", response.getSource().get("_name"));
@@ -86,9 +86,9 @@ public class UserSyncJoinOneTest {
 
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
+        Map<String, ESSyncConfig> esSyncConfigs = esAdapter.getDbTableEsSyncConfig().get(database + "-" + table);
 
-        esAdapter.getEsSyncService().sync(esSyncConfigs, dml);
+        esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
         GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
         Assert.assertEquals("Eric2_", response.getSource().get("_name"));

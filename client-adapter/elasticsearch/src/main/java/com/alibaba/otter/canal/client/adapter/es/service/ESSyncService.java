@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
-import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
@@ -39,7 +39,7 @@ public class ESSyncService {
         this.esTemplate = esTemplate;
     }
 
-    public void sync(List<ESSyncConfig> esSyncConfigs, Dml dml) {
+    public void sync(Collection<ESSyncConfig> esSyncConfigs, Dml dml) {
         long begin = System.currentTimeMillis();
         if (esSyncConfigs != null) {
             if (logger.isTraceEnabled()) {

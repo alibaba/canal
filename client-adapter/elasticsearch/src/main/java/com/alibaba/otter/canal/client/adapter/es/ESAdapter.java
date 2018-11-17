@@ -1,10 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.es;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +24,7 @@ import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SqlParser;
+import com.alibaba.otter.canal.client.adapter.es.monitor.ESConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.es.service.ESEtlService;
 import com.alibaba.otter.canal.client.adapter.es.service.ESSyncService;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
@@ -37,12 +39,14 @@ import com.alibaba.otter.canal.client.adapter.support.*;
 @SPI("es")
 public class ESAdapter implements OuterAdapter {
 
-    private Map<String, ESSyncConfig>       esSyncConfig        = new LinkedHashMap<>(); // 文件名对应配置
-    private Map<String, List<ESSyncConfig>> dbTableEsSyncConfig = new LinkedHashMap<>(); // schema-table对应配置
+    private Map<String, ESSyncConfig>              esSyncConfig        = new ConcurrentHashMap<>(); // 文件名对应配置
+    private Map<String, Map<String, ESSyncConfig>> dbTableEsSyncConfig = new ConcurrentHashMap<>(); // schema-table对应配置
 
-    private TransportClient                 transportClient;
+    private TransportClient                        transportClient;
 
-    private ESSyncService                   esSyncService;
+    private ESSyncService                          esSyncService;
+
+    private ESConfigMonitor                        esConfigMonitor;
 
     public TransportClient getTransportClient() {
         return transportClient;
@@ -56,7 +60,7 @@ public class ESAdapter implements OuterAdapter {
         return esSyncConfig;
     }
 
-    public Map<String, List<ESSyncConfig>> getDbTableEsSyncConfig() {
+    public Map<String, Map<String, ESSyncConfig>> getDbTableEsSyncConfig() {
         return dbTableEsSyncConfig;
     }
 
@@ -73,7 +77,9 @@ public class ESAdapter implements OuterAdapter {
                 }
             });
 
-            for (ESSyncConfig config : esSyncConfig.values()) {
+            for (Map.Entry<String, ESSyncConfig> entry : esSyncConfig.entrySet()) {
+                String configName = entry.getKey();
+                ESSyncConfig config = entry.getValue();
                 SchemaItem schemaItem = SqlParser.parse(config.getEsMapping().getSql());
                 config.getEsMapping().setSchemaItem(schemaItem);
 
@@ -89,9 +95,9 @@ public class ESAdapter implements OuterAdapter {
                 String schema = matcher.group(2);
 
                 schemaItem.getAliasTableItems().values().forEach(tableItem -> {
-                    List<ESSyncConfig> esSyncConfigs = dbTableEsSyncConfig
-                        .computeIfAbsent(schema + "-" + tableItem.getTableName(), k -> new ArrayList<>());
-                    esSyncConfigs.add(config);
+                    Map<String, ESSyncConfig> esSyncConfigMap = dbTableEsSyncConfig
+                        .computeIfAbsent(schema + "-" + tableItem.getTableName(), k -> new HashMap<>());
+                    esSyncConfigMap.put(configName, config);
                 });
             }
 
@@ -108,6 +114,9 @@ public class ESAdapter implements OuterAdapter {
             }
             ESTemplate esTemplate = new ESTemplate(transportClient);
             esSyncService = new ESSyncService(esTemplate);
+
+            esConfigMonitor = new ESConfigMonitor();
+            esConfigMonitor.init(this);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -117,8 +126,8 @@ public class ESAdapter implements OuterAdapter {
     public void sync(Dml dml) {
         String database = dml.getDatabase();
         String table = dml.getTable();
-        List<ESSyncConfig> esSyncConfigs = dbTableEsSyncConfig.get(database + "-" + table);
-        esSyncService.sync(esSyncConfigs, dml);
+        Map<String, ESSyncConfig> configMap = dbTableEsSyncConfig.get(database + "-" + table);
+        esSyncService.sync(configMap.values(), dml);
     }
 
     @Override
@@ -192,6 +201,10 @@ public class ESAdapter implements OuterAdapter {
 
     @Override
     public String getDestination(String task) {
+        if (esConfigMonitor != null) {
+            esConfigMonitor.destroy();
+        }
+
         ESSyncConfig config = esSyncConfig.get(task);
         if (config != null) {
             return config.getDestination();
