@@ -40,7 +40,6 @@
 		<dependency>
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
-			<version>4.3.0</version>
 		</dependency>
 		<!--kafka_2.11_1.1.1 exclusion掉了netty 的依赖，但CanalServerWithNetty 依赖 netty3,升级kafka至 1.1.1 需要显示加入,否则会启动失败 -->
 		<dependency>
@@ -54,6 +53,10 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.aliyun.openservices</groupId>
+			<artifactId>aliware-apache-rocketmq-cloud</artifactId>
 		</dependency>
 	</dependencies>
 </project>

@@ -7,12 +7,15 @@ import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
+import com.aliyun.openservices.apache.api.impl.authority.SessionCredentials;
+import com.aliyun.openservices.apache.api.impl.rocketmq.ClientRPCHook;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.MessageQueueSelector;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +33,19 @@ public class CanalRocketMQProducer implements CanalMQProducer {
     @Override
     public void init(MQProperties rocketMQProperties) {
         this.mqProperties = rocketMQProperties;
-        defaultMQProducer = new DefaultMQProducer();
+        RPCHook rpcHook = null;
+        if(rocketMQProperties.getAliyunAccessKey().length() > 0
+            && rocketMQProperties.getAliyunSecretKey().length() > 0){
+            SessionCredentials sessionCredentials = new SessionCredentials();
+            sessionCredentials.setAccessKey(rocketMQProperties.getAliyunAccessKey());
+            sessionCredentials.setSecretKey(rocketMQProperties.getAliyunSecretKey());
+            rpcHook = new ClientRPCHook(sessionCredentials);
+        }
+
+        defaultMQProducer = new DefaultMQProducer(rocketMQProperties.getProducerGroup(), rpcHook);
         defaultMQProducer.setNamesrvAddr(rocketMQProperties.getServers());
-        defaultMQProducer.setProducerGroup(rocketMQProperties.getProducerGroup());
         defaultMQProducer.setRetryTimesWhenSendFailed(rocketMQProperties.getRetries());
+        defaultMQProducer.setVipChannelEnabled(false);
         logger.info("##Start RocketMQ producer##");
         try {
             defaultMQProducer.start();
