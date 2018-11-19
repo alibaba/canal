@@ -105,6 +105,11 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 connector.subscribe();
                 while (running) {
                     List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
+
+                    if(messages.size() == 0){
+                        continue;
+                    }
+
                     for (Message message : messages) {
                         long batchId = message.getId();
                         int size = message.getEntries().size();
