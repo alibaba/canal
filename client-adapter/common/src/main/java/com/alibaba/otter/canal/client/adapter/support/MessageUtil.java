@@ -19,12 +19,12 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class MessageUtil {
 
-    public static void parse4Dml(String destination, Message message, Consumer<Dml> consumer) {
+    public static void parse4Dml(String destination, Message message, Consumer<List<Dml>> consumer) {
         if (message == null) {
             return;
         }
         List<CanalEntry.Entry> entries = message.getEntries();
-
+        List<Dml> dmls = new ArrayList<Dml>(entries.size());
         for (CanalEntry.Entry entry : entries) {
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
                 || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
@@ -49,6 +49,7 @@ public class MessageUtil {
             dml.setEs(entry.getHeader().getExecuteTime());
             dml.setTs(System.currentTimeMillis());
             dml.setSql(rowChange.getSql());
+            dmls.add(dml);
             List<Map<String, Object>> data = new ArrayList<>();
             List<Map<String, Object>> old = new ArrayList<>();
 
@@ -88,11 +89,10 @@ public class MessageUtil {
                         Map<String, Object> rowOld = new LinkedHashMap<>();
                         for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
                             if (updateSet.contains(column.getName())) {
-                                rowOld.put(column.getName(),
-                                    JdbcTypeUtil.typeConvert(column.getName(),
-                                        column.getValue(),
-                                        column.getSqlType(),
-                                        column.getMysqlType()));
+                                rowOld.put(column.getName(), JdbcTypeUtil.typeConvert(column.getName(),
+                                    column.getValue(),
+                                    column.getSqlType(),
+                                    column.getMysqlType()));
                             }
                         }
                         // update操作将记录修改前的值
@@ -108,9 +108,21 @@ public class MessageUtil {
                     dml.setOld(old);
                 }
             }
-
-            consumer.accept(dml);
         }
+
+        consumer.accept(dmls);
+    }
+
+    public static List<Dml> flatMessage2Dml(String destination, List<FlatMessage> flatMessages) {
+        List<Dml> dmls = new ArrayList<Dml>(flatMessages.size());
+        for (FlatMessage flatMessage : flatMessages) {
+            Dml dml = flatMessage2Dml(destination, flatMessage);
+            if (dml != null) {
+                dmls.add(dml);
+            }
+        }
+
+        return dmls;
     }
 
     public static Dml flatMessage2Dml(String destination, FlatMessage flatMessage) {
