@@ -2,15 +2,18 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.client.CanalMQConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.adapter.launcher.common.SyncSwitch;
 import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
+import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.MessageUtil;
@@ -79,7 +82,7 @@ public abstract class AbstractCanalAdapterWorker {
         });
     }
 
-    protected void writeOut(final FlatMessage flatMessage) {
+    protected void writeOut(final List<FlatMessage> flatMessages) {
         List<Future<Boolean>> futures = new ArrayList<>();
         // 组间适配器并行运行
         canalOuterAdapters.forEach(outerAdapters -> {
@@ -88,8 +91,8 @@ public abstract class AbstractCanalAdapterWorker {
                     // 组内适配器穿行运行，尽量不要配置组内适配器
                     outerAdapters.forEach(adapter -> {
                         long begin = System.currentTimeMillis();
-                        Dml dml = MessageUtil.flatMessage2Dml(canalDestination, flatMessage);
-                        adapter.sync(dml);
+                        List<Dml> dmls = MessageUtil.flatMessage2Dml(canalDestination, flatMessages);
+                        adapter.sync(dmls);
                         if (logger.isDebugEnabled()) {
                             logger.debug("{} elapsed time: {}",
                                 adapter.getClass().getName(),
@@ -116,8 +119,8 @@ public abstract class AbstractCanalAdapterWorker {
         });
     }
 
-    protected void mqWriteOutData(int retry, long timeout, boolean flatMessage, CanalMQConnector connector,
-                        ExecutorService workerExecutor) {
+    protected void mqWriteOutData(int retry, long timeout, final boolean flatMessage, CanalMQConnector connector,
+                                  ExecutorService workerExecutor) {
         for (int i = 0; i < retry; i++) {
             try {
                 List<?> messages;
@@ -128,11 +131,17 @@ public abstract class AbstractCanalAdapterWorker {
                 }
                 if (messages != null) {
                     Future<Boolean> future = workerExecutor.submit(() -> {
+                        List<FlatMessage> flatMessages = new ArrayList<FlatMessage>(messages.size());
                         for (final Object message : messages) {
                             if (message instanceof FlatMessage) {
-                                writeOut((FlatMessage) message);
+                                flatMessages.add((FlatMessage) message);
                             } else {
                                 writeOut((Message) message);
+                            }
+
+                            if (flatMessage) {
+                                // batch write
+                                writeOut(flatMessages);
                             }
                         }
                         return true;

@@ -29,7 +29,7 @@ public interface OuterAdapter {
      *
      * @param dml 数据包
      */
-    void sync(Dml dml);
+    void sync(List<Dml> dmls);
 
     /**
      * 外部适配器销毁接口

@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.logger;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,12 @@ public class LoggerAdapterExample implements OuterAdapter {
 
     }
 
-    @Override
+    public void sync(List<Dml> dmls) {
+        for (Dml dml : dmls) {
+            sync(dml);
+        }
+    }
+
     public void sync(Dml dml) {
         logger.info("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
     }
