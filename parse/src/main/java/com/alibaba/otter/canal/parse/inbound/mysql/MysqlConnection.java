@@ -503,40 +503,19 @@ public class MysqlConnection implements ErosaConnection {
      * </pre>
      */
     private void loadBinlogChecksum() {
-        if (checkMariaDB()) {
-            ResultSetPacket rs = null;
-            try {
-                rs = query("select @@global.binlog_checksum");
-            } catch (IOException e) {
-                throw new CanalParseException(e);
-            }
-
-            List<String> columnValues = rs.getFieldValues();
-            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
-                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
-            } else {
-                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
-            }
-        }
-    }
-
-    /**
-     * 获取是否为mariadb
-     */
-    private boolean checkMariaDB() {
         ResultSetPacket rs = null;
         try {
-            rs = query("SELECT @@version");
+            rs = query("select @@global.binlog_checksum");
         } catch (IOException e) {
             throw new CanalParseException(e);
         }
 
         List<String> columnValues = rs.getFieldValues();
-        if (columnValues != null && columnValues.size() >= 1) {
-            return StringUtils.containsIgnoreCase(columnValues.get(0), "MariaDB");
+        if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
+            binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
+        } else {
+            binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
         }
-
-        return false;
     }
 
     private void accumulateReceivedBytes(long x) {

@@ -44,10 +44,9 @@ import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 
 public class DirectLogFetcherTest {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger         = LoggerFactory.getLogger(this.getClass());
     protected String       binlogFileName = "mysql-bin.000001";
     protected Charset      charset        = Charset.forName("utf-8");
-    private boolean        isMariaDB;
     private int            binlogChecksum;
 
     @Test
@@ -193,7 +192,7 @@ public class DirectLogFetcherTest {
             // 如果不设置会出现错误： Slave can not handle replication events with the
             // checksum that master is configured to log
             // 但也不能乱设置，需要和mysql server的checksum配置一致，不然RotateLogEvent会出现乱码
-            update("set @master_binlog_checksum= '@@global.binlog_checksum'", connector);
+            update("set @master_binlog_checksum= @@global.binlog_checksum", connector);
         } catch (Exception e) {
             logger.warn("update master_binlog_checksum failed", e);
         }
@@ -217,35 +216,18 @@ public class DirectLogFetcherTest {
     }
 
     private void loadBinlogChecksum(MysqlConnector connector) {
-        checkMariaDB(connector);
-        if (isMariaDB) {
-            ResultSetPacket rs = null;
-            try {
-                rs = query("select @@global.binlog_checksum", connector);
-            } catch (IOException e) {
-                throw new CanalParseException(e);
-            }
-
-            List<String> columnValues = rs.getFieldValues();
-            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
-                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
-            } else {
-                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
-            }
-        }
-    }
-
-    private void checkMariaDB(MysqlConnector connector) {
         ResultSetPacket rs = null;
         try {
-            rs = query("SELECT @@version", connector);
+            rs = query("select @@global.binlog_checksum", connector);
         } catch (IOException e) {
             throw new CanalParseException(e);
         }
 
         List<String> columnValues = rs.getFieldValues();
-        if (columnValues != null && columnValues.size() >= 1) {
-            isMariaDB = StringUtils.containsIgnoreCase(columnValues.get(0), "MariaDB");
+        if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
+            binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
+        } else {
+            binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
         }
     }
 
