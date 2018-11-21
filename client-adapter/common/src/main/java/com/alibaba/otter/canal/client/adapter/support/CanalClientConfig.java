@@ -13,23 +13,25 @@ import java.util.Map;
  */
 public class CanalClientConfig {
 
-    private String              canalServerHost;    // 单机模式下canal server的 ip:port
+    private String              canalServerHost;      // 单机模式下canal server的 ip:port
 
-    private String              zookeeperHosts;     // 集群模式下的zk地址, 如果配置了单机地址则以单机为准!!
+    private String              zookeeperHosts;       // 集群模式下的zk地址, 如果配置了单机地址则以单机为准!!
 
-    private String              mqServers;          // kafka or rocket mq 地址
+    private String              mqServers;            // kafka or rocket mq 地址
 
-    private Boolean             flatMessage = true; // 是否已flatMessage模式传输, 只适用于mq模式
+    private Boolean             flatMessage   = true; // 是否已flatMessage模式传输, 只适用于mq模式
 
-    private Integer             batchSize;          // 批大小
+    private Integer             batchSize;            // 批大小
 
-    private Integer             retries;            // 重试次数
+    private Integer             syncBatchSize = 1000; // 同步分批提交大小
 
-    private Long                timeout;            // 消费超时时间
+    private Integer             retries;              // 重试次数
 
-    private List<MQTopic>       mqTopics;           // mq topic 列表
+    private Long                timeout;              // 消费超时时间
 
-    private List<CanalInstance> canalInstances;     // tcp 模式下 canal 实例列表, 与mq模式不能共存!!
+    private List<MQTopic>       mqTopics;             // mq topic 列表
+
+    private List<CanalInstance> canalInstances;       // tcp 模式下 canal 实例列表, 与mq模式不能共存!!
 
     public String getCanalServerHost() {
         return canalServerHost;
@@ -81,6 +83,14 @@ public class CanalClientConfig {
 
     public Integer getRetries() {
         return retries;
+    }
+
+    public Integer getSyncBatchSize() {
+        return syncBatchSize;
+    }
+
+    public void setSyncBatchSize(Integer syncBatchSize) {
+        this.syncBatchSize = syncBatchSize;
     }
 
     public void setRetries(Integer retries) {

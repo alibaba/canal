@@ -174,7 +174,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
             return Lists.newArrayList();
         }
 
-        ConsumerRecords<String, Message> records = kafkaConsumer.poll(unit.toMillis(timeout)); // 基于配置，最多只能poll到一条数据
+        ConsumerRecords<String, Message> records = kafkaConsumer.poll(unit.toMillis(timeout));
 
         if (!records.isEmpty()) {
             List<Message> messages = new ArrayList<>();

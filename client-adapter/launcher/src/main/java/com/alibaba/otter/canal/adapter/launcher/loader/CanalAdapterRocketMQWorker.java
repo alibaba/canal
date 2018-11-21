@@ -21,7 +21,6 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
 
-    private CanalClientConfig      canalClientConfig;
     private RocketMQCanalConnector connector;
     private String                 topic;
     private boolean                flatMessage;

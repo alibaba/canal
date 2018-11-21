@@ -1,11 +1,8 @@
 package com.alibaba.otter.canal.kafka;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.otter.canal.common.MQProperties;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.spi.CanalMQProducer;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -13,8 +10,12 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Properties;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
 
 /**
  * kafka producer 主操作类
@@ -38,7 +39,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
         properties.put("acks", kafkaProperties.getAcks());
-        properties.put("compression.type",kafkaProperties.getCompressionType());
+        properties.put("compression.type", kafkaProperties.getCompressionType());
         properties.put("retries", kafkaProperties.getRetries());
         properties.put("batch.size", kafkaProperties.getBatchSize());
         properties.put("linger.ms", kafkaProperties.getLingerMs());
@@ -89,6 +90,12 @@ public class CanalKafkaProducer implements CanalMQProducer {
                 }
 
                 producer.send(record).get();
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Send  message to kafka topic: [{}], packet: {}",
+                        canalDestination.getTopic(),
+                        message.toString());
+                }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 // producer.abortTransaction();
@@ -102,7 +109,8 @@ public class CanalKafkaProducer implements CanalMQProducer {
                 for (FlatMessage flatMessage : flatMessages) {
                     if (canalDestination.getPartition() != null) {
                         try {
-                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
+                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(
+                                canalDestination.getTopic(),
                                 canalDestination.getPartition(),
                                 null,
                                 JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
@@ -124,7 +132,8 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                 FlatMessage flatMessagePart = partitionFlatMessage[i];
                                 if (flatMessagePart != null) {
                                     try {
-                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
+                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(
+                                            canalDestination.getTopic(),
                                             i,
                                             null,
                                             JSON.toJSONString(flatMessagePart, SerializerFeature.WriteMapNullValue));
@@ -139,7 +148,8 @@ public class CanalKafkaProducer implements CanalMQProducer {
                             }
                         } else {
                             try {
-                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
+                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(
+                                    canalDestination.getTopic(),
                                     0,
                                     null,
                                     JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
@@ -152,15 +162,17 @@ public class CanalKafkaProducer implements CanalMQProducer {
                             }
                         }
                     }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Send flat message to kafka topic: [{}], packet: {}",
+                            canalDestination.getTopic(),
+                            JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
+                    }
                 }
             }
         }
 
         // producer.commitTransaction();
         callback.commit();
-        if (logger.isDebugEnabled()) {
-            logger.debug("send message to kafka topic: {}", canalDestination.getTopic());
-        }
 
     }
 

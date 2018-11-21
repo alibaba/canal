@@ -19,9 +19,9 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class MessageUtil {
 
-    public static void parse4Dml(String destination, Message message, Consumer<List<Dml>> consumer) {
+    public static List<Dml> parse4Dml(String destination, Message message) {
         if (message == null) {
-            return;
+            return null;
         }
         List<CanalEntry.Entry> entries = message.getEntries();
         List<Dml> dmls = new ArrayList<Dml>(entries.size());
@@ -89,10 +89,11 @@ public class MessageUtil {
                         Map<String, Object> rowOld = new LinkedHashMap<>();
                         for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
                             if (updateSet.contains(column.getName())) {
-                                rowOld.put(column.getName(), JdbcTypeUtil.typeConvert(column.getName(),
-                                    column.getValue(),
-                                    column.getSqlType(),
-                                    column.getMysqlType()));
+                                rowOld.put(column.getName(),
+                                    JdbcTypeUtil.typeConvert(column.getName(),
+                                        column.getValue(),
+                                        column.getSqlType(),
+                                        column.getMysqlType()));
                             }
                         }
                         // update操作将记录修改前的值
@@ -110,7 +111,7 @@ public class MessageUtil {
             }
         }
 
-        consumer.accept(dmls);
+        return dmls;
     }
 
     public static List<Dml> flatMessage2Dml(String destination, List<FlatMessage> flatMessages) {
@@ -176,10 +177,5 @@ public class MessageUtil {
             result.add(resultRow);
         }
         return result;
-    }
-
-    public interface Consumer<T> {
-
-        void accept(T t);
     }
 }

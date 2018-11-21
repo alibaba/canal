@@ -231,7 +231,7 @@ public class RdbEtlService {
 
                                 Object value = rs.getObject(srcColumnName);
                                 if (value != null) {
-                                    RdbSyncService.setPStmt(type, pstmt, value, i);
+                                    SyncUtil.setPStmt(type, pstmt, value, i);
                                 } else {
                                     pstmt.setNull(i, type);
                                 }
