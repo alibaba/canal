@@ -17,17 +17,22 @@ canal.conf:
 #  zookeeperHosts: slave1:2181
 #  mqServers: slave1:6667 #or rocketmq
 #  flatMessage: true
+  batchSize: 500
+  syncBatchSize: 1000
   retries: 0
   timeout:
+  mode: tcp # kafka rocketMQ
 #  srcDataSources:
 #    defaultDS:
 #      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
 #      username: root
 #      password: 121212
-  canalInstances:
+  canalAdapters:
   - instance: example
+#    topic: example
     groups:
-    - outAdapters:
+    - #groupId: g1
+      outerAdapters:
       - name: logger
 #      - name: rdb
 #        key: oracle1
@@ -36,8 +41,6 @@ canal.conf:
 #          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
 #          jdbc.username: mytest
 #          jdbc.password: m121212
-#          threads: 5
-#          commitSize: 5000
 #      - name: rdb
 #        key: postgres1
 #        properties:
@@ -56,10 +59,3 @@ canal.conf:
 #        hosts: 127.0.0.1:9300
 #        properties:
 #          cluster.name: elasticsearch
-#  mqTopics:
-#  - mqMode: kafka # or rocketmq
-#    topic: example
-#    groups:
-#    - groupId: g2
-#      outAdapters:
-#      - name: logger

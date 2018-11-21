@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 
 /**
  * canal 的相关配置类
@@ -28,28 +28,18 @@ public class AdapterCanalConfig extends CanalClientConfig {
     private Map<String, DatasourceConfig> srcDataSources;
 
     @Override
-    public void setCanalInstances(List<CanalInstance> canalInstances) {
-        super.setCanalInstances(canalInstances);
+    public void setCanalAdapters(List<CanalAdapter> canalAdapters) {
+        super.setCanalAdapters(canalAdapters);
 
-        if (canalInstances != null) {
+        if (canalAdapters != null) {
             synchronized (DESTINATIONS) {
                 DESTINATIONS.clear();
-                for (CanalInstance canalInstance : canalInstances) {
-                    DESTINATIONS.add(canalInstance.getInstance());
-                }
-            }
-        }
-    }
-
-    @Override
-    public void setMqTopics(List<MQTopic> mqTopics) {
-        super.setMqTopics(mqTopics);
-
-        if (mqTopics != null) {
-            synchronized (DESTINATIONS) {
-                DESTINATIONS.clear();
-                for (MQTopic mqTopic : mqTopics) {
-                    DESTINATIONS.add(mqTopic.getTopic());
+                for (CanalAdapter canalAdapter : canalAdapters) {
+                    if (canalAdapter.getInstance() != null) {
+                        DESTINATIONS.add(canalAdapter.getInstance());
+                    } else if (canalAdapter.getTopic() != null) {
+                        DESTINATIONS.add(canalAdapter.getInstance());
+                    }
                 }
             }
         }

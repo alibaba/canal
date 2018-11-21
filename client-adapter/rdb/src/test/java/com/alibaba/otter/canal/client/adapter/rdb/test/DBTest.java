@@ -42,7 +42,7 @@ public class DBTest {
             .prepareStatement("insert into user (id,name,role_id,c_time,test1,test2) values (?,?,?,?,?,?)");
 
         java.util.Date now = new java.util.Date();
-        for (int i = 1; i <= 10000; i++) {
+        for (int i = 1; i <= 100000; i++) {
             pstmt.clearParameters();
             pstmt.setLong(1, (long) i);
             pstmt.setString(2, "test_" + i);
