@@ -12,25 +12,26 @@ import java.util.Map;
  */
 public class CanalClientConfig {
 
-    private String             canalServerHost;       // 单机模式下canal server的 ip:port
-
-    private String             zookeeperHosts;        // 集群模式下的zk地址, 如果配置了单机地址则以单机为准!!
-
-    private String             mqServers;             // kafka or rocket mq 地址
-
-    private Boolean            flatMessage   = true;  // 是否已flatMessage模式传输, 只适用于mq模式
-
-    private Integer            batchSize;             // 批大小
-
-    private Integer            syncBatchSize = 1000;  // 同步分批提交大小
-
-    private Integer            retries;               // 重试次数
-
-    private Long               timeout;               // 消费超时时间
-
-    private String             mode          = "tcp"; // 模式 tcp kafka rocketMQ
-
-    private List<CanalAdapter> canalAdapters;         // canal adapters 配置
+    // 单机模式下canal server的ip:port
+    private String             canalServerHost;
+    // 集群模式下的zk地址,如果配置了单机地址则以单机为准!!
+    private String             zookeeperHosts;
+    // kafka or rocket mq 地址
+    private String             mqServers;
+    // 是否已flatMessage模式传输,只适用于mq模式
+    private Boolean            flatMessage   = true;
+    // 批大小
+    private Integer            batchSize;
+    // 同步分批提交大小
+    private Integer            syncBatchSize = 1000;
+    // 重试次数
+    private Integer            retries;
+    // 消费超时时间
+    private Long               timeout;
+    // 模式 tcp kafka rocketMQ
+    private String             mode          = "tcp";
+    // canal adapters 配置
+    private List<CanalAdapter> canalAdapters;
 
     public String getCanalServerHost() {
         return canalServerHost;
@@ -116,9 +117,7 @@ public class CanalClientConfig {
 
         private String      instance; // 实例名
 
-        private String      topic;    // mq topic
-
-        private List<Group> groups;   // 适配器分组列表
+        private List<Group> groups;  // 适配器分组列表
 
         public String getInstance() {
             return instance;
@@ -137,22 +136,13 @@ public class CanalClientConfig {
         public void setGroups(List<Group> groups) {
             this.groups = groups;
         }
-
-        public String getTopic() {
-            return topic;
-        }
-
-        public void setTopic(String topic) {
-            this.topic = topic;
-        }
     }
 
     public static class Group {
 
-        private String                          groupId;                               // group id
-
+        // group id
+        private String                          groupId          = "default";
         private List<OuterAdapterConfig>        outerAdapters;                           // 适配器列表
-
         private Map<String, OuterAdapterConfig> outerAdaptersMap = new LinkedHashMap<>();
 
         public String getGroupId() {

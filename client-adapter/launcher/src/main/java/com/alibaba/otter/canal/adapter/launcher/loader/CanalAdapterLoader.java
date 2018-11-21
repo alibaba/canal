@@ -97,14 +97,14 @@ public class CanalAdapterLoader {
 
                     CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(canalClientConfig,
                         canalClientConfig.getMqServers(),
-                        canalAdapter.getTopic(),
+                        canalAdapter.getInstance(),
                         group.getGroupId(),
                         canalOuterAdapterGroups,
                         canalClientConfig.getFlatMessage());
-                    canalMQWorker.put(canalAdapter.getTopic() + "-kafka-" + group.getGroupId(), canalKafkaWorker);
+                    canalMQWorker.put(canalAdapter.getInstance() + "-kafka-" + group.getGroupId(), canalKafkaWorker);
                     canalKafkaWorker.start();
-                    logger.info("Start adapter for canal-client mq topic: {} succeed",
-                        canalAdapter.getTopic() + "-" + group.getGroupId());
+                    logger.info("Start adapter for canal-client mq topic: {} succeed", canalAdapter.getInstance() + "-"
+                                                                                       + group.getGroupId());
                 }
             }
         } else if ("rocketMQ".equalsIgnoreCase(canalClientConfig.getMode())) {
@@ -119,15 +119,15 @@ public class CanalAdapterLoader {
                     canalOuterAdapterGroups.add(canalOuterAdapters);
                     CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(canalClientConfig,
                         canalClientConfig.getMqServers(),
-                        canalAdapter.getTopic(),
+                        canalAdapter.getInstance(),
                         group.getGroupId(),
                         canalOuterAdapterGroups,
                         canalClientConfig.getFlatMessage());
-                    canalMQWorker.put(canalAdapter.getTopic() + "-rocketmq-" + group.getGroupId(), rocketMQWorker);
+                    canalMQWorker.put(canalAdapter.getInstance() + "-rocketmq-" + group.getGroupId(), rocketMQWorker);
                     rocketMQWorker.start();
 
-                    logger.info("Start adapter for canal-client mq topic: {} succeed",
-                        canalAdapter.getTopic() + "-" + group.getGroupId());
+                    logger.info("Start adapter for canal-client mq topic: {} succeed", canalAdapter.getInstance() + "-"
+                                                                                       + group.getGroupId());
                 }
             }
         }
