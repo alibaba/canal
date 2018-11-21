@@ -1,13 +1,12 @@
 package com.alibaba.otter.canal.client.adapter.rdb.support;
 
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-
-public class SimpleDml {
+public class SingleDml {
 
     private String              destination;
     private String              database;
@@ -15,8 +14,6 @@ public class SimpleDml {
     private String              type;
     private Map<String, Object> data;
     private Map<String, Object> old;
-
-    private MappingConfig       config;
 
     public String getDestination() {
         return destination;
@@ -66,32 +63,21 @@ public class SimpleDml {
         this.old = old;
     }
 
-    public MappingConfig getConfig() {
-        return config;
-    }
-
-    public void setConfig(MappingConfig config) {
-        this.config = config;
-    }
-
-    public static List<SimpleDml> dml2SimpleDml(Dml dml, MappingConfig config) {
-        List<SimpleDml> simpleDmlList = new ArrayList<>();
-        int len = dml.getData().size();
-
-        for (int i = 0; i < len; i++) {
-            SimpleDml simpleDml = new SimpleDml();
-            simpleDml.setDestination(dml.getDestination());
-            simpleDml.setDatabase(dml.getDatabase());
-            simpleDml.setTable(dml.getTable());
-            simpleDml.setType(dml.getType());
-            simpleDml.setData(dml.getData().get(i));
+    public static List<SingleDml> dml2SingleDmls(Dml dml) {
+        int size = dml.getData().size();
+        List<SingleDml> singleDmls = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            SingleDml singleDml = new SingleDml();
+            singleDml.setDestination(dml.getDestination());
+            singleDml.setDatabase(dml.getDatabase());
+            singleDml.setTable(dml.getTable());
+            singleDml.setType(dml.getType());
+            singleDml.setData(dml.getData().get(i));
             if (dml.getOld() != null) {
-                simpleDml.setOld(dml.getOld().get(i));
+                singleDml.setOld(dml.getOld().get(i));
             }
-            simpleDml.setConfig(config);
-            simpleDmlList.add(simpleDml);
+            singleDmls.add(singleDml);
         }
-
-        return simpleDmlList;
+        return singleDmls;
     }
 }

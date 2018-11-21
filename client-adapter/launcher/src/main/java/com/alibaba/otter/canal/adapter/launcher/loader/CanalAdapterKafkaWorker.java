@@ -19,7 +19,6 @@ import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
  */
 public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
 
-    private CanalClientConfig   canalClientConfig;
     private KafkaCanalConnector connector;
     private String              topic;
     private boolean             flatMessage;

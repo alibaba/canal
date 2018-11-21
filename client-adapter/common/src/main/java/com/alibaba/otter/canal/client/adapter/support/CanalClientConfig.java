@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,23 +12,25 @@ import java.util.Map;
  */
 public class CanalClientConfig {
 
-    private String              canalServerHost;    // 单机模式下canal server的 ip:port
+    private String             canalServerHost;       // 单机模式下canal server的 ip:port
 
-    private String              zookeeperHosts;     // 集群模式下的zk地址, 如果配置了单机地址则以单机为准!!
+    private String             zookeeperHosts;        // 集群模式下的zk地址, 如果配置了单机地址则以单机为准!!
 
-    private String              mqServers;          // kafka or rocket mq 地址
+    private String             mqServers;             // kafka or rocket mq 地址
 
-    private Boolean             flatMessage = true; // 是否已flatMessage模式传输, 只适用于mq模式
+    private Boolean            flatMessage   = true;  // 是否已flatMessage模式传输, 只适用于mq模式
 
-    private Integer             batchSize;          // 批大小
+    private Integer            batchSize;             // 批大小
 
-    private Integer             retries;            // 重试次数
+    private Integer            syncBatchSize = 1000;  // 同步分批提交大小
 
-    private Long                timeout;            // 消费超时时间
+    private Integer            retries;               // 重试次数
 
-    private List<MQTopic>       mqTopics;           // mq topic 列表
+    private Long               timeout;               // 消费超时时间
 
-    private List<CanalInstance> canalInstances;     // tcp 模式下 canal 实例列表, 与mq模式不能共存!!
+    private String             mode          = "tcp"; // 模式 tcp kafka rocketMQ
+
+    private List<CanalAdapter> canalAdapters;         // canal adapters 配置
 
     public String getCanalServerHost() {
         return canalServerHost;
@@ -55,14 +56,6 @@ public class CanalClientConfig {
         this.mqServers = mqServers;
     }
 
-    public List<MQTopic> getMqTopics() {
-        return mqTopics;
-    }
-
-    public void setMqTopics(List<MQTopic> mqTopics) {
-        this.mqTopics = mqTopics;
-    }
-
     public Boolean getFlatMessage() {
         return flatMessage;
     }
@@ -83,6 +76,14 @@ public class CanalClientConfig {
         return retries;
     }
 
+    public Integer getSyncBatchSize() {
+        return syncBatchSize;
+    }
+
+    public void setSyncBatchSize(Integer syncBatchSize) {
+        this.syncBatchSize = syncBatchSize;
+    }
+
     public void setRetries(Integer retries) {
         this.retries = retries;
     }
@@ -95,17 +96,27 @@ public class CanalClientConfig {
         this.timeout = timeout;
     }
 
-    public List<CanalInstance> getCanalInstances() {
-        return canalInstances;
+    public String getMode() {
+        return mode;
     }
 
-    public void setCanalInstances(List<CanalInstance> canalInstances) {
-        this.canalInstances = canalInstances;
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
-    public static class CanalInstance {
+    public List<CanalAdapter> getCanalAdapters() {
+        return canalAdapters;
+    }
+
+    public void setCanalAdapters(List<CanalAdapter> canalAdapters) {
+        this.canalAdapters = canalAdapters;
+    }
+
+    public static class CanalAdapter {
 
         private String      instance; // 实例名
+
+        private String      topic;    // mq topic
 
         private List<Group> groups;   // 适配器分组列表
 
@@ -127,50 +138,6 @@ public class CanalClientConfig {
             this.groups = groups;
         }
 
-    }
-
-    public static class Group {
-
-        private List<OuterAdapterConfig>        outAdapters;                           // 适配器列表
-
-        private Map<String, OuterAdapterConfig> outAdaptersMap = new LinkedHashMap<>();
-
-        public List<OuterAdapterConfig> getOutAdapters() {
-            return outAdapters;
-        }
-
-        public void setOutAdapters(List<OuterAdapterConfig> outAdapters) {
-            this.outAdapters = outAdapters;
-            if (outAdapters != null) {
-                outAdapters.forEach(outAdapter -> outAdaptersMap.put(outAdapter.getKey(), outAdapter));
-            }
-        }
-
-        public Map<String, OuterAdapterConfig> getOutAdaptersMap() {
-            return outAdaptersMap;
-        }
-
-        public void setOutAdaptersMap(Map<String, OuterAdapterConfig> outAdaptersMap) {
-            this.outAdaptersMap = outAdaptersMap;
-        }
-    }
-
-    public static class MQTopic {
-
-        private String        mqMode;                     // mq模式 kafka or rocketMQ
-
-        private String        topic;                      // topic名
-
-        private List<MQGroup> groups = new ArrayList<>(); // 分组列表
-
-        public String getMqMode() {
-            return mqMode;
-        }
-
-        public void setMqMode(String mqMode) {
-            this.mqMode = mqMode;
-        }
-
         public String getTopic() {
             return topic;
         }
@@ -178,21 +145,15 @@ public class CanalClientConfig {
         public void setTopic(String topic) {
             this.topic = topic;
         }
-
-        public List<MQGroup> getGroups() {
-            return groups;
-        }
-
-        public void setGroups(List<MQGroup> groups) {
-            this.groups = groups;
-        }
     }
 
-    public static class MQGroup {
+    public static class Group {
 
-        private String                   groupId;     // group id
+        private String                          groupId;                               // group id
 
-        private List<OuterAdapterConfig> outAdapters; // 适配器配置列表
+        private List<OuterAdapterConfig>        outerAdapters;                           // 适配器列表
+
+        private Map<String, OuterAdapterConfig> outerAdaptersMap = new LinkedHashMap<>();
 
         public String getGroupId() {
             return groupId;
@@ -202,14 +163,20 @@ public class CanalClientConfig {
             this.groupId = groupId;
         }
 
-        public List<OuterAdapterConfig> getOutAdapters() {
-            return outAdapters;
+        public List<OuterAdapterConfig> getOuterAdapters() {
+            return outerAdapters;
         }
 
-        public void setOutAdapters(List<OuterAdapterConfig> outAdapters) {
-            this.outAdapters = outAdapters;
+        public void setOuterAdapters(List<OuterAdapterConfig> outerAdapters) {
+            this.outerAdapters = outerAdapters;
         }
 
+        public Map<String, OuterAdapterConfig> getOuterAdaptersMap() {
+            return outerAdaptersMap;
+        }
+
+        public void setOuterAdaptersMap(Map<String, OuterAdapterConfig> outerAdaptersMap) {
+            this.outerAdaptersMap = outerAdaptersMap;
+        }
     }
-
 }

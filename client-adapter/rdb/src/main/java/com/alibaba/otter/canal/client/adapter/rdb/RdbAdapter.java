@@ -2,16 +2,12 @@ package com.alibaba.otter.canal.client.adapter.rdb;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.sql.DataSource;
 
@@ -20,21 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.monitor.RdbConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
-import com.alibaba.otter.canal.client.adapter.rdb.support.SimpleDml;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
-import com.alibaba.otter.canal.client.adapter.support.SPI;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.*;
 
 @SPI("rdb")
 public class RdbAdapter implements OuterAdapter {
@@ -48,13 +36,6 @@ public class RdbAdapter implements OuterAdapter {
 
     private RdbSyncService                          rdbSyncService;
 
-    private int                                     commitSize         = 3000;
-
-    private volatile boolean                        running            = false;
-
-    private List<SimpleDml>                         dmlList            = Collections
-        .synchronizedList(new ArrayList<>());
-    private Lock                                    syncLock           = new ReentrantLock();
     private ExecutorService                         executor           = Executors.newFixedThreadPool(1);
 
     private RdbConfigMonitor                        rdbConfigMonitor;
@@ -109,71 +90,19 @@ public class RdbAdapter implements OuterAdapter {
         }
 
         String threads = properties.get("threads");
-        String commitSize = properties.get("commitSize");
-        if (commitSize != null) {
-            this.commitSize = Integer.valueOf(commitSize);
-        }
-        rdbSyncService = new RdbSyncService(threads != null ? Integer.valueOf(threads) : null, dataSource);
+        // String commitSize = properties.get("commitSize");
 
-        running = true;
-
-        executor.submit(() -> {
-            while (running) {
-                int beginSize = dmlList.size();
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-                int endSize = dmlList.size();
-
-                if (endSize - beginSize < 300) {
-                    sync();
-                }
-            }
-        });
+        rdbSyncService = new RdbSyncService(mappingConfigCache,
+            dataSource,
+            threads != null ? Integer.valueOf(threads) : null);
 
         rdbConfigMonitor = new RdbConfigMonitor();
         rdbConfigMonitor.init(configuration.getKey(), this);
     }
 
+    @Override
     public void sync(List<Dml> dmls) {
-        for (Dml dml : dmls) {
-            sync(dml);
-        }
-    }
-
-    public void sync(Dml dml) {
-        String destination = StringUtils.trimToEmpty(dml.getDestination());
-        String database = dml.getDatabase();
-        String table = dml.getTable();
-        Map<String, MappingConfig> configMap = mappingConfigCache.get(destination + "." + database + "." + table);
-
-        if (configMap != null) {
-            configMap.values().forEach(config -> {
-                List<SimpleDml> simpleDmlList = SimpleDml.dml2SimpleDml(dml, config);
-                dmlList.addAll(simpleDmlList);
-
-                if (dmlList.size() >= commitSize) {
-                    sync();
-                }
-            });
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
-        }
-    }
-
-    private void sync() {
-        try {
-            syncLock.lock();
-            if (!dmlList.isEmpty()) {
-                rdbSyncService.sync(dmlList);
-                dmlList.clear();
-            }
-        } finally {
-            syncLock.unlock();
-        }
+        rdbSyncService.sync(dmls);
     }
 
     @Override
@@ -270,16 +199,15 @@ public class RdbAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
-        running = false;
         if (rdbConfigMonitor != null) {
             rdbConfigMonitor.destroy();
         }
 
-        executor.shutdown();
-
         if (rdbSyncService != null) {
             rdbSyncService.close();
         }
+
+        executor.shutdown();
 
         if (dataSource != null) {
             dataSource.close();

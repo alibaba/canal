@@ -25,8 +25,6 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
 
     private CanalConnector    connector;
 
-    private CanalClientConfig canalClientConfig;
-
     /**
      * 单台client适配器worker的构造方法
      *

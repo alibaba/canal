@@ -2,12 +2,9 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +29,7 @@ public abstract class AbstractCanalAdapterWorker {
 
     protected String                          canalDestination;                                                // canal实例
     protected List<List<OuterAdapter>>        canalOuterAdapters;                                              // 外部适配器
+    protected CanalClientConfig               canalClientConfig;                                               // 配置
     protected ExecutorService                 groupInnerExecutorService;                                       // 组内工作线程池
     protected volatile boolean                running = false;                                                 // 是否运行中
     protected Thread                          thread  = null;
@@ -55,11 +53,15 @@ public abstract class AbstractCanalAdapterWorker {
                     // 组内适配器穿行运行，尽量不要配置组内适配器
                     adapters.forEach(adapter -> {
                         long begin = System.currentTimeMillis();
-                        MessageUtil.parse4Dml(canalDestination, message, adapter::sync);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("{} elapsed time: {}",
-                                adapter.getClass().getName(),
-                                (System.currentTimeMillis() - begin));
+                        List<Dml> dmls = MessageUtil.parse4Dml(canalDestination, message);
+                        if (dmls != null) {
+                            batchSync(dmls, adapter);
+
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("{} elapsed time: {}",
+                                    adapter.getClass().getName(),
+                                    (System.currentTimeMillis() - begin));
+                            }
                         }
                     });
                     return true;
@@ -82,7 +84,7 @@ public abstract class AbstractCanalAdapterWorker {
         });
     }
 
-    protected void writeOut(final List<FlatMessage> flatMessages) {
+    private void writeOut(final List<FlatMessage> flatMessages) {
         List<Future<Boolean>> futures = new ArrayList<>();
         // 组间适配器并行运行
         canalOuterAdapters.forEach(outerAdapters -> {
@@ -92,7 +94,8 @@ public abstract class AbstractCanalAdapterWorker {
                     outerAdapters.forEach(adapter -> {
                         long begin = System.currentTimeMillis();
                         List<Dml> dmls = MessageUtil.flatMessage2Dml(canalDestination, flatMessages);
-                        adapter.sync(dmls);
+                        batchSync(dmls, adapter);
+
                         if (logger.isDebugEnabled()) {
                             logger.debug("{} elapsed time: {}",
                                 adapter.getClass().getName(),
@@ -119,6 +122,7 @@ public abstract class AbstractCanalAdapterWorker {
         });
     }
 
+    @SuppressWarnings("unchecked")
     protected void mqWriteOutData(int retry, long timeout, final boolean flatMessage, CanalMQConnector connector,
                                   ExecutorService workerExecutor) {
         for (int i = 0; i < retry; i++) {
@@ -131,17 +135,12 @@ public abstract class AbstractCanalAdapterWorker {
                 }
                 if (messages != null) {
                     Future<Boolean> future = workerExecutor.submit(() -> {
-                        List<FlatMessage> flatMessages = new ArrayList<FlatMessage>(messages.size());
-                        for (final Object message : messages) {
-                            if (message instanceof FlatMessage) {
-                                flatMessages.add((FlatMessage) message);
-                            } else {
+                        if (flatMessage) {
+                            // batch write
+                            writeOut((List<FlatMessage>) messages);
+                        } else {
+                            for (final Object message : messages) {
                                 writeOut((Message) message);
-                            }
-
-                            if (flatMessage) {
-                                // batch write
-                                writeOut(flatMessages);
                             }
                         }
                         return true;
@@ -171,6 +170,28 @@ public abstract class AbstractCanalAdapterWorker {
                 }
             }
         }
+    }
+
+    /**
+     * 分批同步
+     * 
+     * @param dmls
+     * @param adapter
+     */
+    private void batchSync(List<Dml> dmls, OuterAdapter adapter) {
+        // 分批同步
+        int len = 0;
+        List<Dml> dmlsBatch = new ArrayList<>();
+        for (Dml dml : dmls) {
+            dmlsBatch.add(dml);
+            len += dml.getData().size();
+            if (len >= canalClientConfig.getSyncBatchSize()) {
+                adapter.sync(dmlsBatch);
+                dmlsBatch.clear();
+                len = 0;
+            }
+        }
+        adapter.sync(dmlsBatch);
     }
 
     public void start() {

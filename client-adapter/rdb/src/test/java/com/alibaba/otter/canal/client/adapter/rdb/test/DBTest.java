@@ -48,7 +48,7 @@ public class DBTest {
             pstmt.setString(2, "test_" + i);
             pstmt.setLong(3, (long) i % 4 + 1);
             pstmt.setDate(4, new java.sql.Date(now.getTime()));
-            pstmt.setString(5, "tttt");
+            pstmt.setString(5, null);
             pstmt.setBytes(6, null);
 
             pstmt.execute();

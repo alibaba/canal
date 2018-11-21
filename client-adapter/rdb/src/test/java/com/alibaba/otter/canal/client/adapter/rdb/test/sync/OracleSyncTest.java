@@ -35,7 +35,7 @@ public class OracleSyncTest {
         data.put("test1", "sdfasdfawe中国asfwef");
         dml.setData(dataList);
 
-        rdbAdapter.sync(dml);
+        rdbAdapter.sync(Collections.singletonList(dml));
     }
 
     @Test
@@ -58,7 +58,7 @@ public class OracleSyncTest {
         old.put("name", "Eric");
         dml.setOld(oldList);
 
-        rdbAdapter.sync(dml);
+        rdbAdapter.sync(Collections.singletonList(dml));
     }
 
 }

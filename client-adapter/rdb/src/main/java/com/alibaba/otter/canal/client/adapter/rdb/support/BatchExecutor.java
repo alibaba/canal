@@ -1,32 +1,28 @@
-package com.alibaba.otter.canal.client.adapter.rdb.service;
+package com.alibaba.otter.canal.client.adapter.rdb.support;
 
+import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BatchExecutor {
+public class BatchExecutor implements Closeable {
 
-    private static final Logger logger     = LoggerFactory.getLogger(BatchExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(BatchExecutor.class);
 
     private Integer             key;
     private Connection          conn;
-    private AtomicInteger       idx        = new AtomicInteger(0);
-    private ExecutorService     executor   = Executors.newFixedThreadPool(1);
-    private Lock                commitLock = new ReentrantLock();
-    private Condition           condition  = commitLock.newCondition();
+    private AtomicInteger       idx    = new AtomicInteger(0);
+
+    public BatchExecutor(Connection conn){
+        this(1, conn);
+    }
 
     public BatchExecutor(Integer key, Connection conn){
         this.key = key;
@@ -60,10 +56,11 @@ public class BatchExecutor {
             for (int i = 0; i < len; i++) {
                 int type = (Integer) values.get(i).get("type");
                 Object value = values.get(i).get("value");
-                RdbSyncService.setPStmt(type, pstmt, value, i + 1);
+                SyncUtil.setPStmt(type, pstmt, value, i + 1);
             }
 
             pstmt.execute();
+            idx.incrementAndGet();
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
@@ -71,20 +68,17 @@ public class BatchExecutor {
 
     public void commit() {
         try {
-            commitLock.lock();
             conn.commit();
             if (logger.isTraceEnabled()) {
                 logger.trace("Batch executor: " + key + " commit " + idx.get() + " rows");
             }
-            condition.signal();
             idx.set(0);
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
-        } finally {
-            commitLock.unlock();
         }
     }
 
+    @Override
     public void close() {
         if (conn != null) {
             try {
@@ -93,6 +87,5 @@ public class BatchExecutor {
                 logger.error(e.getMessage(), e);
             }
         }
-        executor.shutdown();
     }
 }

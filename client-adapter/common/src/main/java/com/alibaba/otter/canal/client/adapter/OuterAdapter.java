@@ -27,7 +27,7 @@ public interface OuterAdapter {
     /**
      * 往适配器中同步数据
      *
-     * @param dml 数据包
+     * @param dmls 数据包
      */
     void sync(List<Dml> dmls);
 
