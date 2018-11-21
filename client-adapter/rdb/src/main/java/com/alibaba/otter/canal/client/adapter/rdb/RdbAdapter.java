@@ -89,10 +89,12 @@ public class RdbAdapter implements OuterAdapter {
             logger.error("ERROR ## failed to initial datasource: " + properties.get("jdbc.url"), e);
         }
 
-        // String threads = properties.get("threads");
+        String threads = properties.get("threads");
         // String commitSize = properties.get("commitSize");
 
-        rdbSyncService = new RdbSyncService(mappingConfigCache, dataSource);
+        rdbSyncService = new RdbSyncService(mappingConfigCache,
+            dataSource,
+            threads != null ? Integer.valueOf(threads) : null);
 
         rdbConfigMonitor = new RdbConfigMonitor();
         rdbConfigMonitor.init(configuration.getKey(), this);
@@ -199,6 +201,10 @@ public class RdbAdapter implements OuterAdapter {
     public void destroy() {
         if (rdbConfigMonitor != null) {
             rdbConfigMonitor.destroy();
+        }
+
+        if (rdbSyncService != null) {
+            rdbSyncService.close();
         }
 
         executor.shutdown();
