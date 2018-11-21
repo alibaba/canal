@@ -101,12 +101,9 @@
 			<version>${spring_version}</version>
 			<scope>test</scope>
 		</dependency>
-        <!-- 客户端要使用请单独引入rocketmq-client依赖 -->
 		<dependency>
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
-			<version>4.3.0</version>
-            <scope>provided</scope>
 		</dependency>
 		<!-- 客户端要使用请单独引入kafka-clients依赖 -->
 		<dependency>
@@ -125,10 +122,6 @@
 		<dependency>
 			<groupId>com.aliyun.openservices</groupId>
 			<artifactId>aliware-apache-rocketmq-cloud</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.rocketmq</groupId>
-			<artifactId>rocketmq-client</artifactId>
 		</dependency>
 	</dependencies>
 

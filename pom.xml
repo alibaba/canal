@@ -305,7 +305,7 @@
             <dependency>
                 <groupId>com.aliyun.openservices</groupId>
                 <artifactId>aliware-apache-rocketmq-cloud</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>1.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>
