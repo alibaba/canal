@@ -747,7 +747,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         if (justForPositionTimestamp && logPosition.getPostion() == null && event.getWhen() > 0) {
                             // 初始位点
                             entryPosition = new EntryPosition(searchBinlogFile,
-                                event.getLogPos(),
+                                event.getLogPos() - event.getEventLen(),
                                 event.getWhen() * 1000,
                                 event.getServerId());
                             logPosition.setPostion(entryPosition);

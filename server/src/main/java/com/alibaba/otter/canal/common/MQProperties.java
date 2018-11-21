@@ -20,10 +20,10 @@ public class MQProperties {
     private int     canalBatchSize         = 50;
     private Long    canalGetTimeout        = 100L;
     private boolean flatMessage            = true;
-    private String compressionType         = "none";
-    private String acks                    = "all";
-    private String aliyunAccessKey         = "";
-    private String aliyunSecretKey         = "";
+    private String  compressionType        = "none";
+    private String  acks                   = "all";
+    private String  aliyunAccessKey        = "";
+    private String  aliyunSecretKey        = "";
 
     public static class CanalDestination {
 

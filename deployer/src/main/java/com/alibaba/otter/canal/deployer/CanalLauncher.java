@@ -125,6 +125,15 @@ public class CanalLauncher {
         if (!StringUtils.isEmpty(acks)) {
             mqProperties.setAcks(acks);
         }
+
+        String aliyunAccessKey = CanalController.getProperty(properties, CanalConstants.CANAL_ALIYUN_ACCESSKEY);
+        if (!StringUtils.isEmpty(aliyunAccessKey)) {
+            mqProperties.setAliyunAccessKey(aliyunAccessKey);
+        }
+        String aliyunSecretKey = CanalController.getProperty(properties, CanalConstants.CANAL_ALIYUN_SECRETKEY);
+        if (!StringUtils.isEmpty(aliyunSecretKey)) {
+            mqProperties.setAliyunSecretKey(aliyunSecretKey);
+        }
         return mqProperties;
     }
 
