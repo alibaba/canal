@@ -28,10 +28,9 @@ canal.conf:
 #      username: root
 #      password: 121212
   canalAdapters:
-  - instance: example
-#    topic: example
+  - instance: example # canal instance Name or mq topic name
     groups:
-    - #groupId: g1
+    - groupId: g1
       outerAdapters:
       - name: logger
 #      - name: rdb

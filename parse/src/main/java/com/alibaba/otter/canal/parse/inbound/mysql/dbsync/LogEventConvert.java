@@ -657,7 +657,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                                   + tableMeta.getFullName() + ", db fieldMeta : "
                                                   + fieldMeta.toString() + " , binlog fieldMeta : " + info.toString()
                                                   + " , on : " + event.getHeader().getLogFileName() + ":"
-                                                  + event.getHeader().getLogPos());
+                                                  + (event.getHeader().getLogPos() - event.getHeader().getEventLen()));
                 }
             }
 

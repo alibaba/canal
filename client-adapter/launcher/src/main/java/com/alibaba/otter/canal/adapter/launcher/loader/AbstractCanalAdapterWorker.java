@@ -2,9 +2,12 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +15,7 @@ import com.alibaba.otter.canal.adapter.launcher.common.SyncSwitch;
 import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.MessageUtil;
 import com.alibaba.otter.canal.protocol.FlatMessage;
@@ -180,18 +184,22 @@ public abstract class AbstractCanalAdapterWorker {
      */
     private void batchSync(List<Dml> dmls, OuterAdapter adapter) {
         // 分批同步
-        int len = 0;
-        List<Dml> dmlsBatch = new ArrayList<>();
-        for (Dml dml : dmls) {
-            dmlsBatch.add(dml);
-            len += dml.getData().size();
-            if (len >= canalClientConfig.getSyncBatchSize()) {
-                adapter.sync(dmlsBatch);
-                dmlsBatch.clear();
-                len = 0;
+        if (dmls.size() <= canalClientConfig.getSyncBatchSize()) {
+            adapter.sync(dmls);
+        } else {
+            int len = 0;
+            List<Dml> dmlsBatch = new ArrayList<>();
+            for (Dml dml : dmls) {
+                dmlsBatch.add(dml);
+                len += dml.getData().size();
+                if (len >= canalClientConfig.getSyncBatchSize()) {
+                    adapter.sync(dmlsBatch);
+                    dmlsBatch.clear();
+                    len = 0;
+                }
             }
+            adapter.sync(dmlsBatch);
         }
-        adapter.sync(dmlsBatch);
     }
 
     public void start() {

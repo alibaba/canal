@@ -20,8 +20,10 @@ public class MQProperties {
     private int     canalBatchSize         = 50;
     private Long    canalGetTimeout        = 100L;
     private boolean flatMessage            = true;
-    private String compressionType         = "none";
-    private String acks                    = "all";
+    private String  compressionType        = "none";
+    private String  acks                   = "all";
+    private String  aliyunAccessKey        = "";
+    private String  aliyunSecretKey        = "";
 
     public static class CanalDestination {
 
@@ -168,4 +170,19 @@ public class MQProperties {
         this.acks = acks;
     }
 
+    public String getAliyunAccessKey() {
+        return aliyunAccessKey;
+    }
+
+    public void setAliyunAccessKey(String aliyunAccessKey) {
+        this.aliyunAccessKey = aliyunAccessKey;
+    }
+
+    public String getAliyunSecretKey() {
+        return aliyunSecretKey;
+    }
+
+    public void setAliyunSecretKey(String aliyunSecretKey) {
+        this.aliyunSecretKey = aliyunSecretKey;
+    }
 }

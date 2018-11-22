@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client.rocketmq;
 
+import com.aliyun.openservices.apache.api.impl.authority.SessionCredentials;
+import com.aliyun.openservices.apache.api.impl.rocketmq.ClientRPCHook;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -10,8 +12,10 @@ import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
+import org.apache.rocketmq.client.consumer.rebalance.AllocateMessageQueueAveragely;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.remoting.RPCHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +51,9 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     private long                                batchProcessTimeout = 60 * 1000;
     private boolean                             flatMessage;
     private volatile ConsumerBatchMessage       lastGetBatchMessage = null;
+    private String                              accessKey;
+    private String                              secretKey;
+
 
     public RocketMQCanalConnector(String nameServer, String topic, String groupName, boolean flatMessage){
         this.nameServer = nameServer;
@@ -56,8 +63,25 @@ public class RocketMQCanalConnector implements CanalMQConnector {
         this.messageBlockingQueue = new LinkedBlockingQueue<>(1024);
     }
 
+    public RocketMQCanalConnector(String nameServer, String topic, String groupName,
+        String accessKey, String secretKey, boolean flatMessage){
+        this(nameServer, topic, groupName, flatMessage);
+        this.accessKey = accessKey;
+        this.secretKey = secretKey;
+    }
+
     public void connect() throws CanalClientException {
-        rocketMQConsumer = new DefaultMQPushConsumer(groupName);
+
+        RPCHook rpcHook = null;
+        if(null != accessKey && accessKey.length() > 0
+            && null != secretKey && secretKey.length() > 0){
+            SessionCredentials sessionCredentials = new SessionCredentials();
+            sessionCredentials.setAccessKey(accessKey);
+            sessionCredentials.setSecretKey(secretKey);
+            rpcHook = new ClientRPCHook(sessionCredentials);
+        }
+        rocketMQConsumer = new DefaultMQPushConsumer(groupName, rpcHook, new AllocateMessageQueueAveragely());
+        rocketMQConsumer.setVipChannelEnabled(false);
         if (!StringUtils.isBlank(nameServer)) {
             rocketMQConsumer.setNamesrvAddr(nameServer);
         }

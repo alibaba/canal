@@ -37,8 +37,6 @@ public class AdapterCanalConfig extends CanalClientConfig {
                 for (CanalAdapter canalAdapter : canalAdapters) {
                     if (canalAdapter.getInstance() != null) {
                         DESTINATIONS.add(canalAdapter.getInstance());
-                    } else if (canalAdapter.getTopic() != null) {
-                        DESTINATIONS.add(canalAdapter.getInstance());
                     }
                 }
             }
