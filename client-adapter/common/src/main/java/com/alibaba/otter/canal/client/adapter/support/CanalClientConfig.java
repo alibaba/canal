@@ -30,6 +30,10 @@ public class CanalClientConfig {
     private Long               timeout;
     // 模式 tcp kafka rocketMQ
     private String             mode          = "tcp";
+    // aliyun ak/sk
+    private String             accessKey;
+    private String             secretKey;
+
     // canal adapters 配置
     private List<CanalAdapter> canalAdapters;
 
@@ -103,6 +107,22 @@ public class CanalClientConfig {
 
     public void setMode(String mode) {
         this.mode = mode;
+    }
+
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
     }
 
     public List<CanalAdapter> getCanalAdapters() {

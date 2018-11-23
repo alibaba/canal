@@ -47,6 +47,7 @@ public class AdapterCanalConfig extends CanalClientConfig {
         return srcDataSources;
     }
 
+    @SuppressWarnings("resource")
     public void setSrcDataSources(Map<String, DatasourceConfig> srcDataSources) {
         this.srcDataSources = srcDataSources;
 

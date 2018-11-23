@@ -21,6 +21,8 @@ canal.conf:
   syncBatchSize: 1000
   retries: 0
   timeout:
+  accessKey:
+  secretKey:
   mode: tcp # kafka rocketMQ
 #  srcDataSources:
 #    defaultDS:

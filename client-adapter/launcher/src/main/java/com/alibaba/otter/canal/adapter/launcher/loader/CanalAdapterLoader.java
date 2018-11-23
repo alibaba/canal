@@ -122,6 +122,8 @@ public class CanalAdapterLoader {
                         canalAdapter.getInstance(),
                         group.getGroupId(),
                         canalOuterAdapterGroups,
+                        canalClientConfig.getAccessKey(),
+                        canalClientConfig.getSecretKey(),
                         canalClientConfig.getFlatMessage());
                     canalMQWorker.put(canalAdapter.getInstance() + "-rocketmq-" + group.getGroupId(), rocketMQWorker);
                     rocketMQWorker.start();
