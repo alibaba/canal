@@ -71,8 +71,8 @@ public class Event implements Serializable {
             this.rawLength = rawEntry.size();
         } else {
             this.entry = entry;
-            // 按照3倍的event length预估
-            this.rawLength = entry.getHeader().getEventLength() * 3;
+            // 按照6倍的event length预估
+            this.rawLength = entry.getHeader().getEventLength() * 6;
         }
     }
 
