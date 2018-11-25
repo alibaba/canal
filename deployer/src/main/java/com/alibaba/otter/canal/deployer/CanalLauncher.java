@@ -101,6 +101,10 @@ public class CanalLauncher {
         if (!StringUtils.isEmpty(lingerMs)) {
             mqProperties.setLingerMs(Integer.valueOf(lingerMs));
         }
+        String maxRequestSize = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_MAXREQUESTSIZE);
+        if (!StringUtils.isEmpty(maxRequestSize)) {
+            mqProperties.setMaxRequestSize(Integer.valueOf(maxRequestSize));
+        }
         String bufferMemory = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_BUFFERMEMORY);
         if (!StringUtils.isEmpty(bufferMemory)) {
             mqProperties.setBufferMemory(Long.valueOf(bufferMemory));

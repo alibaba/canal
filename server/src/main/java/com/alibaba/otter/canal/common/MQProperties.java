@@ -14,6 +14,7 @@ public class MQProperties {
     private int     retries                = 0;
     private int     batchSize              = 16384;
     private int     lingerMs               = 1;
+    private int     maxRequestSize         = 1048576;
     private long    bufferMemory           = 33554432L;
     private boolean filterTransactionEntry = true;
     private String  producerGroup          = "Canal-Producer";
@@ -184,5 +185,12 @@ public class MQProperties {
 
     public void setAliyunSecretKey(String aliyunSecretKey) {
         this.aliyunSecretKey = aliyunSecretKey;
+    }
+    public int getMaxRequestSize() {
+        return maxRequestSize;
+    }
+
+    public void setMaxRequestSize(int maxRequestSize) {
+        this.maxRequestSize = maxRequestSize;
     }
 }
