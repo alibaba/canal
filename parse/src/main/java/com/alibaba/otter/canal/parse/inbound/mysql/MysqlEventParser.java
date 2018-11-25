@@ -135,6 +135,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     protected void afterDump(ErosaConnection connection) {
         super.afterDump(connection);
 
+        if (connection == null) {
+            throw new CanalParseException("illegal connection is null");
+        }
+
         if (!(connection instanceof MysqlConnection)) {
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
         }
