@@ -285,7 +285,10 @@ public class FlatMessage implements Serializable {
             if (flatMessage.getData() != null) {
                 int idx = 0;
                 for (Map<String, String> row : flatMessage.getData()) {
-                    Map<String, String> o = flatMessage.getOld().get(idx);
+                    Map<String, String> o = null;
+                    if (flatMessage.getOld() != null) {
+                        o = flatMessage.getOld().get(idx);
+                    }
                     String value;
                     // 如果old中有pk值说明主键有修改, 以旧的主键值hash为准
                     if (o != null && o.containsKey(pk)) {
