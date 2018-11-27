@@ -3,16 +3,12 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
-import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * rocketmq对应的client适配器工作线程
@@ -26,13 +22,14 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
     private boolean                flatMessage;
 
     public CanalAdapterRocketMQWorker(CanalClientConfig canalClientConfig, String nameServers, String topic,
-                                      String groupId, List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
+                                      String groupId, List<List<OuterAdapter>> canalOuterAdapters, String accessKey,
+                                      String secretKey, boolean flatMessage){
         super(canalOuterAdapters);
         this.canalClientConfig = canalClientConfig;
         this.topic = topic;
         this.flatMessage = flatMessage;
         this.canalDestination = topic;
-        this.connector = new RocketMQCanalConnector(nameServers, topic, groupId, flatMessage);
+        this.connector = new RocketMQCanalConnector(nameServers, topic, groupId, accessKey, secretKey, flatMessage);
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
     }
 
@@ -42,8 +39,7 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
             ;
 
         ExecutorService workerExecutor = Executors.newSingleThreadExecutor();
-        int retry = canalClientConfig.getRetries() == null
-                    || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
+        int retry = canalClientConfig.getRetries() == null || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
 
         while (running) {

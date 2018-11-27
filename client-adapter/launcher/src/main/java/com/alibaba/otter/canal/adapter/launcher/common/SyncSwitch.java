@@ -64,11 +64,12 @@ public class SyncSwitch {
         }
     }
 
+    @SuppressWarnings("resource")
     private synchronized void startListen(String destination, BooleanMutex mutex) {
         try {
             String path = SYN_SWITCH_ZK_NODE + destination;
             CuratorFramework curator = curatorClient.getCurator();
-            final NodeCache nodeCache = new NodeCache(curator, path);
+            NodeCache nodeCache = new NodeCache(curator, path);
             nodeCache.start();
             nodeCache.getListenable().addListener(() -> initMutex(curator, destination, mutex));
         } catch (Exception e) {

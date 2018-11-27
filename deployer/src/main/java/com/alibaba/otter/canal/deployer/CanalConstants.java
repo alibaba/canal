@@ -41,6 +41,7 @@ public class CanalConstants {
     public static final String CANAL_MQ_RETRIES                  = ROOT + "." + "mq.retries";
     public static final String CANAL_MQ_BATCHSIZE                = ROOT + "." + "mq.batchSize";
     public static final String CANAL_MQ_LINGERMS                 = ROOT + "." + "mq.lingerMs";
+    public static final String CANAL_MQ_MAXREQUESTSIZE           = ROOT + "." + "mq.maxRequestSize";
     public static final String CANAL_MQ_BUFFERMEMORY             = ROOT + "." + "mq.bufferMemory";
     public static final String CANAL_MQ_CANALBATCHSIZE           = ROOT + "." + "mq.canalBatchSize";
     public static final String CANAL_MQ_CANALGETTIMEOUT          = ROOT + "." + "mq.canalGetTimeout";

@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.2-SNAPSHOT</version>
+        <version>1.1.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
@@ -81,9 +79,9 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${project.basedir}/../launcher/target/classes/es" overwrite="true" >
+                                <copy todir="${project.basedir}/../launcher/target/classes/es" overwrite="true">
                                     <fileset dir="${project.basedir}/target/classes/es" erroronmissingdir="true">
-                                        <include name="*.yml"/>
+                                        <include name="*.yml" />
                                     </fileset>
                                 </copy>
                             </tasks>

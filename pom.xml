@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.3-SNAPSHOT</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -381,7 +381,6 @@
                 </configuration>
             </plugin>
             <!-- javadoc -->
-            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -400,7 +399,6 @@
                   <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
-            -->
         </plugins>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>

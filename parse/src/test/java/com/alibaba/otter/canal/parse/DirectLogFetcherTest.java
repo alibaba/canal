@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.parse;
 
+import static com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher.MASTER_HEARTBEAT_PERIOD_SECONDS;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -7,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.BitSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -212,6 +215,13 @@ public class DirectLogFetcherTest {
             update("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'", connector);
         } catch (Exception e) {
             logger.warn("update mariadb_slave_capability failed", e);
+        }
+
+        try {
+            long period = TimeUnit.SECONDS.toNanos(MASTER_HEARTBEAT_PERIOD_SECONDS);
+            update("SET @master_heartbeat_period=" + period, connector);
+        } catch (Exception e) {
+            logger.warn("update master_heartbeat_period failed", e);
         }
     }
 
