@@ -10,26 +10,7 @@
            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"
 	default-autowire="byName">
 	
-	<!-- properties -->
-	<bean class="com.alibaba.otter.canal.instance.spring.support.PropertyPlaceholderConfigurer" lazy-init="false">
-		<property name="ignoreResourceNotFound" value="true" />
-		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/><!-- 允许system覆盖 -->
-		<property name="locationNames">
-			<list>
-				<value>classpath:canal.properties</value>
-				<value>classpath:${canal.instance.destination:}/instance.properties</value>
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="socketAddressEditor" class="com.alibaba.otter.canal.instance.spring.support.SocketAddressEditor" />
-	<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer"> 
-		<property name="propertyEditorRegistrars">
-			<list>
-				<ref bean="socketAddressEditor" />
-			</list>
-		</property>
-	</bean>
+	<import resource="classpath:spring/base-instance.xml" />
 
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
@@ -48,6 +29,9 @@
 		<property name="alarmHandler">
 			<ref local="alarmHandler" />
 		</property>
+        <property name="mqConfig">
+            <ref local="mqConfig" />
+        </property>
 	</bean>
 	
 	<!-- 报警处理类 -->
@@ -60,13 +44,15 @@
 		<property name="bufferMemUnit" value="${canal.instance.memory.buffer.memunit:1024}" />
 		<property name="batchMode" value="${canal.instance.memory.batch.mode:MEMSIZE}" />
 		<property name="ddlIsolation" value="${canal.instance.get.ddl.isolation:false}" />
+		<property name="raw" value="${canal.instance.memory.rawEntry:true}" />
 	</bean>
 	
 	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
 		<property name="eventStore" ref="eventStore" />
+		<property name="filterTransactionEntry" value="${canal.instance.filter.transaction.entry:false}"/>
 	</bean>
 
-	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser">
+	<bean id="eventParser" parent="baseEventParser">
 		<property name="destination" value="${canal.instance.destination}" />
 		<property name="slaveId" value="${canal.instance.mysql.slaveId:0}" />
 		<!-- 心跳配置 -->
@@ -114,22 +100,26 @@
 		
 		<!-- failover切换时回退的时间 -->
 		<property name="fallbackIntervalInSeconds" value="${canal.instance.fallbackIntervalInSeconds:60}" />
-		
+
 		<!-- 解析数据库信息 -->
 		<property name="masterInfo">
-			<bean class="com.alibaba.otter.canal.parse.support.AuthenticationInfo">
+			<bean class="com.alibaba.otter.canal.parse.support.AuthenticationInfo" init-method="initPwd">
 				<property name="address" value="${canal.instance.master.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
+				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
 			</bean>
 		</property>
 		<property name="standbyInfo">
-			<bean class="com.alibaba.otter.canal.parse.support.AuthenticationInfo">
+			<bean class="com.alibaba.otter.canal.parse.support.AuthenticationInfo" init-method="initPwd">
 				<property name="address" value="${canal.instance.standby.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
+				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
 			</bean>
 		</property>
 		
@@ -162,6 +152,8 @@
 		<!--表结构相关-->
 		<property name="enableTsdb" value="${canal.instance.tsdb.enable:false}"/>
 		<property name="tsdbSpringXml" value="${canal.instance.tsdb.spring.xml:}"/>
+		<property name="tsdbSnapshotInterval" value="${canal.instance.tsdb.snapshot.interval:24}" />
+		<property name="tsdbSnapshotExpire" value="${canal.instance.tsdb.snapshot.expire:360}" />
 		
 		<!--是否启用GTID模式-->
 		<property name="isGTIDMode" value="${canal.instance.gtidon:false}"/>
@@ -170,5 +162,12 @@
 		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
 		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
+	</bean>
+
+	<bean id="mqConfig" class="com.alibaba.otter.canal.instance.core.CanalMQConfig">
+		<property name="topic" value="${canal.mq.topic}" />
+		<property name="partition" value="${canal.mq.partition}" />
+		<property name="partitionsNum" value="${canal.mq.partitionsNum}" />
+		<property name="partitionHash" value="${canal.mq.partitionHash}" />
 	</bean>
 </beans>

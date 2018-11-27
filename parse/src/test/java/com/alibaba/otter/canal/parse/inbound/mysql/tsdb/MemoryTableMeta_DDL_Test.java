@@ -37,4 +37,19 @@ public class MemoryTableMeta_DDL_Test {
         meta = memoryTableMeta.find("yushitai_test", "_card_record_gho");
         Assert.assertNull(meta);
     }
+
+    @Test
+    public void test2() throws Throwable {
+        MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
+        File dummyFile = new File(url.getFile());
+        File create = new File(dummyFile.getParent() + "/ddl", "ddl_test2.sql");
+        String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
+        memoryTableMeta.apply(null, "test", sql, null);
+
+        TableMeta meta = memoryTableMeta.find("yushitai_test", "card_record");
+        System.out.println(meta);
+        Assert.assertEquals(meta.getFieldMetaByName("id").isKey(), true);
+        Assert.assertEquals(meta.getFieldMetaByName("name").isUnique(), true);
+    }
 }

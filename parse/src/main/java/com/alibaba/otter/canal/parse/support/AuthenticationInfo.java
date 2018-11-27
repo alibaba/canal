@@ -2,21 +2,32 @@ package com.alibaba.otter.canal.parse.support;
 
 import java.net.InetSocketAddress;
 
+import com.alibaba.druid.filter.config.ConfigTools;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
  * 数据库认证信息
- * 
+ *
  * @author jianghang 2012-7-11 上午11:22:19
  * @version 1.0.0
  */
 public class AuthenticationInfo {
 
+
+
     private InetSocketAddress address;            // 主库信息
     private String            username;           // 帐号
     private String            password;           // 密码
-    private String            defaultDatabaseName; // 默认链接的数据库
+    private String            defaultDatabaseName;// 默认链接的数据库
+    private String            pwdPublicKey;       //公钥
+    private boolean           enableDruid;        //是否使用druid加密解密数据库密码
+
+    public void initPwd() throws Exception{
+        if (enableDruid) {
+            this.password = ConfigTools.decrypt(pwdPublicKey, password);
+        }
+    }
 
     public AuthenticationInfo(){
         super();
@@ -63,6 +74,22 @@ public class AuthenticationInfo {
 
     public void setDefaultDatabaseName(String defaultDatabaseName) {
         this.defaultDatabaseName = defaultDatabaseName;
+    }
+
+    public String getPwdPublicKey() {
+        return pwdPublicKey;
+    }
+
+    public void setPwdPublicKey(String pwdPublicKey) {
+        this.pwdPublicKey = pwdPublicKey;
+    }
+
+    public boolean isEnableDruid() {
+        return enableDruid;
+    }
+
+    public void setEnableDruid(boolean enableDruid) {
+        this.enableDruid = enableDruid;
     }
 
     @Override

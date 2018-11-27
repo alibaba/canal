@@ -1,6 +1,7 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 
 import com.taobao.tddl.dbsync.binlog.CharsetConversion;
@@ -285,12 +286,12 @@ public class QueryLogEvent extends LogEvent {
                                                                   * type,
                                                                   * sql_mode
                                                                   */
-                                                         + 1 + 1 + 255 /*
-                                                                        * type,
-                                                                        * length
-                                                                        * ,
-                                                                        * catalog
-                                                                        */
+                                                         + 1 + 1 + 255/*
+                                                                       * type,
+                                                                       * length
+                                                                       * ,
+                                                                       * catalog
+                                                                       */
                                                          + 1 + 4 /*
                                                                   * type,
                                                                   * auto_increment
@@ -330,14 +331,32 @@ public class QueryLogEvent extends LogEvent {
                                                           * MariaDb type,
                                                           * sec_part of NOW()
                                                           */
-                                                         + 1 + (MAX_DBS_IN_EVENT_MTS * (1 + NAME_LEN)) + 3 + 1 + 32 * 3
-                                                         + 1 + 60/*
-                                                                  * type ,
-                                                                  * user_len ,
-                                                                  * user ,
-                                                                  * host_len ,
-                                                                  * host
-                                                                  */);
+                                                         + 1 + (MAX_DBS_IN_EVENT_MTS * (1 + NAME_LEN)) + 3 /*
+                                                                                                            * type
+                                                                                                            * ,
+                                                                                                            * microseconds
+                                                                                                            */+ 1 + 32
+                                                         * 3 + 1 + 60/*
+                                                                      * type ,
+                                                                      * user_len
+                                                                      * , user ,
+                                                                      * host_len
+                                                                      * , host
+                                                                      */)
+                                                        + 1 + 1 /*
+                                                                 * type,
+                                                                 * explicit_def
+                                                                 * ..ts
+                                                                 */+ 1 + 8 /*
+                                                                            * type,
+                                                                            * xid
+                                                                            * of
+                                                                            * DDL
+                                                                            */+ 1 + 2 /*
+                                                                                       * type
+                                                                                       * ,
+                                                                                       * default_collation_for_utf8mb4_number
+                                                                                       */+ 1 /* sql_require_primary_key */;
     /**
      * Fixed data part:
      * <ul>
@@ -394,7 +413,7 @@ public class QueryLogEvent extends LogEvent {
     // inspection by the DBA
     private final long      execTime;
     private final int       errorCode;
-    private final long      sessionId;                                                            /* thread_id */
+    private final long      sessionId;                                                                                     /* thread_id */
 
     /**
      * 'flags2' is a second set of flags (on top of those in Log_event), for
@@ -412,6 +431,8 @@ public class QueryLogEvent extends LogEvent {
     private int             clientCharset             = -1;
     private int             clientCollation           = -1;
     private int             serverCollation           = -1;
+    private int             tvSec                     = -1;
+    private BigInteger      ddlXid                    = BigInteger.valueOf(-1L);
     private String          charsetName;
 
     private String          timezone;
@@ -563,6 +584,21 @@ public class QueryLogEvent extends LogEvent {
     public static final int Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP = 16;
 
     /**
+     * The variable carries xid info of 2pc-aware (recoverable) DDL queries.
+     */
+    public static final int Q_DDL_LOGGED_WITH_XID             = 17;
+    /**
+     * This variable stores the default collation for the utf8mb4 character set.
+     * Used to support cross-version replication.
+     */
+    public static final int Q_DEFAULT_COLLATION_FOR_UTF8MB4   = 18;
+
+    /**
+     * Replicate sql_require_primary_key.
+     */
+    public static final int Q_SQL_REQUIRE_PRIMARY_KEY         = 19;
+
+    /**
      * FROM MariaDB 5.5.34
      */
     public static final int Q_HRNOW                           = 128;
@@ -625,7 +661,7 @@ public class QueryLogEvent extends LogEvent {
                         break;
                     case Q_MICROSECONDS:
                         // when.tv_usec= uint3korr(pos);
-                        buffer.forward(3);
+                        tvSec = buffer.getInt24();
                         break;
                     case Q_UPDATED_DB_NAMES:
                         int mtsAccessedDbs = buffer.getUint8();
@@ -646,6 +682,19 @@ public class QueryLogEvent extends LogEvent {
                         }
                         break;
                     case Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP:
+                        // thd->variables.explicit_defaults_for_timestamp
+                        buffer.forward(1);
+                        break;
+                    case Q_DDL_LOGGED_WITH_XID:
+                        ddlXid = buffer.getUlong64();
+                        break;
+                    case Q_DEFAULT_COLLATION_FOR_UTF8MB4:
+                        // int2store(start,
+                        // default_collation_for_utf8mb4_number);
+                        buffer.forward(2);
+                        break;
+                    case Q_SQL_REQUIRE_PRIMARY_KEY:
+                        // *start++ = thd->variables.sql_require_primary_key;
                         buffer.forward(1);
                         break;
                     case Q_HRNOW:
@@ -657,8 +706,10 @@ public class QueryLogEvent extends LogEvent {
                          * That's why you must write status vars in growing
                          * order of code
                          */
-                        if (logger.isDebugEnabled()) logger.debug("Query_log_event has unknown status vars (first has code: "
-                                                                  + code + "), skipping the rest of them");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Query_log_event has unknown status vars (first has code: " + code
+                                         + "), skipping the rest of them");
+                        }
                         break; // Break loop
                 }
             }
@@ -695,6 +746,12 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_UPDATED_DB_NAMES";
             case Q_MICROSECONDS:
                 return "Q_MICROSECONDS";
+            case Q_DDL_LOGGED_WITH_XID:
+                return "Q_DDL_LOGGED_WITH_XID";
+            case Q_DEFAULT_COLLATION_FOR_UTF8MB4:
+                return "Q_DEFAULT_COLLATION_FOR_UTF8MB4";
+            case Q_SQL_REQUIRE_PRIMARY_KEY:
+                return "Q_SQL_REQUIRE_PRIMARY_KEY";
         }
         return "CODE#" + code;
     }
@@ -775,6 +832,14 @@ public class QueryLogEvent extends LogEvent {
      */
     public final int getServerCollation() {
         return serverCollation;
+    }
+
+    public int getTvSec() {
+        return tvSec;
+    }
+
+    public BigInteger getDdlXid() {
+        return ddlXid;
     }
 
     /**

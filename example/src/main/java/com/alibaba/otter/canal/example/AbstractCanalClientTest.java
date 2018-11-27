@@ -1,9 +1,11 @@
 package com.alibaba.otter.canal.example;
 
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
@@ -94,7 +96,6 @@ public class AbstractCanalClientTest {
         if (!running) {
             return;
         }
-        connector.stopRunning();
         running = false;
         if (thread != null) {
             try {
@@ -253,7 +254,17 @@ public class AbstractCanalClientTest {
     protected void printColumn(List<Column> columns) {
         for (Column column : columns) {
             StringBuilder builder = new StringBuilder();
-            builder.append(column.getName() + " : " + column.getValue());
+            try {
+                if (StringUtils.containsIgnoreCase(column.getMysqlType(), "BLOB")
+                    || StringUtils.containsIgnoreCase(column.getMysqlType(), "BINARY")) {
+                    // get value bytes
+                    builder.append(column.getName() + " : "
+                                   + new String(column.getValue().getBytes("ISO-8859-1"), "UTF-8"));
+                } else {
+                    builder.append(column.getName() + " : " + column.getValue());
+                }
+            } catch (UnsupportedEncodingException e) {
+            }
             builder.append("    type=" + column.getMysqlType());
             if (column.getUpdated()) {
                 builder.append("    update=" + column.getUpdated());
@@ -286,6 +297,57 @@ public class AbstractCanalClientTest {
 
     public void setConnector(CanalConnector connector) {
         this.connector = connector;
+    }
+
+    /**
+     * 获取当前Entry的 GTID信息示例
+     * @param header
+     * @return
+     */
+    public static String getCurrentGtid(CanalEntry.Header header) {
+        List<CanalEntry.Pair> props = header.getPropsList();
+        if (props != null && props.size() > 0) {
+            for (CanalEntry.Pair pair : props) {
+                if ("curtGtid".equals(pair.getKey())) {
+                    return pair.getValue();
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 获取当前Entry的 GTID Sequence No信息示例
+     * @param header
+     * @return
+     */
+    public static String getCurrentGtidSn(CanalEntry.Header header) {
+        List<CanalEntry.Pair> props = header.getPropsList();
+        if (props != null && props.size() > 0) {
+            for (CanalEntry.Pair pair : props) {
+                if ("curtGtidSn".equals(pair.getKey())) {
+                    return pair.getValue();
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 获取当前Entry的 GTID Last Committed信息示例
+     * @param header
+     * @return
+     */
+    public static String getCurrentGtidLct(CanalEntry.Header header) {
+        List<CanalEntry.Pair> props = header.getPropsList();
+        if (props != null && props.size() > 0) {
+            for (CanalEntry.Pair pair : props) {
+                if ("curtGtidLct".equals(pair.getKey())) {
+                    return pair.getValue();
+                }
+            }
+        }
+        return "";
     }
 
 }

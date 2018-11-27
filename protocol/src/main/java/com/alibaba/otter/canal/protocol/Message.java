@@ -8,6 +8,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.google.protobuf.ByteString;
 
 /**
  * @author zebin.xuzb @ 2012-6-19
@@ -19,10 +20,25 @@ public class Message implements Serializable {
 
     private long                   id;
     private List<CanalEntry.Entry> entries          = new ArrayList<CanalEntry.Entry>();
+    // row data for performance, see:
+    // https://github.com/alibaba/canal/issues/726
+    private boolean                raw              = true;
+    private List<ByteString>       rawEntries       = new ArrayList<ByteString>();
 
     public Message(long id, List<Entry> entries){
         this.id = id;
         this.entries = entries == null ? new ArrayList<Entry>() : entries;
+        this.raw = false;
+    }
+
+    public Message(long id, boolean raw, List entries){
+        this.id = id;
+        if (raw) {
+            this.rawEntries = entries == null ? new ArrayList<ByteString>() : entries;
+        } else {
+            this.entries = entries == null ? new ArrayList<Entry>() : entries;
+        }
+        this.raw = raw;
     }
 
     public Message(long id){
@@ -47,6 +63,26 @@ public class Message implements Serializable {
 
     public void addEntry(CanalEntry.Entry entry) {
         this.entries.add(entry);
+    }
+
+    public void setRawEntries(List<ByteString> rawEntries) {
+        this.rawEntries = rawEntries;
+    }
+
+    public void addRawEntry(ByteString rawEntry) {
+        this.rawEntries.add(rawEntry);
+    }
+
+    public List<ByteString> getRawEntries() {
+        return rawEntries;
+    }
+
+    public boolean isRaw() {
+        return raw;
+    }
+
+    public void setRaw(boolean raw) {
+        this.raw = raw;
     }
 
     public String toString() {

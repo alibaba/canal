@@ -216,6 +216,10 @@ public class NettySocketChannel implements SocketChannel {
         return channel != null ? channel.remoteAddress() : null;
     }
 
+    public SocketAddress getLocalSocketAddress() {
+        return channel != null ? channel.localAddress() : null;
+    }
+
     public void close() {
         if (channel != null) {
             channel.close();

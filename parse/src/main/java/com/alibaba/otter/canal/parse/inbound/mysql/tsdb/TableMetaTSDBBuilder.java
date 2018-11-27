@@ -10,12 +10,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.google.common.collect.Maps;
 
 /**
- * @author agapple 2017年10月11日 下午8:45:40
+ * tableMeta构造器
+ * 
+ * @author agapple 2018年8月8日 上午11:01:08
  * @since 1.0.25
  */
+
 public class TableMetaTSDBBuilder {
 
-    protected final static Logger                                        logger   = LoggerFactory.getLogger(TableMetaTSDBBuilder.class);
+    protected final static Logger                                        logger   = LoggerFactory.getLogger(DefaultTableMetaTSDBFactory.class);
     private static ConcurrentMap<String, ClassPathXmlApplicationContext> contexts = Maps.newConcurrentMap();
 
     /**
@@ -33,7 +36,6 @@ public class TableMetaTSDBBuilder {
                 }
             }
             TableMetaTSDB tableMetaTSDB = (TableMetaTSDB) applicationContext.getBean("tableMetaTSDB");
-            tableMetaTSDB.init(destination);
             logger.info("{} init TableMetaTSDB with {}", destination, springXml);
             return tableMetaTSDB;
         } else {

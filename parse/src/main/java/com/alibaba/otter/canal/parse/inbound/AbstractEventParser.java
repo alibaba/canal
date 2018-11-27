@@ -19,10 +19,13 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlMultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
@@ -94,6 +97,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                                                                     .availableProcessors() * 60 / 100;     // 60%的能力跑解析,剩余部分处理网络
     protected int                                    parallelBufferSize         = 256;                                     // 必须为2的幂
     protected MultiStageCoprocessor                  multiStageCoprocessor;
+    protected ParserExceptionHandler                 parserExceptionHandler;
+    protected long                                   serverId;
 
     protected abstract BinlogParser buildParser();
 
@@ -170,18 +175,28 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         preDump(erosaConnection);
 
                         erosaConnection.connect();// 链接
+
+                        long queryServerId = erosaConnection.queryServerId();
+                        if (queryServerId != 0) {
+                            serverId = queryServerId;
+                        }
                         // 4. 获取最后的位置信息
+                        long start = System.currentTimeMillis();
+                        logger.warn("---> begin to find start position, it will be long time for reset or first position");
                         EntryPosition position = findStartPosition(erosaConnection);
                         final EntryPosition startPosition = position;
                         if (startPosition == null) {
-                            throw new CanalParseException("can't find start position for " + destination);
+                            throw new PositionNotFoundException("can't find start position for " + destination);
                         }
 
                         if (!processTableMeta(startPosition)) {
                             throw new CanalParseException("can't find init table meta for " + destination
                                                           + " with position : " + startPosition);
                         }
-                        logger.warn("find start position : {}", startPosition.toString());
+                        long end = System.currentTimeMillis();
+                        logger.warn("---> find start position successfully, {}", startPosition.toString() + " cost : "
+                                                                                 + (end - start)
+                                                                                 + "ms , the next step is binlog dump");
                         // 重新链接，因为在找position过程中可能有状态，需要断开后重建
                         erosaConnection.reconnect();
 
@@ -227,12 +242,14 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         if (parallel) {
                             // build stage processor
                             multiStageCoprocessor = buildMultiStageCoprocessor();
-                            multiStageCoprocessor.start();
-
                             if (isGTIDMode()) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
-                                erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), multiStageCoprocessor);
+                                GTIDSet gtidSet = MysqlGTIDSet.parse(startPosition.getGtid());
+                                ((MysqlMultiStageCoprocessor) multiStageCoprocessor).setGtidSet(gtidSet);
+                                multiStageCoprocessor.start();
+                                erosaConnection.dump(gtidSet, multiStageCoprocessor);
                             } else {
+                                multiStageCoprocessor.start();
                                 if (StringUtils.isEmpty(startPosition.getJournalName())
                                     && startPosition.getTimestamp() != null) {
                                     erosaConnection.dump(startPosition.getTimestamp(), multiStageCoprocessor);
@@ -277,6 +294,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 runningInfo.getAddress().toString()), e);
                             sendAlarm(destination, ExceptionUtils.getFullStackTrace(e));
                         }
+                        if (parserExceptionHandler != null) {
+                            parserExceptionHandler.handle(e);
+                        }
                     } finally {
                         // 重新置为中断状态
                         Thread.interrupted();
@@ -302,8 +322,13 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     eventSink.interrupt();
                     transactionBuffer.reset();// 重置一下缓冲队列，重新记录数据
                     binlogParser.reset();// 重新置位
-                    if (multiStageCoprocessor != null) {
-                        multiStageCoprocessor.reset();
+                    if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
+                        // 处理 RejectedExecutionException
+                        try {
+                            multiStageCoprocessor.stop();
+                        } catch (Throwable t) {
+                            logger.debug("multi processor rejected:", t);
+                        }
                     }
 
                     if (running) {
@@ -331,6 +356,15 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         stopHeartBeat(); // 先停止心跳
         parseThread.interrupt(); // 尝试中断
         eventSink.interrupt();
+
+        if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
+            try {
+                multiStageCoprocessor.stop();
+            } catch (Throwable t) {
+                logger.debug("multi processor rejected:", t);
+            }
+        }
+
         try {
             parseThread.join();// 等待其结束
         } catch (InterruptedException e) {
@@ -342,10 +376,6 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         }
         if (transactionBuffer.isStart()) {
             transactionBuffer.stop();
-        }
-
-        if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
-            multiStageCoprocessor.stop();
         }
     }
 
@@ -420,7 +450,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         return logPosition;
     }
 
-    protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, long startPosition) {
+    protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, Long startPosition) {
         if (lastPosition != null) {
             logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s]",
                 lastPosition.getPostion()),
@@ -607,6 +637,22 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     public void setParallelBufferSize(int parallelBufferSize) {
         this.parallelBufferSize = parallelBufferSize;
+    }
+
+    public ParserExceptionHandler getParserExceptionHandler() {
+        return parserExceptionHandler;
+    }
+
+    public void setParserExceptionHandler(ParserExceptionHandler parserExceptionHandler) {
+        this.parserExceptionHandler = parserExceptionHandler;
+    }
+
+    public long getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(long serverId) {
+        this.serverId = serverId;
     }
 
 }

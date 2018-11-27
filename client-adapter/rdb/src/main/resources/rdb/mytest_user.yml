@@ -1,0 +1,17 @@
+dataSourceKey: defaultDS
+destination: example
+outerAdapterKey: oracle1
+concurrent: true
+dbMapping:
+  database: mytest
+  table: user
+  targetTable: mytest.tb_user
+  targetPk:
+    id: id
+  mapAll: true
+#  targetColumns:
+#    id:
+#    name:
+#    role_id:
+#    c_time:
+#    test1:

@@ -29,19 +29,12 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
             statement.execute("SET @master_binlog_checksum='@@global.binlog_checksum'");
             statement.execute("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
 
-            fecther.open(connection, "mysql-bin.000001", 4L, 2);
+            fecther.open(connection, "mysql-bin.000007", 89797036L, 2);
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
             while (fecther.fetch()) {
-                LogEvent event = null;
-                event = decoder.decode(fecther, context);
-
-                if (event == null) {
-                    continue;
-                    // throw new RuntimeException("parse failed");
-                }
-
+                LogEvent event = decoder.decode(fecther, context);
                 int eventType = event.getHeader().getType();
                 switch (eventType) {
                     case LogEvent.ROTATE_EVENT:
@@ -52,6 +45,7 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
                         parseRowsEvent((WriteRowsLogEvent) event);
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
+                    case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
                         parseRowsEvent((UpdateRowsLogEvent) event);
                         break;

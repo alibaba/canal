@@ -18,13 +18,19 @@ public class FastsqlSchemaTest {
     @Test
     public void testSimple() throws FileNotFoundException, IOException {
         SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
-        String sql = "create table yushitai_test.card_record ( id bigint auto_increment) auto_increment=256 "
-                     + "; alter table yushitai_test.card_record add column customization_id bigint unsigned NOT NULL COMMENT 'TEST' ;"
-                     + "; rename table yushitai_test.card_record to yushitai_test._card_record_del;";
+        String sql = "create table yushitai_test.card_record ( id bigint auto_increment, name varchar(32) DEFAULT NULL) auto_increment=256 "
+                     + "ALTER TABLE yushitai_test.card_record ADD COLUMN remark2 varchar(255) DEFAULT NULL , ALGORITHM=inplace,LOCK=NONE;"
+                     + "ALTER TABLE yushitai_test.card_record modify COLUMN name varchar(64) DEFAULT NULL , ALGORITHM=copy,LOCK=SHARED; "
+                     + "alter table yushitai_test.card_record add index index_name(name) ;"
+                     + "alter table yushitai_test.card_record add index index_name(name) ;"
+                     + "alter table yushitai_test.card_record add Constraint pk_id PRIMARY KEY (id);"
+                     + "alter table yushitai_test.card_record add Constraint pk_id PRIMARY KEY (id);"
+                     + "alter table yushitai_test.card_record add Constraint UNIQUE index uk_name(name);"
+                     + "alter table yushitai_test.card_record add Constraint UNIQUE index uk_name(name);";
         repository.console(sql);
 
         repository.setDefaultSchema("yushitai_test");
-        SchemaObject table = repository.findTable("_card_record_del");
+        SchemaObject table = repository.findTable("card_record");
         System.out.println(table.getStatement().toString());
     }
 }

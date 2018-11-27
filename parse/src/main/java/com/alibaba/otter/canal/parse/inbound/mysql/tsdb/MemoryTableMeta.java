@@ -58,6 +58,11 @@ public class MemoryTableMeta implements TableMetaTSDB {
     public boolean init(String destination) {
         return true;
     }
+    
+    @Override
+    public void destory() {
+        tableMetas.clear();
+    }
 
     public boolean apply(EntryPosition position, String schema, String ddl, String extra) {
         tableMetas.clear();
@@ -68,7 +73,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
 
             try {
                 // druid暂时flush privileges语法解析有问题
-                if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")) {
+                if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "grant")) {
                     repository.console(ddl);
                 }
             } catch (Throwable e) {
@@ -94,7 +100,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 tableMeta = tableMetas.get(keys);
                 if (tableMeta == null) {
                     Schema schemaRep = repository.findSchema(schema);
-                    if (schema == null) {
+                    if (schemaRep == null) {
                         return null;
                     }
                     SchemaObject data = schemaRep.findTable(table);
@@ -207,6 +213,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
                     fieldMeta.setNullable(true);
                 } else if (constraint instanceof SQLColumnPrimaryKey) {
                     fieldMeta.setKey(true);
+                    fieldMeta.setNullable(false);
                 } else if (constraint instanceof SQLColumnUniqueKey) {
                     fieldMeta.setUnique(true);
                 }
@@ -219,6 +226,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 String name = getSqlName(pk.getExpr());
                 FieldMeta field = tableMeta.getFieldMetaByName(name);
                 field.setKey(true);
+                field.setNullable(false);
             }
         } else if (element instanceof MySqlUnique) {
             MySqlUnique column = (MySqlUnique) element;
