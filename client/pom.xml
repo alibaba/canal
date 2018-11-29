@@ -105,6 +105,10 @@
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.aliyun.openservices</groupId>
+			<artifactId>aliware-apache-rocketmq-cloud</artifactId>
+		</dependency>
 		<!-- 客户端要使用请单独引入kafka-clients依赖 -->
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
@@ -119,10 +123,6 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.aliyun.openservices</groupId>
-			<artifactId>aliware-apache-rocketmq-cloud</artifactId>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -134,26 +134,13 @@
 				<configuration>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<artifactSet>
-						<excludes>
-							<exclude>org.apache.zookeeper:zookeeper</exclude>
-							<exclude>com.101tec:zkclient</exclude>
-							<exclude>commons-io:commons-io</exclude>
-							<exclude>commons-lang:commons-lang</exclude>
-							<exclude>commons-codec:commons-codec</exclude>
-							<exclude>com.alibaba:fastjson</exclude>
-							<exclude>ch.qos.logback:logback-core</exclude>
-							<exclude>ch.qos.logback:logback-classic</exclude>
-							<exclude>org.slf4j:jcl-over-slf4j</exclude>
-							<exclude>org.slf4j:slf4j-api</exclude>
-							<exclude>org.springframework:*</exclude>
-							<exclude>org.jboss.netty:netty</exclude>
-							<exclude>commons-logging:commons-logging</exclude>
-							<exclude>aopalliance:aopalliance</exclude>
-							<exclude>com.google.protobuf:protobuf-java</exclude>
-							<exclude>com.google.code.findbugs:jsr305</exclude>
-							<exclude>io.netty:*</exclude>
-							<exclude>junit:junit</exclude>
-						</excludes>
+						<includes>
+							<include>com.alibaba.otter:*</include>
+							<include>com.google.guava:*</include>
+							<include>org.joda:*</include>
+							<include>com.google.common:*</include>
+							<include>com.google.thirdparty:*</include>
+						</includes>
 					</artifactSet>
 				</configuration>
 				<executions>
