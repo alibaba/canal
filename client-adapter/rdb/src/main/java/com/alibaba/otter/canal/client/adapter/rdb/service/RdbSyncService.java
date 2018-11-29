@@ -78,6 +78,9 @@ public class RdbSyncService {
                 Map<String, MappingConfig> configMap = mappingConfigCache
                     .get(destination + "." + database + "." + table);
 
+                if (configMap == null) {
+                    continue;
+                }
                 for (MappingConfig config : configMap.values()) {
 
                     if (config.getConcurrent()) {
@@ -177,13 +180,13 @@ public class RdbSyncService {
 
             List<Map<String, ?>> values = new ArrayList<>();
             for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
-                String targetClolumnName = entry.getKey();
+                String targetColumnName = entry.getKey();
                 String srcColumnName = entry.getValue();
                 if (srcColumnName == null) {
-                    srcColumnName = targetClolumnName;
+                    srcColumnName = Util.cleanColumn(targetColumnName);
                 }
 
-                Integer type = ctype.get(targetClolumnName.toLowerCase());
+                Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
 
                 Object value = data.get(srcColumnName);
 
@@ -238,7 +241,7 @@ public class RdbSyncService {
 
                     for (String targetColumnName : targetColumnNames) {
                         updateSql.append(targetColumnName).append("=?, ");
-                        Integer type = ctype.get(targetColumnName.toLowerCase());
+                        Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
                         BatchExecutor.setValue(values, type, data.get(srcColumnName));
                     }
                 }
@@ -344,10 +347,10 @@ public class RdbSyncService {
             String targetColumnName = entry.getKey();
             String srcColumnName = entry.getValue();
             if (srcColumnName == null) {
-                srcColumnName = targetColumnName;
+                srcColumnName = Util.cleanColumn(targetColumnName);
             }
             sql.append(targetColumnName).append("=? AND ");
-            Integer type = ctype.get(targetColumnName.toLowerCase());
+            Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
             // 如果有修改主键的情况
             if (o != null && o.containsKey(srcColumnName)) {
                 BatchExecutor.setValue(values, type, o.get(srcColumnName));
@@ -384,7 +387,7 @@ public class RdbSyncService {
             String targetColumnName = entry.getKey();
             String srcColumnName = entry.getValue();
             if (srcColumnName == null) {
-                srcColumnName = targetColumnName;
+                srcColumnName = Util.cleanColumn(targetColumnName);
             }
             Object value;
             if (o != null && o.containsKey(srcColumnName)) {
