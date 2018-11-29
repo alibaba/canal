@@ -74,6 +74,8 @@ public class SyncUtil {
             case Types.LONGVARCHAR:
                 if (value instanceof String) {
                     pstmt.setString(i, (String) value);
+                } else if (value == null) {
+                    pstmt.setNull(i, type);
                 } else {
                     pstmt.setString(i, value.toString());
                 }
@@ -140,8 +142,10 @@ public class SyncUtil {
                     pstmt.setBigDecimal(i, new BigDecimal((float) value));
                 } else if (value instanceof Double) {
                     pstmt.setBigDecimal(i, new BigDecimal((double) value));
-                } else {
+                } else if (value != null) {
                     pstmt.setBigDecimal(i, new BigDecimal(value.toString()));
+                } else {
+                    pstmt.setNull(i, type);
                 }
                 break;
             case Types.REAL:
