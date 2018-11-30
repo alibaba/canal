@@ -50,6 +50,8 @@ public class CanalLauncher {
             if (canalMQProducer != null) {
                 // disable netty
                 System.setProperty(CanalConstants.CANAL_WITHOUT_NETTY, "true");
+                System.setProperty(CanalConstants.CANAL_DESTINATIONS,
+                    properties.getProperty(CanalConstants.CANAL_DESTINATIONS));
             }
 
             logger.info("## start the canal server.");
