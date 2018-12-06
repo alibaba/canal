@@ -974,10 +974,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setNameFilter(AviaterRegexFilter nameFilter) {
         this.nameFilter = nameFilter;
+        logger.warn("--> init table filter : " + nameFilter.toString());
     }
 
     public void setNameBlackFilter(AviaterRegexFilter nameBlackFilter) {
         this.nameBlackFilter = nameBlackFilter;
+        logger.warn("--> init table black filter : " + nameBlackFilter.toString());
     }
 
     public void setTableMetaCache(TableMetaCache tableMetaCache) {
