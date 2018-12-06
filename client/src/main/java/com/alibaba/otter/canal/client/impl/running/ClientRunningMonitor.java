@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import com.alibaba.otter.canal.client.impl.ServerNotFoundException;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.common.utils.JsonUtils;
@@ -141,6 +142,15 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
             logger.error(MessageFormat.format("There is an error when execute initRunning method, with destination [{0}].",
                 destination),
                 t);
+
+            // fixed issue 1220, 针对server节点不工作避免死循环
+            if (t instanceof ServerNotFoundException) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+            }
+
             // 出现任何异常尝试release
             releaseRunning();
             throw new CanalClientException("something goes wrong in initRunning method. ", t);
