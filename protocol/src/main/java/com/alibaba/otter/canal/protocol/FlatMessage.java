@@ -14,24 +14,24 @@ import com.google.protobuf.ByteString;
  */
 public class FlatMessage implements Serializable {
 
-    private static final long         serialVersionUID = -3386650678735860050L;
+    private static final long          serialVersionUID = -3386650678735860050L;
 
-    private long                      id;
-    private String                    database;
-    private String                    table;
-    private Boolean                   isDdl;
-    private String                    type;
+    private long                       id;
+    private String                     database;
+    private String                     table;
+    private Boolean                    isDdl;
+    private String                     type;
     // binlog executeTime
-    private Long                      es;
+    private Long                       es;
     // dml build timeStamp
-    private Long                      ts;
-    private String                    sql;
-    private Map<String, Integer>      sqlType;
-    private Map<String, String>       mysqlType;
-    private List<Map<String, String>> data;
-    private List<Map<String, String>> old;
+    private Long                       ts;
+    private String                     sql;
+    private Map<String, Integer>       sqlType;
+    private Map<String, String>        mysqlType;
+    private List<Map<String, String>>  data;
+    private List<Map<String, String>>  old;
 
-    private transient Message         message;                                 // 所属message
+    private transient CanalEntry.Entry entry;                                   // 所属entry
 
     public FlatMessage(long id){
         this.id = id;
@@ -133,12 +133,12 @@ public class FlatMessage implements Serializable {
         this.es = es;
     }
 
-    public Message getMessage() {
-        return message;
+    public CanalEntry.Entry getEntry() {
+        return entry;
     }
 
-    public void setMessage(Message message) {
-        this.message = message;
+    public void setEntry(CanalEntry.Entry entry) {
+        this.entry = entry;
     }
 
     /**
@@ -192,7 +192,7 @@ public class FlatMessage implements Serializable {
                 flatMessage.setEs(entry.getHeader().getExecuteTime());
                 flatMessage.setTs(System.currentTimeMillis());
                 flatMessage.setSql(rowChange.getSql());
-                flatMessage.setMessage(message);
+                flatMessage.setEntry(entry);
 
                 if (!rowChange.getIsDdl()) {
                     Map<String, Integer> sqlType = new LinkedHashMap<>();
@@ -287,7 +287,7 @@ public class FlatMessage implements Serializable {
         if (flatMessage.getIsDdl()) {
             partitionMessages[0] = flatMessage;
         } else {
-            if (flatMessage.getData() != null) {
+            if (flatMessage.getData() != null && !flatMessage.getData().isEmpty()) {
                 String database = flatMessage.getDatabase();
                 String table = flatMessage.getTable();
 
@@ -314,7 +314,7 @@ public class FlatMessage implements Serializable {
                 } else {
                     if (pk == null) {
                         // 如果未指定主键(通配符主键)，从原生message中取主键字段
-                        CanalEntry.Entry entry = flatMessage.getMessage().getEntries().get(0);
+                        CanalEntry.Entry entry = flatMessage.getEntry();
                         CanalEntry.RowChange rowChange;
                         try {
                             rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
