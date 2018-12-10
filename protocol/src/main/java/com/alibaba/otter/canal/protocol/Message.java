@@ -173,48 +173,30 @@ public class Message implements Serializable {
                         partitionEntries[0].add(entry);
                     }
                     for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-                        boolean hasOldPk = false;
-                        // 如果before中有pk值说明主键有修改, 以旧的主键值hash为准
-                        for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
-                            CanalEntry.Column pkColumn = null;
-                            if (pk != null) {
-                                if (column.getName().equalsIgnoreCase(pk)) {
-                                    pkColumn = column;
-                                }
-                            } else {
-                                if (column.getIsKey()) {
-                                    pkColumn = column;
-                                }
-                            }
-                            if (pkColumn != null) {
-                                int hash = pkColumn.getValue().hashCode();
-                                int pkHash = Math.abs(hash) % partitionsNum;
-                                pkHash = Math.abs(pkHash);
-                                partitionEntries[pkHash].add(entry);
-                                hasOldPk = true;
-                                break;
-                            }
-                        }
-                        if (!hasOldPk) {
+                        String pkValue = null;
+                        if (pk != null) {
                             for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                                CanalEntry.Column pkColumn = null;
-                                if (pk != null) {
-                                    if (column.getName().equalsIgnoreCase(pk)) {
-                                        pkColumn = column;
-                                    }
-                                } else {
-                                    if (column.getIsKey()) {
-                                        pkColumn = column;
-                                    }
-                                }
-                                if (pkColumn != null) {
-                                    int hash = pkColumn.getValue().hashCode();
-                                    int pkHash = Math.abs(hash) % partitionsNum;
-                                    pkHash = Math.abs(pkHash);
-                                    partitionEntries[pkHash].add(entry);
+                                if (column.getName().equalsIgnoreCase(pk)) {
+                                    pkValue = column.getValue();
                                     break;
                                 }
                             }
+                        } else {
+                            for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                                if (column.getIsKey()) {
+                                    pkValue = column.getValue();
+                                    break;
+                                }
+                            }
+                        }
+                        if (pkValue != null) {
+                            int hash = pkValue.hashCode();
+                            int pkHash = Math.abs(hash) % partitionsNum;
+                            pkHash = Math.abs(pkHash);
+                            partitionEntries[pkHash].add(entry);
+                        } else {
+                            // 没有找到主键
+                            partitionEntries[0].add(entry);
                         }
                     }
                 }
