@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
@@ -252,5 +253,14 @@ public class SyncUtil {
             default:
                 pstmt.setObject(i, value, type);
         }
+    }
+
+    public static String dbTable(MappingConfig.DbMapping dbMapping) {
+        String result = "";
+        if (StringUtils.isNotEmpty(dbMapping.getTargetDb())) {
+            result += dbMapping.getTargetDb() + ".";
+        }
+        result += dbMapping.getTargetTable();
+        return result;
     }
 }

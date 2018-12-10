@@ -15,7 +15,7 @@ spring:
 canal.conf:
   canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
-#  mqServers: slave1:6667 #or rocketmq
+#  mqServers: 127.0.0.1:9092 #or rocketmq
 #  flatMessage: true
   batchSize: 500
   syncBatchSize: 1000
@@ -34,7 +34,7 @@ canal.conf:
     groups:
     - groupId: g1
       outerAdapters:
-      - name: logger
+#      - name: logger
 #      - name: rdb
 #        key: oracle1
 #        properties:
@@ -42,15 +42,13 @@ canal.conf:
 #          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
 #          jdbc.username: mytest
 #          jdbc.password: m121212
-#      - name: rdb
-#        key: postgres1
-#        properties:
-#          jdbc.driverClassName: org.postgresql.Driver
-#          jdbc.url: jdbc:postgresql://localhost:5432/postgres
-#          jdbc.username: postgres
-#          jdbc.password: 121212
-#          threads: 1
-#          commitSize: 3000
+      - name: rdb
+        key: mysql1
+        properties:
+          jdbc.driverClassName: com.mysql.jdbc.Driver
+          jdbc.url: jdbc:mysql://192.168.100.36/mytest?useUnicode=true
+          jdbc.username: root
+          jdbc.password: Ambari-123
 #      - name: hbase
 #        properties:
 #          hbase.zookeeper.quorum: 127.0.0.1

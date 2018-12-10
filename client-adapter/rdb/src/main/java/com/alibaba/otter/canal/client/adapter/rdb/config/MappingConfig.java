@@ -1,8 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.rdb.config;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * RDB表映射配置
@@ -66,30 +64,37 @@ public class MappingConfig {
         if (dbMapping.database == null || dbMapping.database.isEmpty()) {
             throw new NullPointerException("dbMapping.database");
         }
-        if (dbMapping.table == null || dbMapping.table.isEmpty()) {
+        if (!dbMapping.isMirrorDb() && (dbMapping.table == null || dbMapping.table.isEmpty())) {
             throw new NullPointerException("dbMapping.table");
         }
-        if (dbMapping.targetTable == null || dbMapping.targetTable.isEmpty()) {
+        if (!dbMapping.isMirrorDb() && (dbMapping.targetTable == null || dbMapping.targetTable.isEmpty())) {
             throw new NullPointerException("dbMapping.targetTable");
         }
     }
 
     public static class DbMapping {
 
-        private String              database;                            // 数据库名或schema名
-        private String              table;                               // 表面名
-        private Map<String, String> targetPk;                            // 目标表主键字段
-        private boolean             mapAll      = false;                 // 映射所有字段
-        private String              targetTable;                         // 目标表名
-        private Map<String, String> targetColumns;                       // 目标表字段映射
+        private Boolean             mirrorDb    = false; // 是否镜像库
+        private String              database;            // 数据库名或schema名
+        private String              table;               // 表名
+        private Map<String, String> targetPk;            // 目标表主键字段
+        private Boolean             mapAll      = false; // 映射所有字段
+        private String              targetDb;            // 目标库名
+        private String              targetTable;         // 目标表名
+        private Map<String, String> targetColumns;       // 目标表字段映射
 
-        private String              etlCondition;                        // etl条件sql
+        private String              etlCondition;        // etl条件sql
 
-        private Set<String>         families    = new LinkedHashSet<>(); // column family列表
         private int                 readBatch   = 5000;
-        private int                 commitBatch = 5000;                  // etl等批量提交大小
+        private int                 commitBatch = 5000;  // etl等批量提交大小
 
-        // private volatile Map<String, String> allColumns; // mapAll为true,自动设置改字段
+        public boolean isMirrorDb() {
+            return mirrorDb == null ? false : mirrorDb;
+        }
+
+        public void setMirrorDb(Boolean mirrorDb) {
+            this.mirrorDb = mirrorDb;
+        }
 
         public String getDatabase() {
             return database;
@@ -116,11 +121,19 @@ public class MappingConfig {
         }
 
         public boolean isMapAll() {
-            return mapAll;
+            return mapAll == null ? false : mapAll;
         }
 
-        public void setMapAll(boolean mapAll) {
+        public void setMapAll(Boolean mapAll) {
             this.mapAll = mapAll;
+        }
+
+        public String getTargetDb() {
+            return targetDb;
+        }
+
+        public void setTargetDb(String targetDb) {
+            this.targetDb = targetDb;
         }
 
         public String getTargetTable() {
@@ -147,14 +160,6 @@ public class MappingConfig {
             this.etlCondition = etlCondition;
         }
 
-        public Set<String> getFamilies() {
-            return families;
-        }
-
-        public void setFamilies(Set<String> families) {
-            this.families = families;
-        }
-
         public int getReadBatch() {
             return readBatch;
         }
@@ -170,13 +175,5 @@ public class MappingConfig {
         public void setCommitBatch(int commitBatch) {
             this.commitBatch = commitBatch;
         }
-
-        // public Map<String, String> getAllColumns() {
-        // return allColumns;
-        // }
-        //
-        // public void setAllColumns(Map<String, String> allColumns) {
-        // this.allColumns = allColumns;
-        // }
     }
 }

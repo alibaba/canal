@@ -70,6 +70,7 @@ public abstract class AbstractCanalAdapterWorker {
                     });
                     return true;
                 } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
                     return false;
                 }
             }));
@@ -108,6 +109,7 @@ public abstract class AbstractCanalAdapterWorker {
                     });
                     return true;
                 } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
                     return false;
                 }
             }));
@@ -178,7 +180,7 @@ public abstract class AbstractCanalAdapterWorker {
 
     /**
      * 分批同步
-     * 
+     *
      * @param dmls
      * @param adapter
      */
