@@ -3,15 +3,17 @@ package com.alibaba.otter.canal.protocol;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import com.google.protobuf.InvalidProtocolBufferException;
+import com.alibaba.otter.canal.protocol.aviater.AviaterRegexFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * @author zebin.xuzb @ 2012-6-19
@@ -19,14 +21,17 @@ import com.google.protobuf.ByteString;
  */
 public class Message implements Serializable {
 
-    private static final long      serialVersionUID = 1234034768477580009L;
+    private static final long                                    serialVersionUID = 1234034768477580009L;
 
-    private long                   id;
-    private List<CanalEntry.Entry> entries          = new ArrayList<CanalEntry.Entry>();
+    private static ConcurrentMap<String, String>                 schemaTabPk      = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, AviaterRegexFilter> regexFilters     = new ConcurrentHashMap<>();
+
+    private long                                                 id;
+    private List<CanalEntry.Entry>                               entries          = new ArrayList<CanalEntry.Entry>();
     // row data for performance, see:
     // https://github.com/alibaba/canal/issues/726
-    private boolean                raw              = true;
-    private List<ByteString>       rawEntries       = new ArrayList<ByteString>();
+    private boolean                                              raw              = true;
+    private List<ByteString>                                     rawEntries       = new ArrayList<ByteString>();
 
     public Message(long id, List<Entry> entries){
         this.id = id;
@@ -152,7 +157,14 @@ public class Message implements Serializable {
                             pk = pkHashConfig.substring(i + 1);
                         }
                         pkHashConfig = pkHashConfig.substring(0, i);
-                        isMatch = Pattern.matches(pkHashConfig, database + "." + table);
+
+                        AviaterRegexFilter aviaterRegexFilter = regexFilters.get(pkHashConfig);
+                        if (aviaterRegexFilter == null) {
+                            aviaterRegexFilter = new AviaterRegexFilter(pkHashConfig);
+                            regexFilters.putIfAbsent(pkHashConfig, aviaterRegexFilter);
+                        }
+
+                        isMatch = aviaterRegexFilter.filter(database + "." + table);
                         if (isMatch) {
                             break;
                         }
@@ -163,17 +175,21 @@ public class Message implements Serializable {
                         partitionEntries[0].add(entry);
                     } else {
                         if (pk == null) {
-                            // 如果未指定主键(通配符主键)，取主键字段
-                            try {
-                                rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                            } catch (Exception e) {
-                                throw new RuntimeException(e.getMessage(), e);
-                            }
-                            CanalEntry.RowData rowData = rowChange.getRowDatasList().get(0);
-                            for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                                if (column.getIsKey()) {
-                                    pk = column.getName();
-                                    break;
+                            pk = schemaTabPk.get(database + "." + table);
+                            if (pk == null) {
+                                // 如果未指定主键(通配符主键)，取主键字段
+                                try {
+                                    rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e.getMessage(), e);
+                                }
+                                CanalEntry.RowData rowData = rowChange.getRowDatasList().get(0);
+                                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                                    if (column.getIsKey()) {
+                                        pk = column.getName();
+                                        schemaTabPk.putIfAbsent(database + "." + table, pk);
+                                        break;
+                                    }
                                 }
                             }
                         }
