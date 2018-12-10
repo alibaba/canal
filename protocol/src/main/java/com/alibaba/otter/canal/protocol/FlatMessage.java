@@ -5,9 +5,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.alibaba.otter.canal.protocol.aviater.AviaterRegexFilter;
 import org.apache.commons.lang.StringUtils;
 
+import com.alibaba.otter.canal.protocol.aviater.AviaterRegexFilter;
 import com.google.protobuf.ByteString;
 
 /**
@@ -18,12 +18,12 @@ public class FlatMessage implements Serializable {
 
     private static final long                                    serialVersionUID = -3386650678735860050L;
 
-    private static ConcurrentMap<String, String>                 schemaTabPk      = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, AviaterRegexFilter> regexFilters     = new ConcurrentHashMap<>();
 
     private long                                                 id;
     private String                                               database;
     private String                                               table;
+    private String                                               pk;
     private Boolean                                              isDdl;
     private String                                               type;
     // binlog executeTime
@@ -64,6 +64,14 @@ public class FlatMessage implements Serializable {
 
     public void setTable(String table) {
         this.table = table;
+    }
+
+    public String getPk() {
+        return pk;
+    }
+
+    public void setPk(String pk) {
+        this.pk = pk;
     }
 
     public Boolean getIsDdl() {
@@ -222,6 +230,9 @@ public class FlatMessage implements Serializable {
                         }
 
                         for (CanalEntry.Column column : columns) {
+                            if (flatMessage.getPk() == null && column.getIsKey()) {
+                                flatMessage.setPk(column.getName());
+                            }
                             sqlType.put(column.getName(), column.getSqlType());
                             mysqlType.put(column.getName(), column.getMysqlType());
                             if (column.getIsNull()) {
@@ -325,25 +336,7 @@ public class FlatMessage implements Serializable {
                     partitionMessages[0] = flatMessage;
                 } else {
                     if (pk == null) {
-                        pk = schemaTabPk.get(database + "." + table);
-                        if (pk == null) {
-                            // 如果未指定主键(通配符主键)，从原生message中取主键字段
-                            CanalEntry.Entry entry = flatMessage.getEntry();
-                            CanalEntry.RowChange rowChange;
-                            try {
-                                rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                            } catch (Exception e) {
-                                throw new RuntimeException(e.getMessage(), e);
-                            }
-                            CanalEntry.RowData rowData = rowChange.getRowDatasList().get(0);
-                            for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                                if (column.getIsKey()) {
-                                    pk = column.getName();
-                                    schemaTabPk.putIfAbsent(database + "." + table, pk);
-                                    break;
-                                }
-                            }
-                        }
+                        pk = flatMessage.getPk();
                     }
                     if (pk == null || !flatMessage.getData().get(0).containsKey(pk)) {
                         // 如果都没有匹配的主键，发送到第一个分区
