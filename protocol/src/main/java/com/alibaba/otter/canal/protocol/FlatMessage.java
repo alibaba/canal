@@ -1,13 +1,13 @@
 package com.alibaba.otter.canal.protocol;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.alibaba.otter.canal.protocol.aviater.AviaterRegexFilter;
 import com.google.protobuf.ByteString;
 
 /**
@@ -16,25 +16,27 @@ import com.google.protobuf.ByteString;
  */
 public class FlatMessage implements Serializable {
 
-    private static final long         serialVersionUID = -3386650678735860050L;
+    private static final long                                    serialVersionUID = -3386650678735860050L;
 
-    private long                      id;
-    private String                    database;
-    private String                    table;
-    private Boolean                   isDdl;
-    private String                    type;
+    private static ConcurrentHashMap<String, AviaterRegexFilter> regexFilters     = new ConcurrentHashMap<>();
+
+    private long                                                 id;
+    private String                                               database;
+    private String                                               table;
+    private String                                               pk;
+    private Boolean                                              isDdl;
+    private String                                               type;
     // binlog executeTime
-    private Long                      es;
+    private Long                                                 es;
     // dml build timeStamp
-    private Long                      ts;
-    private String                    sql;
-    private Map<String, Integer>      sqlType;
-    private Map<String, String>       mysqlType;
-    private List<Map<String, String>> data;
-    private List<Map<String, String>> old;
+    private Long                                                 ts;
+    private String                                               sql;
+    private Map<String, Integer>                                 sqlType;
+    private Map<String, String>                                  mysqlType;
+    private List<Map<String, String>>                            data;
+    private List<Map<String, String>>                            old;
 
-    public FlatMessage(){
-    }
+    private transient CanalEntry.Entry                           entry;                                       // 所属entry
 
     public FlatMessage(long id){
         this.id = id;
@@ -62,6 +64,14 @@ public class FlatMessage implements Serializable {
 
     public void setTable(String table) {
         this.table = table;
+    }
+
+    public String getPk() {
+        return pk;
+    }
+
+    public void setPk(String pk) {
+        this.pk = pk;
     }
 
     public Boolean getIsDdl() {
@@ -136,9 +146,17 @@ public class FlatMessage implements Serializable {
         this.es = es;
     }
 
+    public CanalEntry.Entry getEntry() {
+        return entry;
+    }
+
+    public void setEntry(CanalEntry.Entry entry) {
+        this.entry = entry;
+    }
+
     /**
      * 将Message转换为FlatMessage
-     * 
+     *
      * @param message 原生message
      * @return FlatMessage列表
      */
@@ -187,6 +205,7 @@ public class FlatMessage implements Serializable {
                 flatMessage.setEs(entry.getHeader().getExecuteTime());
                 flatMessage.setTs(System.currentTimeMillis());
                 flatMessage.setSql(rowChange.getSql());
+                flatMessage.setEntry(entry);
 
                 if (!rowChange.getIsDdl()) {
                     Map<String, Integer> sqlType = new LinkedHashMap<>();
@@ -211,6 +230,9 @@ public class FlatMessage implements Serializable {
                         }
 
                         for (CanalEntry.Column column : columns) {
+                            if (flatMessage.getPk() == null && column.getIsKey()) {
+                                flatMessage.setPk(column.getName());
+                            }
                             sqlType.put(column.getName(), column.getSqlType());
                             mysqlType.put(column.getName(), column.getMysqlType());
                             if (column.getIsNull()) {
@@ -266,73 +288,102 @@ public class FlatMessage implements Serializable {
 
     /**
      * 将FlatMessage按指定的字段值hash拆分
-     * 
+     *
      * @param flatMessage flatMessage
      * @param partitionsNum 分区数量
-     * @param pkHashConfig hash映射
+     * @param pkHashConfigs hash映射
      * @return 拆分后的flatMessage数组
      */
-    public static FlatMessage[] messagePartition(FlatMessage flatMessage, Integer partitionsNum,
-                                                 Map<String, String> pkHashConfig) {
+    public static FlatMessage[] messagePartition(FlatMessage flatMessage, Integer partitionsNum, String pkHashConfigs) {
         if (partitionsNum == null) {
             partitionsNum = 1;
         }
         FlatMessage[] partitionMessages = new FlatMessage[partitionsNum];
-        String pk = pkHashConfig.get(flatMessage.getDatabase() + "." + flatMessage.getTable());
-        if (pk == null || flatMessage.getIsDdl()) {
+
+        if (flatMessage.getIsDdl()) {
             partitionMessages[0] = flatMessage;
         } else {
-            if (flatMessage.getData() != null) {
-                int idx = 0;
-                for (Map<String, String> row : flatMessage.getData()) {
-                    Map<String, String> o = null;
-                    if (flatMessage.getOld() != null) {
-                        o = flatMessage.getOld().get(idx);
-                    }
-                    String value;
-                    // 如果old中有pk值说明主键有修改, 以旧的主键值hash为准
-                    if (o != null && o.containsKey(pk)) {
-                        value = o.get(pk);
-                    } else {
-                        value = row.get(pk);
-                    }
-                    if (value == null) {
-                        value = "";
-                    }
-                    int hash = value.hashCode();
-                    int pkHash = Math.abs(hash) % partitionsNum;
-                    // math.abs可能返回负值，这里再取反，把出现负值的数据还是写到固定的分区，仍然可以保证消费顺序
-                    pkHash = Math.abs(pkHash);
+            if (flatMessage.getData() != null && !flatMessage.getData().isEmpty()) {
+                String database = flatMessage.getDatabase();
+                String table = flatMessage.getTable();
 
-                    FlatMessage flatMessageTmp = partitionMessages[pkHash];
-                    if (flatMessageTmp == null) {
-                        flatMessageTmp = new FlatMessage(flatMessage.getId());
-                        partitionMessages[pkHash] = flatMessageTmp;
-                        flatMessageTmp.setDatabase(flatMessage.getDatabase());
-                        flatMessageTmp.setTable(flatMessage.getTable());
-                        flatMessageTmp.setIsDdl(flatMessage.getIsDdl());
-                        flatMessageTmp.setType(flatMessage.getType());
-                        flatMessageTmp.setSql(flatMessage.getSql());
-                        flatMessageTmp.setSqlType(flatMessage.getSqlType());
-                        flatMessageTmp.setMysqlType(flatMessage.getMysqlType());
-                        flatMessageTmp.setEs(flatMessage.getEs());
-                        flatMessageTmp.setTs(flatMessage.getTs());
+                String pk = null;
+                boolean isMatch = false;
+
+                String[] pkHashConfigArray = StringUtils.split(pkHashConfigs, ",");
+                for (String pkHashConfig : pkHashConfigArray) {
+                    int i = pkHashConfig.lastIndexOf(".");
+                    if (!pkHashConfig.endsWith(".$pk$")) {
+                        // 如果指定了主键
+                        pk = pkHashConfig.substring(i + 1);
                     }
-                    List<Map<String, String>> data = flatMessageTmp.getData();
-                    if (data == null) {
-                        data = new ArrayList<>();
-                        flatMessageTmp.setData(data);
+                    pkHashConfig = pkHashConfig.substring(0, i);
+
+                    AviaterRegexFilter aviaterRegexFilter = regexFilters.get(pkHashConfig);
+                    if (aviaterRegexFilter == null) {
+                        aviaterRegexFilter = new AviaterRegexFilter(pkHashConfig);
+                        regexFilters.putIfAbsent(pkHashConfig, aviaterRegexFilter);
                     }
-                    data.add(row);
-                    if (flatMessage.getOld() != null && !flatMessage.getOld().isEmpty()) {
-                        List<Map<String, String>> old = flatMessageTmp.getOld();
-                        if (old == null) {
-                            old = new ArrayList<>();
-                            flatMessageTmp.setOld(old);
+
+                    isMatch = aviaterRegexFilter.filter(database + "." + table);
+                    if (isMatch) {
+                        break;
+                    }
+                }
+
+                if (!isMatch) {
+                    // 如果都没有匹配，发送到第一个分区
+                    partitionMessages[0] = flatMessage;
+                } else {
+                    if (pk == null) {
+                        pk = flatMessage.getPk();
+                    }
+                    if (pk == null || !flatMessage.getData().get(0).containsKey(pk)) {
+                        // 如果都没有匹配的主键，发送到第一个分区
+                        partitionMessages[0] = flatMessage;
+                    } else {
+                        int idx = 0;
+                        for (Map<String, String> row : flatMessage.getData()) {
+                            String value = row.get(pk);
+                            if (value == null) {
+                                value = "";
+                            }
+                            int hash = value.hashCode();
+                            int pkHash = Math.abs(hash) % partitionsNum;
+                            // math.abs可能返回负值，这里再取反，把出现负值的数据还是写到固定的分区，仍然可以保证消费顺序
+                            pkHash = Math.abs(pkHash);
+
+                            FlatMessage flatMessageTmp = partitionMessages[pkHash];
+                            if (flatMessageTmp == null) {
+                                flatMessageTmp = new FlatMessage(flatMessage.getId());
+                                partitionMessages[pkHash] = flatMessageTmp;
+                                flatMessageTmp.setDatabase(flatMessage.getDatabase());
+                                flatMessageTmp.setTable(flatMessage.getTable());
+                                flatMessageTmp.setIsDdl(flatMessage.getIsDdl());
+                                flatMessageTmp.setType(flatMessage.getType());
+                                flatMessageTmp.setSql(flatMessage.getSql());
+                                flatMessageTmp.setSqlType(flatMessage.getSqlType());
+                                flatMessageTmp.setMysqlType(flatMessage.getMysqlType());
+                                flatMessageTmp.setEs(flatMessage.getEs());
+                                flatMessageTmp.setTs(flatMessage.getTs());
+                            }
+                            List<Map<String, String>> data = flatMessageTmp.getData();
+                            if (data == null) {
+                                data = new ArrayList<>();
+                                flatMessageTmp.setData(data);
+                            }
+                            data.add(row);
+                            if (flatMessage.getOld() != null && !flatMessage.getOld().isEmpty()) {
+                                List<Map<String, String>> old = flatMessageTmp.getOld();
+                                if (old == null) {
+                                    old = new ArrayList<>();
+                                    flatMessageTmp.setOld(old);
+                                }
+                                old.add(flatMessage.getOld().get(idx));
+                            }
+                            idx++;
                         }
-                        old.add(flatMessage.getOld().get(idx));
                     }
-                    idx++;
                 }
             }
         }
