@@ -36,10 +36,10 @@ public class MQMessageUtils {
                                                                                List<PartitionData> datas = Lists.newArrayList();
                                                                                String[] pkHashConfigArray = StringUtils.split(pkHashConfigs,
                                                                                    ",");
-                                                                               // schema.table#id^name
+                                                                               // schema.table:id^name
                                                                                for (String pkHashConfig : pkHashConfigArray) {
                                                                                    PartitionData data = new PartitionData();
-                                                                                   int i = pkHashConfig.lastIndexOf("#");
+                                                                                   int i = pkHashConfig.lastIndexOf(":");
                                                                                    if (i > 0) {
                                                                                        data.pkNames = Lists.newArrayList(StringUtils.split(pkHashConfig.substring(i + 1),
                                                                                            '^'));
