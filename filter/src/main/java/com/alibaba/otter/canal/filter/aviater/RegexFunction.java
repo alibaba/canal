@@ -12,7 +12,7 @@ import com.googlecode.aviator.runtime.type.AviatorObject;
 
 /**
  * 提供aviator regex的代码扩展
- * 
+ *
  * @author jianghang 2012-7-23 上午10:29:23
  */
 public class RegexFunction extends AbstractFunction {

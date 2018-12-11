@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.common;
 
-import java.util.Map;
 
 /**
  * kafka 配置项
