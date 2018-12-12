@@ -506,8 +506,8 @@ public class MysqlConnection implements ErosaConnection {
         ResultSetPacket rs = null;
         try {
             rs = query("select @@global.binlog_checksum");
-        } catch (IOException e) {
-            throw new CanalParseException(e);
+        } catch (Throwable e) {
+            // ignore
         }
 
         List<String> columnValues = rs.getFieldValues();
