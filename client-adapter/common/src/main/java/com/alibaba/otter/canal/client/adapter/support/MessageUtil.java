@@ -1,11 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
@@ -55,6 +50,8 @@ public class MessageUtil {
 
             if (!rowChange.getIsDdl()) {
                 Set<String> updateSet = new HashSet<>();
+                dml.setPkNames(new ArrayList<>());
+                int i = 0;
                 for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
                     if (eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE
                         && eventType != CanalEntry.EventType.DELETE) {
@@ -71,6 +68,11 @@ public class MessageUtil {
                     }
 
                     for (CanalEntry.Column column : columns) {
+                        if (i == 0) {
+                            if (column.getIsKey()) {
+                                dml.getPkNames().add(column.getName());
+                            }
+                        }
                         row.put(column.getName(),
                             JdbcTypeUtil.typeConvert(column.getName(),
                                 column.getValue(),
@@ -101,6 +103,8 @@ public class MessageUtil {
                             old.add(rowOld);
                         }
                     }
+
+                    i++;
                 }
                 if (!data.isEmpty()) {
                     dml.setData(data);
@@ -134,6 +138,7 @@ public class MessageUtil {
         dml.setDestination(destination);
         dml.setDatabase(flatMessage.getDatabase());
         dml.setTable(flatMessage.getTable());
+        dml.setPkNames(flatMessage.getPkNames());
         dml.setType(flatMessage.getType());
         dml.setTs(flatMessage.getTs());
         dml.setEs(flatMessage.getEs());

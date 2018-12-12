@@ -166,7 +166,7 @@ public class RdbSyncService {
             Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
             StringBuilder insertSql = new StringBuilder();
-            insertSql.append("INSERT INTO ").append(SyncUtil.dbTable(dbMapping)).append(" (");
+            insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
 
             columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
             int len = insertSql.length();
@@ -230,7 +230,7 @@ public class RdbSyncService {
             Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
             StringBuilder updateSql = new StringBuilder();
-            updateSql.append("UPDATE ").append(SyncUtil.dbTable(dbMapping)).append(" SET ");
+            updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
             List<Map<String, ?>> values = new ArrayList<>();
             for (String srcColumnName : old.keySet()) {
                 List<String> targetColumnNames = new ArrayList<>();
@@ -282,7 +282,7 @@ public class RdbSyncService {
             Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
             StringBuilder sql = new StringBuilder();
-            sql.append("DELETE FROM ").append(SyncUtil.dbTable(dbMapping)).append(" WHERE ");
+            sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping)).append(" WHERE ");
 
             List<Map<String, ?>> values = new ArrayList<>();
             // 拼接主键
@@ -315,7 +315,7 @@ public class RdbSyncService {
                 if (columnType == null) {
                     columnType = new LinkedHashMap<>();
                     final Map<String, Integer> columnTypeTmp = columnType;
-                    String sql = "SELECT * FROM " + SyncUtil.dbTable(dbMapping) + " WHERE 1=2";
+                    String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE 1=2";
                     Util.sqlRS(conn, sql, rs -> {
                         try {
                             ResultSetMetaData rsd = rs.getMetaData();

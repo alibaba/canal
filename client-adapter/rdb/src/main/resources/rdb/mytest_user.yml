@@ -6,7 +6,6 @@ dbMapping:
   mirrorDb: true
   database: mytest
 #  table: user
-  targetDb: mytest2
 #  targetTable: mytest.tb_user
 #  targetPk:
 #    id: id

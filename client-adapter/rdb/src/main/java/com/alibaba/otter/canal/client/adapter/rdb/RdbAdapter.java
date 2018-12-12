@@ -172,7 +172,7 @@ public class RdbAdapter implements OuterAdapter {
     public Map<String, Object> count(String task) {
         MappingConfig config = rdbMapping.get(task);
         MappingConfig.DbMapping dbMapping = config.getDbMapping();
-        String sql = "SELECT COUNT(1) AS cnt FROM " + SyncUtil.dbTable(dbMapping);
+        String sql = "SELECT COUNT(1) AS cnt FROM " + SyncUtil.getDbTableName(dbMapping);
         Connection conn = null;
         Map<String, Object> res = new LinkedHashMap<>();
         try {
@@ -198,7 +198,7 @@ public class RdbAdapter implements OuterAdapter {
                 }
             }
         }
-        res.put("targetTable", SyncUtil.dbTable(dbMapping));
+        res.put("targetTable", SyncUtil.getDbTableName(dbMapping));
 
         return res;
     }
