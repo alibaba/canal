@@ -89,6 +89,8 @@ public class MappingConfig {
         private int                 readBatch   = 5000;
         private int                 commitBatch = 5000;                  // etl等批量提交大小
 
+        private Map<String, String> allMapColumns;
+
         public boolean isMirrorDb() {
             return mirrorDb == null ? false : mirrorDb;
         }
@@ -175,6 +177,14 @@ public class MappingConfig {
 
         public void setCommitBatch(int commitBatch) {
             this.commitBatch = commitBatch;
+        }
+
+        public Map<String, String> getAllMapColumns() {
+            return allMapColumns;
+        }
+
+        public void setAllMapColumns(Map<String, String> allMapColumns) {
+            this.allMapColumns = allMapColumns;
         }
     }
 }

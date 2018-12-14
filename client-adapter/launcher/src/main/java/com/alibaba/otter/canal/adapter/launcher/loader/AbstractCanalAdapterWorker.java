@@ -200,7 +200,9 @@ public abstract class AbstractCanalAdapterWorker {
                     len = 0;
                 }
             }
-            adapter.sync(dmlsBatch);
+            if (!dmlsBatch.isEmpty()) {
+                adapter.sync(dmlsBatch);
+            }
         }
     }
 
