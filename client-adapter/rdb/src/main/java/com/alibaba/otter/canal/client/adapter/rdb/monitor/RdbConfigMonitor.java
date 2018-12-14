@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
@@ -20,7 +21,7 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
 
 public class RdbConfigMonitor {
 
-    private static final Logger   logger = LoggerFactory.getLogger(RdbConfigMonitor.class);
+    private static final Logger   logger      = LoggerFactory.getLogger(RdbConfigMonitor.class);
 
     private static final String   adapterName = "rdb";
 
@@ -83,7 +84,8 @@ public class RdbConfigMonitor {
             try {
                 if (rdbAdapter.getRdbMapping().containsKey(file.getName())) {
                     // 加载配置文件
-                    String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
+                    String configContent = MappingConfigsLoader
+                        .loadConfig(adapterName + File.separator + file.getName());
                     MappingConfig config = new Yaml().loadAs(configContent, MappingConfig.class);
                     config.validate();
                     if ((key == null && config.getOuterAdapterKey() == null)
@@ -118,13 +120,19 @@ public class RdbConfigMonitor {
             }
         }
 
-        private void addConfigToCache(File file, MappingConfig config) {
-            rdbAdapter.getRdbMapping().put(file.getName(), config);
+        private void addConfigToCache(File file, MappingConfig mappingConfig) {
+            rdbAdapter.getRdbMapping().put(file.getName(), mappingConfig);
             Map<String, MappingConfig> configMap = rdbAdapter.getMappingConfigCache()
-                .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "."
-                                 + config.getDbMapping().getDatabase() + "." + config.getDbMapping().getTable(),
+                .computeIfAbsent(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
+                                 + mappingConfig.getDbMapping().getDatabase() + "."
+                                 + mappingConfig.getDbMapping().getTable(),
                     k1 -> new HashMap<>());
-            configMap.put(file.getName(), config);
+            configMap.put(file.getName(), mappingConfig);
+
+            Map<String, MirrorDbConfig> mirrorDbConfigCache = rdbAdapter.getMirrorDbConfigCache();
+            mirrorDbConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
+                                    + mappingConfig.getDbMapping().getDatabase(),
+                MirrorDbConfig.create(file.getName(), mappingConfig));
         }
 
         private void deleteConfigFromCache(File file) {
@@ -135,6 +143,12 @@ public class RdbConfigMonitor {
                     configMap.remove(file.getName());
                 }
             }
+
+            rdbAdapter.getMirrorDbConfigCache().forEach((key, mirrorDbConfig) -> {
+                if (mirrorDbConfig.getFileName().equals(file.getName())) {
+                    rdbAdapter.getMirrorDbConfigCache().remove(key);
+                }
+            });
 
         }
     }

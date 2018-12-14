@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
 import javax.sql.DataSource;
 
@@ -36,26 +37,37 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
  */
 public class RdbSyncService {
 
-    private static final Logger                     logger             = LoggerFactory.getLogger(RdbSyncService.class);
+    private static final Logger               logger  = LoggerFactory.getLogger(RdbSyncService.class);
 
-    private final Map<String, Map<String, Integer>> COLUMNS_TYPE_CACHE = new ConcurrentHashMap<>();
+    // 源库表字段类型缓存: instance.schema.table -> <columnName, jdbcType>
+    private Map<String, Map<String, Integer>> columnsTypeCache;
 
-    private Map<String, Map<String, MappingConfig>> mappingConfigCache;                                                // 库名-表名对应配置
+    private int                               threads = 3;
 
-    private int                                     threads            = 3;
+    private List<SyncItem>[]                  dmlsPartition;
+    private BatchExecutor[]                   batchExecutors;
+    private ExecutorService[]                 executorThreads;
 
-    private List<SyncItem>[]                        dmlsPartition;
-    private BatchExecutor[]                         batchExecutors;
-    private ExecutorService[]                       executorThreads;
+    public List<SyncItem>[] getDmlsPartition() {
+        return dmlsPartition;
+    }
+
+    public Map<String, Map<String, Integer>> getColumnsTypeCache() {
+        return columnsTypeCache;
+    }
 
     @SuppressWarnings("unchecked")
-    public RdbSyncService(Map<String, Map<String, MappingConfig>> mappingConfigCache, DataSource dataSource,
-                          Integer threads){
+    public RdbSyncService(DataSource dataSource, Integer threads){
+        this(dataSource, threads, new ConcurrentHashMap<>());
+    }
+
+    @SuppressWarnings("unchecked")
+    public RdbSyncService(DataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache){
+        this.columnsTypeCache = columnsTypeCache;
         try {
             if (threads != null) {
                 this.threads = threads;
             }
-            this.mappingConfigCache = mappingConfigCache;
             this.dmlsPartition = new List[this.threads];
             this.batchExecutors = new BatchExecutor[this.threads];
             this.executorThreads = new ExecutorService[this.threads];
@@ -69,64 +81,111 @@ public class RdbSyncService {
         }
     }
 
-    public void sync(List<Dml> dmls) {
+    /**
+     * 批量同步回调
+     *
+     * @param dmls 批量 DML
+     * @param function 回调方法
+     */
+    public void sync(List<Dml> dmls, Function<Dml, Boolean> function) {
         try {
+            boolean toExecute = false;
             for (Dml dml : dmls) {
-                String destination = StringUtils.trimToEmpty(dml.getDestination());
-                String database = dml.getDatabase();
-                String table = dml.getTable();
-                Map<String, MappingConfig> configMap = mappingConfigCache
-                    .get(destination + "." + database + "." + table);
-
-                if (configMap == null) {
-                    continue;
+                if (!toExecute) {
+                    toExecute = function.apply(dml);
+                } else {
+                    function.apply(dml);
                 }
-                for (MappingConfig config : configMap.values()) {
+            }
+            if (toExecute) {
+                List<Future> futures = new ArrayList<>();
+                for (int i = 0; i < threads; i++) {
+                    int j = i;
+                    futures.add(executorThreads[i].submit(() -> {
+                        dmlsPartition[j]
+                            .forEach(syncItem -> sync(batchExecutors[j], syncItem.config, syncItem.singleDml));
+                        batchExecutors[j].commit();
+                        return true;
+                    }));
+                }
 
-                    if (config.getConcurrent()) {
-                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                        singleDmls.forEach(singleDml -> {
-                            int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                            SyncItem syncItem = new SyncItem(config, singleDml);
-                            dmlsPartition[hash].add(syncItem);
-                        });
-                    } else {
-                        int hash = Math.abs(Math.abs(config.getDbMapping().getTargetTable().hashCode()) % threads);
-                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                        singleDmls.forEach(singleDml -> {
-                            SyncItem syncItem = new SyncItem(config, singleDml);
-                            dmlsPartition[hash].add(syncItem);
-                        });
+                futures.forEach(future -> {
+                    try {
+                        future.get();
+                    } catch (Exception e) {
+                        logger.error(e.getMessage(), e);
                     }
-                }
-            }
-            List<Future> futures = new ArrayList<>();
-            for (int i = 0; i < threads; i++) {
-                int j = i;
-                futures.add(executorThreads[i].submit(() -> {
-                    dmlsPartition[j].forEach(syncItem -> sync(batchExecutors[j], syncItem.config, syncItem.singleDml));
-                    batchExecutors[j].commit();
-                    return true;
-                }));
-            }
+                });
 
-            futures.forEach(future -> {
-                try {
-                    future.get();
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
+                for (int i = 0; i < threads; i++) {
+                    dmlsPartition[i].clear();
                 }
-            });
-
-            for (int i = 0; i < threads; i++) {
-                dmlsPartition[i].clear();
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
     }
 
-    private void sync(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) {
+    /**
+     * 批量同步
+     *
+     * @param mappingConfig 配置集合
+     * @param dmls 批量 DML
+     */
+    public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls) {
+        try {
+            sync(dmls, dml -> {
+                if (StringUtils.isNotEmpty(dml.getSql())) {
+                    // DDL
+                    columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
+                    return false;
+                } else {
+                    // DML
+                    String destination = StringUtils.trimToEmpty(dml.getDestination());
+                    String database = dml.getDatabase();
+                    String table = dml.getTable();
+                    Map<String, MappingConfig> configMap = mappingConfig
+                        .get(destination + "." + database + "." + table);
+
+                    if (configMap == null) {
+                        return false;
+                    }
+
+                    boolean executed = false;
+                    for (MappingConfig config : configMap.values()) {
+                        if (config.getConcurrent()) {
+                            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                            singleDmls.forEach(singleDml -> {
+                                int hash = pkHash(config.getDbMapping(), singleDml.getData());
+                                SyncItem syncItem = new SyncItem(config, singleDml);
+                                dmlsPartition[hash].add(syncItem);
+                            });
+                        } else {
+                            int hash = 0;
+                            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                            singleDmls.forEach(singleDml -> {
+                                SyncItem syncItem = new SyncItem(config, singleDml);
+                                dmlsPartition[hash].add(syncItem);
+                            });
+                        }
+                        executed = true;
+                    }
+                    return executed;
+                }
+            });
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 单条 dml 同步
+     *
+     * @param batchExecutor 批量事务执行器
+     * @param config 对应配置对象
+     * @param dml DML
+     */
+    public void sync(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) {
         try {
             if (config != null) {
                 String type = dml.getType();
@@ -164,7 +223,7 @@ public class RdbSyncService {
             Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
             StringBuilder insertSql = new StringBuilder();
-            insertSql.append("INSERT INTO ").append(dbMapping.getTargetTable()).append(" (");
+            insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
 
             columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
             int len = insertSql.length();
@@ -228,7 +287,7 @@ public class RdbSyncService {
             Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
             StringBuilder updateSql = new StringBuilder();
-            updateSql.append("UPDATE ").append(dbMapping.getTargetTable()).append(" SET ");
+            updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
             List<Map<String, ?>> values = new ArrayList<>();
             for (String srcColumnName : old.keySet()) {
                 List<String> targetColumnNames = new ArrayList<>();
@@ -280,7 +339,7 @@ public class RdbSyncService {
             Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
             StringBuilder sql = new StringBuilder();
-            sql.append("DELETE FROM ").append(dbMapping.getTargetTable()).append(" WHERE ");
+            sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping)).append(" WHERE ");
 
             List<Map<String, ?>> values = new ArrayList<>();
             // 拼接主键
@@ -306,14 +365,14 @@ public class RdbSyncService {
     private Map<String, Integer> getTargetColumnType(Connection conn, MappingConfig config) {
         DbMapping dbMapping = config.getDbMapping();
         String cacheKey = config.getDestination() + "." + dbMapping.getDatabase() + "." + dbMapping.getTable();
-        Map<String, Integer> columnType = COLUMNS_TYPE_CACHE.get(cacheKey);
+        Map<String, Integer> columnType = columnsTypeCache.get(cacheKey);
         if (columnType == null) {
             synchronized (RdbSyncService.class) {
-                columnType = COLUMNS_TYPE_CACHE.get(cacheKey);
+                columnType = columnsTypeCache.get(cacheKey);
                 if (columnType == null) {
                     columnType = new LinkedHashMap<>();
                     final Map<String, Integer> columnTypeTmp = columnType;
-                    String sql = "SELECT * FROM " + dbMapping.getTargetTable() + " WHERE 1=2";
+                    String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE 1=2";
                     Util.sqlRS(conn, sql, rs -> {
                         try {
                             ResultSetMetaData rsd = rs.getMetaData();
@@ -321,7 +380,7 @@ public class RdbSyncService {
                             for (int i = 1; i <= columnCount; i++) {
                                 columnTypeTmp.put(rsd.getColumnName(i).toLowerCase(), rsd.getColumnType(i));
                             }
-                            COLUMNS_TYPE_CACHE.put(cacheKey, columnTypeTmp);
+                            columnsTypeCache.put(cacheKey, columnTypeTmp);
                         } catch (SQLException e) {
                             logger.error(e.getMessage(), e);
                         }
@@ -362,12 +421,12 @@ public class RdbSyncService {
         sql.delete(len - 4, len);
     }
 
-    private class SyncItem {
+    public static class SyncItem {
 
         private MappingConfig config;
         private SingleDml     singleDml;
 
-        private SyncItem(MappingConfig config, SingleDml singleDml){
+        public SyncItem(MappingConfig config, SingleDml singleDml){
             this.config = config;
             this.singleDml = singleDml;
         }
@@ -376,11 +435,11 @@ public class RdbSyncService {
     /**
      * 取主键hash
      */
-    private int pkHash(DbMapping dbMapping, Map<String, Object> d) {
+    public int pkHash(DbMapping dbMapping, Map<String, Object> d) {
         return pkHash(dbMapping, d, null);
     }
 
-    private int pkHash(DbMapping dbMapping, Map<String, Object> d, Map<String, Object> o) {
+    public int pkHash(DbMapping dbMapping, Map<String, Object> d, Map<String, Object> o) {
         int hash = 0;
         // 取主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {

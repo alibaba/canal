@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.es.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -19,6 +20,7 @@ public class ESSyncConfigLoader {
 
     private static Logger logger = LoggerFactory.getLogger(ESSyncConfigLoader.class);
 
+    @SuppressWarnings("unchecked")
     public static synchronized Map<String, ESSyncConfig> load() {
         logger.info("## Start loading es mapping config ... ");
 
@@ -26,7 +28,9 @@ public class ESSyncConfigLoader {
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("es");
         configContentMap.forEach((fileName, content) -> {
-            ESSyncConfig config = new Yaml().loadAs(content, ESSyncConfig.class);
+            Map configMap = new Yaml().loadAs(content, Map.class); // yml自带的对象反射不是很稳定
+            JSONObject configJson = new JSONObject(configMap);
+            ESSyncConfig config = configJson.toJavaObject(ESSyncConfig.class);
             try {
                 config.validate();
             } catch (Exception e) {

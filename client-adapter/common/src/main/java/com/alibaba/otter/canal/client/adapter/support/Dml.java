@@ -17,6 +17,7 @@ public class Dml implements Serializable {
     private String                    destination;                            // 对应canal的实例或者MQ的topic
     private String                    database;                               // 数据库或schema
     private String                    table;                                  // 表名
+    private List<String>              pkNames;
     private String                    type;                                   // 类型: INSERT UPDATE DELETE
     // binlog executeTime
     private Long                      es;                                     // 执行耗时
@@ -48,6 +49,14 @@ public class Dml implements Serializable {
 
     public void setTable(String table) {
         this.table = table;
+    }
+
+    public List<String> getPkNames() {
+        return pkNames;
+    }
+
+    public void setPkNames(List<String> pkNames) {
+        this.pkNames = pkNames;
     }
 
     public String getType() {
