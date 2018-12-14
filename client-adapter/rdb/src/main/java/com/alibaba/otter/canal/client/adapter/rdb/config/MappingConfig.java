@@ -65,10 +65,10 @@ public class MappingConfig {
         if (dbMapping.database == null || dbMapping.database.isEmpty()) {
             throw new NullPointerException("dbMapping.database");
         }
-        if (!dbMapping.isMirrorDb() && (dbMapping.table == null || dbMapping.table.isEmpty())) {
+        if (!dbMapping.getMirrorDb() && (dbMapping.table == null || dbMapping.table.isEmpty())) {
             throw new NullPointerException("dbMapping.table");
         }
-        if (!dbMapping.isMirrorDb() && (dbMapping.targetTable == null || dbMapping.targetTable.isEmpty())) {
+        if (!dbMapping.getMirrorDb() && (dbMapping.targetTable == null || dbMapping.targetTable.isEmpty())) {
             throw new NullPointerException("dbMapping.targetTable");
         }
     }
@@ -91,8 +91,8 @@ public class MappingConfig {
 
         private Map<String, String> allMapColumns;
 
-        public boolean isMirrorDb() {
-            return mirrorDb == null ? false : mirrorDb;
+        public Boolean getMirrorDb() {
+            return mirrorDb;
         }
 
         public void setMirrorDb(Boolean mirrorDb) {
@@ -123,8 +123,8 @@ public class MappingConfig {
             this.targetPk = targetPk;
         }
 
-        public boolean isMapAll() {
-            return mapAll == null ? false : mapAll;
+        public Boolean getMapAll() {
+            return mapAll;
         }
 
         public void setMapAll(Boolean mapAll) {

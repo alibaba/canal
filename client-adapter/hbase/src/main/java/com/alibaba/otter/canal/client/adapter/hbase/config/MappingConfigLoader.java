@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.hbase.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -21,9 +22,10 @@ public class MappingConfigLoader {
 
     /**
      * 加载HBase表映射配置
-     * 
+     *
      * @return 配置名/配置文件名--对象
      */
+    @SuppressWarnings("unchecked")
     public static Map<String, MappingConfig> load() {
         logger.info("## Start loading hbase mapping config ... ");
 
@@ -31,7 +33,9 @@ public class MappingConfigLoader {
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("hbase");
         configContentMap.forEach((fileName, content) -> {
-            MappingConfig config = new Yaml().loadAs(content, MappingConfig.class);
+            Map configMap = new Yaml().loadAs(content, Map.class); // yml自带的对象反射不是很稳定
+            JSONObject configJson = new JSONObject(configMap);
+            MappingConfig config = configJson.toJavaObject(MappingConfig.class);
             try {
                 config.validate();
             } catch (Exception e) {

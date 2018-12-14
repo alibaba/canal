@@ -1,18 +1,27 @@
 dataSourceKey: defaultDS
 destination: example
-outerAdapterKey: mysql1
+outerAdapterKey: oracle1
 concurrent: true
 dbMapping:
-  mirrorDb: true
   database: mytest
-#  table: user
-#  targetTable: mytest.tb_user
-#  targetPk:
-#    id: id
-#  mapAll: true
+  table: user
+  targetTable: mytest.tb_user
+  targetPk:
+    id: id
+  mapAll: true
 #  targetColumns:
 #    id:
 #    name:
 #    role_id:
 #    c_time:
 #    test1:
+
+
+# Mirror schema synchronize config
+#dataSourceKey: defaultDS
+#destination: example
+#outerAdapterKey: mysql1
+#concurrent: true
+#dbMapping:
+#  mirrorDb: true
+#  database: mytest

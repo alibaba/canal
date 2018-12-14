@@ -17,6 +17,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.monitor.RdbConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbMirrorDbSyncService;
@@ -37,7 +38,7 @@ public class RdbAdapter implements OuterAdapter {
 
     private Map<String, MappingConfig>              rdbMapping          = new ConcurrentHashMap<>();                // 文件名对应配置
     private Map<String, Map<String, MappingConfig>> mappingConfigCache  = new ConcurrentHashMap<>();                // 库名-表名对应配置
-    private Map<String, MappingConfig>              mirrorDbConfigCache = new ConcurrentHashMap<>();                // 镜像库配置
+    private Map<String, MirrorDbConfig>             mirrorDbConfigCache = new ConcurrentHashMap<>();                // 镜像库配置
 
     private DruidDataSource                         dataSource;
 
@@ -52,6 +53,10 @@ public class RdbAdapter implements OuterAdapter {
 
     public Map<String, Map<String, MappingConfig>> getMappingConfigCache() {
         return mappingConfigCache;
+    }
+
+    public Map<String, MirrorDbConfig> getMirrorDbConfigCache() {
+        return mirrorDbConfigCache;
     }
 
     /**
@@ -73,7 +78,7 @@ public class RdbAdapter implements OuterAdapter {
         for (Map.Entry<String, MappingConfig> entry : rdbMapping.entrySet()) {
             String configName = entry.getKey();
             MappingConfig mappingConfig = entry.getValue();
-            if (!mappingConfig.getDbMapping().isMirrorDb()) {
+            if (!mappingConfig.getDbMapping().getMirrorDb()) {
                 Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(
                     StringUtils.trimToEmpty(mappingConfig.getDestination()) + "." + mappingConfig.getDbMapping()
                         .getDatabase() + "." + mappingConfig.getDbMapping().getTable(),
@@ -81,9 +86,10 @@ public class RdbAdapter implements OuterAdapter {
                 configMap.put(configName, mappingConfig);
             } else {
                 // mirrorDB
+
                 mirrorDbConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
                                         + mappingConfig.getDbMapping().getDatabase(),
-                    mappingConfig);
+                        MirrorDbConfig.create(configName, mappingConfig));
             }
         }
 
