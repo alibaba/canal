@@ -75,7 +75,7 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <li><a class="internal present" href="https://github.com/alibaba/canal/wiki/TableMetaTSDB">TableMetaTSDB</a></li>
 <li><a href="http://alibaba.github.com/canal/release.html">ReleaseNotes</a></li>
 <li><a href="https://github.com/alibaba/canal/releases">Download</a></li>
-<li><a class="internal present" href="/alibaba/canal/wiki/FAQ">FAQ</a></li>
+<li><a class="internal present" href="https://github.com/alibaba/canal/wiki/FAQ">FAQ</a></li>
 </ul>
 
 <h1>多语言业务</h1>
