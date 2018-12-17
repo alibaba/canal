@@ -75,6 +75,11 @@ public class RdbAdapter implements OuterAdapter {
                 rdbMapping.put(key, mappingConfig);
             }
         });
+
+        if (rdbMapping.isEmpty()) {
+            throw new RuntimeException("No rdb adapter found for config key: " + configuration.getKey());
+        }
+
         for (Map.Entry<String, MappingConfig> entry : rdbMapping.entrySet()) {
             String configName = entry.getKey();
             MappingConfig mappingConfig = entry.getValue();
@@ -89,7 +94,7 @@ public class RdbAdapter implements OuterAdapter {
 
                 mirrorDbConfigCache.put(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
                                         + mappingConfig.getDbMapping().getDatabase(),
-                        MirrorDbConfig.create(configName, mappingConfig));
+                    MirrorDbConfig.create(configName, mappingConfig));
             }
         }
 
