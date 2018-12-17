@@ -129,4 +129,5 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
     public String toString() {
         return pattern;
     }
+
 }

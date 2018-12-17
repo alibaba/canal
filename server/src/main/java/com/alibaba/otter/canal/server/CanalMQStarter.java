@@ -138,7 +138,7 @@ public class CanalMQStarter {
                 canalDestination.setTopic(mqConfig.getTopic());
                 canalDestination.setPartition(mqConfig.getPartition());
                 canalDestination.setPartitionsNum(mqConfig.getPartitionsNum());
-                canalDestination.setPartitionHash(mqConfig.getPartitionHashProperties());
+                canalDestination.setPartitionHash(mqConfig.getPartitionHash());
 
                 canalServer.subscribe(clientIdentity);
                 logger.info("## the MQ producer: {} is running now ......", destination);

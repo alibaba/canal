@@ -58,7 +58,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
     public boolean init(String destination) {
         return true;
     }
-    
+
     @Override
     public void destory() {
         tableMetas.clear();
@@ -74,7 +74,11 @@ public class MemoryTableMeta implements TableMetaTSDB {
             try {
                 // druid暂时flush privileges语法解析有问题
                 if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")
-                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "grant")) {
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "grant")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create user")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "drop user")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create database")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "drop database")) {
                     repository.console(ddl);
                 }
             } catch (Throwable e) {

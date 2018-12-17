@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.common;
 
-import java.util.Map;
 
 /**
  * kafka 配置项
@@ -28,11 +27,11 @@ public class MQProperties {
 
     public static class CanalDestination {
 
-        private String              canalDestination;
-        private String              topic;
-        private Integer             partition;
-        private Integer             partitionsNum;
-        private Map<String, String> partitionHash;
+        private String  canalDestination;
+        private String  topic;
+        private Integer partition;
+        private Integer partitionsNum;
+        private String  partitionHash;
 
         public String getCanalDestination() {
             return canalDestination;
@@ -66,11 +65,11 @@ public class MQProperties {
             this.partitionsNum = partitionsNum;
         }
 
-        public Map<String, String> getPartitionHash() {
+        public String getPartitionHash() {
             return partitionHash;
         }
 
-        public void setPartitionHash(Map<String, String> partitionHash) {
+        public void setPartitionHash(String partitionHash) {
             this.partitionHash = partitionHash;
         }
     }
@@ -186,6 +185,7 @@ public class MQProperties {
     public void setAliyunSecretKey(String aliyunSecretKey) {
         this.aliyunSecretKey = aliyunSecretKey;
     }
+
     public int getMaxRequestSize() {
         return maxRequestSize;
     }

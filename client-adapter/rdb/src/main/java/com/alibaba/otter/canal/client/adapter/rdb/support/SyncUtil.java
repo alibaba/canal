@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
@@ -21,7 +22,10 @@ public class SyncUtil {
 
     public static Map<String, String> getColumnsMap(MappingConfig.DbMapping dbMapping, Collection<String> columns) {
         Map<String, String> columnsMap;
-        if (dbMapping.isMapAll()) {
+        if (dbMapping.getMapAll()) {
+            if (dbMapping.getAllMapColumns() != null) {
+                return dbMapping.getAllMapColumns();
+            }
             columnsMap = new LinkedHashMap<>();
             for (String srcColumn : columns) {
                 boolean flag = true;
@@ -38,6 +42,7 @@ public class SyncUtil {
                     columnsMap.put(srcColumn, srcColumn);
                 }
             }
+            dbMapping.setAllMapColumns(columnsMap);
         } else {
             columnsMap = dbMapping.getTargetColumns();
         }
@@ -252,5 +257,14 @@ public class SyncUtil {
             default:
                 pstmt.setObject(i, value, type);
         }
+    }
+
+    public static String getDbTableName(MappingConfig.DbMapping dbMapping) {
+        String result = "";
+        if (StringUtils.isNotEmpty(dbMapping.getTargetDb())) {
+            result += dbMapping.getTargetDb() + ".";
+        }
+        result += dbMapping.getTargetTable();
+        return result;
     }
 }

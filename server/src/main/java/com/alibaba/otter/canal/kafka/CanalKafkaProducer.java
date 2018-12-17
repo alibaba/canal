@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.otter.canal.common.MQMessageUtils;
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
@@ -80,22 +81,37 @@ public class CanalKafkaProducer implements CanalMQProducer {
         // producer.beginTransaction();
         if (!kafkaProperties.getFlatMessage()) {
             try {
-                ProducerRecord<String, Message> record;
+                ProducerRecord<String, Message> record = null;
                 if (canalDestination.getPartition() != null) {
-                    record = new ProducerRecord<String, Message>(canalDestination.getTopic(),
+                    record = new ProducerRecord<>(canalDestination.getTopic(),
                         canalDestination.getPartition(),
                         null,
                         message);
                 } else {
-                    record = new ProducerRecord<String, Message>(canalDestination.getTopic(), 0, null, message);
+                    if (canalDestination.getPartitionHash() != null && !canalDestination.getPartitionHash().isEmpty()) {
+                        Message[] messages = MQMessageUtils.messagePartition(message,
+                            canalDestination.getPartitionsNum(),
+                            canalDestination.getPartitionHash());
+                        int length = messages.length;
+                        for (int i = 0; i < length; i++) {
+                            Message messagePartition = messages[i];
+                            if (messagePartition != null) {
+                                record = new ProducerRecord<>(canalDestination.getTopic(), i, null, messagePartition);
+                            }
+                        }
+                    } else {
+                        record = new ProducerRecord<>(canalDestination.getTopic(), 0, null, message);
+                    }
                 }
 
-                producer.send(record).get();
+                if (record != null) {
+                    producer.send(record).get();
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Send  message to kafka topic: [{}], packet: {}",
-                        canalDestination.getTopic(),
-                        message.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Send  message to kafka topic: [{}], packet: {}",
+                            canalDestination.getTopic(),
+                            message.toString());
+                    }
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -105,13 +121,12 @@ public class CanalKafkaProducer implements CanalMQProducer {
             }
         } else {
             // 发送扁平数据json
-            List<FlatMessage> flatMessages = FlatMessage.messageConverter(message);
+            List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(message);
             if (flatMessages != null) {
                 for (FlatMessage flatMessage : flatMessages) {
                     if (canalDestination.getPartition() != null) {
                         try {
-                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                canalDestination.getTopic(),
+                            ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                 canalDestination.getPartition(),
                                 null,
                                 JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
@@ -125,7 +140,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                     } else {
                         if (canalDestination.getPartitionHash() != null
                             && !canalDestination.getPartitionHash().isEmpty()) {
-                            FlatMessage[] partitionFlatMessage = FlatMessage.messagePartition(flatMessage,
+                            FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
                                 canalDestination.getPartitionsNum(),
                                 canalDestination.getPartitionHash());
                             int length = partitionFlatMessage.length;
@@ -133,8 +148,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                 FlatMessage flatMessagePart = partitionFlatMessage[i];
                                 if (flatMessagePart != null) {
                                     try {
-                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                            canalDestination.getTopic(),
+                                        ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                             i,
                                             null,
                                             JSON.toJSONString(flatMessagePart, SerializerFeature.WriteMapNullValue));
@@ -149,8 +163,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                             }
                         } else {
                             try {
-                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-                                    canalDestination.getTopic(),
+                                ProducerRecord<String, String> record = new ProducerRecord<String, String>(canalDestination.getTopic(),
                                     0,
                                     null,
                                     JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));

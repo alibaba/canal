@@ -15,3 +15,13 @@ dbMapping:
 #    role_id:
 #    c_time:
 #    test1:
+
+
+# Mirror schema synchronize config
+#dataSourceKey: defaultDS
+#destination: example
+#outerAdapterKey: mysql1
+#concurrent: true
+#dbMapping:
+#  mirrorDb: true
+#  database: mytest
