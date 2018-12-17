@@ -813,7 +813,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
 
         if (logPosition.getPostion() != null) {
-            return logPosition.getPostion();
+            EntryPosition position = logPosition.getPostion();
+            position.setGtid(endPosition.getGtid());
+            return position;
         } else {
             return null;
         }
