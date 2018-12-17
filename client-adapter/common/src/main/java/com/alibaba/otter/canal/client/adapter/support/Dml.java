@@ -18,6 +18,7 @@ public class Dml implements Serializable {
     private String                    database;                               // 数据库或schema
     private String                    table;                                  // 表名
     private List<String>              pkNames;
+    private Boolean                   isDdl;
     private String                    type;                                   // 类型: INSERT UPDATE DELETE
     // binlog executeTime
     private Long                      es;                                     // 执行耗时
@@ -57,6 +58,14 @@ public class Dml implements Serializable {
 
     public void setPkNames(List<String> pkNames) {
         this.pkNames = pkNames;
+    }
+
+    public Boolean getIsDdl() {
+        return isDdl;
+    }
+
+    public void setIsDdl(Boolean isDdl) {
+        this.isDdl = isDdl;
     }
 
     public String getType() {

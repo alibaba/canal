@@ -139,13 +139,14 @@ public class MessageUtil {
         dml.setDatabase(flatMessage.getDatabase());
         dml.setTable(flatMessage.getTable());
         dml.setPkNames(flatMessage.getPkNames());
+        dml.setIsDdl(flatMessage.getIsDdl());
         dml.setType(flatMessage.getType());
         dml.setTs(flatMessage.getTs());
         dml.setEs(flatMessage.getEs());
         dml.setSql(flatMessage.getSql());
-        if (flatMessage.getSqlType() == null || flatMessage.getMysqlType() == null) {
-            throw new RuntimeException("SqlType or mysqlType is null");
-        }
+        // if (flatMessage.getSqlType() == null || flatMessage.getMysqlType() == null) {
+        // throw new RuntimeException("SqlType or mysqlType is null");
+        // }
         List<Map<String, String>> data = flatMessage.getData();
         if (data != null) {
             dml.setData(changeRows(data, flatMessage.getSqlType(), flatMessage.getMysqlType()));

@@ -135,7 +135,7 @@ public class RdbSyncService {
     public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls) {
         try {
             sync(dmls, dml -> {
-                if (StringUtils.isNotEmpty(dml.getSql())) {
+                if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                     // DDL
                     columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
                     return false;
