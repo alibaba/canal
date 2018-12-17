@@ -29,6 +29,9 @@ public class FlatMessage implements Serializable {
     private List<Map<String, String>> data;
     private List<Map<String, String>> old;
 
+    public FlatMessage() {
+    }
+
     public FlatMessage(long id){
         this.id = id;
     }

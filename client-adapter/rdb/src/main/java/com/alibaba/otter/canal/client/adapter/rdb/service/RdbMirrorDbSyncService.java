@@ -56,7 +56,7 @@ public class RdbMirrorDbSyncService {
                 if (mirrorDbConfig == null) {
                     continue;
                 }
-                if (StringUtils.isNotEmpty(dml.getSql())) {
+                if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                     // DDL
                     if (logger.isDebugEnabled()) {
                         logger.debug("DDL: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));

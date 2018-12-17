@@ -139,6 +139,7 @@ public class MessageUtil {
         dml.setDatabase(flatMessage.getDatabase());
         dml.setTable(flatMessage.getTable());
         dml.setPkNames(flatMessage.getPkNames());
+        dml.setIsDdl(flatMessage.getIsDdl());
         dml.setType(flatMessage.getType());
         dml.setTs(flatMessage.getTs());
         dml.setEs(flatMessage.getEs());
