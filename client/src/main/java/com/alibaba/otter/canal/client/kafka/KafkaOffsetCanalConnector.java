@@ -106,7 +106,7 @@ public class KafkaOffsetCanalConnector extends KafkaCanalConnector {
      */
     public void setAutoOffsetReset(String value) {
         if (StringUtils.isNotBlank(value)) {
-            properties.put("auto.offset.reset", "earliest");
+            properties.put("auto.offset.reset", value);
         }
     }
 }
