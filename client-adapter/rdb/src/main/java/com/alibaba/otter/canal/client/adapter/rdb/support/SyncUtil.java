@@ -126,9 +126,9 @@ public class SyncUtil {
                 if (value instanceof BigDecimal) {
                     pstmt.setBigDecimal(i, (BigDecimal) value);
                 } else if (value instanceof Byte) {
-                    pstmt.setInt(i, (Byte) value);
+                    pstmt.setInt(i, ((Byte) value).intValue());
                 } else if (value instanceof Short) {
-                    pstmt.setInt(i, (Short) value);
+                    pstmt.setInt(i, ((Short) value).intValue());
                 } else if (value instanceof Integer) {
                     pstmt.setInt(i, (Integer) value);
                 } else if (value instanceof Long) {
