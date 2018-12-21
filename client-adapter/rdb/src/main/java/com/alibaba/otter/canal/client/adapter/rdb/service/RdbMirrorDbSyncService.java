@@ -74,8 +74,9 @@ public class RdbMirrorDbSyncService {
                 rdbSyncService.sync(dmlList, dml -> {
                     MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache
                         .get(dml.getDestination() + "." + dml.getDatabase());
-                    String destination = StringUtils.trimToEmpty(dml.getDestination());
-                    String database = dml.getDatabase();
+                    if (mirrorDbConfig == null) {
+                        return false;
+                    }
                     String table = dml.getTable();
                     MappingConfig config = mirrorDbConfig.getTableConfig().get(table);
 
