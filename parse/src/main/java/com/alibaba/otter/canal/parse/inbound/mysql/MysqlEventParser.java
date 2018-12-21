@@ -527,7 +527,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         // 针对开始的第一条为非Begin记录，需要从该binlog扫描
         final java.util.concurrent.atomic.AtomicLong preTransactionStartPosition = new java.util.concurrent.atomic.AtomicLong(0L);
         mysqlConnection.reconnect();
-        mysqlConnection.seek(entryPosition.getJournalName(), 4L, new SinkFunction<LogEvent>() {
+        mysqlConnection.seek(entryPosition.getJournalName(), 4L, entryPosition.getGtid(), new SinkFunction<LogEvent>() {
 
             private LogPosition lastPosition;
 
@@ -740,7 +740,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         try {
             mysqlConnection.reconnect();
             // 开始遍历文件
-            mysqlConnection.seek(searchBinlogFile, 4L, new SinkFunction<LogEvent>() {
+            mysqlConnection.seek(searchBinlogFile, 4L, endPosition.getGtid(), new SinkFunction<LogEvent>() {
 
                 private LogPosition lastPosition;
 
@@ -754,6 +754,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                                 event.getLogPos() - event.getEventLen(),
                                 event.getWhen() * 1000,
                                 event.getServerId());
+                            entryPosition.setGtid(event.getHeader().getGtidSetStr());
                             logPosition.setPostion(entryPosition);
                         }
 
@@ -813,9 +814,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
 
         if (logPosition.getPostion() != null) {
-            EntryPosition position = logPosition.getPostion();
-            position.setGtid(endPosition.getGtid());
-            return position;
+            return logPosition.getPostion();
         } else {
             return null;
         }
