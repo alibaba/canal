@@ -508,6 +508,7 @@ public class MysqlConnection implements ErosaConnection {
             rs = query("select @@global.binlog_checksum");
         } catch (Throwable e) {
             // ignore
+            return;
         }
 
         List<String> columnValues = rs.getFieldValues();

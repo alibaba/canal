@@ -70,6 +70,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 打开连接
      */
+    @Override
     public void connect() {
         if (connected) {
             return;
@@ -88,6 +89,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 关闭链接
      */
+    @Override
     public void disconnect() {
         if (kafkaConsumer != null) {
             kafkaConsumer.close();
@@ -101,10 +103,11 @@ public class KafkaCanalConnector implements CanalMQConnector {
         connected = false;
     }
 
-    private void waitClientRunning() {
+    protected void waitClientRunning() {
         running = true;
     }
 
+    @Override
     public boolean checkValid() {
         return true;// 默认都放过
     }
@@ -112,6 +115,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 订阅topic
      */
+    @Override
     public void subscribe() {
         waitClientRunning();
         if (!running) {
@@ -139,6 +143,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 取消订阅
      */
+    @Override
     public void unsubscribe() {
         waitClientRunning();
         if (!running) {
@@ -254,6 +259,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 提交offset，如果超过 session.timeout.ms 设置的时间没有ack则会抛出异常，ack失败
      */
+    @Override
     public void ack() {
         waitClientRunning();
         if (!running) {
