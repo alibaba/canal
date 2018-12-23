@@ -133,49 +133,44 @@ public class RdbSyncService {
      * @param dmls 批量 DML
      */
     public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls) {
-        try {
-            sync(dmls, dml -> {
-                if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
-                    // DDL
-                    columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
+        sync(dmls, dml -> {
+            if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
+                // DDL
+                columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
+                return false;
+            } else {
+                // DML
+                String destination = StringUtils.trimToEmpty(dml.getDestination());
+                String database = dml.getDatabase();
+                String table = dml.getTable();
+                Map<String, MappingConfig> configMap = mappingConfig.get(destination + "." + database + "." + table);
+
+                if (configMap == null) {
                     return false;
-                } else {
-                    // DML
-                    String destination = StringUtils.trimToEmpty(dml.getDestination());
-                    String database = dml.getDatabase();
-                    String table = dml.getTable();
-                    Map<String, MappingConfig> configMap = mappingConfig
-                        .get(destination + "." + database + "." + table);
-
-                    if (configMap == null) {
-                        return false;
-                    }
-
-                    boolean executed = false;
-                    for (MappingConfig config : configMap.values()) {
-                        if (config.getConcurrent()) {
-                            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                            singleDmls.forEach(singleDml -> {
-                                int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                                SyncItem syncItem = new SyncItem(config, singleDml);
-                                dmlsPartition[hash].add(syncItem);
-                            });
-                        } else {
-                            int hash = 0;
-                            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                            singleDmls.forEach(singleDml -> {
-                                SyncItem syncItem = new SyncItem(config, singleDml);
-                                dmlsPartition[hash].add(syncItem);
-                            });
-                        }
-                        executed = true;
-                    }
-                    return executed;
                 }
-            });
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
+
+                boolean executed = false;
+                for (MappingConfig config : configMap.values()) {
+                    if (config.getConcurrent()) {
+                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                        singleDmls.forEach(singleDml -> {
+                            int hash = pkHash(config.getDbMapping(), singleDml.getData());
+                            SyncItem syncItem = new SyncItem(config, singleDml);
+                            dmlsPartition[hash].add(syncItem);
+                        });
+                    } else {
+                        int hash = 0;
+                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                        singleDmls.forEach(singleDml -> {
+                            SyncItem syncItem = new SyncItem(config, singleDml);
+                            dmlsPartition[hash].add(syncItem);
+                        });
+                    }
+                    executed = true;
+                }
+                return executed;
+            }
+        });
     }
 
     /**
