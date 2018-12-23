@@ -30,16 +30,16 @@ import com.google.common.collect.Lists;
  */
 public class KafkaCanalConnector implements CanalMQConnector {
 
-    private KafkaConsumer<String, Message> kafkaConsumer;
-    private KafkaConsumer<String, String>  kafkaConsumer2;                   // 用于扁平message的数据消费
-    private String                         topic;
-    private Integer                        partition;
-    private Properties                     properties;
-    private volatile boolean               connected       = false;
-    private volatile boolean               running         = false;
-    private boolean                        flatMessage;
+    protected KafkaConsumer<String, Message> kafkaConsumer;
+    protected KafkaConsumer<String, String>  kafkaConsumer2;                  // 用于扁平message的数据消费
+    protected String                         topic;
+    protected Integer                        partition;
+    protected Properties                     properties;
+    protected volatile boolean               connected      = false;
+    protected volatile boolean               running        = false;
+    protected boolean                        flatMessage;
 
-    private Map<Integer, Long>             currentOffsets  = new HashMap<>();
+    private Map<Integer, Long>               currentOffsets = new HashMap<>();
 
     public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, Integer batchSize,
                                boolean flatMessage){
