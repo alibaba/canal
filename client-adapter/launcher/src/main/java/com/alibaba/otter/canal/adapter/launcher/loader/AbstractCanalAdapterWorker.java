@@ -2,11 +2,7 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,16 +76,17 @@ public abstract class AbstractCanalAdapterWorker {
             futures.forEach(future -> {
                 try {
                     if (!future.get()) {
-                        logger.error("Outer adapter write failed");
+                        throw new RuntimeException("Outer adapter sync failed! ");
                     }
-                } catch (InterruptedException | ExecutionException e) {
-                    // ignore
+                } catch (Exception e) {
+                    future.cancel(true);
+                    throw new RuntimeException(e);
                 }
             });
         });
     }
 
-    private void writeOut(final List<FlatMessage> flatMessages) {
+    protected void writeOut(final List<FlatMessage> flatMessages) {
         List<Future<Boolean>> futures = new ArrayList<>();
         // 组间适配器并行运行
         canalOuterAdapters.forEach(outerAdapters -> {
@@ -119,63 +116,64 @@ public abstract class AbstractCanalAdapterWorker {
             futures.forEach(future -> {
                 try {
                     if (!future.get()) {
-                        logger.error("Outer adapter write failed");
+                        throw new RuntimeException("Outer adapter sync failed! ");
                     }
-                } catch (InterruptedException | ExecutionException e) {
-                    // ignore
+                } catch (Exception e) {
+                    future.cancel(true);
+                    throw new RuntimeException(e);
                 }
             });
         });
     }
 
     @SuppressWarnings("unchecked")
-    protected void mqWriteOutData(int retry, long timeout, final boolean flatMessage, CanalMQConnector connector,
+    protected boolean mqWriteOutData(int retry, long timeout, int i, final boolean flatMessage, CanalMQConnector connector,
                                   ExecutorService workerExecutor) {
-        for (int i = 0; i < retry; i++) {
-            try {
-                List<?> messages;
-                if (!flatMessage) {
-                    messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
-                } else {
-                    messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);
-                }
-                if (messages != null) {
-                    Future<Boolean> future = workerExecutor.submit(() -> {
-                        if (flatMessage) {
-                            // batch write
-                            writeOut((List<FlatMessage>) messages);
-                        } else {
-                            for (final Object message : messages) {
-                                writeOut((Message) message);
-                            }
+        try {
+            List<?> messages;
+            if (!flatMessage) {
+                messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
+            } else {
+                messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);
+            }
+            if (messages != null && !messages.isEmpty()) {
+                Future<Boolean> future = workerExecutor.submit(() -> {
+                    if (flatMessage) {
+                        // batch write
+                        writeOut((List<FlatMessage>) messages);
+                    } else {
+                        for (final Object message : messages) {
+                            writeOut((Message) message);
                         }
-                        return true;
-                    });
-
-                    try {
-                        future.get(timeout, TimeUnit.MILLISECONDS);
-                    } catch (Exception e) {
-                        future.cancel(true);
-                        throw e;
                     }
+                    return true;
+                });
+
+                try {
+                    future.get(timeout, TimeUnit.MILLISECONDS);
+                } catch (Exception e) {
+                    future.cancel(true);
+                    throw e;
                 }
                 connector.ack();
-                break;
-            } catch (Throwable e) {
-                if (i == retry - 1) {
-                    connector.ack();
-                } else {
-                    connector.rollback();
-                }
-
-                logger.error(e.getMessage(), e);
-                try {
-                    TimeUnit.SECONDS.sleep(1L);
-                } catch (InterruptedException e1) {
-                    // ignore
-                }
+            }
+           return true;
+        } catch (Throwable e) {
+            if (i == retry - 1) {
+                connector.ack();
+                logger.error(e.getMessage() + " Error sync but ACK!");
+                return true;
+            } else {
+                connector.rollback();
+                logger.error(e.getMessage() + " Error sync and rollback, execute times: " + (i + 1));
+            }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e1) {
+                // ignore
             }
         }
+        return  false;
     }
 
     /**
