@@ -75,8 +75,8 @@ public class ESAdapter implements OuterAdapter {
             // 过滤不匹配的key的配置
             esSyncConfigTmp.forEach((key, config) -> {
                 if ((config.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
-                        .equalsIgnoreCase(configuration.getKey()))) {
+                    || (config.getOuterAdapterKey() != null
+                        && config.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
                     esSyncConfig.put(key, config);
                 }
             });
@@ -98,15 +98,11 @@ public class ESAdapter implements OuterAdapter {
                 }
                 String schema = matcher.group(2);
 
-                schemaItem.getAliasTableItems()
-                    .values()
-                    .forEach(tableItem -> {
-                        Map<String, ESSyncConfig> esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(schema
-                                                                                                        + "-"
-                                                                                                        + tableItem.getTableName(),
-                            k -> new HashMap<>());
-                        esSyncConfigMap.put(configName, config);
-                    });
+                schemaItem.getAliasTableItems().values().forEach(tableItem -> {
+                    Map<String, ESSyncConfig> esSyncConfigMap = dbTableEsSyncConfig
+                        .computeIfAbsent(schema + "-" + tableItem.getTableName(), k -> new HashMap<>());
+                    esSyncConfigMap.put(configName, config);
+                });
             }
 
             Map<String, String> properties = configuration.getProperties();
@@ -140,7 +136,9 @@ public class ESAdapter implements OuterAdapter {
         String database = dml.getDatabase();
         String table = dml.getTable();
         Map<String, ESSyncConfig> configMap = dbTableEsSyncConfig.get(database + "-" + table);
-        esSyncService.sync(configMap.values(), dml);
+        if (configMap != null) {
+            esSyncService.sync(configMap.values(), dml);
+        }
     }
 
     @Override
