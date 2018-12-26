@@ -3,7 +3,11 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.alibaba.otter.canal.protocol.Message;
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
@@ -39,7 +43,8 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
             ;
 
         ExecutorService workerExecutor = Executors.newSingleThreadExecutor();
-        int retry = canalClientConfig.getRetries() == null || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
+        int retry = canalClientConfig.getRetries() == null
+                    || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
 
         while (running) {
@@ -56,7 +61,17 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                         connector.disconnect();
                         break;
                     }
-                    mqWriteOutData(retry, timeout, flatMessage, connector, workerExecutor);
+                    if (retry == -1) {
+                        retry = Integer.MAX_VALUE;
+                    }
+                    for (int i = 0; i < retry; i++) {
+                        if (!running) {
+                            break;
+                        }
+                        if (mqWriteOutData(retry, timeout, i, flatMessage, connector, workerExecutor)) {
+                            break;
+                        }
+                    }
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

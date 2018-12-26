@@ -5,7 +5,10 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.sql.DataSource;
 
@@ -152,8 +155,8 @@ public class RdbAdapter implements OuterAdapter {
         try {
             future1.get();
             future2.get();
-        } catch (ExecutionException | InterruptedException e) {
-            // ignore
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

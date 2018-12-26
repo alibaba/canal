@@ -30,6 +30,7 @@ import com.alibaba.fastsql.sql.ast.statement.SQLSelectOrderByItem;
 import com.alibaba.fastsql.sql.ast.statement.SQLTableElement;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.MySqlPrimaryKey;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.MySqlUnique;
+import com.alibaba.fastsql.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
 import com.alibaba.fastsql.sql.repository.Schema;
 import com.alibaba.fastsql.sql.repository.SchemaObject;
 import com.alibaba.fastsql.sql.repository.SchemaRepository;
@@ -258,6 +259,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
             return ((SQLCharExpr) sqlName).getText();
         } else if (sqlName instanceof SQLMethodInvokeExpr) {
             return DruidDdlParser.unescapeName(((SQLMethodInvokeExpr) sqlName).getMethodName());
+        } else if (sqlName instanceof MySqlOrderingExpr) {
+            return getSqlName(((MySqlOrderingExpr) sqlName).getExpr());
         } else {
             return sqlName.toString();
         }

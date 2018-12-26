@@ -115,7 +115,9 @@ public class HbaseAdapter implements OuterAdapter {
         String database = dml.getDatabase();
         String table = dml.getTable();
         Map<String, MappingConfig> configMap = mappingConfigCache.get(destination + "." + database + "." + table);
-        configMap.values().forEach(config -> hbaseSyncService.sync(config, dml));
+        if (configMap != null) {
+            configMap.values().forEach(config -> hbaseSyncService.sync(config, dml));
+        }
     }
 
     @Override
