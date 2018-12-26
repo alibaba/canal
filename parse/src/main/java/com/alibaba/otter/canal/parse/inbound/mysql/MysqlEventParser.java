@@ -790,6 +790,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                                     entryPosition);
                             }
                             logPosition.setPostion(entryPosition);
+                            entryPosition.setGtid(entry.getHeader().getGtid());
                         } else if (CanalEntry.EntryType.TRANSACTIONBEGIN.equals(entry.getEntryType())) {
                             // 当前事务开始位点
                             entryPosition = new EntryPosition(logfilename, logfileoffset, logposTimestamp, serverId);
@@ -797,6 +798,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                                 logger.debug("set {} to be pending start position before finding another proper one...",
                                     entryPosition);
                             }
+                            entryPosition.setGtid(entry.getHeader().getGtid());
                             logPosition.setPostion(entryPosition);
                         }
 
