@@ -7,10 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
@@ -88,41 +85,39 @@ public class RdbSyncService {
      * @param function 回调方法
      */
     public void sync(List<Dml> dmls, Function<Dml, Boolean> function) {
-        try {
-            boolean toExecute = false;
-            for (Dml dml : dmls) {
-                if (!toExecute) {
-                    toExecute = function.apply(dml);
-                } else {
-                    function.apply(dml);
-                }
+        boolean toExecute = false;
+        for (Dml dml : dmls) {
+            if (!toExecute) {
+                toExecute = function.apply(dml);
+            } else {
+                function.apply(dml);
             }
-            if (toExecute) {
-                List<Future> futures = new ArrayList<>();
-                for (int i = 0; i < threads; i++) {
-                    int j = i;
-                    futures.add(executorThreads[i].submit(() -> {
+        }
+        if (toExecute) {
+            List<Future> futures = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                int j = i;
+                futures.add(executorThreads[i].submit(() -> {
+                    try {
                         dmlsPartition[j]
                             .forEach(syncItem -> sync(batchExecutors[j], syncItem.config, syncItem.singleDml));
+                        dmlsPartition[j].clear();
                         batchExecutors[j].commit();
                         return true;
-                    }));
-                }
-
-                futures.forEach(future -> {
-                    try {
-                        future.get();
                     } catch (Exception e) {
-                        logger.error(e.getMessage(), e);
+                        batchExecutors[j].rollback();
+                        throw new RuntimeException(e);
                     }
-                });
-
-                for (int i = 0; i < threads; i++) {
-                    dmlsPartition[i].clear();
-                }
+                }));
             }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+
+            futures.forEach(future -> {
+                try {
+                    future.get();
+                } catch (ExecutionException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
     }
 
@@ -181,22 +176,18 @@ public class RdbSyncService {
      * @param dml DML
      */
     public void sync(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) {
-        try {
-            if (config != null) {
-                String type = dml.getType();
-                if (type != null && type.equalsIgnoreCase("INSERT")) {
-                    insert(batchExecutor, config, dml);
-                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                    update(batchExecutor, config, dml);
-                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
-                    delete(batchExecutor, config, dml);
-                }
-                if (logger.isDebugEnabled()) {
-                    logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
-                }
+        if (config != null) {
+            String type = dml.getType();
+            if (type != null && type.equalsIgnoreCase("INSERT")) {
+                insert(batchExecutor, config, dml);
+            } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
+                update(batchExecutor, config, dml);
+            } else if (type != null && type.equalsIgnoreCase("DELETE")) {
+                delete(batchExecutor, config, dml);
             }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            if (logger.isDebugEnabled()) {
+                logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+            }
         }
     }
 
@@ -214,47 +205,45 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
-        try {
-            Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
+        Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
-            StringBuilder insertSql = new StringBuilder();
-            insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
+        StringBuilder insertSql = new StringBuilder();
+        insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
 
-            columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
-            int len = insertSql.length();
-            insertSql.delete(len - 1, len).append(") VALUES (");
-            int mapLen = columnsMap.size();
-            for (int i = 0; i < mapLen; i++) {
-                insertSql.append("?,");
-            }
-            len = insertSql.length();
-            insertSql.delete(len - 1, len).append(")");
-
-            Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
-
-            List<Map<String, ?>> values = new ArrayList<>();
-            for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
-                String targetColumnName = entry.getKey();
-                String srcColumnName = entry.getValue();
-                if (srcColumnName == null) {
-                    srcColumnName = Util.cleanColumn(targetColumnName);
-                }
-
-                Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
-
-                Object value = data.get(srcColumnName);
-
-                BatchExecutor.setValue(values, type, value);
-            }
-
-            batchExecutor.execute(insertSql.toString(), values);
-            if (logger.isTraceEnabled()) {
-                logger.trace("Insert into target table, sql: {}", insertSql);
-            }
-
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+        int len = insertSql.length();
+        insertSql.delete(len - 1, len).append(") VALUES (");
+        int mapLen = columnsMap.size();
+        for (int i = 0; i < mapLen; i++) {
+            insertSql.append("?,");
         }
+        len = insertSql.length();
+        insertSql.delete(len - 1, len).append(")");
+
+        Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
+
+        List<Map<String, ?>> values = new ArrayList<>();
+        for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
+            String targetColumnName = entry.getKey();
+            String srcColumnName = entry.getValue();
+            if (srcColumnName == null) {
+                srcColumnName = Util.cleanColumn(targetColumnName);
+            }
+
+            Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
+            if (type == null) {
+                throw new RuntimeException("Target column: " + targetColumnName + " not matched");
+            }
+            Object value = data.get(srcColumnName);
+
+            BatchExecutor.setValue(values, type, value);
+        }
+
+        batchExecutor.execute(insertSql.toString(), values);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Insert into target table, sql: {}", insertSql);
+        }
+
     }
 
     /**
@@ -276,43 +265,42 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
-        try {
-            Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
+        Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
-            Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
+        Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
-            StringBuilder updateSql = new StringBuilder();
-            updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
-            List<Map<String, ?>> values = new ArrayList<>();
-            for (String srcColumnName : old.keySet()) {
-                List<String> targetColumnNames = new ArrayList<>();
-                columnsMap.forEach((targetColumn, srcColumn) -> {
-                    if (srcColumnName.toLowerCase().equals(srcColumn)) {
-                        targetColumnNames.add(targetColumn);
+        StringBuilder updateSql = new StringBuilder();
+        updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
+        List<Map<String, ?>> values = new ArrayList<>();
+        for (String srcColumnName : old.keySet()) {
+            List<String> targetColumnNames = new ArrayList<>();
+            columnsMap.forEach((targetColumn, srcColumn) -> {
+                if (srcColumnName.toLowerCase().equals(srcColumn)) {
+                    targetColumnNames.add(targetColumn);
+                }
+            });
+            if (!targetColumnNames.isEmpty()) {
+
+                for (String targetColumnName : targetColumnNames) {
+                    updateSql.append(targetColumnName).append("=?, ");
+                    Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
+                    if (type == null) {
+                        throw new RuntimeException("Target column: " + targetColumnName + " not matched");
                     }
-                });
-                if (!targetColumnNames.isEmpty()) {
-
-                    for (String targetColumnName : targetColumnNames) {
-                        updateSql.append(targetColumnName).append("=?, ");
-                        Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
-                        BatchExecutor.setValue(values, type, data.get(srcColumnName));
-                    }
+                    BatchExecutor.setValue(values, type, data.get(srcColumnName));
                 }
             }
-            int len = updateSql.length();
-            updateSql.delete(len - 2, len).append(" WHERE ");
+        }
+        int len = updateSql.length();
+        updateSql.delete(len - 2, len).append(" WHERE ");
 
-            // 拼接主键
-            appendCondition(dbMapping, updateSql, ctype, values, data, old);
+        // 拼接主键
+        appendCondition(dbMapping, updateSql, ctype, values, data, old);
 
-            batchExecutor.execute(updateSql.toString(), values);
+        batchExecutor.execute(updateSql.toString(), values);
 
-            if (logger.isTraceEnabled()) {
-                logger.trace("Update target table, sql: {}", updateSql);
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Update target table, sql: {}", updateSql);
         }
     }
 
@@ -330,23 +318,19 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
-        try {
-            Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
+        Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
-            StringBuilder sql = new StringBuilder();
-            sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping)).append(" WHERE ");
+        StringBuilder sql = new StringBuilder();
+        sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping)).append(" WHERE ");
 
-            List<Map<String, ?>> values = new ArrayList<>();
-            // 拼接主键
-            appendCondition(dbMapping, sql, ctype, values, data);
+        List<Map<String, ?>> values = new ArrayList<>();
+        // 拼接主键
+        appendCondition(dbMapping, sql, ctype, values, data);
 
-            batchExecutor.execute(sql.toString(), values);
+        batchExecutor.execute(sql.toString(), values);
 
-            if (logger.isTraceEnabled()) {
-                logger.trace("Delete from target table, sql: {}", sql);
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Delete from target table, sql: {}", sql);
         }
     }
 
@@ -405,6 +389,9 @@ public class RdbSyncService {
             }
             sql.append(targetColumnName).append("=? AND ");
             Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
+            if (type == null) {
+                throw new RuntimeException("Target column: " + targetColumnName + " not matched");
+            }
             // 如果有修改主键的情况
             if (o != null && o.containsKey(srcColumnName)) {
                 BatchExecutor.setValue(values, type, o.get(srcColumnName));

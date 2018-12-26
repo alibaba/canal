@@ -13,8 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
@@ -30,11 +28,7 @@ import com.alibaba.otter.canal.client.adapter.hbase.monitor.HbaseConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
 import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
-import com.alibaba.otter.canal.client.adapter.support.SPI;
+import com.alibaba.otter.canal.client.adapter.support.*;
 
 /**
  * HBase外部适配器
@@ -50,7 +44,6 @@ public class HbaseAdapter implements OuterAdapter {
     private Map<String, MappingConfig>              hbaseMapping       = new ConcurrentHashMap<>();                  // 文件名对应配置
     private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                  // 库名-表名对应配置
 
-    private Connection                              conn;
     private HbaseSyncService                        hbaseSyncService;
     private HbaseTemplate                           hbaseTemplate;
 
@@ -90,8 +83,7 @@ public class HbaseAdapter implements OuterAdapter {
 
             Configuration hbaseConfig = HBaseConfiguration.create();
             properties.forEach(hbaseConfig::set);
-            conn = ConnectionFactory.createConnection(hbaseConfig);
-            hbaseTemplate = new HbaseTemplate(conn);
+            hbaseTemplate = new HbaseTemplate(hbaseConfig);
             hbaseSyncService = new HbaseSyncService(hbaseTemplate);
 
             configMonitor = new HbaseConfigMonitor();
@@ -174,7 +166,7 @@ public class HbaseAdapter implements OuterAdapter {
         String hbaseTable = config.getHbaseMapping().getHbaseTable();
         long rowCount = 0L;
         try {
-            HTable table = (HTable) conn.getTable(TableName.valueOf(hbaseTable));
+            HTable table = (HTable) hbaseTemplate.getConnection().getTable(TableName.valueOf(hbaseTable));
             Scan scan = new Scan();
             scan.setFilter(new FirstKeyOnlyFilter());
             ResultScanner resultScanner = table.getScanner(scan);
@@ -195,12 +187,10 @@ public class HbaseAdapter implements OuterAdapter {
         if (configMonitor != null) {
             configMonitor.destroy();
         }
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            hbaseTemplate.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
