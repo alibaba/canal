@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.common;
 
-
 /**
  * kafka 配置项
  *
@@ -32,6 +31,7 @@ public class MQProperties {
         private Integer partition;
         private Integer partitionsNum;
         private String  partitionHash;
+        private String  dynamicTopic;
 
         public String getCanalDestination() {
             return canalDestination;
@@ -71,6 +71,14 @@ public class MQProperties {
 
         public void setPartitionHash(String partitionHash) {
             this.partitionHash = partitionHash;
+        }
+
+        public String getDynamicTopic() {
+            return dynamicTopic;
+        }
+
+        public void setDynamicTopic(String dynamicTopic) {
+            this.dynamicTopic = dynamicTopic;
         }
     }
 
