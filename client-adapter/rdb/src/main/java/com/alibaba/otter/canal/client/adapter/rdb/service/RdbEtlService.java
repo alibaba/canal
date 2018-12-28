@@ -36,8 +36,7 @@ public class RdbEtlService {
     /**
      * 导入数据
      */
-    public static EtlResult importData(DataSource srcDS, DataSource targetDS, MappingConfig config,
-                                       List<String> params) {
+    public static EtlResult importData(DataSource srcDS, DataSource targetDS, MappingConfig config, List<String> params) {
         EtlResult etlResult = new EtlResult();
         AtomicLong successCount = new AtomicLong();
         List<String> errMsg = new ArrayList<>();
@@ -54,8 +53,8 @@ public class RdbEtlService {
             long start = System.currentTimeMillis();
 
             // 拼接sql
-            StringBuilder sql = new StringBuilder(
-                "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable());
+            StringBuilder sql = new StringBuilder("SELECT * FROM " + dbMapping.getDatabase() + "."
+                                                  + dbMapping.getTable());
 
             // 拼接条件
             appendCondition(params, dbMapping, srcDS, sql);
@@ -92,8 +91,12 @@ public class RdbEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor
-                        .submit(() -> executeSqlImport(srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
+                    Future<Boolean> future = executor.submit(() -> executeSqlImport(srcDS,
+                        targetDS,
+                        sqlFinal,
+                        dbMapping,
+                        successCount,
+                        errMsg));
                     futures.add(future);
                 }
 
@@ -106,10 +109,11 @@ public class RdbEtlService {
                 executeSqlImport(srcDS, targetDS, sql.toString(), dbMapping, successCount, errMsg);
             }
 
-            logger.info(
-                dbMapping.getTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000 + "s!");
+            logger.info(dbMapping.getTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000
+                        + "s!");
 
-            etlResult.setResultMessage("导入目标表 " + SyncUtil.getDbTableName(dbMapping) + " 数据：" + successCount.get() + " 条");
+            etlResult.setResultMessage("导入目标表 " + SyncUtil.getDbTableName(dbMapping) + " 数据：" + successCount.get()
+                                       + " 条");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             errMsg.add(hbaseTable + " etl failed! ==>" + e.getMessage());
@@ -123,8 +127,8 @@ public class RdbEtlService {
         return etlResult;
     }
 
-    private static void appendCondition(List<String> params, DbMapping dbMapping, DataSource ds,
-                                        StringBuilder sql) throws SQLException {
+    private static void appendCondition(List<String> params, DbMapping dbMapping, DataSource ds, StringBuilder sql)
+                                                                                                                   throws SQLException {
         if (params != null && params.size() == 1 && dbMapping.getEtlCondition() == null) {
             AtomicBoolean stExists = new AtomicBoolean(false);
             // 验证是否有SYS_TIME字段
@@ -141,9 +145,9 @@ public class RdbEtlService {
                     }
                 } catch (Exception e) {
                     // ignore
-                }
-                return null;
-            });
+            }
+            return null;
+        }   );
             if (stExists.get()) {
                 sql.append(" WHERE SYS_TIME >= '").append(params.get(0)).append("' ");
             }
@@ -186,85 +190,84 @@ public class RdbEtlService {
                     // columnsMap = dbMapping.getTargetColumns();
                     // }
 
-                    StringBuilder insertSql = new StringBuilder();
-                    insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
-                    columnsMap
-                        .forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+                StringBuilder insertSql = new StringBuilder();
+                insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
+                columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
 
-                    int len = insertSql.length();
-                    insertSql.delete(len - 1, len).append(") VALUES (");
-                    int mapLen = columnsMap.size();
-                    for (int i = 0; i < mapLen; i++) {
-                        insertSql.append("?,");
-                    }
-                    len = insertSql.length();
-                    insertSql.delete(len - 1, len).append(")");
-                    try (Connection connTarget = targetDS.getConnection();
-                            PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
-                        connTarget.setAutoCommit(false);
-
-                        while (rs.next()) {
-                            pstmt.clearParameters();
-
-                            // 删除数据
-                            Map<String, Object> values = new LinkedHashMap<>();
-                            StringBuilder deleteSql = new StringBuilder(
-                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
-                            appendCondition(dbMapping, deleteSql, values, rs);
-                            try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
-                                int k = 1;
-                                for (Object val : values.values()) {
-                                    pstmt2.setObject(k++, val);
-                                }
-                                pstmt2.execute();
-                            }
-
-                            int i = 1;
-                            for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
-                                String targetClolumnName = entry.getKey();
-                                String srcColumnName = entry.getValue();
-                                if (srcColumnName == null) {
-                                    srcColumnName = targetClolumnName;
-                                }
-
-                                Integer type = columnType.get(targetClolumnName.toLowerCase());
-
-                                Object value = rs.getObject(srcColumnName);
-                                if (value != null) {
-                                    SyncUtil.setPStmt(type, pstmt, value, i);
-                                } else {
-                                    pstmt.setNull(i, type);
-                                }
-
-                                i++;
-                            }
-
-                            pstmt.execute();
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("Insert into target table, sql: {}", insertSql);
-                            }
-
-                            if (idx % dbMapping.getCommitBatch() == 0) {
-                                connTarget.commit();
-                                completed = true;
-                            }
-                            idx++;
-                            successCount.incrementAndGet();
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("successful import count:" + successCount.get());
-                            }
-                        }
-                        if (!completed) {
-                            connTarget.commit();
-                        }
-                    }
-
-                } catch (Exception e) {
-                    logger.error(dbMapping.getTable() + " etl failed! ==>" + e.getMessage(), e);
-                    errMsg.add(dbMapping.getTable() + " etl failed! ==>" + e.getMessage());
+                int len = insertSql.length();
+                insertSql.delete(len - 1, len).append(") VALUES (");
+                int mapLen = columnsMap.size();
+                for (int i = 0; i < mapLen; i++) {
+                    insertSql.append("?,");
                 }
-                return idx;
-            });
+                len = insertSql.length();
+                insertSql.delete(len - 1, len).append(")");
+                try (Connection connTarget = targetDS.getConnection();
+                        PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
+                    connTarget.setAutoCommit(false);
+
+                    while (rs.next()) {
+                        pstmt.clearParameters();
+
+                        // 删除数据
+                        Map<String, Object> values = new LinkedHashMap<>();
+                        StringBuilder deleteSql = new StringBuilder("DELETE FROM " + SyncUtil.getDbTableName(dbMapping)
+                                                                    + " WHERE ");
+                        appendCondition(dbMapping, deleteSql, values, rs);
+                        try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
+                            int k = 1;
+                            for (Object val : values.values()) {
+                                pstmt2.setObject(k++, val);
+                            }
+                            pstmt2.execute();
+                        }
+
+                        int i = 1;
+                        for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
+                            String targetClolumnName = entry.getKey();
+                            String srcColumnName = entry.getValue();
+                            if (srcColumnName == null) {
+                                srcColumnName = targetClolumnName;
+                            }
+
+                            Integer type = columnType.get(targetClolumnName.toLowerCase());
+
+                            Object value = rs.getObject(srcColumnName);
+                            if (value != null) {
+                                SyncUtil.setPStmt(type, pstmt, value, i);
+                            } else {
+                                pstmt.setNull(i, type);
+                            }
+
+                            i++;
+                        }
+
+                        pstmt.execute();
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Insert into target table, sql: {}", insertSql);
+                        }
+
+                        if (idx % dbMapping.getCommitBatch() == 0) {
+                            connTarget.commit();
+                            completed = true;
+                        }
+                        idx++;
+                        successCount.incrementAndGet();
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("successful import count:" + successCount.get());
+                        }
+                    }
+                    if (!completed) {
+                        connTarget.commit();
+                    }
+                }
+
+            } catch (Exception e) {
+                logger.error(dbMapping.getTable() + " etl failed! ==>" + e.getMessage(), e);
+                errMsg.add(dbMapping.getTable() + " etl failed! ==>" + e.getMessage());
+            }
+            return idx;
+        }   );
             return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -275,8 +278,8 @@ public class RdbEtlService {
     /**
      * 拼接目标表主键where条件
      */
-    private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values,
-                                        ResultSet rs) throws SQLException {
+    private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values, ResultSet rs)
+                                                                                                                         throws SQLException {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();

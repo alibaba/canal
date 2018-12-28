@@ -70,35 +70,37 @@ public class RdbMirrorDbSyncService {
             }
         }
         if (!dmlList.isEmpty()) {
-            rdbSyncService.sync(dmlList, dml -> {
-                MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache.get(dml.getDestination() + "." + dml.getDatabase());
-                if (mirrorDbConfig == null) {
-                    return false;
-                }
-                String table = dml.getTable();
-                MappingConfig config = mirrorDbConfig.getTableConfig().get(table);
+            rdbSyncService.sync(dmlList,
+                dml -> {
+                    MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache.get(dml.getDestination() + "."
+                                                                            + dml.getDatabase());
+                    if (mirrorDbConfig == null) {
+                        return false;
+                    }
+                    String table = dml.getTable();
+                    MappingConfig config = mirrorDbConfig.getTableConfig().get(table);
 
-                if (config == null) {
-                    return false;
-                }
+                    if (config == null) {
+                        return false;
+                    }
 
-                if (config.getConcurrent()) {
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                    singleDmls.forEach(singleDml -> {
-                        int hash = rdbSyncService.pkHash(config.getDbMapping(), singleDml.getData());
-                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
-                    });
-                } else {
-                    int hash = 0;
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                    singleDmls.forEach(singleDml -> {
-                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
-                    });
-                }
-                return true;
-            });
+                    if (config.getConcurrent()) {
+                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                        singleDmls.forEach(singleDml -> {
+                            int hash = rdbSyncService.pkHash(config.getDbMapping(), singleDml.getData());
+                            RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
+                            rdbSyncService.getDmlsPartition()[hash].add(syncItem);
+                        });
+                    } else {
+                        int hash = 0;
+                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                        singleDmls.forEach(singleDml -> {
+                            RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
+                            rdbSyncService.getDmlsPartition()[hash].add(syncItem);
+                        });
+                    }
+                    return true;
+                });
         }
     }
 
@@ -148,7 +150,7 @@ public class RdbMirrorDbSyncService {
                 logger.trace("Execute DDL sql: {} for database: {}", ddl.getSql(), ddl.getDatabase());
             }
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 }
