@@ -75,7 +75,7 @@ public class LocalBinLogConnection implements ErosaConnection {
         return running;
     }
 
-    public void seek(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
+    public void seek(String binlogfilename, Long binlogPosition, String gtid, SinkFunction func) throws IOException {
     }
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
