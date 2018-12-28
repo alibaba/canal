@@ -102,13 +102,13 @@ public class ESSyncService {
             }
         } catch (Exception e) {
             logger.error("sync error, es index: {}, DML : {}", config.getEsMapping().get_index(), dml);
-            logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
     /**
      * 插入操作dml
-     * 
+     *
      * @param config es配置
      * @param dml dml数据
      */
@@ -429,7 +429,7 @@ public class ESSyncService {
 
     /**
      * 主表(单表)复杂字段insert
-     * 
+     *
      * @param config es配置
      * @param dml dml信息
      * @param data 单行dml数据

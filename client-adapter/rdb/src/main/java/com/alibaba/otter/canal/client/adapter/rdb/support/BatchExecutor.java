@@ -16,18 +16,11 @@ public class BatchExecutor implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(BatchExecutor.class);
 
-    private Integer             key;
     private Connection          conn;
     private AtomicInteger       idx    = new AtomicInteger(0);
 
     public BatchExecutor(Connection conn){
-        this(1, conn);
-    }
-
-    public BatchExecutor(Integer key, Connection conn){
-        this.key = key;
         this.conn = conn;
-
         try {
             this.conn.setAutoCommit(false);
         } catch (SQLException e) {
@@ -35,9 +28,6 @@ public class BatchExecutor implements Closeable {
         }
     }
 
-    public Integer getKey() {
-        return key;
-    }
 
     public Connection getConn() {
         return conn;
@@ -70,7 +60,19 @@ public class BatchExecutor implements Closeable {
         try {
             conn.commit();
             if (logger.isTraceEnabled()) {
-                logger.trace("Batch executor: " + key + " commit " + idx.get() + " rows");
+                logger.trace("Batch executor commit " + idx.get() + " rows");
+            }
+            idx.set(0);
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    public void rollback() {
+        try {
+            conn.rollback();
+            if (logger.isTraceEnabled()) {
+                logger.trace("Batch executor rollback " + idx.get() + " rows");
             }
             idx.set(0);
         } catch (SQLException e) {
