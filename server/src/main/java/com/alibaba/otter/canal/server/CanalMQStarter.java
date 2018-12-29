@@ -21,9 +21,9 @@ import com.alibaba.otter.canal.spi.CanalMQProducer;
 
 public class CanalMQStarter {
 
-    private static final Logger          logger       = LoggerFactory.getLogger(CanalMQStarter.class);
+    private static final Logger          logger         = LoggerFactory.getLogger(CanalMQStarter.class);
 
-    private volatile boolean             running      = false;
+    private volatile boolean             running        = false;
 
     private ExecutorService              executorService;
 
@@ -33,7 +33,9 @@ public class CanalMQStarter {
 
     private CanalServerWithEmbedded      canalServer;
 
-    private Map<String, CanalMQRunnable> canalMQWorks = new ConcurrentHashMap<>();
+    private Map<String, CanalMQRunnable> canalMQWorks   = new ConcurrentHashMap<>();
+
+    private static Thread                shutdownThread = null;
 
     public CanalMQStarter(CanalMQProducer canalMQProducer){
         this.canalMQProducer = canalMQProducer;
@@ -72,7 +74,8 @@ public class CanalMQStarter {
 
             running = true;
             logger.info("## the MQ workers is running now ......");
-            Runtime.getRuntime().addShutdownHook(new Thread() {
+
+            shutdownThread = new Thread() {
 
                 public void run() {
                     try {
@@ -87,11 +90,25 @@ public class CanalMQStarter {
                     }
                 }
 
-            });
+            };
 
+            Runtime.getRuntime().addShutdownHook(shutdownThread);
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal MQ workers:", e);
-            System.exit(0);
+        }
+    }
+
+    public synchronized void destroy() {
+        running = false;
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+        if (canalMQProducer != null) {
+            canalMQProducer.stop();
+        }
+        if (shutdownThread != null) {
+            Runtime.getRuntime().removeShutdownHook(shutdownThread);
+            shutdownThread = null;
         }
     }
 
