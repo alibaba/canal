@@ -100,7 +100,7 @@ public class ESSyncService {
                     dml.getDestination(),
                     config.getEsMapping().get_index());
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error("sync error, es index: {}, DML : {}", config.getEsMapping().get_index(), dml);
             throw new RuntimeException(e);
         }

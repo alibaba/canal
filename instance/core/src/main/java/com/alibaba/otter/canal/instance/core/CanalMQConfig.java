@@ -6,7 +6,7 @@ public class CanalMQConfig {
     private Integer partition;
     private Integer partitionsNum;
     private String  partitionHash;
-    private String dynamicTopic;
+    private String  dynamicTopic;
 
     public String getTopic() {
         return topic;
