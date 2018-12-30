@@ -34,22 +34,28 @@ public class CanalLauncher {
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
                 properties.load(CanalLauncher.class.getClassLoader().getResourceAsStream(conf));
-
-                String jdbcUrl = properties.getProperty("canal.manager.jdbc.url");
-                if (!StringUtils.isEmpty(jdbcUrl)) {
-                    // load remote config
-                    String jdbcUsername = properties.getProperty("canal.manager.jdbc.username");
-                    String jdbcPassword = properties.getProperty("canal.manager.jdbc.password");
-                    managerDbConfigMonitor = new ManagerDbConfigMonitor(jdbcUrl, jdbcUsername, jdbcPassword);
-                    Properties remoteConfig = managerDbConfigMonitor.loadRemoteConfig();
-                    if (remoteConfig != null) {
-                        properties = remoteConfig;
-                    } else {
-                        managerDbConfigMonitor = null;
-                    }
-                }
             } else {
                 properties.load(new FileInputStream(conf));
+            }
+
+            String jdbcUrl = properties.getProperty("canal.manager.jdbc.url");
+            if (!StringUtils.isEmpty(jdbcUrl)) {
+                logger.info("## load remote canal configurations");
+                // load remote config
+                String jdbcUsername = properties.getProperty("canal.manager.jdbc.username");
+                String jdbcPassword = properties.getProperty("canal.manager.jdbc.password");
+                managerDbConfigMonitor = new ManagerDbConfigMonitor(jdbcUrl, jdbcUsername, jdbcPassword);
+                // 加载远程canal.properties
+                Properties remoteConfig = managerDbConfigMonitor.loadRemoteConfig();
+                // 加载remote instance配置
+                managerDbConfigMonitor.loadRemoteInstanceConfigs();
+                if (remoteConfig != null) {
+                    properties = remoteConfig;
+                } else {
+                    managerDbConfigMonitor = null;
+                }
+            } else {
+                logger.info("## load canal configurations");
             }
 
             final CanalStater canalStater = new CanalStater();
@@ -73,6 +79,10 @@ public class CanalLauncher {
 
             while (running)
                 ;
+
+            if (managerDbConfigMonitor != null) {
+                managerDbConfigMonitor.destroy();
+            }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:", e);
         }

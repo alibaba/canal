@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.deployer.monitor;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
@@ -9,14 +10,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.MapMaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.deployer.CanalConstants;
-import com.google.common.base.Function;
-import com.google.common.collect.MigrateMap;
+import com.google.common.base.Joiner;
+import com.google.common.collect.MapMaker;
 
 public class ManagerDbConfigMonitor {
 
@@ -32,7 +32,7 @@ public class ManagerDbConfigMonitor {
     private long                     currentConfigTimestamp = 0;
 
     private long                     scanIntervalInSecond   = 5;
-    private ScheduledExecutorService executor               = Executors.newScheduledThreadPool(1,
+    private ScheduledExecutorService executor               = Executors.newScheduledThreadPool(2,
         new NamedThreadFactory("remote-canal-config-scan"));
 
     public ManagerDbConfigMonitor(String jdbcUrl, String jdbcUsername, String jdbcPassword){
@@ -56,6 +56,7 @@ public class ManagerDbConfigMonitor {
     public Properties loadRemoteConfig() {
         Properties properties = null;
         try {
+            // 加载远程canal配置
             ConfigItem configItem = getRemoteCanalConfig();
             if (configItem != null) {
                 if (configItem.getModifiedTime() != currentConfigTimestamp) {
@@ -71,6 +72,18 @@ public class ManagerDbConfigMonitor {
             logger.error(e.getMessage(), e);
         }
         return properties;
+    }
+
+    public void loadRemoteInstanceConfigs() {
+        try {
+            // 加载远程instance配置
+            Map<String, ConfigItem>[] modifiedConfigs = getModifiedInstanceConfigs();
+            if (modifiedConfigs != null) {
+                overrideLocalInstanceConfigs(modifiedConfigs);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     private ConfigItem getRemoteCanalConfig() {
@@ -91,7 +104,7 @@ public class ManagerDbConfigMonitor {
     }
 
     private void overrideLocalCanalConfig(String content) {
-        try (FileWriter writer = new FileWriter("../conf/canal.properties")) {
+        try (FileWriter writer = new FileWriter(getConfPath() + "canal.properties")) {
             writer.write(content);
             writer.flush();
         } catch (Exception e) {
@@ -100,6 +113,7 @@ public class ManagerDbConfigMonitor {
     }
 
     public void start(final Listener<Properties> listener) {
+        // 监听canal.properties变化
         executor.scheduleWithFixedDelay(new Runnable() {
 
             public void run() {
@@ -115,45 +129,99 @@ public class ManagerDbConfigMonitor {
             }
 
         }, 10, scanIntervalInSecond, TimeUnit.SECONDS);
+
+        // 监听instance变化
+        executor.scheduleWithFixedDelay(new Runnable() {
+
+            public void run() {
+                try {
+                    loadRemoteInstanceConfigs();
+                } catch (Throwable e) {
+                    logger.error("scan failed", e);
+                }
+            }
+
+        }, 10, 3, TimeUnit.SECONDS);
     }
 
-    public interface Listener<Properties> {
-
-        void onChange(Properties properties);
-    }
-
-    private Map<String, ConfigItem> getChangedInstanceConfigs() {
-        String sql = "select name, content, modified_time from instance_config";
+    @SuppressWarnings("unchecked")
+    private Map<String, ConfigItem>[] getModifiedInstanceConfigs() {
+        Map<String, ConfigItem>[] res = new Map[2];
+        Map<String, ConfigItem> remoteConfigStatus = new HashMap<>();
+        String sql = "select id, name, modified_time from canal_instance_config";
         try (Statement stmt = getConn().createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            Map<String, ConfigItem> changedInstanceConfig = new HashMap<>();
             while (rs.next()) {
-                ConfigItem configItemNew = new ConfigItem();
-                configItemNew.setName(rs.getString("name"));
-                configItemNew.setContent(rs.getString("content"));
-                configItemNew.setModifiedTime(rs.getTimestamp("modified_time").getTime());
+                ConfigItem configItem = new ConfigItem();
+                configItem.setId(rs.getLong("id"));
+                configItem.setName(rs.getString("name"));
+                configItem.setModifiedTime(rs.getTimestamp("modified_time").getTime());
+                remoteConfigStatus.put(configItem.getName(), configItem);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
 
-                ConfigItem configItem = remoteInstanceConfigs.get(configItemNew.getName());
-                if (configItem == null) {
-                    remoteInstanceConfigs.put(configItemNew.getName(), configItemNew);
-                    changedInstanceConfig.put(configItemNew.getName(), configItemNew);
+        if (!remoteConfigStatus.isEmpty()) {
+            List<Long> changedIds = new ArrayList<>();
+
+            for (ConfigItem remoteConfigStat : remoteConfigStatus.values()) {
+                ConfigItem currentConfig = remoteInstanceConfigs.get(remoteConfigStat.getName());
+                if (currentConfig == null) {
+                    // 新增
+                    changedIds.add(remoteConfigStat.getId());
                 } else {
-                    if (configItem.getModifiedTime() != configItemNew.getModifiedTime()) {
-                        remoteInstanceConfigs.put(configItemNew.getName(), configItemNew);
-                        changedInstanceConfig.put(configItemNew.getName(), configItemNew);
+                    // 修改
+                    if (currentConfig.getModifiedTime() != remoteConfigStat.getModifiedTime()) {
+                        changedIds.add(remoteConfigStat.getId());
                     }
                 }
             }
-            return changedInstanceConfig.isEmpty() ? null : changedInstanceConfig;
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            if (!changedIds.isEmpty()) {
+                Map<String, ConfigItem> changedInstanceConfig = new HashMap<>();
+                String contentsSql = "select id, name, content, modified_time from canal_instance_config  where id in ("
+                                     + Joiner.on(",").join(changedIds) + ")";
+                try (Statement stmt = getConn().createStatement(); ResultSet rs = stmt.executeQuery(contentsSql)) {
+                    while (rs.next()) {
+                        ConfigItem configItemNew = new ConfigItem();
+                        configItemNew.setId(rs.getLong("id"));
+                        configItemNew.setName(rs.getString("name"));
+                        configItemNew.setContent(rs.getString("content"));
+                        configItemNew.setModifiedTime(rs.getTimestamp("modified_time").getTime());
+
+                        remoteInstanceConfigs.put(configItemNew.getName(), configItemNew);
+                        changedInstanceConfig.put(configItemNew.getName(), configItemNew);
+                    }
+
+                    res[0] = changedInstanceConfig.isEmpty() ? null : changedInstanceConfig;
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
         }
-        return null;
+
+        Map<String, ConfigItem> removedInstanceConfig = new HashMap<>();
+        for (String name : remoteInstanceConfigs.keySet()) {
+            if (!remoteConfigStatus.containsKey(name)) {
+                // 删除
+                removedInstanceConfig.put(name, null);
+            }
+        }
+        res[1] = removedInstanceConfig.isEmpty() ? null : removedInstanceConfig;
+
+        if (res[0] == null && res[1] == null) {
+            return null;
+        } else {
+            return res;
+        }
     }
 
-    private void overrideLocalInstanceConfigs(Map<String, ConfigItem> changedInstanceConfigs) {
+    private void overrideLocalInstanceConfigs(Map<String, ConfigItem>[] modifiedInstanceConfigs) {
+        Map<String, ConfigItem> changedInstanceConfigs = modifiedInstanceConfigs[0];
         if (changedInstanceConfigs != null) {
             for (ConfigItem configItem : changedInstanceConfigs.values()) {
-                try (FileWriter writer = new FileWriter("../conf/" + configItem.getName() + "/instance.properties")) {
+                try (FileWriter writer = new FileWriter(
+                    getConfPath() + configItem.getName() + "/instance.properties")) {
                     writer.write(configItem.getContent());
                     writer.flush();
                 } catch (Exception e) {
@@ -161,15 +229,35 @@ public class ManagerDbConfigMonitor {
                 }
             }
         }
+        Map<String, ConfigItem> removedInstanceConfigs = modifiedInstanceConfigs[1];
+        if (removedInstanceConfigs != null) {
+            for (String name : removedInstanceConfigs.keySet()) {
+                File file = new File(getConfPath() + name + "/");
+                if (file.exists()) {
+                    file.delete();
+                }
+            }
+        }
     }
 
     public void destroy() {
+        executor.shutdownNow();
         if (conn != null) {
             try {
                 conn.close();
             } catch (SQLException e) {
                 logger.error(e.getMessage(), e);
             }
+        }
+    }
+
+    private String getConfPath() {
+        String classpath = this.getClass().getResource("/").getPath();
+        String confPath = classpath + ".." + File.separator + "conf" + File.separator;
+        if (new File(confPath).exists()) {
+            return confPath;
+        } else {
+            return classpath;
         }
     }
 
@@ -213,4 +301,8 @@ public class ManagerDbConfigMonitor {
         }
     }
 
+    public interface Listener<Properties> {
+
+        void onChange(Properties properties);
+    }
 }
