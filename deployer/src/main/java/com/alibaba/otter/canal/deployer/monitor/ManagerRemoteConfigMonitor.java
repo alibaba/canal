@@ -28,7 +28,7 @@ public class ManagerRemoteConfigMonitor {
 
     private static final Logger      logger                 = LoggerFactory.getLogger(ManagerRemoteConfigMonitor.class);
 
-    private Map<String, ConfigItem>   remoteInstanceConfigs  = new MapMaker().makeMap();
+    private Map<String, ConfigItem>  remoteInstanceConfigs  = new MapMaker().makeMap();
 
     private Connection               conn;
     private String                   jdbcUrl;
@@ -201,6 +201,7 @@ public class ManagerRemoteConfigMonitor {
         for (String name : remoteInstanceConfigs.keySet()) {
             if (!remoteConfigStatus.containsKey(name)) {
                 // 删除
+                remoteInstanceConfigs.remove(name);
                 removedInstanceConfig.put(name, null);
             }
         }
@@ -222,7 +223,8 @@ public class ManagerRemoteConfigMonitor {
         Map<String, ConfigItem> changedInstanceConfigs = modifiedInstanceConfigs[0];
         if (changedInstanceConfigs != null) {
             for (ConfigItem configItem : changedInstanceConfigs.values()) {
-                try (FileWriter writer = new FileWriter(getConfPath() + configItem.getName() + "/instance.properties")) {
+                try (FileWriter writer = new FileWriter(
+                    getConfPath() + configItem.getName() + "/instance.properties")) {
                     writer.write(configItem.getContent());
                     writer.flush();
                 } catch (Exception e) {
