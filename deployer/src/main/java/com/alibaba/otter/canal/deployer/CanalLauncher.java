@@ -7,7 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.deployer.monitor.ManagerDbConfigMonitor;
+import com.alibaba.otter.canal.deployer.monitor.ManagerRemoteConfigMonitor;
 
 /**
  * canal独立版本启动的入口类
@@ -30,7 +30,7 @@ public class CanalLauncher {
             logger.info("## load canal configurations");
             String conf = System.getProperty("canal.conf", "classpath:canal.properties");
             Properties properties = new Properties();
-            ManagerDbConfigMonitor managerDbConfigMonitor = null;
+            ManagerRemoteConfigMonitor managerDbConfigMonitor = null;
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
                 properties.load(CanalLauncher.class.getClassLoader().getResourceAsStream(conf));
@@ -44,7 +44,7 @@ public class CanalLauncher {
                 // load remote config
                 String jdbcUsername = properties.getProperty("canal.manager.jdbc.username");
                 String jdbcPassword = properties.getProperty("canal.manager.jdbc.password");
-                managerDbConfigMonitor = new ManagerDbConfigMonitor(jdbcUrl, jdbcUsername, jdbcPassword);
+                managerDbConfigMonitor = new ManagerRemoteConfigMonitor(jdbcUrl, jdbcUsername, jdbcPassword);
                 // 加载远程canal.properties
                 Properties remoteConfig = managerDbConfigMonitor.loadRemoteConfig();
                 // 加载remote instance配置
@@ -62,12 +62,12 @@ public class CanalLauncher {
             canalStater.start(properties);
 
             if (managerDbConfigMonitor != null) {
-                managerDbConfigMonitor.start(new ManagerDbConfigMonitor.Listener<Properties>() {
+                managerDbConfigMonitor.start(new ManagerRemoteConfigMonitor.Listener<Properties>() {
 
                     @Override
                     public void onChange(Properties properties) {
                         try {
-                            // 远程配置canal.properties修改重新启动
+                            // 远程配置canal.properties修改重新加载整个应用
                             canalStater.destroy();
                             canalStater.start(properties);
                         } catch (Throwable throwable) {
