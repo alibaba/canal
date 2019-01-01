@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -33,8 +34,10 @@ public class CanalAdapterService {
     private CanalAdapterLoader         adapterLoader;
 
     @Resource
-    private AdapterCanalConfig         adapterCanalConfig;
+    private ContextRefresher           contextRefresher;
 
+    @Resource
+    private AdapterCanalConfig         adapterCanalConfig;
     @Resource
     private Environment                env;
 
@@ -62,6 +65,7 @@ public class CanalAdapterService {
                 configMonitor = new AdapterRemoteConfigMonitor(jdbcUrl, jdbcUsername, jdbcPassword);
                 configMonitor.loadRemoteConfig();
                 configMonitor.loadRemoteAdapterConfigs();
+                contextRefresher.refresh();
                 configMonitor.start();
             }
 
