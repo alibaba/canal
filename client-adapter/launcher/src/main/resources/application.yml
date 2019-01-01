@@ -12,7 +12,12 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
-canal.conf:
+canal.manager.jdbc:
+  url: jdbc:mysql://127.0.0.1:3306/canal_manager?useUnicode=true&characterEncoding=UTF-8
+  username: root
+  password: 121212
+
+canal:conf:
   canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
 #  mqServers: 127.0.0.1:9092 #or rocketmq
