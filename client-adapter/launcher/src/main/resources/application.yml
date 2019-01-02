@@ -17,7 +17,7 @@ spring:
 #  username: root
 #  password: 121212
 
-canal:conf:
+canal.conf:
   canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
 #  mqServers: 127.0.0.1:9092 #or rocketmq
