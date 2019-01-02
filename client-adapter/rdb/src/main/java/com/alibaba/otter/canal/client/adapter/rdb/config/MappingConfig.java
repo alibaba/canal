@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.rdb.config;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -92,7 +94,7 @@ public class MappingConfig {
         private Map<String, String> allMapColumns;
 
         public Boolean getMirrorDb() {
-            return mirrorDb;
+            return mirrorDb == null ? false : mirrorDb;
         }
 
         public void setMirrorDb(Boolean mirrorDb) {
@@ -148,6 +150,13 @@ public class MappingConfig {
         }
 
         public Map<String, String> getTargetColumns() {
+            if (targetColumns != null) {
+                targetColumns.forEach((key, value) -> {
+                    if (StringUtils.isEmpty(value)) {
+                        targetColumns.put(key, key);
+                    }
+                });
+            }
             return targetColumns;
         }
 
