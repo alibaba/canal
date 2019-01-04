@@ -9,6 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+/**
+ * Bootstrap级别配置加载
+ *
+ * @author rewerma @ 2019-01-05
+ * @version 1.0.0
+ */
 public class BootstrapConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(BootstrapConfiguration.class);
@@ -17,7 +23,7 @@ public class BootstrapConfiguration {
     private Environment         env;
 
     @PostConstruct
-    public void init() {
+    public void loadRemoteConfig() {
         try {
             // 加载远程配置
             String jdbcUrl = env.getProperty("canal.manager.jdbc.url");
