@@ -39,7 +39,7 @@ canal.conf:
 #        key: mysql1
 #        properties:
 #          jdbc.driverClassName: com.mysql.jdbc.Driver
-#          jdbc.url: jdbc:mysql://192.168.0.36/mytest?useUnicode=true
+#          jdbc.url: jdbc:mysql://127.0.0.1:3306/mytest2?useUnicode=true
 #          jdbc.username: root
 #          jdbc.password: 121212
 #      - name: rdb
