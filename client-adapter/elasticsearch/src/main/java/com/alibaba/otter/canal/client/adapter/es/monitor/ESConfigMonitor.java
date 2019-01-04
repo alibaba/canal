@@ -84,6 +84,10 @@ public class ESConfigMonitor {
                     // 加载配置文件
                     String configContent = MappingConfigsLoader
                         .loadConfig(adapterName + File.separator + file.getName());
+                    if (configContent == null) {
+                        onFileDelete(file);
+                        return;
+                    }
                     ESSyncConfig config = new Yaml().loadAs(configContent, ESSyncConfig.class);
                     config.validate();
                     if (esAdapter.getEsSyncConfig().containsKey(file.getName())) {

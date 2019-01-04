@@ -1,7 +1,9 @@
 package com.alibaba.otter.canal.adapter.launcher.monitor;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.net.URL;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,12 +13,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.MapMaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.support.Constant;
+import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
+import com.google.common.base.Joiner;
+import com.google.common.collect.MapMaker;
 
 public class AdapterRemoteConfigMonitor {
 
@@ -37,6 +42,26 @@ public class AdapterRemoteConfigMonitor {
         this.jdbcUrl = jdbcUrl;
         this.jdbcUsername = jdbcUsername;
         this.jdbcPassword = jdbcPassword;
+    }
+
+    public AdapterRemoteConfigMonitor(){
+        try {
+            File configFile = new File(".." + File.separator + Constant.CONF_DIR + File.separator + "bootstrap.yml");
+            if (!configFile.exists()) {
+                URL url = MappingConfigsLoader.class.getClassLoader().getResource("");
+                if (url != null) {
+                    configFile = new File(url.getPath() + "bootstrap.yml");
+                }
+            }
+            if (configFile.exists()) {
+                try (FileInputStream fis = new FileInputStream(configFile)) {
+                    Map a = new Yaml().load(fis);
+                    a = a;
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     private Connection getConn() throws Exception {
@@ -124,7 +149,7 @@ public class AdapterRemoteConfigMonitor {
     private Map<String, ConfigItem>[] getModifiedAdapterConfigs() {
         Map<String, ConfigItem>[] res = new Map[2];
         Map<String, ConfigItem> remoteConfigStatus = new HashMap<>();
-        String sql = "select id, category, name, modified_time from canal_instance_config";
+        String sql = "select id, category, name, modified_time from canal_adapter_config";
         try (Statement stmt = getConn().createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 ConfigItem configItem = new ConfigItem();
@@ -132,7 +157,7 @@ public class AdapterRemoteConfigMonitor {
                 configItem.setCategory(rs.getString("category"));
                 configItem.setName(rs.getString("name"));
                 configItem.setModifiedTime(rs.getTimestamp("modified_time").getTime());
-                remoteConfigStatus.put(configItem.getName(), configItem);
+                remoteConfigStatus.put(configItem.getCategory() + "/" + configItem.getName(), configItem);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -157,7 +182,7 @@ public class AdapterRemoteConfigMonitor {
             }
             if (!changedIds.isEmpty()) {
                 Map<String, ConfigItem> changedInstanceConfig = new HashMap<>();
-                String contentsSql = "select id, name, content, modified_time from canal_instance_config  where id in ("
+                String contentsSql = "select id, category, name, content, modified_time from canal_adapter_config  where id in ("
                                      + Joiner.on(",").join(changedIds) + ")";
                 try (Statement stmt = getConn().createStatement(); ResultSet rs = stmt.executeQuery(contentsSql)) {
                     while (rs.next()) {
@@ -182,11 +207,11 @@ public class AdapterRemoteConfigMonitor {
         }
 
         Map<String, ConfigItem> removedInstanceConfig = new HashMap<>();
-        for (String name : remoteAdapterConfigs.keySet()) {
-            if (!remoteConfigStatus.containsKey(name)) {
+        for (ConfigItem configItem : remoteAdapterConfigs.values()) {
+            if (!remoteConfigStatus.containsKey(configItem.getCategory() + "/" + configItem.getName())) {
                 // 删除
-                remoteAdapterConfigs.remove(name);
-                removedInstanceConfig.put(name, null);
+                remoteAdapterConfigs.remove(configItem.getCategory() + "/" + configItem.getName());
+                removedInstanceConfig.put(configItem.getCategory() + "/" + configItem.getName(), null);
             }
         }
         res[1] = removedInstanceConfig.isEmpty() ? null : removedInstanceConfig;

@@ -60,6 +60,10 @@ public class HbaseConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
+                if (configContent == null) {
+                    onFileDelete(file);
+                    return;
+                }
                 MappingConfig config = new Yaml().loadAs(configContent, MappingConfig.class);
                 config.validate();
                 addConfigToCache(file, config);

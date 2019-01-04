@@ -57,18 +57,6 @@ public class CanalAdapterService {
             return;
         }
         try {
-            // 加载远程配置
-            String jdbcUrl = env.getProperty("canal.manager.jdbc.url");
-            if (StringUtils.isNotEmpty(jdbcUrl)) {
-                String jdbcUsername = env.getProperty("canal.manager.jdbc.username");
-                String jdbcPassword = env.getProperty("canal.manager.jdbc.password");
-                configMonitor = new AdapterRemoteConfigMonitor(jdbcUrl, jdbcUsername, jdbcPassword);
-                configMonitor.loadRemoteConfig();
-                configMonitor.loadRemoteAdapterConfigs();
-                contextRefresher.refresh();
-                configMonitor.start();
-            }
-
             logger.info("## start the canal client adapters.");
             adapterLoader = new CanalAdapterLoader(adapterCanalConfig);
             adapterLoader.init();

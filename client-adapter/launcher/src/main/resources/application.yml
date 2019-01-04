@@ -12,11 +12,6 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
-#canal.manager.jdbc:
-#  url: jdbc:mysql://127.0.0.1:3306/canal_manager?useUnicode=true&characterEncoding=UTF-8
-#  username: root
-#  password: 121212
-
 canal.conf:
   canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
@@ -44,7 +39,7 @@ canal.conf:
 #        key: mysql1
 #        properties:
 #          jdbc.driverClassName: com.mysql.jdbc.Driver
-#          jdbc.url: jdbc:mysql://192.168.0.36/mytest?useUnicode=true
+#          jdbc.url: jdbc:mysql://127.0.0.1:3306/mytest2?useUnicode=true
 #          jdbc.username: root
 #          jdbc.password: 121212
 #      - name: rdb
