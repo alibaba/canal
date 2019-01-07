@@ -32,7 +32,7 @@ public final class CharsetConversion {
     }
 
     // Character set data used in lookups. The array will be sparse.
-    static final Entry[] entries = new Entry[0xff];
+    static final Entry[] entries = new Entry[2500];
 
     static Entry getEntry(final int id) {
         if (id >= 0 && id < entries.length) {
