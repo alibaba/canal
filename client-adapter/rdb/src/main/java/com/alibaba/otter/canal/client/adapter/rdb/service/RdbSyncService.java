@@ -44,6 +44,7 @@ public class RdbSyncService {
     private Map<String, Map<String, Integer>> columnsTypeCache;
 
     private int                               threads = 3;
+    private boolean                           skipDupException;
 
     private List<SyncItem>[]                  dmlsPartition;
     private BatchExecutor[]                   batchExecutors;
@@ -58,13 +59,15 @@ public class RdbSyncService {
     }
 
     @SuppressWarnings("unchecked")
-    public RdbSyncService(DataSource dataSource, Integer threads){
-        this(dataSource, threads, new ConcurrentHashMap<>());
+    public RdbSyncService(DataSource dataSource, Integer threads, boolean skipDupException){
+        this(dataSource, threads, new ConcurrentHashMap<>(), skipDupException);
     }
 
     @SuppressWarnings("unchecked")
-    public RdbSyncService(DataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache){
+    public RdbSyncService(DataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
+                          boolean skipDupException){
         this.columnsTypeCache = columnsTypeCache;
+        this.skipDupException = skipDupException;
         try {
             if (threads != null) {
                 this.threads = threads;
@@ -182,16 +185,20 @@ public class RdbSyncService {
      */
     public void sync(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) {
         if (config != null) {
-            String type = dml.getType();
-            if (type != null && type.equalsIgnoreCase("INSERT")) {
-                insert(batchExecutor, config, dml);
-            } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                update(batchExecutor, config, dml);
-            } else if (type != null && type.equalsIgnoreCase("DELETE")) {
-                delete(batchExecutor, config, dml);
-            }
-            if (logger.isDebugEnabled()) {
-                logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+            try {
+                String type = dml.getType();
+                if (type != null && type.equalsIgnoreCase("INSERT")) {
+                    insert(batchExecutor, config, dml);
+                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
+                    update(batchExecutor, config, dml);
+                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
+                    delete(batchExecutor, config, dml);
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -202,7 +209,7 @@ public class RdbSyncService {
      * @param config 配置项
      * @param dml DML数据
      */
-    private void insert(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) {
+    private void insert(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) throws SQLException {
         Map<String, Object> data = dml.getData();
         if (data == null || data.isEmpty()) {
             return;
@@ -240,11 +247,20 @@ public class RdbSyncService {
                 throw new RuntimeException("Target column: " + targetColumnName + " not matched");
             }
             Object value = data.get(srcColumnName);
-
             BatchExecutor.setValue(values, type, value);
         }
 
-        batchExecutor.execute(insertSql.toString(), values);
+        try {
+            batchExecutor.execute(insertSql.toString(), values);
+        } catch (SQLException e) {
+            if (skipDupException
+                && (e.getMessage().contains("Duplicate entry") || e.getMessage().startsWith("ORA-00001: 违反唯一约束条件"))) {
+                // ignore
+                // TODO 增加更多关系数据库的主键冲突的错误码
+            } else {
+                throw e;
+            }
+        }
         if (logger.isTraceEnabled()) {
             logger.trace("Insert into target table, sql: {}", insertSql);
         }
@@ -257,7 +273,7 @@ public class RdbSyncService {
      * @param config 配置项
      * @param dml DML数据
      */
-    private void update(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) {
+    private void update(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) throws SQLException {
         Map<String, Object> data = dml.getData();
         if (data == null || data.isEmpty()) {
             return;
@@ -301,9 +317,7 @@ public class RdbSyncService {
 
         // 拼接主键
         appendCondition(dbMapping, updateSql, ctype, values, data, old);
-
         batchExecutor.execute(updateSql.toString(), values);
-
         if (logger.isTraceEnabled()) {
             logger.trace("Update target table, sql: {}", updateSql);
         }
@@ -315,7 +329,7 @@ public class RdbSyncService {
      * @param config
      * @param dml
      */
-    private void delete(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) {
+    private void delete(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) throws SQLException {
         Map<String, Object> data = dml.getData();
         if (data == null || data.isEmpty()) {
             return;
@@ -331,9 +345,7 @@ public class RdbSyncService {
         List<Map<String, ?>> values = new ArrayList<>();
         // 拼接主键
         appendCondition(dbMapping, sql, ctype, values, data);
-
         batchExecutor.execute(sql.toString(), values);
-
         if (logger.isTraceEnabled()) {
             logger.trace("Delete from target table, sql: {}", sql);
         }

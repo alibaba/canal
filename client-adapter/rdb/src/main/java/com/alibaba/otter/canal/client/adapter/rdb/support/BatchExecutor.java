@@ -19,15 +19,10 @@ public class BatchExecutor implements Closeable {
     private Connection          conn;
     private AtomicInteger       idx    = new AtomicInteger(0);
 
-    public BatchExecutor(Connection conn){
+    public BatchExecutor(Connection conn) throws SQLException{
         this.conn = conn;
-        try {
-            this.conn.setAutoCommit(false);
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        }
+        this.conn.setAutoCommit(false);
     }
-
 
     public Connection getConn() {
         return conn;
@@ -40,53 +35,43 @@ public class BatchExecutor implements Closeable {
         values.add(valueItem);
     }
 
-    public void execute(String sql, List<Map<String, ?>> values) {
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            int len = values.size();
-            for (int i = 0; i < len; i++) {
-                int type = (Integer) values.get(i).get("type");
-                Object value = values.get(i).get("value");
-                SyncUtil.setPStmt(type, pstmt, value, i + 1);
-            }
-
-            pstmt.execute();
-            idx.incrementAndGet();
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
+    public void execute(String sql, List<Map<String, ?>> values) throws SQLException {
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        int len = values.size();
+        for (int i = 0; i < len; i++) {
+            int type = (Integer) values.get(i).get("type");
+            Object value = values.get(i).get("value");
+            SyncUtil.setPStmt(type, pstmt, value, i + 1);
         }
+
+        pstmt.execute();
+        idx.incrementAndGet();
     }
 
-    public void commit() {
-        try {
-            conn.commit();
-            if (logger.isTraceEnabled()) {
-                logger.trace("Batch executor commit " + idx.get() + " rows");
-            }
-            idx.set(0);
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
+    public void commit() throws SQLException {
+        conn.commit();
+        if (logger.isTraceEnabled()) {
+            logger.trace("Batch executor commit " + idx.get() + " rows");
         }
+        idx.set(0);
     }
 
-    public void rollback() {
-        try {
-            conn.rollback();
-            if (logger.isTraceEnabled()) {
-                logger.trace("Batch executor rollback " + idx.get() + " rows");
-            }
-            idx.set(0);
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
+    public void rollback() throws SQLException {
+        conn.rollback();
+        if (logger.isTraceEnabled()) {
+            logger.trace("Batch executor rollback " + idx.get() + " rows");
         }
+        idx.set(0);
     }
 
     @Override
     public void close() {
         if (conn != null) {
             try {
-                conn.close();
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ioe) {
             }
         }
     }
