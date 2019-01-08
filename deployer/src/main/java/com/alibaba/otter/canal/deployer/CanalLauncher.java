@@ -77,8 +77,9 @@ public class CanalLauncher {
                 });
             }
 
-            while (running)
-                ;
+            while (running) {
+                Thread.sleep(1000);
+            }
 
             if (managerDbConfigMonitor != null) {
                 managerDbConfigMonitor.destroy();
