@@ -1,14 +1,15 @@
 package com.alibaba.otter.canal.client.running.kafka;
 
-import com.alibaba.otter.canal.client.kafka.KafkaOffsetCanalConnector;
-import com.alibaba.otter.canal.client.kafka.protocol.KafkaMessage;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.otter.canal.client.kafka.KafkaOffsetCanalConnector;
+import com.alibaba.otter.canal.client.kafka.protocol.KafkaMessage;
 
 /**
  * KafkaOffsetCanalConnector 使用示例
@@ -99,8 +100,13 @@ public class CanalKafkaOffsetClientExample {
     }
 
     private void process() {
-        while (!running)
-            ;
+        while (!running) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+
         while (running) {
             try {
                 // 修改 AutoOffsetReset 的值，默认（earliest）

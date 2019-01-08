@@ -4,8 +4,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +47,7 @@ public class ManagerRemoteConfigMonitor {
 
     private long                     scanIntervalInSecond   = 5;
     private ScheduledExecutorService executor               = Executors.newScheduledThreadPool(2,
-        new NamedThreadFactory("remote-canal-config-scan"));
+                                                                new NamedThreadFactory("remote-canal-config-scan"));
 
     public ManagerRemoteConfigMonitor(String jdbcUrl, String jdbcUsername, String jdbcPassword){
         this.jdbcUrl = jdbcUrl;
@@ -75,8 +83,8 @@ public class ManagerRemoteConfigMonitor {
                     overrideLocalCanalConfig(configItem.getContent());
                     properties = new Properties();
                     properties.load(new ByteArrayInputStream(configItem.getContent().getBytes(StandardCharsets.UTF_8)));
-                    scanIntervalInSecond = Integer
-                        .valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
+                    scanIntervalInSecond = Integer.valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
+                        "5"));
                 }
             }
         } catch (Exception e) {
@@ -223,8 +231,7 @@ public class ManagerRemoteConfigMonitor {
         Map<String, ConfigItem> changedInstanceConfigs = modifiedInstanceConfigs[0];
         if (changedInstanceConfigs != null) {
             for (ConfigItem configItem : changedInstanceConfigs.values()) {
-                try (FileWriter writer = new FileWriter(
-                    getConfPath() + configItem.getName() + "/instance.properties")) {
+                try (FileWriter writer = new FileWriter(getConfPath() + configItem.getName() + "/instance.properties")) {
                     writer.write(configItem.getContent());
                     writer.flush();
                 } catch (Exception e) {
@@ -351,8 +358,8 @@ public class ManagerRemoteConfigMonitor {
         }
     }
 
-    public interface Listener<Properties> {
+    public interface Listener<T> {
 
-        void onChange(Properties properties);
+        void onChange(T properties);
     }
 }
