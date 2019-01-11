@@ -67,7 +67,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                 .messageTopics(data, destination.getTopic(), destination.getDynamicTopic());
 
             for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
-                String topicName = entry.getKey();
+                String topicName = entry.getKey().replace('.', '_');
                 com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
                 send(destination, topicName, messageSub, callback);
             }

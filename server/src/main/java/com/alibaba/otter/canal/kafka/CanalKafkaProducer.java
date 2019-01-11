@@ -86,7 +86,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                 .messageTopics(message, canalDestination.getTopic(), canalDestination.getDynamicTopic());
 
             for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
-                String topicName = entry.getKey();
+                String topicName = entry.getKey().replace('.', '_');
                 Message messageSub = entry.getValue();
                 if (logger.isDebugEnabled()) {
                     logger.debug("## Send message to kafka topic: " + topicName);

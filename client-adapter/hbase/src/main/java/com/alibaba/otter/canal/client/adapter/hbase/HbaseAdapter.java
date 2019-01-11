@@ -94,6 +94,9 @@ public class HbaseAdapter implements OuterAdapter {
     }
 
     public void sync(List<Dml> dmls) {
+        if (dmls == null || dmls.isEmpty()) {
+            return;
+        }
         for (Dml dml : dmls) {
             sync(dml);
         }

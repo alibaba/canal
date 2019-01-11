@@ -79,8 +79,8 @@ public class RdbAdapter implements OuterAdapter {
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
             if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
-                    .equalsIgnoreCase(configuration.getKey()))) {
+                || (mappingConfig.getOuterAdapterKey() != null
+                    && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
                 rdbMapping.put(key, mappingConfig);
             }
         });
@@ -131,8 +131,8 @@ public class RdbAdapter implements OuterAdapter {
         String threads = properties.get("threads");
         // String commitSize = properties.get("commitSize");
 
-        boolean skipDupException = BooleanUtils.toBoolean(configuration.getProperties()
-            .getOrDefault("skipDupException", "true"));
+        boolean skipDupException = BooleanUtils
+            .toBoolean(configuration.getProperties().getOrDefault("skipDupException", "true"));
         rdbSyncService = new RdbSyncService(dataSource,
             threads != null ? Integer.valueOf(threads) : null,
             skipDupException);
@@ -154,19 +154,12 @@ public class RdbAdapter implements OuterAdapter {
      */
     @Override
     public void sync(List<Dml> dmls) {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-        Future<Boolean> future1 = executorService.submit(() -> {
-            rdbSyncService.sync(mappingConfigCache, dmls);
-            return true;
-        });
-        Future<Boolean> future2 = executorService.submit(() -> {
-            rdbMirrorDbSyncService.sync(dmls);
-            return true;
-        });
+        if (dmls == null || dmls.isEmpty()) {
+            return;
+        }
         try {
-            future1.get();
-            future2.get();
+            rdbSyncService.sync(mappingConfigCache, dmls);
+            rdbMirrorDbSyncService.sync(dmls);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
