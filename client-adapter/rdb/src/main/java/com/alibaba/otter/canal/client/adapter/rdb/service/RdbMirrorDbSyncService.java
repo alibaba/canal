@@ -35,10 +35,11 @@ public class RdbMirrorDbSyncService {
     private RdbSyncService              rdbSyncService;                                                // rdbSyncService代理
 
     public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DataSource dataSource,
-                                  Integer threads, Map<String, Map<String, Integer>> columnsTypeCache){
+                                  Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
+                                  boolean skipDupException){
         this.mirrorDbConfigCache = mirrorDbConfigCache;
         this.dataSource = dataSource;
-        this.rdbSyncService = new RdbSyncService(dataSource, threads, columnsTypeCache);
+        this.rdbSyncService = new RdbSyncService(dataSource, threads, columnsTypeCache, skipDupException);
     }
 
     /**

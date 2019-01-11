@@ -32,7 +32,7 @@ public final class CharsetConversion {
     }
 
     // Character set data used in lookups. The array will be sparse.
-    static final Entry[] entries = new Entry[0xff];
+    static final Entry[] entries = new Entry[2048];
 
     static Entry getEntry(final int id) {
         if (id >= 0 && id < entries.length) {
@@ -95,7 +95,7 @@ public final class CharsetConversion {
         putEntry(34, "cp1250", "cp1250_czech_cs", "Cp1250");
         putEntry(35, "ucs2", "ucs2_general_ci", "UnicodeBig");
         putEntry(36, "cp866", "cp866_general_ci", "Cp866");
-        putEntry(37, "keybcs2", "keybcs2_general_ci", "Cp895");
+        putEntry(37, "keybcs2", "keybcs2_general_ci", "Cp852");
         putEntry(38, "macce", "macce_general_ci", "MacCentralEurope");
         putEntry(39, "macroman", "macroman_general_ci", "MacRoman");
         putEntry(40, "cp852", "cp852_general_ci", "Cp852");
@@ -129,7 +129,7 @@ public final class CharsetConversion {
         putEntry(70, "greek", "greek_bin", "ISO8859_7");
         putEntry(71, "hebrew", "hebrew_bin", "ISO8859_8");
         putEntry(72, "hp8", "hp8_bin", "US-ASCII");
-        putEntry(73, "keybcs2", "keybcs2_bin", "Cp895");
+        putEntry(73, "keybcs2", "keybcs2_bin", "Cp852");
         putEntry(74, "koi8r", "koi8r_bin", "KOI8_R");
         putEntry(75, "koi8u", "koi8u_bin", "KOI8_U");
         putEntry(77, "latin2", "latin2_bin", "ISO8859_2");

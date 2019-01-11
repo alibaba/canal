@@ -36,7 +36,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                                                     };
 
     public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
-        connector = new RocketMQCanalConnector(nameServers, topic, groupId, false);
+        connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, false);
     }
 
     public static void main(String[] args) {
@@ -97,8 +97,13 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
     }
 
     private void process() {
-        while (!running)
-            ;
+        while (!running) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+
         while (running) {
             try {
                 connector.connect();

@@ -99,8 +99,13 @@ public class CanalKafkaClientExample {
     }
 
     private void process() {
-        while (!running)
-            ;
+        while (!running) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+
         while (running) {
             try {
                 connector.connect();
