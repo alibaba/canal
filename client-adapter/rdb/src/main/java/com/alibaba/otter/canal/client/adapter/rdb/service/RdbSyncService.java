@@ -7,11 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
@@ -106,9 +102,8 @@ public class RdbSyncService {
                 int j = i;
                 futures.add(executorThreads[i].submit(() -> {
                     try {
-                        dmlsPartition[j].forEach(syncItem -> sync(batchExecutors[j],
-                            syncItem.config,
-                            syncItem.singleDml));
+                        dmlsPartition[j]
+                            .forEach(syncItem -> sync(batchExecutors[j], syncItem.config, syncItem.singleDml));
                         dmlsPartition[j].clear();
                         batchExecutors[j].commit();
                         return true;
@@ -139,41 +134,41 @@ public class RdbSyncService {
         sync(dmls, dml -> {
             if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                 // DDL
-            columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
-            return false;
-        } else {
-            // DML
-            String destination = StringUtils.trimToEmpty(dml.getDestination());
-            String database = dml.getDatabase();
-            String table = dml.getTable();
-            Map<String, MappingConfig> configMap = mappingConfig.get(destination + "." + database + "." + table);
-
-            if (configMap == null) {
+                columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
                 return false;
-            }
+            } else {
+                // DML
+                String destination = StringUtils.trimToEmpty(dml.getDestination());
+                String database = dml.getDatabase();
+                String table = dml.getTable();
+                Map<String, MappingConfig> configMap = mappingConfig.get(destination + "." + database + "." + table);
 
-            boolean executed = false;
-            for (MappingConfig config : configMap.values()) {
-                if (config.getConcurrent()) {
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                    singleDmls.forEach(singleDml -> {
-                        int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                        SyncItem syncItem = new SyncItem(config, singleDml);
-                        dmlsPartition[hash].add(syncItem);
-                    });
-                } else {
-                    int hash = 0;
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                    singleDmls.forEach(singleDml -> {
-                        SyncItem syncItem = new SyncItem(config, singleDml);
-                        dmlsPartition[hash].add(syncItem);
-                    });
+                if (configMap == null) {
+                    return false;
                 }
-                executed = true;
+
+                boolean executed = false;
+                for (MappingConfig config : configMap.values()) {
+                    if (config.getConcurrent()) {
+                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                        singleDmls.forEach(singleDml -> {
+                            int hash = pkHash(config.getDbMapping(), singleDml.getData());
+                            SyncItem syncItem = new SyncItem(config, singleDml);
+                            dmlsPartition[hash].add(syncItem);
+                        });
+                    } else {
+                        int hash = 0;
+                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                        singleDmls.forEach(singleDml -> {
+                            SyncItem syncItem = new SyncItem(config, singleDml);
+                            dmlsPartition[hash].add(syncItem);
+                        });
+                    }
+                    executed = true;
+                }
+                return executed;
             }
-            return executed;
-        }
-    }   );
+        });
     }
 
     /**
@@ -193,6 +188,8 @@ public class RdbSyncService {
                     update(batchExecutor, config, dml);
                 } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                     delete(batchExecutor, config, dml);
+                } else if (type != null && type.equalsIgnoreCase("TRUNCATE")) {
+                    truncate(batchExecutor, config, dml);
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
@@ -352,6 +349,23 @@ public class RdbSyncService {
     }
 
     /**
+     * truncate操作
+     *
+     * @param config
+     */
+    private void truncate(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) throws SQLException {
+        if (dml.getIsTruncate()) {
+            DbMapping dbMapping = config.getDbMapping();
+            StringBuilder sql = new StringBuilder();
+            sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping));
+            batchExecutor.execute(sql.toString(), new ArrayList<>());
+            if (logger.isTraceEnabled()) {
+                logger.trace("Truncate target table, sql: {}", sql);
+            }
+        }
+    }
+
+    /**
      * 获取目标字段类型
      *
      * @param conn sql connection
@@ -447,10 +461,10 @@ public class RdbSyncService {
             if (srcColumnName == null) {
                 srcColumnName = Util.cleanColumn(targetColumnName);
             }
-            Object value;
+            Object value = null;
             if (o != null && o.containsKey(srcColumnName)) {
                 value = o.get(srcColumnName);
-            } else {
+            } else if (d != null) {
                 value = d.get(srcColumnName);
             }
             if (value != null) {

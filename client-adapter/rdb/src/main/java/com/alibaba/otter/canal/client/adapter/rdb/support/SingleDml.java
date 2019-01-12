@@ -1,10 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.rdb.support;
 
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 public class SingleDml {
 
@@ -14,6 +14,7 @@ public class SingleDml {
     private String              type;
     private Map<String, Object> data;
     private Map<String, Object> old;
+    private boolean             isTruncate = false;
 
     public String getDestination() {
         return destination;
@@ -63,19 +64,37 @@ public class SingleDml {
         this.old = old;
     }
 
+    public boolean getIsTruncate() {
+        return isTruncate;
+    }
+
+    public void setIsTruncate(boolean isTruncate) {
+        this.isTruncate = isTruncate;
+    }
+
     public static List<SingleDml> dml2SingleDmls(Dml dml) {
-        int size = dml.getData().size();
-        List<SingleDml> singleDmls = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
+        int size = dml.getData() == null ? 0 : dml.getData().size();
+        List<SingleDml> singleDmls = new ArrayList<>();
+        if (size > 0) {
+            for (int i = 0; i < size; i++) {
+                SingleDml singleDml = new SingleDml();
+                singleDml.setDestination(dml.getDestination());
+                singleDml.setDatabase(dml.getDatabase());
+                singleDml.setTable(dml.getTable());
+                singleDml.setType(dml.getType());
+                singleDml.setData(dml.getData().get(i));
+                if (dml.getOld() != null) {
+                    singleDml.setOld(dml.getOld().get(i));
+                }
+                singleDmls.add(singleDml);
+            }
+        } else if ("TRUNCATE".equalsIgnoreCase(dml.getType())) {
             SingleDml singleDml = new SingleDml();
             singleDml.setDestination(dml.getDestination());
             singleDml.setDatabase(dml.getDatabase());
             singleDml.setTable(dml.getTable());
             singleDml.setType(dml.getType());
-            singleDml.setData(dml.getData().get(i));
-            if (dml.getOld() != null) {
-                singleDml.setOld(dml.getOld().get(i));
-            }
+            singleDml.setIsTruncate(true);
             singleDmls.add(singleDml);
         }
         return singleDmls;
