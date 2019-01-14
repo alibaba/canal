@@ -1,12 +1,6 @@
 package com.alibaba.otter.canal.common;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -30,36 +24,46 @@ import com.google.protobuf.InvalidProtocolBufferException;
 public class MQMessageUtils {
 
     @SuppressWarnings("deprecation")
-    private static Map<String, List<PartitionData>>    partitionDatas    = MigrateMap.makeComputingMap(new MapMaker().softValues(),
-                                                                             new Function<String, List<PartitionData>>() {
+    private static Map<String, List<PartitionData>>    partitionDatas    = MigrateMap
+        .makeComputingMap(new MapMaker().softValues(), new Function<String, List<PartitionData>>() {
 
                                                                                  public List<PartitionData> apply(String pkHashConfigs) {
-                                                                                     List<PartitionData> datas = Lists.newArrayList();
-                                                                                     String[] pkHashConfigArray = StringUtils.split(pkHashConfigs,
-                                                                                         ",");
+                                                                                     List<PartitionData> datas = Lists
+                                                                                         .newArrayList();
+                                                                                     String[] pkHashConfigArray = StringUtils
+                                                                                         .split(pkHashConfigs, ",");
                                                                                      // schema.table:id^name
                                                                                      for (String pkHashConfig : pkHashConfigArray) {
                                                                                          PartitionData data = new PartitionData();
-                                                                                         int i = pkHashConfig.lastIndexOf(":");
+                                                                                         int i = pkHashConfig
+                                                                                             .lastIndexOf(":");
                                                                                          if (i > 0) {
-                                                                                             String pkStr = pkHashConfig.substring(i + 1);
-                                                                                             if (pkStr.equalsIgnoreCase("$pk$")) {
+                                                                                             String pkStr = pkHashConfig
+                                                                                                 .substring(i + 1);
+                                                                                             if (pkStr.equalsIgnoreCase(
+                                                                                                 "$pk$")) {
                                                                                                  data.hashMode.autoPkHash = true;
                                                                                              } else {
-                                                                                                 data.hashMode.pkNames = Lists.newArrayList(StringUtils.split(pkStr,
-                                                                                                     '^'));
+                                                                                                 data.hashMode.pkNames = Lists
+                                                                                                     .newArrayList(
+                                                                                                         StringUtils
+                                                                                                             .split(
+                                                                                                                 pkStr,
+                                                                                                                 '^'));
                                                                                              }
 
-                                                                                             pkHashConfig = pkHashConfig.substring(0,
-                                                                                                 i);
+                                                                                             pkHashConfig = pkHashConfig
+                                                                                                 .substring(0, i);
                                                                                          } else {
                                                                                              data.hashMode.tableHash = true;
                                                                                          }
 
-                                                                                         if (!isWildCard(pkHashConfig)) {
+                                                                                         if (!isWildCard(
+                                                                                             pkHashConfig)) {
                                                                                              data.simpleName = pkHashConfig;
                                                                                          } else {
-                                                                                             data.regexFilter = new AviaterRegexFilter(pkHashConfig);
+                                                                                             data.regexFilter = new AviaterRegexFilter(
+                                                                                                 pkHashConfig);
                                                                                          }
                                                                                          datas.add(data);
                                                                                      }
@@ -69,24 +73,29 @@ public class MQMessageUtils {
                                                                              });
 
     @SuppressWarnings("deprecation")
-    private static Map<String, List<DynamicTopicData>> dynamicTopicDatas = MigrateMap.makeComputingMap(new MapMaker().softValues(),
-                                                                             new Function<String, List<DynamicTopicData>>() {
+    private static Map<String, List<DynamicTopicData>> dynamicTopicDatas = MigrateMap
+        .makeComputingMap(new MapMaker().softValues(), new Function<String, List<DynamicTopicData>>() {
 
                                                                                  public List<DynamicTopicData> apply(String pkHashConfigs) {
-                                                                                     List<DynamicTopicData> datas = Lists.newArrayList();
-                                                                                     String[] dynamicTopicArray = StringUtils.split(pkHashConfigs,
-                                                                                         ",");
+                                                                                     List<DynamicTopicData> datas = Lists
+                                                                                         .newArrayList();
+                                                                                     String[] dynamicTopicArray = StringUtils
+                                                                                         .split(pkHashConfigs, ",");
                                                                                      // schema.table
                                                                                      for (String dynamicTopic : dynamicTopicArray) {
                                                                                          DynamicTopicData data = new DynamicTopicData();
 
-                                                                                         if (!isWildCard(dynamicTopic)) {
+                                                                                         if (!isWildCard(
+                                                                                             dynamicTopic)) {
                                                                                              data.simpleName = dynamicTopic;
                                                                                          } else {
-                                                                                             if (dynamicTopic.contains("\\.")) {
-                                                                                                 data.tableRegexFilter = new AviaterRegexFilter(dynamicTopic);
+                                                                                             if (dynamicTopic
+                                                                                                 .contains("\\.")) {
+                                                                                                 data.tableRegexFilter = new AviaterRegexFilter(
+                                                                                                     dynamicTopic);
                                                                                              } else {
-                                                                                                 data.schemaRegexFilter = new AviaterRegexFilter(dynamicTopic);
+                                                                                                 data.schemaRegexFilter = new AviaterRegexFilter(
+                                                                                                     dynamicTopic);
                                                                                              }
                                                                                          }
                                                                                          datas.add(data);
@@ -134,15 +143,22 @@ public class MQMessageUtils {
             if (StringUtils.isEmpty(schemaName) || StringUtils.isEmpty(tableName)) {
                 put2MapMessage(messages, message.getId(), defaultTopic, entry);
             } else {
-                if (matchDynamicTopic(schemaName + "." + tableName, dynamicTopicConfigs)) {
-                    put2MapMessage(messages, message.getId(), schemaName + "." + tableName, entry);
-                } else if (matchDynamicTopic(schemaName, dynamicTopicConfigs)) {
-                    put2MapMessage(messages, message.getId(), schemaName, entry);
+                Set<String> topics = matchTopics(schemaName + "." + tableName, dynamicTopicConfigs);
+                if (topics != null) {
+                    for (String topic : topics) {
+                        put2MapMessage(messages, message.getId(), topic, entry);
+                    }
                 } else {
-                    put2MapMessage(messages, message.getId(), defaultTopic, entry);
+                    topics = matchTopics(schemaName, dynamicTopicConfigs);
+                    if (topics != null) {
+                        for (String topic : topics) {
+                            put2MapMessage(messages, message.getId(), topic, entry);
+                        }
+                    } else {
+                        put2MapMessage(messages, message.getId(), defaultTopic, entry);
+                    }
                 }
             }
-
         }
         return messages;
     }
@@ -275,8 +291,9 @@ public class MQMessageUtils {
                 try {
                     rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
                 } catch (Exception e) {
-                    throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
-                                               + entry.toString(), e);
+                    throw new RuntimeException(
+                        "ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
+                        e);
                 }
 
                 CanalEntry.EventType eventType = rowChange.getEventType();
@@ -480,6 +497,24 @@ public class MQMessageUtils {
         return null;
     }
 
+    private static Set<String> matchTopics(String name, String dynamicTopicConfigs) {
+        String[] router = StringUtils.split(dynamicTopicConfigs, ';');
+        Set<String> topics = new HashSet<>();
+        for (String item : router) {
+            int i = item.indexOf(":");
+            if (i > -1) {
+                String topic = item.substring(0, i).trim();
+                String topicConfigs = item.substring(i + 1).trim();
+                if (matchDynamicTopic(name, topicConfigs)) {
+                    topics.add(topic);
+                }
+            } else if (matchDynamicTopic(name, item)) {
+                topics.add(name);
+            }
+        }
+        return topics.isEmpty() ? null : topics;
+    }
+
     public static boolean matchDynamicTopic(String name, String dynamicTopicConfigs) {
         if (StringUtils.isEmpty(dynamicTopicConfigs)) {
             return false;
@@ -520,8 +555,8 @@ public class MQMessageUtils {
 
     private static boolean isWildCard(String value) {
         // not contaiins '.' ?
-        return StringUtils.containsAny(value, new char[] { '*', '?', '+', '|', '(', ')', '{', '}', '[', ']', '\\', '$',
-                '^' });
+        return StringUtils.containsAny(value,
+            new char[] { '*', '?', '+', '|', '(', ')', '{', '}', '[', ']', '\\', '$', '^' });
     }
 
     private static void put2MapMessage(Map<String, Message> messageMap, Long messageId, String topicName,

@@ -189,7 +189,7 @@ public class RdbSyncService {
                 } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                     delete(batchExecutor, config, dml);
                 } else if (type != null && type.equalsIgnoreCase("TRUNCATE")) {
-                    truncate(batchExecutor, config, dml);
+                    truncate(batchExecutor, config);
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
@@ -353,15 +353,13 @@ public class RdbSyncService {
      *
      * @param config
      */
-    private void truncate(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) throws SQLException {
-        if (dml.getIsTruncate()) {
-            DbMapping dbMapping = config.getDbMapping();
-            StringBuilder sql = new StringBuilder();
-            sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping));
-            batchExecutor.execute(sql.toString(), new ArrayList<>());
-            if (logger.isTraceEnabled()) {
-                logger.trace("Truncate target table, sql: {}", sql);
-            }
+    private void truncate(BatchExecutor batchExecutor, MappingConfig config) throws SQLException {
+        DbMapping dbMapping = config.getDbMapping();
+        StringBuilder sql = new StringBuilder();
+        sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping));
+        batchExecutor.execute(sql.toString(), new ArrayList<>());
+        if (logger.isTraceEnabled()) {
+            logger.trace("Truncate target table, sql: {}", sql);
         }
     }
 

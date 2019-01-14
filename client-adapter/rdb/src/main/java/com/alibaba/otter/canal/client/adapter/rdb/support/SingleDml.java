@@ -14,7 +14,6 @@ public class SingleDml {
     private String              type;
     private Map<String, Object> data;
     private Map<String, Object> old;
-    private boolean             isTruncate = false;
 
     public String getDestination() {
         return destination;
@@ -64,18 +63,10 @@ public class SingleDml {
         this.old = old;
     }
 
-    public boolean getIsTruncate() {
-        return isTruncate;
-    }
-
-    public void setIsTruncate(boolean isTruncate) {
-        this.isTruncate = isTruncate;
-    }
-
     public static List<SingleDml> dml2SingleDmls(Dml dml) {
-        int size = dml.getData() == null ? 0 : dml.getData().size();
         List<SingleDml> singleDmls = new ArrayList<>();
-        if (size > 0) {
+        if (dml.getData() != null) {
+            int size = dml.getData().size();
             for (int i = 0; i < size; i++) {
                 SingleDml singleDml = new SingleDml();
                 singleDml.setDestination(dml.getDestination());
@@ -94,7 +85,6 @@ public class SingleDml {
             singleDml.setDatabase(dml.getDatabase());
             singleDml.setTable(dml.getTable());
             singleDml.setType(dml.getType());
-            singleDml.setIsTruncate(true);
             singleDmls.add(singleDml);
         }
         return singleDmls;

@@ -61,23 +61,28 @@ public class CanalRocketMQProducer implements CanalMQProducer {
     @Override
     public void send(final MQProperties.CanalDestination destination, com.alibaba.otter.canal.protocol.Message data,
                      Callback callback) {
-        if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
-            // 动态topic
-            Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils
-                .messageTopics(data, destination.getTopic(), destination.getDynamicTopic());
+        try {
+            if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
+                // 动态topic
+                Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils
+                    .messageTopics(data, destination.getTopic(), destination.getDynamicTopic());
 
-            for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
-                String topicName = entry.getKey().replace('.', '_');
-                com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
-                send(destination, topicName, messageSub, callback);
+                for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
+                    String topicName = entry.getKey().replace('.', '_');
+                    com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
+                    send(destination, topicName, messageSub);
+                }
+            } else {
+                send(destination, destination.getTopic(), data);
             }
-        } else {
-            send(destination, destination.getTopic(), data, callback);
+            callback.commit();
+        } catch (Exception e) {
+            callback.rollback();
         }
     }
 
     public void send(final MQProperties.CanalDestination destination, String topicName,
-                     com.alibaba.otter.canal.protocol.Message data, Callback callback) {
+                     com.alibaba.otter.canal.protocol.Message data) throws Exception {
         if (!mqProperties.getFlatMessage()) {
             try {
                 if (destination.getPartition() != null) {
@@ -132,8 +137,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                                     }, null);
                                 } catch (Exception e) {
                                     logger.error("send flat message to hashed partition error", e);
-                                    callback.rollback();
-                                    return;
+                                    throw e;
                                 }
                             }
                         }
@@ -141,8 +145,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                 }
             } catch (MQClientException | RemotingException | MQBrokerException | InterruptedException e) {
                 logger.error("Send message error!", e);
-                callback.rollback();
-                return;
+                throw e;
             }
         } else {
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(data);
@@ -167,8 +170,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                             }, null);
                         } catch (Exception e) {
                             logger.error("send flat message to fixed partition error", e);
-                            callback.rollback();
-                            return;
+                            throw e;
                         }
                     } else {
                         if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
@@ -205,8 +207,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                                         }, null);
                                     } catch (Exception e) {
                                         logger.error("send flat message to hashed partition error", e);
-                                        callback.rollback();
-                                        return;
+                                        throw e;
                                     }
                                 }
                             }
@@ -216,7 +217,6 @@ public class CanalRocketMQProducer implements CanalMQProducer {
             }
         }
 
-        callback.commit();
         if (logger.isDebugEnabled()) {
             logger.debug("send message to rocket topic: {}", destination.getTopic());
         }
