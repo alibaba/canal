@@ -4,16 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +20,7 @@ import com.google.common.collect.MapMaker;
 
 /**
  * 远程配置装载监控
- * 
+ *
  * @author rewerma 2018-12-30 下午05:12:16
  * @version 1.0.1
  */
@@ -47,7 +39,7 @@ public class ManagerRemoteConfigMonitor {
 
     private long                     scanIntervalInSecond   = 5;
     private ScheduledExecutorService executor               = Executors.newScheduledThreadPool(2,
-                                                                new NamedThreadFactory("remote-canal-config-scan"));
+        new NamedThreadFactory("remote-canal-config-scan"));
 
     public ManagerRemoteConfigMonitor(String jdbcUrl, String jdbcUsername, String jdbcPassword){
         this.jdbcUrl = jdbcUrl;
@@ -69,7 +61,7 @@ public class ManagerRemoteConfigMonitor {
 
     /**
      * 加载远程 canal.properties文件 覆盖本地
-     * 
+     *
      * @return 远程配置的properties
      */
     public Properties loadRemoteConfig() {
@@ -83,8 +75,9 @@ public class ManagerRemoteConfigMonitor {
                     overrideLocalCanalConfig(configItem.getContent());
                     properties = new Properties();
                     properties.load(new ByteArrayInputStream(configItem.getContent().getBytes(StandardCharsets.UTF_8)));
-                    scanIntervalInSecond = Integer.valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
-                        "5"));
+                    scanIntervalInSecond = Integer
+                        .valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
+                    logger.info("## Loaded remote canal config: canal.properties ");
                 }
             }
         } catch (Exception e) {
@@ -110,7 +103,7 @@ public class ManagerRemoteConfigMonitor {
 
     /**
      * 获取远程canal.properties配置内容
-     * 
+     *
      * @return 内容对象
      */
     private ConfigItem getRemoteCanalConfig() {
@@ -132,7 +125,7 @@ public class ManagerRemoteConfigMonitor {
 
     /**
      * 覆盖本地 canal.properties
-     * 
+     *
      * @param content 远程配置内容文本
      */
     private void overrideLocalCanalConfig(String content) {
@@ -224,16 +217,22 @@ public class ManagerRemoteConfigMonitor {
 
     /**
      * 覆盖本地instance配置
-     * 
+     *
      * @param modifiedInstanceConfigs 有变更的配置项
      */
     private void overrideLocalInstanceConfigs(Map<String, ConfigItem>[] modifiedInstanceConfigs) {
         Map<String, ConfigItem> changedInstanceConfigs = modifiedInstanceConfigs[0];
         if (changedInstanceConfigs != null) {
             for (ConfigItem configItem : changedInstanceConfigs.values()) {
-                try (FileWriter writer = new FileWriter(getConfPath() + configItem.getName() + "/instance.properties")) {
+                File instanceDir = new File(getConfPath() + configItem.getName());
+                if (!instanceDir.exists()) {
+                    instanceDir.mkdirs();
+                }
+                try (FileWriter writer = new FileWriter(
+                    getConfPath() + configItem.getName() + "/instance.properties")) {
                     writer.write(configItem.getContent());
                     writer.flush();
+                    logger.info("## Loaded remote instance config: {}/instance.properties ", configItem.getName());
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -244,15 +243,36 @@ public class ManagerRemoteConfigMonitor {
             for (String name : removedInstanceConfigs.keySet()) {
                 File file = new File(getConfPath() + name + "/");
                 if (file.exists()) {
-                    file.delete();
+                    deleteDir(file);
+                    logger.info("## Deleted and loaded remote instance config: {} ", name);
                 }
             }
         }
     }
 
+    private static boolean deleteDir(File dirFile) {
+        if (!dirFile.exists()) {
+            return false;
+        }
+
+        if (dirFile.isFile()) {
+            return dirFile.delete();
+        } else {
+            File[] files = dirFile.listFiles();
+            if (files == null || files.length == 0) {
+                return dirFile.delete();
+            }
+            for (File file : files) {
+                deleteDir(file);
+            }
+        }
+
+        return dirFile.delete();
+    }
+
     /**
      * 监听 canal 主配置和 instance 配置变化
-     * 
+     *
      * @param listener 监听回调方法
      */
     public void start(final Listener<Properties> listener) {
@@ -302,7 +322,7 @@ public class ManagerRemoteConfigMonitor {
 
     /**
      * 获取conf文件夹所在路径
-     * 
+     *
      * @return 路径地址
      */
     private String getConfPath() {
