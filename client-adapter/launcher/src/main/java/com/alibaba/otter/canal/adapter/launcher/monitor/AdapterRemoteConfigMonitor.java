@@ -69,6 +69,7 @@ public class AdapterRemoteConfigMonitor {
                 if (configItem.getModifiedTime() != currentConfigTimestamp) {
                     currentConfigTimestamp = configItem.getModifiedTime();
                     overrideLocalCanalConfig(configItem.getContent());
+                    logger.info("## Loaded remote adapter config: application.yml");
                 }
             }
         } catch (Exception e) {
@@ -78,7 +79,7 @@ public class AdapterRemoteConfigMonitor {
 
     /**
      * 获取远程application.yml配置
-     * 
+     *
      * @return 配置对象
      */
     private ConfigItem getRemoteAdapterConfig() {
@@ -100,7 +101,7 @@ public class AdapterRemoteConfigMonitor {
 
     /**
      * 覆盖本地application.yml文件
-     * 
+     *
      * @param content 文件内容
      */
     private void overrideLocalCanalConfig(String content) {
@@ -140,7 +141,7 @@ public class AdapterRemoteConfigMonitor {
      */
     public void loadRemoteAdapterConfigs() {
         try {
-            // 加载远程instance配置
+            // 加载远程adapter配置
             Map<String, ConfigItem>[] modifiedConfigs = getModifiedAdapterConfigs();
             if (modifiedConfigs != null) {
                 overrideLocalAdapterConfigs(modifiedConfigs);
@@ -152,7 +153,7 @@ public class AdapterRemoteConfigMonitor {
 
     /**
      * 获取有变动的adapter配置
-     * 
+     *
      * @return Map[0]: 新增修改的配置, Map[1]: 删除的配置
      */
     @SuppressWarnings("unchecked")
@@ -191,7 +192,7 @@ public class AdapterRemoteConfigMonitor {
                 }
             }
             if (!changedIds.isEmpty()) {
-                Map<String, ConfigItem> changedInstanceConfig = new HashMap<>();
+                Map<String, ConfigItem> changedAdapterConfig = new HashMap<>();
                 String contentsSql = "select id, category, name, content, modified_time from canal_adapter_config  where id in ("
                                      + Joiner.on(",").join(changedIds) + ")";
                 try (Statement stmt = getConn().createStatement(); ResultSet rs = stmt.executeQuery(contentsSql)) {
@@ -205,26 +206,26 @@ public class AdapterRemoteConfigMonitor {
 
                         remoteAdapterConfigs.put(configItemNew.getCategory() + "/" + configItemNew.getName(),
                             configItemNew);
-                        changedInstanceConfig.put(configItemNew.getCategory() + "/" + configItemNew.getName(),
+                        changedAdapterConfig.put(configItemNew.getCategory() + "/" + configItemNew.getName(),
                             configItemNew);
                     }
 
-                    res[0] = changedInstanceConfig.isEmpty() ? null : changedInstanceConfig;
+                    res[0] = changedAdapterConfig.isEmpty() ? null : changedAdapterConfig;
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
             }
         }
 
-        Map<String, ConfigItem> removedInstanceConfig = new HashMap<>();
+        Map<String, ConfigItem> removedAdapterConfig = new HashMap<>();
         for (ConfigItem configItem : remoteAdapterConfigs.values()) {
             if (!remoteConfigStatus.containsKey(configItem.getCategory() + "/" + configItem.getName())) {
                 // 删除
                 remoteAdapterConfigs.remove(configItem.getCategory() + "/" + configItem.getName());
-                removedInstanceConfig.put(configItem.getCategory() + "/" + configItem.getName(), null);
+                removedAdapterConfig.put(configItem.getCategory() + "/" + configItem.getName(), null);
             }
         }
-        res[1] = removedInstanceConfig.isEmpty() ? null : removedInstanceConfig;
+        res[1] = removedAdapterConfig.isEmpty() ? null : removedAdapterConfig;
 
         if (res[0] == null && res[1] == null) {
             return null;
@@ -235,31 +236,55 @@ public class AdapterRemoteConfigMonitor {
 
     /**
      * 覆盖adapter配置到本地
-     * 
-     * @param modifiedInstanceConfigs 变动的配置集合
+     *
+     * @param modifiedAdapterConfigs 变动的配置集合
      */
-    private void overrideLocalAdapterConfigs(Map<String, ConfigItem>[] modifiedInstanceConfigs) {
-        Map<String, ConfigItem> changedInstanceConfigs = modifiedInstanceConfigs[0];
-        if (changedInstanceConfigs != null) {
-            for (ConfigItem configItem : changedInstanceConfigs.values()) {
+    private void overrideLocalAdapterConfigs(Map<String, ConfigItem>[] modifiedAdapterConfigs) {
+        Map<String, ConfigItem> changedAdapterConfigs = modifiedAdapterConfigs[0];
+        if (changedAdapterConfigs != null) {
+            for (ConfigItem configItem : changedAdapterConfigs.values()) {
                 try (FileWriter writer = new FileWriter(
                     getConfPath() + configItem.getCategory() + "/" + configItem.getName())) {
                     writer.write(configItem.getContent());
                     writer.flush();
+                    logger.info("## Loaded remote adapter config: {}/{}",
+                        configItem.getCategory(),
+                        configItem.getName());
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
             }
         }
-        Map<String, ConfigItem> removedInstanceConfigs = modifiedInstanceConfigs[1];
-        if (removedInstanceConfigs != null) {
-            for (String name : removedInstanceConfigs.keySet()) {
+        Map<String, ConfigItem> removedAdapterConfigs = modifiedAdapterConfigs[1];
+        if (removedAdapterConfigs != null) {
+            for (String name : removedAdapterConfigs.keySet()) {
                 File file = new File(getConfPath() + name);
                 if (file.exists()) {
-                    file.delete();
+                    deleteDir(file);
+                    logger.info("## Deleted and reloaded remote adapter config: {}", name);
                 }
             }
         }
+    }
+
+    private static boolean deleteDir(File dirFile) {
+        if (!dirFile.exists()) {
+            return false;
+        }
+
+        if (dirFile.isFile()) {
+            return dirFile.delete();
+        } else {
+            File[] files = dirFile.listFiles();
+            if (files == null || files.length == 0) {
+                return dirFile.delete();
+            }
+            for (File file : files) {
+                deleteDir(file);
+            }
+        }
+
+        return dirFile.delete();
     }
 
     /**
