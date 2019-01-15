@@ -73,10 +73,10 @@ public class RdbSyncService {
             this.executorThreads = new ExecutorService[this.threads];
             for (int i = 0; i < this.threads; i++) {
                 dmlsPartition[i] = new ArrayList<>();
-                batchExecutors[i] = new BatchExecutor(dataSource.getConnection());
+                batchExecutors[i] = new BatchExecutor(dataSource);
                 executorThreads[i] = Executors.newSingleThreadExecutor();
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -121,6 +121,12 @@ public class RdbSyncService {
                     throw new RuntimeException(e);
                 }
             });
+        }
+
+        for (BatchExecutor batchExecutor : batchExecutors) {
+            if (batchExecutor != null) {
+                batchExecutor.close();
+            }
         }
     }
 
@@ -475,7 +481,6 @@ public class RdbSyncService {
 
     public void close() {
         for (int i = 0; i < threads; i++) {
-            batchExecutors[i].close();
             executorThreads[i].shutdown();
         }
     }
