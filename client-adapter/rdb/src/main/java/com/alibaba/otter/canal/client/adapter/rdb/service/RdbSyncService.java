@@ -296,15 +296,16 @@ public class RdbSyncService {
         StringBuilder updateSql = new StringBuilder();
         updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
         List<Map<String, ?>> values = new ArrayList<>();
+        boolean hasMatched = false;
         for (String srcColumnName : old.keySet()) {
             List<String> targetColumnNames = new ArrayList<>();
             columnsMap.forEach((targetColumn, srcColumn) -> {
-                if (srcColumnName.toLowerCase().equals(srcColumn)) {
+                if (srcColumnName.toLowerCase().equals(srcColumn.toLowerCase())) {
                     targetColumnNames.add(targetColumn);
                 }
             });
             if (!targetColumnNames.isEmpty()) {
-
+                hasMatched = true;
                 for (String targetColumnName : targetColumnNames) {
                     updateSql.append(targetColumnName).append("=?, ");
                     Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
@@ -314,6 +315,10 @@ public class RdbSyncService {
                     BatchExecutor.setValue(values, type, data.get(srcColumnName));
                 }
             }
+        }
+        if (!hasMatched) {
+            logger.warn("Did not matched any columns to update ");
+            return;
         }
         int len = updateSql.length();
         updateSql.delete(len - 2, len).append(" WHERE ");
