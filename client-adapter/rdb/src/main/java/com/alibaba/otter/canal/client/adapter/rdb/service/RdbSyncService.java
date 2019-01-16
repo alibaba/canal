@@ -73,10 +73,10 @@ public class RdbSyncService {
             this.executorThreads = new ExecutorService[this.threads];
             for (int i = 0; i < this.threads; i++) {
                 dmlsPartition[i] = new ArrayList<>();
-                batchExecutors[i] = new BatchExecutor(dataSource.getConnection());
+                batchExecutors[i] = new BatchExecutor(dataSource);
                 executorThreads[i] = Executors.newSingleThreadExecutor();
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -121,6 +121,12 @@ public class RdbSyncService {
                     throw new RuntimeException(e);
                 }
             });
+        }
+
+        for (BatchExecutor batchExecutor : batchExecutors) {
+            if (batchExecutor != null) {
+                batchExecutor.close();
+            }
         }
     }
 
@@ -189,7 +195,7 @@ public class RdbSyncService {
                 } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                     delete(batchExecutor, config, dml);
                 } else if (type != null && type.equalsIgnoreCase("TRUNCATE")) {
-                    truncate(batchExecutor, config, dml);
+                    truncate(batchExecutor, config);
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
@@ -290,15 +296,16 @@ public class RdbSyncService {
         StringBuilder updateSql = new StringBuilder();
         updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
         List<Map<String, ?>> values = new ArrayList<>();
+        boolean hasMatched = false;
         for (String srcColumnName : old.keySet()) {
             List<String> targetColumnNames = new ArrayList<>();
             columnsMap.forEach((targetColumn, srcColumn) -> {
-                if (srcColumnName.toLowerCase().equals(srcColumn)) {
+                if (srcColumnName.toLowerCase().equals(srcColumn.toLowerCase())) {
                     targetColumnNames.add(targetColumn);
                 }
             });
             if (!targetColumnNames.isEmpty()) {
-
+                hasMatched = true;
                 for (String targetColumnName : targetColumnNames) {
                     updateSql.append(targetColumnName).append("=?, ");
                     Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
@@ -308,6 +315,10 @@ public class RdbSyncService {
                     BatchExecutor.setValue(values, type, data.get(srcColumnName));
                 }
             }
+        }
+        if (!hasMatched) {
+            logger.warn("Did not matched any columns to update ");
+            return;
         }
         int len = updateSql.length();
         updateSql.delete(len - 2, len).append(" WHERE ");
@@ -353,15 +364,13 @@ public class RdbSyncService {
      *
      * @param config
      */
-    private void truncate(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) throws SQLException {
-        if (dml.getIsTruncate()) {
-            DbMapping dbMapping = config.getDbMapping();
-            StringBuilder sql = new StringBuilder();
-            sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping));
-            batchExecutor.execute(sql.toString(), new ArrayList<>());
-            if (logger.isTraceEnabled()) {
-                logger.trace("Truncate target table, sql: {}", sql);
-            }
+    private void truncate(BatchExecutor batchExecutor, MappingConfig config) throws SQLException {
+        DbMapping dbMapping = config.getDbMapping();
+        StringBuilder sql = new StringBuilder();
+        sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping));
+        batchExecutor.execute(sql.toString(), new ArrayList<>());
+        if (logger.isTraceEnabled()) {
+            logger.trace("Truncate target table, sql: {}", sql);
         }
     }
 
@@ -477,7 +486,6 @@ public class RdbSyncService {
 
     public void close() {
         for (int i = 0; i < threads; i++) {
-            batchExecutors[i].close();
             executorThreads[i].shutdown();
         }
     }

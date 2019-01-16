@@ -79,27 +79,31 @@ public class CanalKafkaProducer implements CanalMQProducer {
 
     @Override
     public void send(MQProperties.CanalDestination canalDestination, Message message, Callback callback) {
+        try {
+            if (!StringUtils.isEmpty(canalDestination.getDynamicTopic())) {
+                // 动态topic
+                Map<String, Message> messageMap = MQMessageUtils
+                    .messageTopics(message, canalDestination.getTopic(), canalDestination.getDynamicTopic());
 
-        if (!StringUtils.isEmpty(canalDestination.getDynamicTopic())) {
-            // 动态topic
-            Map<String, Message> messageMap = MQMessageUtils
-                .messageTopics(message, canalDestination.getTopic(), canalDestination.getDynamicTopic());
-
-            for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
-                String topicName = entry.getKey().replace('.', '_');
-                Message messageSub = entry.getValue();
-                if (logger.isDebugEnabled()) {
-                    logger.debug("## Send message to kafka topic: " + topicName);
+                for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
+                    String topicName = entry.getKey().replace('.', '_');
+                    Message messageSub = entry.getValue();
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("## Send message to kafka topic: " + topicName);
+                    }
+                    send(canalDestination, topicName, messageSub);
                 }
-                send(canalDestination, topicName, messageSub, callback);
+            } else {
+                send(canalDestination, canalDestination.getTopic(), message);
             }
-        } else {
-            send(canalDestination, canalDestination.getTopic(), message, callback);
+            callback.commit();
+        } catch (Exception e) {
+            callback.rollback();
         }
     }
 
-    private void send(MQProperties.CanalDestination canalDestination, String topicName, Message message,
-                      Callback callback) {
+    private void send(MQProperties.CanalDestination canalDestination, String topicName,
+                      Message message) throws Exception {
         // producer.beginTransaction();
         if (!kafkaProperties.getFlatMessage()) {
             try {
@@ -134,14 +138,16 @@ public class CanalKafkaProducer implements CanalMQProducer {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 // producer.abortTransaction();
-                callback.rollback();
-                return;
+                throw e;
             }
         } else {
             // 发送扁平数据json
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(message);
             if (flatMessages != null) {
+                int idx = 0;
+                int size = flatMessages.size();
                 for (FlatMessage flatMessage : flatMessages) {
+                    idx++;
                     if (StringUtils.isEmpty(canalDestination.getPartitionHash())) {
                         try {
                             Integer partition = canalDestination.getPartition();
@@ -152,12 +158,15 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                 partition,
                                 null,
                                 JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
-                            producer2.send(record);
+                            if (idx != size) {
+                                producer2.send(record);
+                            } else {
+                                producer2.send(record).get();
+                            }
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
                             // producer.abortTransaction();
-                            callback.rollback();
-                            return;
+                            throw e;
                         }
                     } else {
                         FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
@@ -173,12 +182,15 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                         i,
                                         null,
                                         JSON.toJSONString(flatMessagePart, SerializerFeature.WriteMapNullValue));
-                                    producer2.send(record);
+                                    if (idx != size) {
+                                        producer2.send(record);
+                                    } else {
+                                        producer2.send(record).get();
+                                    }
                                 } catch (Exception e) {
                                     logger.error(e.getMessage(), e);
                                     // producer.abortTransaction();
-                                    callback.rollback();
-                                    return;
+                                    throw e;
                                 }
                             }
                         }
@@ -193,7 +205,6 @@ public class CanalKafkaProducer implements CanalMQProducer {
         }
 
         // producer.commitTransaction();
-        callback.commit();
     }
 
 }

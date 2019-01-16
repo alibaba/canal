@@ -9,22 +9,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * sql批量执行器
+ *
+ * @author rewerma 2018-11-7 下午06:45:49
+ * @version 1.0.0
+ */
 public class BatchExecutor implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(BatchExecutor.class);
 
+    private DataSource          dataSource;
     private Connection          conn;
     private AtomicInteger       idx    = new AtomicInteger(0);
 
-    public BatchExecutor(Connection conn) throws SQLException{
-        this.conn = conn;
-        this.conn.setAutoCommit(false);
+    public BatchExecutor(DataSource dataSource){
+        this.dataSource = dataSource;
     }
 
     public Connection getConn() {
+        if (conn == null) {
+            try {
+                conn = dataSource.getConnection();
+                this.conn.setAutoCommit(false);
+            } catch (SQLException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
         return conn;
     }
 
@@ -36,7 +52,7 @@ public class BatchExecutor implements Closeable {
     }
 
     public void execute(String sql, List<Map<String, ?>> values) throws SQLException {
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+        PreparedStatement pstmt = getConn().prepareStatement(sql);
         int len = values.size();
         for (int i = 0; i < len; i++) {
             int type = (Integer) values.get(i).get("type");
@@ -49,7 +65,7 @@ public class BatchExecutor implements Closeable {
     }
 
     public void commit() throws SQLException {
-        conn.commit();
+        getConn().commit();
         if (logger.isTraceEnabled()) {
             logger.trace("Batch executor commit " + idx.get() + " rows");
         }
@@ -57,7 +73,7 @@ public class BatchExecutor implements Closeable {
     }
 
     public void rollback() throws SQLException {
-        conn.rollback();
+        getConn().rollback();
         if (logger.isTraceEnabled()) {
             logger.trace("Batch executor rollback " + idx.get() + " rows");
         }
@@ -68,10 +84,11 @@ public class BatchExecutor implements Closeable {
     public void close() {
         if (conn != null) {
             try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException ioe) {
+                conn.close();
+            } catch (SQLException e) {
+                logger.error(e.getMessage(), e);
+            } finally {
+                conn = null;
             }
         }
     }
