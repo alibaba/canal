@@ -34,6 +34,10 @@ public class ZkClientx extends ZkClient {
         return clients.get(servers);
     }
 
+    public static void clearClients() {
+        clients.clear();
+    }
+
     public ZkClientx(String serverstring){
         this(serverstring, Integer.MAX_VALUE);
     }
