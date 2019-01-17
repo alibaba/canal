@@ -68,7 +68,6 @@ public class CanalController {
 
     private CanalInstanceGenerator                   instanceGenerator;
     private ZkClientx                                zkclientx;
-    private String                                   zkServers;
 
     private CanalMQStarter                           canalMQStarter;
 
@@ -133,7 +132,6 @@ public class CanalController {
         }
         final String zkServers = getProperty(properties, CanalConstants.CANAL_ZKSERVERS);
         if (StringUtils.isNotEmpty(zkServers)) {
-            this.zkServers = zkServers;
             zkclientx = ZkClientx.getZkClient(zkServers);
             // 初始化系统目录
             zkclientx.createPersistent(ZookeeperPathUtils.DESTINATION_ROOT_NODE, true);
@@ -508,9 +506,6 @@ public class CanalController {
 
         if (zkclientx != null) {
             zkclientx.close();
-            if (zkServers != null) {
-                ZkClientx.removeZkClient(zkServers);
-            }
         }
 
         if (instanceConfigs != null) {
