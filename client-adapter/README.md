@@ -55,7 +55,7 @@ canal.conf:
           hbase.zookeeper.quorum: slave1
           hbase.zookeeper.property.clientPort: 2181
           zookeeper.znode.parent: /hbase
-  mqTopics:                         # MQ topic租, 如果是kafka或者rockeMQ模式可配置此项, 与canalInstances不能并存
+  mqTopics:                         # MQ topic组, 如果是kafka或者rockeMQ模式可配置此项, 与canalInstances不能并存
   - mqMode: kafka                   # MQ的模式: kafak/rocketMQ
     topic: example                  # MQ topic
     groups:                         # group组
