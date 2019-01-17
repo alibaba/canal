@@ -503,6 +503,8 @@ public class CanalController {
         if (zkclientx != null) {
             zkclientx.close();
         }
+
+        ZkClientx.clearClients();
     }
 
     private void initCid(String path) {
