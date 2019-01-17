@@ -34,8 +34,8 @@ public class ZkClientx extends ZkClient {
         return clients.get(servers);
     }
 
-    public static ZkClientx removeZkClient(String servers) {
-        return clients.remove(servers);
+    public static void clearClients() {
+        clients.clear();
     }
 
     public ZkClientx(String serverstring){

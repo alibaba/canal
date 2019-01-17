@@ -522,6 +522,8 @@ public class CanalController {
         if (instanceConfigMonitors != null) {
             instanceConfigMonitors.clear();
         }
+
+        ZkClientx.clearClients();
     }
 
     private void initCid(String path) {
