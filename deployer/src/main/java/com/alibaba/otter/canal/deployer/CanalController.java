@@ -508,6 +508,7 @@ public class CanalController {
             zkclientx.close();
         }
 
+        //关闭时清理缓存
         if (instanceConfigs != null) {
             instanceConfigs.clear();
         }
