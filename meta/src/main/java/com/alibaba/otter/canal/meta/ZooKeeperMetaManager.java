@@ -56,7 +56,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
     }
 
     public void stop() {
-        zkClientx = null;
+        zkClientx = null; //关闭时置空
         super.stop();
     }
 
@@ -102,7 +102,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
     }
 
     public List<ClientIdentity> listAllSubscribeInfo(String destination) throws CanalMetaManagerException {
-        if (zkClientx == null) {
+        if (zkClientx == null) { //重新加载时可能为空
             return new ArrayList<ClientIdentity>();
         }
         String path = ZookeeperPathUtils.getDestinationPath(destination);
