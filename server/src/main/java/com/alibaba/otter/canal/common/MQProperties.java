@@ -23,6 +23,7 @@ public class MQProperties {
     private String  acks                   = "all";
     private String  aliyunAccessKey        = "";
     private String  aliyunSecretKey        = "";
+    private boolean transaction            = false;           // 是否开启事务
 
     public static class CanalDestination {
 
@@ -200,5 +201,13 @@ public class MQProperties {
 
     public void setMaxRequestSize(int maxRequestSize) {
         this.maxRequestSize = maxRequestSize;
+    }
+
+    public boolean getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(boolean transaction) {
+        this.transaction = transaction;
     }
 }

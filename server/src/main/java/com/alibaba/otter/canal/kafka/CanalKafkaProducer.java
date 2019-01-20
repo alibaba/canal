@@ -98,56 +98,51 @@ public class CanalKafkaProducer implements CanalMQProducer {
             }
             callback.commit();
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             callback.rollback();
         }
     }
 
     private void send(MQProperties.CanalDestination canalDestination, String topicName,
                       Message message) throws Exception {
-        // producer.beginTransaction();
         if (!kafkaProperties.getFlatMessage()) {
-            try {
-                ProducerRecord<String, Message> record = null;
-                if (canalDestination.getPartition() != null) {
-                    record = new ProducerRecord<>(topicName, canalDestination.getPartition(), null, message);
-                } else {
-                    if (canalDestination.getPartitionHash() != null && !canalDestination.getPartitionHash().isEmpty()) {
-                        Message[] messages = MQMessageUtils.messagePartition(message,
-                            canalDestination.getPartitionsNum(),
-                            canalDestination.getPartitionHash());
-                        int length = messages.length;
-                        for (int i = 0; i < length; i++) {
-                            Message messagePartition = messages[i];
-                            if (messagePartition != null) {
-                                record = new ProducerRecord<>(topicName, i, null, messagePartition);
-                            }
+            ProducerRecord<String, Message> record = null;
+            if (canalDestination.getPartition() != null) {
+                record = new ProducerRecord<>(topicName, canalDestination.getPartition(), null, message);
+            } else {
+                if (canalDestination.getPartitionHash() != null && !canalDestination.getPartitionHash().isEmpty()) {
+                    Message[] messages = MQMessageUtils.messagePartition(message,
+                        canalDestination.getPartitionsNum(),
+                        canalDestination.getPartitionHash());
+                    int length = messages.length;
+                    for (int i = 0; i < length; i++) {
+                        Message messagePartition = messages[i];
+                        if (messagePartition != null) {
+                            record = new ProducerRecord<>(topicName, i, null, messagePartition);
                         }
-                    } else {
-                        record = new ProducerRecord<>(topicName, 0, null, message);
                     }
+                } else {
+                    record = new ProducerRecord<>(topicName, 0, null, message);
                 }
+            }
 
-                if (record != null) {
-                    // 同步发送原生message
-                    producer.send(record).get();
+            if (record != null) {
+                // 同步发送原生message
+                producer.send(record).get();
 
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Send  message to kafka topic: [{}], packet: {}", topicName, message.toString());
-                    }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Send  message to kafka topic: [{}], packet: {}", topicName, message.toString());
                 }
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-                // producer.abortTransaction();
-                throw e;
             }
         } else {
             // 发送扁平数据json
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(message);
             if (flatMessages != null) {
-                int idx = 0;
-                int size = flatMessages.size();
+                // 开启事务，需要kafka版本支持
+                if (kafkaProperties.getTransaction()) {
+                    producer.beginTransaction();
+                }
                 for (FlatMessage flatMessage : flatMessages) {
-                    idx++;
                     if (StringUtils.isEmpty(canalDestination.getPartitionHash())) {
                         try {
                             Integer partition = canalDestination.getPartition();
@@ -158,14 +153,15 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                 partition,
                                 null,
                                 JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
-                            if (idx != size) {
+                            if (kafkaProperties.getTransaction()) {
                                 producer2.send(record);
                             } else {
                                 producer2.send(record).get();
                             }
                         } catch (Exception e) {
-                            logger.error(e.getMessage(), e);
-                            // producer.abortTransaction();
+                            if (kafkaProperties.getTransaction()) {
+                                producer.abortTransaction();
+                            }
                             throw e;
                         }
                     } else {
@@ -182,19 +178,25 @@ public class CanalKafkaProducer implements CanalMQProducer {
                                         i,
                                         null,
                                         JSON.toJSONString(flatMessagePart, SerializerFeature.WriteMapNullValue));
-                                    if (idx != size) {
+                                    if (kafkaProperties.getTransaction()) {
                                         producer2.send(record);
                                     } else {
                                         producer2.send(record).get();
                                     }
                                 } catch (Exception e) {
-                                    logger.error(e.getMessage(), e);
-                                    // producer.abortTransaction();
+                                    if (kafkaProperties.getTransaction()) {
+                                        producer.abortTransaction();
+                                    }
                                     throw e;
                                 }
                             }
                         }
                     }
+
+                    if (kafkaProperties.getTransaction()) {
+                        producer.commitTransaction();
+                    }
+
                     if (logger.isDebugEnabled()) {
                         logger.debug("Send flat message to kafka topic: [{}], packet: {}",
                             topicName,
