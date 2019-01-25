@@ -21,7 +21,7 @@ public class ConfigLoader {
     private static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
 
     /**
-     * 加载HBase表映射配置
+     * 加载RDB表映射配置
      *
      * @return 配置名/配置文件名--对象
      */
