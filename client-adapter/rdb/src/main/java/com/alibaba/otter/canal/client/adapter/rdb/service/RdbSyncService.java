@@ -88,44 +88,46 @@ public class RdbSyncService {
      * @param function 回调方法
      */
     public void sync(List<Dml> dmls, Function<Dml, Boolean> function) {
-        boolean toExecute = false;
-        for (Dml dml : dmls) {
-            if (!toExecute) {
-                toExecute = function.apply(dml);
-            } else {
-                function.apply(dml);
+        try {
+            boolean toExecute = false;
+            for (Dml dml : dmls) {
+                if (!toExecute) {
+                    toExecute = function.apply(dml);
+                } else {
+                    function.apply(dml);
+                }
             }
-        }
-        if (toExecute) {
-            List<Future> futures = new ArrayList<>();
-            for (int i = 0; i < threads; i++) {
-                int j = i;
-                futures.add(executorThreads[i].submit(() -> {
+            if (toExecute) {
+                List<Future> futures = new ArrayList<>();
+                for (int i = 0; i < threads; i++) {
+                    int j = i;
+                    futures.add(executorThreads[i].submit(() -> {
+                        try {
+                            dmlsPartition[j]
+                                .forEach(syncItem -> sync(batchExecutors[j], syncItem.config, syncItem.singleDml));
+                            dmlsPartition[j].clear();
+                            batchExecutors[j].commit();
+                            return true;
+                        } catch (Throwable e) {
+                            batchExecutors[j].rollback();
+                            throw new RuntimeException(e);
+                        }
+                    }));
+                }
+
+                futures.forEach(future -> {
                     try {
-                        dmlsPartition[j]
-                            .forEach(syncItem -> sync(batchExecutors[j], syncItem.config, syncItem.singleDml));
-                        dmlsPartition[j].clear();
-                        batchExecutors[j].commit();
-                        return true;
-                    } catch (Throwable e) {
-                        batchExecutors[j].rollback();
+                        future.get();
+                    } catch (ExecutionException | InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                }));
+                });
             }
-
-            futures.forEach(future -> {
-                try {
-                    future.get();
-                } catch (ExecutionException | InterruptedException e) {
-                    throw new RuntimeException(e);
+        } finally {
+            for (BatchExecutor batchExecutor : batchExecutors) {
+                if (batchExecutor != null) {
+                    batchExecutor.close();
                 }
-            });
-        }
-
-        for (BatchExecutor batchExecutor : batchExecutors) {
-            if (batchExecutor != null) {
-                batchExecutor.close();
             }
         }
     }

@@ -150,7 +150,6 @@ public class CanalStater {
         if (!StringUtils.isEmpty(acks)) {
             mqProperties.setAcks(acks);
         }
-
         String aliyunAccessKey = CanalController.getProperty(properties, CanalConstants.CANAL_ALIYUN_ACCESSKEY);
         if (!StringUtils.isEmpty(aliyunAccessKey)) {
             mqProperties.setAliyunAccessKey(aliyunAccessKey);
@@ -158,6 +157,10 @@ public class CanalStater {
         String aliyunSecretKey = CanalController.getProperty(properties, CanalConstants.CANAL_ALIYUN_SECRETKEY);
         if (!StringUtils.isEmpty(aliyunSecretKey)) {
             mqProperties.setAliyunSecretKey(aliyunSecretKey);
+        }
+        String transaction = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_TRANSACTION);
+        if (!StringUtils.isEmpty(transaction)) {
+            mqProperties.setTransaction(Boolean.valueOf(transaction));
         }
         return mqProperties;
     }

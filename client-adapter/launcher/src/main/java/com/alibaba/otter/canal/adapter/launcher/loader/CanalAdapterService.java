@@ -4,8 +4,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
-import com.alibaba.otter.canal.adapter.launcher.monitor.AdapterRemoteConfigMonitor;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -29,27 +27,25 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 @RefreshScope
 public class CanalAdapterService {
 
-    private static final Logger        logger        = LoggerFactory.getLogger(CanalAdapterService.class);
+    private static final Logger logger  = LoggerFactory.getLogger(CanalAdapterService.class);
 
-    private CanalAdapterLoader         adapterLoader;
-
-    @Resource
-    private ContextRefresher           contextRefresher;
+    private CanalAdapterLoader  adapterLoader;
 
     @Resource
-    private AdapterCanalConfig         adapterCanalConfig;
+    private ContextRefresher    contextRefresher;
+
     @Resource
-    private Environment                env;
+    private AdapterCanalConfig  adapterCanalConfig;
+    @Resource
+    private Environment         env;
 
     // 注入bean保证优先注册
     @Resource
-    private SpringContext              springContext;
+    private SpringContext       springContext;
     @Resource
-    private SyncSwitch                 syncSwitch;
+    private SyncSwitch          syncSwitch;
 
-    private volatile boolean           running       = false;
-
-    private AdapterRemoteConfigMonitor configMonitor = null;
+    private volatile boolean    running = false;
 
     @PostConstruct
     public synchronized void init() {
@@ -75,9 +71,6 @@ public class CanalAdapterService {
         try {
             running = false;
             logger.info("## stop the canal client adapters");
-            if (configMonitor != null) {
-                configMonitor.destroy();
-            }
 
             if (adapterLoader != null) {
                 adapterLoader.destroy();
