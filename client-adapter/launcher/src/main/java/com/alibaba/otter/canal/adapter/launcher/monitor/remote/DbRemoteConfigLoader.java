@@ -290,11 +290,22 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
 
         @Override
         public void onModify(ConfigItem configItem) {
+            String confPath = getConfPath();
+            String category = configItem.getCategory();
+            File categoryDir = new File(confPath + category);
+            if (!categoryDir.isDirectory()) {
+                boolean mkDirs = categoryDir.mkdirs();
+                if (!mkDirs) {
+                    logger.info("## Create adapter category dir error: {}", category);
+                    return;
+                }
+            }
+            String name = configItem.getName();
             try (FileWriter writer = new FileWriter(
-                getConfPath() + configItem.getCategory() + "/" + configItem.getName())) {
+                    confPath + category + "/" + configItem.getName())) {
                 writer.write(configItem.getContent());
                 writer.flush();
-                logger.info("## Loaded remote adapter config: {}/{}", configItem.getCategory(), configItem.getName());
+                logger.info("## Loaded remote adapter config: {}/{}", category, name);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
