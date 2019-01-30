@@ -514,15 +514,14 @@ public class MysqlConnection implements ErosaConnection {
         ResultSetPacket rs = null;
         try {
             rs = query("select @@global.binlog_checksum");
+            List<String> columnValues = rs.getFieldValues();
+            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
+                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
+            } else {
+                binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
+            }
         } catch (Throwable e) {
-            // ignore
-            return;
-        }
-
-        List<String> columnValues = rs.getFieldValues();
-        if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
-            binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
-        } else {
+            logger.error("", e);
             binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
         }
     }
