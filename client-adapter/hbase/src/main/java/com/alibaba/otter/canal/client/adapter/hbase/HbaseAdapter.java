@@ -69,10 +69,11 @@ public class HbaseAdapter implements OuterAdapter {
             for (Map.Entry<String, MappingConfig> entry : hbaseMapping.entrySet()) {
                 String configName = entry.getKey();
                 MappingConfig mappingConfig = entry.getValue();
-                String k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                           + mappingConfig.getHbaseMapping().getDatabase() + "."
+                String k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                           + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                           + mappingConfig.getHbaseMapping().getDatabase() + "-"
                            + mappingConfig.getHbaseMapping().getTable();
-                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k, k1 -> new HashMap<>());
+                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k, k1 -> new ConcurrentHashMap<>());
                 configMap.put(configName, mappingConfig);
             }
 
@@ -104,9 +105,11 @@ public class HbaseAdapter implements OuterAdapter {
             return;
         }
         String destination = StringUtils.trimToEmpty(dml.getDestination());
+        String groupId = StringUtils.trimToEmpty(dml.getGroupId());
         String database = dml.getDatabase();
         String table = dml.getTable();
-        Map<String, MappingConfig> configMap = mappingConfigCache.get(destination + "." + database + "." + table);
+        Map<String, MappingConfig> configMap = mappingConfigCache
+            .get(destination + "-" + groupId + "_" + database + "-" + table);
         if (configMap != null) {
             List<MappingConfig> configs = new ArrayList<>();
             configMap.values().forEach(config -> {

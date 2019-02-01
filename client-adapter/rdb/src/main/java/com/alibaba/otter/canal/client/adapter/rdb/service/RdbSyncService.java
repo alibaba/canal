@@ -147,9 +147,11 @@ public class RdbSyncService {
             } else {
                 // DML
                 String destination = StringUtils.trimToEmpty(dml.getDestination());
+                String groupId = StringUtils.trimToEmpty(dml.getGroupId());
                 String database = dml.getDatabase();
                 String table = dml.getTable();
-                Map<String, MappingConfig> configMap = mappingConfig.get(destination + "." + database + "." + table);
+                Map<String, MappingConfig> configMap = mappingConfig
+                    .get(destination + "-" + groupId + "_" + database + "-" + table);
 
                 if (configMap == null) {
                     return false;
@@ -169,7 +171,6 @@ public class RdbSyncService {
                     return false;
                 }
 
-                boolean executed = false;
                 for (MappingConfig config : configs) {
                     if (config.getConcurrent()) {
                         List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
@@ -186,9 +187,8 @@ public class RdbSyncService {
                             dmlsPartition[hash].add(syncItem);
                         });
                     }
-                    executed = true;
                 }
-                return executed;
+                return true;
             }
         });
     }

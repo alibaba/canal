@@ -86,8 +86,9 @@ public class RdbAdapter implements OuterAdapter {
             String configName = entry.getKey();
             MappingConfig mappingConfig = entry.getValue();
             if (!mappingConfig.getDbMapping().getMirrorDb()) {
-                String key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                             + mappingConfig.getDbMapping().getDatabase() + "."
+                String key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                             + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                             + mappingConfig.getDbMapping().getDatabase() + "-"
                              + mappingConfig.getDbMapping().getTable();
                 Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
                     k1 -> new ConcurrentHashMap<>());

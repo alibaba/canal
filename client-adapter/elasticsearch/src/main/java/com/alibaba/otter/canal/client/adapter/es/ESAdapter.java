@@ -93,8 +93,10 @@ public class ESAdapter implements OuterAdapter {
                 String schema = matcher.group(2);
 
                 schemaItem.getAliasTableItems().values().forEach(tableItem -> {
-                    Map<String, ESSyncConfig> esSyncConfigMap = dbTableEsSyncConfig
-                        .computeIfAbsent(schema + "-" + tableItem.getTableName(), k -> new HashMap<>());
+                    Map<String, ESSyncConfig> esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(
+                        StringUtils.trimToEmpty(config.getDestination()) + "-" + StringUtils
+                            .trimToEmpty(config.getGroupId()) + "_" + schema + "-" + tableItem.getTableName(),
+                        k -> new ConcurrentHashMap<>());
                     esSyncConfigMap.put(configName, config);
                 });
             }
@@ -132,21 +134,11 @@ public class ESAdapter implements OuterAdapter {
     public void sync(Dml dml) {
         String database = dml.getDatabase();
         String table = dml.getTable();
-        Map<String, ESSyncConfig> configMap = dbTableEsSyncConfig.get(database + "-" + table);
-        if (configMap != null) {
-            List<ESSyncConfig> configs = new ArrayList<>();
-            configMap.values().forEach(esConfig -> {
-                if (StringUtils.isNotEmpty(esConfig.getGroupId())) {
-                    if (esConfig.getGroupId().equals(dml.getGroupId())) {
-                        configs.add(esConfig);
-                    }
-                } else {
-                    configs.add(esConfig);
-                }
-            });
-            if (!configs.isEmpty()) {
-                esSyncService.sync(configs, dml);
-            }
+        Map<String, ESSyncConfig> configMap = dbTableEsSyncConfig
+            .get(StringUtils.trimToEmpty(dml.getDestination()) + "-" + StringUtils.trimToEmpty(dml.getGroupId()) + "_"
+                 + database + "-" + table);
+        if (configMap != null && !configMap.values().isEmpty()) {
+            esSyncService.sync(configMap.values(), dml);
         }
     }
 
