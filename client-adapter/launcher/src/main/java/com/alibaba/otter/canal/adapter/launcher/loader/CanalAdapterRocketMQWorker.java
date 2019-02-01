@@ -28,7 +28,8 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
         this.canalClientConfig = canalClientConfig;
         this.topic = topic;
         this.flatMessage = flatMessage;
-        this.canalDestination = topic;
+        super.canalDestination = topic;
+        super.groupId = groupId;
         this.connector = new RocketMQCanalConnector(nameServers,
             topic,
             groupId,

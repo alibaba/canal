@@ -108,7 +108,19 @@ public class HbaseAdapter implements OuterAdapter {
         String table = dml.getTable();
         Map<String, MappingConfig> configMap = mappingConfigCache.get(destination + "." + database + "." + table);
         if (configMap != null) {
-            configMap.values().forEach(config -> hbaseSyncService.sync(config, dml));
+            List<MappingConfig> configs = new ArrayList<>();
+            configMap.values().forEach(config -> {
+                if (StringUtils.isNotEmpty(config.getGroupId())) {
+                    if (config.getGroupId().equals(dml.getGroupId())) {
+                        configs.add(config);
+                    }
+                } else {
+                    configs.add(config);
+                }
+            });
+            if (!configs.isEmpty()) {
+                configs.forEach(config -> hbaseSyncService.sync(config, dml));
+            }
         }
     }
 

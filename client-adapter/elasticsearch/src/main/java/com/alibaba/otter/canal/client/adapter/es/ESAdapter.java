@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -133,7 +134,19 @@ public class ESAdapter implements OuterAdapter {
         String table = dml.getTable();
         Map<String, ESSyncConfig> configMap = dbTableEsSyncConfig.get(database + "-" + table);
         if (configMap != null) {
-            esSyncService.sync(configMap.values(), dml);
+            List<ESSyncConfig> configs = new ArrayList<>();
+            configMap.values().forEach(esConfig -> {
+                if (StringUtils.isNotEmpty(esConfig.getGroupId())) {
+                    if (esConfig.getGroupId().equals(dml.getGroupId())) {
+                        configs.add(esConfig);
+                    }
+                } else {
+                    configs.add(esConfig);
+                }
+            });
+            if (!configs.isEmpty()) {
+                esSyncService.sync(configs, dml);
+            }
         }
     }
 

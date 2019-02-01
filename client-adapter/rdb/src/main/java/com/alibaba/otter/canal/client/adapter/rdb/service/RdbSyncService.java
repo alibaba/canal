@@ -155,8 +155,22 @@ public class RdbSyncService {
                     return false;
                 }
 
+                List<MappingConfig> configs = new ArrayList<>();
+                configMap.values().forEach(config -> {
+                    if (StringUtils.isNotEmpty(config.getGroupId())) {
+                        if (config.getGroupId().equals(dml.getGroupId())) {
+                            configs.add(config);
+                        }
+                    } else {
+                        configs.add(config);
+                    }
+                });
+                if (configs.isEmpty()) {
+                    return false;
+                }
+
                 boolean executed = false;
-                for (MappingConfig config : configMap.values()) {
+                for (MappingConfig config : configs) {
                     if (config.getConcurrent()) {
                         List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
                         singleDmls.forEach(singleDml -> {

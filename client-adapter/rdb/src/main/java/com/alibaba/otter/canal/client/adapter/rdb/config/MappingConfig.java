@@ -17,6 +17,8 @@ public class MappingConfig {
 
     private String    destination;     // canal实例或MQ的topic
 
+    private String    groupId;         // groupId
+
     private String    outerAdapterKey; // 对应适配器的key
 
     private Boolean   concurrent;      // 是否并行同步
@@ -29,6 +31,14 @@ public class MappingConfig {
 
     public void setDataSourceKey(String dataSourceKey) {
         this.dataSourceKey = dataSourceKey;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
     public String getOuterAdapterKey() {
