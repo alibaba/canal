@@ -20,7 +20,7 @@ public class ConfigLoadTest {
 
     @Test
     public void testLoad() {
-        Map<String, MappingConfig> configMap =  ConfigLoader.load();
+        Map<String, MappingConfig> configMap =  ConfigLoader.load(null);
 
         Assert.assertFalse(configMap.isEmpty());
     }

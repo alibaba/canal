@@ -1,10 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.hbase;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
@@ -58,9 +55,9 @@ public class HbaseAdapter implements OuterAdapter {
     }
 
     @Override
-    public void init(OuterAdapterConfig configuration) {
+    public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
-            Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load();
+            Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
             hbaseMappingTmp.forEach((key, mappingConfig) -> {
                 if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)

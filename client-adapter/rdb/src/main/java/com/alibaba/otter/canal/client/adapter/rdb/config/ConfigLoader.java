@@ -2,8 +2,10 @@ package com.alibaba.otter.canal.client.adapter.rdb.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -25,17 +27,15 @@ public class ConfigLoader {
      *
      * @return 配置名/配置文件名--对象
      */
-    @SuppressWarnings("unchecked")
-    public static Map<String, MappingConfig> load() {
+    public static Map<String, MappingConfig> load(Properties envProperties) {
         logger.info("## Start loading rdb mapping config ... ");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("rdb");
         configContentMap.forEach((fileName, content) -> {
-            Map configMap = new Yaml().loadAs(content, Map.class); // yml自带的对象反射不是很稳定
-            JSONObject configJson = new JSONObject(configMap);
-            MappingConfig config = configJson.toJavaObject(MappingConfig.class);
+            MappingConfig config = YmlConfigBinder
+                .bindYmlToObj(null, content, MappingConfig.class, null, envProperties);
             try {
                 config.validate();
             } catch (Exception e) {

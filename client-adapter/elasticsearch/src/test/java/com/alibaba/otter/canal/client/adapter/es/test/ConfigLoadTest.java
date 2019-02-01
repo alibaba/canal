@@ -21,7 +21,7 @@ public class ConfigLoadTest {
 
     @Test
     public void testLoad() {
-        Map<String, ESSyncConfig> configMap = ESSyncConfigLoader.load();
+        Map<String, ESSyncConfig> configMap = ESSyncConfigLoader.load(null);
         ESSyncConfig config = configMap.get("mytest_user.yml");
         Assert.assertNotNull(config);
         Assert.assertEquals("defaultDS", config.getDataSourceKey());
