@@ -59,7 +59,7 @@ public class RdbMirrorDbSyncService {
             if (mirrorDbConfig.getMappingConfig() == null) {
                 continue;
             }
-            if (StringUtils.isNotEmpty(mirrorDbConfig.getMappingConfig().getGroupId())) {
+            if (dml.getGroupId() != null && StringUtils.isNotEmpty(mirrorDbConfig.getMappingConfig().getGroupId())) {
                 if (!mirrorDbConfig.getMappingConfig().getGroupId().equals(dml.getGroupId())) {
                     continue; // 如果groupId不匹配则过滤
                 }

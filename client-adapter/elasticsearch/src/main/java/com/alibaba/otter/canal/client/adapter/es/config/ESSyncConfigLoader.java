@@ -28,7 +28,9 @@ public class ESSyncConfigLoader {
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("es");
         configContentMap.forEach((fileName, content) -> {
             ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null, content, ESSyncConfig.class, null, envProperties);
-
+            if (config == null) {
+                return;
+            }
             try {
                 config.validate();
             } catch (Exception e) {

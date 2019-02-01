@@ -36,6 +36,9 @@ public class ConfigLoader {
         configContentMap.forEach((fileName, content) -> {
             MappingConfig config = YmlConfigBinder
                 .bindYmlToObj(null, content, MappingConfig.class, null, envProperties);
+            if (config == null) {
+                return;
+            }
             try {
                 config.validate();
             } catch (Exception e) {

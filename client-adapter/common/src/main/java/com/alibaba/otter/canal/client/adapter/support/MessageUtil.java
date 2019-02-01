@@ -43,6 +43,7 @@ public class MessageUtil {
             dml.setTable(entry.getHeader().getTableName());
             dml.setType(eventType.toString());
             dml.setEs(entry.getHeader().getExecuteTime());
+            dml.setIsDdl(rowChange.getIsDdl());
             dml.setTs(System.currentTimeMillis());
             dml.setSql(rowChange.getSql());
             dmls.add(dml);

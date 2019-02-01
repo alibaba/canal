@@ -3,10 +3,7 @@ package com.alibaba.otter.canal.client.adapter.rdb.service;
 import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
@@ -138,7 +135,7 @@ public class RdbSyncService {
      * @param mappingConfig 配置集合
      * @param dmls 批量 DML
      */
-    public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls) {
+    public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls, Properties envProperties) {
         sync(dmls, dml -> {
             if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                 // DDL
@@ -150,28 +147,22 @@ public class RdbSyncService {
                 String groupId = StringUtils.trimToEmpty(dml.getGroupId());
                 String database = dml.getDatabase();
                 String table = dml.getTable();
-                Map<String, MappingConfig> configMap = mappingConfig
-                    .get(destination + "-" + groupId + "_" + database + "-" + table);
+                Map<String, MappingConfig> configMap;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    configMap = mappingConfig.get(destination + "-" + groupId + "_" + database + "-" + table);
+                } else {
+                    configMap = mappingConfig.get(destination + "_" + database + "-" + table);
+                }
 
                 if (configMap == null) {
                     return false;
                 }
 
-                List<MappingConfig> configs = new ArrayList<>();
-                configMap.values().forEach(config -> {
-                    if (StringUtils.isNotEmpty(config.getGroupId())) {
-                        if (config.getGroupId().equals(dml.getGroupId())) {
-                            configs.add(config);
-                        }
-                    } else {
-                        configs.add(config);
-                    }
-                });
-                if (configs.isEmpty()) {
+                if (configMap.values().isEmpty()) {
                     return false;
                 }
 
-                for (MappingConfig config : configs) {
+                for (MappingConfig config : configMap.values()) {
                     if (config.getConcurrent()) {
                         List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
                         singleDmls.forEach(singleDml -> {

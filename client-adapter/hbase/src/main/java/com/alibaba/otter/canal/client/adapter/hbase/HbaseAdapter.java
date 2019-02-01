@@ -46,6 +46,8 @@ public class HbaseAdapter implements OuterAdapter {
 
     private HbaseConfigMonitor                      configMonitor;
 
+    private Properties                              envProperties;
+
     public Map<String, MappingConfig> getHbaseMapping() {
         return hbaseMapping;
     }
@@ -57,6 +59,7 @@ public class HbaseAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
+            this.envProperties = envProperties;
             Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
             hbaseMappingTmp.forEach((key, mappingConfig) -> {
@@ -69,11 +72,19 @@ public class HbaseAdapter implements OuterAdapter {
             for (Map.Entry<String, MappingConfig> entry : hbaseMapping.entrySet()) {
                 String configName = entry.getKey();
                 MappingConfig mappingConfig = entry.getValue();
-                String k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                           + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                           + mappingConfig.getHbaseMapping().getDatabase() + "-"
-                           + mappingConfig.getHbaseMapping().getTable();
-                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k, k1 -> new ConcurrentHashMap<>());
+                String k;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                        + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                        + mappingConfig.getHbaseMapping().getDatabase() + "-"
+                        + mappingConfig.getHbaseMapping().getTable();
+                } else {
+                    k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                        + mappingConfig.getHbaseMapping().getDatabase() + "-"
+                        + mappingConfig.getHbaseMapping().getTable();
+                }
+                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
+                    k1 -> new ConcurrentHashMap<>());
                 configMap.put(configName, mappingConfig);
             }
 
@@ -108,8 +119,12 @@ public class HbaseAdapter implements OuterAdapter {
         String groupId = StringUtils.trimToEmpty(dml.getGroupId());
         String database = dml.getDatabase();
         String table = dml.getTable();
-        Map<String, MappingConfig> configMap = mappingConfigCache
-            .get(destination + "-" + groupId + "_" + database + "-" + table);
+        Map<String, MappingConfig> configMap;
+        if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+            configMap = mappingConfigCache.get(destination + "-" + groupId + "_" + database + "-" + table);
+        } else {
+            configMap = mappingConfigCache.get(destination + "_" + database + "-" + table);
+        }
         if (configMap != null) {
             List<MappingConfig> configs = new ArrayList<>();
             configMap.values().forEach(config -> {

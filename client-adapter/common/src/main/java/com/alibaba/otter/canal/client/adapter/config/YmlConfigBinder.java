@@ -67,11 +67,11 @@ public class YmlConfigBinder {
     }
 
     /**
-     * 将当前内容指定前缀部分绑定到指定对象并用环境变量中的属性替换占位符, 例:
-     * 当前内容有属性 zkServers: ${zookeeper.servers}
-     * 在envProperties中有属性 zookeeper.servers: 192.168.0.1:2181,192.168.0.1:2181,192.168.0.1:2181
-     * 则当前内容 zkServers 会被替换为 zkServers: 192.168.0.1:2181,192.168.0.1:2181,192.168.0.1:2181
-     * 注: 假设绑定的类中 zkServers 属性是 List<String> 对象, 则会自动映射成List
+     * 将当前内容指定前缀部分绑定到指定对象并用环境变量中的属性替换占位符, 例: 当前内容有属性 zkServers: ${zookeeper.servers}
+     * 在envProperties中有属性 zookeeper.servers:
+     * 192.168.0.1:2181,192.168.0.1:2181,192.168.0.1:2181 则当前内容 zkServers 会被替换为
+     * zkServers: 192.168.0.1:2181,192.168.0.1:2181,192.168.0.1:2181 注: 假设绑定的类中
+     * zkServers 属性是 List<String> 对象, 则会自动映射成List
      *
      * @param prefix 指定前缀
      * @param content yml内容
@@ -91,6 +91,10 @@ public class YmlConfigBinder {
             YamlPropertySourceLoader propertySourceLoader = new YamlPropertySourceLoader();
             Resource configResource = new ByteArrayResource(contentBytes);
             PropertySource propertySource = propertySourceLoader.load("manualBindConfig", configResource, null);
+
+            if (propertySource == null) {
+                return null;
+            }
 
             Properties properties = new Properties();
             Map<String, Object> propertiesRes = new LinkedHashMap<>();
@@ -124,6 +128,10 @@ public class YmlConfigBinder {
                 }
 
                 propertiesRes.put(key, value);
+            }
+
+            if (propertiesRes.isEmpty()) {
+                return null;
             }
 
             propertySource = new MapPropertySource(propertySource.getName(), propertiesRes);
