@@ -230,6 +230,9 @@ public class ESAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
+        if (esConfigMonitor != null) {
+            esConfigMonitor.destroy();
+        }
         if (transportClient != null) {
             transportClient.close();
         }
@@ -237,10 +240,6 @@ public class ESAdapter implements OuterAdapter {
 
     @Override
     public String getDestination(String task) {
-        if (esConfigMonitor != null) {
-            esConfigMonitor.destroy();
-        }
-
         ESSyncConfig config = esSyncConfig.get(task);
         if (config != null) {
             return config.getDestination();
