@@ -3,8 +3,16 @@ package com.alibaba.otter.canal.client.adapter.rdb.service;
 import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
@@ -51,7 +59,6 @@ public class RdbSyncService {
         return columnsTypeCache;
     }
 
-    @SuppressWarnings("unchecked")
     public RdbSyncService(DataSource dataSource, Integer threads, boolean skipDupException){
         this(dataSource, threads, new ConcurrentHashMap<>(), skipDupException);
     }
@@ -95,7 +102,7 @@ public class RdbSyncService {
                 }
             }
             if (toExecute) {
-                List<Future> futures = new ArrayList<>();
+                List<Future<Boolean>> futures = new ArrayList<>();
                 for (int i = 0; i < threads; i++) {
                     int j = i;
                     futures.add(executorThreads[i].submit(() -> {

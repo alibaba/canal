@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.InputStreamSource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 

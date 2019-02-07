@@ -139,9 +139,7 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
     /**
      * 加载有变动的adapter配置
      */
-    @SuppressWarnings("unchecked")
     private void loadModifiedAdapterConfigs() {
-        Map<String, ConfigItem>[] res = new Map[2];
         Map<String, ConfigItem> remoteConfigStatus = new HashMap<>();
         String sql = "select id, category, name, modified_time from canal_adapter_config";
         try (Connection conn = dataSource.getConnection();

@@ -191,7 +191,7 @@ public class ESTemplate {
         StringBuilder sb = new StringBuilder();
         esFieldData.forEach((key, value) -> {
             if (value instanceof Map) {
-                HashMap mapValue = (HashMap) value;
+                Map<?, ?> mapValue = (Map<?, ?>) value;
                 if (mapValue.containsKey("lon") && mapValue.containsKey("lat") && mapValue.size() == 2) {
                     sb.append("ctx._source")
                         .append("['")

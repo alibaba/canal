@@ -151,7 +151,7 @@ public class CanalAdapterLoader {
                 evnProperties = new Properties();
                 for (PropertySource<?> propertySource : ((StandardEnvironment) env).getPropertySources()) {
                     if (propertySource instanceof EnumerablePropertySource) {
-                        String[] names = ((EnumerablePropertySource) propertySource).getPropertyNames();
+                        String[] names = ((EnumerablePropertySource<?>) propertySource).getPropertyNames();
                         for (String name : names) {
                             Object val = propertySource.getProperty(name);
                             if (val != null) {
