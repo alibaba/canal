@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.protocol.Message;
  */
 public class MessageUtil {
 
-    public static List<Dml> parse4Dml(String destination, Message message) {
+    public static List<Dml> parse4Dml(String destination, String groupId, Message message) {
         if (message == null) {
             return null;
         }
@@ -38,10 +38,12 @@ public class MessageUtil {
 
             final Dml dml = new Dml();
             dml.setDestination(destination);
+            dml.setGroupId(groupId);
             dml.setDatabase(entry.getHeader().getSchemaName());
             dml.setTable(entry.getHeader().getTableName());
             dml.setType(eventType.toString());
             dml.setEs(entry.getHeader().getExecuteTime());
+            dml.setIsDdl(rowChange.getIsDdl());
             dml.setTs(System.currentTimeMillis());
             dml.setSql(rowChange.getSql());
             dmls.add(dml);
@@ -118,10 +120,10 @@ public class MessageUtil {
         return dmls;
     }
 
-    public static List<Dml> flatMessage2Dml(String destination, List<FlatMessage> flatMessages) {
+    public static List<Dml> flatMessage2Dml(String destination, String groupId, List<FlatMessage> flatMessages) {
         List<Dml> dmls = new ArrayList<Dml>(flatMessages.size());
         for (FlatMessage flatMessage : flatMessages) {
-            Dml dml = flatMessage2Dml(destination, flatMessage);
+            Dml dml = flatMessage2Dml(destination, groupId, flatMessage);
             if (dml != null) {
                 dmls.add(dml);
             }
@@ -130,12 +132,13 @@ public class MessageUtil {
         return dmls;
     }
 
-    public static Dml flatMessage2Dml(String destination, FlatMessage flatMessage) {
+    public static Dml flatMessage2Dml(String destination, String groupId, FlatMessage flatMessage) {
         if (flatMessage == null) {
             return null;
         }
         Dml dml = new Dml();
         dml.setDestination(destination);
+        dml.setGroupId(groupId);
         dml.setDatabase(flatMessage.getDatabase());
         dml.setTable(flatMessage.getTable());
         dml.setPkNames(flatMessage.getPkNames());

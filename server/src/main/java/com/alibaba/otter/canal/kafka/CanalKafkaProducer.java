@@ -49,7 +49,12 @@ public class CanalKafkaProducer implements CanalMQProducer {
         properties.put("max.request.size", kafkaProperties.getMaxRequestSize());
         properties.put("buffer.memory", kafkaProperties.getBufferMemory());
         properties.put("key.serializer", StringSerializer.class.getName());
-        if(kafkaProperties.getTransaction()){
+
+        if (!kafkaProperties.getProperties().isEmpty()) {
+            properties.putAll(kafkaProperties.getProperties());
+        }
+
+        if (kafkaProperties.getTransaction()) {
             properties.put("transactional.id", "canal-transactional-id");
         } else {
             properties.put("retries", kafkaProperties.getRetries());

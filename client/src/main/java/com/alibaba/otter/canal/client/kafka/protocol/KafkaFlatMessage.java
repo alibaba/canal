@@ -11,12 +11,15 @@ import org.springframework.beans.BeanUtils;
  * @Date 2018/12/17
  */
 public class KafkaFlatMessage extends FlatMessage {
+
+    private static final long serialVersionUID = 5748024400508080710L;
+
     /**
      * Kafka 消息 offset
      */
-    private long offset;
+    private long              offset;
 
-    public KafkaFlatMessage(FlatMessage message, long offset) {
+    public KafkaFlatMessage(FlatMessage message, long offset){
         super(message.getId());
         BeanUtils.copyProperties(message, this);
         this.offset = offset;

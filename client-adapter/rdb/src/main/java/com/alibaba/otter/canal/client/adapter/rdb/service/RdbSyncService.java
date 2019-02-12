@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
@@ -54,7 +59,6 @@ public class RdbSyncService {
         return columnsTypeCache;
     }
 
-    @SuppressWarnings("unchecked")
     public RdbSyncService(DataSource dataSource, Integer threads, boolean skipDupException){
         this(dataSource, threads, new ConcurrentHashMap<>(), skipDupException);
     }
@@ -98,7 +102,7 @@ public class RdbSyncService {
                 }
             }
             if (toExecute) {
-                List<Future> futures = new ArrayList<>();
+                List<Future<Boolean>> futures = new ArrayList<>();
                 for (int i = 0; i < threads; i++) {
                     int j = i;
                     futures.add(executorThreads[i].submit(() -> {
@@ -138,7 +142,7 @@ public class RdbSyncService {
      * @param mappingConfig 配置集合
      * @param dmls 批量 DML
      */
-    public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls) {
+    public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls, Properties envProperties) {
         sync(dmls, dml -> {
             if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                 // DDL
@@ -147,15 +151,24 @@ public class RdbSyncService {
             } else {
                 // DML
                 String destination = StringUtils.trimToEmpty(dml.getDestination());
+                String groupId = StringUtils.trimToEmpty(dml.getGroupId());
                 String database = dml.getDatabase();
                 String table = dml.getTable();
-                Map<String, MappingConfig> configMap = mappingConfig.get(destination + "." + database + "." + table);
+                Map<String, MappingConfig> configMap;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    configMap = mappingConfig.get(destination + "-" + groupId + "_" + database + "-" + table);
+                } else {
+                    configMap = mappingConfig.get(destination + "_" + database + "-" + table);
+                }
 
                 if (configMap == null) {
                     return false;
                 }
 
-                boolean executed = false;
+                if (configMap.values().isEmpty()) {
+                    return false;
+                }
+
                 for (MappingConfig config : configMap.values()) {
                     if (config.getConcurrent()) {
                         List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
@@ -172,9 +185,8 @@ public class RdbSyncService {
                             dmlsPartition[hash].add(syncItem);
                         });
                     }
-                    executed = true;
                 }
-                return executed;
+                return true;
             }
         });
     }

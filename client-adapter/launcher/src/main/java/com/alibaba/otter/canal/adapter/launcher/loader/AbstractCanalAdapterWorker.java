@@ -31,6 +31,7 @@ public abstract class AbstractCanalAdapterWorker {
     protected final Logger                    logger  = LoggerFactory.getLogger(this.getClass());
 
     protected String                          canalDestination;                                                // canal实例
+    protected String                          groupId = null;                                                  // groupId
     protected List<List<OuterAdapter>>        canalOuterAdapters;                                              // 外部适配器
     protected CanalClientConfig               canalClientConfig;                                               // 配置
     protected ExecutorService                 groupInnerExecutorService;                                       // 组内工作线程池
@@ -56,7 +57,7 @@ public abstract class AbstractCanalAdapterWorker {
                     // 组内适配器穿行运行，尽量不要配置组内适配器
                     adapters.forEach(adapter -> {
                         long begin = System.currentTimeMillis();
-                        List<Dml> dmls = MessageUtil.parse4Dml(canalDestination, message);
+                        List<Dml> dmls = MessageUtil.parse4Dml(canalDestination, groupId, message);
                         if (dmls != null) {
                             batchSync(dmls, adapter);
 
@@ -101,7 +102,7 @@ public abstract class AbstractCanalAdapterWorker {
                     // 组内适配器穿行运行，尽量不要配置组内适配器
                     outerAdapters.forEach(adapter -> {
                         long begin = System.currentTimeMillis();
-                        List<Dml> dmls = MessageUtil.flatMessage2Dml(canalDestination, flatMessages);
+                        List<Dml> dmls = MessageUtil.flatMessage2Dml(canalDestination, groupId, flatMessages);
                         batchSync(dmls, adapter);
 
                         if (logger.isDebugEnabled()) {
