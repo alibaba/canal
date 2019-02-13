@@ -58,7 +58,7 @@ public class ESTemplate {
 
     /**
      * 插入数据
-     * 
+     *
      * @param mapping
      * @param pkVal
      * @param esFieldData
@@ -88,7 +88,7 @@ public class ESTemplate {
 
     /**
      * 根据主键更新数据
-     * 
+     *
      * @param mapping
      * @param pkVal
      * @param esFieldData
@@ -461,7 +461,7 @@ public class ESTemplate {
                 resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
             }
 
-            if (dmlOld.get(columnName) != null && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+            if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(fieldItem.getFieldName(),
                     getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }
