@@ -65,8 +65,8 @@ public class ESTemplate {
         if (mapping.get_id() != null) {
             if (mapping.isUpsert()) {
                 getBulk().add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
-                        .setDoc(esFieldData)
-                        .setDocAsUpsert(true));
+                    .setDoc(esFieldData)
+                    .setDocAsUpsert(true));
             } else {
                 getBulk().add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type(), pkVal.toString())
                     .setSource(esFieldData));
@@ -200,7 +200,7 @@ public class ESTemplate {
      * 提交批次
      */
     public void commit() {
-        if (getBulk().numberOfActions() >= 0) {
+        if (getBulk().numberOfActions() > 0) {
             BulkResponse response = getBulk().execute().actionGet();
             if (response.hasFailures()) {
                 for (BulkItemResponse itemResponse : response.getItems()) {
@@ -369,7 +369,7 @@ public class ESTemplate {
                 resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
             }
 
-            if (dmlOld.get(columnName) != null && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+            if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(fieldItem.getFieldName(),
                     getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }

@@ -71,7 +71,12 @@ public class ESSyncService {
                     dml.getDestination());
             }
             if (logger.isDebugEnabled()) {
-                logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                StringBuilder configIndexes = new StringBuilder();
+                esSyncConfigs
+                    .forEach(esSyncConfig -> configIndexes.append(esSyncConfig.getEsMapping().get_index()).append(" "));
+                logger.debug("DML: {} \nEffect indexes: {}",
+                    JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue),
+                    configIndexes.toString());
             }
         }
     }
@@ -92,6 +97,8 @@ public class ESSyncService {
                 update(config, dml);
             } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                 delete(config, dml);
+            } else {
+                return;
             }
 
             if (logger.isTraceEnabled()) {

@@ -144,7 +144,9 @@ public class ESAdapter implements OuterAdapter {
             return;
         }
         for (Dml dml : dmls) {
-            sync(dml);
+            if (!dml.getIsDdl()) {
+                sync(dml);
+            }
         }
         esSyncService.commit(); // 批次统一提交
     }
