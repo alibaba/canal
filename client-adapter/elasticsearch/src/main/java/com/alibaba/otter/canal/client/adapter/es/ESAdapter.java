@@ -146,9 +146,10 @@ public class ESAdapter implements OuterAdapter {
         for (Dml dml : dmls) {
             sync(dml);
         }
+        esSyncService.commit(); // 批次统一提交
     }
 
-    public void sync(Dml dml) {
+    private void sync(Dml dml) {
         String database = dml.getDatabase();
         String table = dml.getTable();
         Map<String, ESSyncConfig> configMap;
@@ -174,7 +175,7 @@ public class ESAdapter implements OuterAdapter {
             DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
             ESEtlService esEtlService = new ESEtlService(transportClient, config);
             if (dataSource != null) {
-                return esEtlService.importData(params, false);
+                return esEtlService.importData(params);
             } else {
                 etlResult.setSucceeded(false);
                 etlResult.setErrorMessage("DataSource not found");
@@ -188,7 +189,7 @@ public class ESAdapter implements OuterAdapter {
                 // 取所有的destination为task的配置
                 if (configTmp.getDestination().equals(task)) {
                     ESEtlService esEtlService = new ESEtlService(transportClient, configTmp);
-                    EtlResult etlRes = esEtlService.importData(params, false);
+                    EtlResult etlRes = esEtlService.importData(params);
                     if (!etlRes.getSucceeded()) {
                         resSuccess = false;
                         resultMsg.append(etlRes.getErrorMessage()).append("\n");

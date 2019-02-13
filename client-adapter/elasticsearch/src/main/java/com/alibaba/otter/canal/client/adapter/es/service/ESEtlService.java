@@ -1,6 +1,9 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -13,11 +16,8 @@ import javax.sql.DataSource;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class ESEtlService {
         this.config = config;
     }
 
-    public EtlResult importData(List<String> params, boolean bulk) {
+    public EtlResult importData(List<String> params) {
         EtlResult etlResult = new EtlResult();
         AtomicLong impCount = new AtomicLong();
         List<String> errMsg = new ArrayList<>();
@@ -93,54 +93,49 @@ public class ESEtlService {
                 logger.debug("etl sql : {}", mapping.getSql());
             }
 
-            if (bulk) {
-                // 获取总数
-                String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-                long cnt = (Long) ESSyncUtil.sqlRS(dataSource, countSql, rs -> {
-                    Long count = null;
-                    try {
-                        if (rs.next()) {
-                            count = ((Number) rs.getObject(1)).longValue();
-                        }
-                    } catch (Exception e) {
-                        logger.error(e.getMessage(), e);
+            // 获取总数
+            String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
+            long cnt = (Long) ESSyncUtil.sqlRS(dataSource, countSql, rs -> {
+                Long count = null;
+                try {
+                    if (rs.next()) {
+                        count = ((Number) rs.getObject(1)).longValue();
                     }
-                    return count == null ? 0L : count;
-                });
-
-                // 当大于1万条记录时开启多线程
-                if (cnt >= 10000) {
-                    int threadCount = 3; // TODO 从配置读取默认为3
-                    long perThreadCnt = cnt / threadCount;
-                    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-                    List<Future<Boolean>> futures = new ArrayList<>(threadCount);
-                    for (int i = 0; i < threadCount; i++) {
-                        long offset = i * perThreadCnt;
-                        Long size = null;
-                        if (i != threadCount - 1) {
-                            size = perThreadCnt;
-                        }
-                        String sqlFinal;
-                        if (size != null) {
-                            sqlFinal = sql + " LIMIT " + offset + "," + size;
-                        } else {
-                            sqlFinal = sql + " LIMIT " + offset + "," + cnt;
-                        }
-                        Future<Boolean> future = executor
-                            .submit(() -> executeSqlImport(dataSource, sqlFinal, mapping, impCount, errMsg));
-                        futures.add(future);
-                    }
-
-                    for (Future<Boolean> future : futures) {
-                        future.get();
-                    }
-
-                    executor.shutdown();
-                } else {
-                    executeSqlImport(dataSource, sql, mapping, impCount, errMsg);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
                 }
+                return count == null ? 0L : count;
+            });
+
+            // 当大于1万条记录时开启多线程
+            if (cnt >= 10000) {
+                int threadCount = 3; // 从配置读取默认为3
+                long perThreadCnt = cnt / threadCount;
+                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                for (int i = 0; i < threadCount; i++) {
+                    long offset = i * perThreadCnt;
+                    Long size = null;
+                    if (i != threadCount - 1) {
+                        size = perThreadCnt;
+                    }
+                    String sqlFinal;
+                    if (size != null) {
+                        sqlFinal = sql + " LIMIT " + offset + "," + size;
+                    } else {
+                        sqlFinal = sql + " LIMIT " + offset + "," + cnt;
+                    }
+                    Future<Boolean> future = executor
+                        .submit(() -> executeSqlImport(dataSource, sqlFinal, mapping, impCount, errMsg));
+                    futures.add(future);
+                }
+
+                for (Future<Boolean> future : futures) {
+                    future.get();
+                }
+
+                executor.shutdown();
             } else {
-                logger.info("自动ETL，无需统计记录总条数，直接进行ETL, index: {}", esIndex);
                 executeSqlImport(dataSource, sql, mapping, impCount, errMsg);
             }
 
@@ -205,32 +200,35 @@ public class ESEtlService {
                         }
 
                         if (idVal != null) {
-                            if (mapping.getParent() == null) {
+                            if (mapping.isUpsert()) {
+                                bulkRequestBuilder.add(transportClient
+                                    .prepareUpdate(mapping.get_index(), mapping.get_type(), idVal.toString())
+                                    .setDoc(esFieldData)
+                                    .setDocAsUpsert(true));
+                            } else {
                                 bulkRequestBuilder.add(transportClient
                                     .prepareIndex(mapping.get_index(), mapping.get_type(), idVal.toString())
                                     .setSource(esFieldData));
-                            } else {
-                                // ignore
                             }
                         } else {
-                            idVal = rs.getObject(mapping.getPk());
-                            if (mapping.getParent() == null) {
-                                // 删除pk对应的数据
-                                SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-                                    .setTypes(mapping.get_type())
-                                    .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
-                                    .get();
-                                for (SearchHit hit : response.getHits()) {
-                                    bulkRequestBuilder.add(transportClient
-                                        .prepareDelete(mapping.get_index(), mapping.get_type(), hit.getId()));
-                                }
-
-                                bulkRequestBuilder
-                                    .add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type())
-                                        .setSource(esFieldData));
-                            } else {
-                                // ignore
-                            }
+                            // TODO idVal = rs.getObject(mapping.getPk());
+                            // if (mapping.getParent() == null) {
+                            // // 删除pk对应的数据
+                            // SearchResponse response = transportClient.prepareSearch(mapping.get_index())
+                            // .setTypes(mapping.get_type())
+                            // .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
+                            // .get();
+                            // for (SearchHit hit : response.getHits()) {
+                            // bulkRequestBuilder.add(transportClient
+                            // .prepareDelete(mapping.get_index(), mapping.get_type(), hit.getId()));
+                            // }
+                            //
+                            // bulkRequestBuilder
+                            // .add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type())
+                            // .setSource(esFieldData));
+                            // } else {
+                            // // ignore
+                            // }
                         }
 
                         if (bulkRequestBuilder.numberOfActions() % mapping.getCommitBatch() == 0
@@ -238,11 +236,11 @@ public class ESEtlService {
                             long esBatchBegin = System.currentTimeMillis();
                             BulkResponse rp = bulkRequestBuilder.execute().actionGet();
                             if (rp.hasFailures()) {
-                                this.processFailBulkResponse(rp, Objects.nonNull(mapping.getParent()));
+                                this.processFailBulkResponse(rp, /* TODO Objects.nonNull(mapping.getParent()) */ false);
                             }
 
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("全量数据批量导入批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
+                            if (logger.isTraceEnabled()) {
+                                logger.trace("全量数据批量导入批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
                                     (System.currentTimeMillis() - batchBegin),
                                     (System.currentTimeMillis() - esBatchBegin),
                                     bulkRequestBuilder.numberOfActions(),
@@ -259,10 +257,10 @@ public class ESEtlService {
                         long esBatchBegin = System.currentTimeMillis();
                         BulkResponse rp = bulkRequestBuilder.execute().actionGet();
                         if (rp.hasFailures()) {
-                            this.processFailBulkResponse(rp, Objects.nonNull(mapping.getParent()));
+                            this.processFailBulkResponse(rp, /* TODO Objects.nonNull(mapping.getParent()) */false);
                         }
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("全量数据批量导入最后批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("全量数据批量导入最后批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
                                 (System.currentTimeMillis() - batchBegin),
                                 (System.currentTimeMillis() - esBatchBegin),
                                 bulkRequestBuilder.numberOfActions(),

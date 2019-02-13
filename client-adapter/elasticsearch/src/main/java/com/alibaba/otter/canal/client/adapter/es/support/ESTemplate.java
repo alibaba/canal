@@ -2,34 +2,24 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
-import com.alibaba.fastjson.JSON;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
-import org.elasticsearch.index.reindex.UpdateByQueryAction;
-import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
 import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptType;
-import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
@@ -46,82 +36,98 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
  */
 public class ESTemplate {
 
-    private static final Logger logger         = LoggerFactory.getLogger(ESTemplate.class);
+    private static final Logger         logger         = LoggerFactory.getLogger(ESTemplate.class);
 
-    private static final int    MAX_BATCH_SIZE = 1000;
+    private static final int            MAX_BATCH_SIZE = 1000;
 
-    private TransportClient     transportClient;
+    private TransportClient             transportClient;
+
+    private volatile BulkRequestBuilder bulkRequestBuilder;
 
     public ESTemplate(TransportClient transportClient){
         this.transportClient = transportClient;
+        this.bulkRequestBuilder = transportClient.prepareBulk();
+    }
+
+    public BulkRequestBuilder getBulk() {
+        return bulkRequestBuilder;
     }
 
     /**
      * 插入数据
-     * 
+     *
      * @param mapping
      * @param pkVal
      * @param esFieldData
      * @return
      */
-    public boolean insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
-        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
+    public void insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.get_id() != null) {
-            bulkRequestBuilder
-                .add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type(), pkVal.toString())
+            if (mapping.isUpsert()) {
+                getBulk().add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
+                        .setDoc(esFieldData)
+                        .setDocAsUpsert(true));
+            } else {
+                getBulk().add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type(), pkVal.toString())
                     .setSource(esFieldData));
-        } else {
-            SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-                .setTypes(mapping.get_type())
-                .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
-                .setSize(MAX_BATCH_SIZE)
-                .get();
-            for (SearchHit hit : response.getHits()) {
-                bulkRequestBuilder
-                    .add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(), hit.getId()));
             }
-            bulkRequestBuilder
-                .add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type()).setSource(esFieldData));
+            commitBatch();
+        } else {
+            // TODO SearchResponse response =
+            // transportClient.prepareSearch(mapping.get_index())
+            // .setTypes(mapping.get_type())
+            // .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
+            // .setSize(MAX_BATCH_SIZE)
+            // .get();
+            // for (SearchHit hit : response.getHits()) {
+            // bulkRequestBuilder
+            // .add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(),
+            // hit.getId()));
+            // }
+            // bulkRequestBuilder
+            // .add(transportClient.prepareIndex(mapping.get_index(),
+            // mapping.get_type()).setSource(esFieldData));
         }
-        return commitBulkRequest(bulkRequestBuilder);
+        // return commitBulkRequest(bulkRequestBuilder);
     }
 
     /**
      * 根据主键更新数据
-     * 
+     *
      * @param mapping
      * @param pkVal
      * @param esFieldData
      * @return
      */
-    public boolean update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
-        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-        append4Update(bulkRequestBuilder, mapping, pkVal, esFieldData);
-        return commitBulkRequest(bulkRequestBuilder);
+    public void update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
+        append4Update(getBulk(), mapping, pkVal, esFieldData);
+        commitBatch();
     }
 
-    public void append4Update(BulkRequestBuilder bulkRequestBuilder, ESMapping mapping, Object pkVal,
-                              Map<String, Object> esFieldData) {
+    private void append4Update(BulkRequestBuilder bulkRequestBuilder, ESMapping mapping, Object pkVal,
+                               Map<String, Object> esFieldData) {
         if (mapping.get_id() != null) {
             bulkRequestBuilder
                 .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
                     .setDoc(esFieldData));
         } else {
-            SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-                .setTypes(mapping.get_type())
-                .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
-                .setSize(MAX_BATCH_SIZE)
-                .get();
-            for (SearchHit hit : response.getHits()) {
-                bulkRequestBuilder
-                    .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), hit.getId())
-                        .setDoc(esFieldData));
-            }
+            // TODO SearchResponse response =
+            // transportClient.prepareSearch(mapping.get_index())
+            // .setTypes(mapping.get_type())
+            // .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
+            // .setSize(MAX_BATCH_SIZE)
+            // .get();
+            // for (SearchHit hit : response.getHits()) {
+            // bulkRequestBuilder
+            // .add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(),
+            // hit.getId())
+            // .setDoc(esFieldData));
+            // }
         }
     }
 
     /**
-     * update by query
+     * TODO XXX update by query
      *
      * @param config
      * @param paramsTmp
@@ -136,132 +142,30 @@ public class ESTemplate {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
         paramsTmp.forEach((fieldName, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
 
-        SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-            .setTypes(mapping.get_type())
-            .setSize(0)
-            .setQuery(queryBuilder)
-            .get();
-        long count = response.getHits().getTotalHits();
-        // 如果更新量大于Max, 查询sql批量更新
-        if (count > MAX_BATCH_SIZE) {
-            BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-
-            DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-            // 查询sql更新
-            StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
-            paramsTmp.forEach(
-                (fieldName, value) -> sql.append("_v.").append(fieldName).append("=").append(value).append(" AND "));
-            int len = sql.length();
-            sql.delete(len - 4, len);
-            ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
-                int exeCount = 1;
-                try {
-                    BulkRequestBuilder bulkRequestBuilderTmp = bulkRequestBuilder;
-                    while (rs.next()) {
-                        Object idVal = getIdValFromRS(mapping, rs);
-                        append4Update(bulkRequestBuilderTmp, mapping, idVal, esFieldData);
-
-                        if (exeCount % mapping.getCommitBatch() == 0 && bulkRequestBuilderTmp.numberOfActions() > 0) {
-                            commitBulkRequest(bulkRequestBuilderTmp);
-                            bulkRequestBuilderTmp = transportClient.prepareBulk();
-                        }
-                        exeCount++;
-                    }
-
-                    if (bulkRequestBuilder.numberOfActions() > 0) {
-                        commitBulkRequest(bulkRequestBuilderTmp);
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                return 0;
-            });
-            return true;
-        } else {
-            return updateByQuery(mapping, queryBuilder, esFieldData, 1);
-        }
-    }
-
-    private boolean updateByQuery(ESMapping mapping, QueryBuilder queryBuilder, Map<String, Object> esFieldData,
-                                  int counter) {
-        if (CollectionUtils.isEmpty(esFieldData)) {
-            return true;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        esFieldData.forEach((key, value) -> {
-            if (value instanceof Map) {
-                Map<?, ?> mapValue = (Map<?, ?>) value;
-                if (mapValue.containsKey("lon") && mapValue.containsKey("lat") && mapValue.size() == 2) {
-                    sb.append("ctx._source")
-                        .append("['")
-                        .append(key)
-                        .append("']")
-                        .append(" = [")
-                        .append(mapValue.get("lon"))
-                        .append(", ")
-                        .append(mapValue.get("lat"))
-                        .append("];");
-                } else {
-                    sb.append("ctx._source").append("[\"").append(key).append("\"]").append(" = ");
-                    sb.append(JSON.toJSONString(value));
-                    sb.append(";");
-                }
-            } else if (value instanceof List) {
-                sb.append("ctx._source").append("[\"").append(key).append("\"]").append(" = ");
-                sb.append(JSON.toJSONString(value));
-                sb.append(";");
-            } else if (value instanceof String) {
-                sb.append("ctx._source")
-                    .append("['")
-                    .append(key)
-                    .append("']")
-                    .append(" = '")
-                    .append(value)
-                    .append("';");
-            } else {
-                sb.append("ctx._source").append("['").append(key).append("']").append(" = ").append(value).append(";");
-            }
-        });
-        String scriptLine = sb.toString();
-        if (logger.isTraceEnabled()) {
-            logger.trace(scriptLine);
-        }
-
-        UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(transportClient);
-        updateByQuery.source(mapping.get_index())
-            .abortOnVersionConflict(false)
-            .filter(queryBuilder)
-            .script(new Script(ScriptType.INLINE, "painless", scriptLine, Collections.emptyMap()));
-
-        BulkByScrollResponse response = updateByQuery.get();
-        if (logger.isTraceEnabled()) {
-            logger.trace("updateByQuery response: {}", response.getStatus());
-        }
-        if (!CollectionUtils.isEmpty(response.getSearchFailures())) {
-            logger.error("script update_for_search has search error: " + response.getBulkFailures());
-            return false;
-        }
-
-        if (!CollectionUtils.isEmpty(response.getBulkFailures())) {
-            logger.error("script update_for_search has update error: " + response.getBulkFailures());
-            return false;
-        }
-
-        if (response.getStatus().getVersionConflicts() > 0) {
-            if (counter >= 3) {
-                logger.error("第 {} 次执行updateByQuery, 依旧存在分片版本冲突，不再继续重试。", counter);
-                return false;
-            }
-            logger.warn("本次updateByQuery存在分片版本冲突，准备重新执行...");
+        // 查询sql批量更新
+        DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+        StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
+        paramsTmp.forEach(
+            (fieldName, value) -> sql.append("_v.").append(fieldName).append("=").append(value).append(" AND "));
+        int len = sql.length();
+        sql.delete(len - 4, len);
+        Integer syncCount = (Integer) ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+            int count = 0;
             try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                // ignore
+                while (rs.next()) {
+                    Object idVal = getIdValFromRS(mapping, rs);
+                    append4Update(getBulk(), mapping, idVal, esFieldData);
+                    commitBatch();
+                    count++;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-            return updateByQuery(mapping, queryBuilder, esFieldData, ++counter);
+            return count;
+        });
+        if (logger.isTraceEnabled()) {
+            logger.trace("Update ES by query effect {} records", syncCount);
         }
-
         return true;
     }
 
@@ -272,34 +176,32 @@ public class ESTemplate {
      * @param pkVal
      * @return
      */
-    public boolean delete(ESMapping mapping, Object pkVal) {
-        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
+    public void delete(ESMapping mapping, Object pkVal) {
         if (mapping.get_id() != null) {
-            bulkRequestBuilder
-                .add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(), pkVal.toString()));
+            getBulk().add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(), pkVal.toString()));
+            commitBatch();
         } else {
-            SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-                .setTypes(mapping.get_type())
-                .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
-                .setSize(MAX_BATCH_SIZE)
-                .get();
-            for (SearchHit hit : response.getHits()) {
-                bulkRequestBuilder
-                    .add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(), hit.getId()));
-            }
+            // TODO SearchResponse response =
+            // transportClient.prepareSearch(mapping.get_index())
+            // .setTypes(mapping.get_type())
+            // .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
+            // .setSize(MAX_BATCH_SIZE)
+            // .get();
+            // for (SearchHit hit : response.getHits()) {
+            // bulkRequestBuilder
+            // .add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(),
+            // hit.getId()));
+            // }
         }
-        return commitBulkRequest(bulkRequestBuilder);
+        // return commitBulkRequest(bulkRequestBuilder);
     }
 
     /**
-     * 批量提交
-     *
-     * @param bulkRequestBuilder
-     * @return
+     * 提交批次
      */
-    private static boolean commitBulkRequest(BulkRequestBuilder bulkRequestBuilder) {
-        if (bulkRequestBuilder.numberOfActions() > 0) {
-            BulkResponse response = bulkRequestBuilder.execute().actionGet();
+    public void commit() {
+        if (getBulk().numberOfActions() >= 0) {
+            BulkResponse response = getBulk().execute().actionGet();
             if (response.hasFailures()) {
                 for (BulkItemResponse itemResponse : response.getItems()) {
                     if (!itemResponse.isFailed()) {
@@ -307,16 +209,22 @@ public class ESTemplate {
                     }
 
                     if (itemResponse.getFailure().getStatus() == RestStatus.NOT_FOUND) {
-                        logger.warn(itemResponse.getFailureMessage());
+                        logger.error(itemResponse.getFailureMessage());
                     } else {
-                        logger.error("ES sync commit error: {}", itemResponse.getFailureMessage());
+                        throw new RuntimeException("ES sync commit error" + itemResponse.getFailureMessage());
                     }
                 }
             }
-
-            return !response.hasFailures();
         }
-        return true;
+    }
+
+    /**
+     * 如果大于批量则提交批次
+     */
+    private void commitBatch() {
+        if (getBulk().numberOfActions() >= MAX_BATCH_SIZE) {
+            commit();
+        }
     }
 
     public Object getValFromRS(ESMapping mapping, ResultSet resultSet, String fieldName,
@@ -341,7 +249,7 @@ public class ESTemplate {
     public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet,
                                   Map<String, Object> esFieldData) throws SQLException {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.get_id(); // TODO == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             Object value = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
@@ -360,7 +268,7 @@ public class ESTemplate {
 
     public Object getIdValFromRS(ESMapping mapping, ResultSet resultSet) throws SQLException {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.get_id(); // TODO == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             Object value = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
@@ -376,7 +284,7 @@ public class ESTemplate {
     public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet, Map<String, Object> dmlOld,
                                   Map<String, Object> esFieldData) throws SQLException {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.get_id(); // TODO == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             if (fieldItem.getFieldName().equals(idFieldName)) {
@@ -423,7 +331,7 @@ public class ESTemplate {
     public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData,
                                        Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.get_id(); // TODO == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
@@ -452,7 +360,7 @@ public class ESTemplate {
     public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> dmlOld,
                                        Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.get_id(); // TODO == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
