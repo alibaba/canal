@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.sql.DataSource;
 
-import com.alibaba.fastjson.JSONObject;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -192,9 +191,6 @@ public class ESTemplate {
     private void commitBulk() {
         if (getBulk().numberOfActions() >= MAX_BATCH_SIZE) {
             commit();
-
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.toJavaObject(Object.class);
         }
     }
 
