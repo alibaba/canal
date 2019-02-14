@@ -134,11 +134,11 @@ public class SchemaItem {
     }
 
     public FieldItem getIdFieldItem(ESMapping mapping) {
-        //TODO if (mapping.get_id() != null) {
-        return getSelectFields().get(mapping.get_id());
-        // } else {
-        // return getSelectFields().get(mapping.getPk());
-        // }
+        if (mapping.get_id() != null) {
+            return getSelectFields().get(mapping.get_id());
+        } else {
+            return getSelectFields().get(mapping.getPk());
+        }
     }
 
     public static class TableItem {

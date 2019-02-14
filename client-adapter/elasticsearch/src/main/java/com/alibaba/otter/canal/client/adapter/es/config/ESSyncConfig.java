@@ -30,8 +30,8 @@ public class ESSyncConfig {
         if (esMapping._type == null) {
             throw new NullPointerException("esMapping._type");
         }
-        if (esMapping._id == null) {
-            throw new NullPointerException("esMapping._id");
+        if (esMapping._id == null && esMapping.getPk() == null) {
+            throw new NullPointerException("esMapping._id and esMapping.pk");
         }
         if (esMapping.sql == null) {
             throw new NullPointerException("esMapping.sql");

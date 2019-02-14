@@ -16,8 +16,13 @@ import javax.sql.DataSource;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,7 +158,7 @@ public class ESEtlService {
         return etlResult;
     }
 
-    private void processFailBulkResponse(BulkResponse bulkResponse, boolean hasParent) {
+    private void processFailBulkResponse(BulkResponse bulkResponse) {
         for (BulkItemResponse response : bulkResponse.getItems()) {
             if (!response.isFailed()) {
                 continue;
@@ -211,24 +216,17 @@ public class ESEtlService {
                                     .setSource(esFieldData));
                             }
                         } else {
-                            // TODO idVal = rs.getObject(mapping.getPk());
-                            // if (mapping.getParent() == null) {
-                            // // 删除pk对应的数据
-                            // SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-                            // .setTypes(mapping.get_type())
-                            // .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
-                            // .get();
-                            // for (SearchHit hit : response.getHits()) {
-                            // bulkRequestBuilder.add(transportClient
-                            // .prepareDelete(mapping.get_index(), mapping.get_type(), hit.getId()));
-                            // }
-                            //
-                            // bulkRequestBuilder
-                            // .add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type())
-                            // .setSource(esFieldData));
-                            // } else {
-                            // // ignore
-                            // }
+                            idVal = rs.getObject(mapping.getPk());
+                            SearchResponse response = transportClient.prepareSearch(mapping.get_index())
+                                .setTypes(mapping.get_type())
+                                .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
+                                .setSize(10000)
+                                .get();
+                            for (SearchHit hit : response.getHits()) {
+                                bulkRequestBuilder.add(
+                                    transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), hit.getId())
+                                        .setDoc(esFieldData));
+                            }
                         }
 
                         if (bulkRequestBuilder.numberOfActions() % mapping.getCommitBatch() == 0
@@ -236,7 +234,7 @@ public class ESEtlService {
                             long esBatchBegin = System.currentTimeMillis();
                             BulkResponse rp = bulkRequestBuilder.execute().actionGet();
                             if (rp.hasFailures()) {
-                                this.processFailBulkResponse(rp, /* TODO Objects.nonNull(mapping.getParent()) */ false);
+                                this.processFailBulkResponse(rp);
                             }
 
                             if (logger.isTraceEnabled()) {
@@ -257,7 +255,7 @@ public class ESEtlService {
                         long esBatchBegin = System.currentTimeMillis();
                         BulkResponse rp = bulkRequestBuilder.execute().actionGet();
                         if (rp.hasFailures()) {
-                            this.processFailBulkResponse(rp, /* TODO Objects.nonNull(mapping.getParent()) */false);
+                            this.processFailBulkResponse(rp);
                         }
                         if (logger.isTraceEnabled()) {
                             logger.trace("全量数据批量导入最后批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
