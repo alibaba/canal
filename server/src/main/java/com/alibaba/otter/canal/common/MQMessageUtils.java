@@ -417,9 +417,9 @@ public class MQMessageUtils {
                         pkNames = flatMessage.getPkNames();
                     }
 
-                    int hashCode = table.hashCode();
                     int idx = 0;
                     for (Map<String, String> row : flatMessage.getData()) {
+                        int hashCode = table.hashCode();
                         if (!hashMode.tableHash) {
                             for (String pkName : pkNames) {
                                 String value = row.get(pkName);
