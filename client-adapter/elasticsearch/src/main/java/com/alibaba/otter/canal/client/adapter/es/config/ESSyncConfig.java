@@ -17,6 +17,8 @@ public class ESSyncConfig {
 
     private String    outerAdapterKey; // adapter key
 
+    private String    groupId;         // group id
+
     private String    destination;     // canal destination
 
     private ESMapping esMapping;
@@ -50,6 +52,14 @@ public class ESSyncConfig {
 
     public void setOuterAdapterKey(String outerAdapterKey) {
         this.outerAdapterKey = outerAdapterKey;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
     public String getDestination() {

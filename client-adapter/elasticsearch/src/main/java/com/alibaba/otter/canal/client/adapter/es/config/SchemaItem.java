@@ -80,7 +80,7 @@ public class SchemaItem {
                     columnFields = new LinkedHashMap<>();
                     getSelectFields()
                         .forEach((fieldName, fieldItem) -> fieldItem.getColumnItems().forEach(columnItem -> {
-                            TableItem tableItem = getAliasTableItems().get(columnItem.getOwner());
+                            // TableItem tableItem = getAliasTableItems().get(columnItem.getOwner());
                             // if (!tableItem.isSubQuery()) {
                             List<FieldItem> fieldItems = columnFields.computeIfAbsent(
                                 columnItem.getOwner() + "." + columnItem.getColumnName(),

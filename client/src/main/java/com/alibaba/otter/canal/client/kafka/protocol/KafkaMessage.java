@@ -11,17 +11,19 @@ import org.springframework.beans.BeanUtils;
  * @Date 2018/12/17
  */
 public class KafkaMessage extends Message {
+
+    private static final long serialVersionUID = -293120358490119447L;
+
     /**
      * Kafka 消息 offset
      */
-    private long offset;
+    private long              offset;
 
-    public KafkaMessage(Message message, long offset) {
+    public KafkaMessage(Message message, long offset){
         super(message.getId());
         BeanUtils.copyProperties(message, this);
         this.offset = offset;
     }
-
 
     public long getOffset() {
         return offset;

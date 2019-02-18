@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.deployer.monitor.remote;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -18,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.otter.canal.common.utils.CommonUtils;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.deployer.CanalConstants;
 import com.google.common.base.Joiner;
@@ -101,7 +101,7 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
      * @param content 远程配置内容文本
      */
     private void overrideLocalCanalConfig(String content) {
-        try (FileWriter writer = new FileWriter(getConfPath() + "canal.properties")) {
+        try (FileWriter writer = new FileWriter(CommonUtils.getConfPath() + "canal.properties")) {
             writer.write(content);
             writer.flush();
         } catch (Exception e) {
@@ -213,26 +213,6 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
         }
     }
 
-    private static boolean deleteDir(File dirFile) {
-        if (!dirFile.exists()) {
-            return false;
-        }
-
-        if (dirFile.isFile()) {
-            return dirFile.delete();
-        } else {
-            File[] files = dirFile.listFiles();
-            if (files == null || files.length == 0) {
-                return dirFile.delete();
-            }
-            for (File file : files) {
-                deleteDir(file);
-            }
-        }
-
-        return dirFile.delete();
-    }
-
     /**
      * 监听 canal 主配置和 instance 配置变化
      *
@@ -281,53 +261,4 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
         }
     }
 
-    /**
-     * 获取conf文件夹所在路径
-     *
-     * @return 路径地址
-     */
-    private String getConfPath() {
-        String classpath = this.getClass().getResource("/").getPath();
-        String confPath = classpath + ".." + File.separator + "conf" + File.separator;
-        if (new File(confPath).exists()) {
-            return confPath;
-        } else {
-            return classpath;
-        }
-    }
-
-    /**
-     * 远程xxx/instance.properties配置监听器实现
-     */
-    private class RemoteInstanceMonitorImpl implements RemoteInstanceMonitor {
-
-        @Override
-        public void onAdd(ConfigItem configItem) {
-            this.onModify(configItem);
-        }
-
-        @Override
-        public void onModify(ConfigItem configItem) {
-            File instanceDir = new File(getConfPath() + configItem.getName());
-            if (!instanceDir.exists()) {
-                instanceDir.mkdirs();
-            }
-            try (FileWriter writer = new FileWriter(getConfPath() + configItem.getName() + "/instance.properties")) {
-                writer.write(configItem.getContent());
-                writer.flush();
-                logger.info("## Loaded remote instance config: {}/instance.properties ", configItem.getName());
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-
-        @Override
-        public void onDelete(String instanceName) {
-            File file = new File(getConfPath() + instanceName + "/");
-            if (file.exists()) {
-                deleteDir(file);
-                logger.info("## Deleted and loaded remote instance config: {} ", instanceName);
-            }
-        }
-    }
 }

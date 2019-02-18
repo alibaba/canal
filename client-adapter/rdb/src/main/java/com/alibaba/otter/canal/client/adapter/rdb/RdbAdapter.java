@@ -5,10 +5,8 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import javax.sql.DataSource;
 
@@ -27,12 +25,7 @@ import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbMirrorDbSyncService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
-import com.alibaba.otter.canal.client.adapter.support.SPI;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.*;
 
 /**
  * RDB适配器实现类
@@ -56,6 +49,8 @@ public class RdbAdapter implements OuterAdapter {
 
     private RdbConfigMonitor                        rdbConfigMonitor;
 
+    private Properties                              envProperties;
+
     public Map<String, MappingConfig> getRdbMapping() {
         return rdbMapping;
     }
@@ -74,8 +69,9 @@ public class RdbAdapter implements OuterAdapter {
      * @param configuration 外部适配器配置信息
      */
     @Override
-    public void init(OuterAdapterConfig configuration) {
-        Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load();
+    public void init(OuterAdapterConfig configuration, Properties envProperties) {
+        this.envProperties = envProperties;
+        Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
             if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
@@ -93,9 +89,15 @@ public class RdbAdapter implements OuterAdapter {
             String configName = entry.getKey();
             MappingConfig mappingConfig = entry.getValue();
             if (!mappingConfig.getDbMapping().getMirrorDb()) {
-                String key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                             + mappingConfig.getDbMapping().getDatabase() + "."
-                             + mappingConfig.getDbMapping().getTable();
+                String key;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                          + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                          + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                } else {
+                    key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                          + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                }
                 Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
                     k1 -> new ConcurrentHashMap<>());
                 configMap.put(configName, mappingConfig);
@@ -158,7 +160,7 @@ public class RdbAdapter implements OuterAdapter {
             return;
         }
         try {
-            rdbSyncService.sync(mappingConfigCache, dmls);
+            rdbSyncService.sync(mappingConfigCache, dmls, envProperties);
             rdbMirrorDbSyncService.sync(dmls);
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -2,12 +2,12 @@ package com.alibaba.otter.canal.client.adapter.hbase.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
-import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
@@ -25,17 +25,18 @@ public class MappingConfigLoader {
      *
      * @return 配置名/配置文件名--对象
      */
-    @SuppressWarnings("unchecked")
-    public static Map<String, MappingConfig> load() {
+    public static Map<String, MappingConfig> load(Properties envProperties) {
         logger.info("## Start loading hbase mapping config ... ");
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("hbase");
         configContentMap.forEach((fileName, content) -> {
-            Map configMap = new Yaml().loadAs(content, Map.class); // yml自带的对象反射不是很稳定
-            JSONObject configJson = new JSONObject(configMap);
-            MappingConfig config = configJson.toJavaObject(MappingConfig.class);
+            MappingConfig config = YmlConfigBinder
+                .bindYmlToObj(null, content, MappingConfig.class, null, envProperties);
+            if (config == null) {
+                return;
+            }
             try {
                 config.validate();
             } catch (Exception e) {

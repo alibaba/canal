@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.deployer;
 
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
@@ -162,7 +163,16 @@ public class CanalStater {
         if (!StringUtils.isEmpty(transaction)) {
             mqProperties.setTransaction(Boolean.valueOf(transaction));
         }
+
+        for (Object key : properties.keySet()) {
+            key = StringUtils.trim(key.toString());
+            if (((String) key).startsWith(CanalConstants.CANAL_MQ_PROPERTIES)) {
+                String value = CanalController.getProperty(properties, (String) key);
+                String subKey = ((String) key).substring(CanalConstants.CANAL_MQ_PROPERTIES.length() + 1);
+                mqProperties.getProperties().put(subKey, value);
+            }
+        }
+
         return mqProperties;
     }
-
 }
