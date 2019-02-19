@@ -57,6 +57,11 @@ public class SchemaItem {
         this.selectFields = selectFields;
     }
 
+    public String toSql() {
+        // todo
+        return null;
+    }
+
     public Map<String, List<TableItem>> getTableItemAliases() {
         if (tableItemAliases == null) {
             synchronized (SchemaItem.class) {
@@ -316,6 +321,7 @@ public class SchemaItem {
     public static class FieldItem {
 
         private String           fieldName;
+        private String           expr;
         private List<ColumnItem> columnItems = new ArrayList<>();
         private List<String>     owners      = new ArrayList<>();
 
@@ -328,6 +334,14 @@ public class SchemaItem {
 
         public void setFieldName(String fieldName) {
             this.fieldName = fieldName;
+        }
+
+        public String getExpr() {
+            return expr;
+        }
+
+        public void setExpr(String expr) {
+            this.expr = expr;
         }
 
         public List<ColumnItem> getColumnItems() {
