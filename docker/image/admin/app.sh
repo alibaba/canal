@@ -76,9 +76,9 @@ function checkStart() {
 
 function start_canal() {
     echo "start canal ..."
-    serverPort=`perl -le 'print $ENV{"canal.port"}'`
-    if [ -z "$serverPort" ] ; then
-        serverPort=11111
+    metricsPort=`perl -le 'print $ENV{"canal.metrics.pull.port"}'`
+    if [ -z "$metricsPort" ] ; then
+        metricsPort=11112
     fi
 
     destination=`perl -le 'print $ENV{"canal.destinations"}'`
@@ -87,13 +87,15 @@ function start_canal() {
         exit 1;
     else
         if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
-            mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+            if [ -d /home/admin/canal-server/conf/example ]; then
+                mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+            fi
         fi 
     fi
     su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh 1>>/tmp/start.log 2>&1'
     sleep 5
     #check start
-    checkStart "canal" "nc 127.0.0.1 $serverPort -w 1 -z | wc -l" 30
+    checkStart "canal" "nc 127.0.0.1 $metricsPort -w 1 -z | wc -l" 30
 }
 
 function stop_canal() {

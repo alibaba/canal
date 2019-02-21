@@ -56,6 +56,7 @@ public class ProtocolTest {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private byte[] buildData(Message message) throws IOException {
         List<ByteString> rowEntries = message.getRawEntries();
         // message size

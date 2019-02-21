@@ -96,7 +96,6 @@ public class AbstractCanalClientTest {
         if (!running) {
             return;
         }
-        connector.stopRunning();
         running = false;
         if (thread != null) {
             try {

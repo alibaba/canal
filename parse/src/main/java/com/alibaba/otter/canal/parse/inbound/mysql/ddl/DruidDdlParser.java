@@ -71,6 +71,7 @@ public class DruidDdlParser {
                         DdlResult ddlResult = new DdlResult();
                         processName(ddlResult, schmeaName, alterTable.getName(), true);
                         processName(ddlResult, schmeaName, ((SQLAlterTableRename) item).getToName(), false);
+                        ddlResult.setType(EventType.RENAME);
                         ddlResults.add(ddlResult);
                     } else if (item instanceof SQLAlterTableAddIndex) {
                         DdlResult ddlResult = new DdlResult();

@@ -19,6 +19,11 @@ public interface TableMetaTSDB {
     public boolean init(String destination);
 
     /**
+     * 销毁资源
+     */
+    public void destory();
+
+    /**
      * 获取当前的表结构
      */
     public TableMeta find(String schema, String table);

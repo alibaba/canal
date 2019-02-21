@@ -1,7 +1,5 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,13 +35,12 @@ public class MetaHistoryDAO extends MetaBaseDAO {
     /**
      * 删除interval秒之前的数据
      */
-    public Integer deleteByGmtModified(int interval) {
+    public Integer deleteByTimestamp(String destination, int interval) {
         HashMap params = Maps.newHashMapWithExpectedSize(2);
         long timestamp = System.currentTimeMillis() - interval * 1000;
-        Date date = new Date(timestamp);
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        params.put("timestamp", format.format(date));
-        return getSqlMapClientTemplate().delete("meta_history.deleteByGmtModified", params);
+        params.put("timestamp", timestamp);
+        params.put("destination", destination);
+        return getSqlMapClientTemplate().delete("meta_history.deleteByTimestamp", params);
     }
 
     protected void initDao() throws Exception {

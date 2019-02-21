@@ -1,0 +1,21 @@
+{
+  "_doc": {
+    "properties": {
+      "_name": {
+        "type": "text"
+      },
+      "_role_id": {
+        "type": "long"
+      },
+      "_role_name": {
+        "type": "text"
+      },
+      "_labels": {
+        "type": "text"
+      },
+      "_c_time": {
+        "type": "date"
+      }
+    }
+  }
+}

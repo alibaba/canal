@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
@@ -32,6 +33,7 @@ import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
@@ -51,20 +53,24 @@ import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
  */
 public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implements MultiStageCoprocessor {
 
-    private static final int             maxFullTimes = 10;
-    private LogEventConvert              logEventConvert;
-    private EventTransactionBuffer       transactionBuffer;
-    private ErosaConnection              connection;
+    private static final int                  maxFullTimes = 10;
+    private LogEventConvert                   logEventConvert;
+    private EventTransactionBuffer            transactionBuffer;
+    private ErosaConnection                   connection;
 
-    private int                          parserThreadCount;
-    private int                          ringBufferSize;
-    private RingBuffer<MessageEvent>     disruptorMsgBuffer;
-    private ExecutorService              parserExecutor;
-    private ExecutorService              stageExecutor;
-    private String                       destination;
-    private volatile CanalParseException exception;
-    private AtomicLong                   eventsPublishBlockingTime;
-    private GTIDSet                      gtidSet;
+    private int                               parserThreadCount;
+    private int                               ringBufferSize;
+    private RingBuffer<MessageEvent>          disruptorMsgBuffer;
+    private ExecutorService                   parserExecutor;
+    private ExecutorService                   stageExecutor;
+    private String                            destination;
+    private volatile CanalParseException      exception;
+    private AtomicLong                        eventsPublishBlockingTime;
+    private GTIDSet                           gtidSet;
+    private WorkerPool<MessageEvent>          workerPool;
+    private BatchEventProcessor<MessageEvent> simpleParserStage;
+    private BatchEventProcessor<MessageEvent> sinkStoreStage;
+    private LogContext                        logContext;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination){
@@ -91,9 +97,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         SequenceBarrier sequenceBarrier = disruptorMsgBuffer.newBarrier();
         ExceptionHandler exceptionHandler = new SimpleFatalExceptionHandler();
         // stage 2
-        BatchEventProcessor<MessageEvent> simpleParserStage = new BatchEventProcessor<MessageEvent>(disruptorMsgBuffer,
+        this.logContext = new LogContext();
+        simpleParserStage = new BatchEventProcessor<MessageEvent>(disruptorMsgBuffer,
             sequenceBarrier,
-            new SimpleParserStage());
+            new SimpleParserStage(logContext));
         simpleParserStage.setExceptionHandler(exceptionHandler);
         disruptorMsgBuffer.addGatingSequences(simpleParserStage.getSequence());
 
@@ -103,7 +110,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         for (int i = 0; i < parserThreadCount; i++) {
             workHandlers[i] = new DmlParserStage();
         }
-        WorkerPool<MessageEvent> workerPool = new WorkerPool<MessageEvent>(disruptorMsgBuffer,
+        workerPool = new WorkerPool<MessageEvent>(disruptorMsgBuffer,
             dmlParserSequenceBarrier,
             exceptionHandler,
             workHandlers);
@@ -112,7 +119,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         // stage 4
         SequenceBarrier sinkSequenceBarrier = disruptorMsgBuffer.newBarrier(sequence);
-        BatchEventProcessor<MessageEvent> sinkStoreStage = new BatchEventProcessor<MessageEvent>(disruptorMsgBuffer,
+        sinkStoreStage = new BatchEventProcessor<MessageEvent>(disruptorMsgBuffer,
             sinkSequenceBarrier,
             new SinkStoreStage());
         sinkStoreStage.setExceptionHandler(exceptionHandler);
@@ -124,16 +131,40 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         workerPool.start(parserExecutor);
     }
 
+    public void setBinlogChecksum(int binlogChecksum) {
+        if (binlogChecksum != LogEvent.BINLOG_CHECKSUM_ALG_OFF) {
+            logContext.setFormatDescription(new FormatDescriptionLogEvent(4, binlogChecksum));
+        }
+    }
+
     @Override
     public void stop() {
+        // fix bug #968，对于pool与
+        workerPool.halt();
+        simpleParserStage.halt();
+        sinkStoreStage.halt();
         try {
             parserExecutor.shutdownNow();
+            while (!parserExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                if (parserExecutor.isShutdown() || parserExecutor.isTerminated()) {
+                    break;
+                }
+
+                parserExecutor.shutdownNow();
+            }
         } catch (Throwable e) {
             // ignore
         }
 
         try {
             stageExecutor.shutdownNow();
+            while (!stageExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                if (stageExecutor.isShutdown() || stageExecutor.isTerminated()) {
+                    break;
+                }
+
+                stageExecutor.shutdownNow();
+            }
         } catch (Throwable e) {
             // ignore
         }
@@ -212,23 +243,14 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     }
 
-    @Override
-    public void reset() {
-        if (isStart()) {
-            stop();
-        }
-
-        start();
-    }
-
     private class SimpleParserStage implements EventHandler<MessageEvent>, LifecycleAware {
 
         private LogDecoder decoder;
         private LogContext context;
 
-        public SimpleParserStage(){
+        public SimpleParserStage(LogContext context){
             decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
-            context = new LogContext();
+            this.context = context;
             if (gtidSet != null) {
                 context.setGtidSet(gtidSet);
             }
@@ -253,6 +275,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                         needDmlParse = true;
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
+                    case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
                         needDmlParse = true;
@@ -455,4 +478,5 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     public void setGtidSet(GTIDSet gtidSet) {
         this.gtidSet = gtidSet;
     }
+
 }

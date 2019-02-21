@@ -88,8 +88,9 @@ public class BioSocketChannel implements SocketChannel {
             }
         }
         if (remain > 0 && accTimeout >= timeout) {
-            throw new SocketTimeoutException("Timeout occurred, failed to read " + readSize + " bytes in " + timeout
-                                             + " milliseconds.");
+            throw new SocketTimeoutException("Timeout occurred, failed to read total " + readSize + " bytes in "
+                                             + timeout + " milliseconds, actual read only " + (readSize - remain)
+                                             + " bytes");
         }
         return data;
     }
@@ -120,8 +121,8 @@ public class BioSocketChannel implements SocketChannel {
         }
 
         if (n < len && accTimeout >= timeout) {
-            throw new SocketTimeoutException("Timeout occurred, failed to read " + len + " bytes in " + timeout
-                                             + " milliseconds.");
+            throw new SocketTimeoutException("Timeout occurred, failed to read total " + len + " bytes in " + timeout
+                                             + " milliseconds, actual read only " + n + " bytes");
         }
     }
 

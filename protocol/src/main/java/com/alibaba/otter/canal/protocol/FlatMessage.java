@@ -1,10 +1,10 @@
 package com.alibaba.otter.canal.protocol;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
-import com.google.common.collect.Table;
-import com.google.protobuf.ByteString;
+import com.google.common.collect.Lists;
 
 /**
  * @author machengyuan 2018-9-13 下午10:31:14
@@ -13,12 +13,15 @@ import com.google.protobuf.ByteString;
 public class FlatMessage implements Serializable {
 
     private static final long         serialVersionUID = -3386650678735860050L;
-
     private long                      id;
     private String                    database;
     private String                    table;
+    private List<String>              pkNames;
     private Boolean                   isDdl;
     private String                    type;
+    // binlog executeTime
+    private Long                      es;
+    // dml build timeStamp
     private Long                      ts;
     private String                    sql;
     private Map<String, Integer>      sqlType;
@@ -55,6 +58,21 @@ public class FlatMessage implements Serializable {
 
     public void setTable(String table) {
         this.table = table;
+    }
+
+    public List<String> getPkNames() {
+        return pkNames;
+    }
+
+    public void addPkName(String pkName) {
+        if (this.pkNames == null) {
+            this.pkNames = Lists.newArrayList();
+        }
+        this.pkNames.add(pkName);
+    }
+
+    public void setPkNames(List<String> pkNames) {
+        this.pkNames = pkNames;
     }
 
     public Boolean getIsDdl() {
@@ -121,166 +139,18 @@ public class FlatMessage implements Serializable {
         this.old = old;
     }
 
-    public static List<FlatMessage> messageConverter(Message message) {
-        try {
-            if (message == null) {
-                return null;
-            }
-
-            List<FlatMessage> flatMessages = new ArrayList<>();
-
-            List<ByteString> rawEntries = message.getRawEntries();
-
-            for (ByteString byteString : rawEntries) {
-                CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(byteString);
-                if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
-                    || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
-                    continue;
-                }
-
-                CanalEntry.RowChange rowChange;
-                try {
-                    rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                } catch (Exception e) {
-                    throw new RuntimeException(
-                        "ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
-                        e);
-                }
-
-                CanalEntry.EventType eventType = rowChange.getEventType();
-
-                FlatMessage flatMessage = new FlatMessage(message.getId());
-                flatMessages.add(flatMessage);
-                flatMessage.setDatabase(entry.getHeader().getSchemaName());
-                flatMessage.setTable(entry.getHeader().getTableName());
-                flatMessage.setIsDdl(rowChange.getIsDdl());
-                flatMessage.setType(eventType.toString());
-                flatMessage.setTs(System.currentTimeMillis());
-                flatMessage.setSql(rowChange.getSql());
-
-                if (!rowChange.getIsDdl()) {
-                    Map<String, Integer> sqlType = new LinkedHashMap<>();
-                    Map<String, String> mysqlType = new LinkedHashMap<>();
-                    List<Map<String, String>> data = new ArrayList<>();
-                    List<Map<String, String>> old = new ArrayList<>();
-
-                    Set<String> updateSet = new HashSet<>();
-                    for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-                        if (eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE
-                            && eventType != CanalEntry.EventType.DELETE) {
-                            continue;
-                        }
-
-                        Map<String, String> row = new LinkedHashMap<>();
-                        List<CanalEntry.Column> columns;
-
-                        if (eventType == CanalEntry.EventType.DELETE) {
-                            columns = rowData.getBeforeColumnsList();
-                        } else {
-                            columns = rowData.getAfterColumnsList();
-                        }
-
-                        for (CanalEntry.Column column : columns) {
-                            sqlType.put(column.getName(), column.getSqlType());
-                            mysqlType.put(column.getName(), column.getMysqlType());
-                            row.put(column.getName(), column.getValue());
-                            // 获取update为true的字段
-                            if (column.getUpdated()) {
-                                updateSet.add(column.getName());
-                            }
-                        }
-                        if (!row.isEmpty()) {
-                            data.add(row);
-                        }
-
-                        if (eventType == CanalEntry.EventType.UPDATE) {
-                            Map<String, String> rowOld = new LinkedHashMap<>();
-                            for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
-                                if (updateSet.contains(column.getName())) {
-                                    rowOld.put(column.getName(), column.getValue());
-                                }
-                            }
-                            // update操作将记录修改前的值
-                            if (!rowOld.isEmpty()) {
-                                old.add(rowOld);
-                            }
-                        }
-                    }
-                    if (!sqlType.isEmpty()) {
-                        flatMessage.setSqlType(sqlType);
-                    }
-                    if (!mysqlType.isEmpty()) {
-                        flatMessage.setMysqlType(mysqlType);
-                    }
-                    if (!data.isEmpty()) {
-                        flatMessage.setData(data);
-                    }
-                    if (!old.isEmpty()) {
-                        flatMessage.setOld(old);
-                    }
-                }
-            }
-            return flatMessages;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public Long getEs() {
+        return es;
     }
 
-    public static FlatMessage[] messagePartition(FlatMessage flatMessage, Integer partitionsNum,
-                                                 Table<String, String, String> pkHashConfig) {
-        FlatMessage[] partitionMessages = new FlatMessage[partitionsNum];
-
-        String pk = pkHashConfig.get(flatMessage.getDatabase(), flatMessage.getTable());
-        if (pk == null || flatMessage.getIsDdl()) {
-            partitionMessages[0] = flatMessage;
-        } else {
-            if (flatMessage.getData() != null) {
-                int idx = 0;
-                for (Map<String, String> row : flatMessage.getData()) {
-                    String value = row.get(pk);
-                    if (value == null) {
-                        value = "";
-                    }
-                    int hash = value.hashCode();
-                    int pkHash = Math.abs(hash) % partitionsNum;
-
-                    FlatMessage flatMessageTmp = partitionMessages[pkHash];
-                    if (flatMessageTmp == null) {
-                        flatMessageTmp = new FlatMessage(flatMessage.getId());
-                        partitionMessages[pkHash] = flatMessageTmp;
-                        flatMessageTmp.setDatabase(flatMessage.getDatabase());
-                        flatMessageTmp.setTable(flatMessage.getTable());
-                        flatMessageTmp.setIsDdl(flatMessage.getIsDdl());
-                        flatMessageTmp.setType(flatMessage.getType());
-                        flatMessageTmp.setSql(flatMessage.getSql());
-                        flatMessageTmp.setSqlType(flatMessage.getSqlType());
-                        flatMessageTmp.setMysqlType(flatMessage.getMysqlType());
-                    }
-                    List<Map<String, String>> data = flatMessageTmp.getData();
-                    if (data == null) {
-                        data = new ArrayList<>();
-                        flatMessageTmp.setData(data);
-                    }
-                    data.add(row);
-                    if (flatMessage.getOld() != null && !flatMessage.getOld().isEmpty()) {
-                        List<Map<String, String>> old = flatMessageTmp.getOld();
-                        if (old == null) {
-                            old = new ArrayList<>();
-                            flatMessageTmp.setOld(old);
-                        }
-                        old.add(flatMessage.getOld().get(idx));
-                    }
-                    idx++;
-                }
-            }
-        }
-        return partitionMessages;
+    public void setEs(Long es) {
+        this.es = es;
     }
 
     @Override
     public String toString() {
-        return "FlatMessage{" + "id=" + id + ", database='" + database + '\'' + ", table='" + table + '\'' + ", isDdl="
-               + isDdl + ", type='" + type + '\'' + ", ts=" + ts + ", sql='" + sql + '\'' + ", sqlType=" + sqlType
-               + ", mysqlType=" + mysqlType + ", data=" + data + ", old=" + old + '}';
+        return "FlatMessage [id=" + id + ", database=" + database + ", table=" + table + ", isDdl=" + isDdl + ", type="
+               + type + ", es=" + es + ", ts=" + ts + ", sql=" + sql + ", sqlType=" + sqlType + ", mysqlType="
+               + mysqlType + ", data=" + data + ", old=" + old + "]";
     }
 }

@@ -18,13 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.CanalConnector;
+import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.client.impl.running.ClientRunningData;
 import com.alibaba.otter.canal.client.impl.running.ClientRunningListener;
 import com.alibaba.otter.canal.client.impl.running.ClientRunningMonitor;
 import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
-import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalPacket.Ack;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAck;
 import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
@@ -32,7 +32,6 @@ import com.alibaba.otter.canal.protocol.CanalPacket.ClientRollback;
 import com.alibaba.otter.canal.protocol.CanalPacket.Compression;
 import com.alibaba.otter.canal.protocol.CanalPacket.Get;
 import com.alibaba.otter.canal.protocol.CanalPacket.Handshake;
-import com.alibaba.otter.canal.protocol.CanalPacket.Messages;
 import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
@@ -134,7 +133,7 @@ public class SimpleCanalConnector implements CanalConnector {
                 runningMonitor.stop();
             }
         } else {
-            doDisconnnect();
+            doDisconnect();
         }
     }
 
@@ -180,8 +179,8 @@ public class SimpleCanalConnector implements CanalConnector {
 
             Ack ackBody = Ack.parseFrom(ack.getBody());
             if (ackBody.getErrorCode() > 0) {
-                throw new CanalClientException(
-                    "something goes wrong when doing authentication: " + ackBody.getErrorMessage());
+                throw new CanalClientException("something goes wrong when doing authentication: "
+                                               + ackBody.getErrorMessage());
             }
 
             connected = true;
@@ -191,7 +190,7 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
-    private void doDisconnnect() throws CanalClientException {
+    private void doDisconnect() throws CanalClientException {
         if (readableChannel != null) {
             quietlyClose(readableChannel);
             readableChannel = null;
@@ -320,34 +319,7 @@ public class SimpleCanalConnector implements CanalConnector {
 
     private Message receiveMessages() throws IOException {
         byte[] data = readNextPacket();
-        Packet p = Packet.parseFrom(data);
-        switch (p.getType()) {
-            case MESSAGES: {
-                if (!p.getCompression().equals(Compression.NONE)
-                    && !p.getCompression().equals(Compression.COMPRESSIONCOMPATIBLEPROTO2)) {
-                    throw new CanalClientException("compression is not supported in this connector");
-                }
-
-                Messages messages = Messages.parseFrom(p.getBody());
-                Message result = new Message(messages.getBatchId());
-                if (lazyParseEntry) {
-                    // byteString
-                    result.setRawEntries(messages.getMessagesList());
-                } else {
-                    for (ByteString byteString : messages.getMessagesList()) {
-                        result.addEntry(Entry.parseFrom(byteString));
-                    }
-                }
-                return result;
-            }
-            case ACK: {
-                Ack ack = Ack.parseFrom(p.getBody());
-                throw new CanalClientException("something goes wrong with reason: " + ack.getErrorMessage());
-            }
-            default: {
-                throw new CanalClientException("unexpected packet type: " + p.getType());
-            }
-        }
+        return CanalMessageDeserializer.deserializer(data, lazyParseEntry);
     }
 
     public void ack(long batchId) throws CanalClientException {
@@ -361,8 +333,11 @@ public class SimpleCanalConnector implements CanalConnector {
             .setBatchId(batchId)
             .build();
         try {
-            writeWithHeader(
-                Packet.newBuilder().setType(PacketType.CLIENTACK).setBody(ca.toByteString()).build().toByteArray());
+            writeWithHeader(Packet.newBuilder()
+                .setType(PacketType.CLIENTACK)
+                .setBody(ca.toByteString())
+                .build()
+                .toByteArray());
         } catch (IOException e) {
             throw new CanalClientException(e);
         }
@@ -459,7 +434,7 @@ public class SimpleCanalConnector implements CanalConnector {
 
                 public void processActiveExit() {
                     mutex.set(false);
-                    doDisconnnect();
+                    doDisconnect();
                 }
 
             });

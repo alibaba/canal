@@ -1,25 +1,31 @@
 package com.alibaba.otter.canal.client.adapter.hbase;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-import com.alibaba.otter.canal.protocol.FlatMessage;
+import javax.sql.DataSource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.CanalOuterAdapter;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfigLoader;
+import com.alibaba.otter.canal.client.adapter.hbase.monitor.HbaseConfigMonitor;
+import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
-import com.alibaba.otter.canal.client.adapter.support.CanalOuterAdapterConfiguration;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.MessageUtil;
-import com.alibaba.otter.canal.client.adapter.support.SPI;
-import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
+import com.alibaba.otter.canal.client.adapter.support.*;
 
 /**
  * HBase外部适配器
@@ -28,83 +34,202 @@ import com.alibaba.otter.canal.protocol.Message;
  * @version 1.0.0
  */
 @SPI("hbase")
-public class HbaseAdapter implements CanalOuterAdapter {
+public class HbaseAdapter implements OuterAdapter {
 
-    private static volatile Map<String, MappingConfig> mappingConfigCache = null;
+    private static Logger                           logger             = LoggerFactory.getLogger(HbaseAdapter.class);
 
-    private Connection                                 conn;
-    private HbaseSyncService                           hbaseSyncService;
+    private Map<String, MappingConfig>              hbaseMapping       = new ConcurrentHashMap<>();                  // 文件名对应配置
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                  // 库名-表名对应配置
+
+    private HbaseSyncService                        hbaseSyncService;
+    private HbaseTemplate                           hbaseTemplate;
+
+    private HbaseConfigMonitor                      configMonitor;
+
+    private Properties                              envProperties;
+
+    public Map<String, MappingConfig> getHbaseMapping() {
+        return hbaseMapping;
+    }
+
+    public Map<String, Map<String, MappingConfig>> getMappingConfigCache() {
+        return mappingConfigCache;
+    }
 
     @Override
-    public void init(CanalOuterAdapterConfiguration configuration) {
+    public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
-            if (mappingConfigCache == null) {
-                synchronized (MappingConfig.class) {
-                    if (mappingConfigCache == null) {
-                        Map<String, MappingConfig> hbaseMapping = MappingConfigLoader.load();
-                        mappingConfigCache = new HashMap<>();
-                        for (MappingConfig mappingConfig : hbaseMapping.values()) {
-                            mappingConfigCache.put(mappingConfig.getHbaseOrm().getDatabase() + "-"
-                                                   + mappingConfig.getHbaseOrm().getTable(),
-                                mappingConfig);
-                        }
-                    }
+            this.envProperties = envProperties;
+            Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load(envProperties);
+            // 过滤不匹配的key的配置
+            hbaseMappingTmp.forEach((key, mappingConfig) -> {
+                if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
+                    || (mappingConfig.getOuterAdapterKey() != null
+                        && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
+                    hbaseMapping.put(key, mappingConfig);
                 }
+            });
+            for (Map.Entry<String, MappingConfig> entry : hbaseMapping.entrySet()) {
+                String configName = entry.getKey();
+                MappingConfig mappingConfig = entry.getValue();
+                String k;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                        + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                        + mappingConfig.getHbaseMapping().getDatabase() + "-"
+                        + mappingConfig.getHbaseMapping().getTable();
+                } else {
+                    k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                        + mappingConfig.getHbaseMapping().getDatabase() + "-"
+                        + mappingConfig.getHbaseMapping().getTable();
+                }
+                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
+                    k1 -> new ConcurrentHashMap<>());
+                configMap.put(configName, mappingConfig);
             }
 
-            String hosts = configuration.getZkHosts();
-            if (StringUtils.isEmpty(hosts)) {
-                hosts = configuration.getHosts();
-            }
-            if (StringUtils.isEmpty(hosts)) {
-                throw new RuntimeException("Empty zookeeper hosts");
-            }
-            String[] zkHosts = StringUtils.split(hosts, ",");
-            int zkPort = 0;
-            StringBuilder hostsWithoutPort = new StringBuilder();
-            for (String host : zkHosts) {
-                int i = host.indexOf(":");
-                hostsWithoutPort.append(host, 0, i);
-                hostsWithoutPort.append(",");
-                if (zkPort == 0) zkPort = Integer.parseInt(host.substring(i + 1));
-            }
-            hostsWithoutPort.deleteCharAt(hostsWithoutPort.length() - 1);
-
-            String znode = configuration.getProperties().getProperty("znodeParent");
-            if (StringUtils.isEmpty(znode)) {
-                znode = "/hbase";
-            }
+            Map<String, String> properties = configuration.getProperties();
 
             Configuration hbaseConfig = HBaseConfiguration.create();
-            hbaseConfig.set("hbase.zookeeper.quorum", hostsWithoutPort.toString());
-            hbaseConfig.set("hbase.zookeeper.property.clientPort", Integer.toString(zkPort));
-            hbaseConfig.set("zookeeper.znode.parent", znode);
-            conn = ConnectionFactory.createConnection(hbaseConfig);
-            hbaseSyncService = new HbaseSyncService(conn);
+            properties.forEach(hbaseConfig::set);
+            hbaseTemplate = new HbaseTemplate(hbaseConfig);
+            hbaseSyncService = new HbaseSyncService(hbaseTemplate);
+
+            configMonitor = new HbaseConfigMonitor();
+            configMonitor.init(this);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public void writeOut(Dml dml) {
+    public void sync(List<Dml> dmls) {
+        if (dmls == null || dmls.isEmpty()) {
+            return;
+        }
+        for (Dml dml : dmls) {
+            sync(dml);
+        }
+    }
+
+    public void sync(Dml dml) {
         if (dml == null) {
             return;
         }
+        String destination = StringUtils.trimToEmpty(dml.getDestination());
+        String groupId = StringUtils.trimToEmpty(dml.getGroupId());
         String database = dml.getDatabase();
         String table = dml.getTable();
-        MappingConfig config = mappingConfigCache.get(database + "-" + table);
-        hbaseSyncService.sync(config, dml);
+        Map<String, MappingConfig> configMap;
+        if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+            configMap = mappingConfigCache.get(destination + "-" + groupId + "_" + database + "-" + table);
+        } else {
+            configMap = mappingConfigCache.get(destination + "_" + database + "-" + table);
+        }
+        if (configMap != null) {
+            List<MappingConfig> configs = new ArrayList<>();
+            configMap.values().forEach(config -> {
+                if (StringUtils.isNotEmpty(config.getGroupId())) {
+                    if (config.getGroupId().equals(dml.getGroupId())) {
+                        configs.add(config);
+                    }
+                } else {
+                    configs.add(config);
+                }
+            });
+            if (!configs.isEmpty()) {
+                configs.forEach(config -> hbaseSyncService.sync(config, dml));
+            }
+        }
+    }
+
+    @Override
+    public EtlResult etl(String task, List<String> params) {
+        EtlResult etlResult = new EtlResult();
+        MappingConfig config = hbaseMapping.get(task);
+        if (config != null) {
+            DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+            if (dataSource != null) {
+                return HbaseEtlService.importData(dataSource, hbaseTemplate, config, params);
+            } else {
+                etlResult.setSucceeded(false);
+                etlResult.setErrorMessage("DataSource not found");
+                return etlResult;
+            }
+        } else {
+            StringBuilder resultMsg = new StringBuilder();
+            boolean resSucc = true;
+            // ds不为空说明传入的是datasourceKey
+            for (MappingConfig configTmp : hbaseMapping.values()) {
+                // 取所有的destination为task的配置
+                if (configTmp.getDestination().equals(task)) {
+                    DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(configTmp.getDataSourceKey());
+                    if (dataSource == null) {
+                        continue;
+                    }
+                    EtlResult etlRes = HbaseEtlService.importData(dataSource, hbaseTemplate, configTmp, params);
+                    if (!etlRes.getSucceeded()) {
+                        resSucc = false;
+                        resultMsg.append(etlRes.getErrorMessage()).append("\n");
+                    } else {
+                        resultMsg.append(etlRes.getResultMessage()).append("\n");
+                    }
+                }
+            }
+            if (resultMsg.length() > 0) {
+                etlResult.setSucceeded(resSucc);
+                if (resSucc) {
+                    etlResult.setResultMessage(resultMsg.toString());
+                } else {
+                    etlResult.setErrorMessage(resultMsg.toString());
+                }
+                return etlResult;
+            }
+        }
+        etlResult.setSucceeded(false);
+        etlResult.setErrorMessage("Task not found");
+        return etlResult;
+    }
+
+    @Override
+    public Map<String, Object> count(String task) {
+        MappingConfig config = hbaseMapping.get(task);
+        String hbaseTable = config.getHbaseMapping().getHbaseTable();
+        long rowCount = 0L;
+        try {
+            HTable table = (HTable) hbaseTemplate.getConnection().getTable(TableName.valueOf(hbaseTable));
+            Scan scan = new Scan();
+            scan.setFilter(new FirstKeyOnlyFilter());
+            ResultScanner resultScanner = table.getScanner(scan);
+            for (Result result : resultScanner) {
+                rowCount += result.size();
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("hbaseTable", hbaseTable);
+        res.put("count", rowCount);
+        return res;
     }
 
     @Override
     public void destroy() {
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (configMonitor != null) {
+            configMonitor.destroy();
         }
+        try {
+            hbaseTemplate.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String getDestination(String task) {
+        MappingConfig config = hbaseMapping.get(task);
+        if (config != null && config.getHbaseMapping() != null) {
+            return config.getDestination();
+        }
+        return null;
     }
 }

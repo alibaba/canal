@@ -169,7 +169,8 @@ public class PhTypeUtil {
 
     private static int encodeInt(int v, byte[] b, int o) {
         checkForSufficientLength(b, o, Bytes.SIZEOF_INT);
-        b[o + 0] = (byte) ((v >> 24) ^ 0x80); // Flip sign bit so that INTEGER is binary comparable
+        b[o + 0] = (byte) ((v >> 24) ^ 0x80); // Flip sign bit so that INTEGER
+                                              // is binary comparable
         b[o + 1] = (byte) (v >> 16);
         b[o + 2] = (byte) (v >> 8);
         b[o + 3] = (byte) v;
@@ -209,7 +210,8 @@ public class PhTypeUtil {
 
     private static int encodeLong(long v, byte[] b, int o) {
         checkForSufficientLength(b, o, Bytes.SIZEOF_LONG);
-        b[o + 0] = (byte) ((v >> 56) ^ 0x80); // Flip sign bit so that INTEGER is binary comparable
+        b[o + 0] = (byte) ((v >> 56) ^ 0x80); // Flip sign bit so that INTEGER
+                                              // is binary comparable
         b[o + 1] = (byte) (v >> 48);
         b[o + 2] = (byte) (v >> 40);
         b[o + 3] = (byte) (v >> 32);
@@ -255,7 +257,8 @@ public class PhTypeUtil {
 
     private static int encodeShort(short v, byte[] b, int o) {
         checkForSufficientLength(b, o, Bytes.SIZEOF_SHORT);
-        b[o + 0] = (byte) ((v >> 8) ^ 0x80); // Flip sign bit so that Short is binary comparable
+        b[o + 0] = (byte) ((v >> 8) ^ 0x80); // Flip sign bit so that Short is
+                                             // binary comparable
         b[o + 1] = (byte) v;
         return Bytes.SIZEOF_SHORT;
     }
@@ -287,7 +290,8 @@ public class PhTypeUtil {
 
     private static int encodeByte(byte v, byte[] b, int o) {
         checkForSufficientLength(b, o, Bytes.SIZEOF_BYTE);
-        b[o] = (byte) (v ^ 0x80); // Flip sign bit so that Short is binary comparable
+        b[o] = (byte) (v ^ 0x80); // Flip sign bit so that Short is binary
+                                  // comparable
         return Bytes.SIZEOF_BYTE;
     }
 
@@ -546,7 +550,8 @@ public class PhTypeUtil {
             multiplyBy = 10;
             divideBy = BigInteger.TEN;
         }
-        // Normalize the scale based on what is necessary to end up with a base 100
+        // Normalize the scale based on what is necessary to end up with a base
+        // 100
         // decimal (i.e. 10.123e3)
         int digitOffset;
         BigInteger compareAgainst;
@@ -564,7 +569,8 @@ public class PhTypeUtil {
             if (length <= MAX_BIG_DECIMAL_BYTES) {
                 result[--index] = NEG_TERMINAL_BYTE;
             } else {
-                // Adjust length and offset down because we don't have enough room
+                // Adjust length and offset down because we don't have enough
+                // room
                 length = MAX_BIG_DECIMAL_BYTES;
                 index = offset + length;
             }
@@ -593,8 +599,8 @@ public class PhTypeUtil {
 
     private static void checkForSufficientLength(byte[] b, int offset, int requiredLength) {
         if (b.length < offset + requiredLength) {
-            throw new RuntimeException(
-                "Expected length of at least " + requiredLength + " bytes, but had " + (b.length - offset));
+            throw new RuntimeException("Expected length of at least " + requiredLength + " bytes, but had "
+                                       + (b.length - offset));
         }
     }
 

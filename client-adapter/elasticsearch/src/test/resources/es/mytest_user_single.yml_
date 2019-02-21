@@ -1,0 +1,8 @@
+dataSourceKey: defaultDS
+destination: example
+esMapping:
+  _index: mytest_user
+  _type: _doc
+  _id: _id
+  sql: "select a.id as _id, a.name as _name, a.role_id as _role_id, a.c_time as _c_time from user a"
+  commitBatch: 3000

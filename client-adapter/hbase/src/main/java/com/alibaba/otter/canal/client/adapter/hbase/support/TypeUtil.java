@@ -21,29 +21,30 @@ public class TypeUtil {
             return null;
         }
         byte[] bytes;
-        if (obj instanceof String) {
+        Class<?> clazz = obj.getClass();
+        if (clazz == String.class) {
             bytes = Bytes.toBytes((String) obj);
-        } else if (obj instanceof Integer) {
+        } else if (clazz == Integer.class || clazz == int.class) {
             bytes = Bytes.toBytes((Integer) obj);
-        } else if (obj instanceof Long) {
+        } else if (clazz == Long.class || clazz == long.class) {
             bytes = Bytes.toBytes((Long) obj);
-        } else if (obj instanceof Short) {
+        } else if (clazz == Short.class || clazz == short.class) {
             bytes = Bytes.toBytes((Short) obj);
-        } else if (obj instanceof Boolean) {
+        } else if (clazz == Boolean.class || clazz == boolean.class) {
             bytes = Bytes.toBytes((Boolean) obj);
-        } else if (obj instanceof Float) {
+        } else if (clazz == Float.class || clazz == float.class) {
             bytes = Bytes.toBytes((Float) obj);
-        } else if (obj instanceof Double) {
+        } else if (clazz == Double.class || clazz == double.class) {
             bytes = Bytes.toBytes((Double) obj);
-        } else if (obj instanceof BigDecimal) {
-            bytes = Bytes.toBytes((BigDecimal) obj);
-        } else if (obj instanceof BigInteger) {
-            bytes = Bytes.toBytes(((BigInteger) obj).longValue());
-        } else if (obj instanceof Date) {
-            bytes = Bytes.toBytes(((Date) obj).getTime());
-        } else if (obj instanceof Byte) {
+        } else if (clazz == Byte.class || clazz == byte.class) {
             bytes = new byte[] { (byte) obj };
-        } else if (obj instanceof byte[]) {
+        } else if (clazz == BigDecimal.class) {
+            bytes = Bytes.toBytes((BigDecimal) obj);
+        } else if (clazz == BigInteger.class) {
+            bytes = Bytes.toBytes(((BigInteger) obj).longValue());
+        } else if (clazz == Date.class) {
+            bytes = Bytes.toBytes(((Date) obj).getTime());
+        } else if (clazz == byte[].class) {
             bytes = (byte[]) obj;
         } else {
             // 其余类型统一转换为string
@@ -92,50 +93,51 @@ public class TypeUtil {
         return b;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T toObject(byte[] bytes, Class<T> clazz) {
         if (bytes == null) {
             return null;
         }
         Object res;
-        if (String.class.isAssignableFrom(clazz)) {
+        if (String.class == clazz) {
             res = Bytes.toString(bytes);
-        } else if (Integer.class.isAssignableFrom(clazz)) {
+        } else if (Integer.class == clazz || int.class == clazz) {
             res = Bytes.toInt(bytes);
-        } else if (Long.class.isAssignableFrom(clazz)) {
+        } else if (Long.class == clazz || long.class == clazz) {
             res = Bytes.toLong(bytes);
-        } else if (Short.class.isAssignableFrom(clazz)) {
+        } else if (Short.class == clazz || short.class == clazz) {
             res = Bytes.toShort(bytes);
-        } else if (Boolean.class.isAssignableFrom(clazz)) {
+        } else if (Boolean.class == clazz || boolean.class == clazz) {
             res = Bytes.toBoolean(bytes);
-        } else if (Float.class.isAssignableFrom(clazz)) {
+        } else if (Float.class == clazz || float.class == clazz) {
             res = Bytes.toFloat(bytes);
-        } else if (Double.class.isAssignableFrom(clazz)) {
+        } else if (Double.class == clazz || double.class == clazz) {
             res = Bytes.toDouble(bytes);
-        } else if (BigDecimal.class.isAssignableFrom(clazz)) {
+        } else if (Byte.class == clazz || byte.class == clazz) {
+            res = bytes[0];
+        } else if (BigDecimal.class == clazz) {
             res = Bytes.toBigDecimal(bytes);
-        } else if (BigInteger.class.isAssignableFrom(clazz)) {
+        } else if (BigInteger.class == clazz) {
             res = Bytes.toLong(bytes);
-        } else if (java.sql.Date.class.isAssignableFrom(clazz)) {
+        } else if (java.sql.Date.class == clazz) {
             long ts = Bytes.toLong(bytes);
             res = new java.sql.Date(ts);
-        } else if (Time.class.isAssignableFrom(clazz)) {
+        } else if (Time.class == clazz) {
             long ts = Bytes.toLong(bytes);
             res = new Time(ts);
-        } else if (Timestamp.class.isAssignableFrom(clazz)) {
+        } else if (Timestamp.class == clazz) {
             long ts = Bytes.toLong(bytes);
             res = new Timestamp(ts);
-        } else if (Date.class.isAssignableFrom(clazz)) {
+        } else if (Date.class == clazz) {
             long ts = Bytes.toLong(bytes);
             res = new Date(ts);
-        } else if (Byte.class.isAssignableFrom(clazz)) {
-            res = bytes[0];
         } else {
             throw new IllegalArgumentException("mismatch class type");
         }
-        // noinspection unchecked
         return (T) res;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T toObject(byte[] bytes, Type type) {
         if (bytes == null) {
             return null;
@@ -182,7 +184,6 @@ public class TypeUtil {
         } else {
             throw new IllegalArgumentException("mismatch class type");
         }
-        // noinspection unchecked
         return (T) res;
     }
 }

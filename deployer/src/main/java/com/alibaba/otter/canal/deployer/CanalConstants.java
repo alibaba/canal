@@ -37,6 +37,22 @@ public class CanalConstants {
 
     public static final String CANAL_SOCKETCHANNEL               = ROOT + "." + "socketChannel";
 
+    public static final String CANAL_MQ_SERVERS                  = ROOT + "." + "mq.servers";
+    public static final String CANAL_MQ_RETRIES                  = ROOT + "." + "mq.retries";
+    public static final String CANAL_MQ_BATCHSIZE                = ROOT + "." + "mq.batchSize";
+    public static final String CANAL_MQ_LINGERMS                 = ROOT + "." + "mq.lingerMs";
+    public static final String CANAL_MQ_MAXREQUESTSIZE           = ROOT + "." + "mq.maxRequestSize";
+    public static final String CANAL_MQ_BUFFERMEMORY             = ROOT + "." + "mq.bufferMemory";
+    public static final String CANAL_MQ_CANALBATCHSIZE           = ROOT + "." + "mq.canalBatchSize";
+    public static final String CANAL_MQ_CANALGETTIMEOUT          = ROOT + "." + "mq.canalGetTimeout";
+    public static final String CANAL_MQ_FLATMESSAGE              = ROOT + "." + "mq.flatMessage";
+    public static final String CANAL_MQ_COMPRESSION_TYPE         = ROOT + "." + "mq.compressionType";
+    public static final String CANAL_MQ_ACKS                     = ROOT + "." + "mq.acks";
+    public static final String CANAL_MQ_TRANSACTION              = ROOT + "." + "mq.transaction";
+    public static final String CANAL_ALIYUN_ACCESSKEY            = ROOT + "." + "aliyun.accessKey";
+    public static final String CANAL_ALIYUN_SECRETKEY            = ROOT + "." + "aliyun.secretKey";
+    public static final String CANAL_MQ_PROPERTIES               = ROOT + "." + "mq.properties";
+
     public static String getInstanceModeKey(String destination) {
         return MessageFormat.format(INSTANCE_MODE_TEMPLATE, destination);
     }

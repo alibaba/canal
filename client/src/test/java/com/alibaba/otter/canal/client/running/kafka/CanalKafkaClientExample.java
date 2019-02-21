@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
-import com.alibaba.otter.canal.client.kafka.KafkaCanalConnectors;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -36,7 +35,7 @@ public class CanalKafkaClientExample {
                                                     };
 
     public CanalKafkaClientExample(String zkServers, String servers, String topic, Integer partition, String groupId){
-        connector = KafkaCanalConnectors.newKafkaConnector(servers, topic, partition, groupId, false);
+        connector = new KafkaCanalConnector(servers, topic, partition, groupId, null, false);
     }
 
     public static void main(String[] args) {
@@ -89,7 +88,6 @@ public class CanalKafkaClientExample {
         if (!running) {
             return;
         }
-        connector.stopRunning();
         running = false;
         if (thread != null) {
             try {
@@ -101,16 +99,20 @@ public class CanalKafkaClientExample {
     }
 
     private void process() {
-        while (!running)
-            ;
+        while (!running) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+
         while (running) {
             try {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
                     try {
-                        List<Message> messages = connector.getWithoutAck(1L, TimeUnit.SECONDS); // 获取message
-
+                        List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
                         if (messages == null) {
                             continue;
                         }

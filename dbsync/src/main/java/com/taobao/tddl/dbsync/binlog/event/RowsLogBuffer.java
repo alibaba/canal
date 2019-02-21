@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.taobao.tddl.dbsync.binlog.JsonConversion;
 import com.taobao.tddl.dbsync.binlog.JsonConversion.Json_Value;
+import com.taobao.tddl.dbsync.binlog.JsonDiffConversion;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
@@ -31,22 +32,33 @@ public final class RowsLogBuffer {
 
     private final LogBuffer    buffer;
     private final int          columnLen;
+    private final int          jsonColumnCount;
     private final String       charsetName;
-    // private Calendar cal;
 
     private final BitSet       nullBits;
     private int                nullBitIndex;
+
+    // Read value_options if this is AI for PARTIAL_UPDATE_ROWS_EVENT
+    private final boolean      partial;
+    private final BitSet       partialBits;
 
     private boolean            fNull;
     private int                javaType;
     private int                length;
     private Serializable       value;
 
-    public RowsLogBuffer(LogBuffer buffer, final int columnLen, String charsetName){
+    public RowsLogBuffer(LogBuffer buffer, final int columnLen, String charsetName, int jsonColumnCount, boolean partial){
         this.buffer = buffer;
         this.columnLen = columnLen;
         this.charsetName = charsetName;
+        this.partial = partial;
+        this.jsonColumnCount = jsonColumnCount;
         this.nullBits = new BitSet(columnLen);
+        this.partialBits = new BitSet(1);
+    }
+
+    public final boolean nextOneRow(BitSet columns) {
+        return nextOneRow(columns, false);
     }
 
     /**
@@ -55,18 +67,30 @@ public final class RowsLogBuffer {
      * @see mysql-5.1.60/sql/log_event.cc -
      * Rows_log_event::print_verbose_one_row
      */
-    public final boolean nextOneRow(BitSet columns) {
+    public final boolean nextOneRow(BitSet columns, boolean after) {
         final boolean hasOneRow = buffer.hasRemaining();
 
         if (hasOneRow) {
             int column = 0;
 
             for (int i = 0; i < columnLen; i++)
-                if (columns.get(i)) column++;
+                if (columns.get(i)) {
+                    column++;
+                }
 
+            if (after && partial) {
+                partialBits.clear();
+                long valueOptions = buffer.getPackedLong();
+                int PARTIAL_JSON_UPDATES = 1;
+                if ((valueOptions & PARTIAL_JSON_UPDATES) != 0) {
+                    partialBits.set(1);
+                    buffer.forward((jsonColumnCount + 7) / 8);
+                }
+            }
             nullBitIndex = 0;
             nullBits.clear();
             buffer.fillBitmap(nullBits, column);
+
         }
         return hasOneRow;
     }
@@ -77,8 +101,8 @@ public final class RowsLogBuffer {
      * @see mysql-5.1.60/sql/log_event.cc -
      * Rows_log_event::print_verbose_one_row
      */
-    public final Serializable nextValue(final int type, final int meta) {
-        return nextValue(type, meta, false);
+    public final Serializable nextValue(final String columName, final int columnIndex, final int type, final int meta) {
+        return nextValue(columName, columnIndex, type, meta, false);
     }
 
     /**
@@ -87,7 +111,8 @@ public final class RowsLogBuffer {
      * @see mysql-5.1.60/sql/log_event.cc -
      * Rows_log_event::print_verbose_one_row
      */
-    public final Serializable nextValue(final int type, final int meta, boolean isBinary) {
+    public final Serializable nextValue(final String columName, final int columnIndex, final int type, final int meta,
+                                        boolean isBinary) {
         fNull = nullBits.get(nullBitIndex++);
 
         if (fNull) {
@@ -97,7 +122,7 @@ public final class RowsLogBuffer {
             return null;
         } else {
             // Extracting field value from packed buffer.
-            return fetchValue(type, meta, isBinary);
+            return fetchValue(columName, columnIndex, type, meta, isBinary);
         }
     }
 
@@ -248,7 +273,7 @@ public final class RowsLogBuffer {
      * 
      * @see mysql-5.1.60/sql/log_event.cc - log_event_print_value
      */
-    final Serializable fetchValue(int type, final int meta, boolean isBinary) {
+    final Serializable fetchValue(String columnName, int columnIndex, int type, final int meta, boolean isBinary) {
         int len = 0;
 
         if (type == LogEvent.MYSQL_TYPE_STRING) {
@@ -367,7 +392,7 @@ public final class RowsLogBuffer {
                     // 转化为unsign long
                     switch (len) {
                         case 1:
-                            value = buffer.getInt8();
+                            value = buffer.getUint8();
                             break;
                         case 2:
                             value = buffer.getBeUint16();
@@ -610,7 +635,7 @@ public final class RowsLogBuffer {
                     // (u32 % 10000) / 100,
                     // u32 % 100);
 
-                    StringBuilder builder = new StringBuilder(12);
+                    StringBuilder builder = new StringBuilder(17);
                     if (i32 < 0) {
                         builder.append('-');
                     }
@@ -859,7 +884,7 @@ public final class RowsLogBuffer {
                     // 转化为unsign long
                     switch (len) {
                         case 1:
-                            value = buffer.getInt8();
+                            value = buffer.getUint8();
                             break;
                         case 2:
                             value = buffer.getUint16();
@@ -1041,17 +1066,34 @@ public final class RowsLogBuffer {
                     default:
                         throw new IllegalArgumentException("!! Unknown JSON packlen = " + meta);
                 }
-                if (0 == len) {
-                    // fixed issue #1 by lava, json column of zero length has no
-                    // value, value parsing should be skipped
-                    value = "";
-                } else {
+
+                if (partialBits.get(1)) {
+                    // print_json_diff
                     int position = buffer.position();
-                    Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(), buffer, len - 1, charsetName);
-                    StringBuilder builder = new StringBuilder();
-                    jsonValue.toJsonString(builder, charsetName);
+                    StringBuilder builder = JsonDiffConversion.print_json_diff(buffer,
+                        len,
+                        columnName,
+                        columnIndex,
+                        charsetName);
                     value = builder.toString();
                     buffer.position(position + len);
+                } else {
+                    if (0 == len) {
+                        // fixed issue #1 by lava, json column of zero length
+                        // has no
+                        // value, value parsing should be skipped
+                        value = "";
+                    } else {
+                        int position = buffer.position();
+                        Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(),
+                            buffer,
+                            len - 1,
+                            charsetName);
+                        StringBuilder builder = new StringBuilder();
+                        jsonValue.toJsonString(builder, charsetName);
+                        value = builder.toString();
+                        buffer.position(position + len);
+                    }
                 }
                 javaType = Types.VARCHAR;
                 length = len;
@@ -1082,10 +1124,10 @@ public final class RowsLogBuffer {
                 buffer.fillBytes(binary, 0, len);
 
                 /* Warning unsupport cloumn type */
-                logger.warn(String.format("!! Unsupport column type MYSQL_TYPE_GEOMETRY: meta=%d (%04X), len = %d",
-                    meta,
-                    meta,
-                    len));
+                // logger.warn(String.format("!! Unsupport column type MYSQL_TYPE_GEOMETRY: meta=%d (%04X), len = %d",
+                // meta,
+                // meta,
+                // len));
                 javaType = Types.BINARY;
                 value = binary;
                 length = len;
@@ -1120,7 +1162,7 @@ public final class RowsLogBuffer {
         return length;
     }
 
-    private String usecondsToStr(int frac, int meta) {
+    public static String usecondsToStr(int frac, int meta) {
         String sec = String.valueOf(frac);
         if (meta > 6) {
             throw new IllegalArgumentException("unknow useconds meta : " + meta);
@@ -1139,7 +1181,7 @@ public final class RowsLogBuffer {
         return sec.substring(0, meta);
     }
 
-    private void appendNumber4(StringBuilder builder, int d) {
+    public static void appendNumber4(StringBuilder builder, int d) {
         if (d >= 1000) {
             builder.append(digits[d / 1000])
                 .append(digits[(d / 100) % 10])
@@ -1151,7 +1193,7 @@ public final class RowsLogBuffer {
         }
     }
 
-    private void appendNumber3(StringBuilder builder, int d) {
+    public static void appendNumber3(StringBuilder builder, int d) {
         if (d >= 100) {
             builder.append(digits[d / 100]).append(digits[(d / 10) % 10]).append(digits[d % 10]);
         } else {
@@ -1160,7 +1202,7 @@ public final class RowsLogBuffer {
         }
     }
 
-    private void appendNumber2(StringBuilder builder, int d) {
+    public static void appendNumber2(StringBuilder builder, int d) {
         if (d >= 10) {
             builder.append(digits[(d / 10) % 10]).append(digits[d % 10]);
         } else {
