@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.adapter.launcher.monitor.remote;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -19,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.otter.canal.common.utils.CommonUtils;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.google.common.base.Joiner;
 import com.google.common.collect.MapMaker;
@@ -115,7 +115,7 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
      * @param content 文件内容
      */
     private void overrideLocalCanalConfig(String content) {
-        try (FileWriter writer = new FileWriter(getConfPath() + "application.yml")) {
+        try (FileWriter writer = new FileWriter(CommonUtils.getConfPath() + "application.yml")) {
             writer.write(content);
             writer.flush();
         } catch (Exception e) {
@@ -139,9 +139,7 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
     /**
      * 加载有变动的adapter配置
      */
-    @SuppressWarnings("unchecked")
     private void loadModifiedAdapterConfigs() {
-        Map<String, ConfigItem>[] res = new Map[2];
         Map<String, ConfigItem> remoteConfigStatus = new HashMap<>();
         String sql = "select id, category, name, modified_time from canal_adapter_config";
         try (Connection conn = dataSource.getConnection();
@@ -209,41 +207,6 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
         }
     }
 
-    private static boolean deleteDir(File dirFile) {
-        if (!dirFile.exists()) {
-            return false;
-        }
-
-        if (dirFile.isFile()) {
-            return dirFile.delete();
-        } else {
-            File[] files = dirFile.listFiles();
-            if (files == null || files.length == 0) {
-                return dirFile.delete();
-            }
-            for (File file : files) {
-                deleteDir(file);
-            }
-        }
-
-        return dirFile.delete();
-    }
-
-    /**
-     * 获取conf文件夹所在路径
-     *
-     * @return 路径地址
-     */
-    private String getConfPath() {
-        String classpath = this.getClass().getResource("/").getPath();
-        String confPath = classpath + "../conf/";
-        if (new File(confPath).exists()) {
-            return confPath;
-        } else {
-            return classpath;
-        }
-    }
-
     /**
      * 启动监听数据库变化
      */
@@ -278,46 +241,6 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
             dataSource.close();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-        }
-    }
-
-    private class RemoteAdapterMonitorImpl implements RemoteAdapterMonitor {
-
-        @Override
-        public void onAdd(ConfigItem configItem) {
-            this.onModify(configItem);
-        }
-
-        @Override
-        public void onModify(ConfigItem configItem) {
-            String confPath = getConfPath();
-            String category = configItem.getCategory();
-            File categoryDir = new File(confPath + category);
-            if (!categoryDir.isDirectory()) {
-                boolean mkDirs = categoryDir.mkdirs();
-                if (!mkDirs) {
-                    logger.info("## Create adapter category dir error: {}", category);
-                    return;
-                }
-            }
-            String name = configItem.getName();
-            try (FileWriter writer = new FileWriter(
-                    confPath + category + "/" + configItem.getName())) {
-                writer.write(configItem.getContent());
-                writer.flush();
-                logger.info("## Loaded remote adapter config: {}/{}", category, name);
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-
-        @Override
-        public void onDelete(String name) {
-            File file = new File(getConfPath() + name);
-            if (file.exists()) {
-                deleteDir(file);
-                logger.info("## Deleted and reloaded remote adapter config: {}", name);
-            }
         }
     }
 }

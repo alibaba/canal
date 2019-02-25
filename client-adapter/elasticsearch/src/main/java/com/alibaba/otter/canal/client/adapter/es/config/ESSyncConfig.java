@@ -17,6 +17,8 @@ public class ESSyncConfig {
 
     private String    outerAdapterKey; // adapter key
 
+    private String    groupId;         // group id
+
     private String    destination;     // canal destination
 
     private ESMapping esMapping;
@@ -28,7 +30,7 @@ public class ESSyncConfig {
         if (esMapping._type == null) {
             throw new NullPointerException("esMapping._type");
         }
-        if (esMapping._id == null && esMapping.pk == null) {
+        if (esMapping._id == null && esMapping.getPk() == null) {
             throw new NullPointerException("esMapping._id and esMapping.pk");
         }
         if (esMapping.sql == null) {
@@ -52,6 +54,14 @@ public class ESSyncConfig {
         this.outerAdapterKey = outerAdapterKey;
     }
 
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
     public String getDestination() {
         return destination;
     }
@@ -73,8 +83,9 @@ public class ESSyncConfig {
         private String              _index;
         private String              _type;
         private String              _id;
+        private boolean             upsert          = false;
         private String              pk;
-        private String              parent;
+        // private String parent;
         private String              sql;
         // 对象字段, 例: objFields:
         // - _labels: array:;
@@ -111,20 +122,20 @@ public class ESSyncConfig {
             this._id = _id;
         }
 
+        public boolean isUpsert() {
+            return upsert;
+        }
+
+        public void setUpsert(boolean upsert) {
+            this.upsert = upsert;
+        }
+
         public String getPk() {
             return pk;
         }
 
         public void setPk(String pk) {
             this.pk = pk;
-        }
-
-        public String getParent() {
-            return parent;
-        }
-
-        public void setParent(String parent) {
-            this.parent = parent;
         }
 
         public Map<String, String> getObjFields() {

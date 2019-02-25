@@ -71,7 +71,12 @@ public class ESSyncService {
                     dml.getDestination());
             }
             if (logger.isDebugEnabled()) {
-                logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                StringBuilder configIndexes = new StringBuilder();
+                esSyncConfigs
+                    .forEach(esSyncConfig -> configIndexes.append(esSyncConfig.getEsMapping().get_index()).append(" "));
+                logger.debug("DML: {} \nEffect indexes: {}",
+                    JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue),
+                    configIndexes.toString());
             }
         }
     }
@@ -92,6 +97,8 @@ public class ESSyncService {
                 update(config, dml);
             } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                 delete(config, dml);
+            } else {
+                return;
             }
 
             if (logger.isTraceEnabled()) {
@@ -329,33 +336,50 @@ public class ESSyncService {
 
             // ------是主表------
             if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
-                FieldItem idFieldItem = schemaItem.getIdFieldItem(mapping);
-                // 主键为简单字段
-                if (!idFieldItem.isMethod() && !idFieldItem.isBinaryOp()) {
-                    Object idVal = esTemplate.getValFromData(mapping,
-                        data,
-                        idFieldItem.getFieldName(),
-                        idFieldItem.getColumn().getColumnName());
+                if (mapping.get_id() != null) {
+                    FieldItem idFieldItem = schemaItem.getIdFieldItem(mapping);
+                    // 主键为简单字段
+                    if (!idFieldItem.isMethod() && !idFieldItem.isBinaryOp()) {
+                        Object idVal = esTemplate.getValFromData(mapping,
+                            data,
+                            idFieldItem.getFieldName(),
+                            idFieldItem.getColumn().getColumnName());
 
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Main table delete es index, destination:{}, table: {}, index: {}, id: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.get_index(),
-                            idVal);
-                    }
-                    boolean result = esTemplate.delete(mapping, idVal);
-                    if (!result) {
-                        logger.error("Main table delete es index error, destination:{}, table: {}, index: {}, id: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.get_index(),
-                            idVal);
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Main table delete es index, destination:{}, table: {}, index: {}, id: {}",
+                                config.getDestination(),
+                                dml.getTable(),
+                                mapping.get_index(),
+                                idVal);
+                        }
+                        esTemplate.delete(mapping, idVal, null);
+                    } else {
+                        // ------主键带函数, 查询sql获取主键删除------
+                        // FIXME 删除时反查sql为空记录, 无法获获取 id field 值
+                        mainTableDelete(config, dml, data);
                     }
                 } else {
-                    // ------主键带函数, 查询sql获取主键删除------
-                    mainTableDelete(config, dml, data);
+                    FieldItem pkFieldItem = schemaItem.getIdFieldItem(mapping);
+                    if (!pkFieldItem.isMethod() && !pkFieldItem.isBinaryOp()) {
+                        Map<String, Object> esFieldData = new LinkedHashMap<>();
+                        Object pkVal = esTemplate.getESDataFromDmlData(mapping, data, esFieldData);
+
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Main table delete es index, destination:{}, table: {}, index: {}, pk: {}",
+                                config.getDestination(),
+                                dml.getTable(),
+                                mapping.get_index(),
+                                pkVal);
+                        }
+                        esFieldData.remove(pkFieldItem.getFieldName());
+                        esFieldData.keySet().forEach(key -> esFieldData.put(key, null));
+                        esTemplate.delete(mapping, pkVal, esFieldData);
+                    } else {
+                        // ------主键带函数, 查询sql获取主键删除------
+                        mainTableDelete(config, dml, data);
+                    }
                 }
+
             }
 
             // 从表的操作
@@ -417,14 +441,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 idVal);
         }
-        boolean result = esTemplate.insert(mapping, idVal, esFieldData);
-        if (!result) {
-            logger.error("Single table insert to es index error, destination:{}, table: {}, index: {}, id: {}",
-                config.getDestination(),
-                dml.getTable(),
-                mapping.get_index(),
-                idVal);
-        }
+        esTemplate.insert(mapping, idVal, esFieldData);
     }
 
     /**
@@ -461,15 +478,7 @@ public class ESSyncService {
                             mapping.get_index(),
                             idVal);
                     }
-                    boolean result = esTemplate.insert(mapping, idVal, esFieldData);
-                    if (!result) {
-                        logger.error(
-                            "Main table insert to es index by query sql error, destination:{}, table: {}, index: {}, id: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.get_index(),
-                            idVal);
-                    }
+                    esTemplate.insert(mapping, idVal, esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -493,6 +502,15 @@ public class ESSyncService {
         }
         ESSyncUtil.sqlRS(ds, sql, rs -> {
             try {
+                Map<String, Object> esFieldData = null;
+                if (mapping.getPk() != null) {
+                    esFieldData = new LinkedHashMap<>();
+                    esTemplate.getESDataFromDmlData(mapping, data, esFieldData);
+                    esFieldData.remove(mapping.getPk());
+                    for (String key : esFieldData.keySet()) {
+                        esFieldData.put(key, null);
+                    }
+                }
                 while (rs.next()) {
                     Object idVal = esTemplate.getIdValFromRS(mapping, rs);
 
@@ -504,15 +522,7 @@ public class ESSyncService {
                             mapping.get_index(),
                             idVal);
                     }
-                    boolean result = esTemplate.delete(mapping, idVal);
-                    if (!result) {
-                        logger.error(
-                            "Main table delete to es index by query sql error, destination:{}, table: {}, index: {}, id: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.get_index(),
-                            idVal);
-                    }
+                    esTemplate.delete(mapping, idVal, esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -558,13 +568,7 @@ public class ESSyncService {
                 dml.getTable(),
                 mapping.get_index());
         }
-        boolean result = esTemplate.updateByQuery(config, paramsTmp, esFieldData);
-        if (!result) {
-            logger.error("Join table update es index by foreign key error, destination:{}, table: {}, index: {}",
-                config.getDestination(),
-                dml.getTable(),
-                mapping.get_index());
-        }
+        esTemplate.updateByQuery(config, paramsTmp, esFieldData);
     }
 
     /**
@@ -652,14 +656,7 @@ public class ESSyncService {
                             dml.getTable(),
                             mapping.get_index());
                     }
-                    boolean result = esTemplate.updateByQuery(config, paramsTmp, esFieldData);
-                    if (!result) {
-                        logger.error(
-                            "Join table update es index by query sql error, destination:{}, table: {}, index: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.get_index());
-                    }
+                    esTemplate.updateByQuery(config, paramsTmp, esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -761,14 +758,7 @@ public class ESSyncService {
                             dml.getTable(),
                             mapping.get_index());
                     }
-                    boolean result = esTemplate.updateByQuery(config, paramsTmp, esFieldData);
-                    if (!result) {
-                        logger.error(
-                            "Join table update es index by query whole sql error, destination:{}, table: {}, index: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.get_index());
-                    }
+                    esTemplate.updateByQuery(config, paramsTmp, esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -799,14 +789,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 idVal);
         }
-        boolean result = esTemplate.update(mapping, idVal, esFieldData);
-        if (!result) {
-            logger.error("Main table update to es index error, destination:{}, table: {}, index: {}, id: {}",
-                config.getDestination(),
-                dml.getTable(),
-                mapping.get_index(),
-                idVal);
-        }
+        esTemplate.update(mapping, idVal, esFieldData);
     }
 
     /**
@@ -843,20 +826,19 @@ public class ESSyncService {
                             mapping.get_index(),
                             idVal);
                     }
-                    boolean result = esTemplate.update(mapping, idVal, esFieldData);
-                    if (!result) {
-                        logger.error(
-                            "Main table update to es index by query sql error, destination:{}, table: {}, index: {}, id: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.get_index(),
-                            idVal);
-                    }
+                    esTemplate.update(mapping, idVal, esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
             return 0;
         });
+    }
+
+    /**
+     * 提交批次
+     */
+    public void commit() {
+        esTemplate.commit();
     }
 }

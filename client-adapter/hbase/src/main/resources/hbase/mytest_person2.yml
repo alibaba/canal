@@ -1,5 +1,6 @@
 dataSourceKey: defaultDS
 destination: example
+groupId: g1
 hbaseMapping:
   mode: STRING  #NATIVE   #PHOENIX
   database: mytest  # 数据库名

@@ -2,7 +2,12 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.*;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -67,8 +72,14 @@ public class JdbcTypeUtil {
         }
     }
 
+    private static boolean isText(String columnType) {
+        return "LONGTEXT".equalsIgnoreCase(columnType) || "MEDIUMTEXT".equalsIgnoreCase(columnType)
+               || "TEXT".equalsIgnoreCase(columnType) || "TINYTEXT".equalsIgnoreCase(columnType);
+    }
+
     public static Object typeConvert(String columnName, String value, int sqlType, String mysqlType) {
-        if (value == null || value.equals("")) {
+        if (value == null
+            || (value.equals("") && !(isText(mysqlType) || sqlType == Types.CHAR || sqlType == Types.VARCHAR || sqlType == Types.LONGVARCHAR))) {
             return null;
         }
 
@@ -118,10 +129,8 @@ public class JdbcTypeUtil {
                         value = value.trim().replace(" ", "T");
                         DateTime dt = new DateTime(value);
                         res = new Date(dt.toDate().getTime());
-                    } else {
-                        res = null;
+                        break;
                     }
-                    break;
                 case Types.TIME:
                     value = "T" + value;
                     DateTime dt = new DateTime(value);
@@ -132,10 +141,8 @@ public class JdbcTypeUtil {
                         value = value.trim().replace(" ", "T");
                         dt = new DateTime(value);
                         res = new Timestamp(dt.toDate().getTime());
-                    } else {
-                        res = null;
+                        break;
                     }
-                    break;
                 case Types.CLOB:
                 default:
                     res = value;

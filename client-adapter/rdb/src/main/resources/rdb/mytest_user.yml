@@ -1,11 +1,12 @@
 dataSourceKey: defaultDS
 destination: example
-outerAdapterKey: oracle1
+groupId: g1
+outerAdapterKey: mysql1
 concurrent: true
 dbMapping:
   database: mytest
   table: user
-  targetTable: mytest.tb_user
+  targetTable: mytest2.user
   targetPk:
     id: id
 #  mapAll: true
@@ -17,9 +18,10 @@ dbMapping:
     test1:
 
 
-# Mirror schema synchronize config
+## Mirror schema synchronize config
 #dataSourceKey: defaultDS
 #destination: example
+#groupId: g1
 #outerAdapterKey: mysql1
 #concurrent: true
 #dbMapping:

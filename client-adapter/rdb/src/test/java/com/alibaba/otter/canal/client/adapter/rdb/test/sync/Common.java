@@ -24,7 +24,7 @@ public class Common {
         outerAdapterConfig.setProperties(properties);
 
         RdbAdapter adapter = new RdbAdapter();
-        adapter.init(outerAdapterConfig);
+        adapter.init(outerAdapterConfig, null);
         return adapter;
     }
 }

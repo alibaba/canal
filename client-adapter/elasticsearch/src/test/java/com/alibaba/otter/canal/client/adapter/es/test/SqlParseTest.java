@@ -29,7 +29,7 @@ public class SqlParseTest {
         Assert.assertFalse(tableItem.isMain());
         Assert.assertTrue(tableItem.isSubQuery());
         // 通过字段名找 FieldItem
-        List<FieldItem> fieldItems = schemaItem.getColumnFields().get(tableItem.getAlias() + ".label".toLowerCase());
+        List<FieldItem> fieldItems = schemaItem.getColumnFields().get(tableItem.getAlias() + ".labels".toLowerCase());
         fieldItems.forEach(
             fieldItem -> Assert.assertEquals("c.labels", fieldItem.getOwner() + "." + fieldItem.getFieldName()));
 

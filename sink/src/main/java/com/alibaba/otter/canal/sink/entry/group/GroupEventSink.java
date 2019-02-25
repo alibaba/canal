@@ -51,7 +51,7 @@ public class GroupEventSink extends EntryEventSink {
             try {
                 barrier.await(event);// 进行timeline的归并调度处理
                 if (filterTransactionEntry) {
-                    return super.doSink(Arrays.asList(event));
+                    super.doSink(Arrays.asList(event));
                 } else if (i == size - 1) {
                     // 针对事务数据，只有到最后一条数据都通过后，才进行sink操作，保证原子性
                     // 同时批量sink，也要保证在最后一条数据释放状态之前写出数据，否则就有并发问题
