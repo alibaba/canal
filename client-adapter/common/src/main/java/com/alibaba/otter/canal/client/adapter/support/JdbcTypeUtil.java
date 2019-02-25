@@ -68,7 +68,13 @@ public class JdbcTypeUtil {
     }
 
     public static Object typeConvert(String columnName, String value, int sqlType, String mysqlType) {
-        if (value == null || value.equals("")) {
+        if (value == null
+        		|| (value.equals("")
+        				&& !("longtext".equals(mysqlType)
+        						|| "text".equals(mysqlType)
+        						|| sqlType == Types.CHAR
+        						|| sqlType == Types.VARCHAR
+        						|| sqlType == Types.LONGVARCHAR))) {
             return null;
         }
 
@@ -118,10 +124,8 @@ public class JdbcTypeUtil {
                         value = value.trim().replace(" ", "T");
                         DateTime dt = new DateTime(value);
                         res = new Date(dt.toDate().getTime());
-                    } else {
-                        res = null;
+  						break;
                     }
-                    break;
                 case Types.TIME:
                     value = "T" + value;
                     DateTime dt = new DateTime(value);
@@ -132,10 +136,8 @@ public class JdbcTypeUtil {
                         value = value.trim().replace(" ", "T");
                         dt = new DateTime(value);
                         res = new Timestamp(dt.toDate().getTime());
-                    } else {
-                        res = null;
+                        break;
                     }
-                    break;
                 case Types.CLOB:
                 default:
                     res = value;

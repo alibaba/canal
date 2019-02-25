@@ -200,7 +200,7 @@ public class SyncUtil {
                         DateTime dt = new DateTime(v);
                         pstmt.setDate(i, new Date(dt.toDate().getTime()));
                     } else {
-                        pstmt.setNull(i, type);
+                        pstmt.setObject(i, value);
                     }
                 } else {
                     pstmt.setNull(i, type);
@@ -232,7 +232,7 @@ public class SyncUtil {
                         DateTime dt = new DateTime(v);
                         pstmt.setTimestamp(i, new Timestamp(dt.toDate().getTime()));
                     } else {
-                        pstmt.setNull(i, type);
+                        pstmt.setObject(i, value);
                     }
                 } else {
                     pstmt.setNull(i, type);
