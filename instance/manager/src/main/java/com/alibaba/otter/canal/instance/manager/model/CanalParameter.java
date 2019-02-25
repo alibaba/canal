@@ -118,8 +118,7 @@ public class CanalParameter implements Serializable {
     private String                   standbyLogfileName                 = null;                      // standby起始位置
     private Long                     standbyLogfileOffest               = null;
     private Long                     standbyTimestamp                   = null;
-    private boolean                  parallel                           = true;
-
+    private Boolean                  parallel                           = Boolean.FALSE;
 
     public static enum RunMode {
 
@@ -984,11 +983,11 @@ public class CanalParameter implements Serializable {
         this.tsdbSnapshotExpire = tsdbSnapshotExpire;
     }
 
-    public boolean isParallel() {
+    public Boolean getParallel() {
         return parallel;
     }
 
-    public void setParallel(boolean parallel) {
+    public void setParallel(Boolean parallel) {
         this.parallel = parallel;
     }
 
