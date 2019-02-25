@@ -67,8 +67,8 @@ public class YmlConfigBinder {
     }
 
     /**
-     * 将当前内容指定前缀部分绑定到指定对象并用环境变量中的属性替换占位符, 例: 当前内容有属性 zkServers:
-     * ${zookeeper.servers} 在envProperties中有属性 zookeeper.servers:
+     * 将当前内容指定前缀部分绑定到指定对象并用环境变量中的属性替换占位符, 例: 当前内容有属性 zkServers: ${zookeeper.servers}
+     * 在envProperties中有属性 zookeeper.servers:
      * 192.168.0.1:2181,192.168.0.1:2181,192.168.0.1:2181 则当前内容 zkServers 会被替换为
      * zkServers: 192.168.0.1:2181,192.168.0.1:2181,192.168.0.1:2181 注: 假设绑定的类中
      * zkServers 属性是 List<String> 对象, 则会自动映射成List
@@ -109,8 +109,7 @@ public class YmlConfigBinder {
                 properties = baseProperties;
             }
 
-            for (Object o : ((Map<?, ?>) propertySource.getSource()).entrySet()) {
-                Map.Entry<?, ?> entry = (Map.Entry<?, ?>) o;
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) propertySource.getSource()).entrySet()) {
                 String key = (String) entry.getKey();
                 Object value = entry.getValue();
 
@@ -122,9 +121,9 @@ public class YmlConfigBinder {
                     }
                 }
 
-                if (value != null && value.toString().contains("${")) {
+                if (value instanceof String && ((String) value).contains("${") && ((String) value).contains("}")) {
                     PropertyPlaceholderHelper propertyPlaceholderHelper = new PropertyPlaceholderHelper("${", "}");
-                    value = propertyPlaceholderHelper.replacePlaceholders(value.toString(), properties);
+                    value = propertyPlaceholderHelper.replacePlaceholders((String) value, properties);
                 }
 
                 propertiesRes.put(key, value);
