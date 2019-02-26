@@ -499,7 +499,7 @@ public class MQMessageUtils {
                     topics.add(topic);
                 }
             } else if (matchDynamicTopic(name, item)) {
-                topics.add(name);
+                topics.add(name.toLowerCase());
             }
         }
         return topics.isEmpty() ? null : topics;
