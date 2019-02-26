@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.sql.*;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +117,7 @@ public class JdbcTypeUtil {
                 case Types.DATE:
                     if (!value.startsWith("0000-00-00")) {
                         value = value.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(value);
+                        DateTime dt = new DateTime(value, DateTimeZone.forID("+08:00"));
                         res = new Date(dt.toDate().getTime());
                     } else {
                         res = null;
@@ -124,13 +125,13 @@ public class JdbcTypeUtil {
                     break;
                 case Types.TIME:
                     value = "T" + value;
-                    DateTime dt = new DateTime(value);
+                    DateTime dt = new DateTime(value, DateTimeZone.forID("+08:00"));
                     res = new Time(dt.toDate().getTime());
                     break;
                 case Types.TIMESTAMP:
                     if (!value.startsWith("0000-00-00")) {
                         value = value.trim().replace(" ", "T");
-                        dt = new DateTime(value);
+                        dt = new DateTime(value, DateTimeZone.forID("+08:00"));
                         res = new Timestamp(dt.toDate().getTime());
                     } else {
                         res = null;

@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import org.joda.time.DateTimeZone;
 
 public class SyncUtil {
 
@@ -86,7 +87,7 @@ public class SyncUtil {
                 }
                 break;
             case Types.TINYINT:
-                 if (value instanceof Number) {
+                if (value instanceof Number) {
                     pstmt.setByte(i, ((Number) value).byteValue());
                 } else if (value instanceof String) {
                     pstmt.setByte(i, Byte.parseByte((String) value));
@@ -197,7 +198,7 @@ public class SyncUtil {
                     String v = (String) value;
                     if (!v.startsWith("0000-00-00")) {
                         v = v.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(v);
+                        DateTime dt = new DateTime(v, DateTimeZone.forID("+08:00"));
                         pstmt.setDate(i, new Date(dt.toDate().getTime()));
                     } else {
                         pstmt.setNull(i, type);
@@ -214,7 +215,7 @@ public class SyncUtil {
                 } else if (value instanceof String) {
                     String v = (String) value;
                     v = "T" + v;
-                    DateTime dt = new DateTime(v);
+                    DateTime dt = new DateTime(v, DateTimeZone.forID("+08:00"));
                     pstmt.setTime(i, new Time(dt.toDate().getTime()));
                 } else {
                     pstmt.setNull(i, type);
@@ -229,7 +230,7 @@ public class SyncUtil {
                     String v = (String) value;
                     if (!v.startsWith("0000-00-00")) {
                         v = v.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(v);
+                        DateTime dt = new DateTime(v, DateTimeZone.forID("+08:00"));
                         pstmt.setTimestamp(i, new Timestamp(dt.toDate().getTime()));
                     } else {
                         pstmt.setNull(i, type);

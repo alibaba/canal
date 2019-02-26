@@ -11,6 +11,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.joda.time.DateTime;
 
 import com.google.common.math.LongMath;
+import org.joda.time.DateTimeZone;
 
 /**
  * Phoenix类型转换工具类
@@ -608,12 +609,12 @@ public class PhTypeUtil {
         Date date = null;
         int len = dateStr.length();
         if (len == 10 && dateStr.charAt(4) == '-' && dateStr.charAt(7) == '-') {
-            date = new DateTime(dateStr).toDate();
+            date = new DateTime(dateStr, DateTimeZone.forID("+08:00")).toDate();
         } else if (len == 8 && dateStr.charAt(2) == ':' && dateStr.charAt(5) == ':') {
-            date = new DateTime("T" + dateStr).toDate();
+            date = new DateTime("T" + dateStr, DateTimeZone.forID("+08:00")).toDate();
         } else if (len >= 19 && dateStr.charAt(4) == '-' && dateStr.charAt(7) == '-' && dateStr.charAt(13) == ':'
                    && dateStr.charAt(16) == ':') {
-            date = new DateTime(dateStr.replace(" ", "T")).toDate();
+            date = new DateTime(dateStr.replace(" ", "T"), DateTimeZone.forID("+08:00")).toDate();
         }
         return date;
     }

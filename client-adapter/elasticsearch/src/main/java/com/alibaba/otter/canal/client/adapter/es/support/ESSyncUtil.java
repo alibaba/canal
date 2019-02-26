@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,14 +104,14 @@ public class ESSyncUtil {
             }
         } else if ("date".equals(esType)) {
             if (val instanceof java.sql.Time) {
-                DateTime dateTime = new DateTime(((java.sql.Time) val).getTime());
+                DateTime dateTime = new DateTime(((java.sql.Time) val).getTime(), DateTimeZone.forID("+08:00"));
                 if (dateTime.getMillisOfSecond() != 0) {
                     res = dateTime.toString("HH:mm:ss.SSS");
                 } else {
                     res = dateTime.toString("HH:mm:ss");
                 }
             } else if (val instanceof java.sql.Timestamp) {
-                DateTime dateTime = new DateTime(((java.sql.Timestamp) val).getTime());
+                DateTime dateTime = new DateTime(((java.sql.Timestamp) val).getTime(), DateTimeZone.forID("+08:00"));
                 if (dateTime.getMillisOfSecond() != 0) {
                     res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
                 } else {
@@ -119,9 +120,9 @@ public class ESSyncUtil {
             } else if (val instanceof java.sql.Date || val instanceof Date) {
                 DateTime dateTime;
                 if (val instanceof java.sql.Date) {
-                    dateTime = new DateTime(((java.sql.Date) val).getTime());
+                    dateTime = new DateTime(((java.sql.Date) val).getTime(), DateTimeZone.forID("+08:00"));
                 } else {
-                    dateTime = new DateTime(((Date) val).getTime());
+                    dateTime = new DateTime(((Date) val).getTime(), DateTimeZone.forID("+08:00"));
                 }
                 if (dateTime.getHourOfDay() == 0 && dateTime.getMinuteOfHour() == 0 && dateTime.getSecondOfMinute() == 0
                     && dateTime.getMillisOfSecond() == 0) {
@@ -134,7 +135,7 @@ public class ESSyncUtil {
                     }
                 }
             } else if (val instanceof Long) {
-                DateTime dateTime = new DateTime(((Long) val).longValue());
+                DateTime dateTime = new DateTime(((Long) val).longValue(), DateTimeZone.forID("+08:00"));
                 if (dateTime.getHourOfDay() == 0 && dateTime.getMinuteOfHour() == 0 && dateTime.getSecondOfMinute() == 0
                     && dateTime.getMillisOfSecond() == 0) {
                     res = dateTime.toString("yyyy-MM-dd");
@@ -148,14 +149,14 @@ public class ESSyncUtil {
                 if (v.length() > 18 && v.charAt(4) == '-' && v.charAt(7) == '-' && v.charAt(10) == ' '
                     && v.charAt(13) == ':' && v.charAt(16) == ':') {
                     String dt = v.substring(0, 10) + "T" + v.substring(11);
-                    DateTime dateTime = new DateTime(dt);
+                    DateTime dateTime = new DateTime(dt, DateTimeZone.forID("+08:00"));
                     if (dateTime.getMillisOfSecond() != 0) {
                         res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
                     } else {
                         res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss+08:00");
                     }
                 } else if (v.length() == 10 && v.charAt(4) == '-' && v.charAt(7) == '-') {
-                    DateTime dateTime = new DateTime(v);
+                    DateTime dateTime = new DateTime(v, DateTimeZone.forID("+08:00"));
                     res = dateTime.toString("yyyy-MM-dd");
                 }
             }
@@ -237,7 +238,7 @@ public class ESSyncUtil {
 
     /**
      * 拼接主键条件
-     * 
+     *
      * @param mapping
      * @param data
      * @return
