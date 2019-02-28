@@ -145,6 +145,7 @@ public class Util {
     }
 
     private static String timeZone; // 当前时区
+    private static DateTimeZone dateTimeZone;
 
     static {
         TimeZone localTimeZone = TimeZone.getDefault();
@@ -159,6 +160,7 @@ public class Util {
         String hour = String.format("%1$02d", offsetHour);
         String minute = String.format("%1$02d", offsetMinute);
         timeZone = symbol + hour + ":" + minute;
+        dateTimeZone = DateTimeZone.forID(timeZone);
         TimeZone.setDefault(TimeZone.getTimeZone("GMT" + timeZone));
     }
 
@@ -181,7 +183,7 @@ public class Util {
             datetimeStr = "T" + datetimeStr;
         }
 
-        DateTime dateTime = new DateTime(datetimeStr, DateTimeZone.forID(timeZone));
+        DateTime dateTime = new DateTime(datetimeStr, dateTimeZone);
 
         return dateTime.toDate();
     }
