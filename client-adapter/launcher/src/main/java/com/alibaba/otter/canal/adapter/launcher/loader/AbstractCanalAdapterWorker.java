@@ -201,7 +201,11 @@ public abstract class AbstractCanalAdapterWorker {
             List<Dml> dmlsBatch = new ArrayList<>();
             for (Dml dml : dmls) {
                 dmlsBatch.add(dml);
-                len += dml.getData().size();
+                if (dml.getData() == null || dml.getData().isEmpty()) {
+                    len += 1;
+                } else {
+                    len += dml.getData().size();
+                }
                 if (len >= canalClientConfig.getSyncBatchSize()) {
                     adapter.sync(dmlsBatch);
                     dmlsBatch.clear();

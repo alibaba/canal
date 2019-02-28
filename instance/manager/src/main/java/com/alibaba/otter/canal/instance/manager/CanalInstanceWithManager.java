@@ -59,7 +59,7 @@ import com.alibaba.otter.canal.store.model.BatchMode;
 
 /**
  * 单个canal实例，比如一个destination会独立一个实例
- * 
+ *
  * @author jianghang 2012-7-11 下午09:26:51
  * @version 1.0.0
  */
@@ -294,6 +294,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             mysqlEventParser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
             mysqlEventParser.setProfilingEnabled(false);
             mysqlEventParser.setFilterTableError(parameters.getFilterTableError());
+            mysqlEventParser.setParallel(parameters.getParallel());
             mysqlEventParser.setIsGTIDMode(BooleanUtils.toBoolean(parameters.getGtidEnable()));
             // tsdb
             if (parameters.getTsdbSnapshotInterval() != null) {
@@ -340,6 +341,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             localBinlogEventParser.setDetectingEnable(parameters.getDetectingEnable());
             localBinlogEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
             localBinlogEventParser.setFilterTableError(parameters.getFilterTableError());
+            localBinlogEventParser.setParallel(parameters.getParallel());
             // 数据库信息，反查表结构时需要
             if (!CollectionUtils.isEmpty(dbAddresses)) {
                 localBinlogEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),

@@ -2,7 +2,12 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.*;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,8 +71,14 @@ public class JdbcTypeUtil {
         }
     }
 
+    private static boolean isText(String columnType) {
+        return "LONGTEXT".equalsIgnoreCase(columnType) || "MEDIUMTEXT".equalsIgnoreCase(columnType)
+               || "TEXT".equalsIgnoreCase(columnType) || "TINYTEXT".equalsIgnoreCase(columnType);
+    }
+
     public static Object typeConvert(String columnName, String value, int sqlType, String mysqlType) {
-        if (value == null || value.equals("")) {
+        if (value == null
+            || (value.equals("") && !(isText(mysqlType) || sqlType == Types.CHAR || sqlType == Types.VARCHAR || sqlType == Types.LONGVARCHAR))) {
             return null;
         }
 
@@ -144,7 +155,6 @@ public class JdbcTypeUtil {
                     } else {
                         res = null;
                     }
-                    break;
                 case Types.CLOB:
                 default:
                     res = value;

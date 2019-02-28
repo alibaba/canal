@@ -203,7 +203,7 @@ public class SyncUtil {
                             pstmt.setNull(i, type);
                         }
                     } else {
-                        pstmt.setNull(i, type);
+                        pstmt.setObject(i, value);
                     }
                 } else {
                     pstmt.setNull(i, type);
@@ -241,7 +241,7 @@ public class SyncUtil {
                             pstmt.setNull(i, type);
                         }
                     } else {
-                        pstmt.setNull(i, type);
+                        pstmt.setObject(i, value);
                     }
                 } else {
                     pstmt.setNull(i, type);
