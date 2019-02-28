@@ -2,10 +2,7 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.io.File;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -147,15 +144,22 @@ public class Util {
         return column;
     }
 
-    private static String UTC; // 当前时区
+    private static String timeZone; // 当前时区
 
     static {
-        TimeZone timeZone = TimeZone.getTimeZone(ZoneId.systemDefault().getId());
-        int currentTimeZone = timeZone.getOffset(System.currentTimeMillis()) * 10 / (1000 * 3600);
-        int tmp = currentTimeZone % 10;
-        int m = 60 * tmp / 10;
-        UTC = "+" + String.format("%02d", currentTimeZone / 10) + ":" + String.format("%02d", m);
-        TimeZone.setDefault(TimeZone.getTimeZone("GMT" + UTC));
+        TimeZone localTimeZone = TimeZone.getDefault();
+        int rawOffset = localTimeZone.getRawOffset();
+        String symbol = "+";
+        if (rawOffset < 0) {
+            symbol = "-";
+        }
+        rawOffset = Math.abs(rawOffset);
+        int offsetHore = rawOffset / 3600000;
+        int offsetMinute = rawOffset % 3600000 / 60000;
+        String hour = String.format("%1$02d", offsetHore);
+        String minute = String.format("%1$02d", offsetMinute);
+        timeZone = symbol + hour + ":" + minute;
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT" + timeZone));
     }
 
     /**
@@ -177,12 +181,12 @@ public class Util {
             datetimeStr = "T" + datetimeStr;
         }
 
-        DateTime dateTime = new DateTime(datetimeStr, DateTimeZone.forID(UTC));
+        DateTime dateTime = new DateTime(datetimeStr, DateTimeZone.forID(timeZone));
 
         return dateTime.toDate();
     }
 
-    public static LoadingCache<String, DateTimeFormatter> dateFormatterCache = CacheBuilder.newBuilder()
+    private static LoadingCache<String, DateTimeFormatter> dateFormatterCache = CacheBuilder.newBuilder()
         .build(new CacheLoader<String, DateTimeFormatter>() {
 
             @Override
