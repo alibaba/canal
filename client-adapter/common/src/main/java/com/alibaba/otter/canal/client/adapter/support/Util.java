@@ -6,7 +6,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -17,6 +20,10 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 public class Util {
 
@@ -140,6 +147,17 @@ public class Util {
         return column;
     }
 
+    private static String UTC; // 当前时区
+
+    static {
+        TimeZone timeZone = TimeZone.getTimeZone(ZoneId.systemDefault().getId());
+        int currentTimeZone = timeZone.getOffset(System.currentTimeMillis()) * 10 / (1000 * 3600);
+        int tmp = currentTimeZone % 10;
+        int m = 60 * tmp / 10;
+        UTC = "+" + String.format("%02d", currentTimeZone / 10) + ":" + String.format("%02d", m);
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT" + UTC));
+    }
+
     /**
      * 通用日期时间字符解析
      *
@@ -159,16 +177,92 @@ public class Util {
             datetimeStr = "T" + datetimeStr;
         }
 
-        DateTime dateTime;
-        if (datetimeStr.startsWith("1940-06-03") || datetimeStr.startsWith("1941-03-16")
-            || datetimeStr.startsWith("1986-05-04") || datetimeStr.startsWith("1987-04-12")
-            || datetimeStr.startsWith("1988-04-10") || datetimeStr.startsWith("1989-04-16")
-            || datetimeStr.startsWith("1990-04-15") || datetimeStr.startsWith("1991-04-14")) {
-            dateTime = new DateTime(datetimeStr, DateTimeZone.forID("+08:00"));
-        } else {
-            dateTime = new DateTime(datetimeStr);
-        }
+        DateTime dateTime = new DateTime(datetimeStr, DateTimeZone.forID(UTC));
 
         return dateTime.toDate();
+    }
+
+    public static LoadingCache<String, DateTimeFormatter> dateFormatterCache = CacheBuilder.newBuilder()
+        .build(new CacheLoader<String, DateTimeFormatter>() {
+
+            @Override
+            public DateTimeFormatter load(String key) {
+                return DateTimeFormatter.ofPattern(key);
+            }
+        });
+
+    public static Date parseDate2(String datetimeStr) {
+        if (StringUtils.isEmpty(datetimeStr)) {
+            return null;
+        }
+        try {
+            datetimeStr = datetimeStr.trim();
+            int len = datetimeStr.length();
+            if (datetimeStr.contains("-") && datetimeStr.contains(":") && datetimeStr.contains(".")) {
+                // 包含日期+时间+毫秒
+                // 取毫秒位数
+                int msLen = len - datetimeStr.indexOf(".") - 1;
+                StringBuilder ms = new StringBuilder();
+                for (int i = 0; i < msLen; i++) {
+                    ms.append("S");
+                }
+                String formatter = "yyyy-MM-dd HH:mm:ss." + ms;
+
+                DateTimeFormatter dateTimeFormatter = dateFormatterCache.get(formatter);
+                LocalDateTime dateTime = LocalDateTime.parse(datetimeStr, dateTimeFormatter);
+                return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+            } else if (datetimeStr.contains("-") && datetimeStr.contains(":")) {
+                // 包含日期+时间
+                // 判断包含时间位数
+                int i = datetimeStr.indexOf(":");
+                i = datetimeStr.indexOf(":", i + 1);
+                String formatter;
+                if (i > -1) {
+                    formatter = "yyyy-MM-dd HH:mm:ss";
+                } else {
+                    formatter = "yyyy-MM-dd HH:mm";
+                }
+
+                DateTimeFormatter dateTimeFormatter = dateFormatterCache.get(formatter);
+                LocalDateTime dateTime = LocalDateTime.parse(datetimeStr, dateTimeFormatter);
+                return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+            } else if (datetimeStr.contains("-")) {
+                // 只包含日期
+                String formatter = "yyyy-MM-dd";
+                DateTimeFormatter dateTimeFormatter = dateFormatterCache.get(formatter);
+                LocalDate localDate = LocalDate.parse(datetimeStr, dateTimeFormatter);
+                return Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+            } else if (datetimeStr.contains(":")) {
+                // 只包含时间
+                String formatter;
+                if (datetimeStr.contains(".")) {
+                    // 包含毫秒
+                    int msLen = len - datetimeStr.indexOf(".") - 1;
+                    StringBuilder ms = new StringBuilder();
+                    for (int i = 0; i < msLen; i++) {
+                        ms.append("S");
+                    }
+                    formatter = "HH:mm:ss." + ms;
+                } else {
+                    // 判断包含时间位数
+                    int i = datetimeStr.indexOf(":");
+                    i = datetimeStr.indexOf(":", i + 1);
+                    if (i > -1) {
+                        formatter = "HH:mm:ss";
+                    } else {
+                        formatter = "HH:mm";
+                    }
+                }
+                DateTimeFormatter dateTimeFormatter = dateFormatterCache.get(formatter);
+                LocalTime localTime = LocalTime.parse(datetimeStr, dateTimeFormatter);
+                LocalDate localDate = LocalDate.of(1970, Month.JANUARY, 1);
+                LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
+                return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+
+        return null;
     }
 }
