@@ -131,8 +131,8 @@ public class RdbConfigMonitor {
             rdbAdapter.getRdbMapping().put(file.getName(), mappingConfig);
             if (!mappingConfig.getDbMapping().getMirrorDb()) {
                 Map<String, MappingConfig> configMap = rdbAdapter.getMappingConfigCache()
-                    .computeIfAbsent(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                                     + mappingConfig.getDbMapping().getDatabase() + "."
+                    .computeIfAbsent(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                                     + mappingConfig.getDbMapping().getDatabase() + "-"
                                      + mappingConfig.getDbMapping().getTable(),
                         k1 -> new HashMap<>());
                 configMap.put(file.getName(), mappingConfig);
