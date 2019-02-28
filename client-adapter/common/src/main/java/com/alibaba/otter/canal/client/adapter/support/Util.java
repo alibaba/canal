@@ -154,9 +154,9 @@ public class Util {
             symbol = "-";
         }
         rawOffset = Math.abs(rawOffset);
-        int offsetHore = rawOffset / 3600000;
+        int offsetHour = rawOffset / 3600000;
         int offsetMinute = rawOffset % 3600000 / 60000;
-        String hour = String.format("%1$02d", offsetHore);
+        String hour = String.format("%1$02d", offsetHour);
         String minute = String.format("%1$02d", offsetMinute);
         timeZone = symbol + hour + ":" + minute;
         TimeZone.setDefault(TimeZone.getTimeZone("GMT" + timeZone));
