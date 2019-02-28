@@ -7,6 +7,7 @@ import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.joda.time.DateTime;
 
@@ -390,7 +391,7 @@ public class PhTypeUtil {
             String dateStr = (String) v;
             Date date;
             try {
-                date = parseDatetime(dateStr);
+                date = Util.parseDate(dateStr);
                 if (date != null) {
                     encodeLong(date.getTime(), b, 0);
                 }
@@ -419,7 +420,7 @@ public class PhTypeUtil {
             String dateStr = (String) v;
             Date date;
             try {
-                date = parseDatetime(dateStr);
+                date = Util.parseDate(dateStr);
                 if (date != null) {
                     encodeUnsignedLong(date.getTime(), b, 0);
                 }
@@ -600,22 +601,9 @@ public class PhTypeUtil {
 
     private static void checkForSufficientLength(byte[] b, int offset, int requiredLength) {
         if (b.length < offset + requiredLength) {
-            throw new RuntimeException("Expected length of at least " + requiredLength + " bytes, but had "
-                                       + (b.length - offset));
+            throw new RuntimeException(
+                "Expected length of at least " + requiredLength + " bytes, but had " + (b.length - offset));
         }
     }
 
-    private static Date parseDatetime(String dateStr) {
-        Date date = null;
-        int len = dateStr.length();
-        if (len == 10 && dateStr.charAt(4) == '-' && dateStr.charAt(7) == '-') {
-            date = new DateTime(dateStr, DateTimeZone.forID("+08:00")).toDate();
-        } else if (len == 8 && dateStr.charAt(2) == ':' && dateStr.charAt(5) == ':') {
-            date = new DateTime("T" + dateStr, DateTimeZone.forID("+08:00")).toDate();
-        } else if (len >= 19 && dateStr.charAt(4) == '-' && dateStr.charAt(7) == '-' && dateStr.charAt(13) == ':'
-                   && dateStr.charAt(16) == ':') {
-            date = new DateTime(dateStr.replace(" ", "T"), DateTimeZone.forID("+08:00")).toDate();
-        }
-        return date;
-    }
 }

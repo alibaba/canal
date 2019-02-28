@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.*;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,23 +114,33 @@ public class JdbcTypeUtil {
                     break;
                 case Types.DATE:
                     if (!value.startsWith("0000-00-00")) {
-                        value = value.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(value, DateTimeZone.forID("+08:00"));
-                        res = new Date(dt.toDate().getTime());
+                        java.util.Date date = Util.parseDate(value);
+                        if (date != null) {
+                            res = new Date(date.getTime());
+                        } else {
+                            res = null;
+                        }
                     } else {
                         res = null;
                     }
                     break;
-                case Types.TIME:
-                    value = "T" + value;
-                    DateTime dt = new DateTime(value, DateTimeZone.forID("+08:00"));
-                    res = new Time(dt.toDate().getTime());
+                case Types.TIME: {
+                    java.util.Date date = Util.parseDate(value);
+                    if (date != null) {
+                        res = new Time(date.getTime());
+                    } else {
+                        res = null;
+                    }
                     break;
+                }
                 case Types.TIMESTAMP:
                     if (!value.startsWith("0000-00-00")) {
-                        value = value.trim().replace(" ", "T");
-                        dt = new DateTime(value, DateTimeZone.forID("+08:00"));
-                        res = new Timestamp(dt.toDate().getTime());
+                        java.util.Date date = Util.parseDate(value);
+                        if (date != null) {
+                            res = new Timestamp(date.getTime());
+                        } else {
+                            res = null;
+                        }
                     } else {
                         res = null;
                     }

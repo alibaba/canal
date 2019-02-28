@@ -6,12 +6,15 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,5 +138,37 @@ public class Util {
         }
 
         return column;
+    }
+
+    /**
+     * 通用日期时间字符解析
+     *
+     * @param datetimeStr 日期时间字符串
+     * @return Date
+     */
+    public static Date parseDate(String datetimeStr) {
+        if (StringUtils.isEmpty(datetimeStr)) {
+            return null;
+        }
+        datetimeStr = datetimeStr.trim();
+        if (datetimeStr.contains("-")) {
+            if (datetimeStr.contains(":")) {
+                datetimeStr = datetimeStr.replace(" ", "T");
+            }
+        } else if (datetimeStr.contains(":")) {
+            datetimeStr = "T" + datetimeStr;
+        }
+
+        DateTime dateTime;
+        if (datetimeStr.startsWith("1940-06-03") || datetimeStr.startsWith("1941-03-16")
+            || datetimeStr.startsWith("1986-05-04") || datetimeStr.startsWith("1987-04-12")
+            || datetimeStr.startsWith("1988-04-10") || datetimeStr.startsWith("1989-04-16")
+            || datetimeStr.startsWith("1990-04-15") || datetimeStr.startsWith("1991-04-14")) {
+            dateTime = new DateTime(datetimeStr, DateTimeZone.forID("+08:00"));
+        } else {
+            dateTime = new DateTime(datetimeStr);
+        }
+
+        return dateTime.toDate();
     }
 }
