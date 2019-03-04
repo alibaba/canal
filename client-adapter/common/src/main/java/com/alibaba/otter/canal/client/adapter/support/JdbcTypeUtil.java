@@ -9,7 +9,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,22 +125,35 @@ public class JdbcTypeUtil {
                     break;
                 case Types.DATE:
                     if (!value.startsWith("0000-00-00")) {
-                        value = value.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(value);
-                        res = new Date(dt.toDate().getTime());
-                        break;
+                        java.util.Date date = Util.parseDate(value);
+                        if (date != null) {
+                            res = new Date(date.getTime());
+                        } else {
+                            res = null;
+                        }
+                    } else {
+                        res = null;
                     }
-                case Types.TIME:
-                    value = "T" + value;
-                    DateTime dt = new DateTime(value);
-                    res = new Time(dt.toDate().getTime());
                     break;
+                case Types.TIME: {
+                    java.util.Date date = Util.parseDate(value);
+                    if (date != null) {
+                        res = new Time(date.getTime());
+                    } else {
+                        res = null;
+                    }
+                    break;
+                }
                 case Types.TIMESTAMP:
                     if (!value.startsWith("0000-00-00")) {
-                        value = value.trim().replace(" ", "T");
-                        dt = new DateTime(value);
-                        res = new Timestamp(dt.toDate().getTime());
-                        break;
+                        java.util.Date date = Util.parseDate(value);
+                        if (date != null) {
+                            res = new Timestamp(date.getTime());
+                        } else {
+                            res = null;
+                        }
+                    } else {
+                        res = null;
                     }
                 case Types.CLOB:
                 default:
