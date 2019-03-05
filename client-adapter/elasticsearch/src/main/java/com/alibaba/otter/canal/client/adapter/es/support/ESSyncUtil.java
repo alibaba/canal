@@ -20,6 +20,7 @@ import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 
 /**
  * ES 同步工具同类
@@ -148,15 +149,21 @@ public class ESSyncUtil {
                 if (v.length() > 18 && v.charAt(4) == '-' && v.charAt(7) == '-' && v.charAt(10) == ' '
                     && v.charAt(13) == ':' && v.charAt(16) == ':') {
                     String dt = v.substring(0, 10) + "T" + v.substring(11);
-                    DateTime dateTime = new DateTime(dt);
-                    if (dateTime.getMillisOfSecond() != 0) {
-                        res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
-                    } else {
-                        res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss+08:00");
+                    Date date = Util.parseDate(dt);
+                    if (date != null) {
+                        DateTime dateTime = new DateTime(date);
+                        if (dateTime.getMillisOfSecond() != 0) {
+                            res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
+                        } else {
+                            res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss+08:00");
+                        }
                     }
                 } else if (v.length() == 10 && v.charAt(4) == '-' && v.charAt(7) == '-') {
-                    DateTime dateTime = new DateTime(v);
-                    res = dateTime.toString("yyyy-MM-dd");
+                    Date date = Util.parseDate(v);
+                    if (date != null) {
+                        DateTime dateTime = new DateTime(date);
+                        res = dateTime.toString("yyyy-MM-dd");
+                    }
                 }
             }
         } else if ("binary".equals(esType)) {
@@ -237,7 +244,7 @@ public class ESSyncUtil {
 
     /**
      * 拼接主键条件
-     * 
+     *
      * @param mapping
      * @param data
      * @return
