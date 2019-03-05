@@ -164,6 +164,11 @@ public class CanalStater {
             mqProperties.setTransaction(Boolean.valueOf(transaction));
         }
 
+        String producerGroup = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_PRODUCERGROUP);
+        if (!StringUtils.isEmpty(producerGroup)) {
+            mqProperties.setProducerGroup(producerGroup);
+        }
+
         for (Object key : properties.keySet()) {
             key = StringUtils.trim(key.toString());
             if (((String) key).startsWith(CanalConstants.CANAL_MQ_PROPERTIES)) {
