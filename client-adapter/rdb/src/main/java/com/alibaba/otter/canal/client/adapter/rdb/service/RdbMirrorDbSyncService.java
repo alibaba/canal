@@ -56,6 +56,15 @@ public class RdbMirrorDbSyncService {
             if (mirrorDbConfig == null) {
                 continue;
             }
+            if (mirrorDbConfig.getMappingConfig() == null) {
+                continue;
+            }
+            if (dml.getGroupId() != null && StringUtils.isNotEmpty(mirrorDbConfig.getMappingConfig().getGroupId())) {
+                if (!mirrorDbConfig.getMappingConfig().getGroupId().equals(dml.getGroupId())) {
+                    continue; // 如果groupId不匹配则过滤
+                }
+            }
+
             if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                 // DDL
                 if (logger.isDebugEnabled()) {
@@ -71,37 +80,35 @@ public class RdbMirrorDbSyncService {
             }
         }
         if (!dmlList.isEmpty()) {
-            rdbSyncService.sync(dmlList,
-                dml -> {
-                    MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache.get(dml.getDestination() + "."
-                                                                            + dml.getDatabase());
-                    if (mirrorDbConfig == null) {
-                        return false;
-                    }
-                    String table = dml.getTable();
-                    MappingConfig config = mirrorDbConfig.getTableConfig().get(table);
+            rdbSyncService.sync(dmlList, dml -> {
+                MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache.get(dml.getDestination() + "." + dml.getDatabase());
+                if (mirrorDbConfig == null) {
+                    return false;
+                }
+                String table = dml.getTable();
+                MappingConfig config = mirrorDbConfig.getTableConfig().get(table);
 
-                    if (config == null) {
-                        return false;
-                    }
+                if (config == null) {
+                    return false;
+                }
 
-                    if (config.getConcurrent()) {
-                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                        singleDmls.forEach(singleDml -> {
-                            int hash = rdbSyncService.pkHash(config.getDbMapping(), singleDml.getData());
-                            RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                            rdbSyncService.getDmlsPartition()[hash].add(syncItem);
-                        });
-                    } else {
-                        int hash = 0;
-                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                        singleDmls.forEach(singleDml -> {
-                            RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                            rdbSyncService.getDmlsPartition()[hash].add(syncItem);
-                        });
-                    }
-                    return true;
-                });
+                if (config.getConcurrent()) {
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                    singleDmls.forEach(singleDml -> {
+                        int hash = rdbSyncService.pkHash(config.getDbMapping(), singleDml.getData());
+                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
+                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
+                    });
+                } else {
+                    int hash = 0;
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                    singleDmls.forEach(singleDml -> {
+                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
+                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
+                    });
+                }
+                return true;
+            });
         }
     }
 
@@ -119,6 +126,7 @@ public class RdbMirrorDbSyncService {
             mappingConfig = new MappingConfig();
             mappingConfig.setDataSourceKey(baseConfigMap.getDataSourceKey());
             mappingConfig.setDestination(baseConfigMap.getDestination());
+            mappingConfig.setGroupId(baseConfigMap.getGroupId());
             mappingConfig.setOuterAdapterKey(baseConfigMap.getOuterAdapterKey());
             mappingConfig.setConcurrent(baseConfigMap.getConcurrent());
             MappingConfig.DbMapping dbMapping = new MappingConfig.DbMapping();

@@ -2,12 +2,12 @@ package com.alibaba.otter.canal.client.adapter.es.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
-import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
@@ -20,17 +20,17 @@ public class ESSyncConfigLoader {
 
     private static Logger logger = LoggerFactory.getLogger(ESSyncConfigLoader.class);
 
-    @SuppressWarnings("unchecked")
-    public static synchronized Map<String, ESSyncConfig> load() {
+    public static synchronized Map<String, ESSyncConfig> load(Properties envProperties) {
         logger.info("## Start loading es mapping config ... ");
 
         Map<String, ESSyncConfig> esSyncConfig = new LinkedHashMap<>();
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("es");
         configContentMap.forEach((fileName, content) -> {
-            Map configMap = new Yaml().loadAs(content, Map.class); // yml自带的对象反射不是很稳定
-            JSONObject configJson = new JSONObject(configMap);
-            ESSyncConfig config = configJson.toJavaObject(ESSyncConfig.class);
+            ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null, content, ESSyncConfig.class, null, envProperties);
+            if (config == null) {
+                return;
+            }
             try {
                 config.validate();
             } catch (Exception e) {

@@ -7,7 +7,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.deployer.monitor.ManagerRemoteConfigMonitor;
+import com.alibaba.otter.canal.deployer.monitor.remote.RemoteConfigLoader;
+import com.alibaba.otter.canal.deployer.monitor.remote.RemoteConfigLoaderFactory;
+import com.alibaba.otter.canal.deployer.monitor.remote.RemoteCanalConfigMonitor;
 
 /**
  * canal独立版本启动的入口类
@@ -30,7 +32,7 @@ public class CanalLauncher {
             logger.info("## load canal configurations");
             String conf = System.getProperty("canal.conf", "classpath:canal.properties");
             Properties properties = new Properties();
-            ManagerRemoteConfigMonitor managerDbConfigMonitor = null;
+            RemoteConfigLoader remoteConfigLoader = null;
             if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
                 conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
                 properties.load(CanalLauncher.class.getClassLoader().getResourceAsStream(conf));
@@ -38,31 +40,24 @@ public class CanalLauncher {
                 properties.load(new FileInputStream(conf));
             }
 
-            String jdbcUrl = properties.getProperty("canal.manager.jdbc.url");
-            if (!StringUtils.isEmpty(jdbcUrl)) {
-                logger.info("## load remote canal configurations");
-                // load remote config
-                String jdbcUsername = properties.getProperty("canal.manager.jdbc.username");
-                String jdbcPassword = properties.getProperty("canal.manager.jdbc.password");
-                managerDbConfigMonitor = new ManagerRemoteConfigMonitor(jdbcUrl, jdbcUsername, jdbcPassword);
+            remoteConfigLoader = RemoteConfigLoaderFactory.getRemoteConfigLoader(properties);
+            if (remoteConfigLoader != null) {
                 // 加载远程canal.properties
-                Properties remoteConfig = managerDbConfigMonitor.loadRemoteConfig();
+                Properties remoteConfig = remoteConfigLoader.loadRemoteConfig();
                 // 加载remote instance配置
-                managerDbConfigMonitor.loadRemoteInstanceConfigs();
+                remoteConfigLoader.loadRemoteInstanceConfigs();
                 if (remoteConfig != null) {
                     properties = remoteConfig;
                 } else {
-                    managerDbConfigMonitor = null;
+                    remoteConfigLoader = null;
                 }
-            } else {
-                logger.info("## load canal configurations");
             }
 
             final CanalStater canalStater = new CanalStater();
             canalStater.start(properties);
 
-            if (managerDbConfigMonitor != null) {
-                managerDbConfigMonitor.start(new ManagerRemoteConfigMonitor.Listener<Properties>() {
+            if (remoteConfigLoader != null) {
+                remoteConfigLoader.startMonitor(new RemoteCanalConfigMonitor() {
 
                     @Override
                     public void onChange(Properties properties) {
@@ -81,8 +76,8 @@ public class CanalLauncher {
                 Thread.sleep(1000);
             }
 
-            if (managerDbConfigMonitor != null) {
-                managerDbConfigMonitor.destroy();
+            if (remoteConfigLoader != null) {
+                remoteConfigLoader.destroy();
             }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the canal Server:", e);

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `meta_snapshot` (
   KEY `destination` (`destination`),
   KEY `destination_timestamp` (`destination`,`binlog_timestamp`),
   KEY `gmt_modified` (`gmt_modified`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='表结构记录表快照表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='表结构记录表快照表';
 
 CREATE TABLE IF NOT EXISTS `meta_history` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -36,4 +36,4 @@ CREATE TABLE IF NOT EXISTS `meta_history` (
   KEY `destination` (`destination`),
   KEY `destination_timestamp` (`destination`,`binlog_timestamp`),
   KEY `gmt_modified` (`gmt_modified`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='表结构变化明细表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='表结构变化明细表';

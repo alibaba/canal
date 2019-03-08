@@ -10,9 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 
 public class SyncUtil {
 
@@ -86,7 +86,7 @@ public class SyncUtil {
                 }
                 break;
             case Types.TINYINT:
-                 if (value instanceof Number) {
+                if (value instanceof Number) {
                     pstmt.setByte(i, ((Number) value).byteValue());
                 } else if (value instanceof String) {
                     pstmt.setByte(i, Byte.parseByte((String) value));
@@ -196,11 +196,14 @@ public class SyncUtil {
                 } else if (value instanceof String) {
                     String v = (String) value;
                     if (!v.startsWith("0000-00-00")) {
-                        v = v.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(v);
-                        pstmt.setDate(i, new Date(dt.toDate().getTime()));
+                        java.util.Date date = Util.parseDate(v);
+                        if (date != null) {
+                            pstmt.setDate(i, new Date(date.getTime()));
+                        } else {
+                            pstmt.setNull(i, type);
+                        }
                     } else {
-                        pstmt.setNull(i, type);
+                        pstmt.setObject(i, value);
                     }
                 } else {
                     pstmt.setNull(i, type);
@@ -213,9 +216,12 @@ public class SyncUtil {
                     pstmt.setTime(i, new java.sql.Time(((java.util.Date) value).getTime()));
                 } else if (value instanceof String) {
                     String v = (String) value;
-                    v = "T" + v;
-                    DateTime dt = new DateTime(v);
-                    pstmt.setTime(i, new Time(dt.toDate().getTime()));
+                    java.util.Date date = Util.parseDate(v);
+                    if (date != null) {
+                        pstmt.setTime(i, new Time(date.getTime()));
+                    } else {
+                        pstmt.setNull(i, type);
+                    }
                 } else {
                     pstmt.setNull(i, type);
                 }
@@ -228,11 +234,14 @@ public class SyncUtil {
                 } else if (value instanceof String) {
                     String v = (String) value;
                     if (!v.startsWith("0000-00-00")) {
-                        v = v.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(v);
-                        pstmt.setTimestamp(i, new Timestamp(dt.toDate().getTime()));
+                        java.util.Date date = Util.parseDate(v);
+                        if (date != null) {
+                            pstmt.setTimestamp(i, new Timestamp(date.getTime()));
+                        } else {
+                            pstmt.setNull(i, type);
+                        }
                     } else {
-                        pstmt.setNull(i, type);
+                        pstmt.setObject(i, value);
                     }
                 } else {
                     pstmt.setNull(i, type);

@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.kafka;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -31,7 +32,7 @@ import com.google.common.collect.Lists;
 public class KafkaCanalConnector implements CanalMQConnector {
 
     protected KafkaConsumer<String, Message> kafkaConsumer;
-    protected KafkaConsumer<String, String>  kafkaConsumer2;                  // 用于扁平message的数据消费
+    protected KafkaConsumer<String, String>  kafkaConsumer2;                            // 用于扁平message的数据消费
     protected String                         topic;
     protected Integer                        partition;
     protected Properties                     properties;
@@ -39,7 +40,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     protected volatile boolean               running        = false;
     protected boolean                        flatMessage;
 
-    private Map<Integer, Long>               currentOffsets = new HashMap<>();
+    private Map<Integer, Long>               currentOffsets = new ConcurrentHashMap<>();
 
     public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, Integer batchSize,
                                boolean flatMessage){

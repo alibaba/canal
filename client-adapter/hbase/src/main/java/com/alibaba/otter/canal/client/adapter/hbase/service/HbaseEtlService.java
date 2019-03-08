@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.hbase.service;
 
-import java.sql.*;
+import java.sql.ResultSetMetaData;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,19 +11,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
 
 import javax.sql.DataSource;
 
-import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.hbase.support.*;
+import com.alibaba.otter.canal.client.adapter.hbase.support.HRow;
+import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
+import com.alibaba.otter.canal.client.adapter.hbase.support.PhType;
+import com.alibaba.otter.canal.client.adapter.hbase.support.PhTypeUtil;
+import com.alibaba.otter.canal.client.adapter.hbase.support.Type;
+import com.alibaba.otter.canal.client.adapter.hbase.support.TypeUtil;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.JdbcTypeUtil;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.google.common.base.Joiner;
 
 /**
