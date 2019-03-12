@@ -161,7 +161,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
 
             if (record != null) {
                 if (kafkaProperties.getTransaction()) {
-                    producer.send(record);
+                    producer.send(record).get();
                 } else {
                     producer.send(record).get();
                 }
@@ -213,7 +213,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
         if (kafkaProperties.getTransaction()) {
             producer2.send(record);
         } else {
-            producer2.send(record).get();
+            producer2.send(record);
         }
     }
 
