@@ -49,6 +49,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
         properties.put("max.request.size", kafkaProperties.getMaxRequestSize());
         properties.put("buffer.memory", kafkaProperties.getBufferMemory());
         properties.put("key.serializer", StringSerializer.class.getName());
+        properties.put("max.in.flight.requests.per.connection", 1);
 
         if (!kafkaProperties.getProperties().isEmpty()) {
             properties.putAll(kafkaProperties.getProperties());
