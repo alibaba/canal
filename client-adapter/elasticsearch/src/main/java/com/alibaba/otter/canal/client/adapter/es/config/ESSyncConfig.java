@@ -26,12 +26,6 @@ public class ESSyncConfig {
     private ESMapping esMapping;
 
     public void validate() {
-        if (!esMapping.relations.isEmpty()) {
-            Map<String, RelationMapping> relationMappings = esMapping.relations.get(0);
-            RelationMapping relationMapping = relationMappings.values().iterator().next();
-            esMapping.isChild = StringUtils.isNotEmpty(relationMapping.getParent());
-        }
-
         if (esMapping._index == null) {
             throw new NullPointerException("esMapping._index");
         }
@@ -88,24 +82,23 @@ public class ESSyncConfig {
 
     public static class ESMapping {
 
-        private String                             _index;
-        private String                             _type;
-        private String                             _id;
-        private boolean                            upsert          = false;
-        private String                             pk;
-        private List<Map<String, RelationMapping>> relations       = new ArrayList<>();
-        private boolean                            isChild         = false;
-        private String                             sql;
+        private String                       _index;
+        private String                       _type;
+        private String                       _id;
+        private boolean                      upsert          = false;
+        private String                       pk;
+        private Map<String, RelationMapping> relations       = new LinkedHashMap<>();
+        private String                       sql;
         // 对象字段, 例: objFields:
         // - _labels: array:;
-        private Map<String, String>                objFields       = new LinkedHashMap<>();
-        private List<String>                       skips           = new ArrayList<>();
-        private int                                commitBatch     = 1000;
-        private String                             etlCondition;
-        private boolean                            syncByTimestamp = false;                // 是否按时间戳定时同步
-        private Long                               syncInterval;                           // 同步时间间隔
+        private Map<String, String>          objFields       = new LinkedHashMap<>();
+        private List<String>                 skips           = new ArrayList<>();
+        private int                          commitBatch     = 1000;
+        private String                       etlCondition;
+        private boolean                      syncByTimestamp = false;                // 是否按时间戳定时同步
+        private Long                         syncInterval;                           // 同步时间间隔
 
-        private SchemaItem                         schemaItem;                             // sql解析结果模型
+        private SchemaItem                   schemaItem;                             // sql解析结果模型
 
         public String get_index() {
             return _index;
@@ -163,20 +156,12 @@ public class ESSyncConfig {
             this.skips = skips;
         }
 
-        public List<Map<String, RelationMapping>> getRelations() {
+        public Map<String, RelationMapping> getRelations() {
             return relations;
         }
 
-        public void setRelations(List<Map<String, RelationMapping>> relations) {
+        public void setRelations(Map<String, RelationMapping> relations) {
             this.relations = relations;
-        }
-
-        public boolean isChild() {
-            return isChild;
-        }
-
-        public void setChild(boolean child) {
-            isChild = child;
         }
 
         public String getSql() {

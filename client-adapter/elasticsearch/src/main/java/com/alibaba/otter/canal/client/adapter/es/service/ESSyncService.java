@@ -43,7 +43,7 @@ public class ESSyncService {
         long begin = System.currentTimeMillis();
         if (esSyncConfigs != null) {
             if (logger.isTraceEnabled()) {
-                logger.trace("Destination: {}, database:{}, table:{}, type:{}, effect index count: {}",
+                logger.trace("Destination: {}, database:{}, table:{}, type:{}, affected index count: {}",
                     dml.getDestination(),
                     dml.getDatabase(),
                     dml.getTable(),
@@ -65,7 +65,7 @@ public class ESSyncService {
                 }
             }
             if (logger.isTraceEnabled()) {
-                logger.trace("Sync elapsed time: {} ms, effect index count：{}, destination: {}",
+                logger.trace("Sync elapsed time: {} ms, affected indexes count：{}, destination: {}",
                     (System.currentTimeMillis() - begin),
                     esSyncConfigs.size(),
                     dml.getDestination());
@@ -74,7 +74,7 @@ public class ESSyncService {
                 StringBuilder configIndexes = new StringBuilder();
                 esSyncConfigs
                     .forEach(esSyncConfig -> configIndexes.append(esSyncConfig.getEsMapping().get_index()).append(" "));
-                logger.debug("DML: {} \nEffect indexes: {}",
+                logger.debug("DML: {} \nAffected indexes: {}",
                     JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue),
                     configIndexes.toString());
             }
