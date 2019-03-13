@@ -113,9 +113,9 @@ public class ESSyncUtil {
             } else if (val instanceof java.sql.Timestamp) {
                 DateTime dateTime = new DateTime(((java.sql.Timestamp) val).getTime());
                 if (dateTime.getMillisOfSecond() != 0) {
-                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
+                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS" + Util.timeZone);
                 } else {
-                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss+08:00");
+                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss" + Util.timeZone);
                 }
             } else if (val instanceof java.sql.Date || val instanceof Date) {
                 DateTime dateTime;
@@ -129,9 +129,9 @@ public class ESSyncUtil {
                     res = dateTime.toString("yyyy-MM-dd");
                 } else {
                     if (dateTime.getMillisOfSecond() != 0) {
-                        res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
+                        res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS" + Util.timeZone);
                     } else {
-                        res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss+08:00");
+                        res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss" + Util.timeZone);
                     }
                 }
             } else if (val instanceof Long) {
@@ -140,9 +140,9 @@ public class ESSyncUtil {
                     && dateTime.getMillisOfSecond() == 0) {
                     res = dateTime.toString("yyyy-MM-dd");
                 } else if (dateTime.getMillisOfSecond() != 0) {
-                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
+                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS" + Util.timeZone);
                 } else {
-                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss+08:00");
+                    res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss" + Util.timeZone);
                 }
             } else if (val instanceof String) {
                 String v = ((String) val).trim();
@@ -153,9 +153,9 @@ public class ESSyncUtil {
                     if (date != null) {
                         DateTime dateTime = new DateTime(date);
                         if (dateTime.getMillisOfSecond() != 0) {
-                            res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
+                            res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS" + Util.timeZone);
                         } else {
-                            res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss+08:00");
+                            res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss" + Util.timeZone);
                         }
                     }
                 } else if (v.length() == 10 && v.charAt(4) == '-' && v.charAt(7) == '-') {

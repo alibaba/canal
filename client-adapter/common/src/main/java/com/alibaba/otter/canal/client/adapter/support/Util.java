@@ -144,7 +144,7 @@ public class Util {
         return column;
     }
 
-    private static String timeZone; // 当前时区
+    public static String timeZone; // 当前时区
     private static DateTimeZone dateTimeZone;
 
     static {
