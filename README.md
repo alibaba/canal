@@ -82,7 +82,7 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 
 1. canal整体交互协议设计上使用了protobuf3.0，理论上可以支持绝大部分的多语言场景，欢迎大家提交多客户端的PR
     * canal java客户端: <a href="https://github.com/alibaba/canal/wiki/ClientExample"> https://github.com/alibaba/canal/wiki/ClientExample </a>
-    * canal c#客户端开源项目地址：<a href="https://github.com/CanalClient/CanalSharp"> https://github.com/CanalSharp/CanalSharp </a>
+    * canal c#客户端开源项目地址：<a href="https://github.com/dotnetcore/CanalSharp"> https://github.com/dotnetcore/CanalSharp </a>
     * canal go客户端开源项目地址：<a href="https://github.com/CanalClient/canal-go"> https://github.com/CanalClient/canal-go </a>
 2. canal作为MySQL binlog的增量获取工具，可以将数据投递到MQ系统中，比如Kafka/RocketMQ，可以借助于MQ的多语言能力 
     * 参考文档: [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
@@ -117,7 +117,7 @@ See the wiki page for : <a href="https://github.com/alibaba/canal/wiki" >wiki文
 <h3>最新更新</h3>
 <ol>
 <li>canal发布重大版本更新1.1.0，具体releaseNode参考：<a href="https://github.com/alibaba/canal/releases/tag/canal-1.1.0">https://github.com/alibaba/canal/releases/tag/canal-1.1.0</a></li>
-<li>canal c#客户端开源项目地址：<a href="https://github.com/CanalClient/CanalSharp"> https://github.com/CanalClient/CanalSharp </a>，推荐! </li>
+<li>canal c#客户端开源项目地址：<a href="https://github.com/dotnetcore/CanalSharp"> https://github.com/dotnetcore/CanalSharp </a>，推荐! </li>
 <li>canal QQ讨论群已经建立，群号：161559791 ，欢迎加入进行技术讨论。</li>
 <li>canal消费端项目开源: Otter(分布式数据库同步系统)，地址：<a href="https://github.com/alibaba/otter">https://github.com/alibaba/otter</a></li>
 
