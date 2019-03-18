@@ -3,9 +3,11 @@ package com.alibaba.otter.canal.client.adapter.es.monitor;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
@@ -31,10 +33,13 @@ public class ESConfigMonitor {
 
     private ESAdapter             esAdapter;
 
+    private Properties            envProperties;
+
     private FileAlterationMonitor fileMonitor;
 
-    public void init(ESAdapter esAdapter) {
+    public void init(ESAdapter esAdapter, Properties envProperties) {
         this.esAdapter = esAdapter;
+        this.envProperties = envProperties;
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
@@ -65,11 +70,13 @@ public class ESConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                ESSyncConfig config = new Yaml().loadAs(configContent, ESSyncConfig.class);
-                config.validate();
-                addConfigToCache(file, config);
-
-                logger.info("Add a new es mapping config: {} to canal adapter", file.getName());
+                ESSyncConfig config = YmlConfigBinder
+                    .bindYmlToObj(null, configContent, ESSyncConfig.class, null, envProperties);
+                if (config != null) {
+                    config.validate();
+                    addConfigToCache(file, config);
+                    logger.info("Add a new es mapping config: {} to canal adapter", file.getName());
+                }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
@@ -88,7 +95,11 @@ public class ESConfigMonitor {
                         onFileDelete(file);
                         return;
                     }
-                    ESSyncConfig config = new Yaml().loadAs(configContent, ESSyncConfig.class);
+                    ESSyncConfig config = YmlConfigBinder
+                        .bindYmlToObj(null, configContent, ESSyncConfig.class, null, envProperties);
+                    if (config == null) {
+                        return;
+                    }
                     config.validate();
                     if (esAdapter.getEsSyncConfig().containsKey(file.getName())) {
                         deleteConfigFromCache(file);

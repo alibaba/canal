@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.hbase.monitor;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -11,8 +12,8 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.hbase.HbaseAdapter;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
@@ -26,10 +27,13 @@ public class HbaseConfigMonitor {
 
     private HbaseAdapter          hbaseAdapter;
 
+    private Properties            envProperties;
+
     private FileAlterationMonitor fileMonitor;
 
-    public void init(HbaseAdapter hbaseAdapter) {
+    public void init(HbaseAdapter hbaseAdapter, Properties envProperties) {
         this.hbaseAdapter = hbaseAdapter;
+        this.envProperties = envProperties;
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
@@ -60,7 +64,11 @@ public class HbaseConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                MappingConfig config = new Yaml().loadAs(configContent, MappingConfig.class);
+                MappingConfig config = YmlConfigBinder
+                    .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                if (config == null) {
+                    return;
+                }
                 config.validate();
                 addConfigToCache(file, config);
 
@@ -83,7 +91,11 @@ public class HbaseConfigMonitor {
                         onFileDelete(file);
                         return;
                     }
-                    MappingConfig config = new Yaml().loadAs(configContent, MappingConfig.class);
+                    MappingConfig config = YmlConfigBinder
+                        .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                    if (config == null) {
+                        return;
+                    }
                     config.validate();
                     if (hbaseAdapter.getHbaseMapping().containsKey(file.getName())) {
                         deleteConfigFromCache(file);

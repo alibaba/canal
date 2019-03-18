@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,10 +10,13 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -64,13 +68,24 @@ public class ESTemplate {
      */
     public void insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.get_id() != null) {
+            String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
-                getBulk().add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
+                UpdateRequestBuilder updateRequestBuilder = transportClient
+                    .prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
                     .setDoc(esFieldData)
-                    .setDocAsUpsert(true));
+                    .setDocAsUpsert(true);
+                if (StringUtils.isNotEmpty(parentVal)) {
+                    updateRequestBuilder.setRouting(parentVal);
+                }
+                getBulk().add(updateRequestBuilder);
             } else {
-                getBulk().add(transportClient.prepareIndex(mapping.get_index(), mapping.get_type(), pkVal.toString())
-                    .setSource(esFieldData));
+                IndexRequestBuilder indexRequestBuilder = transportClient
+                    .prepareIndex(mapping.get_index(), mapping.get_type(), pkVal.toString())
+                    .setSource(esFieldData);
+                if (StringUtils.isNotEmpty(parentVal)) {
+                    indexRequestBuilder.setRouting(parentVal);
+                }
+                getBulk().add(indexRequestBuilder);
             }
             commitBulk();
         } else {
@@ -137,7 +152,7 @@ public class ESTemplate {
             return count;
         });
         if (logger.isTraceEnabled()) {
-            logger.trace("Update ES by query effect {} records", syncCount);
+            logger.trace("Update ES by query affected {} records", syncCount);
         }
     }
 
@@ -200,13 +215,24 @@ public class ESTemplate {
 
     private void append4Update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.get_id() != null) {
+            String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
-                getBulk().add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
+                UpdateRequestBuilder updateRequestBuilder = transportClient
+                    .prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
                     .setDoc(esFieldData)
-                    .setDocAsUpsert(true));
+                    .setDocAsUpsert(true);
+                if (StringUtils.isNotEmpty(parentVal)) {
+                    updateRequestBuilder.setRouting(parentVal);
+                }
+                getBulk().add(updateRequestBuilder);
             } else {
-                getBulk().add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
-                    .setDoc(esFieldData));
+                UpdateRequestBuilder updateRequestBuilder = transportClient
+                    .prepareUpdate(mapping.get_index(), mapping.get_type(), pkVal.toString())
+                    .setDoc(esFieldData);
+                if (StringUtils.isNotEmpty(parentVal)) {
+                    updateRequestBuilder.setRouting(parentVal);
+                }
+                getBulk().add(updateRequestBuilder);
             }
         } else {
             SearchResponse response = transportClient.prepareSearch(mapping.get_index())
@@ -257,6 +283,10 @@ public class ESTemplate {
                 esFieldData.put(fieldItem.getFieldName(), value);
             }
         }
+
+        // 添加父子文档关联信息
+        putRelationDataFromRS(mapping, schemaItem, resultSet, esFieldData);
+
         return resultIdVal;
     }
 
@@ -294,6 +324,10 @@ public class ESTemplate {
                 }
             }
         }
+
+        // 添加父子文档关联信息
+        putRelationDataFromRS(mapping, schemaItem, resultSet, esFieldData);
+
         return resultIdVal;
     }
 
@@ -340,6 +374,9 @@ public class ESTemplate {
                 esFieldData.put(fieldItem.getFieldName(), value);
             }
         }
+
+        // 添加父子文档关联信息
+        putRelationData(mapping, schemaItem, dmlData, esFieldData);
         return resultIdVal;
     }
 
@@ -368,7 +405,61 @@ public class ESTemplate {
                     getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }
         }
+
+        // 添加父子文档关联信息
+        putRelationData(mapping, schemaItem, dmlOld, esFieldData);
         return resultIdVal;
+    }
+
+    private void putRelationDataFromRS(ESMapping mapping, SchemaItem schemaItem, ResultSet resultSet,
+                                       Map<String, Object> esFieldData) {
+        // 添加父子文档关联信息
+        if (!mapping.getRelations().isEmpty()) {
+            mapping.getRelations().forEach((relationField, relationMapping) -> {
+                Map<String, Object> relations = new HashMap<>();
+                relations.put("name", relationMapping.getName());
+                if (StringUtils.isNotEmpty(relationMapping.getParent())) {
+                    FieldItem parentFieldItem = schemaItem.getSelectFields().get(relationMapping.getParent());
+                    Object parentVal;
+                    try {
+                        parentVal = getValFromRS(mapping,
+                            resultSet,
+                            parentFieldItem.getFieldName(),
+                            parentFieldItem.getFieldName());
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (parentVal != null) {
+                        relations.put("parent", parentVal.toString());
+                        esFieldData.put("$parent_routing", parentVal.toString());
+
+                    }
+                }
+                esFieldData.put(relationField, relations);
+            });
+        }
+    }
+
+    private void putRelationData(ESMapping mapping, SchemaItem schemaItem, Map<String, Object> dmlData,
+                                 Map<String, Object> esFieldData) {
+        // 添加父子文档关联信息
+        if (!mapping.getRelations().isEmpty()) {
+            mapping.getRelations().forEach((relationField, relationMapping) -> {
+                Map<String, Object> relations = new HashMap<>();
+                relations.put("name", relationMapping.getName());
+                if (StringUtils.isNotEmpty(relationMapping.getParent())) {
+                    FieldItem parentFieldItem = schemaItem.getSelectFields().get(relationMapping.getParent());
+                    String columnName = parentFieldItem.getColumnItems().iterator().next().getColumnName();
+                    Object parentVal = getValFromData(mapping, dmlData, parentFieldItem.getFieldName(), columnName);
+                    if (parentVal != null) {
+                        relations.put("parent", parentVal.toString());
+                        esFieldData.put("$parent_routing", parentVal.toString());
+
+                    }
+                }
+                esFieldData.put(relationField, relations);
+            });
+        }
     }
 
     /**
