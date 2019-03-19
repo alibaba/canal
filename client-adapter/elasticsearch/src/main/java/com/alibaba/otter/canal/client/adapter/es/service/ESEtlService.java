@@ -202,20 +202,23 @@ public class ESEtlService {
                     long batchBegin = System.currentTimeMillis();
                     while (rs.next()) {
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
+                        Map<String, Object> idEsFieldData = new HashMap<>();
                         for (FieldItem fieldItem : mapping.getSchemaItem().getSelectFields().values()) {
-
-                            // 如果是主键字段则不插入
-                            if (fieldItem.getFieldName().equals(mapping.get_id())) {
-                                continue;
-                            }
 
                             String fieldName = fieldItem.getFieldName();
                             if (mapping.getSkips().contains(fieldName)) {
                                 continue;
                             }
 
-                            Object val = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
-                            esFieldData.put(fieldName, val);
+                            // 如果是主键字段则不插入
+                            if (fieldItem.getFieldName().equals(mapping.get_id())) {
+                                Object val = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
+                                idEsFieldData.put(Util.cleanColumn(fieldName), val);
+                            } else {
+                                Object val = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
+                                esFieldData.put(Util.cleanColumn(fieldName), val);
+                            }
+
                         }
 
                         if (!mapping.getRelations().isEmpty()) {
@@ -241,13 +244,13 @@ public class ESEtlService {
 
                                     }
                                 }
-                                esFieldData.put(relationField, relations);
+                                esFieldData.put(Util.cleanColumn(relationField), relations);
                             });
                         }
 
                         Object idVal = null;
                         if (mapping.get_id() != null) {
-                            idVal = esFieldData.get(mapping.get_id());
+                            idVal = idEsFieldData.get(mapping.get_id());
                         }
 
                         if (idVal != null) {
@@ -271,7 +274,7 @@ public class ESEtlService {
                                 bulkRequestBuilder.add(indexRequestBuilder);
                             }
                         } else {
-                            idVal = esFieldData.get(mapping.getPk());
+                            idVal = idEsFieldData.get(mapping.getPk());
                             SearchResponse response = transportClient.prepareSearch(mapping.get_index())
                                 .setTypes(mapping.get_type())
                                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))

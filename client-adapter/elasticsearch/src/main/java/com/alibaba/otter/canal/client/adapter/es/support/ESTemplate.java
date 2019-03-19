@@ -112,7 +112,9 @@ public class ESTemplate {
      * @param esFieldData 数据Map
      */
     public void update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
-        append4Update(mapping, pkVal, esFieldData);
+        Map<String, Object> esFieldDataTmp = new LinkedHashMap<>(esFieldData.size());
+        esFieldData.forEach((k, v) -> esFieldDataTmp.put(Util.cleanColumn(k), v));
+        append4Update(mapping, pkVal, esFieldDataTmp);
         commitBulk();
     }
 
@@ -250,6 +252,8 @@ public class ESTemplate {
 
     public Object getValFromRS(ESMapping mapping, ResultSet resultSet, String fieldName,
                                String columnName) throws SQLException {
+        fieldName = Util.cleanColumn(fieldName);
+        columnName = Util.cleanColumn(columnName);
         String esType = getEsType(mapping, fieldName);
 
         Object value = resultSet.getObject(columnName);
@@ -281,7 +285,7 @@ public class ESTemplate {
 
             if (!fieldItem.getFieldName().equals(mapping.get_id())
                 && !mapping.getSkips().contains(fieldItem.getFieldName())) {
-                esFieldData.put(fieldItem.getFieldName(), value);
+                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
             }
         }
 
@@ -319,7 +323,7 @@ public class ESTemplate {
             for (ColumnItem columnItem : fieldItem.getColumnItems()) {
                 if (dmlOld.containsKey(columnItem.getColumnName())
                     && !mapping.getSkips().contains(fieldItem.getFieldName())) {
-                    esFieldData.put(fieldItem.getFieldName(),
+                    esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
                         getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName()));
                     break;
                 }
@@ -372,7 +376,7 @@ public class ESTemplate {
 
             if (!fieldItem.getFieldName().equals(mapping.get_id())
                 && !mapping.getSkips().contains(fieldItem.getFieldName())) {
-                esFieldData.put(fieldItem.getFieldName(), value);
+                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
             }
         }
 
@@ -402,7 +406,7 @@ public class ESTemplate {
             }
 
             if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
-                esFieldData.put(fieldItem.getFieldName(),
+                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
                     getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }
         }

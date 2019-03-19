@@ -167,7 +167,7 @@ public class ESSyncService {
                                     data,
                                     fieldItem.getFieldName(),
                                     fieldItem.getColumn().getColumnName());
-                                esFieldData.put(fieldItem.getFieldName(), value);
+                                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
                             }
 
                             joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
@@ -296,7 +296,7 @@ public class ESSyncService {
                                         data,
                                         fieldItem.getFieldName(),
                                         fieldItem.getColumn().getColumnName());
-                                    esFieldData.put(fieldItem.getFieldName(), value);
+                                    esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
                                 }
                             }
                             joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
@@ -408,7 +408,7 @@ public class ESSyncService {
                         // ------关联表简单字段更新为null------
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
                         for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-                            esFieldData.put(fieldItem.getFieldName(), null);
+                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), null);
                         }
                         joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
                     } else {
@@ -509,7 +509,7 @@ public class ESSyncService {
                     esTemplate.getESDataFromDmlData(mapping, data, esFieldData);
                     esFieldData.remove(mapping.getPk());
                     for (String key : esFieldData.keySet()) {
-                        esFieldData.put(key, null);
+                        esFieldData.put(Util.cleanColumn(key), null);
                     }
                 }
                 while (rs.next()) {
@@ -618,7 +618,7 @@ public class ESSyncService {
                                                     rs,
                                                     fieldItem.getFieldName(),
                                                     fieldItem.getColumn().getColumnName());
-                                                esFieldData.put(fieldItem.getFieldName(), val);
+                                                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                                                 break out;
                                             }
                                         }
@@ -629,7 +629,7 @@ public class ESSyncService {
                                 rs,
                                 fieldItem.getFieldName(),
                                 fieldItem.getColumn().getColumnName());
-                            esFieldData.put(fieldItem.getFieldName(), val);
+                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                         }
                     }
 
@@ -725,7 +725,7 @@ public class ESSyncService {
                                                 rs,
                                                 fieldItem.getFieldName(),
                                                 fieldItem.getFieldName());
-                                            esFieldData.put(fieldItem.getFieldName(), val);
+                                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                                             break;
                                         }
                                     }
@@ -734,7 +734,7 @@ public class ESSyncService {
                         } else {
                             Object val = esTemplate
                                 .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
-                            esFieldData.put(fieldItem.getFieldName(), val);
+                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                         }
                     }
 
