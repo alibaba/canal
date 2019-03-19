@@ -201,7 +201,7 @@ public class ESEtlService {
                         }
                         Object idVal = null;
                         if (mapping.get_id() != null) {
-                            idVal = rs.getObject(mapping.get_id());
+                            idVal = esFieldData.get(mapping.get_id());
                         }
 
                         if (idVal != null) {
@@ -216,7 +216,7 @@ public class ESEtlService {
                                     .setSource(esFieldData));
                             }
                         } else {
-                            idVal = rs.getObject(mapping.getPk());
+                            idVal = esFieldData.get(mapping.getPk());
                             SearchResponse response = transportClient.prepareSearch(mapping.get_index())
                                 .setTypes(mapping.get_type())
                                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
