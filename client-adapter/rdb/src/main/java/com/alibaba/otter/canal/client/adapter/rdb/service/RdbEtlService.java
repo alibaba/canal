@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -78,7 +76,20 @@ public class RdbEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+                ExecutorService executor = new ThreadPoolExecutor(threadCount,
+                    threadCount,
+                    5000L,
+                    TimeUnit.MILLISECONDS,
+                    new SynchronousQueue<>(),
+                    (r, exe) -> {
+                        if (!exe.isShutdown()) {
+                            try {
+                                exe.getQueue().put(r);
+                            } catch (InterruptedException e1) {
+                                // ignore
+                            }
+                        }
+                    });
                 List<Future<Boolean>> futures = new ArrayList<>(threadCount);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;

@@ -1,10 +1,16 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,10 +35,10 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
-import com.alibaba.otter.canal.client.adapter.es.support.ESSyncUtil;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.google.common.base.Joiner;
 
 /**
@@ -99,7 +105,7 @@ public class ESEtlService {
 
             // 获取总数
             String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-            long cnt = (Long) ESSyncUtil.sqlRS(dataSource, countSql, rs -> {
+            long cnt = (Long) Util.sqlRS(dataSource, countSql, rs -> {
                 Long count = null;
                 try {
                     if (rs.next()) {
@@ -115,7 +121,20 @@ public class ESEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3; // 从配置读取默认为3
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+                ExecutorService executor = new ThreadPoolExecutor(threadCount,
+                    threadCount,
+                    5000L,
+                    TimeUnit.MILLISECONDS,
+                    new SynchronousQueue<>(),
+                    (r, exe) -> {
+                        if (!exe.isShutdown()) {
+                            try {
+                                exe.getQueue().put(r);
+                            } catch (InterruptedException e1) {
+                                // ignore
+                            }
+                        }
+                    });
                 List<Future<Boolean>> futures = new ArrayList<>(threadCount);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
@@ -175,7 +194,7 @@ public class ESEtlService {
     private boolean executeSqlImport(DataSource ds, String sql, ESMapping mapping, AtomicLong impCount,
                                      List<String> errMsg) {
         try {
-            ESSyncUtil.sqlRS(ds, sql, rs -> {
+            Util.sqlRS(ds, sql, rs -> {
                 int count = 0;
                 try {
                     BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();

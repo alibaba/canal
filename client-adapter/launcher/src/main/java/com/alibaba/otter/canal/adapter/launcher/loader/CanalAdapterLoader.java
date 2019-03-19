@@ -5,7 +5,7 @@ import java.net.SocketAddress;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -176,40 +176,32 @@ public class CanalAdapterLoader {
     public void destroy() {
         if (!canalWorkers.isEmpty()) {
             ExecutorService stopExecutorService = Executors.newFixedThreadPool(canalWorkers.size());
-            List<Future<Boolean>> futures = new ArrayList<>();
             for (CanalAdapterWorker canalAdapterWorker : canalWorkers.values()) {
-                futures.add(stopExecutorService.submit(() -> {
-                    canalAdapterWorker.stop();
-                    return true;
-                }));
+                stopExecutorService.execute(canalAdapterWorker::stop);
             }
-            futures.forEach(future -> {
-                try {
-                    future.get();
-                } catch (Exception e) {
+            stopExecutorService.shutdown();
+            try {
+                while (!stopExecutorService.awaitTermination(1, TimeUnit.SECONDS)) {
                     // ignore
                 }
-            });
-            stopExecutorService.shutdown();
+            } catch (InterruptedException e) {
+                // ignore
+            }
         }
 
         if (!canalMQWorker.isEmpty()) {
             ExecutorService stopMQWorkerService = Executors.newFixedThreadPool(canalMQWorker.size());
-            List<Future<Boolean>> futures = new ArrayList<>();
             for (AbstractCanalAdapterWorker canalAdapterMQWorker : canalMQWorker.values()) {
-                futures.add(stopMQWorkerService.submit(() -> {
-                    canalAdapterMQWorker.stop();
-                    return true;
-                }));
+                stopMQWorkerService.execute(canalAdapterMQWorker::stop);
             }
-            futures.forEach(future -> {
-                try {
-                    future.get();
-                } catch (Exception e) {
+            stopMQWorkerService.shutdown();
+            try {
+                while (!stopMQWorkerService.awaitTermination(1, TimeUnit.SECONDS)) {
                     // ignore
                 }
-            });
-            stopMQWorkerService.shutdown();
+            } catch (InterruptedException e) {
+                // ignore
+            }
         }
         logger.info("All canal adapters destroyed");
     }

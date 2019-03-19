@@ -33,6 +33,7 @@ import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 
 /**
  * ES 操作模板
@@ -137,7 +138,7 @@ public class ESTemplate {
             (fieldName, value) -> sql.append("_v.").append(fieldName).append("=").append(value).append(" AND "));
         int len = sql.length();
         sql.delete(len - 4, len);
-        Integer syncCount = (Integer) ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+        Integer syncCount = (Integer) Util.sqlRS(ds, sql.toString(), rs -> {
             int count = 0;
             try {
                 while (rs.next()) {

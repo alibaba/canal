@@ -3,12 +3,9 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.*;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.*;
-import java.util.Date;
-import java.util.function.Function;
-
-import javax.sql.DataSource;
 
 import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
@@ -234,8 +231,11 @@ public class ESSyncUtil {
     private static byte[] blobToBytes(Blob blob) {
         try (InputStream is = blob.getBinaryStream()) {
             byte[] b = new byte[(int) blob.length()];
-            is.read(b);
-            return b;
+            if (is.read(b) != -1) {
+                return b;
+            } else {
+                return new byte[0];
+            }
         } catch (IOException | SQLException e) {
             logger.error(e.getMessage());
             return null;
@@ -295,48 +295,6 @@ public class ESSyncUtil {
             sql.append(owner).append(".").append(columnName).append("='").append(value).append("'  AND ");
         } else {
             sql.append(owner).append(".").append(columnName).append("=").append(value).append("  AND ");
-        }
-    }
-
-    /**
-     * 执行查询sql
-     */
-    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) {
-        Connection conn = null;
-        Statement smt = null;
-        ResultSet rs = null;
-        try {
-            conn = ds.getConnection();
-            smt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            smt.setFetchSize(Integer.MIN_VALUE);
-            rs = smt.executeQuery(sql);
-
-            return fun.apply(rs);
-        } catch (SQLException e) {
-            logger.error("sqlRs has error, sql: {} ", sql);
-            throw new RuntimeException(e);
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    logger.error("error to close result set");
-                }
-            }
-            if (smt != null) {
-                try {
-                    smt.close();
-                } catch (SQLException e) {
-                    logger.error("error to close statement");
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    logger.error("error to close db connection");
-                }
-            }
         }
     }
 }

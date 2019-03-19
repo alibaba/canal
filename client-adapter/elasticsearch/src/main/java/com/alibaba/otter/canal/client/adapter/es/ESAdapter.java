@@ -134,7 +134,7 @@ public class ESAdapter implements OuterAdapter {
 
             esConfigMonitor = new ESConfigMonitor();
             esConfigMonitor.init(this, envProperties);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }

@@ -140,7 +140,7 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                     }
                 }
 
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.error("process error!", e);
             } finally {
                 connector.disconnect();

@@ -278,12 +278,13 @@ public class SchemaItem {
             if (relationSelectFieldItems == null) {
                 synchronized (SchemaItem.class) {
                     if (relationSelectFieldItems == null) {
-                        relationSelectFieldItems = new ArrayList<>();
+                        List<FieldItem> relationSelectFieldItemsTmp = new ArrayList<>();
                         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
                             if (fieldItem.getOwners().contains(getAlias())) {
-                                relationSelectFieldItems.add(fieldItem);
+                                relationSelectFieldItemsTmp.add(fieldItem);
                             }
                         }
+                        relationSelectFieldItems = relationSelectFieldItemsTmp;
                     }
                 }
             }

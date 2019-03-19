@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.adapter.launcher.monitor.remote;
 
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,7 +37,7 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
 
     private DruidDataSource          dataSource;
 
-    private static volatile long     currentConfigTimestamp = 0;
+    private volatile long            currentConfigTimestamp = 0;
     private Map<String, ConfigItem>  remoteAdapterConfigs   = new MapMaker().makeMap();
 
     private ScheduledExecutorService executor               = Executors.newScheduledThreadPool(2,
@@ -115,7 +117,10 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
      * @param content 文件内容
      */
     private void overrideLocalCanalConfig(String content) {
-        try (FileWriter writer = new FileWriter(CommonUtils.getConfPath() + "application.yml")) {
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(
+            new FileOutputStream(CommonUtils.getConfPath() + "application.yml"),
+            StandardCharsets.UTF_8)) {
             writer.write(content);
             writer.flush();
         } catch (Exception e) {

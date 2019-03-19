@@ -20,9 +20,9 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
  */
 public class HbaseSyncService {
 
-    private Logger        logger = LoggerFactory.getLogger(this.getClass());
+    private static Logger logger = LoggerFactory.getLogger(HbaseSyncService.class);
 
-    private HbaseTemplate hbaseTemplate;                                    // HBase操作模板
+    private HbaseTemplate hbaseTemplate;                                           // HBase操作模板
 
     public HbaseSyncService(HbaseTemplate hbaseTemplate){
         this.hbaseTemplate = hbaseTemplate;
@@ -140,7 +140,7 @@ public class HbaseSyncService {
                                         Integer.parseInt((String) entry.getValue()));
                                     bytes = Bytes.toBytes(v);
                                 } catch (Exception e) {
-                                    // ignore
+                                    logger.error(e.getMessage(), e);
                                 }
                             }
                         }

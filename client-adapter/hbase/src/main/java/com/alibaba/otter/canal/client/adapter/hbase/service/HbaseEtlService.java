@@ -6,9 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -40,10 +38,9 @@ public class HbaseEtlService {
 
     private static Logger logger = LoggerFactory.getLogger(HbaseEtlService.class);
 
-
     /**
      * 建表
-     * 
+     *
      * @param hbaseTemplate
      * @param config
      */
@@ -62,7 +59,7 @@ public class HbaseEtlService {
 
     /**
      * 导入数据
-     * 
+     *
      * @param ds 数据源
      * @param hbaseTemplate hbaseTemplate
      * @param config 配置
@@ -154,7 +151,20 @@ public class HbaseEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+                ExecutorService executor = new ThreadPoolExecutor(threadCount,
+                    threadCount,
+                    5000L,
+                    TimeUnit.MILLISECONDS,
+                    new SynchronousQueue<>(),
+                    (r, exe) -> {
+                        if (!exe.isShutdown()) {
+                            try {
+                                exe.getQueue().put(r);
+                            } catch (InterruptedException e1) {
+                                // ignore
+                            }
+                        }
+                    });
                 List<Future<Boolean>> futures = new ArrayList<>(threadCount);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
@@ -201,7 +211,7 @@ public class HbaseEtlService {
 
     /**
      * 执行导入
-     * 
+     *
      * @param ds
      * @param sql
      * @param hbaseMapping

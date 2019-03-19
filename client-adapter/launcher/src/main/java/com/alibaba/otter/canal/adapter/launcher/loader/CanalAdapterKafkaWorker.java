@@ -1,9 +1,7 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.apache.kafka.common.errors.WakeupException;
 
@@ -44,12 +42,22 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     protected void process() {
         while (!running) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 // ignore
             }
         }
-        ExecutorService workerExecutor = Executors.newSingleThreadExecutor();
+        ExecutorService workerExecutor = new ThreadPoolExecutor(1, 1,
+                5000L, TimeUnit.MILLISECONDS,
+                new SynchronousQueue<>(), (r, exe) -> {
+            if (!exe.isShutdown()) {
+                try {
+                    exe.getQueue().put(r);
+                } catch (InterruptedException e1) {
+                    //ignore
+                }
+            }
+        });
         int retry = canalClientConfig.getRetries() == null
                     || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
@@ -63,8 +71,8 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 connector.subscribe();
                 logger.info("=============> Subscribe topic: {} succeed <=============", this.topic);
                 while (running) {
-                    Boolean status = syncSwitch.status(canalDestination);
-                    if (status != null && !status) {
+                    boolean status = syncSwitch.status(canalDestination);
+                    if (!status) {
                         connector.disconnect();
                         break;
                     }
@@ -84,6 +92,8 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 logger.error(e.getMessage(), e);
             }
         }
+
+        workerExecutor.shutdown();
 
         try {
             connector.unsubscribe();

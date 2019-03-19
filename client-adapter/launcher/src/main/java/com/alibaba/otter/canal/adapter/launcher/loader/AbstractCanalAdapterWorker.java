@@ -2,10 +2,7 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +40,21 @@ public abstract class AbstractCanalAdapterWorker {
 
     public AbstractCanalAdapterWorker(List<List<OuterAdapter>> canalOuterAdapters){
         this.canalOuterAdapters = canalOuterAdapters;
-        this.groupInnerExecutorService = Executors.newFixedThreadPool(canalOuterAdapters.size());
+        int adaptersSize = canalOuterAdapters.size();
+        this.groupInnerExecutorService = new ThreadPoolExecutor(adaptersSize,
+            adaptersSize,
+            5000L,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue<>(),
+            (r, exe) -> {
+                if (!exe.isShutdown()) {
+                    try {
+                        exe.getQueue().put(r);
+                    } catch (InterruptedException e1) {
+                        // ignore
+                    }
+                }
+            });
         syncSwitch = (SyncSwitch) SpringContext.getBean(SyncSwitch.class);
     }
 

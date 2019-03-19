@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -464,7 +465,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql, rs -> {
+        Util.sqlRS(ds, sql, rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
@@ -500,7 +501,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql, rs -> {
+        Util.sqlRS(ds, sql, rs -> {
             try {
                 Map<String, Object> esFieldData = null;
                 if (mapping.getPk() != null) {
@@ -601,7 +602,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.toString().replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+        Util.sqlRS(ds, sql.toString(), rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
@@ -693,7 +694,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.toString().replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+        Util.sqlRS(ds, sql.toString(), rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
@@ -812,7 +813,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql, rs -> {
+        Util.sqlRS(ds, sql, rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
