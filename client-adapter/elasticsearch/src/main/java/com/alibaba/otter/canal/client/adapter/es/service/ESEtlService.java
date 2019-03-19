@@ -1,5 +1,26 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
+import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
+import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
+import com.alibaba.otter.canal.client.adapter.es.support.ESSyncUtil;
+import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
+import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
+import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.google.common.base.Joiner;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,31 +31,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.sql.DataSource;
-
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.search.SearchHit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
-import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
-import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
-import com.alibaba.otter.canal.client.adapter.es.support.ESSyncUtil;
-import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.google.common.base.Joiner;
 
 /**
  * ES ETL Service
@@ -201,7 +197,7 @@ public class ESEtlService {
                         }
                         Object idVal = null;
                         if (mapping.get_id() != null) {
-                            idVal = rs.getObject(mapping.get_id());
+                            idVal = esFieldData.get(mapping.get_id());
                         }
 
                         if (idVal != null) {
@@ -216,7 +212,7 @@ public class ESEtlService {
                                     .setSource(esFieldData));
                             }
                         } else {
-                            idVal = rs.getObject(mapping.getPk());
+                            idVal = esFieldData.get(mapping.getPk());
                             SearchResponse response = transportClient.prepareSearch(mapping.get_index())
                                 .setTypes(mapping.get_type())
                                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
