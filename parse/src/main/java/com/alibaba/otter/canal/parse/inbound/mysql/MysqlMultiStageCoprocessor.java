@@ -106,8 +106,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         // stage 3
         SequenceBarrier dmlParserSequenceBarrier = disruptorMsgBuffer.newBarrier(simpleParserStage.getSequence());
-        WorkHandler<MessageEvent>[] workHandlers = new DmlParserStage[parserThreadCount];
-        for (int i = 0; i < parserThreadCount; i++) {
+        WorkHandler<MessageEvent>[] workHandlers = new DmlParserStage[tc];
+        for (int i = 0; i < tc; i++) {
             workHandlers[i] = new DmlParserStage();
         }
         workerPool = new WorkerPool<MessageEvent>(disruptorMsgBuffer,

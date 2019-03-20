@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.rdb.monitor;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -11,8 +12,8 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.rdb.RdbAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
@@ -29,11 +30,14 @@ public class RdbConfigMonitor {
 
     private RdbAdapter            rdbAdapter;
 
+    private Properties            envProperties;
+
     private FileAlterationMonitor fileMonitor;
 
-    public void init(String key, RdbAdapter rdbAdapter) {
+    public void init(String key, RdbAdapter rdbAdapter, Properties envProperties) {
         this.key = key;
         this.rdbAdapter = rdbAdapter;
+        this.envProperties = envProperties;
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
@@ -64,7 +68,11 @@ public class RdbConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                MappingConfig config = new Yaml().loadAs(configContent, MappingConfig.class);
+                MappingConfig config = YmlConfigBinder
+                    .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                if (config == null) {
+                    return;
+                }
                 config.validate();
                 if ((key == null && config.getOuterAdapterKey() == null)
                     || (key != null && key.equals(config.getOuterAdapterKey()))) {
@@ -90,7 +98,11 @@ public class RdbConfigMonitor {
                         onFileDelete(file);
                         return;
                     }
-                    MappingConfig config = new Yaml().loadAs(configContent, MappingConfig.class);
+                    MappingConfig config = YmlConfigBinder
+                        .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                    if (config == null) {
+                        return;
+                    }
                     config.validate();
                     if ((key == null && config.getOuterAdapterKey() == null)
                         || (key != null && key.equals(config.getOuterAdapterKey()))) {

@@ -6,8 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -78,8 +77,7 @@ public class RdbEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
                     Long size = null;
@@ -92,16 +90,14 @@ public class RdbEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor
-                        .submit(() -> executeSqlImport(srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
-                    futures.add(future);
-                }
-
-                for (Future<Boolean> future : futures) {
-                    future.get();
+                    executor
+                        .execute(() -> executeSqlImport(srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
                 }
 
                 executor.shutdown();
+                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                    // ignore
+                }
             } else {
                 executeSqlImport(srcDS, targetDS, sql.toString(), dbMapping, successCount, errMsg);
             }
@@ -202,7 +198,7 @@ public class RdbEtlService {
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
                     columnsMap
-                            .forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+                        .forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
 
                     int len = insertSql.length();
                     insertSql.delete(len - 1, len).append(") VALUES (");
@@ -213,16 +209,18 @@ public class RdbEtlService {
                     len = insertSql.length();
                     insertSql.delete(len - 1, len).append(")");
                     try (Connection connTarget = targetDS.getConnection();
-                         PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
+                            PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
                         connTarget.setAutoCommit(false);
 
                         while (rs.next()) {
+                            completed = false;
+
                             pstmt.clearParameters();
 
                             // 删除数据
                             Map<String, Object> values = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
-                                    "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
+                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
                             appendCondition(dbMapping, deleteSql, values, rs);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
                                 int k = 1;

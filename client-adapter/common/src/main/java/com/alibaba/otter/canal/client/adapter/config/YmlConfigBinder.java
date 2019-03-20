@@ -84,7 +84,7 @@ public class YmlConfigBinder {
         try {
             byte[] contentBytes;
             if (charset == null) {
-                contentBytes = content.getBytes();
+                contentBytes = content.getBytes("UTF-8");
             } else {
                 contentBytes = content.getBytes(charset);
             }

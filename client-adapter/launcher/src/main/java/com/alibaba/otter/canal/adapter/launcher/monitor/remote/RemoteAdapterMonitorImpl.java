@@ -1,11 +1,14 @@
 package com.alibaba.otter.canal.adapter.launcher.monitor.remote;
 
-import com.alibaba.otter.canal.common.utils.CommonUtils;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
+import com.alibaba.otter.canal.common.utils.CommonUtils;
 
 /**
  * 远程配置监听器实现
@@ -35,7 +38,9 @@ public class RemoteAdapterMonitorImpl implements RemoteAdapterMonitor {
             }
         }
         String name = configItem.getName();
-        try (FileWriter writer = new FileWriter(confPath + category + "/" + configItem.getName())) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(
+            new FileOutputStream(confPath + category + "/" + configItem.getName()),
+            StandardCharsets.UTF_8)) {
             writer.write(configItem.getContent());
             writer.flush();
             logger.info("## Loaded remote adapter config: {}/{}", category, name);

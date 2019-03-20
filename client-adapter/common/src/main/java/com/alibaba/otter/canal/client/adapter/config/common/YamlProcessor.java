@@ -191,6 +191,7 @@ public abstract class YamlProcessor {
     }
 
     private boolean process(Map<String, Object> map, MatchCallback callback) {
+        @SuppressWarnings("serial")
         Properties properties = new Properties() {
 
             @Override

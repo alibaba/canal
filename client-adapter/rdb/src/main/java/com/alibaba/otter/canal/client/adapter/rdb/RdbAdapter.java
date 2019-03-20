@@ -146,7 +146,7 @@ public class RdbAdapter implements OuterAdapter {
             skipDupException);
 
         rdbConfigMonitor = new RdbConfigMonitor();
-        rdbConfigMonitor.init(configuration.getKey(), this);
+        rdbConfigMonitor.init(configuration.getKey(), this, envProperties);
     }
 
     /**

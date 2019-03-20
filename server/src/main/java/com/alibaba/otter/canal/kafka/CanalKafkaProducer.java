@@ -49,6 +49,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
         properties.put("max.request.size", kafkaProperties.getMaxRequestSize());
         properties.put("buffer.memory", kafkaProperties.getBufferMemory());
         properties.put("key.serializer", StringSerializer.class.getName());
+        properties.put("max.in.flight.requests.per.connection", 1);
 
         if (!kafkaProperties.getProperties().isEmpty()) {
             properties.putAll(kafkaProperties.getProperties());
@@ -160,7 +161,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
 
             if (record != null) {
                 if (kafkaProperties.getTransaction()) {
-                    producer.send(record);
+                    producer.send(record).get();
                 } else {
                     producer.send(record).get();
                 }
@@ -212,7 +213,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
         if (kafkaProperties.getTransaction()) {
             producer2.send(record);
         } else {
-            producer2.send(record).get();
+            producer2.send(record);
         }
     }
 

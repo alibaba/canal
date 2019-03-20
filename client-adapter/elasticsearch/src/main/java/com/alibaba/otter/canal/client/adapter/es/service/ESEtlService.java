@@ -1,25 +1,23 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
@@ -30,10 +28,10 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
-import com.alibaba.otter.canal.client.adapter.es.support.ESSyncUtil;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.google.common.base.Joiner;
 
 /**
@@ -100,7 +98,7 @@ public class ESEtlService {
 
             // 获取总数
             String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-            long cnt = (Long) ESSyncUtil.sqlRS(dataSource, countSql, rs -> {
+            long cnt = (Long) Util.sqlRS(dataSource, countSql, rs -> {
                 Long count = null;
                 try {
                     if (rs.next()) {
@@ -116,8 +114,7 @@ public class ESEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3; // 从配置读取默认为3
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
                     Long size = null;
@@ -130,16 +127,13 @@ public class ESEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor
-                        .submit(() -> executeSqlImport(dataSource, sqlFinal, mapping, impCount, errMsg));
-                    futures.add(future);
-                }
-
-                for (Future<Boolean> future : futures) {
-                    future.get();
+                    executor.execute(() -> executeSqlImport(dataSource, sqlFinal, mapping, impCount, errMsg));
                 }
 
                 executor.shutdown();
+                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                    // ignore
+                }
             } else {
                 executeSqlImport(dataSource, sql, mapping, impCount, errMsg);
             }
@@ -176,7 +170,7 @@ public class ESEtlService {
     private boolean executeSqlImport(DataSource ds, String sql, ESMapping mapping, AtomicLong impCount,
                                      List<String> errMsg) {
         try {
-            ESSyncUtil.sqlRS(ds, sql, rs -> {
+            Util.sqlRS(ds, sql, rs -> {
                 int count = 0;
                 try {
                     BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
@@ -184,39 +178,73 @@ public class ESEtlService {
                     long batchBegin = System.currentTimeMillis();
                     while (rs.next()) {
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
+                        Object idVal = null;
                         for (FieldItem fieldItem : mapping.getSchemaItem().getSelectFields().values()) {
-
-                            // 如果是主键字段则不插入
-                            if (fieldItem.getFieldName().equals(mapping.get_id())) {
-                                continue;
-                            }
 
                             String fieldName = fieldItem.getFieldName();
                             if (mapping.getSkips().contains(fieldName)) {
                                 continue;
                             }
 
-                            Object val = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
-                            esFieldData.put(fieldName, val);
+                            // 如果是主键字段则不插入
+                            if (fieldItem.getFieldName().equals(mapping.get_id())) {
+                                idVal = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
+                            } else {
+                                Object val = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
+                                esFieldData.put(Util.cleanColumn(fieldName), val);
+                            }
+
                         }
-                        Object idVal = null;
-                        if (mapping.get_id() != null) {
-                            idVal = rs.getObject(mapping.get_id());
+
+                        if (!mapping.getRelations().isEmpty()) {
+                            mapping.getRelations().forEach((relationField, relationMapping) -> {
+                                Map<String, Object> relations = new HashMap<>();
+                                relations.put("name", relationMapping.getName());
+                                if (StringUtils.isNotEmpty(relationMapping.getParent())) {
+                                    FieldItem parentFieldItem = mapping.getSchemaItem()
+                                        .getSelectFields()
+                                        .get(relationMapping.getParent());
+                                    Object parentVal;
+                                    try {
+                                        parentVal = esTemplate.getValFromRS(mapping,
+                                            rs,
+                                            parentFieldItem.getFieldName(),
+                                            parentFieldItem.getFieldName());
+                                    } catch (SQLException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    if (parentVal != null) {
+                                        relations.put("parent", parentVal.toString());
+                                        esFieldData.put("$parent_routing", parentVal.toString());
+
+                                    }
+                                }
+                                esFieldData.put(Util.cleanColumn(relationField), relations);
+                            });
                         }
 
                         if (idVal != null) {
+                            String parentVal = (String) esFieldData.remove("$parent_routing");
                             if (mapping.isUpsert()) {
-                                bulkRequestBuilder.add(transportClient
+                                UpdateRequestBuilder updateRequestBuilder = transportClient
                                     .prepareUpdate(mapping.get_index(), mapping.get_type(), idVal.toString())
                                     .setDoc(esFieldData)
-                                    .setDocAsUpsert(true));
+                                    .setDocAsUpsert(true);
+                                if (StringUtils.isNotEmpty(parentVal)) {
+                                    updateRequestBuilder.setRouting(parentVal);
+                                }
+                                bulkRequestBuilder.add(updateRequestBuilder);
                             } else {
-                                bulkRequestBuilder.add(transportClient
+                                IndexRequestBuilder indexRequestBuilder = transportClient
                                     .prepareIndex(mapping.get_index(), mapping.get_type(), idVal.toString())
-                                    .setSource(esFieldData));
+                                    .setSource(esFieldData);
+                                if (StringUtils.isNotEmpty(parentVal)) {
+                                    indexRequestBuilder.setRouting(parentVal);
+                                }
+                                bulkRequestBuilder.add(indexRequestBuilder);
                             }
                         } else {
-                            idVal = rs.getObject(mapping.getPk());
+                            idVal = esFieldData.get(mapping.getPk());
                             SearchResponse response = transportClient.prepareSearch(mapping.get_index())
                                 .setTypes(mapping.get_type())
                                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))

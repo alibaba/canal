@@ -6,9 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -40,10 +38,9 @@ public class HbaseEtlService {
 
     private static Logger logger = LoggerFactory.getLogger(HbaseEtlService.class);
 
-
     /**
      * 建表
-     * 
+     *
      * @param hbaseTemplate
      * @param config
      */
@@ -62,7 +59,7 @@ public class HbaseEtlService {
 
     /**
      * 导入数据
-     * 
+     *
      * @param ds 数据源
      * @param hbaseTemplate hbaseTemplate
      * @param config 配置
@@ -154,8 +151,7 @@ public class HbaseEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
                     Long size = null;
@@ -168,16 +164,14 @@ public class HbaseEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor.submit(
+                    executor.submit(
                         () -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
-                    futures.add(future);
-                }
-
-                for (Future<Boolean> future : futures) {
-                    future.get();
                 }
 
                 executor.shutdown();
+                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                    // ignore
+                }
             } else {
                 executeSqlImport(ds, sql, hbaseMapping, hbaseTemplate, successCount, errMsg);
             }
@@ -201,7 +195,7 @@ public class HbaseEtlService {
 
     /**
      * 执行导入
-     * 
+     *
      * @param ds
      * @param sql
      * @param hbaseMapping

@@ -2,13 +2,13 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
 
 /**
@@ -44,12 +44,12 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     protected void process() {
         while (!running) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 // ignore
             }
         }
-        ExecutorService workerExecutor = Executors.newSingleThreadExecutor();
+        ExecutorService workerExecutor = Util.newSingleThreadExecutor(5000L);
         int retry = canalClientConfig.getRetries() == null
                     || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
@@ -63,8 +63,8 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 connector.subscribe();
                 logger.info("=============> Subscribe topic: {} succeed <=============", this.topic);
                 while (running) {
-                    Boolean status = syncSwitch.status(canalDestination);
-                    if (status != null && !status) {
+                    boolean status = syncSwitch.status(canalDestination);
+                    if (!status) {
                         connector.disconnect();
                         break;
                     }
@@ -84,6 +84,8 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 logger.error(e.getMessage(), e);
             }
         }
+
+        workerExecutor.shutdown();
 
         try {
             connector.unsubscribe();
