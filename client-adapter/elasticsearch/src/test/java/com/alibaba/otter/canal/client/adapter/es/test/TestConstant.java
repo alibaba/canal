@@ -11,9 +11,9 @@ public class TestConstant {
     public final static String    jdbcPassword = "121212";
 
     public final static String    esHosts      = "127.0.0.1:9300";
-    public final static String    clusterNmae  = "elasticsearch";
+    public final static String    clusterName  = "elasticsearch";
 
-    public static DruidDataSource dataSource;
+    public final static DruidDataSource dataSource;
 
     static {
         dataSource = new DruidDataSource();

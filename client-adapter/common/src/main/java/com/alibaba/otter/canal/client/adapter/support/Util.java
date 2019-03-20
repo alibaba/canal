@@ -2,11 +2,17 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.io.File;
 import java.net.URL;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -29,38 +35,16 @@ public class Util {
     /**
      * 通过DS执行sql
      */
-    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) throws SQLException {
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            conn = ds.getConnection();
-            stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) {
+        try (Connection conn = ds.getConnection();
+                Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);) {
             stmt.setFetchSize(Integer.MIN_VALUE);
-            rs = stmt.executeQuery(sql);
-            return fun.apply(rs);
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
+            try (ResultSet rs = stmt.executeQuery(sql);) {
+                return fun.apply(rs);
             }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
+        } catch (Exception e) {
+            logger.error("sqlRs has error, sql: {} ", sql);
+            throw new RuntimeException(e);
         }
     }
 
@@ -72,29 +56,10 @@ public class Util {
      * @param consumer 回调方法
      */
     public static void sqlRS(Connection conn, String sql, Consumer<ResultSet> consumer) {
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery(sql);
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             consumer.accept(rs);
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
         }
     }
 
@@ -144,7 +109,41 @@ public class Util {
         return column;
     }
 
-    public static String timeZone; // 当前时区
+    public static ThreadPoolExecutor newFixedThreadPool(int nThreads, long keepAliveTime) {
+        return new ThreadPoolExecutor(nThreads,
+            nThreads,
+            keepAliveTime,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue<>(),
+            (r, exe) -> {
+                if (!exe.isShutdown()) {
+                    try {
+                        exe.getQueue().put(r);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                }
+            });
+    }
+
+    public static ThreadPoolExecutor newSingleThreadExecutor(long keepAliveTime) {
+        return new ThreadPoolExecutor(1,
+            1,
+            keepAliveTime,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue<>(),
+            (r, exe) -> {
+                if (!exe.isShutdown()) {
+                    try {
+                        exe.getQueue().put(r);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                }
+            });
+    }
+
+    public final static String  timeZone;    // 当前时区
     private static DateTimeZone dateTimeZone;
 
     static {
@@ -265,7 +264,7 @@ public class Util {
                 LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
                 return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }
 

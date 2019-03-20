@@ -7,12 +7,10 @@ import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.joda.time.DateTime;
 
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.google.common.math.LongMath;
-import org.joda.time.DateTimeZone;
 
 /**
  * Phoenix类型转换工具类

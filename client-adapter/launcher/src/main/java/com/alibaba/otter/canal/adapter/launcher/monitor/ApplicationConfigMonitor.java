@@ -1,7 +1,9 @@
 package com.alibaba.otter.canal.adapter.launcher.monitor;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -68,7 +70,7 @@ public class ApplicationConfigMonitor {
             super.onFileChange(file);
             try {
                 // 检查yml格式
-                new Yaml().loadAs(new FileReader(file), Map.class);
+                new Yaml().loadAs(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8), Map.class);
 
                 canalAdapterService.destroy();
 

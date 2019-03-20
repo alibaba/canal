@@ -155,9 +155,11 @@ public class JdbcTypeUtil {
                     } else {
                         res = null;
                     }
+                    break;
                 case Types.CLOB:
                 default:
                     res = value;
+                    break;
             }
             return res;
         } catch (Exception e) {

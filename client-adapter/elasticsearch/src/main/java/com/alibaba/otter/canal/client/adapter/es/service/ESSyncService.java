@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ public class ESSyncService {
         long begin = System.currentTimeMillis();
         if (esSyncConfigs != null) {
             if (logger.isTraceEnabled()) {
-                logger.trace("Destination: {}, database:{}, table:{}, type:{}, effect index count: {}",
+                logger.trace("Destination: {}, database:{}, table:{}, type:{}, affected index count: {}",
                     dml.getDestination(),
                     dml.getDatabase(),
                     dml.getTable(),
@@ -65,7 +66,7 @@ public class ESSyncService {
                 }
             }
             if (logger.isTraceEnabled()) {
-                logger.trace("Sync elapsed time: {} ms, effect index count：{}, destination: {}",
+                logger.trace("Sync elapsed time: {} ms, affected indexes count：{}, destination: {}",
                     (System.currentTimeMillis() - begin),
                     esSyncConfigs.size(),
                     dml.getDestination());
@@ -74,7 +75,7 @@ public class ESSyncService {
                 StringBuilder configIndexes = new StringBuilder();
                 esSyncConfigs
                     .forEach(esSyncConfig -> configIndexes.append(esSyncConfig.getEsMapping().get_index()).append(" "));
-                logger.debug("DML: {} \nEffect indexes: {}",
+                logger.debug("DML: {} \nAffected indexes: {}",
                     JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue),
                     configIndexes.toString());
             }
@@ -166,7 +167,7 @@ public class ESSyncService {
                                     data,
                                     fieldItem.getFieldName(),
                                     fieldItem.getColumn().getColumnName());
-                                esFieldData.put(fieldItem.getFieldName(), value);
+                                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
                             }
 
                             joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
@@ -295,7 +296,7 @@ public class ESSyncService {
                                         data,
                                         fieldItem.getFieldName(),
                                         fieldItem.getColumn().getColumnName());
-                                    esFieldData.put(fieldItem.getFieldName(), value);
+                                    esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
                                 }
                             }
                             joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
@@ -407,7 +408,7 @@ public class ESSyncService {
                         // ------关联表简单字段更新为null------
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
                         for (FieldItem fieldItem : tableItem.getRelationSelectFieldItems()) {
-                            esFieldData.put(fieldItem.getFieldName(), null);
+                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), null);
                         }
                         joinTableSimpleFieldOperation(config, dml, data, tableItem, esFieldData);
                     } else {
@@ -464,7 +465,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql, rs -> {
+        Util.sqlRS(ds, sql, rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
@@ -500,7 +501,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql, rs -> {
+        Util.sqlRS(ds, sql, rs -> {
             try {
                 Map<String, Object> esFieldData = null;
                 if (mapping.getPk() != null) {
@@ -508,7 +509,7 @@ public class ESSyncService {
                     esTemplate.getESDataFromDmlData(mapping, data, esFieldData);
                     esFieldData.remove(mapping.getPk());
                     for (String key : esFieldData.keySet()) {
-                        esFieldData.put(key, null);
+                        esFieldData.put(Util.cleanColumn(key), null);
                     }
                 }
                 while (rs.next()) {
@@ -601,7 +602,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.toString().replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+        Util.sqlRS(ds, sql.toString(), rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
@@ -617,7 +618,7 @@ public class ESSyncService {
                                                     rs,
                                                     fieldItem.getFieldName(),
                                                     fieldItem.getColumn().getColumnName());
-                                                esFieldData.put(fieldItem.getFieldName(), val);
+                                                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                                                 break out;
                                             }
                                         }
@@ -628,7 +629,7 @@ public class ESSyncService {
                                 rs,
                                 fieldItem.getFieldName(),
                                 fieldItem.getColumn().getColumnName());
-                            esFieldData.put(fieldItem.getFieldName(), val);
+                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                         }
                     }
 
@@ -693,7 +694,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.toString().replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql.toString(), rs -> {
+        Util.sqlRS(ds, sql.toString(), rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
@@ -724,7 +725,7 @@ public class ESSyncService {
                                                 rs,
                                                 fieldItem.getFieldName(),
                                                 fieldItem.getFieldName());
-                                            esFieldData.put(fieldItem.getFieldName(), val);
+                                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                                             break;
                                         }
                                     }
@@ -733,7 +734,7 @@ public class ESSyncService {
                         } else {
                             Object val = esTemplate
                                 .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
-                            esFieldData.put(fieldItem.getFieldName(), val);
+                            esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), val);
                         }
                     }
 
@@ -812,7 +813,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.replace("\n", " "));
         }
-        ESSyncUtil.sqlRS(ds, sql, rs -> {
+        Util.sqlRS(ds, sql, rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();

@@ -92,17 +92,16 @@ public class DBTest {
 
     private String clob2Str(Clob clob) {
         String content = "";
-        try {
-            Reader is = clob.getCharacterStream();
-            BufferedReader buff = new BufferedReader(is);
+        try (Reader is = clob.getCharacterStream(); BufferedReader buff = new BufferedReader(is)) {
             String line = buff.readLine();
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while (line != null) {
                 sb.append(line);
                 line = buff.readLine();
             }
             content = sb.toString();
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return content;
     }

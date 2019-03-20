@@ -10,7 +10,7 @@ public class TestConstant {
     public final static String    jdbcUser     = "root";
     public final static String    jdbcPassword = "121212";
 
-    public static DruidDataSource dataSource;
+    public final static DruidDataSource dataSource;
 
     static {
         dataSource = new DruidDataSource();

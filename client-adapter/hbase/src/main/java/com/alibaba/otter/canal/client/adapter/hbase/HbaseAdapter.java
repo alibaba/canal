@@ -96,7 +96,7 @@ public class HbaseAdapter implements OuterAdapter {
             hbaseSyncService = new HbaseSyncService(hbaseTemplate);
 
             configMonitor = new HbaseConfigMonitor();
-            configMonitor.init(this);
+            configMonitor.init(this, envProperties);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

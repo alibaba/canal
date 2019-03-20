@@ -133,8 +133,8 @@ public class ESAdapter implements OuterAdapter {
             esSyncService = new ESSyncService(esTemplate);
 
             esConfigMonitor = new ESConfigMonitor();
-            esConfigMonitor.init(this);
-        } catch (Exception e) {
+            esConfigMonitor.init(this, envProperties);
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
