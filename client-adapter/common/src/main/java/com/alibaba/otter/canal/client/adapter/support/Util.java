@@ -10,6 +10,9 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -104,6 +107,40 @@ public class Util {
         }
 
         return column;
+    }
+
+    public static ThreadPoolExecutor newFixedThreadPool(int nThreads, long keepAliveTime) {
+        return new ThreadPoolExecutor(nThreads,
+            nThreads,
+            keepAliveTime,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue<>(),
+            (r, exe) -> {
+                if (!exe.isShutdown()) {
+                    try {
+                        exe.getQueue().put(r);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                }
+            });
+    }
+
+    public static ThreadPoolExecutor newSingleThreadExecutor(long keepAliveTime) {
+        return new ThreadPoolExecutor(1,
+            1,
+            keepAliveTime,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue<>(),
+            (r, exe) -> {
+                if (!exe.isShutdown()) {
+                    try {
+                        exe.getQueue().put(r);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                }
+            });
     }
 
     public final static String  timeZone;    // 当前时区

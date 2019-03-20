@@ -1,12 +1,13 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 
 /**
@@ -48,20 +49,7 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
             }
         }
 
-        ExecutorService workerExecutor = new ThreadPoolExecutor(1,
-            1,
-            5000L,
-            TimeUnit.MILLISECONDS,
-            new SynchronousQueue<>(),
-            (r, exe) -> {
-                if (!exe.isShutdown()) {
-                    try {
-                        exe.getQueue().put(r);
-                    } catch (InterruptedException e1) {
-                        // ignore
-                    }
-                }
-            });
+        ExecutorService workerExecutor = Util.newSingleThreadExecutor(5000L);
         int retry = canalClientConfig.getRetries() == null
                     || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒

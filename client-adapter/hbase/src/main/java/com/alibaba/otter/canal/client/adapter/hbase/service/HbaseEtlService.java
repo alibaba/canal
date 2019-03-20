@@ -151,21 +151,7 @@ public class HbaseEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = new ThreadPoolExecutor(threadCount,
-                    threadCount,
-                    5000L,
-                    TimeUnit.MILLISECONDS,
-                    new SynchronousQueue<>(),
-                    (r, exe) -> {
-                        if (!exe.isShutdown()) {
-                            try {
-                                exe.getQueue().put(r);
-                            } catch (InterruptedException e1) {
-                                // ignore
-                            }
-                        }
-                    });
-                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
                     Long size = null;
@@ -178,16 +164,14 @@ public class HbaseEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor.submit(
+                    executor.submit(
                         () -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
-                    futures.add(future);
-                }
-
-                for (Future<Boolean> future : futures) {
-                    future.get();
                 }
 
                 executor.shutdown();
+                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                    // ignore
+                }
             } else {
                 executeSqlImport(ds, sql, hbaseMapping, hbaseTemplate, successCount, errMsg);
             }

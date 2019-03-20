@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -76,21 +77,7 @@ public class RdbEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = new ThreadPoolExecutor(threadCount,
-                    threadCount,
-                    5000L,
-                    TimeUnit.MILLISECONDS,
-                    new SynchronousQueue<>(),
-                    (r, exe) -> {
-                        if (!exe.isShutdown()) {
-                            try {
-                                exe.getQueue().put(r);
-                            } catch (InterruptedException e1) {
-                                // ignore
-                            }
-                        }
-                    });
-                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
                     Long size = null;
@@ -103,16 +90,14 @@ public class RdbEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor
-                        .submit(() -> executeSqlImport(srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
-                    futures.add(future);
-                }
-
-                for (Future<Boolean> future : futures) {
-                    future.get();
+                    executor
+                        .execute(() -> executeSqlImport(srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
                 }
 
                 executor.shutdown();
+                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                    // ignore
+                }
             } else {
                 executeSqlImport(srcDS, targetDS, sql.toString(), dbMapping, successCount, errMsg);
             }

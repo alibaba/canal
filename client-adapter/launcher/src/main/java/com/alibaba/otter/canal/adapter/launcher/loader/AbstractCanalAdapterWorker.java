@@ -2,7 +2,9 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.MessageUtil;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -40,21 +43,7 @@ public abstract class AbstractCanalAdapterWorker {
 
     public AbstractCanalAdapterWorker(List<List<OuterAdapter>> canalOuterAdapters){
         this.canalOuterAdapters = canalOuterAdapters;
-        int adaptersSize = canalOuterAdapters.size();
-        this.groupInnerExecutorService = new ThreadPoolExecutor(adaptersSize,
-            adaptersSize,
-            5000L,
-            TimeUnit.MILLISECONDS,
-            new SynchronousQueue<>(),
-            (r, exe) -> {
-                if (!exe.isShutdown()) {
-                    try {
-                        exe.getQueue().put(r);
-                    } catch (InterruptedException e1) {
-                        // ignore
-                    }
-                }
-            });
+        this.groupInnerExecutorService = Util.newFixedThreadPool(canalOuterAdapters.size(), 5000L);
         syncSwitch = (SyncSwitch) SpringContext.getBean(SyncSwitch.class);
     }
 
