@@ -202,7 +202,7 @@ public class ESEtlService {
                     long batchBegin = System.currentTimeMillis();
                     while (rs.next()) {
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
-                        Map<String, Object> idEsFieldData = new HashMap<>();
+                        Object idVal = null;
                         for (FieldItem fieldItem : mapping.getSchemaItem().getSelectFields().values()) {
 
                             String fieldName = fieldItem.getFieldName();
@@ -212,8 +212,7 @@ public class ESEtlService {
 
                             // 如果是主键字段则不插入
                             if (fieldItem.getFieldName().equals(mapping.get_id())) {
-                                Object val = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
-                                idEsFieldData.put(Util.cleanColumn(fieldName), val);
+                                idVal = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
                             } else {
                                 Object val = esTemplate.getValFromRS(mapping, rs, fieldName, fieldName);
                                 esFieldData.put(Util.cleanColumn(fieldName), val);
@@ -248,11 +247,6 @@ public class ESEtlService {
                             });
                         }
 
-                        Object idVal = null;
-                        if (mapping.get_id() != null) {
-                            idVal = idEsFieldData.get(mapping.get_id());
-                        }
-
                         if (idVal != null) {
                             String parentVal = (String) esFieldData.remove("$parent_routing");
                             if (mapping.isUpsert()) {
@@ -274,7 +268,7 @@ public class ESEtlService {
                                 bulkRequestBuilder.add(indexRequestBuilder);
                             }
                         } else {
-                            idVal = idEsFieldData.get(mapping.getPk());
+                            idVal = esFieldData.get(mapping.getPk());
                             SearchResponse response = transportClient.prepareSearch(mapping.get_index())
                                 .setTypes(mapping.get_type())
                                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
