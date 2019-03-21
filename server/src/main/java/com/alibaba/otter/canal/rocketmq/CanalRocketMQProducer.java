@@ -75,7 +75,7 @@ public class CanalRocketMQProducer implements CanalMQProducer {
                 send(destination, destination.getTopic(), data);
             }
             callback.commit();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             callback.rollback();
         }
     }
