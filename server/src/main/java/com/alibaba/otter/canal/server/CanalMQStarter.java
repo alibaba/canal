@@ -53,10 +53,8 @@ public class CanalMQStarter {
                 System.setProperty("canal.instance.filter.transaction.entry", "true");
             }
 
-            if (properties.getFlatMessage()) {
-                // 针对flat message模式,设置为raw避免ByteString->Entry的二次解析
-                System.setProperty("canal.instance.memory.rawEntry", "false");
-            }
+            // 设置为raw避免ByteString->Entry的二次解析
+            System.setProperty("canal.instance.memory.rawEntry", "false");
 
             canalServer = CanalServerWithEmbedded.instance();
 

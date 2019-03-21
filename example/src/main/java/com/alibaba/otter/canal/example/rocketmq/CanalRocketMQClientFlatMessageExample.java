@@ -1,16 +1,15 @@
-package com.alibaba.otter.canal.client.running.rocketmq;
+package com.alibaba.otter.canal.example.rocketmq;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.client.running.kafka.AbstractKafkaTest;
-import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.example.kafka.AbstractKafkaTest;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 
 /**
  * Kafka client example
@@ -18,9 +17,9 @@ import com.alibaba.otter.canal.protocol.Message;
  * @author machengyuan @ 2018-6-12
  * @version 1.0.0
  */
-public class CanalRocketMQClientExample extends AbstractRocektMQTest {
+public class CanalRocketMQClientFlatMessageExample extends AbstractRocektMQTest {
 
-    protected final static Logger           logger  = LoggerFactory.getLogger(CanalRocketMQClientExample.class);
+    protected final static Logger           logger  = LoggerFactory.getLogger(CanalRocketMQClientFlatMessageExample.class);
 
     private RocketMQCanalConnector          connector;
 
@@ -35,13 +34,13 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                                                         }
                                                     };
 
-    public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
-        connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, false);
+    public CanalRocketMQClientFlatMessageExample(String nameServers, String topic, String groupId){
+        connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, true);
     }
 
     public static void main(String[] args) {
         try {
-            final CanalRocketMQClientExample rocketMQClientExample = new CanalRocketMQClientExample(nameServers,
+            final CanalRocketMQClientFlatMessageExample rocketMQClientExample = new CanalRocketMQClientFlatMessageExample(nameServers,
                 topic,
                 groupId);
             logger.info("## Start the rocketmq consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
@@ -109,18 +108,15 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
-                    for (Message message : messages) {
+                    List<FlatMessage> messages = connector.getFlatList(100L, TimeUnit.MILLISECONDS); // 获取message
+                    for (FlatMessage message : messages) {
                         long batchId = message.getId();
-                        int size = message.getEntries().size();
-                        if (batchId == -1 || size == 0) {
+                        if (batchId == -1 || message.getData() == null) {
                             // try {
                             // Thread.sleep(1000);
                             // } catch (InterruptedException e) {
                             // }
                         } else {
-                            // printSummary(message, batchId, size);
-                            // printEntry(message.getEntries());
                             logger.info(message.toString());
                         }
                     }
@@ -132,11 +128,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
             }
         }
 
-        try {
-            connector.unsubscribe();
-        } catch (WakeupException e) {
-            // No-op. Continue process
-        }
-//        connector.stopRunning();
+        connector.unsubscribe();
+        // connector.stopRunning();
     }
 }

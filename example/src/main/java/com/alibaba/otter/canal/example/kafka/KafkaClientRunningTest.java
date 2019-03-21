@@ -1,12 +1,10 @@
-package com.alibaba.otter.canal.client.running.kafka;
+package com.alibaba.otter.canal.example.kafka;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.kafka.common.errors.WakeupException;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +23,9 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
 
     private boolean running = true;
 
-    @Test
     public void testKafkaConsumer() {
         final ExecutorService executor = Executors.newFixedThreadPool(1);
-
         final KafkaCanalConnector connector = new KafkaCanalConnector(servers, topic, partition, groupId, null, false);
-
         executor.submit(new Runnable() {
 
             @Override
@@ -38,15 +33,11 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    try {
-                        List<Message> messages = connector.getList(3L, TimeUnit.SECONDS);
-                        if (messages != null) {
-                            System.out.println(messages);
-                        }
-                        connector.ack();
-                    } catch (WakeupException e) {
-                        // ignore
+                    List<Message> messages = connector.getList(3L, TimeUnit.SECONDS);
+                    if (messages != null) {
+                        System.out.println(messages);
                     }
+                    connector.ack();
                 }
                 connector.unsubscribe();
                 connector.disconnect();
