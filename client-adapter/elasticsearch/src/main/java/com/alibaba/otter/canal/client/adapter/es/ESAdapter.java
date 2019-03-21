@@ -30,6 +30,7 @@ import com.alibaba.otter.canal.client.adapter.es.service.ESEtlService;
 import com.alibaba.otter.canal.client.adapter.es.service.ESSyncService;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.*;
+import org.slf4j.MDC;
 
 /**
  * ES外部适配器
@@ -70,6 +71,7 @@ public class ESAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
+            MDC.put("adapter", "es");
             this.envProperties = envProperties;
             Map<String, ESSyncConfig> esSyncConfigTmp = ESSyncConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
@@ -239,6 +241,7 @@ public class ESAdapter implements OuterAdapter {
         if (transportClient != null) {
             transportClient.close();
         }
+        MDC.remove("adapter");
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.alibaba.otter.canal.client.adapter.rdb.service.RdbMirrorDbSyncService
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.*;
+import org.slf4j.MDC;
 
 /**
  * RDB适配器实现类
@@ -67,6 +68,7 @@ public class RdbAdapter implements OuterAdapter {
      */
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
+        MDC.put("adapter", "rdb");
         this.envProperties = envProperties;
         Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
@@ -294,5 +296,6 @@ public class RdbAdapter implements OuterAdapter {
         if (dataSource != null) {
             dataSource.close();
         }
+        MDC.remove("adapter");
     }
 }
