@@ -14,6 +14,7 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
@@ -75,6 +76,7 @@ public class RdbAdapter implements OuterAdapter {
      */
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
+        MDC.put("adapter", "rdb");
         this.envProperties = envProperties;
         Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
@@ -302,5 +304,6 @@ public class RdbAdapter implements OuterAdapter {
         if (dataSource != null) {
             dataSource.close();
         }
+        MDC.remove("adapter");
     }
 }

@@ -15,7 +15,8 @@ public class SqlParseTest {
 
     @Test
     public void parseTest() {
-        String sql = "select a.id, concat(a.name,'_test') as name, a.role_id, b.name as role_name, c.labels from user a "
+        String sql = "select a.id, CASE WHEN a.id <= 500 THEN '1' else '2' end as id2, "
+                     + "concat(a.name,'_test') as name, a.role_id, b.name as role_name, c.labels from user a "
                      + "left join role b on a.role_id=b.id "
                      + "left join (select user_id, group_concat(label,',') as labels from user_label "
                      + "group by user_id) c on c.user_id=a.id";
