@@ -1,6 +1,6 @@
-package com.alibaba.otter.canal.client.running.kafka;
+package com.alibaba.otter.canal.example.kafka;
 
-import org.junit.Assert;
+import com.alibaba.otter.canal.example.BaseCanalClientTest;
 
 /**
  * Kafka 测试基类
@@ -8,7 +8,7 @@ import org.junit.Assert;
  * @author machengyuan @ 2018-6-12
  * @version 1.0.0
  */
-public abstract class AbstractKafkaTest {
+public abstract class AbstractKafkaTest extends BaseCanalClientTest {
 
     public static String  topic     = "example";
     public static Integer partition = null;
@@ -20,7 +20,6 @@ public abstract class AbstractKafkaTest {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-            Assert.fail(e.getMessage());
         }
     }
 }

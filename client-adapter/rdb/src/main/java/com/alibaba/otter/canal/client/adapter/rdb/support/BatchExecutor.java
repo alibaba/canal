@@ -52,17 +52,17 @@ public class BatchExecutor implements Closeable {
     }
 
     public void execute(String sql, List<Map<String, ?>> values) throws SQLException {
-        try (PreparedStatement pstmt = getConn().prepareStatement(sql)) {
-            int len = values.size();
-            for (int i = 0; i < len; i++) {
-                int type = (Integer) values.get(i).get("type");
-                Object value = values.get(i).get("value");
-                SyncUtil.setPStmt(type, pstmt, value, i + 1);
-            }
-
-            pstmt.execute();
-            idx.incrementAndGet();
+        PreparedStatement pstmt = getConn().prepareStatement(sql);
+        int len = values.size();
+        for (int i = 0; i < len; i++) {
+            int type = (Integer) values.get(i).get("type");
+            Object value = values.get(i).get("value");
+            SyncUtil.setPStmt(type, pstmt, value, i + 1);
         }
+
+        pstmt.execute();
+        idx.incrementAndGet();
+        pstmt.close();
     }
 
     public void commit() throws SQLException {

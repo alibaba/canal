@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.common.base.Function;
@@ -207,6 +208,12 @@ public class MQMessageUtils {
                     if (hashMode == null) {
                         // 如果都没有匹配，发送到第一个分区
                         partitionEntries[0].add(entry);
+                    } else if (hashMode.tableHash) {
+                        int hashCode = table.hashCode();
+                        int pkHash = Math.abs(hashCode) % partitionsNum;
+                        pkHash = Math.abs(pkHash);
+                        // tableHash not need split entry message
+                        partitionEntries[pkHash].add(entry);
                     } else {
                         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
                             int hashCode = table.hashCode();
@@ -217,7 +224,7 @@ public class MQMessageUtils {
                                         hashCode = hashCode ^ column.getValue().hashCode();
                                     }
                                 }
-                            } else if (!hashMode.tableHash) {
+                            } else {
                                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
                                     if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
                                         hashCode = hashCode ^ column.getValue().hashCode();
@@ -227,7 +234,14 @@ public class MQMessageUtils {
 
                             int pkHash = Math.abs(hashCode) % partitionsNum;
                             pkHash = Math.abs(pkHash);
-                            partitionEntries[pkHash].add(entry);
+                            // build new entry
+                            Entry.Builder builder = Entry.newBuilder(entry);
+                            RowChange.Builder rowChangeBuilder = RowChange.newBuilder(rowChange);
+                            rowChangeBuilder.clearRowDatas();
+                            rowChangeBuilder.addRowDatas(rowData);
+                            builder.clearStoreValue();
+                            builder.setStoreValue(rowChangeBuilder.build().toByteString());
+                            partitionEntries[pkHash].add(builder.build());
                         }
                     }
                 } else {
@@ -305,6 +319,7 @@ public class MQMessageUtils {
                     List<Map<String, String>> old = new ArrayList<>();
 
                     Set<String> updateSet = new HashSet<>();
+                    boolean hasInitPkNames = false;
                     for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
                         if (eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE
                             && eventType != CanalEntry.EventType.DELETE) {
@@ -321,7 +336,7 @@ public class MQMessageUtils {
                         }
 
                         for (CanalEntry.Column column : columns) {
-                            if (column.getIsKey()) {
+                            if (!hasInitPkNames && column.getIsKey()) {
                                 flatMessage.addPkName(column.getName());
                             }
                             sqlType.put(column.getName(), column.getSqlType());
@@ -336,6 +351,8 @@ public class MQMessageUtils {
                                 updateSet.add(column.getName());
                             }
                         }
+
+                        hasInitPkNames = true;
                         if (!row.isEmpty()) {
                             data.add(row);
                         }
@@ -401,6 +418,12 @@ public class MQMessageUtils {
                 if (hashMode == null) {
                     // 如果都没有匹配，发送到第一个分区
                     partitionMessages[0] = flatMessage;
+                } else if (hashMode.tableHash) {
+                    int hashCode = table.hashCode();
+                    int pkHash = Math.abs(hashCode) % partitionsNum;
+                    // math.abs可能返回负值，这里再取反，把出现负值的数据还是写到固定的分区，仍然可以保证消费顺序
+                    pkHash = Math.abs(pkHash);
+                    partitionMessages[pkHash] = flatMessage;
                 } else {
                     List<String> pkNames = hashMode.pkNames;
                     if (hashMode.autoPkHash) {
@@ -410,14 +433,12 @@ public class MQMessageUtils {
                     int idx = 0;
                     for (Map<String, String> row : flatMessage.getData()) {
                         int hashCode = table.hashCode();
-                        if (!hashMode.tableHash) {
-                            for (String pkName : pkNames) {
-                                String value = row.get(pkName);
-                                if (value == null) {
-                                    value = "";
-                                }
-                                hashCode = hashCode ^ value.hashCode();
+                        for (String pkName : pkNames) {
+                            String value = row.get(pkName);
+                            if (value == null) {
+                                value = "";
                             }
+                            hashCode = hashCode ^ value.hashCode();
                         }
 
                         int pkHash = Math.abs(hashCode) % partitionsNum;
