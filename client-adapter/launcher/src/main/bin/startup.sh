@@ -40,6 +40,22 @@ if [ -z "$JAVA" ]; then
   fi
 fi
 
+case "$#" 
+in
+0 ) 
+  ;;
+2 ) 
+  if [ "$1" = "debug" ]; then
+    DEBUG_PORT=$2
+    DEBUG_SUSPEND="n"
+    JAVA_DEBUG_OPT="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=$DEBUG_SUSPEND"
+  fi
+  ;;
+* )
+  echo "THE PARAMETERS MUST BE TWO OR LESS.PLEASE CHECK AGAIN."
+  exit;;
+esac
+
 str=`file -L $JAVA | grep 64-bit`
 if [ -n "$str" ]; then
 	JAVA_OPTS="-server -Xms2048m -Xmx3072m -Xmn1024m -XX:SurvivorRatio=2 -XX:PermSize=96m -XX:MaxPermSize=256m -Xss256k -XX:-UseAdaptiveSizePolicy -XX:MaxTenuringThreshold=15 -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:+HeapDumpOnOutOfMemoryError"
@@ -60,7 +76,7 @@ echo "cd to $bin_abs_path for workaround relative path"
 cd $bin_abs_path
 
 echo CLASSPATH :$CLASSPATH
-$JAVA $JAVA_OPTS $ADAPTER_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.adapter.launcher.CanalAdapterApplication 1>>$base/logs/adapter.log 2>&1 &
+$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $ADAPTER_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.adapter.launcher.CanalAdapterApplication 1>>$base/logs/adapter.log 2>&1 &
 echo $! > $base/bin/adapter.pid
 
 echo "cd to $current_path for continue"

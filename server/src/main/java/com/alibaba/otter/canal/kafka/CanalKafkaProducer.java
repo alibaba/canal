@@ -126,7 +126,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
                 producerTmp.commitTransaction();
             }
             callback.commit();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             if (kafkaProperties.getTransaction()) {
                 producerTmp.abortTransaction();
