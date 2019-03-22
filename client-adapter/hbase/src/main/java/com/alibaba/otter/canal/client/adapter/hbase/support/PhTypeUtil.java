@@ -130,8 +130,10 @@ public class PhTypeUtil {
             } else if (b[0] == 0) {
                 v = false;
             }
-        } else if (phType == PhType.TIME || phType == PhType.DATE) {
-            v = new Date(decodeLong(b, 0));
+        } else if (phType == PhType.DATE) {
+            v = new java.sql.Date(decodeLong(b, 0));
+        } else if (phType == PhType.TIME) {
+            v = new java.sql.Time(decodeLong(b, 0));
         } else if (phType == PhType.TIMESTAMP) {
             long millisDeserialized = decodeLong(b, 0);
             Timestamp ts = new Timestamp(millisDeserialized);
