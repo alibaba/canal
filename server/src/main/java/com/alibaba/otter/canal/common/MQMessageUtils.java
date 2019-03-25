@@ -509,7 +509,7 @@ public class MQMessageUtils {
     }
 
     private static Set<String> matchTopics(String name, String dynamicTopicConfigs) {
-        String[] router = StringUtils.split(dynamicTopicConfigs, ';');
+        String[] router = StringUtils.split(dynamicTopicConfigs, ',');
         Set<String> topics = new HashSet<>();
         for (String item : router) {
             int i = item.indexOf(":");
