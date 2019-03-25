@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
@@ -21,6 +20,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlUpdateExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpGTIDCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.RegisterSlaveCommandPacket;
@@ -131,9 +131,11 @@ public class MysqlConnection implements ErosaConnection {
         decoder.handle(LogEvent.QUERY_EVENT);
         decoder.handle(LogEvent.XID_EVENT);
         LogContext context = new LogContext();
-        // 若entry position存在gtid，则使用传入的gtid作为gtidSet 拼接的标准,否则同时开启gtid和tsdb时，会导致丢失gtid
+        // 若entry position存在gtid，则使用传入的gtid作为gtidSet
+        // 拼接的标准,否则同时开启gtid和tsdb时，会导致丢失gtid
         // 而当源端数据库gtid 有purged时会有如下类似报错
-        // 'errno = 1236, sqlstate = HY000 errmsg = The slave is connecting using CHANGE MASTER TO MASTER_AUTO_POSITION = 1 ...
+        // 'errno = 1236, sqlstate = HY000 errmsg = The slave is connecting
+        // using CHANGE MASTER TO MASTER_AUTO_POSITION = 1 ...
         if (StringUtils.isNotEmpty(gtid)) {
             decoder.handle(LogEvent.GTID_LOG_EVENT);
             context.setGtidSet(MysqlGTIDSet.parse(gtid));
@@ -417,7 +419,9 @@ public class MysqlConnection implements ErosaConnection {
             // '@@global.binlog_checksum'需要去掉单引号,在mysql 5.6.29下导致master退出
             update("set @master_binlog_checksum= @@global.binlog_checksum");
         } catch (Exception e) {
-            logger.warn("update master_binlog_checksum failed", e);
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+                logger.warn("update master_binlog_checksum failed", e);
+            }
         }
 
         try {
@@ -434,7 +438,9 @@ public class MysqlConnection implements ErosaConnection {
             // mariadb针对特殊的类型，需要设置session变量
             update("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
         } catch (Exception e) {
-            logger.warn("update mariadb_slave_capability failed", e);
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+                logger.warn("update mariadb_slave_capability failed", e);
+            }
         }
 
         /**

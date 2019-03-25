@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.parse.inbound.TableMeta;
  * @author agapple 2017年8月1日 下午7:15:54
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "/tsdb/mysql-tsdb.xml" })
+@ContextConfiguration(locations = { "/tsdb/h2-tsdb.xml" })
 public class MemoryTableMeta_DDL_Test {
 
     @Test
@@ -51,5 +51,19 @@ public class MemoryTableMeta_DDL_Test {
         System.out.println(meta);
         Assert.assertEquals(meta.getFieldMetaByName("id").isKey(), true);
         Assert.assertEquals(meta.getFieldMetaByName("name").isUnique(), true);
+    }
+
+    @Test
+    public void test3() throws Throwable {
+        MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
+        File dummyFile = new File(url.getFile());
+        File create = new File(dummyFile.getParent() + "/ddl", "ddl_test3.sql");
+        String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
+        memoryTableMeta.apply(null, "test", sql, null);
+
+        TableMeta meta = memoryTableMeta.find("test", "quniya4");
+        System.out.println(meta);
+        Assert.assertTrue(meta.getFields().get(0).getColumnName().equalsIgnoreCase("id"));
     }
 }
