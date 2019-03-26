@@ -26,7 +26,6 @@ import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
 import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
 import com.alibaba.otter.canal.client.adapter.support.*;
-import org.slf4j.MDC;
 
 /**
  * HBase外部适配器
@@ -60,7 +59,6 @@ public class HbaseAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
-            MDC.put("adapter", "hbase");
             this.envProperties = envProperties;
             Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
@@ -104,6 +102,7 @@ public class HbaseAdapter implements OuterAdapter {
         }
     }
 
+    @Override
     public void sync(List<Dml> dmls) {
         if (dmls == null || dmls.isEmpty()) {
             return;
@@ -113,7 +112,7 @@ public class HbaseAdapter implements OuterAdapter {
         }
     }
 
-    public void sync(Dml dml) {
+    private void sync(Dml dml) {
         if (dml == null) {
             return;
         }
@@ -224,7 +223,6 @@ public class HbaseAdapter implements OuterAdapter {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        MDC.remove("adapter");
     }
 
     @Override
