@@ -52,6 +52,8 @@ public class CanalStater {
             // disable netty
             System.setProperty(CanalConstants.CANAL_WITHOUT_NETTY, "true");
             String autoScan = CanalController.getProperty(properties, CanalConstants.CANAL_AUTO_SCAN);
+            // 设置为raw避免ByteString->Entry的二次解析
+            System.setProperty("canal.instance.memory.rawEntry", "false");
             if ("true".equals(autoScan)) {
                 String rootDir = CanalController.getProperty(properties, CanalConstants.CANAL_CONF_DIR);
                 if (StringUtils.isEmpty(rootDir)) {
@@ -68,13 +70,13 @@ public class CanalStater {
                     });
                     if (instanceDirs != null && instanceDirs.length > 0) {
                         List<String> instances = Lists.transform(Arrays.asList(instanceDirs),
-                                new Function<File, String>() {
+                            new Function<File, String>() {
 
-                                    @Override
-                                    public String apply(File instanceDir) {
-                                        return instanceDir.getName();
-                                    }
-                                });
+                                @Override
+                                public String apply(File instanceDir) {
+                                    return instanceDir.getName();
+                                }
+                            });
                         System.setProperty(CanalConstants.CANAL_DESTINATIONS, Joiner.on(",").join(instances));
                     }
                 }
