@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.driver.mysql.packets.server;
 
 import java.io.IOException;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.Capability;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.PacketWithHeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
@@ -23,6 +24,7 @@ public class HandshakeInitializationPacket extends PacketWithHeaderPacket {
     public byte   serverCharsetNumber;
     public int    serverStatus;
     public byte[] restOfScrambleBuff;
+    public byte[] authPluginName;
 
     public HandshakeInitializationPacket(){
     }
@@ -66,20 +68,40 @@ public class HandshakeInitializationPacket extends PacketWithHeaderPacket {
         // 5. read server_capabilities
         this.serverCapabilities = ByteHelper.readUnsignedShortLittleEndian(data, index);
         index += 2;
-        // 6. read server_language
-        this.serverCharsetNumber = data[index];
-        index++;
-        // 7. read server_status
-        this.serverStatus = ByteHelper.readUnsignedShortLittleEndian(data, index);
-        index += 2;
-        // 8. bypass filtered bytes
-        index += 13;
-        // 9. read rest of scramble_buff
-        this.restOfScrambleBuff = ByteHelper.readFixedLengthBytes(data, index, 12); // 虽然Handshake
-                                                                                    // Initialization
-        // Packet规定最后13个byte是剩下的scrumble,
-        // 但实际上最后一个字节是0, 不应该包含在scrumble中.
-        // end read
+        if (data.length > index) {
+            // 6. read server_language
+            this.serverCharsetNumber = data[index];
+            index++;
+            // 7. read server_status
+            this.serverStatus = ByteHelper.readUnsignedShortLittleEndian(data, index);
+            index += 2;
+            // 8. bypass filtered bytes
+            int capabilityFlags2 = ByteHelper.readUnsignedShortLittleEndian(data, index);
+            index += 2;
+            int capabilities = (capabilityFlags2 << 16) | this.serverCapabilities;
+            // int authPluginDataLen = -1;
+            // if ((capabilities & Capability.CLIENT_PLUGIN_AUTH) != 0) {
+            // authPluginDataLen = data[index];
+            // }
+            index += 1;
+            index += 10;
+            // 9. read rest of scramble_buff
+            if ((capabilities & Capability.CLIENT_SECURE_CONNECTION) != 0) {
+                // int len = Math.max(13, authPluginDataLen - 8);
+                // this.authPluginDataPart2 =
+                // buffer.readFixedLengthString(len);// scramble2
+
+                // Packet规定最后13个byte是剩下的scrumble,
+                // 但实际上最后一个字节是0, 不应该包含在scrumble中.
+                this.restOfScrambleBuff = ByteHelper.readFixedLengthBytes(data, index, 12);
+            }
+
+            index += 12 + 1;
+            if ((capabilities & Capability.CLIENT_PLUGIN_AUTH) != 0) {
+                this.authPluginName = ByteHelper.readNullTerminatedBytes(data, index);
+            }
+            // end read
+        }
     }
 
     /**

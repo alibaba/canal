@@ -36,8 +36,11 @@ public class MQMessageUtils {
 
                                                                                  public List<PartitionData> apply(String pkHashConfigs) {
                                                                                      List<PartitionData> datas = Lists.newArrayList();
-                                                                                     String[] pkHashConfigArray = StringUtils.split(pkHashConfigs,
-                                                                                         ",");
+
+                                                                                     String[] pkHashConfigArray = StringUtils.split(StringUtils.replace(pkHashConfigs,
+                                                                                         ",",
+                                                                                         ";"),
+                                                                                         ";");
                                                                                      // schema.table:id^name
                                                                                      for (String pkHashConfig : pkHashConfigArray) {
                                                                                          PartitionData data = new PartitionData();
@@ -75,8 +78,10 @@ public class MQMessageUtils {
 
                                                                                  public List<DynamicTopicData> apply(String pkHashConfigs) {
                                                                                      List<DynamicTopicData> datas = Lists.newArrayList();
-                                                                                     String[] dynamicTopicArray = StringUtils.split(pkHashConfigs,
-                                                                                         ",");
+                                                                                     String[] dynamicTopicArray = StringUtils.split(StringUtils.replace(pkHashConfigs,
+                                                                                         ",",
+                                                                                         ";"),
+                                                                                         ";");
                                                                                      // schema.table
                                                                                      for (String dynamicTopic : dynamicTopicArray) {
                                                                                          DynamicTopicData data = new DynamicTopicData();
@@ -509,7 +514,7 @@ public class MQMessageUtils {
     }
 
     private static Set<String> matchTopics(String name, String dynamicTopicConfigs) {
-        String[] router = StringUtils.split(dynamicTopicConfigs, ',');
+        String[] router = StringUtils.split(StringUtils.replace(dynamicTopicConfigs, ",", ";"), ";");
         Set<String> topics = new HashSet<>();
         for (String item : router) {
             int i = item.indexOf(":");
