@@ -118,7 +118,7 @@
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
 				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
 				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 		<property name="standbyInfo">
@@ -128,7 +128,7 @@
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
 				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
 				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 
@@ -220,7 +220,7 @@
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
 				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
 				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 		<property name="standbyInfo">
@@ -230,7 +230,7 @@
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
 				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
 				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:test}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 
