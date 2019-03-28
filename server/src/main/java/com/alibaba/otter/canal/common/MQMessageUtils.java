@@ -230,6 +230,7 @@ public class MQMessageUtils {
                                     }
                                 }
                             } else {
+                            	hashCode = database.hashCode();
                                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
                                     if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
                                         hashCode = hashCode ^ column.getValue().hashCode();
