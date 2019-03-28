@@ -37,7 +37,7 @@ public class MysqlConnector {
     private String              password;
 
     private byte                charsetNumber     = 33;
-    private String              defaultSchema     = "test";
+    private String              defaultSchema;
     private int                 soTimeout         = 30 * 1000;
     private int                 connTimeout       = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
@@ -187,7 +187,7 @@ public class MysqlConnector {
         clientAuth.setServerCapabilities(handshakePacket.serverCapabilities);
         clientAuth.setDatabaseName(defaultSchema);
         clientAuth.setScrumbleBuff(joinAndCreateScrumbleBuff(handshakePacket));
-        clientAuth.setAuthPluginName(handshakePacket.authPluginName);
+        clientAuth.setAuthPluginName("mysql_native_password".getBytes());
 
         byte[] clientAuthPkgBody = clientAuth.toBytes();
         HeaderPacket h = new HeaderPacket();
