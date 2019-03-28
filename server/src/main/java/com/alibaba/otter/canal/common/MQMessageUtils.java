@@ -221,7 +221,7 @@ public class MQMessageUtils {
                         partitionEntries[pkHash].add(entry);
                     } else {
                         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-                            int hashCode = table.hashCode();
+                            int hashCode = database.hashCode();
                             if (hashMode.autoPkHash) {
                                 // isEmpty use default pkNames
                                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
@@ -230,7 +230,6 @@ public class MQMessageUtils {
                                     }
                                 }
                             } else {
-                            	hashCode = database.hashCode();
                                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
                                     if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
                                         hashCode = hashCode ^ column.getValue().hashCode();
@@ -438,7 +437,7 @@ public class MQMessageUtils {
 
                     int idx = 0;
                     for (Map<String, String> row : flatMessage.getData()) {
-                        int hashCode = table.hashCode();
+                        int hashCode = database.hashCode();
                         for (String pkName : pkNames) {
                             String value = row.get(pkName);
                             if (value == null) {
