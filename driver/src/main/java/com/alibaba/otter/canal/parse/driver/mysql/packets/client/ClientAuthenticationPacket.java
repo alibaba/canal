@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.Capability;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.PacketWithHeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MSC;
@@ -13,12 +14,17 @@ import com.alibaba.otter.canal.parse.driver.mysql.utils.MySQLPasswordEncrypter;
 
 public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
 
+    private int    clientCapability = Capability.CLIENT_LONG_PASSWORD | Capability.CLIENT_LONG_FLAG
+                                      | Capability.CLIENT_PROTOCOL_41 | Capability.CLIENT_INTERACTIVE
+                                      | Capability.CLIENT_TRANSACTIONS | Capability.CLIENT_SECURE_CONNECTION
+                                      | Capability.CLIENT_MULTI_STATEMENTS | Capability.CLIENT_PLUGIN_AUTH;
     private String username;
     private String password;
     private byte   charsetNumber;
     private String databaseName;
     private int    serverCapabilities;
     private byte[] scrumbleBuff;
+    private byte[] authPluginName;
 
     public void fromBytes(byte[] data) {
         // bypass since nowhere to use.
@@ -36,6 +42,7 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
      *  n (Null-Terminated String)   user
      *  n (Length Coded Binary)      scramble_buff (1 + x bytes)
      *  n (Null-Terminated String)   databasename (optional)
+     *  n (Null-Terminated String)   auth plugin name (optional)
      * </pre>
      * 
      * @throws IOException
@@ -43,13 +50,7 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // 1. write client_flags
-        // 1|4|512|1024|8192|32768
-        /**
-         * CLIENT_LONG_PASSWORD CLIENT_LONG_FLAG CLIENT_PROTOCOL_41
-         * CLIENT_INTERACTIVE CLIENT_TRANSACTIONS CLIENT_SECURE_CONNECTION
-         * CLIENT_MULTI_STATEMENTS;
-         */
-        ByteHelper.writeUnsignedIntLittleEndian(1 | 4 | 512 | 8192 | 32768 | 0x00010000, out); // remove
+        ByteHelper.writeUnsignedIntLittleEndian(clientCapability, out); // remove
         // client_interactive
         // feature
 
@@ -75,6 +76,10 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
         // 7 . (Null-Terminated String) databasename (optional)
         if (getDatabaseName() != null) {
             ByteHelper.writeNullTerminatedString(getDatabaseName(), out);
+        }
+        // 8 . (Null-Terminated String) auth plugin name (optional)
+        if (getAuthPluginName() != null) {
+            ByteHelper.writeNullTerminated(getAuthPluginName(), out);
         }
         // end write
         return out.toByteArray();
@@ -106,6 +111,9 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
 
     public void setDatabaseName(String databaseName) {
         this.databaseName = databaseName;
+        if (databaseName != null) {
+            this.clientCapability |= Capability.CLIENT_CONNECT_WITH_DB;
+        }
     }
 
     public String getDatabaseName() {
@@ -126,6 +134,17 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
 
     public byte[] getScrumbleBuff() {
         return scrumbleBuff;
+    }
+
+    public byte[] getAuthPluginName() {
+        return authPluginName;
+    }
+
+    public void setAuthPluginName(byte[] authPluginName) {
+        this.authPluginName = authPluginName;
+        if (authPluginName != null) {
+            this.clientCapability |= Capability.CLIENT_PLUGIN_AUTH;
+        }
     }
 
 }

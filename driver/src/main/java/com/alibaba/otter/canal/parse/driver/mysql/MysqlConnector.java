@@ -2,19 +2,24 @@ package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.AuthSwitchResponsePacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QuitCommandPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.AuthSwitchRequestMoreData;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.AuthSwitchRequestPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.HandshakeInitializationPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.Reply323Packet;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannelPool;
+import com.alibaba.otter.canal.parse.driver.mysql.utils.MSC;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MySQLPasswordEncrypter;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
@@ -32,7 +37,7 @@ public class MysqlConnector {
     private String              password;
 
     private byte                charsetNumber     = 33;
-    private String              defaultSchema     = "test";
+    private String              defaultSchema;
     private int                 soTimeout         = 30 * 1000;
     private int                 connTimeout       = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
@@ -150,6 +155,7 @@ public class MysqlConnector {
     }
 
     private void negotiate(SocketChannel channel) throws IOException {
+        // https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol
         HeaderPacket header = PacketManager.readHeader(channel, 4, timeout);
         byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
         if (body[0] < 0) {// check field_count
@@ -165,10 +171,14 @@ public class MysqlConnector {
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
         handshakePacket.fromBytes(body);
+        if (handshakePacket.protocolVersion != MSC.DEFAULT_PROTOCOL_VERSION) {
+            // HandshakeV9
+            auth323(channel, (byte) (header.getPacketSequenceNumber() + 1), handshakePacket.seed);
+            return;
+        }
+
         connectionId = handshakePacket.threadId; // 记录一下connection
-
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
-
         ClientAuthenticationPacket clientAuth = new ClientAuthenticationPacket();
         clientAuth.setCharsetNumber(charsetNumber);
 
@@ -177,6 +187,7 @@ public class MysqlConnector {
         clientAuth.setServerCapabilities(handshakePacket.serverCapabilities);
         clientAuth.setDatabaseName(defaultSchema);
         clientAuth.setScrumbleBuff(joinAndCreateScrumbleBuff(handshakePacket));
+        clientAuth.setAuthPluginName("mysql_native_password".getBytes());
 
         byte[] clientAuthPkgBody = clientAuth.toBytes();
         HeaderPacket h = new HeaderPacket();
@@ -192,15 +203,51 @@ public class MysqlConnector {
         body = null;
         body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
         assert body != null;
+        byte marker = body[0];
+        if (marker == -2 || marker == 1) {
+            byte[] authData = null;
+            String pluginName = null;
+            if (marker == 1) {
+                AuthSwitchRequestMoreData packet = new AuthSwitchRequestMoreData();
+                packet.fromBytes(body);
+                authData = packet.authData;
+            } else {
+                AuthSwitchRequestPacket packet = new AuthSwitchRequestPacket();
+                packet.fromBytes(body);
+                authData = packet.authData;
+                pluginName = packet.authName;
+            }
+
+            if (pluginName != null && "mysql_native_password".equals(pluginName)) {
+                byte[] encryptedPassword = null;
+                try {
+                    encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), authData);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
+                }
+                AuthSwitchResponsePacket responsePacket = new AuthSwitchResponsePacket();
+                responsePacket.authData = encryptedPassword;
+                byte[] auth = responsePacket.toBytes();
+
+                h = new HeaderPacket();
+                h.setPacketBodyLength(auth.length);
+                h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
+                PacketManager.writePkg(channel, h.toBytes(), auth);
+                logger.info("auth switch response packet is sent out.");
+
+                header = null;
+                header = PacketManager.readHeader(channel, 4);
+                body = null;
+                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                assert body != null;
+            }
+        }
+
         if (body[0] < 0) {
             if (body[0] == -1) {
                 ErrorPacket err = new ErrorPacket();
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
-            } else if (body[0] == -2) {
-                auth323(channel, header.getPacketSequenceNumber(), handshakePacket.seed);
-                // throw new
-                // IOException("Unexpected EOF packet at Client Authentication.");
             } else {
                 throw new IOException("unpexpected packet with field_count=" + body[0]);
             }
