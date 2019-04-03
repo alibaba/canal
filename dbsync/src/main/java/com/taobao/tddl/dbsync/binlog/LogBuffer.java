@@ -1484,7 +1484,9 @@ public class LogBuffer {
 
         for (int bit = 0; bit < len; bit += 8) {
             int flag = ((int) buf[pos++]) & 0xff;
-            if (flag == 0) continue;
+            if (flag == 0) {
+                continue;
+            }
             if ((flag & 0x01) != 0) bitmap.set(bit);
             if ((flag & 0x02) != 0) bitmap.set(bit + 1);
             if ((flag & 0x04) != 0) bitmap.set(bit + 2);

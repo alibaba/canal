@@ -50,6 +50,12 @@ public class AviaterFilterTest {
         result = filter.filter("s3.t2");
         Assert.assertEquals(false, result);
 
+        result = filter.filter("S1.S2");
+        Assert.assertEquals(true, result);
+
+        result = filter.filter("S2.S1");
+        Assert.assertEquals(true, result);
+
         AviaterRegexFilter filter2 = new AviaterRegexFilter("s1\\..*,s2.t1");
 
         result = filter2.filter("s1.t1");

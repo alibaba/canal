@@ -1,7 +1,8 @@
 dataSourceKey: defaultDS
+destination: example
+groupId: g1
 hbaseMapping:
-  mode: PHOENIX  #NATIVE   #STRING
-  destination: example
+  mode: STRING  #NATIVE   #PHOENIX
   database: mytest  # 数据库名
   table: person2     # 数据库表名
   hbaseTable: MYTEST.PERSON2   # HBase表名
@@ -11,14 +12,14 @@ hbaseMapping:
   #rowKey: id,type  # 复合字段rowKey不能和columns中的rowKey重复
   columns:
     # 数据库字段:HBase对应字段
-    id: ROWKEY$UNSIGNED_LONG
+    id: ROWKEY LEN:15
     name: NAME
     email: EMAIL
-    type: $DECIMAL
-    c_time: C_TIME$UNSIGNED_TIMESTAMP
-    birthday: BIRTHDAY$DATE
-  excludeColumns:
-    - lat   # 忽略字段
+    type:
+    c_time: C_TIME
+    birthday: BIRTHDAY
+#  excludeColumns:
+#    - lat   # 忽略字段
 
 # -- NATIVE类型
 # $DEFAULT

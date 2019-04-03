@@ -6,6 +6,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.hbase.support.*;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
@@ -18,38 +20,33 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
  */
 public class HbaseSyncService {
 
-    private Logger        logger = LoggerFactory.getLogger(this.getClass());
+    private static Logger logger = LoggerFactory.getLogger(HbaseSyncService.class);
 
-    private HbaseTemplate hbaseTemplate;                                    // HBase操作模板
+    private HbaseTemplate hbaseTemplate;                                           // HBase操作模板
 
     public HbaseSyncService(HbaseTemplate hbaseTemplate){
         this.hbaseTemplate = hbaseTemplate;
     }
 
     public void sync(MappingConfig config, Dml dml) {
-        try {
-            if (config != null) {
-                String type = dml.getType();
-                if (type != null && type.equalsIgnoreCase("INSERT")) {
-                    insert(config, dml);
-                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                    update(config, dml);
-                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
-                    delete(config, dml);
-                }
-                if (logger.isDebugEnabled()) {
-                    String res = dml.toString();
-                    logger.debug(res);
-                }
+        if (config != null) {
+            String type = dml.getType();
+            if (type != null && type.equalsIgnoreCase("INSERT")) {
+                insert(config, dml);
+            } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
+                update(config, dml);
+            } else if (type != null && type.equalsIgnoreCase("DELETE")) {
+                delete(config, dml);
             }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            if (logger.isDebugEnabled()) {
+                logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+            }
         }
     }
 
     /**
      * 插入操作
-     * 
+     *
      * @param config 配置项
      * @param dml DML数据
      */
@@ -101,7 +98,7 @@ public class HbaseSyncService {
 
     /**
      * 将Map数据转换为HRow行数据
-     * 
+     *
      * @param hbaseMapping hbase映射配置
      * @param hRow 行对象
      * @param data Map数据
@@ -132,7 +129,21 @@ public class HbaseSyncService {
                     }
                 } else {
                     if (columnItem.isRowKey()) {
-                        // row.put("rowKey", bytes);
+                        if (columnItem.getRowKeyLen() != null && entry.getValue() != null) {
+                            if (entry.getValue() instanceof Number) {
+                                String v = String.format("%0" + columnItem.getRowKeyLen() + "d",
+                                    ((Number) entry.getValue()).longValue());
+                                bytes = Bytes.toBytes(v);
+                            } else {
+                                try {
+                                    String v = String.format("%0" + columnItem.getRowKeyLen() + "d",
+                                        Integer.parseInt((String) entry.getValue()));
+                                    bytes = Bytes.toBytes(v);
+                                } catch (Exception e) {
+                                    logger.error(e.getMessage(), e);
+                                }
+                            }
+                        }
                         hRow.setRowKey(bytes);
                     } else {
                         hRow.addCell(columnItem.getFamily(), columnItem.getQualifier(), bytes);
@@ -145,9 +156,9 @@ public class HbaseSyncService {
 
     /**
      * 更新操作
-     * 
-     * @param config
-     * @param dml
+     *
+     * @param config 配置对象
+     * @param dml dml对象
      */
     private void update(MappingConfig config, Dml dml) {
         List<Map<String, Object>> data = dml.getData();
@@ -192,14 +203,15 @@ public class HbaseSyncService {
                 Map<String, Object> rowKey = data.get(0);
                 rowKeyBytes = typeConvert(null, hbaseMapping, rowKey.values().iterator().next());
             } else {
-                rowKeyBytes = typeConvert(rowKeyColumn, hbaseMapping, r.get(rowKeyColumn.getColumn()));
+                rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }
             if (rowKeyBytes == null) throw new RuntimeException("rowKey值为空");
 
             Map<String, MappingConfig.ColumnItem> columnItems = hbaseMapping.getColumnItems();
             HRow hRow = new HRow(rowKeyBytes);
             for (String updateColumn : old.get(index).keySet()) {
-                if (hbaseMapping.getExcludeColumns() != null && hbaseMapping.getExcludeColumns().contains(updateColumn)) {
+                if (hbaseMapping.getExcludeColumns() != null
+                    && hbaseMapping.getExcludeColumns().contains(updateColumn)) {
                     continue;
                 }
                 MappingConfig.ColumnItem columnItem = columnItems.get(updateColumn);
@@ -276,8 +288,7 @@ public class HbaseSyncService {
                 Map<String, Object> rowKey = data.get(0);
                 rowKeyBytes = typeConvert(null, hbaseMapping, rowKey.values().iterator().next());
             } else {
-                Object val = r.get(rowKeyColumn.getColumn());
-                rowKeyBytes = typeConvert(rowKeyColumn, hbaseMapping, val);
+                rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }
             if (rowKeyBytes == null) throw new RuntimeException("rowKey值为空");
             rowKeys.add(rowKeyBytes);
@@ -365,7 +376,7 @@ public class HbaseSyncService {
 
     /**
      * 根据对应的类型进行转换
-     * 
+     *
      * @param columnItem 列项配置
      * @param hbaseMapping hbase映射配置
      * @param value 值
@@ -421,6 +432,24 @@ public class HbaseSyncService {
             rowKeyValue.delete(len - 1, len);
         }
         return rowKeyValue.toString();
+    }
+
+    private static byte[] getRowKeyBytes(MappingConfig.HbaseMapping hbaseMapping, MappingConfig.ColumnItem rowKeyColumn,
+                                         Map<String, Object> rowData) {
+        Object val = rowData.get(rowKeyColumn.getColumn());
+        String v = null;
+        if (rowKeyColumn.getRowKeyLen() != null) {
+            if (val instanceof Number) {
+                v = String.format("%0" + rowKeyColumn.getRowKeyLen() + "d", (Number) ((Number) val).longValue());
+            } else if (val instanceof String) {
+                v = String.format("%0" + rowKeyColumn.getRowKeyLen() + "d", Long.parseLong((String) val));
+            }
+        }
+        if (v != null) {
+            return Bytes.toBytes(v);
+        } else {
+            return typeConvert(rowKeyColumn, hbaseMapping, val);
+        }
     }
 
 }

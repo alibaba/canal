@@ -27,7 +27,7 @@ public class EtlLock {
 
     private static final Map<String, InterProcessMutex> DISTRIBUTED_LOCK = new ConcurrentHashMap<>();
 
-    private static Mode                                 mode             = Mode.LOCAL;
+    private Mode                                        mode             = Mode.LOCAL;
 
     @Resource
     private CuratorClient                               curatorClient;

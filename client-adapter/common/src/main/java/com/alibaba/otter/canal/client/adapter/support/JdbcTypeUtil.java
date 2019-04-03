@@ -2,9 +2,13 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.*;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +71,14 @@ public class JdbcTypeUtil {
         }
     }
 
-    public static Object typeConvert(String columnName, String value, int sqlType, String mysqlType) {
-        if (value == null || value.equals("")) {
+    private static boolean isText(String columnType) {
+        return "LONGTEXT".equalsIgnoreCase(columnType) || "MEDIUMTEXT".equalsIgnoreCase(columnType)
+               || "TEXT".equalsIgnoreCase(columnType) || "TINYTEXT".equalsIgnoreCase(columnType);
+    }
+
+    public static Object typeConvert(String tableName ,String columnName, String value, int sqlType, String mysqlType) {
+        if (value == null
+            || (value.equals("") && !(isText(mysqlType) || sqlType == Types.CHAR || sqlType == Types.VARCHAR || sqlType == Types.LONGVARCHAR))) {
             return null;
         }
 
@@ -115,23 +125,33 @@ public class JdbcTypeUtil {
                     break;
                 case Types.DATE:
                     if (!value.startsWith("0000-00-00")) {
-                        value = value.trim().replace(" ", "T");
-                        DateTime dt = new DateTime(value);
-                        res = new Date(dt.toDate().getTime());
+                        java.util.Date date = Util.parseDate(value);
+                        if (date != null) {
+                            res = new Date(date.getTime());
+                        } else {
+                            res = null;
+                        }
                     } else {
                         res = null;
                     }
                     break;
-                case Types.TIME:
-                    value = "T" + value;
-                    DateTime dt = new DateTime(value);
-                    res = new Time(dt.toDate().getTime());
+                case Types.TIME: {
+                    java.util.Date date = Util.parseDate(value);
+                    if (date != null) {
+                        res = new Time(date.getTime());
+                    } else {
+                        res = null;
+                    }
                     break;
+                }
                 case Types.TIMESTAMP:
                     if (!value.startsWith("0000-00-00")) {
-                        value = value.trim().replace(" ", "T");
-                        dt = new DateTime(value);
-                        res = new Timestamp(dt.toDate().getTime());
+                        java.util.Date date = Util.parseDate(value);
+                        if (date != null) {
+                            res = new Timestamp(date.getTime());
+                        } else {
+                            res = null;
+                        }
                     } else {
                         res = null;
                     }
@@ -139,10 +159,11 @@ public class JdbcTypeUtil {
                 case Types.CLOB:
                 default:
                     res = value;
+                    break;
             }
             return res;
         } catch (Exception e) {
-            logger.error("table: {} column: {}, failed convert type {} to {}", columnName, value, sqlType);
+            logger.error("table: {} column: {}, failed convert type {} to {}", tableName, columnName, value, sqlType);
             return value;
         }
     }

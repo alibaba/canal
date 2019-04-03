@@ -1,16 +1,14 @@
 package com.alibaba.otter.canal.client.adapter.hbase.service;
 
-import java.sql.*;
+import java.sql.ResultSetMetaData;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
 
 import javax.sql.DataSource;
 
@@ -19,9 +17,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.hbase.support.*;
+import com.alibaba.otter.canal.client.adapter.hbase.support.HRow;
+import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
+import com.alibaba.otter.canal.client.adapter.hbase.support.PhType;
+import com.alibaba.otter.canal.client.adapter.hbase.support.PhTypeUtil;
+import com.alibaba.otter.canal.client.adapter.hbase.support.Type;
+import com.alibaba.otter.canal.client.adapter.hbase.support.TypeUtil;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.JdbcTypeUtil;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.google.common.base.Joiner;
 
 /**
@@ -34,47 +38,9 @@ public class HbaseEtlService {
 
     private static Logger logger = LoggerFactory.getLogger(HbaseEtlService.class);
 
-    public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) throws SQLException {
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            conn = ds.getConnection();
-            stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            stmt.setFetchSize(Integer.MIN_VALUE);
-            rs = stmt.executeQuery(sql);
-            return fun.apply(rs);
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            rs = null;
-            stmt = null;
-            conn = null;
-        }
-    }
-
     /**
      * 建表
-     * 
+     *
      * @param hbaseTemplate
      * @param config
      */
@@ -93,7 +59,7 @@ public class HbaseEtlService {
 
     /**
      * 导入数据
-     * 
+     *
      * @param ds 数据源
      * @param hbaseTemplate hbaseTemplate
      * @param config 配置
@@ -138,7 +104,7 @@ public class HbaseEtlService {
             if (params != null && params.size() == 1 && hbaseMapping.getEtlCondition() == null) {
                 AtomicBoolean stExists = new AtomicBoolean(false);
                 // 验证是否有SYS_TIME字段
-                sqlRS(ds, sql, rs -> {
+                Util.sqlRS(ds, sql, rs -> {
                     try {
                         ResultSetMetaData rsmd = rs.getMetaData();
                         int cnt = rsmd.getColumnCount();
@@ -169,7 +135,7 @@ public class HbaseEtlService {
 
             // 获取总数
             String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-            long cnt = (Long) sqlRS(ds, countSql, rs -> {
+            long cnt = (Long) Util.sqlRS(ds, countSql, rs -> {
                 Long count = null;
                 try {
                     if (rs.next()) {
@@ -185,8 +151,7 @@ public class HbaseEtlService {
             if (cnt >= 10000) {
                 int threadCount = 3;
                 long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                 for (int i = 0; i < threadCount; i++) {
                     long offset = i * perThreadCnt;
                     Long size = null;
@@ -199,22 +164,20 @@ public class HbaseEtlService {
                     } else {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
-                    Future<Boolean> future = executor
-                        .submit(() -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
-                    futures.add(future);
-                }
-
-                for (Future<Boolean> future : futures) {
-                    future.get();
+                    executor.submit(
+                        () -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
                 }
 
                 executor.shutdown();
+                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                    // ignore
+                }
             } else {
                 executeSqlImport(ds, sql, hbaseMapping, hbaseTemplate, successCount, errMsg);
             }
 
-            logger.info(
-                hbaseMapping.getHbaseTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000 + "s!");
+            logger.info(hbaseMapping.getHbaseTable() + " etl completed in: "
+                        + (System.currentTimeMillis() - start) / 1000 + "s!");
 
             etlResult.setResultMessage("导入HBase表 " + hbaseMapping.getHbaseTable() + " 数据：" + successCount.get() + " 条");
         } catch (Exception e) {
@@ -232,7 +195,7 @@ public class HbaseEtlService {
 
     /**
      * 执行导入
-     * 
+     *
      * @param ds
      * @param sql
      * @param hbaseMapping
@@ -244,7 +207,7 @@ public class HbaseEtlService {
     private static boolean executeSqlImport(DataSource ds, String sql, MappingConfig.HbaseMapping hbaseMapping,
                                             HbaseTemplate hbaseTemplate, AtomicLong successCount, List<String> errMsg) {
         try {
-            sqlRS(ds, sql, rs -> {
+            Util.sqlRS(ds, sql, rs -> {
                 int i = 1;
 
                 try {
@@ -332,18 +295,49 @@ public class HbaseEtlService {
 
                                     byte[] valBytes = Bytes.toBytes(val.toString());
                                     if (columnItem.isRowKey()) {
-                                        row.setRowKey(valBytes);
+                                        if (columnItem.getRowKeyLen() != null) {
+                                            valBytes = Bytes.toBytes(limitLenNum(columnItem.getRowKeyLen(), val));
+                                            row.setRowKey(valBytes);
+                                        } else {
+                                            row.setRowKey(valBytes);
+                                        }
                                     } else {
                                         row.addCell(columnItem.getFamily(), columnItem.getQualifier(), valBytes);
                                     }
                                 } else {
-                                    PhType phType = PhType.getType(columnItem.getType());
-                                    if (columnItem.isRowKey()) {
-                                        row.setRowKey(PhTypeUtil.toBytes(val, phType));
-                                    } else {
-                                        row.addCell(columnItem.getFamily(),
-                                            columnItem.getQualifier(),
-                                            PhTypeUtil.toBytes(val, phType));
+                                    if (MappingConfig.Mode.STRING == hbaseMapping.getMode()) {
+                                        byte[] valBytes = Bytes.toBytes(val.toString());
+                                        if (columnItem.isRowKey()) {
+                                            if (columnItem.getRowKeyLen() != null) {
+                                                valBytes = Bytes.toBytes(limitLenNum(columnItem.getRowKeyLen(), val));
+                                            }
+                                            row.setRowKey(valBytes);
+                                        } else {
+                                            row.addCell(columnItem.getFamily(), columnItem.getQualifier(), valBytes);
+                                        }
+                                    } else if (MappingConfig.Mode.NATIVE == hbaseMapping.getMode()) {
+                                        Type type = Type.getType(columnItem.getType());
+                                        if (columnItem.isRowKey()) {
+                                            if (columnItem.getRowKeyLen() != null) {
+                                                String v = limitLenNum(columnItem.getRowKeyLen(), val);
+                                                row.setRowKey(Bytes.toBytes(v));
+                                            } else {
+                                                row.setRowKey(TypeUtil.toBytes(val, type));
+                                            }
+                                        } else {
+                                            row.addCell(columnItem.getFamily(),
+                                                columnItem.getQualifier(),
+                                                TypeUtil.toBytes(val, type));
+                                        }
+                                    } else if (MappingConfig.Mode.PHOENIX == hbaseMapping.getMode()) {
+                                        PhType phType = PhType.getType(columnItem.getType());
+                                        if (columnItem.isRowKey()) {
+                                            row.setRowKey(PhTypeUtil.toBytes(val, phType));
+                                        } else {
+                                            row.addCell(columnItem.getFamily(),
+                                                columnItem.getQualifier(),
+                                                PhTypeUtil.toBytes(val, phType));
+                                        }
                                     }
                                 }
                             }
@@ -381,5 +375,17 @@ public class HbaseEtlService {
             logger.error(e.getMessage(), e);
             return false;
         }
+    }
+
+    private static String limitLenNum(int len, Object val) {
+        if (val == null) {
+            return null;
+        }
+        if (val instanceof Number) {
+            return String.format("%0" + len + "d", (Number) ((Number) val).longValue());
+        } else if (val instanceof String) {
+            return String.format("%0" + len + "d", Long.parseLong((String) val));
+        }
+        return null;
     }
 }

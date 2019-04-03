@@ -10,8 +10,10 @@ import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
+import org.apache.rocketmq.client.consumer.rebalance.AllocateMessageQueueAveragely;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.remoting.RPCHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,8 @@ import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+import com.aliyun.openservices.apache.api.impl.authority.SessionCredentials;
+import com.aliyun.openservices.apache.api.impl.rocketmq.ClientRPCHook;
 import com.google.common.collect.Lists;
 
 /**
@@ -44,22 +48,46 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     private volatile boolean                    connected           = false;
     private DefaultMQPushConsumer               rocketMQConsumer;
     private BlockingQueue<ConsumerBatchMessage> messageBlockingQueue;
+    private int                                 batchSize           = -1;
     private long                                batchProcessTimeout = 60 * 1000;
     private boolean                             flatMessage;
     private volatile ConsumerBatchMessage       lastGetBatchMessage = null;
+    private String                              accessKey;
+    private String                              secretKey;
 
-    public RocketMQCanalConnector(String nameServer, String topic, String groupName, boolean flatMessage){
+    public RocketMQCanalConnector(String nameServer, String topic, String groupName, Integer batchSize,
+                                  boolean flatMessage){
         this.nameServer = nameServer;
         this.topic = topic;
         this.groupName = groupName;
         this.flatMessage = flatMessage;
         this.messageBlockingQueue = new LinkedBlockingQueue<>(1024);
+        this.batchSize = batchSize;
+    }
+
+    public RocketMQCanalConnector(String nameServer, String topic, String groupName, String accessKey,
+                                  String secretKey, Integer batchSize, boolean flatMessage){
+        this(nameServer, topic, groupName, batchSize, flatMessage);
+        this.accessKey = accessKey;
+        this.secretKey = secretKey;
     }
 
     public void connect() throws CanalClientException {
-        rocketMQConsumer = new DefaultMQPushConsumer(groupName);
+
+        RPCHook rpcHook = null;
+        if (null != accessKey && accessKey.length() > 0 && null != secretKey && secretKey.length() > 0) {
+            SessionCredentials sessionCredentials = new SessionCredentials();
+            sessionCredentials.setAccessKey(accessKey);
+            sessionCredentials.setSecretKey(secretKey);
+            rpcHook = new ClientRPCHook(sessionCredentials);
+        }
+        rocketMQConsumer = new DefaultMQPushConsumer(groupName, rpcHook, new AllocateMessageQueueAveragely());
+        rocketMQConsumer.setVipChannelEnabled(false);
         if (!StringUtils.isBlank(nameServer)) {
             rocketMQConsumer.setNamesrvAddr(nameServer);
+        }
+        if (batchSize != -1) {
+            rocketMQConsumer.setConsumeMessageBatchMaxSize(batchSize);
         }
     }
 
@@ -214,9 +242,13 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     @Override
     public void ack() throws CanalClientException {
         try {
-            this.lastGetBatchMessage.ack();
+            if (this.lastGetBatchMessage != null) {
+                this.lastGetBatchMessage.ack();
+            }
         } catch (Throwable e) {
-            this.lastGetBatchMessage.fail();
+            if (this.lastGetBatchMessage != null) {
+                this.lastGetBatchMessage.fail();
+            }
         } finally {
             this.lastGetBatchMessage = null;
         }
@@ -225,7 +257,9 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     @Override
     public void rollback() throws CanalClientException {
         try {
-            this.lastGetBatchMessage.fail();
+            if (this.lastGetBatchMessage != null) {
+                this.lastGetBatchMessage.fail();
+            }
         } finally {
             this.lastGetBatchMessage = null;
         }

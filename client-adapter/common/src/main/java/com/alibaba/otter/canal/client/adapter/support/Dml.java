@@ -15,8 +15,11 @@ public class Dml implements Serializable {
     private static final long         serialVersionUID = 2611556444074013268L;
 
     private String                    destination;                            // 对应canal的实例或者MQ的topic
+    private String                    groupId;                                // 对应mq的group id
     private String                    database;                               // 数据库或schema
     private String                    table;                                  // 表名
+    private List<String>              pkNames;
+    private Boolean                   isDdl;
     private String                    type;                                   // 类型: INSERT UPDATE DELETE
     // binlog executeTime
     private Long                      es;                                     // 执行耗时
@@ -34,6 +37,14 @@ public class Dml implements Serializable {
         this.destination = destination;
     }
 
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
     public String getDatabase() {
         return database;
     }
@@ -48,6 +59,22 @@ public class Dml implements Serializable {
 
     public void setTable(String table) {
         this.table = table;
+    }
+
+    public List<String> getPkNames() {
+        return pkNames;
+    }
+
+    public void setPkNames(List<String> pkNames) {
+        this.pkNames = pkNames;
+    }
+
+    public Boolean getIsDdl() {
+        return isDdl;
+    }
+
+    public void setIsDdl(Boolean isDdl) {
+        this.isDdl = isDdl;
     }
 
     public String getType() {

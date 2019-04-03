@@ -120,6 +120,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             case LogEvent.WRITE_ROWS_EVENT:
                 return parseRowsEvent((WriteRowsLogEvent) logEvent);
             case LogEvent.UPDATE_ROWS_EVENT_V1:
+            case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
             case LogEvent.UPDATE_ROWS_EVENT:
                 return parseRowsEvent((UpdateRowsLogEvent) logEvent);
             case LogEvent.DELETE_ROWS_EVENT_V1:
@@ -260,7 +261,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return null;
             }
 
-            if (!isSeek) {
+            boolean isDml = (type == EventType.INSERT || type == EventType.UPDATE || type == EventType.DELETE);
+
+            if (!isSeek && !isDml) {
                 // 使用新的表结构元数据管理方式
                 EntryPosition position = createPosition(event.getHeader());
                 tableMetaCache.apply(position, event.getDbName(), queryString, null);
@@ -268,8 +271,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
-            if (type != EventType.QUERY && type != EventType.INSERT && type != EventType.UPDATE
-                && type != EventType.DELETE) {
+            if (type != EventType.QUERY && !isDml) {
                 rowChangeBuider.setIsDdl(true);
             }
             rowChangeBuider.setSql(queryString);
@@ -503,7 +505,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             int type = event.getHeader().getType();
             if (LogEvent.WRITE_ROWS_EVENT_V1 == type || LogEvent.WRITE_ROWS_EVENT == type) {
                 eventType = EventType.INSERT;
-            } else if (LogEvent.UPDATE_ROWS_EVENT_V1 == type || LogEvent.UPDATE_ROWS_EVENT == type) {
+            } else if (LogEvent.UPDATE_ROWS_EVENT_V1 == type || LogEvent.UPDATE_ROWS_EVENT == type
+                       || LogEvent.PARTIAL_UPDATE_ROWS_EVENT == type) {
                 eventType = EventType.UPDATE;
             } else if (LogEvent.DELETE_ROWS_EVENT_V1 == type || LogEvent.DELETE_ROWS_EVENT == type) {
                 eventType = EventType.DELETE;
@@ -522,7 +525,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             boolean tableError = false;
             int rowsCount = 0;
-            while (buffer.nextOneRow(columns)) {
+            while (buffer.nextOneRow(columns, false)) {
                 // 处理row记录
                 RowData.Builder rowDataBuilder = RowData.newBuilder();
                 if (EventType.INSERT == eventType) {
@@ -534,7 +537,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 } else {
                     // update需要处理before/after
                     tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
-                    if (!buffer.nextOneRow(changeColumns)) {
+                    if (!buffer.nextOneRow(changeColumns, true)) {
                         rowChangeBuider.addRowDatas(rowDataBuilder.build());
                         break;
                     }
@@ -576,7 +579,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                 boolean isAfter, TableMeta tableMeta) throws UnsupportedEncodingException {
         int columnCnt = event.getTable().getColumnCnt();
         ColumnInfo[] columnInfo = event.getTable().getColumnInfo();
-
+        // mysql8.0针对set @@global.binlog_row_metadata='FULL' 可以记录部分的metadata信息
+        boolean existOptionalMetaData = event.getTable().isExistOptionalMetaData();
         boolean tableError = false;
         // check table fileds count，只能处理加字段
         boolean existRDSNoPrimaryKey = false;
@@ -617,9 +621,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                                       + "," + columnInfo.length + " vs " + tableMeta.getFields().size());
                     }
                 }
-            } else {
-                logger.warn("[" + event.getTable().getDbName() + "." + event.getTable().getTableName()
-                            + "] is no primary key , skip alibaba_rds_row_id column");
+                // } else {
+                // logger.warn("[" + event.getTable().getDbName() + "." +
+                // event.getTable().getTableName()
+                // + "] is no primary key , skip alibaba_rds_row_id column");
             }
         }
 
@@ -632,20 +637,59 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             if (existRDSNoPrimaryKey && i == columnCnt - 1 && info.type == LogEvent.MYSQL_TYPE_LONGLONG) {
                 // 不解析最后一列
-                buffer.nextValue(info.type, info.meta, false);
+                String rdsRowIdColumnName = "#alibaba_rds_row_id#";
+                buffer.nextValue(rdsRowIdColumnName, i, info.type, info.meta, false);
+                Column.Builder columnBuilder = Column.newBuilder();
+                columnBuilder.setName(rdsRowIdColumnName);
+                columnBuilder.setIsKey(true);
+                columnBuilder.setMysqlType("bigint");
+                columnBuilder.setIndex(i);
+                columnBuilder.setIsNull(false);
+                Serializable value = buffer.getValue();
+                columnBuilder.setValue(value.toString());
+                columnBuilder.setSqlType(Types.BIGINT);
+                columnBuilder.setUpdated(false);
+
+                if (isAfter) {
+                    rowDataBuilder.addAfterColumns(columnBuilder.build());
+                } else {
+                    rowDataBuilder.addBeforeColumns(columnBuilder.build());
+                }
                 continue;
             }
-
-            Column.Builder columnBuilder = Column.newBuilder();
 
             FieldMeta fieldMeta = null;
             if (tableMeta != null && !tableError) {
                 // 处理file meta
                 fieldMeta = tableMeta.getFields().get(i);
+            }
+
+            if (fieldMeta != null && existOptionalMetaData && tableMetaCache.isOnTSDB()) {
+                // check column info
+                boolean check = StringUtils.equalsIgnoreCase(fieldMeta.getColumnName(), info.name);
+                check &= (fieldMeta.isUnsigned() == info.unsigned);
+                check &= (fieldMeta.isNullable() == info.nullable);
+
+                if (!check) {
+                    throw new CanalParseException("MySQL8.0 unmatch column metadata & pls submit issue , table : "
+                                                  + tableMeta.getFullName() + ", db fieldMeta : "
+                                                  + fieldMeta.toString() + " , binlog fieldMeta : " + info.toString()
+                                                  + " , on : " + event.getHeader().getLogFileName() + ":"
+                                                  + (event.getHeader().getLogPos() - event.getHeader().getEventLen()));
+                }
+            }
+
+            Column.Builder columnBuilder = Column.newBuilder();
+            if (fieldMeta != null) {
                 columnBuilder.setName(fieldMeta.getColumnName());
                 columnBuilder.setIsKey(fieldMeta.isKey());
                 // 增加mysql type类型,issue 73
                 columnBuilder.setMysqlType(fieldMeta.getColumnType());
+            } else if (existOptionalMetaData) {
+                columnBuilder.setName(info.name);
+                columnBuilder.setIsKey(info.pk);
+                // mysql8.0里没有mysql type类型
+                // columnBuilder.setMysqlType(fieldMeta.getColumnType());
             }
             columnBuilder.setIndex(i);
             columnBuilder.setIsNull(false);
@@ -663,12 +707,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     isSingleBit = true;
                 }
             }
-            buffer.nextValue(info.type, info.meta, isBinary);
-            if (existRDSNoPrimaryKey && i == columnCnt - 1 && info.type == LogEvent.MYSQL_TYPE_LONGLONG) {
-                // 不解析最后一列
-                continue;
-            }
 
+            buffer.nextValue(columnBuilder.getName(), i, info.type, info.meta, isBinary);
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
@@ -682,7 +722,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     case Types.BIGINT:
                         // 处理unsigned类型
                         Number number = (Number) value;
-                        if (fieldMeta != null && fieldMeta.isUnsigned() && number.longValue() < 0) {
+                        boolean isUnsigned = (fieldMeta != null ? fieldMeta.isUnsigned() : (existOptionalMetaData ? info.unsigned : false));
+                        if (isUnsigned && number.longValue() < 0) {
                             switch (buffer.getLength()) {
                                 case 1: /* MYSQL_TYPE_TINY */
                                     columnBuilder.setValue(String.valueOf(Integer.valueOf(TINYINT_MAX_VALUE
@@ -771,7 +812,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     default:
                         columnBuilder.setValue(value.toString());
                 }
-
             }
 
             columnBuilder.setSqlType(javaType);
@@ -952,10 +992,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setNameFilter(AviaterRegexFilter nameFilter) {
         this.nameFilter = nameFilter;
+        logger.warn("--> init table filter : " + nameFilter.toString());
     }
 
     public void setNameBlackFilter(AviaterRegexFilter nameBlackFilter) {
         this.nameBlackFilter = nameBlackFilter;
+        logger.warn("--> init table black filter : " + nameBlackFilter.toString());
     }
 
     public void setTableMetaCache(TableMetaCache tableMetaCache) {
@@ -980,5 +1022,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void setFilterRows(boolean filterRows) {
         this.filterRows = filterRows;
+    }
+
+    public void setUseDruidDdlFilter(boolean useDruidDdlFilter) {
+        this.useDruidDdlFilter = useDruidDdlFilter;
     }
 }

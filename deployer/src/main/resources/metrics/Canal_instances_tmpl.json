@@ -826,7 +826,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "$datasource",
       "description": "client 请求的GET与ACK包的QPS。",
       "fill": 1,
       "gridPos": {

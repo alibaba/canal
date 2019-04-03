@@ -1,15 +1,14 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnectors;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * rocketmq对应的client适配器工作线程
@@ -22,20 +21,39 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
     private String                 topic;
     private boolean                flatMessage;
 
-    public CanalAdapterRocketMQWorker(String nameServers, String topic, String groupId,
-                                      List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
+    public CanalAdapterRocketMQWorker(CanalClientConfig canalClientConfig, String nameServers, String topic,
+                                      String groupId, List<List<OuterAdapter>> canalOuterAdapters, String accessKey,
+                                      String secretKey, boolean flatMessage){
         super(canalOuterAdapters);
+        this.canalClientConfig = canalClientConfig;
         this.topic = topic;
         this.flatMessage = flatMessage;
-        this.canalDestination = topic;
-        this.connector = RocketMQCanalConnectors.newRocketMQConnector(nameServers, topic, groupId, flatMessage);
+        super.canalDestination = topic;
+        super.groupId = groupId;
+        this.connector = new RocketMQCanalConnector(nameServers,
+            topic,
+            groupId,
+            accessKey,
+            secretKey,
+            canalClientConfig.getBatchSize(),
+            flatMessage);
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
     }
 
     @Override
     protected void process() {
-        while (!running)
-            ;
+        while (!running) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+
+        ExecutorService workerExecutor = Util.newSingleThreadExecutor(5000L);
+        int retry = canalClientConfig.getRetries() == null
+                    || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
+        long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
+
         while (running) {
             try {
                 syncSwitch.get(canalDestination);
@@ -45,38 +63,29 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                 connector.subscribe();
                 logger.info("=============> Subscribe topic: {} succeed<=============", this.topic);
                 while (running) {
-                    try {
-                        Boolean status = syncSwitch.status(canalDestination);
-                        if (status != null && !status) {
-                            connector.disconnect();
+                    boolean status = syncSwitch.status(canalDestination);
+                    if (!status) {
+                        connector.disconnect();
+                        break;
+                    }
+                    if (retry == -1) {
+                        retry = Integer.MAX_VALUE;
+                    }
+                    for (int i = 0; i < retry; i++) {
+                        if (!running) {
                             break;
                         }
-
-                        List<?> messages;
-                        if (!flatMessage) {
-                            messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
-                        } else {
-                            messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);
+                        if (mqWriteOutData(retry, timeout, i, flatMessage, connector, workerExecutor)) {
+                            break;
                         }
-                        if (messages != null) {
-                            for (final Object message : messages) {
-                                if (message instanceof FlatMessage) {
-                                    writeOut((FlatMessage) message);
-                                } else {
-                                    writeOut((Message) message);
-                                }
-                            }
-                        }
-                        connector.ack();
-                    } catch (Throwable e) {
-                        logger.error(e.getMessage(), e);
-                        TimeUnit.SECONDS.sleep(1L);
                     }
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
+
+        workerExecutor.shutdown();
 
         try {
             connector.unsubscribe();

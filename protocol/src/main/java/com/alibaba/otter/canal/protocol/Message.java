@@ -17,7 +17,6 @@ import com.google.protobuf.ByteString;
 public class Message implements Serializable {
 
     private static final long      serialVersionUID = 1234034768477580009L;
-
     private long                   id;
     private List<CanalEntry.Entry> entries          = new ArrayList<CanalEntry.Entry>();
     // row data for performance, see:

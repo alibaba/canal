@@ -1,9 +1,7 @@
 package com.alibaba.otter.canal.client.kafka;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -22,7 +20,7 @@ import com.google.common.collect.Lists;
 
 /**
  * canal kafka 数据操作客户端
- * 
+ *
  * <pre>
  * 注意点：
  * 1. 相比于canal {@linkplain SimpleCanalConnector}, 这里get和ack操作不能有并发, 必须是一个线程执行get后，内存里执行完毕ack后再取下一个get
@@ -33,16 +31,19 @@ import com.google.common.collect.Lists;
  */
 public class KafkaCanalConnector implements CanalMQConnector {
 
-    private KafkaConsumer<String, Message> kafkaConsumer;
-    private KafkaConsumer<String, String>  kafkaConsumer2;   // 用于扁平message的数据消费
-    private String                         topic;
-    private Integer                        partition;
-    private Properties                     properties;
-    private volatile boolean               connected = false;
-    private volatile boolean               running   = false;
-    private boolean                        flatMessage;
+    protected KafkaConsumer<String, Message> kafkaConsumer;
+    protected KafkaConsumer<String, String>  kafkaConsumer2;                            // 用于扁平message的数据消费
+    protected String                         topic;
+    protected Integer                        partition;
+    protected Properties                     properties;
+    protected volatile boolean               connected      = false;
+    protected volatile boolean               running        = false;
+    protected boolean                        flatMessage;
 
-    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, boolean flatMessage){
+    private Map<Integer, Long>               currentOffsets = new ConcurrentHashMap<>();
+
+    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, Integer batchSize,
+                               boolean flatMessage){
         this.topic = topic;
         this.partition = partition;
         this.flatMessage = flatMessage;
@@ -55,7 +56,11 @@ public class KafkaCanalConnector implements CanalMQConnector {
         properties.put("auto.offset.reset", "latest"); // 如果没有offset则从最后的offset开始读
         properties.put("request.timeout.ms", "40000"); // 必须大于session.timeout.ms的设置
         properties.put("session.timeout.ms", "30000"); // 默认为30秒
-        properties.put("max.poll.records", "100");
+        properties.put("isolation.level", "read_committed");
+        if (batchSize == null) {
+            batchSize = 100;
+        }
+        properties.put("max.poll.records", batchSize.toString());
         properties.put("key.deserializer", StringDeserializer.class.getName());
         if (!flatMessage) {
             properties.put("value.deserializer", MessageDeserializer.class.getName());
@@ -67,6 +72,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 打开连接
      */
+    @Override
     public void connect() {
         if (connected) {
             return;
@@ -75,6 +81,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
         connected = true;
         if (kafkaConsumer == null && !flatMessage) {
             kafkaConsumer = new KafkaConsumer<String, Message>(properties);
+
         }
         if (kafkaConsumer2 == null && flatMessage) {
             kafkaConsumer2 = new KafkaConsumer<String, String>(properties);
@@ -84,6 +91,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 关闭链接
      */
+    @Override
     public void disconnect() {
         if (kafkaConsumer != null) {
             kafkaConsumer.close();
@@ -97,10 +105,11 @@ public class KafkaCanalConnector implements CanalMQConnector {
         connected = false;
     }
 
-    private void waitClientRunning() {
+    protected void waitClientRunning() {
         running = true;
     }
 
+    @Override
     public boolean checkValid() {
         return true;// 默认都放过
     }
@@ -108,6 +117,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 订阅topic
      */
+    @Override
     public void subscribe() {
         waitClientRunning();
         if (!running) {
@@ -135,6 +145,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     /**
      * 取消订阅
      */
+    @Override
     public void unsubscribe() {
         waitClientRunning();
         if (!running) {
@@ -170,7 +181,12 @@ public class KafkaCanalConnector implements CanalMQConnector {
             return Lists.newArrayList();
         }
 
-        ConsumerRecords<String, Message> records = kafkaConsumer.poll(unit.toMillis(timeout)); // 基于配置，最多只能poll到一条数据
+        ConsumerRecords<String, Message> records = kafkaConsumer.poll(unit.toMillis(timeout));
+
+        currentOffsets.clear();
+        for (TopicPartition topicPartition : records.partitions()) {
+            currentOffsets.put(topicPartition.partition(), kafkaConsumer.position(topicPartition));
+        }
 
         if (!records.isEmpty()) {
             List<Message> messages = new ArrayList<>();
@@ -204,6 +220,12 @@ public class KafkaCanalConnector implements CanalMQConnector {
         }
 
         ConsumerRecords<String, String> records = kafkaConsumer2.poll(unit.toMillis(timeout));
+
+        currentOffsets.clear();
+        for (TopicPartition topicPartition : records.partitions()) {
+            currentOffsets.put(topicPartition.partition(), kafkaConsumer2.position(topicPartition));
+        }
+
         if (!records.isEmpty()) {
             List<FlatMessage> flatMessages = new ArrayList<>();
             for (ConsumerRecord<String, String> record : records) {
@@ -218,12 +240,28 @@ public class KafkaCanalConnector implements CanalMQConnector {
     }
 
     @Override
-    public void rollback() throws CanalClientException {
+    public void rollback() {
+        waitClientRunning();
+        if (!running) {
+            return;
+        }
+        // 回滚所有分区
+        if (kafkaConsumer != null) {
+            for (Map.Entry<Integer, Long> entry : currentOffsets.entrySet()) {
+                kafkaConsumer.seek(new TopicPartition(topic, entry.getKey()), entry.getValue() - 1);
+            }
+        }
+        if (kafkaConsumer2 != null) {
+            for (Map.Entry<Integer, Long> entry : currentOffsets.entrySet()) {
+                kafkaConsumer2.seek(new TopicPartition(topic, entry.getKey()), entry.getValue() - 1);
+            }
+        }
     }
 
     /**
      * 提交offset，如果超过 session.timeout.ms 设置的时间没有ack则会抛出异常，ack失败
      */
+    @Override
     public void ack() {
         waitClientRunning();
         if (!running) {

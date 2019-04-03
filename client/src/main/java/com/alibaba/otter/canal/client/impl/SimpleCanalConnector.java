@@ -133,7 +133,7 @@ public class SimpleCanalConnector implements CanalConnector {
                 runningMonitor.stop();
             }
         } else {
-            doDisconnnect();
+            doDisconnect();
         }
     }
 
@@ -190,7 +190,7 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
-    private void doDisconnnect() throws CanalClientException {
+    private void doDisconnect() throws CanalClientException {
         if (readableChannel != null) {
             quietlyClose(readableChannel);
             readableChannel = null;
@@ -434,7 +434,7 @@ public class SimpleCanalConnector implements CanalConnector {
 
                 public void processActiveExit() {
                     mutex.set(false);
-                    doDisconnnect();
+                    doDisconnect();
                 }
 
             });

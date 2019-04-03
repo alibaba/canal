@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTable;
@@ -25,16 +27,33 @@ import org.slf4j.LoggerFactory;
  */
 public class HbaseTemplate {
 
-    private Logger     logger = LoggerFactory.getLogger(this.getClass());
+    private Logger        logger = LoggerFactory.getLogger(this.getClass());
 
-    private Connection conn;
+    private Configuration hbaseConfig;                                      // hbase配置对象
+    private Connection    conn;                                             // hbase连接
 
-    public HbaseTemplate(Connection conn){
-        this.conn = conn;
+    public HbaseTemplate(Configuration hbaseConfig){
+        this.hbaseConfig = hbaseConfig;
+        initConn();
+    }
+
+    private void initConn() {
+        try {
+            this.conn = ConnectionFactory.createConnection(hbaseConfig);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Connection getConnection() {
+        if (conn == null || conn.isAborted() || conn.isClosed()) {
+            initConn();
+        }
+        return conn;
     }
 
     public boolean tableExists(String tableName) {
-        try (HBaseAdmin admin = (HBaseAdmin) conn.getAdmin()) {
+        try (HBaseAdmin admin = (HBaseAdmin) getConnection().getAdmin()) {
 
             return admin.tableExists(TableName.valueOf(tableName));
         } catch (IOException e) {
@@ -43,7 +62,7 @@ public class HbaseTemplate {
     }
 
     public void createTable(String tableName, String... familyNames) {
-        try (HBaseAdmin admin = (HBaseAdmin) conn.getAdmin()) {
+        try (HBaseAdmin admin = (HBaseAdmin) getConnection().getAdmin()) {
 
             HTableDescriptor desc = new HTableDescriptor(TableName.valueOf(tableName));
             // 添加列簇
@@ -60,7 +79,7 @@ public class HbaseTemplate {
     }
 
     public void disableTable(String tableName) {
-        try (HBaseAdmin admin = (HBaseAdmin) conn.getAdmin()) {
+        try (HBaseAdmin admin = (HBaseAdmin) getConnection().getAdmin()) {
             admin.disableTable(tableName);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -69,7 +88,7 @@ public class HbaseTemplate {
     }
 
     public void deleteTable(String tableName) {
-        try (HBaseAdmin admin = (HBaseAdmin) conn.getAdmin()) {
+        try (HBaseAdmin admin = (HBaseAdmin) getConnection().getAdmin()) {
             if (admin.isTableEnabled(tableName)) {
                 disableTable(tableName);
             }
@@ -82,7 +101,7 @@ public class HbaseTemplate {
 
     /**
      * 插入一行数据
-     * 
+     *
      * @param tableName 表名
      * @param hRow 行数据对象
      * @return 是否成功
@@ -90,7 +109,7 @@ public class HbaseTemplate {
     public Boolean put(String tableName, HRow hRow) {
         boolean flag = false;
         try {
-            HTable table = (HTable) conn.getTable(TableName.valueOf(tableName));
+            HTable table = (HTable) getConnection().getTable(TableName.valueOf(tableName));
             Put put = new Put(hRow.getRowKey());
             for (HRow.HCell hCell : hRow.getCells()) {
                 put.addColumn(Bytes.toBytes(hCell.getFamily()), Bytes.toBytes(hCell.getQualifier()), hCell.getValue());
@@ -99,6 +118,7 @@ public class HbaseTemplate {
             flag = true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
         return flag;
 
@@ -106,7 +126,7 @@ public class HbaseTemplate {
 
     /**
      * 批量插入
-     * 
+     *
      * @param tableName 表名
      * @param rows 行数据对象集合
      * @return 是否成功
@@ -114,7 +134,7 @@ public class HbaseTemplate {
     public Boolean puts(String tableName, List<HRow> rows) {
         boolean flag = false;
         try {
-            HTable table = (HTable) conn.getTable(TableName.valueOf(tableName));
+            HTable table = (HTable) getConnection().getTable(TableName.valueOf(tableName));
             List<Put> puts = new ArrayList<>();
             for (HRow hRow : rows) {
                 Put put = new Put(hRow.getRowKey());
@@ -131,13 +151,14 @@ public class HbaseTemplate {
             flag = true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
         return flag;
     }
 
     /**
      * 批量删除数据
-     * 
+     *
      * @param tableName 表名
      * @param rowKeys rowKey集合
      * @return 是否成功
@@ -145,7 +166,7 @@ public class HbaseTemplate {
     public Boolean deletes(String tableName, Set<byte[]> rowKeys) {
         boolean flag = false;
         try {
-            HTable table = (HTable) conn.getTable(TableName.valueOf(tableName));
+            HTable table = (HTable) getConnection().getTable(TableName.valueOf(tableName));
             List<Delete> deletes = new ArrayList<>();
             for (byte[] rowKey : rowKeys) {
                 Delete delete = new Delete(rowKey);
@@ -157,7 +178,14 @@ public class HbaseTemplate {
             flag = true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
         return flag;
+    }
+
+    public void close() throws IOException {
+        if (conn != null) {
+            conn.close();
+        }
     }
 }

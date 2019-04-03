@@ -8,8 +8,8 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import org.apache.hadoop.hbase.util.Bytes;
-import org.joda.time.DateTime;
 
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.google.common.math.LongMath;
 
 /**
@@ -130,8 +130,10 @@ public class PhTypeUtil {
             } else if (b[0] == 0) {
                 v = false;
             }
-        } else if (phType == PhType.TIME || phType == PhType.DATE) {
-            v = new Date(decodeLong(b, 0));
+        } else if (phType == PhType.DATE) {
+            v = new java.sql.Date(decodeLong(b, 0));
+        } else if (phType == PhType.TIME) {
+            v = new java.sql.Time(decodeLong(b, 0));
         } else if (phType == PhType.TIMESTAMP) {
             long millisDeserialized = decodeLong(b, 0);
             Timestamp ts = new Timestamp(millisDeserialized);
@@ -389,7 +391,7 @@ public class PhTypeUtil {
             String dateStr = (String) v;
             Date date;
             try {
-                date = parseDatetime(dateStr);
+                date = Util.parseDate(dateStr);
                 if (date != null) {
                     encodeLong(date.getTime(), b, 0);
                 }
@@ -418,7 +420,7 @@ public class PhTypeUtil {
             String dateStr = (String) v;
             Date date;
             try {
-                date = parseDatetime(dateStr);
+                date = Util.parseDate(dateStr);
                 if (date != null) {
                     encodeUnsignedLong(date.getTime(), b, 0);
                 }
@@ -599,22 +601,9 @@ public class PhTypeUtil {
 
     private static void checkForSufficientLength(byte[] b, int offset, int requiredLength) {
         if (b.length < offset + requiredLength) {
-            throw new RuntimeException("Expected length of at least " + requiredLength + " bytes, but had "
-                                       + (b.length - offset));
+            throw new RuntimeException(
+                "Expected length of at least " + requiredLength + " bytes, but had " + (b.length - offset));
         }
     }
 
-    private static Date parseDatetime(String dateStr) {
-        Date date = null;
-        int len = dateStr.length();
-        if (len == 10 && dateStr.charAt(4) == '-' && dateStr.charAt(7) == '-') {
-            date = new DateTime(dateStr).toDate();
-        } else if (len == 8 && dateStr.charAt(2) == ':' && dateStr.charAt(5) == ':') {
-            date = new DateTime("T" + dateStr).toDate();
-        } else if (len >= 19 && dateStr.charAt(4) == '-' && dateStr.charAt(7) == '-' && dateStr.charAt(13) == ':'
-                   && dateStr.charAt(16) == ':') {
-            date = new DateTime(dateStr.replace(" ", "T")).toDate();
-        }
-        return date;
-    }
 }

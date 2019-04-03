@@ -1,16 +1,15 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
-import com.alibaba.otter.canal.client.kafka.KafkaCanalConnectors;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * kafka对应的client适配器工作线程
@@ -24,20 +23,37 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
     private String              topic;
     private boolean             flatMessage;
 
-    public CanalAdapterKafkaWorker(String bootstrapServers, String topic, String groupId,
-                                   List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
+    public CanalAdapterKafkaWorker(CanalClientConfig canalClientConfig, String bootstrapServers, String topic,
+                                   String groupId, List<List<OuterAdapter>> canalOuterAdapters, boolean flatMessage){
         super(canalOuterAdapters);
+        this.canalClientConfig = canalClientConfig;
         this.topic = topic;
-        this.canalDestination = topic;
+        super.canalDestination = topic;
+        super.groupId = groupId;
         this.flatMessage = flatMessage;
-        this.connector = KafkaCanalConnectors.newKafkaConnector(bootstrapServers, topic, null, groupId, flatMessage);
-        // connector.setSessionTimeout(1L, TimeUnit.MINUTES);
+        this.connector = new KafkaCanalConnector(bootstrapServers,
+            topic,
+            null,
+            groupId,
+            canalClientConfig.getBatchSize(),
+            flatMessage);
+        connector.setSessionTimeout(30L, TimeUnit.SECONDS);
     }
 
     @Override
     protected void process() {
-        while (!running)
-            ;
+        while (!running) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        ExecutorService workerExecutor = Util.newSingleThreadExecutor(5000L);
+        int retry = canalClientConfig.getRetries() == null
+                    || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
+        long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
+
         while (running) {
             try {
                 syncSwitch.get(canalDestination);
@@ -47,40 +63,29 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 connector.subscribe();
                 logger.info("=============> Subscribe topic: {} succeed <=============", this.topic);
                 while (running) {
-                    try {
-                        Boolean status = syncSwitch.status(canalDestination);
-                        if (status != null && !status) {
-                            connector.disconnect();
+                    boolean status = syncSwitch.status(canalDestination);
+                    if (!status) {
+                        connector.disconnect();
+                        break;
+                    }
+                    if (retry == -1) {
+                        retry = Integer.MAX_VALUE;
+                    }
+                    for (int i = 0; i < retry; i++) {
+                        if (!running) {
                             break;
                         }
-
-                        List<?> messages;
-                        if (!flatMessage) {
-                            messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS);
-                        } else {
-                            messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);
+                        if (mqWriteOutData(retry, timeout, i, flatMessage, connector, workerExecutor)) {
+                            break;
                         }
-                        if (messages != null) {
-                            for (final Object message : messages) {
-                                if (message instanceof FlatMessage) {
-                                    writeOut((FlatMessage) message);
-                                } else {
-                                    writeOut((Message) message);
-                                }
-                            }
-                        }
-                        connector.ack();
-                    } catch (CommitFailedException e) {
-                        logger.warn(e.getMessage());
-                    } catch (Throwable e) {
-                        logger.error(e.getMessage(), e);
-                        TimeUnit.SECONDS.sleep(1L);
                     }
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
+
+        workerExecutor.shutdown();
 
         try {
             connector.unsubscribe();

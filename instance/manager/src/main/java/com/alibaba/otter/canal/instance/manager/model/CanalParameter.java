@@ -12,7 +12,7 @@ import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
 
 /**
  * canal运行相关参数
- * 
+ *
  * @author jianghang 2012-7-4 下午02:52:52
  * @version 1.0.0
  */
@@ -118,6 +118,7 @@ public class CanalParameter implements Serializable {
     private String                   standbyLogfileName                 = null;                      // standby起始位置
     private Long                     standbyLogfileOffest               = null;
     private Long                     standbyTimestamp                   = null;
+    private Boolean                  parallel                           = Boolean.FALSE;
 
     public static enum RunMode {
 
@@ -328,7 +329,7 @@ public class CanalParameter implements Serializable {
 
     /**
      * 数据来源描述
-     * 
+     *
      * @author jianghang 2012-12-26 上午11:05:20
      * @version 4.1.5
      */
@@ -980,6 +981,14 @@ public class CanalParameter implements Serializable {
 
     public void setTsdbSnapshotExpire(Integer tsdbSnapshotExpire) {
         this.tsdbSnapshotExpire = tsdbSnapshotExpire;
+    }
+
+    public Boolean getParallel() {
+        return parallel;
+    }
+
+    public void setParallel(Boolean parallel) {
+        this.parallel = parallel;
     }
 
     public String toString() {

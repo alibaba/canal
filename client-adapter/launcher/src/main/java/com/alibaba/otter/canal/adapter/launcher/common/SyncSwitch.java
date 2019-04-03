@@ -34,7 +34,7 @@ public class SyncSwitch {
 
     private static final Map<String, BooleanMutex> DISTRIBUTED_LOCK   = new ConcurrentHashMap<>();
 
-    private static Mode                            mode               = Mode.LOCAL;
+    private Mode                                   mode               = Mode.LOCAL;
 
     @Resource
     private AdapterCanalConfig                     adapterCanalConfig;
@@ -64,11 +64,12 @@ public class SyncSwitch {
         }
     }
 
+    @SuppressWarnings("resource")
     private synchronized void startListen(String destination, BooleanMutex mutex) {
         try {
             String path = SYN_SWITCH_ZK_NODE + destination;
             CuratorFramework curator = curatorClient.getCurator();
-            final NodeCache nodeCache = new NodeCache(curator, path);
+            NodeCache nodeCache = new NodeCache(curator, path);
             nodeCache.start();
             nodeCache.getListenable().addListener(() -> initMutex(curator, destination, mutex));
         } catch (Exception e) {
@@ -164,20 +165,20 @@ public class SyncSwitch {
         }
     }
 
-    public Boolean status(String destination) {
+    public boolean status(String destination) {
         if (mode == Mode.LOCAL) {
             BooleanMutex mutex = LOCAL_LOCK.get(destination);
             if (mutex != null) {
                 return mutex.state();
             } else {
-                return null;
+                return false;
             }
         } else {
             BooleanMutex mutex = DISTRIBUTED_LOCK.get(destination);
             if (mutex != null) {
                 return mutex.state();
             } else {
-                return null;
+                return false;
             }
         }
     }

@@ -8,7 +8,7 @@ if "%OS%" == "Windows_NT" set ENV_PATH=%~dp0%
 set conf_dir=%ENV_PATH%\..\conf
 set logback_configurationFile=%conf_dir%\logback.xml
 set client_mode=Simple
-if "%1%" != "" set client_mode=%1%
+if not "%1" == "" set client_mode=%1
 
 set CLASSPATH=%conf_dir%
 set CLASSPATH=%conf_dir%\..\lib\*;%CLASSPATH%
@@ -20,7 +20,8 @@ set CANAL_OPTS= -DappName=otter-canal-example -Dlogback.configurationFile="%logb
 
 set JAVA_OPTS= %JAVA_MEM_OPTS% %JAVA_OPTS_EXT% %JAVA_DEBUG_OPT% %CANAL_OPTS%
 
-if "%client_mode%" == "Cluster"  
+if "%client_mode%" == "Cluster" (
 	java %JAVA_OPTS% -classpath "%CLASSPATH%" com.alibaba.otter.canal.example.ClusterCanalClientTest
-else 
+) else (
 	java %JAVA_OPTS% -classpath "%CLASSPATH%" com.alibaba.otter.canal.example.SimpleCanalClientTest
+)

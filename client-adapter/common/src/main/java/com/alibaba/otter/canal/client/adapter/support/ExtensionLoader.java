@@ -1,15 +1,22 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +43,8 @@ public class ExtensionLoader<T> {
     private static final ConcurrentMap<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS          = new ConcurrentHashMap<>();
 
     private static final ConcurrentMap<Class<?>, Object>             EXTENSION_INSTANCES        = new ConcurrentHashMap<>();
+
+    private static final ConcurrentMap<String, Object>               EXTENSION_KEY_INSTANCE     = new ConcurrentHashMap<>();
 
     private final Class<?>                                           type;
 
@@ -83,47 +92,6 @@ public class ExtensionLoader<T> {
         this.classLoaderPolicy = classLoaderPolicy;
     }
 
-    public String getExtensionName(T extensionInstance) {
-        return getExtensionName(extensionInstance.getClass());
-    }
-
-    public String getExtensionName(Class<?> extensionClass) {
-        return cachedNames.get(extensionClass);
-    }
-
-    public ConcurrentHashMap<String, IllegalStateException> getExceptions() {
-        return exceptions;
-    }
-
-    /**
-     * 返回扩展点实例，如果没有指定的扩展点或是还没加载（即实例化）则返回<code>null</code>注意：此方法不会触发扩展点的加载
-     * <p/>
-     * 一般应该调用{@link #getExtension(String)}方法获得扩展，这个方法会触发扩展点加载
-     *
-     * @see #getExtension(String)
-     */
-    @SuppressWarnings("unchecked")
-    public T getLoadedExtension(String name) {
-        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
-        Holder<Object> holder = cachedInstances.get(name);
-        if (holder == null) {
-            cachedInstances.putIfAbsent(name, new Holder<>());
-            holder = cachedInstances.get(name);
-        }
-        return (T) holder.get();
-    }
-
-    /**
-     * 返回已经加载的扩展点的名字
-     * <p/>
-     * 一般应该调用{@link #getSupportedExtensions()}方法获得扩展，这个方法会返回所有的扩展点
-     *
-     * @see #getSupportedExtensions()
-     */
-    public Set<String> getLoadedExtensions() {
-        return Collections.unmodifiableSet(new TreeSet<>(cachedInstances.keySet()));
-    }
-
     /**
      * 返回指定名字的扩展
      *
@@ -154,6 +122,31 @@ public class ExtensionLoader<T> {
         return (T) instance;
     }
 
+    @SuppressWarnings("unchecked")
+    public T getExtension(String name, String key) {
+        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
+        if ("true".equals(name)) {
+            return getDefaultExtension();
+        }
+        String extKey = name + "-" + StringUtils.trimToEmpty(key);
+        Holder<Object> holder = cachedInstances.get(extKey);
+        if (holder == null) {
+            cachedInstances.putIfAbsent(extKey, new Holder<>());
+            holder = cachedInstances.get(extKey);
+        }
+        Object instance = holder.get();
+        if (instance == null) {
+            synchronized (holder) {
+                instance = holder.get();
+                if (instance == null) {
+                    instance = createExtension(name, key);
+                    holder.set(instance);
+                }
+            }
+        }
+        return (T) instance;
+    }
+
     /**
      * 返回缺省的扩展，如果没有设置则返回<code>null</code>
      */
@@ -163,87 +156,6 @@ public class ExtensionLoader<T> {
             return null;
         }
         return getExtension(cachedDefaultName);
-    }
-
-    public boolean hasExtension(String name) {
-        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
-        try {
-            return getExtensionClass(name) != null;
-        } catch (Throwable t) {
-            return false;
-        }
-    }
-
-    public Set<String> getSupportedExtensions() {
-        Map<String, Class<?>> clazzes = getExtensionClasses();
-        return Collections.unmodifiableSet(new TreeSet<String>(clazzes.keySet()));
-    }
-
-    /**
-     * 返回缺省的扩展点名，如果没有设置缺省则返回<code>null</code>
-     */
-    public String getDefaultExtensionName() {
-        getExtensionClasses();
-        return cachedDefaultName;
-    }
-
-    /**
-     * 编程方式添加新扩展点
-     *
-     * @param name 扩展点名
-     * @param clazz 扩展点类
-     * @throws IllegalStateException 要添加扩展点名已经存在
-     */
-    public void addExtension(String name, Class<?> clazz) {
-        getExtensionClasses(); // load classes
-
-        if (!type.isAssignableFrom(clazz)) {
-            throw new IllegalStateException("Input type " + clazz + "not implement Extension " + type);
-        }
-        if (clazz.isInterface()) {
-            throw new IllegalStateException("Input type " + clazz + "can not be interface!");
-        }
-
-        if (name == null || "".equals(name)) {
-            throw new IllegalStateException("Extension name is blank (Extension " + type + ")!");
-        }
-        if (cachedClasses.get().containsKey(name)) {
-            throw new IllegalStateException("Extension name " + name + " already existed(Extension " + type + ")!");
-        }
-
-        cachedNames.put(clazz, name);
-        cachedClasses.get().put(name, clazz);
-    }
-
-    /**
-     * 编程方式添加替换已有扩展点
-     *
-     * @param name 扩展点名
-     * @param clazz 扩展点类
-     * @throws IllegalStateException 要添加扩展点名已经存在
-     * @deprecated 不推荐应用使用，一般只在测试时可以使用
-     */
-    @Deprecated
-    public void replaceExtension(String name, Class<?> clazz) {
-        getExtensionClasses(); // load classes
-
-        if (!type.isAssignableFrom(clazz)) {
-            throw new IllegalStateException("Input type " + clazz + "not implement Extension " + type);
-        }
-        if (clazz.isInterface()) {
-            throw new IllegalStateException("Input type " + clazz + "can not be interface!");
-        }
-
-        if (name == null || "".equals(name)) {
-            throw new IllegalStateException("Extension name is blank (Extension " + type + ")!");
-        }
-        if (!cachedClasses.get().containsKey(name)) {
-            throw new IllegalStateException("Extension name " + name + " not existed(Extension " + type + ")!");
-        }
-
-        cachedNames.put(clazz, name);
-        cachedClasses.get().put(name, clazz);
-        cachedInstances.remove(name);
     }
 
     @SuppressWarnings("unchecked")
@@ -267,13 +179,25 @@ public class ExtensionLoader<T> {
         }
     }
 
-    private Class<?> getExtensionClass(String name) {
-        if (type == null) throw new IllegalArgumentException("Extension type == null");
-        if (name == null) throw new IllegalArgumentException("Extension name == null");
+    @SuppressWarnings("unchecked")
+    private T createExtension(String name, String key) {
         Class<?> clazz = getExtensionClasses().get(name);
-        if (clazz == null)
-            throw new IllegalStateException("No such extension \"" + name + "\" for " + type.getName() + "!");
-        return clazz;
+        if (clazz == null) {
+            throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
+                                            + ")  could not be instantiated: class could not be found");
+        }
+        try {
+            T instance = (T) EXTENSION_KEY_INSTANCE.get(name + "-" + key);
+            if (instance == null) {
+                EXTENSION_KEY_INSTANCE.putIfAbsent(name + "-" + key, clazz.newInstance());
+                instance = (T) EXTENSION_KEY_INSTANCE.get(name + "-" + key);
+            }
+            return instance;
+        } catch (Throwable t) {
+            throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
+                                            + ")  could not be instantiated: " + t.getMessage(),
+                t);
+        }
     }
 
     private Map<String, Class<?>> getExtensionClasses() {
@@ -287,15 +211,19 @@ public class ExtensionLoader<T> {
                 }
             }
         }
+
         return classes;
     }
 
     private String getJarDirectoryPath() {
         URL url = Thread.currentThread().getContextClassLoader().getResource("");
-        if (url == null) {
-            throw new IllegalStateException("failed to get class loader resource");
+        String dirtyPath;
+        if (url != null) {
+            dirtyPath = url.toString();
+        } else {
+            File file = new File("");
+            dirtyPath = file.getAbsolutePath();
         }
-        String dirtyPath = url.toString();
         String jarPath = dirtyPath.replaceAll("^.*file:/", ""); // removes
                                                                 // file:/ and
                                                                 // everything
@@ -310,7 +238,11 @@ public class ExtensionLoader<T> {
                                          // button.
             jarPath = jarPath.replaceAll("/classes/.*", "/classes/");
         }
-        return Paths.get(jarPath).getParent().toString(); // Paths - from java 8
+        Path path = Paths.get(jarPath).getParent(); // Paths - from java 8
+        if (path != null) {
+            return path.toString();
+        }
+        return null;
     }
 
     private Map<String, Class<?>> loadExtensionClasses() {
@@ -329,25 +261,20 @@ public class ExtensionLoader<T> {
 
         Map<String, Class<?>> extensionClasses = new HashMap<String, Class<?>>();
 
-        // 1. lib folder，customized extension classLoader （jar_dir/lib）
-        String dir = File.separator + this.getJarDirectoryPath() + File.separator + "lib";
-        logger.info("extension classpath dir: " + dir);
+        // 1. plugin folder，customized extension classLoader （jar_dir/plugin）
+        String dir = File.separator + this.getJarDirectoryPath() + File.separator + "plugin";
+
         File externalLibDir = new File(dir);
         if (!externalLibDir.exists()) {
-            externalLibDir = new File(
-                File.separator + this.getJarDirectoryPath() + File.separator + "canal_client" + File.separator + "lib");
+            externalLibDir = new File(File.separator + this.getJarDirectoryPath() + File.separator + "canal-adapter"
+                                      + File.separator + "plugin");
         }
+        logger.info("extension classpath dir: " + externalLibDir.getAbsolutePath());
         if (externalLibDir.exists()) {
-            File[] files = externalLibDir.listFiles(new FilenameFilter() {
-
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".jar");
-                }
-            });
+            File[] files = externalLibDir.listFiles((dir1, name) -> name.endsWith(".jar"));
             if (files != null) {
                 for (File f : files) {
-                    URL url = null;
+                    URL url;
                     try {
                         url = f.toURI().toURL();
                     } catch (MalformedURLException e) {
@@ -358,49 +285,7 @@ public class ExtensionLoader<T> {
                     URLClassLoader localClassLoader;
                     if (classLoaderPolicy == null || "".equals(classLoaderPolicy)
                         || DEFAULT_CLASSLOADER_POLICY.equalsIgnoreCase(classLoaderPolicy)) {
-                        localClassLoader = new URLClassLoader(new URL[] { url }, parent) {
-
-                            @Override
-                            public Class<?> loadClass(String name) throws ClassNotFoundException {
-                                Class<?> c = findLoadedClass(name);
-                                if (c != null) {
-                                    return c;
-                                }
-
-                                if (name.startsWith("java.") || name.startsWith("org.slf4j.")
-                                    || name.startsWith("org.apache.logging")
-                                    || name.startsWith("org.apache.commons.logging.")) {
-                                    // || name.startsWith("org.apache.hadoop."))
-                                    // {
-                                    c = super.loadClass(name);
-                                }
-                                if (c != null) return c;
-
-                                try {
-                                    // 先加载jar内的class，可避免jar冲突
-                                    c = findClass(name);
-                                } catch (ClassNotFoundException e) {
-                                    c = null;
-                                }
-                                if (c != null) {
-                                    return c;
-                                }
-
-                                return super.loadClass(name);
-                            }
-
-                            @Override
-                            public Enumeration<URL> getResources(String name) throws IOException {
-                                @SuppressWarnings("unchecked")
-                                Enumeration<URL>[] tmp = (Enumeration<URL>[]) new Enumeration<?>[2];
-
-                                tmp[0] = findResources(name); // local class
-                                                              // path first
-                                // tmp[1] = super.getResources(name);
-
-                                return new CompoundEnumeration<>(tmp);
-                            }
-                        };
+                        localClassLoader = new URLClassExtensionLoader(new URL[] { url });
                     } else {
                         localClassLoader = new URLClassLoader(new URL[] { url }, parent);
                     }
@@ -410,46 +295,13 @@ public class ExtensionLoader<T> {
                 }
             }
         }
+        // 只加载外部spi, 不加载classpath
         // 2. load inner extension class with default classLoader
-        ClassLoader classLoader = findClassLoader();
-        loadFile(extensionClasses, CANAL_DIRECTORY, classLoader);
-        loadFile(extensionClasses, SERVICES_DIRECTORY, classLoader);
+        // ClassLoader classLoader = findClassLoader();
+        // loadFile(extensionClasses, CANAL_DIRECTORY, classLoader);
+        // loadFile(extensionClasses, SERVICES_DIRECTORY, classLoader);
 
         return extensionClasses;
-    }
-
-    public static class CompoundEnumeration<E> implements Enumeration<E> {
-
-        private Enumeration<E>[] enums;
-        private int              index = 0;
-
-        public CompoundEnumeration(Enumeration<E>[] enums){
-            this.enums = enums;
-        }
-
-        private boolean next() {
-            while (this.index < this.enums.length) {
-                if (this.enums[this.index] != null && this.enums[this.index].hasMoreElements()) {
-                    return true;
-                }
-
-                ++this.index;
-            }
-
-            return false;
-        }
-
-        public boolean hasMoreElements() {
-            return this.next();
-        }
-
-        public E nextElement() {
-            if (!this.next()) {
-                throw new NoSuchElementException();
-            } else {
-                return this.enums[this.index].nextElement();
-            }
-        }
     }
 
     private void loadFile(Map<String, Class<?>> extensionClasses, String dir, ClassLoader classLoader) {
@@ -549,6 +401,7 @@ public class ExtensionLoader<T> {
         }
     }
 
+    @SuppressWarnings("unused")
     private static ClassLoader findClassLoader() {
         return ExtensionLoader.class.getClassLoader();
     }

@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
 import com.alibaba.otter.canal.protocol.Message;
@@ -32,9 +33,10 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      * @param address canal-server地址
      * @param canalOuterAdapters 外部适配器组
      */
-    public CanalAdapterWorker(String canalDestination, SocketAddress address,
+    public CanalAdapterWorker(CanalClientConfig canalClientConfig, String canalDestination, SocketAddress address,
                               List<List<OuterAdapter>> canalOuterAdapters){
         super(canalOuterAdapters);
+        this.canalClientConfig = canalClientConfig;
         this.canalDestination = canalDestination;
         connector = CanalConnectors.newSingleConnector(address, canalDestination, "", "");
     }
@@ -46,18 +48,38 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
      * @param zookeeperHosts zookeeper地址
      * @param canalOuterAdapters 外部适配器组
      */
-    public CanalAdapterWorker(String canalDestination, String zookeeperHosts,
+    public CanalAdapterWorker(CanalClientConfig canalClientConfig, String canalDestination, String zookeeperHosts,
                               List<List<OuterAdapter>> canalOuterAdapters){
         super(canalOuterAdapters);
         this.canalDestination = canalDestination;
+        this.canalClientConfig = canalClientConfig;
         connector = CanalConnectors.newClusterConnector(zookeeperHosts, canalDestination, "", "");
         ((ClusterCanalConnector) connector).setSoTimeout(SO_TIMEOUT);
     }
 
     @Override
     protected void process() {
-        while (!running)
-            ; // waiting until running == true
+        while (!running) { // waiting until running == true
+            while (!running) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+
+        int retry = canalClientConfig.getRetries() == null || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
+        if (retry == -1) {
+            // 重试次数-1代表异常时一直阻塞重试
+            retry = Integer.MAX_VALUE;
+        }
+        // long timeout = canalClientConfig.getTimeout() == null ? 300000 :
+        // canalClientConfig.getTimeout(); // 默认超时5分钟
+        Integer batchSize = canalClientConfig.getBatchSize();
+        if (batchSize == null) {
+            batchSize = BATCH_SIZE;
+        }
+
         while (running) {
             try {
                 syncSwitch.get(canalDestination);
@@ -77,39 +99,48 @@ public class CanalAdapterWorker extends AbstractCanalAdapterWorker {
                         break;
                     }
 
-                    // server配置canal.instance.network.soTimeout(默认: 30s)
-                    // 范围内未与server交互，server将关闭本次socket连接
-                    Message message = connector.getWithoutAck(BATCH_SIZE); // 获取指定数量的数据
-                    long batchId = message.getId();
-                    try {
-                        int size = message.getEntries().size();
-                        if (batchId == -1 || size == 0) {
-                            Thread.sleep(1000);
-                        } else {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("destination: {} batchId: {} batchSize: {} ",
-                                    this.canalDestination,
-                                    batchId,
-                                    size);
-                            }
-                            long begin = System.currentTimeMillis();
-                            writeOut(message);
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("destination: {} batchId: {} elapsed time: {} ms",
-                                    this.canalDestination,
-                                    batchId,
-                                    System.currentTimeMillis() - begin);
-                            }
+                    for (int i = 0; i < retry; i++) {
+                        if (!running) {
+                            break;
                         }
-                        connector.ack(batchId); // 提交确认
-                    } catch (Exception e) {
-                        connector.rollback(batchId); // 处理失败, 回滚数据
-                        logger.error("sync error!", e);
-                        Thread.sleep(500);
+                        Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
+                        long batchId = message.getId();
+                        try {
+                            int size = message.getEntries().size();
+                            if (batchId == -1 || size == 0) {
+                                Thread.sleep(500);
+                            } else {
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("destination: {} batchId: {} batchSize: {} ",
+                                        canalDestination,
+                                        batchId,
+                                        size);
+                                }
+                                long begin = System.currentTimeMillis();
+                                writeOut(message);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("destination: {} batchId: {} elapsed time: {} ms",
+                                        canalDestination,
+                                        batchId,
+                                        System.currentTimeMillis() - begin);
+                                }
+                            }
+                            connector.ack(batchId); // 提交确认
+                            break;
+                        } catch (Exception e) {
+                            if (i != retry - 1) {
+                                connector.rollback(batchId); // 处理失败, 回滚数据
+                                logger.error(e.getMessage() + " Error sync and rollback, execute times: " + (i + 1));
+                            } else {
+                                connector.ack(batchId);
+                                logger.error(e.getMessage() + " Error sync but ACK!");
+                            }
+                            Thread.sleep(500);
+                        }
                     }
                 }
 
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.error("process error!", e);
             } finally {
                 connector.disconnect();

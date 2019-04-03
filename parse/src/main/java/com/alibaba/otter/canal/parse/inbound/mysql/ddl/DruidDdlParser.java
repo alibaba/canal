@@ -71,6 +71,7 @@ public class DruidDdlParser {
                         DdlResult ddlResult = new DdlResult();
                         processName(ddlResult, schmeaName, alterTable.getName(), true);
                         processName(ddlResult, schmeaName, ((SQLAlterTableRename) item).getToName(), false);
+                        ddlResult.setType(EventType.RENAME);
                         ddlResults.add(ddlResult);
                     } else if (item instanceof SQLAlterTableAddIndex) {
                         DdlResult ddlResult = new DdlResult();
@@ -162,16 +163,17 @@ public class DruidDdlParser {
                 ddlResult.setType(EventType.DELETE);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLCreateDatabaseStatement) {
+                SQLCreateDatabaseStatement create = (SQLCreateDatabaseStatement) statement;
                 DdlResult ddlResult = new DdlResult();
                 ddlResult.setType(EventType.QUERY);
-                // 只设置schema
-                processName(ddlResult, schmeaName, null, false);
+                processName(ddlResult, create.getDatabaseName(), null, false);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLDropDatabaseStatement) {
+                SQLDropDatabaseStatement drop = (SQLDropDatabaseStatement) statement;
                 DdlResult ddlResult = new DdlResult();
                 ddlResult.setType(EventType.QUERY);
-                // 只设置schema
-                processName(ddlResult, schmeaName, null, false);
+                processName(ddlResult, drop.getDatabaseName(), null, false);
+                ddlResults.add(ddlResult);
             }
         }
 
