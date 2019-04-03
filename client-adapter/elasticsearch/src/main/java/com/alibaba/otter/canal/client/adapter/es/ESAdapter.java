@@ -36,6 +36,7 @@ import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
 
+
 /**
  * ES外部适配器
  *
@@ -75,7 +76,6 @@ public class ESAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
-            MDC.put("adapter", "es");
             this.envProperties = envProperties;
             Map<String, ESSyncConfig> esSyncConfigTmp = ESSyncConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
@@ -145,6 +145,7 @@ public class ESAdapter implements OuterAdapter {
         }
     }
 
+    @Override
     public void sync(List<Dml> dmls) {
         if (dmls == null || dmls.isEmpty()) {
             return;
@@ -155,6 +156,7 @@ public class ESAdapter implements OuterAdapter {
             }
         }
         esSyncService.commit(); // 批次统一提交
+
     }
 
     private void sync(Dml dml) {
@@ -245,7 +247,6 @@ public class ESAdapter implements OuterAdapter {
         if (transportClient != null) {
             transportClient.close();
         }
-        MDC.remove("adapter");
     }
 
     @Override
