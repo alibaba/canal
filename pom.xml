@@ -100,6 +100,7 @@
         <java_target_version>1.7</java_target_version>
         <file_encoding>UTF-8</file_encoding>
         <spring_version>3.2.18.RELEASE</spring_version>
+        <maven_jacoco_version>0.8.3</maven_jacoco_version>
     </properties>
 
     <modules>
@@ -402,7 +403,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco-maven-plugin.version}</version>
+                <version>${maven_jacoco_version}</version>
                 <executions>
                     <execution>
                         <goals>
