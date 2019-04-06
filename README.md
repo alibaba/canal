@@ -2,6 +2,7 @@
     <div class="iteye-blog-content-contain">
 
 [![Build Status](https://travis-ci.com/alibaba/canal.svg?branch=master)](https://travis-ci.com/alibaba/canal)
+[![codecov](https://codecov.io/gh/alibaba/canal/branch/master/graph/badge.svg)](https://codecov.io/gh/alibaba/canal)
 ![maven](https://img.shields.io/maven-central/v/com.alibaba.otter/canal.svg)
 ![license](https://img.shields.io/github/license/alibaba/canal.svg)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "Average time to resolve an issue")
