@@ -14,12 +14,14 @@ import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
+import org.junit.Test;
 
 public class AbstractMetaManagerTest extends AbstractZkTest {
 
     private static final String MYSQL_ADDRESS  = "127.0.0.1";
     protected ClientIdentity    clientIdentity = new ClientIdentity(destination, (short) 1); ;
 
+    @Test
     public void doSubscribeTest(CanalMetaManager metaManager) {
         ClientIdentity client1 = new ClientIdentity(destination, (short) 1);
         metaManager.subscribe(client1);
@@ -39,6 +41,7 @@ public class AbstractMetaManagerTest extends AbstractZkTest {
 
     }
 
+    @Test
     public void doBatchTest(CanalMetaManager metaManager) {
         metaManager.subscribe(clientIdentity);
 
