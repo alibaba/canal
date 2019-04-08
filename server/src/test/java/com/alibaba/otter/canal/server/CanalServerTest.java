@@ -34,7 +34,7 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
 
-public class CanalServerWithNettyTest {
+public class CanalServerTest {
 
     protected static final String cluster1      = "127.0.0.1:2188";
     protected static final String DESTINATION   = "ljhtest1";
