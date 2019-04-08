@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.server;
+package com.alibaba.otter.canal.server.embedded;
 
 import org.junit.After;
 import org.junit.Assert;

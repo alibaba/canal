@@ -358,21 +358,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.5.1</version>
-                <configuration>
-                    <additionalConfig>
-                        <file>
-                            <name>.settings/org.eclipse.core.resources.prefs</name>
-                            <content>
-                                <![CDATA[eclipse.preferences.version=1${line.separator}encoding/<project>=${file_encoding}${line.separator}]]>
-                            </content>
-                        </file>
-                    </additionalConfig>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${maven-jacoco-plugin.version}</version>
