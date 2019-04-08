@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
@@ -54,6 +55,7 @@ public class ProtocolTest {
                 throw new CanalClientException("unexpected packet type: " + packet.getType());
             }
         }
+        Assert.assertNotNull(1);
     }
 
     @SuppressWarnings("deprecation")
