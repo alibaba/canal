@@ -14,10 +14,7 @@ cache:
 install: true
 
 script:
-  - travis_wait 30 ./mvnw clean install -DskipTests=false -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true
+  - mvn clean install
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
-after_failure:
-  - if [ -f canal.log ]; then echo "------TAIL of canal.log------"; tail -n 1000 canal.log; echo "------END of canal.log------"; fi
