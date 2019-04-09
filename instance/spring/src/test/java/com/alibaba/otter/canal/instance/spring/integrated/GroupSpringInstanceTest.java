@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.instance.spring.integrated;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -15,6 +16,7 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
  * @author zebin.xuzb @ 2012-7-13
  * @version 1.0.0
  */
+@Ignore
 public class GroupSpringInstanceTest {
 
     private ApplicationContext context;

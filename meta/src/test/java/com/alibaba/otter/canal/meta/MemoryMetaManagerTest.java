@@ -3,10 +3,11 @@ package com.alibaba.otter.canal.meta;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.protocol.position.PositionRange;
-
+@Ignore
 public class MemoryMetaManagerTest extends AbstractMetaManagerTest {
 
     @Test

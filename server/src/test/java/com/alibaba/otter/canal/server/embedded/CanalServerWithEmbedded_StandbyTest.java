@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.server;
+package com.alibaba.otter.canal.server.embedded;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -14,7 +14,9 @@ import com.alibaba.otter.canal.instance.manager.model.CanalParameter.IndexMode;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
+import org.junit.Ignore;
 
+@Ignore
 public class CanalServerWithEmbedded_StandbyTest extends BaseCanalServerWithEmbededTest {
 
     private ZkClient zkClient = new ZkClient(cluster1);

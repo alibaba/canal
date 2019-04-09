@@ -3,12 +3,13 @@ package com.alibaba.otter.canal.parse.index;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
-
+@Ignore
 public class PeriodMixedLogPositionManagerTest extends AbstractLogPositionManagerTest {
 
     private ZkClientx zkclientx = new ZkClientx(cluster1 + ";" + cluster2);

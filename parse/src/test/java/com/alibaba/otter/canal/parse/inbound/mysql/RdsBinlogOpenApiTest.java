@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsBinlogOpenApi;
@@ -14,6 +15,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.RdsBackupPolicy;
  * @author agapple 2017年10月15日 下午2:14:34
  * @since 1.0.25
  */
+@Ignore
 public class RdsBinlogOpenApiTest {
 
     @Test

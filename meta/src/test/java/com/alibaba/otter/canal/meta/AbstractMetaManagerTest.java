@@ -14,8 +14,9 @@ import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
+import org.junit.Ignore;
 import org.junit.Test;
-
+@Ignore
 public class AbstractMetaManagerTest extends AbstractZkTest {
 
     private static final String MYSQL_ADDRESS  = "127.0.0.1";

@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -17,6 +18,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDO;
  **/
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/tsdb/h2-tsdb.xml" })
+@Ignore
 public class MetaHistoryDAOTest {
 
     @Resource

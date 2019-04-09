@@ -7,10 +7,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.druid.pool.DruidDataSource;
-
+@Ignore
 public class DBTest {
 
     @Test

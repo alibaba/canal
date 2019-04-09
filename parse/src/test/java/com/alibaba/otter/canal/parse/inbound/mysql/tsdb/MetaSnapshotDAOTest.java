@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 
 import javax.annotation.Resource;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,6 +21,7 @@ public class MetaSnapshotDAOTest {
     @Resource
     MetaSnapshotDAO metaSnapshotDAO;
 
+    @Ignore
     @Test
     public void testSimple() {
         MetaSnapshotDO metaSnapshotDO = new MetaSnapshotDO();

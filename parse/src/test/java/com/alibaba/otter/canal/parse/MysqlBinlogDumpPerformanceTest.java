@@ -15,7 +15,9 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import org.junit.Ignore;
 
+@Ignore
 public class MysqlBinlogDumpPerformanceTest {
 
     public static void main(String args[]) {
