@@ -4,12 +4,6 @@ about: Suggest an idea for this project
 
 ---
 
----
-name: Feature Request
-about: Suggest your excellent idea for this project
-
----
-
 ## Why you need it?
 <!-- Is your feature request related to a problem? Please describe in details  -->
 

@@ -1,3 +1,9 @@
+---
+name: Bug Report
+about: Create a report to help us improve
+
+---
+
 - [ ] I have searched the [issues](https://github.com/alibaba/canal/issues) of this repository and believe that this is not a duplicate.
 - [ ] I have checked the [FAQ](https://github.com/alibaba/canal/wiki/FAQ) of this repository and believe that this is not a duplicate.
 
