@@ -1,5 +1,5 @@
 ---
-name: Bug Report
+name: Bug Report for Canal
 about: Create a report to help us improve
 
 ---
