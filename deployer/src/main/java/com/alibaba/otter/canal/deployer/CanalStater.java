@@ -65,7 +65,8 @@ public class CanalStater {
 
                         public boolean accept(File pathname) {
                             String filename = pathname.getName();
-                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename);
+                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename) &&
+                                    !"metrics".equalsIgnoreCase(filename);
                         }
                     });
                     if (instanceDirs != null && instanceDirs.length > 0) {
