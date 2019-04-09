@@ -14,7 +14,10 @@ cache:
 install: true
 
 script:
-  - mvn clean install
+  - mvn clean install -DskipTests=false -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+after_failure:
+  - if [ -f canal.log ]; then echo "------TAIL of canal.log------"; tail -n 1000 canal.log; echo "------END of canal.log------"; fi
