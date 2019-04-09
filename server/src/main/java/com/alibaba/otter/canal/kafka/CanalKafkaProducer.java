@@ -203,9 +203,9 @@ public class CanalKafkaProducer implements CanalMQProducer {
             null,
             JSON.toJSONString(flatMessage, SerializerFeature.WriteMapNullValue));
         if (kafkaProperties.getTransaction()) {
-            producer2.send(record);
+            producer2.send(record).get();
         } else {
-            producer2.send(record);
+            producer2.send(record).get();
         }
     }
 
