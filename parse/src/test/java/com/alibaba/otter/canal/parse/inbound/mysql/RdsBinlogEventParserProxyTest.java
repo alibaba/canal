@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
@@ -23,6 +24,7 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
  * @author chengjin.lyf on 2018/7/21 下午5:24
  * @since 1.0.25
  */
+@Ignore
 public class RdsBinlogEventParserProxyTest {
 
     private static final String DETECTING_SQL = "insert into retl.xdual values(1,now()) on duplicate key update x=now()";

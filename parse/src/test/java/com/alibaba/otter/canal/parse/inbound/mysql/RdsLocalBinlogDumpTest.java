@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -25,6 +26,7 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
  * @author agapple 2017年10月15日 下午2:16:58
  * @since 1.0.25
  */
+@Ignore
 public class RdsLocalBinlogDumpTest {
 
     @Test

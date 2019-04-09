@@ -1,12 +1,5 @@
 package com.alibaba.otter.canal.server;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.CanalEntry.Header;
@@ -19,10 +12,15 @@ import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.WireFormat;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class ProtocolTest {
 
-    @Test
+    @Test(expected = CanalClientException.class)
     public void testSimple() throws IOException {
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setLogfileName("mysql-bin.000001");
@@ -55,7 +53,6 @@ public class ProtocolTest {
                 throw new CanalClientException("unexpected packet type: " + packet.getType());
             }
         }
-        Assert.assertNotNull(1);
     }
 
     @SuppressWarnings("deprecation")

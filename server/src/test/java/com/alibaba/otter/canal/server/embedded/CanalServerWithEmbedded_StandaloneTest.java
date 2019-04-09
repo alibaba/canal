@@ -10,7 +10,9 @@ import com.alibaba.otter.canal.instance.manager.model.CanalParameter.IndexMode;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
+import org.junit.Ignore;
 
+@Ignore
 public class CanalServerWithEmbedded_StandaloneTest extends BaseCanalServerWithEmbededTest {
 
     protected Canal buildCanal() {

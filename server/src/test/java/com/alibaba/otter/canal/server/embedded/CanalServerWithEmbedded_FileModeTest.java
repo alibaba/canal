@@ -6,7 +6,9 @@ import java.util.Arrays;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter.*;
+import org.junit.Ignore;
 
+@Ignore
 public class CanalServerWithEmbedded_FileModeTest extends BaseCanalServerWithEmbededTest {
 
     protected Canal buildCanal() {

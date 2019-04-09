@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.client.adapter.rdb.RdbAdapter;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
-
+@Ignore
 public class OracleSyncTest {
 
     private RdbAdapter rdbAdapter;

@@ -5,11 +5,12 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
-
+@Ignore
 public class TableMetaCacheTest {
 
     @Test
