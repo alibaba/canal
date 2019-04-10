@@ -6,10 +6,11 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.protocol.position.LogPosition;
-
+@Ignore
 public class FileMixedLogPositionManagerTest extends AbstractLogPositionManagerTest {
 
     private static final String tmp     = System.getProperty("java.io.tmpdir", "/tmp");

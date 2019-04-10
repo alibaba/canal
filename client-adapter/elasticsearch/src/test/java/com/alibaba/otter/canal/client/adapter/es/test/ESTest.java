@@ -18,8 +18,9 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
+@Ignore
 public class ESTest {
 
     private TransportClient transportClient;

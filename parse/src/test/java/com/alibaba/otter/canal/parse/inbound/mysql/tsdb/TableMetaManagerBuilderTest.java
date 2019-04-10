@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
@@ -8,7 +9,7 @@ import org.springframework.util.Assert;
  * @since 1.0.25
  */
 public class TableMetaManagerBuilderTest {
-
+    @Ignore
     @Test
     public void testSimple() {
         TableMetaTSDB tableMetaTSDB = TableMetaTSDBBuilder.build("test", "classpath:tsdb/mysql-tsdb.xml");

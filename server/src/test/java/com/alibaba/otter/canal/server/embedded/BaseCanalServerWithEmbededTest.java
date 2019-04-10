@@ -1,8 +1,9 @@
-package com.alibaba.otter.canal.server;
+package com.alibaba.otter.canal.server.embedded;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.CollectionUtils;
 
@@ -15,7 +16,7 @@ import com.alibaba.otter.canal.parse.CanalHASwitchable;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
-
+@Ignore
 public abstract class BaseCanalServerWithEmbededTest {
 
     protected static final String   cluster1       = "127.0.0.1:2188";

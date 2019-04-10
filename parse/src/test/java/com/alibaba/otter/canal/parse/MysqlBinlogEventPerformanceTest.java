@@ -14,7 +14,9 @@ import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
+import org.junit.Ignore;
 
+@Ignore
 public class MysqlBinlogEventPerformanceTest {
 
     protected static Charset charset = Charset.forName("utf-8");

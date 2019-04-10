@@ -8,7 +8,9 @@ import org.junit.Assert;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
+import org.junit.Ignore;
 
+@Ignore
 public class AbstractLogPositionManagerTest extends AbstractZkTest {
 
     private static final String MYSQL_ADDRESS = "127.0.0.1";

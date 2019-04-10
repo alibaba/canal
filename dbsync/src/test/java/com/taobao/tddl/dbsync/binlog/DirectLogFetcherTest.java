@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
@@ -16,7 +17,7 @@ import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
-
+@Ignore
 public class DirectLogFetcherTest extends BaseLogFetcherTest {
 
     @Test

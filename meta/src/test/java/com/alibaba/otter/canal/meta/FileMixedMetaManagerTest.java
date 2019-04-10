@@ -8,12 +8,13 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
-
+@Ignore
 public class FileMixedMetaManagerTest extends AbstractMetaManagerTest {
 
     private static final String tmp     = System.getProperty("java.io.tmpdir", "/tmp");

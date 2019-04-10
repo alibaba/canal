@@ -6,6 +6,7 @@ import java.util.Date;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
@@ -17,7 +18,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
-
+@Ignore
 public class MetaLogPositionManagerTest extends AbstractLogPositionManagerTest {
 
     private static final String MYSQL_ADDRESS = "127.0.0.1";

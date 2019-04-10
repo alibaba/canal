@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
@@ -19,7 +20,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-
+@Ignore
 public class LocalBinlogEventParserTest {
 
     private static final String MYSQL_ADDRESS = "127.0.0.1";
