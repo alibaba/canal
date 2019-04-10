@@ -9,7 +9,7 @@ esMapping:
     customer_order:
       name: customer
   sql: "select t.id, t.name, t.email from customer t"
-  etlCondition: "where t.c_time>='{0}'"
+  etlCondition: "where t.c_time>={}"
   commitBatch: 3000
 
 

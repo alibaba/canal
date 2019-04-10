@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.es.config;
 
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,7 +13,7 @@ import java.util.Map;
  * @author rewerma 2018-11-01
  * @version 1.0.0
  */
-public class ESSyncConfig {
+public class ESSyncConfig implements AdapterConfig {
 
     private String    dataSourceKey;   // 数据源key
 
@@ -78,7 +80,11 @@ public class ESSyncConfig {
         this.esMapping = esMapping;
     }
 
-    public static class ESMapping {
+    public ESMapping getMapping(){
+        return esMapping;
+    }
+
+    public static class ESMapping implements AdapterMapping{
 
         private String                       _index;
         private String                       _type;
