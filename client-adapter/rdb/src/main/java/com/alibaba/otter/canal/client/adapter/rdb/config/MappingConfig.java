@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.rdb.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -11,19 +12,19 @@ import org.apache.commons.lang.StringUtils;
  * @author rewerma 2018-11-07 下午02:41:34
  * @version 1.0.0
  */
-public class MappingConfig {
+public class MappingConfig implements AdapterConfig {
 
-    private String    dataSourceKey;   // 数据源key
+    private String    dataSourceKey;      // 数据源key
 
-    private String    destination;     // canal实例或MQ的topic
+    private String    destination;        // canal实例或MQ的topic
 
-    private String    groupId;         // groupId
+    private String    groupId;            // groupId
 
-    private String    outerAdapterKey; // 对应适配器的key
+    private String    outerAdapterKey;    // 对应适配器的key
 
-    private boolean   concurrent = false;      // 是否并行同步
+    private boolean   concurrent = false; // 是否并行同步
 
-    private DbMapping dbMapping;       // db映射配置
+    private DbMapping dbMapping;          // db映射配置
 
     public String getDataSourceKey() {
         return dataSourceKey;
@@ -73,6 +74,10 @@ public class MappingConfig {
         this.destination = destination;
     }
 
+    public AdapterMapping getMapping() {
+        return dbMapping;
+    }
+
     public void validate() {
         if (dbMapping.database == null || dbMapping.database.isEmpty()) {
             throw new NullPointerException("dbMapping.database");
@@ -85,7 +90,7 @@ public class MappingConfig {
         }
     }
 
-    public static class DbMapping {
+    public static class DbMapping implements AdapterMapping {
 
         private boolean             mirrorDb    = false;                 // 是否镜像库
         private String              database;                            // 数据库名或schema名

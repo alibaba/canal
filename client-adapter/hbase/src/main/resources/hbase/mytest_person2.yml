@@ -8,6 +8,7 @@ hbaseMapping:
   hbaseTable: MYTEST.PERSON2   # HBase表名
   family: CF  # 默认统一Family名称
   uppercaseQualifier: true  # 字段名转大写, 默认为true
+  etlCondition: "where c_time>={}"
   commitBatch: 3000 # 批量提交的大小
   #rowKey: id,type  # 复合字段rowKey不能和columns中的rowKey重复
   columns:

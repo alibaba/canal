@@ -2,13 +2,11 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.io.File;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -37,10 +35,30 @@ public class Util {
      */
     public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) {
         try (Connection conn = ds.getConnection();
-                Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);) {
+                Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
             stmt.setFetchSize(Integer.MIN_VALUE);
-            try (ResultSet rs = stmt.executeQuery(sql);) {
+            try (ResultSet rs = stmt.executeQuery(sql)) {
                 return fun.apply(rs);
+            }
+        } catch (Exception e) {
+            logger.error("sqlRs has error, sql: {} ", sql);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object sqlRS(DataSource ds, String sql, List<Object> values, Function<ResultSet, Object> fun) {
+        try (Connection conn = ds.getConnection()) {
+            try (PreparedStatement pstmt = conn
+                .prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                pstmt.setFetchSize(Integer.MIN_VALUE);
+                if (values != null) {
+                    for (int i = 0; i < values.size(); i++) {
+                        pstmt.setObject(i + 1, values.get(i));
+                    }
+                }
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    return fun.apply(rs);
+                }
             }
         } catch (Exception e) {
             logger.error("sqlRs has error, sql: {} ", sql);
