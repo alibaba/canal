@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -19,7 +20,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-
+@Ignore
 public class MysqlEventParserTest {
 
     private static final String DETECTING_SQL = "insert into retl.xdual values(1,now()) on duplicate key update x=now()";

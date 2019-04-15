@@ -44,8 +44,8 @@ public class SimpleDdlParser {
      * http://dev.mysql.com/doc/refman/5.6/en/create-index.html
      * </pre>
      */
-    public static final String CREATE_INDEX_PATTERN   = "^\\s*CREATE\\s*(UNIQUE)?(FULLTEXT)?(SPATIAL)?\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
-    public static final String DROP_INDEX_PATTERN     = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s*ON\\s*(.*?)$";
+    public static final String CREATE_INDEX_PATTERN   = "^\\s*CREATE\\s*(UNIQUE)?(FULLTEXT)?(SPATIAL)?\\s*INDEX\\s*(.*?)\\s+ON\\s+(.*?)$";
+    public static final String DROP_INDEX_PATTERN     = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s+ON\\s+(.*?)$";
 
     public static DdlResult parse(String queryString, String schmeaName) {
         queryString = removeComment(queryString); // 去除/* */的sql注释内容

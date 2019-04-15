@@ -36,10 +36,10 @@
     </delete>
 
 
-    <delete id="deleteByGmtModified" parameterClass="java.util.Map">
+    <delete id="deleteByTimestamp" parameterClass="java.util.Map">
         <![CDATA[
 		delete from meta_history
-		where gmt_modified < timestamp(#timestamp#)
+		where destination=#destination# and binlog_timestamp < #timestamp#
         ]]>
     </delete>
 </sqlMap>

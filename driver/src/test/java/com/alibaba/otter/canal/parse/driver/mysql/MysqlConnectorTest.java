@@ -4,10 +4,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
-
+@Ignore
 public class MysqlConnectorTest {
 
     @Test

@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -20,7 +21,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-
+@Ignore
 public class LocalBinlogDumpTest {
 
     @Test

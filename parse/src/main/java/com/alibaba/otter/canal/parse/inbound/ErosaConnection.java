@@ -20,7 +20,7 @@ public interface ErosaConnection {
     /**
      * 用于快速数据查找,和dump的区别在于，seek会只给出部分的数据
      */
-    public void seek(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException;
+    public void seek(String binlogfilename, Long binlogPosition, String gtid, SinkFunction func) throws IOException;
 
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException;
 
@@ -40,4 +40,6 @@ public interface ErosaConnection {
     public void dump(GTIDSet gtidSet, MultiStageCoprocessor coprocessor) throws IOException;
 
     ErosaConnection fork();
+
+    public long queryServerId() throws IOException;
 }

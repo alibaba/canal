@@ -64,9 +64,6 @@ public class DirectLogFetcher extends LogFetcher {
         if ("1".equals(dbsemi)) {
             issemi = true;
         }
-        // 和mysql driver一样，提供buffer机制，提升读取binlog速度
-        // this.input = new
-        // BufferedInputStream(channel.socket().getInputStream(), 16384);
     }
 
     /**

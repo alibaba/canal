@@ -1,0 +1,2 @@
+# cron clean log once per minute
+*/2 * * * * admin /home/admin/bin/clean_log.sh >>/tmp/clean_log.log 2>&1

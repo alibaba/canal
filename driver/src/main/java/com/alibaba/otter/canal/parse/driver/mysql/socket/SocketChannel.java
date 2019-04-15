@@ -21,5 +21,7 @@ public interface SocketChannel {
 
     public SocketAddress getRemoteSocketAddress();
 
+    public SocketAddress getLocalSocketAddress();
+
     public void close();
 }

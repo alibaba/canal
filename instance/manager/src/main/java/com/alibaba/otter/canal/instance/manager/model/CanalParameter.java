@@ -12,7 +12,7 @@ import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
 
 /**
  * canal运行相关参数
- * 
+ *
  * @author jianghang 2012-7-4 下午02:52:52
  * @version 1.0.0
  */
@@ -28,8 +28,10 @@ public class CanalParameter implements Serializable {
     private Long                     zkClusterId;                                                    // zk集群id，为管理方便
     private List<String>             zkClusters;                                                     // zk集群地址
 
+    private String                   dataDir                            = "../conf";                 // 默认本地文件数据的目录默认是conf
     // meta相关参数
     private MetaMode                 metaMode                           = MetaMode.MEMORY;           // meta机制
+    private Integer                  metaFileFlushPeriod                = 1000;                      // meta刷新间隔
 
     // storage存储
     private Integer                  transactionSize                    = 1024;                      // 支持处理的transaction事务大小
@@ -37,6 +39,7 @@ public class CanalParameter implements Serializable {
     private BatchMode                storageBatchMode                   = BatchMode.MEMSIZE;         // 基于大小返回结果
     private Integer                  memoryStorageBufferSize            = 16 * 1024;                 // 内存存储的buffer大小
     private Integer                  memoryStorageBufferMemUnit         = 1024;                      // 内存存储的buffer内存占用单位，默认为1kb
+    private Boolean                  memoryStorageRawEntry              = Boolean.TRUE;              // 内存存储的对象是否启用raw的ByteString模式
     private String                   fileStorageDirectory;                                           // 文件存储的目录位置
     private Integer                  fileStorageStoreCount;                                          // 每个文件store存储的记录数
     private Integer                  fileStorageRollverCount;                                        // store文件的个数
@@ -91,6 +94,16 @@ public class CanalParameter implements Serializable {
     private Boolean                  filterTableError                   = Boolean.FALSE;             // 是否忽略表解析异常
     private String                   blackFilter                        = null;                      // 匹配黑名单,忽略解析
 
+    private Boolean                  tsdbEnable                         = Boolean.FALSE;             // 是否开启tableMetaTSDB
+    private String                   tsdbJdbcUrl;
+    private String                   tsdbJdbcUserName;
+    private String                   tsdbJdbcPassword;
+    private Integer                  tsdbSnapshotInterval               = 24;
+    private Integer                  tsdbSnapshotExpire                 = 360;
+    private String                   rdsAccesskey;
+    private String                   rdsSecretkey;
+    private String                   rdsInstanceId;
+    private Boolean                  gtidEnable                         = Boolean.FALSE;             // 是否开启gtid
     // ================================== 兼容字段处理
     private InetSocketAddress        masterAddress;                                                  // 主库信息
     private String                   masterUsername;                                                 // 帐号
@@ -105,6 +118,7 @@ public class CanalParameter implements Serializable {
     private String                   standbyLogfileName                 = null;                      // standby起始位置
     private Long                     standbyLogfileOffest               = null;
     private Long                     standbyTimestamp                   = null;
+    private Boolean                  parallel                           = Boolean.FALSE;
 
     public static enum RunMode {
 
@@ -243,7 +257,9 @@ public class CanalParameter implements Serializable {
         /** 文件存储模式 */
         ZOOKEEPER,
         /** 混合模式，内存+文件 */
-        MIXED;
+        MIXED,
+        /** 本地文件存储模式 */
+        LOCAL_FILE;
 
         public boolean isMemory() {
             return this.equals(MetaMode.MEMORY);
@@ -255,6 +271,10 @@ public class CanalParameter implements Serializable {
 
         public boolean isMixed() {
             return this.equals(MetaMode.MIXED);
+        }
+
+        public boolean isLocalFile() {
+            return this.equals(MetaMode.LOCAL_FILE);
         }
     }
 
@@ -309,7 +329,7 @@ public class CanalParameter implements Serializable {
 
     /**
      * 数据来源描述
-     * 
+     *
      * @author jianghang 2012-12-26 上午11:05:20
      * @version 4.1.5
      */
@@ -388,6 +408,22 @@ public class CanalParameter implements Serializable {
 
     public StorageMode getStorageMode() {
         return storageMode;
+    }
+
+    public String getDataDir() {
+        return dataDir;
+    }
+
+    public void setDataDir(String dataDir) {
+        this.dataDir = dataDir;
+    }
+
+    public Integer getMetaFileFlushPeriod() {
+        return metaFileFlushPeriod;
+    }
+
+    public void setMetaFileFlushPeriod(Integer metaFileFlushPeriod) {
+        this.metaFileFlushPeriod = metaFileFlushPeriod;
     }
 
     public void setStorageMode(StorageMode storageMode) {
@@ -857,6 +893,102 @@ public class CanalParameter implements Serializable {
 
     public void setBlackFilter(String blackFilter) {
         this.blackFilter = blackFilter;
+    }
+
+    public Boolean getTsdbEnable() {
+        return tsdbEnable;
+    }
+
+    public void setTsdbEnable(Boolean tsdbEnable) {
+        this.tsdbEnable = tsdbEnable;
+    }
+
+    public String getTsdbJdbcUrl() {
+        return tsdbJdbcUrl;
+    }
+
+    public void setTsdbJdbcUrl(String tsdbJdbcUrl) {
+        this.tsdbJdbcUrl = tsdbJdbcUrl;
+    }
+
+    public String getTsdbJdbcUserName() {
+        return tsdbJdbcUserName;
+    }
+
+    public void setTsdbJdbcUserName(String tsdbJdbcUserName) {
+        this.tsdbJdbcUserName = tsdbJdbcUserName;
+    }
+
+    public String getTsdbJdbcPassword() {
+        return tsdbJdbcPassword;
+    }
+
+    public void setTsdbJdbcPassword(String tsdbJdbcPassword) {
+        this.tsdbJdbcPassword = tsdbJdbcPassword;
+    }
+
+    public String getRdsAccesskey() {
+        return rdsAccesskey;
+    }
+
+    public void setRdsAccesskey(String rdsAccesskey) {
+        this.rdsAccesskey = rdsAccesskey;
+    }
+
+    public String getRdsSecretkey() {
+        return rdsSecretkey;
+    }
+
+    public void setRdsSecretkey(String rdsSecretkey) {
+        this.rdsSecretkey = rdsSecretkey;
+    }
+
+    public String getRdsInstanceId() {
+        return rdsInstanceId;
+    }
+
+    public void setRdsInstanceId(String rdsInstanceId) {
+        this.rdsInstanceId = rdsInstanceId;
+    }
+
+    public Boolean getGtidEnable() {
+        return gtidEnable;
+    }
+
+    public void setGtidEnable(Boolean gtidEnable) {
+        this.gtidEnable = gtidEnable;
+    }
+
+    public Boolean getMemoryStorageRawEntry() {
+        return memoryStorageRawEntry;
+    }
+
+    public void setMemoryStorageRawEntry(Boolean memoryStorageRawEntry) {
+        this.memoryStorageRawEntry = memoryStorageRawEntry;
+    }
+
+    public Integer getTsdbSnapshotInterval() {
+        return tsdbSnapshotInterval;
+    }
+
+    public void setTsdbSnapshotInterval(Integer tsdbSnapshotInterval) {
+        this.tsdbSnapshotInterval = tsdbSnapshotInterval;
+    }
+
+    public Integer getTsdbSnapshotExpire() {
+        return tsdbSnapshotExpire;
+    }
+
+    public void setTsdbSnapshotExpire(Integer tsdbSnapshotExpire) {
+        this.tsdbSnapshotExpire = tsdbSnapshotExpire;
+    }
+
+    public Boolean getParallel() {
+        return parallel;
+    }
+
+    public void setParallel(Boolean parallel) {
+        this.parallel = parallel;
     }
 
     public String toString() {

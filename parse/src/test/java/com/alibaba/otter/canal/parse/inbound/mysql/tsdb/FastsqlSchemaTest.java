@@ -18,13 +18,12 @@ public class FastsqlSchemaTest {
     @Test
     public void testSimple() throws FileNotFoundException, IOException {
         SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
-        String sql = "create table yushitai_test.card_record ( id bigint auto_increment) auto_increment=256 "
-                     + "; alter table yushitai_test.card_record add column customization_id bigint unsigned NOT NULL COMMENT 'TEST' ;"
-                     + "; rename table yushitai_test.card_record to yushitai_test._card_record_del;";
+        String sql = "create table quniya4(name varchar(255) null,value varchar(255) null,id int not null,constraint quniya4_pk primary key (id));"
+                     + "alter table quniya4 modify id int not null first;";
         repository.console(sql);
 
-        repository.setDefaultSchema("yushitai_test");
-        SchemaObject table = repository.findTable("_card_record_del");
+        repository.setDefaultSchema("test");
+        SchemaObject table = repository.findTable("quniya4");
         System.out.println(table.getStatement().toString());
     }
 }

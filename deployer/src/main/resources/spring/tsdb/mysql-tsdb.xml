@@ -23,7 +23,7 @@
 	</bean>
 	
 	<!-- 基于db的实现 -->
-	<bean id="tableMetaTSDB" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta">
+	<bean id="tableMetaTSDB" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta" destroy-method="destory">
 		<property name="metaHistoryDAO" ref="metaHistoryDAO"/>
 		<property name="metaSnapshotDAO" ref="metaSnapshotDAO"/>
 	</bean>
@@ -31,8 +31,8 @@
     <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		<property name="url" value="${canal.instance.tsdb.url:}" />
-		<property name="username" value="${canal.instance.tsdb.dbUsername:canal}" />
-		<property name="password" value="${canal.instance.tsdb.dbPassword:canal}" />
+		<property name="username" value="${canal.instance.tsdb.dbUsername:}" />
+		<property name="password" value="${canal.instance.tsdb.dbPassword:}" />
         <property name="maxActive" value="30" />
         <property name="initialSize" value="0" />
         <property name="minIdle" value="1" />

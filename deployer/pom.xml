@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.alibaba.otter</groupId>
 		<artifactId>canal</artifactId>
-		<version>1.0.26-SNAPSHOT</version>
+		<version>1.1.4-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.alibaba.otter</groupId>
@@ -15,6 +15,14 @@
 			<groupId>com.alibaba.otter</groupId>
 			<artifactId>canal.server</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+
+		<!-- 这里指定runtime的metrics provider-->
+		<dependency>
+			<groupId>com.alibaba.otter</groupId>
+			<artifactId>canal.prometheus</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 	
@@ -32,6 +40,7 @@
 						<exclude>**/canal.properties</exclude>
 						<exclude>**/spring/**</exclude>
 						<exclude>**/example/**</exclude>
+						<exclude>**/mq.yml</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

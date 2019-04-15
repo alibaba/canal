@@ -30,6 +30,7 @@ import com.alibaba.fastsql.sql.ast.statement.SQLSelectOrderByItem;
 import com.alibaba.fastsql.sql.ast.statement.SQLTableElement;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.MySqlPrimaryKey;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.MySqlUnique;
+import com.alibaba.fastsql.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
 import com.alibaba.fastsql.sql.repository.Schema;
 import com.alibaba.fastsql.sql.repository.SchemaObject;
 import com.alibaba.fastsql.sql.repository.SchemaRepository;
@@ -59,6 +60,11 @@ public class MemoryTableMeta implements TableMetaTSDB {
         return true;
     }
 
+    @Override
+    public void destory() {
+        tableMetas.clear();
+    }
+
     public boolean apply(EntryPosition position, String schema, String ddl, String extra) {
         tableMetas.clear();
         synchronized (this) {
@@ -68,7 +74,10 @@ public class MemoryTableMeta implements TableMetaTSDB {
 
             try {
                 // druid暂时flush privileges语法解析有问题
-                if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")) {
+                if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "grant")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create user")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "drop user")) {
                     repository.console(ddl);
                 }
             } catch (Throwable e) {
@@ -94,7 +103,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 tableMeta = tableMetas.get(keys);
                 if (tableMeta == null) {
                     Schema schemaRep = repository.findSchema(schema);
-                    if (schema == null) {
+                    if (schemaRep == null) {
                         return null;
                     }
                     SchemaObject data = schemaRep.findTable(table);
@@ -207,6 +216,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
                     fieldMeta.setNullable(true);
                 } else if (constraint instanceof SQLColumnPrimaryKey) {
                     fieldMeta.setKey(true);
+                    fieldMeta.setNullable(false);
                 } else if (constraint instanceof SQLColumnUniqueKey) {
                     fieldMeta.setUnique(true);
                 }
@@ -219,6 +229,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 String name = getSqlName(pk.getExpr());
                 FieldMeta field = tableMeta.getFieldMetaByName(name);
                 field.setKey(true);
+                field.setNullable(false);
             }
         } else if (element instanceof MySqlUnique) {
             MySqlUnique column = (MySqlUnique) element;
@@ -246,6 +257,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
             return ((SQLCharExpr) sqlName).getText();
         } else if (sqlName instanceof SQLMethodInvokeExpr) {
             return DruidDdlParser.unescapeName(((SQLMethodInvokeExpr) sqlName).getMethodName());
+        } else if (sqlName instanceof MySqlOrderingExpr) {
+            return getSqlName(((MySqlOrderingExpr) sqlName).getExpr());
         } else {
             return sqlName.toString();
         }
