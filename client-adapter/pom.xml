@@ -23,6 +23,7 @@
         <module>elasticsearch</module>
         <module>launcher</module>
         <module>rdb</module>
+        <module>redis</module>
     </modules>
 
     <licenses>
