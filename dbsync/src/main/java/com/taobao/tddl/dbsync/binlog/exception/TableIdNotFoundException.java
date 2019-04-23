@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.parse.exception;
+package com.taobao.tddl.dbsync.binlog.exception;
 
 import com.alibaba.otter.canal.common.CanalException;
 
