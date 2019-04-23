@@ -436,7 +436,7 @@ public class ESSyncService {
         Object idVal = esTemplate.getESDataFromDmlData(mapping, data, esFieldData);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("Single table insert ot es index, destination:{}, table: {}, index: {}, id: {}",
+            logger.trace("Single table insert to es index, destination:{}, table: {}, index: {}, id: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
