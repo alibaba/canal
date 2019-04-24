@@ -459,7 +459,7 @@ public class ESSyncService {
         sql = ESSyncUtil.appendCondition(sql, condition);
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
-            logger.trace("Main table insert ot es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
+            logger.trace("Main table insert to es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
@@ -473,7 +473,7 @@ public class ESSyncService {
 
                     if (logger.isTraceEnabled()) {
                         logger.trace(
-                            "Main table insert ot es index by query sql, destination:{}, table: {}, index: {}, id: {}",
+                            "Main table insert to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
                             config.getDestination(),
                             dml.getTable(),
                             mapping.get_index(),
@@ -517,7 +517,7 @@ public class ESSyncService {
 
                     if (logger.isTraceEnabled()) {
                         logger.trace(
-                            "Main table delete ot es index by query sql, destination:{}, table: {}, index: {}, id: {}",
+                            "Main table delete to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
                             config.getDestination(),
                             dml.getTable(),
                             mapping.get_index(),
@@ -784,7 +784,7 @@ public class ESSyncService {
         Object idVal = esTemplate.getESDataFromDmlData(mapping, data, old, esFieldData);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("Main table update ot es index, destination:{}, table: {}, index: {}, id: {}",
+            logger.trace("Main table update to es index, destination:{}, table: {}, index: {}, id: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
@@ -807,7 +807,7 @@ public class ESSyncService {
         sql = ESSyncUtil.appendCondition(sql, condition);
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
-            logger.trace("Main table update ot es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
+            logger.trace("Main table update to es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
@@ -821,7 +821,7 @@ public class ESSyncService {
 
                     if (logger.isTraceEnabled()) {
                         logger.trace(
-                            "Main table update ot es index by query sql, destination:{}, table: {}, index: {}, id: {}",
+                            "Main table update to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
                             config.getDestination(),
                             dml.getTable(),
                             mapping.get_index(),
