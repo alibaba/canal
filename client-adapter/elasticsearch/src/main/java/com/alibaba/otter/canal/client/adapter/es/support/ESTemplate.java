@@ -58,6 +58,10 @@ public class ESTemplate {
         return bulkRequestBuilder;
     }
 
+    public void resetBulkRequestBuilder() {
+        this.bulkRequestBuilder = this.transportClient.prepareBulk();
+    }
+
     /**
      * 插入数据
      *
@@ -210,11 +214,12 @@ public class ESTemplate {
     }
 
     /**
-     * 如果大于批量数则提交批次
+     * 如果大于批量数则提交批次, 调用后es bulk请求后，numberOfActions不会清理，需要主动调用函数清0，否则不能起到批量请求的效果
      */
     private void commitBulk() {
         if (getBulk().numberOfActions() >= MAX_BATCH_SIZE) {
             commit();
+            resetBulkRequestBuilder();
         }
     }
 
