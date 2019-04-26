@@ -72,13 +72,18 @@ public abstract class AbstractEtlService {
 
             // 当大于1万条记录时开启多线程
             if (cnt >= 10000) {
-                int threadCount = 3; // 从配置读取默认为3
+                int threadCount = Runtime.getRuntime().availableProcessors()/2; // 从配置读取默认为3
+
+                if (threadCount == 0) {
+                    threadCount = 1;
+                }
+
                 long offset;
                 long size = CNT_PER_TASK;
                 long workerCnt = cnt / size + (cnt % size == 0 ? 0 : 1);
 
                 if (logger.isDebugEnabled()) {
-                    logger.debug("workerCnt {} for cnt {}", workerCnt, cnt);
+                    logger.debug("workerCnt {} for cnt {} threadCount {}", workerCnt, cnt, threadCount);
                 }
 
                 ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
