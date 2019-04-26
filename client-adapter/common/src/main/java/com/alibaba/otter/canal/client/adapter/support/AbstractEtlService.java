@@ -18,6 +18,7 @@ public abstract class AbstractEtlService {
 
     private String        type;
     private AdapterConfig config;
+    private final long CNT_PER_TASK = 1000L;
 
     public AbstractEtlService(String type, AdapterConfig config){
         this.type = type;
@@ -69,24 +70,18 @@ public abstract class AbstractEtlService {
                 return count == null ? 0L : count;
             });
 
+
             // 当大于1万条记录时开启多线程
             if (cnt >= 10000) {
                 int threadCount = 3; // 从配置读取默认为3
-                long perThreadCnt = cnt / threadCount;
+                long offset;
+                long size = CNT_PER_TASK;
+                long workerCnt = cnt / size + (cnt % size == 0 ? 0 : 1);
                 ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                 List<Future<Boolean>> futures = new ArrayList<>(threadCount);
-                for (int i = 0; i < threadCount; i++) {
-                    long offset = i * perThreadCnt;
-                    Long size = null;
-                    if (i != threadCount - 1) {
-                        size = perThreadCnt;
-                    }
-                    String sqlFinal;
-                    if (size != null) {
-                        sqlFinal = sql + " LIMIT " + offset + "," + size;
-                    } else {
-                        sqlFinal = sql + " LIMIT " + offset + "," + cnt;
-                    }
+                for (long i = 0; i < workerCnt; i++) {
+                    offset = size * i;
+                    String sqlFinal = sql + " LIMIT " + offset + "," + size;
                     Future<Boolean> future = executor.submit(
                         () -> executeSqlImport(dataSource, sqlFinal, values, config.getMapping(), impCount, errMsg));
                     futures.add(future);
