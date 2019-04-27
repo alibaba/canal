@@ -72,7 +72,7 @@ public abstract class AbstractEtlService {
 
             // 当大于1万条记录时开启多线程
             if (cnt >= 10000) {
-                int threadCount = Runtime.getRuntime().availableProcessors(); // 从配置读取默认为3
+                int threadCount = Runtime.getRuntime().availableProcessors();
 
                 long offset;
                 long size = CNT_PER_TASK;
@@ -83,7 +83,7 @@ public abstract class AbstractEtlService {
                 }
 
                 ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
-                List<Future<Boolean>> futures = new ArrayList<>(threadCount);
+                List<Future<Boolean>> futures = new ArrayList<>();
                 for (long i = 0; i < workerCnt; i++) {
                     offset = size * i;
                     String sqlFinal = sql + " LIMIT " + offset + "," + size;
