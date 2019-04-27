@@ -18,7 +18,7 @@ public abstract class AbstractEtlService {
 
     private String        type;
     private AdapterConfig config;
-    private final long CNT_PER_TASK = 1000L;
+    private final long CNT_PER_TASK = 10000L;
 
     public AbstractEtlService(String type, AdapterConfig config){
         this.type = type;
