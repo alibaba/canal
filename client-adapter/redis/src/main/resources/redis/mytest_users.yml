@@ -1,0 +1,14 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+redisMapping:
+  database: mytest
+  table: users
+  key: "users:{}" # 此处的 {} 会被替换为下面的 pk 对应的值
+  pk: id
+  expire: -1
+#  mapAll: true
+  targetColumns:
+    id:
+    name:
+  etlCondition: ""

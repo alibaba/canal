@@ -65,4 +65,3 @@ canal.conf:
 #        hosts: 127.0.0.1:6379
 #        properties:
 #          redis.cluster: false
-#          redis.key: mysql:monitor

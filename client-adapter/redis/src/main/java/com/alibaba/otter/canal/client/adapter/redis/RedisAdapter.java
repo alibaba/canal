@@ -1,18 +1,21 @@
 package com.alibaba.otter.canal.client.adapter.redis;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.redis.config.ConfigLoader;
+import com.alibaba.otter.canal.client.adapter.redis.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.redis.service.RedisService;
+import com.alibaba.otter.canal.client.adapter.redis.service.RedisSyncService;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -23,38 +26,52 @@ import java.util.*;
  */
 @SPI("redis")
 public class RedisAdapter implements OuterAdapter {
-
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private boolean isCluster;
 
-    private Jedis jedis;
-    private JedisCluster jedisCluster;
-    private String redisKey;
+    private Map<String, MappingConfig> redisMapping = new ConcurrentHashMap<>();                    // 文件名对应配置
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>(); // 库名-表名对应配置
+
+
+    private RedisSyncService redisSyncService;
+    private Properties envProperties;
+    private RedisService redisService;
 
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
-        try {
-            Map<String, String> properties = configuration.getProperties();
-            String cluster = properties.get("redis.cluster");
-            isCluster = Boolean.parseBoolean(cluster);
-            redisKey = properties.get("redis.key");
+        this.envProperties = envProperties;
 
-            String[] hostArray = configuration.getHosts().split(",");
-            if (isCluster) {
-                Set<HostAndPort> jedisClusterNodes = new HashSet<>();
-                for (String host : hostArray) {
-                    int i = host.indexOf(":");
-                    jedisClusterNodes.add(new HostAndPort(host.substring(0, i), Integer.parseInt(host.substring(i + 1))));
-                }
-                jedisCluster = new JedisCluster(jedisClusterNodes);
-            } else {
-                String host = hostArray[0];
-                int i = host.indexOf(":");
-                jedis = new Jedis(host.substring(0, i), Integer.parseInt(host.substring(i + 1)));
+        Map<String, MappingConfig> redisMappingTmp = ConfigLoader.load(envProperties);
+        // 过滤不匹配的key的配置
+        redisMappingTmp.forEach((key, mappingConfig) -> {
+            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
+                    || (mappingConfig.getOuterAdapterKey() != null
+                    && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
+                redisMapping.put(key, mappingConfig);
             }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        });
+
+        if (redisMapping.isEmpty()) {
+            throw new RuntimeException("No redis adapter found for config key: " + configuration.getKey());
         }
+
+        Map<String, String> properties = configuration.getProperties();
+
+        for (Map.Entry<String, MappingConfig> entry : redisMapping.entrySet()) {
+            String configName = entry.getKey();
+            MappingConfig mappingConfig = entry.getValue();
+
+            String key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                    + (isTCPMode() ? "" : StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_")
+                    + mappingConfig.getRedisMapping().getDatabase() + "-"
+                    + mappingConfig.getRedisMapping().getTable();
+
+            Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key, k1 -> new ConcurrentHashMap<>());
+            configMap.put(configName, mappingConfig);
+        }
+
+        redisService = new RedisService(configuration.getHosts(), Boolean.parseBoolean(properties.get("redis.cluster")));
+
+        redisSyncService = new RedisSyncService(redisService);
     }
 
     public void sync(List<Dml> dmls) {
@@ -63,26 +80,37 @@ public class RedisAdapter implements OuterAdapter {
         }
 
         for (Dml dml : dmls) {
-            String json = JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue);
+            if (!dml.getIsDdl()) {
+                Map<String, MappingConfig> configMap = mappingConfigCache.get(
+                        StringUtils.trimToEmpty(
+                                dml.getDestination()) + "-"
+                                + (isTCPMode() ? "" : StringUtils.trimToEmpty(dml.getGroupId()) + "_")
+                                + dml.getDatabase() + "-"
+                                + dml.getTable()
+                );
 
-            Long ret;
-            if (isCluster) {
-                ret = this.jedisCluster.rpush(redisKey, json);
-            } else {
-                ret = this.jedis.rpush(redisKey, json);
+                redisSyncService.sync(configMap, dml);
             }
-            logger.info("DML: {} ret: {}", json, ret);
         }
+    }
+
+    private boolean isTCPMode() {
+        return envProperties != null && "tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"));
+    }
+
+    @Override
+    public String getDestination(String task) {
+        MappingConfig config = redisMapping.get(task);
+        if (config != null) {
+            return config.getDestination();
+        }
+        return null;
     }
 
     @Override
     public void destroy() {
-        if (jedis != null) {
-            jedis.close();
-        }
-
-        if (jedisCluster != null) {
-            jedisCluster.close();
+        if (redisService != null) {
+            redisService.close();
         }
     }
 }

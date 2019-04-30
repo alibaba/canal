@@ -51,6 +51,13 @@
             </excludes>
         </fileSet>
         <fileSet>
+            <directory>../redis/src/main/resources/redis</directory>
+            <outputDirectory>/conf/redis</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>target</directory>
             <outputDirectory>logs</outputDirectory>
             <excludes>
