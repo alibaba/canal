@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.example.rocketmq;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -35,7 +36,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                                                     };
 
     public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
-        connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, false);
+        connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, true);
     }
 
     public static void main(String[] args) {
@@ -108,20 +109,21 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
-                    for (Message message : messages) {
-                        long batchId = message.getId();
-                        int size = message.getEntries().size();
-                        if (batchId == -1 || size == 0) {
-                            // try {
-                            // Thread.sleep(1000);
-                            // } catch (InterruptedException e) {
-                            // }
-                        } else {
-                            printSummary(message, batchId, size);
-                            printEntry(message.getEntries());
-                            // logger.info(message.toString());
-                        }
+                    List<FlatMessage> messages = connector.getFlatListWithoutAck(100L, TimeUnit.MILLISECONDS);// 获取message
+                    for (FlatMessage message : messages) {
+                           logger.info("flatMessage = {}", message);
+//                         long batchId = message.getId();
+//                         int size = message.getEntries().size();
+//                         if (batchId == -1 || size == 0) {
+//                             // try {
+//                             // Thread.sleep(1000);
+//                             // } catch (InterruptedException e) {
+//                             // }
+//                         } else {
+//                             printSummary(message, batchId, size);
+//                             printEntry(message.getEntries());
+//                             // logger.info(message.toString());
+//                         }
                     }
 
                     connector.ack(); // 提交确认
