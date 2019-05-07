@@ -5,18 +5,19 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
+import org.mybatis.spring.support.SqlSessionDaoSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author agapple 2017年10月14日 上午1:05:22
  * @since 1.0.25
  */
-@SuppressWarnings("deprecation")
-public class MetaBaseDAO extends SqlMapClientDaoSupport {
+public class MetaBaseDAO extends SqlSessionDaoSupport {
+
+    private static final Logger log = LoggerFactory.getLogger(MetaBaseDAO.class);
 
     protected boolean isH2 = false;
 
@@ -24,8 +25,8 @@ public class MetaBaseDAO extends SqlMapClientDaoSupport {
         Connection conn = null;
         InputStream input = null;
         try {
-            DataSource dataSource = getDataSource();
-            conn = dataSource.getConnection();
+//            DataSource dataSource = getDataSource();
+            conn = super.getSqlSessionFactory().openSession().getConnection();
             String name = "mysql";
             isH2 = isH2(conn);
             if (isH2) {
@@ -43,7 +44,7 @@ public class MetaBaseDAO extends SqlMapClientDaoSupport {
             stmt.execute(sql);
             stmt.close();
         } catch (Throwable e) {
-            logger.warn("init " + tableName + " failed", e);
+            log.warn("init " + tableName + " failed", e);
         } finally {
             IOUtils.closeQuietly(input);
             if (conn != null) {

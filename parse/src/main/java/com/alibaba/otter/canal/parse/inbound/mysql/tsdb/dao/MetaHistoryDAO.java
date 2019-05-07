@@ -11,11 +11,10 @@ import com.google.common.collect.Maps;
  * @author wanshao 2017年7月27日 下午10:51:55
  * @since 3.2.5
  */
-@SuppressWarnings("deprecation")
 public class MetaHistoryDAO extends MetaBaseDAO {
 
-    public Long insert(MetaHistoryDO metaDO) {
-        return (Long) getSqlMapClientTemplate().insert("meta_history.insert", metaDO);
+    public Integer insert(MetaHistoryDO metaDO) {
+        return getSqlSessionTemplate().insert("meta_history.insert", metaDO);
     }
 
     public List<MetaHistoryDO> findByTimestamp(String destination, Long snapshotTimestamp, Long timestamp) {
@@ -23,13 +22,13 @@ public class MetaHistoryDAO extends MetaBaseDAO {
         params.put("destination", destination);
         params.put("snapshotTimestamp", snapshotTimestamp == null ? 0L : snapshotTimestamp);
         params.put("timestamp", timestamp == null ? 0L : timestamp);
-        return (List<MetaHistoryDO>) getSqlMapClientTemplate().queryForList("meta_history.findByTimestamp", params);
+        return getSqlSessionTemplate().<MetaHistoryDO>selectList("meta_history.findByTimestamp", params);
     }
 
     public Integer deleteByName(String destination) {
         HashMap params = Maps.newHashMapWithExpectedSize(2);
         params.put("destination", destination);
-        return getSqlMapClientTemplate().delete("meta_history.deleteByName", params);
+        return getSqlSessionTemplate().delete("meta_history.deleteByName", params);
     }
 
     /**
@@ -40,7 +39,7 @@ public class MetaHistoryDAO extends MetaBaseDAO {
         long timestamp = System.currentTimeMillis() - interval * 1000;
         params.put("timestamp", timestamp);
         params.put("destination", destination);
-        return getSqlMapClientTemplate().delete("meta_history.deleteByTimestamp", params);
+        return getSqlSessionTemplate().delete("meta_history.deleteByTimestamp", params);
     }
 
     protected void initDao() throws Exception {
