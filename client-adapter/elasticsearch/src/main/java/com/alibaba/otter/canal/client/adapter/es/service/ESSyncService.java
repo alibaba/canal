@@ -1,9 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.sql.DataSource;
 
@@ -677,7 +674,13 @@ public class ESSyncService {
     private void wholeSqlOperation(ESSyncConfig config, Dml dml, Map<String, Object> data, Map<String, Object> old,
                                    TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
-        StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
+        //防止最后出现groupby 导致sql解析异常
+        String[] sqlSplit = mapping.getSql().split("GROUP\\ BY(?!(.*)ON)");
+        String sqlNoWhere = sqlSplit[0];
+
+        String sqlGroupBy = Optional.of(sqlSplit[1]).map(v-> "GROUP BY "+ v).orElse("");
+
+        StringBuilder sql = new StringBuilder(sqlNoWhere + " WHERE ");
 
         for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
             String columnName = fkFieldItem.getColumn().getColumnName();
@@ -686,6 +689,8 @@ public class ESSyncService {
         }
         int len = sql.length();
         sql.delete(len - 5, len);
+        sql.append(sqlGroupBy);
+
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
             logger.trace("Join table update es index by query whole sql, destination:{}, table: {}, index: {}, sql: {}",
