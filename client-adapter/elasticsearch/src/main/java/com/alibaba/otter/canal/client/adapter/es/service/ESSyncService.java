@@ -678,7 +678,11 @@ public class ESSyncService {
         String[] sqlSplit = mapping.getSql().split("GROUP\\ BY(?!(.*)ON)");
         String sqlNoWhere = sqlSplit[0];
 
-        String sqlGroupBy = Optional.of(sqlSplit[1]).map(v-> "GROUP BY "+ v).orElse("");
+        String sqlGroupBy = "";
+
+        if(sqlSplit.length > 1){
+            sqlGroupBy =  "GROUP BY "+ sqlSplit[1];
+        }
 
         StringBuilder sql = new StringBuilder(sqlNoWhere + " WHERE ");
 
