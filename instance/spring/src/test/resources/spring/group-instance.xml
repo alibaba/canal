@@ -33,21 +33,12 @@
 
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
-		<property name="eventParser">
-			<ref local="eventParser" />
-		</property>
-		<property name="eventSink">
-			<ref local="eventSink" />
-		</property>
-		<property name="eventStore">
-			<ref local="eventStore" />
-		</property>
-		<property name="metaManager">
-			<ref local="metaManager" />
-		</property>
-		<property name="alarmHandler">
-			<ref local="alarmHandler" />
-		</property>
+		<property name="destination" value="${canal.instance.destination}" />
+		<property name="eventParser" ref="eventParser" />
+		<property name="eventSink" ref="eventSink" />
+		<property name="eventStore" ref="eventStore" />
+		<property name="metaManager" ref="metaManager" />
+		<property name="alarmHandler" ref="alarmHandler" />
 	</bean>
 	
 	<!-- 报警处理类 -->
