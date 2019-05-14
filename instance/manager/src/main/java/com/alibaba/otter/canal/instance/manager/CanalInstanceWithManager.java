@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.alibaba.otter.canal.instance.core.CanalMQConfig;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -493,6 +494,10 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
 
     public void setAlarmHandler(CanalAlarmHandler alarmHandler) {
         this.alarmHandler = alarmHandler;
+    }
+
+    public void setMQConfig(CanalMQConfig mqConfig){
+        this.mqConfig = mqConfig;
     }
 
 }
