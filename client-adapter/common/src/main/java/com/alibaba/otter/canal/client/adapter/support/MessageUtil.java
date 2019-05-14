@@ -99,12 +99,16 @@ public class MessageUtil {
                         Map<String, Object> rowOld = new LinkedHashMap<>();
                         for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
                             if (updateSet.contains(column.getName())) {
-                                rowOld.put(column.getName(),
-                                    JdbcTypeUtil.typeConvert(dml.getTable(),
-                                        column.getName(),
-                                        column.getValue(),
-                                        column.getSqlType(),
-                                        column.getMysqlType()));
+                                if (column.getIsNull()) {
+                                    rowOld.put(column.getName(), null);
+                                } else {
+                                    rowOld.put(column.getName(),
+                                        JdbcTypeUtil.typeConvert(dml.getTable(),
+                                            column.getName(),
+                                            column.getValue(),
+                                            column.getSqlType(),
+                                            column.getMysqlType()));
+                                }
                             }
                         }
                         // update操作将记录修改前的值
