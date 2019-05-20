@@ -11,7 +11,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
  */
 public interface BinlogParser<T> extends CanalLifeCycle {
 
-    CanalEntry.Entry parse(T event) throws CanalParseException;
+    CanalEntry.Entry parse(T event, boolean isSeek) throws CanalParseException;
 
     void reset();
 }

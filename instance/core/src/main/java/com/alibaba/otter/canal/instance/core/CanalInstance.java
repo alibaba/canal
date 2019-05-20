@@ -32,4 +32,6 @@ public interface CanalInstance extends CanalLifeCycle {
      * 客户端发生订阅/取消订阅行为
      */
     boolean subscribeChange(ClientIdentity identity);
+
+    CanalMQConfig getMqConfig();
 }

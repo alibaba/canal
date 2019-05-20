@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.server.netty.handler;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelFuture;
@@ -32,7 +34,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
 
     private static final Logger     logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
     private final int               SUPPORTED_VERSION                       = 3;
-    private final int               defaultSubscriptorDisconnectIdleTimeout = 5 * 60 * 1000;
+    private final int               defaultSubscriptorDisconnectIdleTimeout = 60 * 60 * 1000;
     private CanalServerWithEmbedded embeddedServer;
 
     public ClientAuthenticationHandler(){
@@ -71,7 +73,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                         MDC.remove("destination");
                     }
                 }
-
+                // 鉴权一次性，暂不统计
                 NettyUtils.ack(ctx.getChannel(), new ChannelFutureListener() {
 
                     public void operationComplete(ChannelFuture future) throws Exception {
@@ -87,10 +89,13 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                         if (clientAuth.getNetWriteTimeout() > 0) {
                             writeTimeout = clientAuth.getNetWriteTimeout();
                         }
+                        // fix bug: soTimeout parameter's unit from connector is
+                        // millseconds.
                         IdleStateHandler idleStateHandler = new IdleStateHandler(NettyUtils.hashedWheelTimer,
                             readTimeout,
                             writeTimeout,
-                            0);
+                            0,
+                            TimeUnit.MILLISECONDS);
                         ctx.getPipeline().addBefore(SessionHandler.class.getName(),
                             IdleStateHandler.class.getName(),
                             idleStateHandler);

@@ -3,10 +3,10 @@ package com.alibaba.otter.canal.parse.index;
 import java.net.InetSocketAddress;
 import java.util.Date;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
-
+@Ignore
 public class MetaLogPositionManagerTest extends AbstractLogPositionManagerTest {
 
     private static final String MYSQL_ADDRESS = "127.0.0.1";
@@ -46,8 +46,7 @@ public class MetaLogPositionManagerTest extends AbstractLogPositionManagerTest {
         metaManager.setZooKeeperMetaManager(zooKeeperMetaManager);
         metaManager.start();
 
-        MetaLogPositionManager logPositionManager = new MetaLogPositionManager();
-        logPositionManager.setMetaManager(metaManager);
+        MetaLogPositionManager logPositionManager = new MetaLogPositionManager(metaManager);
         logPositionManager.start();
         // 构建meta信息
         ClientIdentity client1 = new ClientIdentity(destination, (short) 1);

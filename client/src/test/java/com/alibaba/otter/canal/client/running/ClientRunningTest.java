@@ -9,6 +9,7 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.client.impl.running.ClientRunningData;
@@ -17,7 +18,7 @@ import com.alibaba.otter.canal.client.impl.running.ClientRunningMonitor;
 import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
-
+@Ignore
 public class ClientRunningTest extends AbstractZkTest {
 
     private ZkClientx zkclientx = new ZkClientx(cluster1 + ";" + cluster2);

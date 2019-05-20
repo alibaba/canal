@@ -7,17 +7,10 @@ import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.PatternCompiler;
 import org.apache.oro.text.regex.Perl5Compiler;
 
-import com.alibaba.otter.canal.filter.exception.CanalFilterException;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.MigrateMap;
 
-/**
- * 提供{@linkplain Pattern}的lazy get处理
- *
- * @author jianghang 2013-1-22 下午09:36:44
- * @version 1.0.0
- */
 public class PatternUtils {
 
     @SuppressWarnings("deprecation")
@@ -32,7 +25,7 @@ public class PatternUtils {
                                                                              | Perl5Compiler.READ_ONLY_MASK
                                                                              | Perl5Compiler.SINGLELINE_MASK);
                                                              } catch (MalformedPatternException e) {
-                                                                 throw new CanalFilterException(e);
+                                                                 throw new RuntimeException(e);
                                                              }
                                                          }
                                                      });

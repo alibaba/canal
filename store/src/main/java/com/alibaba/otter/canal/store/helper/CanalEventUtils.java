@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.store.helper;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.store.model.Event;
@@ -48,11 +47,13 @@ public class CanalEventUtils {
      */
     public static LogPosition createPosition(Event event) {
         EntryPosition position = new EntryPosition();
-        position.setJournalName(event.getEntry().getHeader().getLogfileName());
-        position.setPosition(event.getEntry().getHeader().getLogfileOffset());
-        position.setTimestamp(event.getEntry().getHeader().getExecuteTime());
+        position.setJournalName(event.getJournalName());
+        position.setPosition(event.getPosition());
+        position.setTimestamp(event.getExecuteTime());
         // add serverId at 2016-06-28
-        position.setServerId(event.getEntry().getHeader().getServerId());
+        position.setServerId(event.getServerId());
+        // add gtid
+        position.setGtid(event.getGtid());
 
         LogPosition logPosition = new LogPosition();
         logPosition.setPostion(position);
@@ -65,9 +66,9 @@ public class CanalEventUtils {
      */
     public static LogPosition createPosition(Event event, boolean included) {
         EntryPosition position = new EntryPosition();
-        position.setJournalName(event.getEntry().getHeader().getLogfileName());
-        position.setPosition(event.getEntry().getHeader().getLogfileOffset());
-        position.setTimestamp(event.getEntry().getHeader().getExecuteTime());
+        position.setJournalName(event.getJournalName());
+        position.setPosition(event.getPosition());
+        position.setTimestamp(event.getExecuteTime());
         position.setIncluded(included);
 
         LogPosition logPosition = new LogPosition();
@@ -81,13 +82,14 @@ public class CanalEventUtils {
      */
     public static boolean checkPosition(Event event, LogPosition logPosition) {
         EntryPosition position = logPosition.getPostion();
-        CanalEntry.Entry entry = event.getEntry();
-        boolean result = position.getTimestamp().equals(entry.getHeader().getExecuteTime());
+        boolean result = position.getTimestamp().equals(event.getExecuteTime());
 
         boolean exactely = (StringUtils.isBlank(position.getJournalName()) && position.getPosition() == null);
         if (!exactely) {// 精确匹配
-            result &= StringUtils.equals(entry.getHeader().getLogfileName(), position.getJournalName());
-            result &= position.getPosition().equals(entry.getHeader().getLogfileOffset());
+            result &= position.getPosition().equals(event.getPosition());
+            if (result) {// short path
+                result &= StringUtils.equals(event.getJournalName(), position.getJournalName());
+            }
         }
 
         return result;

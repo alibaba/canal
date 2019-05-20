@@ -9,6 +9,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
+import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
@@ -23,14 +24,14 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
 public class LocalBinlogEventParser extends AbstractMysqlEventParser implements CanalEventParser {
 
     // 数据库信息
-    private AuthenticationInfo masterInfo;
-    private EntryPosition      masterPosition;        // binlog信息
-    private MysqlConnection    metaConnection;        // 查询meta信息的链接
-    private TableMetaCache     tableMetaCache;        // 对应meta
-    
-    private String             directory;
-    private boolean            needWait   = false;
-    private int                bufferSize = 16 * 1024;
+    protected AuthenticationInfo masterInfo;
+    protected EntryPosition      masterPosition;        // binlog信息
+    protected MysqlConnection    metaConnection;        // 查询meta信息的链接
+    protected TableMetaCache     tableMetaCache;        // 对应meta
+
+    protected String             directory;
+    protected boolean            needWait   = false;
+    protected int                bufferSize = 16 * 1024;
 
     public LocalBinlogEventParser(){
         // this.runningInfo = new AuthenticationInfo();
@@ -39,24 +40,33 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     @Override
     protected ErosaConnection buildErosaConnection() {
         return buildLocalBinLogConnection();
-    }   
-    
+    }
+
     @Override
-	protected void preDump(ErosaConnection connection) {
-    	metaConnection = buildMysqlConnection();
+    protected void preDump(ErosaConnection connection) {
+        metaConnection = buildMysqlConnection();
         try {
             metaConnection.connect();
         } catch (IOException e) {
             throw new CanalParseException(e);
         }
-        
-        tableMetaCache = new TableMetaCache(metaConnection);
-        ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
-	}
 
-	@Override
-	protected void afterDump(ErosaConnection connection) {
-		if (metaConnection != null) {
+        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            ((DatabaseTableMeta) tableMetaTSDB).setConnection(metaConnection);
+            ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
+            ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
+            ((DatabaseTableMeta) tableMetaTSDB).setSnapshotInterval(tsdbSnapshotInterval);
+            ((DatabaseTableMeta) tableMetaTSDB).setSnapshotExpire(tsdbSnapshotExpire);
+            ((DatabaseTableMeta) tableMetaTSDB).init(destination);
+        }
+
+        tableMetaCache = new TableMetaCache(metaConnection, tableMetaTSDB);
+        ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
+    }
+
+    @Override
+    protected void afterDump(ErosaConnection connection) {
+        if (metaConnection != null) {
             try {
                 metaConnection.disconnect();
             } catch (IOException e) {
@@ -64,19 +74,19 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
                     .getAddress(), e);
             }
         }
-	}
+    }
 
-	public void start() throws CanalParseException {
+    public void start() throws CanalParseException {
         if (runningInfo == null) { // 第一次链接主库
             runningInfo = masterInfo;
         }
 
         super.start();
     }
-	
+
     @Override
-	public void stop() {
-    	if (metaConnection != null) {
+    public void stop() {
+        if (metaConnection != null) {
             try {
                 metaConnection.disconnect();
             } catch (IOException e) {
@@ -90,9 +100,9 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
         }
 
         super.stop();
-	}
+    }
 
-	private ErosaConnection buildLocalBinLogConnection() {
+    private ErosaConnection buildLocalBinLogConnection() {
         LocalBinLogConnection connection = new LocalBinLogConnection();
 
         connection.setBufferSize(this.bufferSize);
@@ -114,7 +124,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
         connection.setCharset(connectionCharset);
         return connection;
     }
-    
+
     @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) {
         // 处理逻辑

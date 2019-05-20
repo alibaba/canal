@@ -5,7 +5,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
- * 实现一个互斥实现，基于Cocurrent中的{@linkplain AbstractQueuedSynchronizer}实现了自己的sync <br/>
+ * 实现一个互斥实现，基于Cocurrent中的AQS实现了自己的sync <br/>
  * 应用场景：系统初始化/授权控制，没权限时阻塞等待。有权限时所有线程都可以快速通过
  * 
  * <pre>

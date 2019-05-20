@@ -9,29 +9,30 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
-import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-
+@Ignore
 public class LocalBinlogEventParserTest {
 
     private static final String MYSQL_ADDRESS = "127.0.0.1";
-    private static final String USERNAME      = "xxxxx";
-    private static final String PASSWORD      = "xxxxx";
+    private static final String USERNAME      = "canal";
+    private static final String PASSWORD      = "canal";
     private String              directory;
 
     @Before
     public void setUp() {
         URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
         File dummyFile = new File(url.getFile());
-        directory = new File(dummyFile.getParent() + "/binlog").getPath();
+        directory = new File(dummyFile + "/binlog/tsdb").getPath();
     }
 
     @Test
@@ -40,7 +41,7 @@ public class LocalBinlogEventParserTest {
         final AtomicLong entryCount = new AtomicLong(0);
         final EntryPosition entryPosition = new EntryPosition();
 
-        final EntryPosition defaultPosition = buildPosition("mysql-bin.000001", 6163L, 1322803601000L);
+        final EntryPosition defaultPosition = buildPosition("mysql-bin.000003", 219L, 1505467103000L);
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
         controller.setMasterPosition(defaultPosition);
         controller.setMasterInfo(buildAuthentication());
@@ -70,7 +71,7 @@ public class LocalBinlogEventParserTest {
 
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -103,7 +104,7 @@ public class LocalBinlogEventParserTest {
         final AtomicLong entryCount = new AtomicLong(0);
         final EntryPosition entryPosition = new EntryPosition();
 
-        final EntryPosition defaultPosition = buildPosition("mysql-bin.000001", null, 1322803601000L);
+        final EntryPosition defaultPosition = buildPosition("mysql-bin.000003", null, 1505467103000L);
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
         controller.setMasterPosition(defaultPosition);
         controller.setMasterInfo(buildAuthentication());
@@ -133,7 +134,7 @@ public class LocalBinlogEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -156,15 +157,15 @@ public class LocalBinlogEventParserTest {
         Assert.assertTrue(entryCount.get() > 0);
 
         // 对比第一条数据和起始的position相同
-        Assert.assertEquals(entryPosition.getJournalName(), "mysql-bin.000001");
-        Assert.assertTrue(entryPosition.getPosition() <= 6163L);
+        Assert.assertEquals(entryPosition.getJournalName(), "mysql-bin.000003");
+        Assert.assertTrue(entryPosition.getPosition() <= 300L);
         Assert.assertTrue(entryPosition.getTimestamp() <= defaultPosition.getTimestamp());
     }
 
     @Test
     public void test_no_position() throws InterruptedException {
         final TimeoutChecker timeoutChecker = new TimeoutChecker(3 * 1000);
-        final EntryPosition defaultPosition = buildPosition("mysql-bin.000002",
+        final EntryPosition defaultPosition = buildPosition("mysql-bin.000003",
             null,
             new Date().getTime() + 1000 * 1000L);
         final AtomicLong entryCount = new AtomicLong(0);
@@ -198,7 +199,7 @@ public class LocalBinlogEventParserTest {
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);

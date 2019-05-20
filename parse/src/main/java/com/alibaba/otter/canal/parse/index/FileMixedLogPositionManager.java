@@ -16,45 +16,73 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.base.Function;
 import com.google.common.collect.MigrateMap;
 
 /**
- * 基于文件刷新的log position实现
- * 
+ * Created by yinxiu on 17/3/18. Email: marklin.hz@gmail.com 基于文件刷新的log
+ * position实现
+ *
  * <pre>
  * 策略：
  * 1. 先写内存，然后定时刷新数据到File
  * 2. 数据采取overwrite模式(只保留最后一次)
  * </pre>
- * 
- * @author jianghang 2013-4-15 下午09:40:48
- * @version 1.0.4
  */
-public class FileMixedLogPositionManager extends MemoryLogPositionManager {
+public class FileMixedLogPositionManager extends AbstractLogPositionManager {
 
-    private static final Logger      logger       = LoggerFactory.getLogger(FileMixedLogPositionManager.class);
-    private static final Charset     charset      = Charset.forName("UTF-8");
+    private final static Logger      logger       = LoggerFactory.getLogger(FileMixedLogPositionManager.class);
+    private final static Charset     charset      = Charset.forName("UTF-8");
+
     private File                     dataDir;
-    private String                   dataFileName = "parse.dat";
+
     private Map<String, File>        dataFileCaches;
-    private ScheduledExecutorService executor;
+
+    private ScheduledExecutorService executorService;
+
     @SuppressWarnings("serial")
     private final LogPosition        nullPosition = new LogPosition() {
                                                   };
 
-    private long                     period       = 1000;                                                      // 单位ms
+    private MemoryLogPositionManager memoryLogPositionManager;
+
+    private long                     period;
     private Set<String>              persistTasks;
 
+    public FileMixedLogPositionManager(File dataDir, long period, MemoryLogPositionManager memoryLogPositionManager){
+        if (dataDir == null) {
+            throw new NullPointerException("null dataDir");
+        }
+        if (period <= 0) {
+            throw new IllegalArgumentException("period must be positive, given: " + period);
+        }
+        if (memoryLogPositionManager == null) {
+            throw new NullPointerException("null memoryLogPositionManager");
+        }
+        this.dataDir = dataDir;
+        this.period = period;
+        this.memoryLogPositionManager = memoryLogPositionManager;
+
+        this.dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
+
+            public File apply(String destination) {
+                return getDataFile(destination);
+            }
+        });
+
+        this.executorService = Executors.newScheduledThreadPool(1);
+        this.persistTasks = Collections.synchronizedSet(new HashSet<String>());
+    }
+
+    @Override
     public void start() {
         super.start();
 
-        Assert.notNull(dataDir);
         if (!dataDir.exists()) {
             try {
                 FileUtils.forceMkdir(dataDir);
@@ -67,30 +95,12 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
             throw new CanalMetaManagerException("dir[" + dataDir.getPath() + "] can not read/write");
         }
 
-        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
-
-            public File apply(String destination) {
-                return getDataFile(destination);
-            }
-        });
-
-        executor = Executors.newScheduledThreadPool(1);
-        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
-
-            public LogPosition apply(String destination) {
-                LogPosition logPosition = loadDataFromFile(dataFileCaches.get(destination));
-                if (logPosition == null) {
-                    return nullPosition;
-                } else {
-                    return logPosition;
-                }
-            }
-        });
-
-        persistTasks = Collections.synchronizedSet(new HashSet<String>());
+        if (!memoryLogPositionManager.isStart()) {
+            memoryLogPositionManager.start();
+        }
 
         // 启动定时工作任务
-        executor.scheduleAtFixedRate(new Runnable() {
+        executorService.scheduleAtFixedRate(new Runnable() {
 
             public void run() {
                 List<String> tasks = new ArrayList<String>(persistTasks);
@@ -106,28 +116,35 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
                 }
             }
         }, period, period, TimeUnit.MILLISECONDS);
+
     }
 
+    @Override
     public void stop() {
         super.stop();
 
         flushDataToFile();
-        executor.shutdownNow();
-        positions.clear();
+        executorService.shutdown();
+        memoryLogPositionManager.stop();
     }
 
-    public void persistLogPosition(String destination, LogPosition logPosition) {
-        persistTasks.add(destination);// 添加到任务队列中进行触发
-        super.persistLogPosition(destination, logPosition);
-    }
-
+    @Override
     public LogPosition getLatestIndexBy(String destination) {
-        LogPosition logPostion = super.getLatestIndexBy(destination);
-        if (logPostion == nullPosition) {
-            return null;
-        } else {
-            return logPostion;
+        LogPosition logPosition = memoryLogPositionManager.getLatestIndexBy(destination);
+        if (logPosition != null) {
+            return logPosition;
         }
+        logPosition = loadDataFromFile(dataFileCaches.get(destination));
+        if (logPosition == null) {
+            return nullPosition;
+        }
+        return logPosition;
+    }
+
+    @Override
+    public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+        persistTasks.add(destination);
+        memoryLogPositionManager.persistLogPosition(destination, logPosition);
     }
 
     // ============================ helper method ======================
@@ -142,11 +159,12 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
             }
         }
 
+        String dataFileName = "parse.dat";
         return new File(destinationMetaDir, dataFileName);
     }
 
     private void flushDataToFile() {
-        for (String destination : positions.keySet()) {
+        for (String destination : memoryLogPositionManager.destinations()) {
             flushDataToFile(destination);
         }
     }
@@ -156,7 +174,7 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
     }
 
     private void flushDataToFile(String destination, File dataFile) {
-        LogPosition position = positions.get(destination);
+        LogPosition position = memoryLogPositionManager.getLatestIndexBy(destination);
         if (position != null && position != nullPosition) {
             String json = JsonUtils.marshalToString(position);
             try {
@@ -178,17 +196,5 @@ public class FileMixedLogPositionManager extends MemoryLogPositionManager {
         } catch (IOException e) {
             throw new CanalMetaManagerException(e);
         }
-    }
-
-    public void setDataDir(String dataDir) {
-        this.dataDir = new File(dataDir);
-    }
-
-    public void setDataDir(File dataDir) {
-        this.dataDir = dataDir;
-    }
-
-    public void setPeriod(long period) {
-        this.period = period;
     }
 }

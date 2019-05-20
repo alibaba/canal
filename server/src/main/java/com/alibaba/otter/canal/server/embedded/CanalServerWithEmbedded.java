@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import org.springframework.util.CollectionUtils;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
-import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
@@ -23,27 +24,34 @@ import com.alibaba.otter.canal.protocol.position.PositionRange;
 import com.alibaba.otter.canal.server.CanalServer;
 import com.alibaba.otter.canal.server.CanalService;
 import com.alibaba.otter.canal.server.exception.CanalServerException;
+import com.alibaba.otter.canal.spi.CanalMetricsProvider;
+import com.alibaba.otter.canal.spi.CanalMetricsService;
+import com.alibaba.otter.canal.spi.NopCanalMetricsService;
 import com.alibaba.otter.canal.store.CanalEventStore;
+import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
 import com.alibaba.otter.canal.store.model.Event;
 import com.alibaba.otter.canal.store.model.Events;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MigrateMap;
+import com.google.protobuf.ByteString;
 
 /**
  * 嵌入式版本实现
- * 
+ *
  * @author jianghang 2012-7-12 下午01:34:00
  * @author zebin.xuzb
  * @version 1.0.0
  */
 public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements CanalServer, CanalService {
 
-    private static final Logger        logger = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
+    private static final Logger        logger  = LoggerFactory.getLogger(CanalServerWithEmbedded.class);
     private Map<String, CanalInstance> canalInstances;
     // private Map<ClientIdentity, Position> lastRollbackPostions;
     private CanalInstanceGenerator     canalInstanceGenerator;
+    private int                        metricsPort;
+    private CanalMetricsService        metrics = NopCanalMetricsService.NOP;
 
     private static class SingletonHolder {
 
@@ -61,7 +69,10 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     public void start() {
         if (!isStart()) {
             super.start();
-
+            // 如果存在provider,则启动metrics service
+            loadCanalMetrics();
+            metrics.setServerPort(metricsPort);
+            metrics.initialize();
             canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
 
                 public CanalInstance apply(String destination) {
@@ -92,6 +103,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 logger.error(String.format("stop CanalInstance[%s] has an error", entry.getKey()), e);
             }
         }
+        metrics.terminate();
     }
 
     public void start(final String destination) {
@@ -99,6 +111,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         if (!canalInstance.isStart()) {
             try {
                 MDC.put("destination", destination);
+                if (metrics.isRunning()) {
+                    metrics.register(canalInstance);
+                }
                 canalInstance.start();
                 logger.info("start CanalInstances[{}] successfully", destination);
             } finally {
@@ -114,6 +129,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 try {
                     MDC.put("destination", destination);
                     canalInstance.stop();
+                    if (metrics.isRunning()) {
+                        metrics.unregister(canalInstance);
+                    }
                     logger.info("stop CanalInstances[{}] successfully", destination);
                 } finally {
                     MDC.remove("destination");
@@ -131,8 +149,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
      */
     @Override
     public void subscribe(ClientIdentity clientIdentity) throws CanalServerException {
-    	checkStart(clientIdentity.getDestination());
-    	
+        checkStart(clientIdentity.getDestination());
+
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
         if (!canalInstance.getMetaManager().isStart()) {
             canalInstance.getMetaManager().start();
@@ -176,7 +194,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 获取数据
-     * 
+     *
      * <pre>
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
@@ -188,7 +206,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 获取数据，可以指定超时时间.
-     * 
+     *
      * <pre>
      * 几种case:
      * a. 如果timeout为null，则采用tryGet方式，即时获取
@@ -220,28 +238,41 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             events = getEvents(canalInstance.getEventStore(), start, batchSize, timeout, unit);
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
-                logger.debug("get successfully, clientId:{} batchSize:{} but result is null", new Object[] {
-                        clientIdentity.getClientId(), batchSize });
-                return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
+                logger.debug("get successfully, clientId:{} batchSize:{} but result is null",
+                    clientIdentity.getClientId(),
+                    batchSize);
+                return new Message(-1, true, new ArrayList()); // 返回空包，避免生成batchId，浪费性能
             } else {
                 // 记录到流式信息
                 Long batchId = canalInstance.getMetaManager().addBatch(clientIdentity, events.getPositionRange());
-                List<Entry> entrys = Lists.transform(events.getEvents(), new Function<Event, Entry>() {
+                boolean raw = isRaw(canalInstance.getEventStore());
+                List entrys = null;
+                if (raw) {
+                    entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
 
-                    public Entry apply(Event input) {
-                        return input.getEntry();
-                    }
-                });
+                        public ByteString apply(Event input) {
+                            return input.getRawEntry();
+                        }
+                    });
+                } else {
+                    entrys = Lists.transform(events.getEvents(), new Function<Event, CanalEntry.Entry>() {
 
-                logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
-                    clientIdentity.getClientId(),
-                    batchSize,
-                    entrys.size(),
-                    batchId,
-                    events.getPositionRange());
+                        public CanalEntry.Entry apply(Event input) {
+                            return input.getEntry();
+                        }
+                    });
+                }
+                if (logger.isInfoEnabled()) {
+                    logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
+                        clientIdentity.getClientId(),
+                        batchSize,
+                        entrys.size(),
+                        batchId,
+                        events.getPositionRange());
+                }
                 // 直接提交ack
                 ack(clientIdentity, batchId);
-                return new Message(batchId, entrys);
+                return new Message(batchId, raw, entrys);
             }
         }
     }
@@ -249,7 +280,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     /**
      * 不指定 position 获取事件。canal 会记住此 client 最新的 position。 <br/>
      * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
-     * 
+     *
      * <pre>
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
@@ -262,14 +293,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     /**
      * 不指定 position 获取事件。canal 会记住此 client 最新的 position。 <br/>
      * 如果是第一次 fetch，则会从 canal 中保存的最老一条数据开始输出。
-     * 
+     *
      * <pre>
      * 几种case:
      * a. 如果timeout为null，则采用tryGet方式，即时获取
      * b. 如果timeout不为null
      *    1. timeout为0，则采用get阻塞方式，获取数据，不设置超时，直到有足够的batchSize数据才返回
      *    2. timeout不为0，则采用get+timeout方式，获取数据，超时还没有batchSize足够的数据，有多少返回多少
-     *    
+     * 
      * 注意： meta获取和数据的获取需要保证顺序性，优先拿到meta的，一定也会是优先拿到数据，所以需要加同步. (不能出现先拿到meta，拿到第二批数据，这样就会导致数据顺序性出现问题)
      * </pre>
      */
@@ -297,26 +328,41 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             }
 
             if (CollectionUtils.isEmpty(events.getEvents())) {
-                logger.debug("getWithoutAck successfully, clientId:{} batchSize:{} but result is null", new Object[] {
-                        clientIdentity.getClientId(), batchSize });
-                return new Message(-1, new ArrayList<Entry>()); // 返回空包，避免生成batchId，浪费性能
+                // logger.debug("getWithoutAck successfully, clientId:{}
+                // batchSize:{} but result
+                // is null",
+                // clientIdentity.getClientId(),
+                // batchSize);
+                return new Message(-1, true, new ArrayList()); // 返回空包，避免生成batchId，浪费性能
             } else {
                 // 记录到流式信息
                 Long batchId = canalInstance.getMetaManager().addBatch(clientIdentity, events.getPositionRange());
-                List<Entry> entrys = Lists.transform(events.getEvents(), new Function<Event, Entry>() {
+                boolean raw = isRaw(canalInstance.getEventStore());
+                List entrys = null;
+                if (raw) {
+                    entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
 
-                    public Entry apply(Event input) {
-                        return input.getEntry();
-                    }
-                });
+                        public ByteString apply(Event input) {
+                            return input.getRawEntry();
+                        }
+                    });
+                } else {
+                    entrys = Lists.transform(events.getEvents(), new Function<Event, CanalEntry.Entry>() {
 
-                logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
-                    clientIdentity.getClientId(),
-                    batchSize,
-                    entrys.size(),
-                    batchId,
-                    events.getPositionRange());
-                return new Message(batchId, entrys);
+                        public CanalEntry.Entry apply(Event input) {
+                            return input.getEntry();
+                        }
+                    });
+                }
+                if (logger.isInfoEnabled()) {
+                    logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
+                        clientIdentity.getClientId(),
+                        batchSize,
+                        entrys.size(),
+                        batchId,
+                        events.getPositionRange());
+                }
+                return new Message(batchId, raw, entrys);
             }
 
         }
@@ -338,7 +384,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     /**
      * 进行 batch id 的确认。确认之后，小于等于此 batchId 的 Message 都会被确认。
-     * 
+     *
      * <pre>
      * 注意：进行反馈时必须按照batchId的顺序进行ack(需有客户端保证)
      * </pre>
@@ -377,10 +423,12 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         // 更新cursor
         if (positionRanges.getAck() != null) {
             canalInstance.getMetaManager().updateCursor(clientIdentity, positionRanges.getAck());
-            logger.info("ack successfully, clientId:{} batchId:{} position:{}",
-                clientIdentity.getClientId(),
-                batchId,
-                positionRanges);
+            if (logger.isInfoEnabled()) {
+                logger.info("ack successfully, clientId:{} batchId:{} position:{}",
+                    clientIdentity.getClientId(),
+                    batchId,
+                    positionRanges);
+            }
         }
 
         // 可定时清理数据
@@ -486,10 +534,43 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         }
     }
 
+    private void loadCanalMetrics() {
+        ServiceLoader<CanalMetricsProvider> providers = ServiceLoader.load(CanalMetricsProvider.class);
+        List<CanalMetricsProvider> list = new ArrayList<CanalMetricsProvider>();
+        for (CanalMetricsProvider provider : providers) {
+            list.add(provider);
+        }
+        if (!list.isEmpty()) {
+            // 发现provider, 进行初始化
+            if (list.size() > 1) {
+                logger.warn("Found more than one CanalMetricsProvider, use the first one.");
+                // 报告冲突
+                for (CanalMetricsProvider p : list) {
+                    logger.warn("Found CanalMetricsProvider: {}.", p.getClass().getName());
+                }
+            }
+            // 默认使用第一个
+            CanalMetricsProvider provider = list.get(0);
+            this.metrics = provider.getService();
+        }
+    }
+
+    private boolean isRaw(CanalEventStore eventStore) {
+        if (eventStore instanceof MemoryEventStoreWithBuffer) {
+            return ((MemoryEventStoreWithBuffer) eventStore).isRaw();
+        }
+
+        return true;
+    }
+
     // ========= setter ==========
 
     public void setCanalInstanceGenerator(CanalInstanceGenerator canalInstanceGenerator) {
         this.canalInstanceGenerator = canalInstanceGenerator;
+    }
+
+    public void setMetricsPort(int metricsPort) {
+        this.metricsPort = metricsPort;
     }
 
 }

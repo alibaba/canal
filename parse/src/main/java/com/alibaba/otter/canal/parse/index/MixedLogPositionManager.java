@@ -5,86 +5,83 @@ import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 
+import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
-import com.google.common.base.Function;
-import com.google.common.collect.MigrateMap;
 
 /**
- * 混合memory + zookeeper的存储模式
- * 
- * @author jianghang 2012-7-7 上午10:33:19
- * @version 1.0.0
+ * Created by yinxiu on 17/3/17. Email: marklin.hz@gmail.com Memory first.
+ * Asynchronous commit position info to ZK.
  */
-public class MixedLogPositionManager extends MemoryLogPositionManager implements CanalLogPositionManager {
+public class MixedLogPositionManager extends AbstractLogPositionManager {
 
-    private static final Logger         logger       = LoggerFactory.getLogger(MixedLogPositionManager.class);
-    private ZooKeeperLogPositionManager zooKeeperLogPositionManager;
-    private ExecutorService             executor;
-    @SuppressWarnings("serial")
-    private final LogPosition           nullPosition = new LogPosition() {
-                                                     };
+    private final Logger                      logger = LoggerFactory.getLogger(MixedLogPositionManager.class);
 
+    private final MemoryLogPositionManager    memoryLogPositionManager;
+    private final ZooKeeperLogPositionManager zooKeeperLogPositionManager;
+
+    private final ExecutorService             executor;
+
+    public MixedLogPositionManager(ZkClientx zkClient){
+        if (zkClient == null) {
+            throw new NullPointerException("null zkClient");
+        }
+
+        this.memoryLogPositionManager = new MemoryLogPositionManager();
+        this.zooKeeperLogPositionManager = new ZooKeeperLogPositionManager(zkClient);
+
+        this.executor = Executors.newFixedThreadPool(1);
+    }
+
+    @Override
     public void start() {
         super.start();
 
-        Assert.notNull(zooKeeperLogPositionManager);
+        if (!memoryLogPositionManager.isStart()) {
+            memoryLogPositionManager.start();
+        }
+
         if (!zooKeeperLogPositionManager.isStart()) {
             zooKeeperLogPositionManager.start();
         }
-        executor = Executors.newFixedThreadPool(1);
-        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
-
-            public LogPosition apply(String destination) {
-                LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);
-                if (logPosition == null) {
-                    return nullPosition;
-                } else {
-                    return logPosition;
-                }
-            }
-        });
     }
 
+    @Override
     public void stop() {
         super.stop();
 
-        if (zooKeeperLogPositionManager.isStart()) {
-            zooKeeperLogPositionManager.stop();
-        }
-        executor.shutdownNow();
-        positions.clear();
+        executor.shutdown();
+        zooKeeperLogPositionManager.stop();
+        memoryLogPositionManager.stop();
     }
 
-    public void persistLogPosition(final String destination, final LogPosition logPosition) {
-        super.persistLogPosition(destination, logPosition);
+    @Override
+    public LogPosition getLatestIndexBy(String destination) {
+        LogPosition logPosition = memoryLogPositionManager.getLatestIndexBy(destination);
+        if (logPosition != null) {
+            return logPosition;
+        }
+        logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);
+        // 这里保持和重构前的逻辑一致,重新添加到Memory中
+        if (logPosition != null) {
+            memoryLogPositionManager.persistLogPosition(destination, logPosition);
+        }
+        return logPosition;
+    }
+
+    @Override
+    public void persistLogPosition(final String destination, final LogPosition logPosition) throws CanalParseException {
+        memoryLogPositionManager.persistLogPosition(destination, logPosition);
         executor.submit(new Runnable() {
 
             public void run() {
                 try {
                     zooKeeperLogPositionManager.persistLogPosition(destination, logPosition);
                 } catch (Exception e) {
-                    logger.error("ERROR # persist to zookeepr has an error", e);
+                    logger.error("ERROR # persist to zookeeper has an error", e);
                 }
             }
         });
-
     }
-
-    public LogPosition getLatestIndexBy(String destination) {
-        LogPosition logPosition = super.getLatestIndexBy(destination);
-        if (logPosition == nullPosition) {
-            return null;
-        } else {
-            return logPosition;
-        }
-    }
-
-    // ======================== setter / getter ======================
-
-    public void setZooKeeperLogPositionManager(ZooKeeperLogPositionManager zooKeeperLogPositionManager) {
-        this.zooKeeperLogPositionManager = zooKeeperLogPositionManager;
-    }
-
 }

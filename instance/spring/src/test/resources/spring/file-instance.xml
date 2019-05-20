@@ -102,18 +102,20 @@
 		<!-- 解析编码 -->
 		<!-- property name="connectionCharsetNumber" value="${canal.instance.connectionCharsetNumber:33}" /-->
 		<property name="connectionCharset" value="${canal.instance.connectionCharset:UTF-8}" />
-	
+
 		<!-- 解析位点记录 -->
 		<property name="logPositionManager">
 			<bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
-				<property name="primary">
+				<constructor-arg>
 					<bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
-				</property>
-				<property name="failback">
+				</constructor-arg>
+				<constructor-arg>
 					<bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
-						<property name="metaManager" ref="metaManager" />
+						<constructor-arg>
+							<ref bean="metaManager"/>
+						</constructor-arg>
 					</bean>
-				</property>
+				</constructor-arg>
 			</bean>
 		</property>
 		
@@ -126,7 +128,7 @@
 				<property name="address" value="${canal.instance.master.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 		<property name="standbyInfo">
@@ -134,7 +136,7 @@
 				<property name="address" value="${canal.instance.standby.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 		

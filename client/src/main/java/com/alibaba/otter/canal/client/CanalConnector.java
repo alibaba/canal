@@ -149,5 +149,4 @@ public interface CanalConnector {
      * @throws CanalClientException
      */
     void rollback() throws CanalClientException;
-
 }

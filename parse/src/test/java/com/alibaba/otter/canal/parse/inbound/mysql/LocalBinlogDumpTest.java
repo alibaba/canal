@@ -5,11 +5,12 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.junit.Assert;
-
+import org.junit.Ignore;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
-import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
@@ -20,16 +21,16 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-
+@Ignore
 public class LocalBinlogDumpTest {
 
     @Test
     public void testSimple() {
-        String directory = "/home/jianghang/tmp/binlog";
+        String directory = "/Users/wanshao/projects/canal/parse/src/test/resources/binlog/tsdb";
         final LocalBinlogEventParser controller = new LocalBinlogEventParser();
-        final EntryPosition startPosition = new EntryPosition("mysql-bin.000006", 4L);
+        final EntryPosition startPosition = new EntryPosition("mysql-bin.000003", 123L);
 
-        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "xxxxx", "xxxxx"));
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "canal", "canal"));
         controller.setConnectionCharset(Charset.forName("UTF-8"));
         controller.setDirectory(directory);
         controller.setMasterPosition(startPosition);
@@ -81,15 +82,16 @@ public class LocalBinlogDumpTest {
             }
 
         });
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
-
-            public void persistLogPosition(String destination, LogPosition logPosition) {
-                System.out.println(logPosition);
-            }
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             @Override
             public LogPosition getLatestIndexBy(String destination) {
                 return null;
+            }
+
+            @Override
+            public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+                System.out.println(logPosition);
             }
         });
 

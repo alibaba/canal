@@ -11,54 +11,78 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
-import com.google.common.base.Function;
-import com.google.common.collect.MigrateMap;
 
 /**
- * 基于定时刷新的策略的mixed实现
- * 
- * @author jianghang 2012-9-12 上午11:18:14
- * @version 1.0.0
+ * Created by yinxiu on 17/3/18. Email: marklin.hz@gmail.com
  */
-public class PeriodMixedLogPositionManager extends MemoryLogPositionManager implements CanalLogPositionManager {
+public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
 
     private static final Logger         logger       = LoggerFactory.getLogger(PeriodMixedLogPositionManager.class);
+
+    private MemoryLogPositionManager    memoryLogPositionManager;
     private ZooKeeperLogPositionManager zooKeeperLogPositionManager;
-    private ScheduledExecutorService    executor;
+    private ScheduledExecutorService    executorService;
+
+    private long                        period;
+    private Set<String>                 persistTasks;
+
     @SuppressWarnings("serial")
     private final LogPosition           nullPosition = new LogPosition() {
                                                      };
 
-    private long                        period       = 1000;                                                        // 单位ms
-    private Set<String>                 persistTasks;
+    public PeriodMixedLogPositionManager(MemoryLogPositionManager memoryLogPositionManager,
+                                         ZooKeeperLogPositionManager zooKeeperLogPositionManager, long period){
+        if (memoryLogPositionManager == null) {
+            throw new NullPointerException("null memoryLogPositionManager");
+        }
 
+        if (zooKeeperLogPositionManager == null) {
+            throw new NullPointerException("null zooKeeperLogPositionManager");
+        }
+
+        if (period <= 0) {
+            throw new IllegalArgumentException("period must be positive, given: " + period);
+        }
+
+        this.memoryLogPositionManager = memoryLogPositionManager;
+        this.zooKeeperLogPositionManager = zooKeeperLogPositionManager;
+        this.period = period;
+        this.persistTasks = Collections.synchronizedSet(new HashSet<String>());
+        this.executorService = Executors.newScheduledThreadPool(1);
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+
+        if (zooKeeperLogPositionManager.isStart()) {
+            zooKeeperLogPositionManager.stop();
+        }
+
+        if (memoryLogPositionManager.isStart()) {
+            memoryLogPositionManager.stop();
+        }
+
+        executorService.shutdown();
+    }
+
+    @Override
     public void start() {
         super.start();
 
-        Assert.notNull(zooKeeperLogPositionManager);
+        if (!memoryLogPositionManager.isStart()) {
+            memoryLogPositionManager.start();
+        }
+
         if (!zooKeeperLogPositionManager.isStart()) {
             zooKeeperLogPositionManager.start();
         }
-        executor = Executors.newScheduledThreadPool(1);
-        positions = MigrateMap.makeComputingMap(new Function<String, LogPosition>() {
-
-            public LogPosition apply(String destination) {
-                LogPosition logPosition = zooKeeperLogPositionManager.getLatestIndexBy(destination);
-                if (logPosition == null) {
-                    return nullPosition;
-                } else {
-                    return logPosition;
-                }
-            }
-        });
-
-        persistTasks = Collections.synchronizedSet(new HashSet<String>());
 
         // 启动定时工作任务
-        executor.scheduleAtFixedRate(new Runnable() {
+        executorService.scheduleAtFixedRate(new Runnable() {
 
             public void run() {
                 List<String> tasks = new ArrayList<String>(persistTasks);
@@ -76,36 +100,19 @@ public class PeriodMixedLogPositionManager extends MemoryLogPositionManager impl
         }, period, period, TimeUnit.MILLISECONDS);
     }
 
-    public void stop() {
-        super.stop();
-
-        if (zooKeeperLogPositionManager.isStart()) {
-            zooKeeperLogPositionManager.stop();
-        }
-        executor.shutdownNow();
-        positions.clear();
-    }
-
-    public void persistLogPosition(String destination, LogPosition logPosition) {
-        persistTasks.add(destination);// 添加到任务队列中进行触发
-        super.persistLogPosition(destination, logPosition);
-    }
-
+    @Override
     public LogPosition getLatestIndexBy(String destination) {
-        LogPosition logPostion = super.getLatestIndexBy(destination);
-        if (logPostion == nullPosition) {
+        LogPosition logPosition = memoryLogPositionManager.getLatestIndexBy(destination);
+        if (logPosition == nullPosition) {
             return null;
         } else {
-            return logPostion;
+            return logPosition;
         }
     }
 
-    public void setZooKeeperLogPositionManager(ZooKeeperLogPositionManager zooKeeperLogPositionManager) {
-        this.zooKeeperLogPositionManager = zooKeeperLogPositionManager;
+    @Override
+    public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+        persistTasks.add(destination);
+        memoryLogPositionManager.persistLogPosition(destination, logPosition);
     }
-
-    public void setPeriod(long period) {
-        this.period = period;
-    }
-
 }

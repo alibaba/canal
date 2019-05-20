@@ -1,0 +1,21 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esMapping:
+  _index: customer
+  _type: _doc
+  _id: _id
+  relations:
+    customer_order:
+      name: order
+      parent: customer_id
+  sql: "select concat('oid_', t.id) as _id,
+        t.customer_id,
+        t.id as order_id,
+        t.serial_code as order_serial,
+        t.c_time as order_time
+        from biz_order t"
+  skips:
+    - customer_id
+  etlCondition: "where t.c_time>={}"
+  commitBatch: 3000
