@@ -230,10 +230,25 @@ public class MQMessageUtils {
                                     }
                                 }
                             } else {
-                                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                                    if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
-                                        hashCode = hashCode ^ column.getValue().hashCode();
+                                try {
+                                    CanalEntry.EventType eventType = RowChange.parseFrom(entry.getStoreValue()).getEventType();
+                                    if(eventType == CanalEntry.EventType.DELETE){
+                                        for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
+                                            if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
+                                                hashCode = hashCode ^ column.getValue().hashCode();
+                                            }
+                                        }
                                     }
+                                    else {
+                                        for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                                            if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
+                                                hashCode = hashCode ^ column.getValue().hashCode();
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (InvalidProtocolBufferException e) {
+                                    e.printStackTrace();
                                 }
                             }
 
