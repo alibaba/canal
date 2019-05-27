@@ -355,11 +355,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             // GTID模式下，CanalLogPositionManager里取最后的gtid，没有则取instanc配置中的
             LogPosition logPosition = getLogPositionManager().getLatestIndexBy(destination);
             if (logPosition != null) {
-                return logPosition.getPostion();
-            }
-
-            if (masterPosition != null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
-                return masterPosition;
+                // 如果以前是非GTID模式，后来调整为了GTID模式，那么为了保持兼容，需要判断gtid是否为空
+                if (StringUtils.isNotEmpty(logPosition.getPostion().getGtid())) {
+                    return logPosition.getPostion();
+                }
+            }else {
+                if (masterPosition != null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
+                    return masterPosition;
+                }
             }
         }
 
