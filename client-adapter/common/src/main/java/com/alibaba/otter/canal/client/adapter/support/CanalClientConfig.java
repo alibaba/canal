@@ -33,7 +33,14 @@ public class CanalClientConfig {
     // aliyun ak/sk
     private String             accessKey;
     private String             secretKey;
-
+    // 是否启用消息轨迹
+    private boolean            enableMessageTrace;
+    // 在使用阿里云商业化mq服务时，如果想使用云上消息轨迹功能，请设置此配置为true
+    private String             accessChannel;
+    // 用于使用开源RocketMQ时，设置自定义的消息轨迹topic
+    private String             customizedTraceTopic;
+    // 开源RocketMQ命名空间
+    private String             namespace;
     // canal adapters 配置
     private List<CanalAdapter> canalAdapters;
 
@@ -131,6 +138,38 @@ public class CanalClientConfig {
 
     public void setCanalAdapters(List<CanalAdapter> canalAdapters) {
         this.canalAdapters = canalAdapters;
+    }
+
+    public boolean isEnableMessageTrace() {
+        return enableMessageTrace;
+    }
+
+    public void setEnableMessageTrace(boolean enableMessageTrace) {
+        this.enableMessageTrace = enableMessageTrace;
+    }
+
+    public String getAccessChannel() {
+        return accessChannel;
+    }
+
+    public void setAccessChannel(String accessChannel) {
+        this.accessChannel = accessChannel;
+    }
+
+    public String getCustomizedTraceTopic() {
+        return customizedTraceTopic;
+    }
+
+    public void setCustomizedTraceTopic(String customizedTraceTopic) {
+        this.customizedTraceTopic = customizedTraceTopic;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 
     public static class CanalAdapter {
