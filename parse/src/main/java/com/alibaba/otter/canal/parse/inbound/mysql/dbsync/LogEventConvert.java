@@ -689,8 +689,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     isSingleBit = true;
                 }
             }
-
-            buffer.nextValue(fieldMeta.getColumnName(), i, info.type, info.meta, isBinary);
+            String columnName = fieldMeta == null? null :fieldMeta.getColumnName();
+            buffer.nextValue(columnName, i, info.type, info.meta, isBinary);
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
