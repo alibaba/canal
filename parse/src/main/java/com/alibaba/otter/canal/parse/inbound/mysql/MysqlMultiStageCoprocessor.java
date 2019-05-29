@@ -441,6 +441,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         @Override
         public void handleEventException(final Throwable ex, final long sequence, final Object event) {
+            //异常上抛，否则processEvents的逻辑会默认会mark为成功执行，有丢数据风险
+            throw new CanalParseException(ex);
         }
 
         @Override
