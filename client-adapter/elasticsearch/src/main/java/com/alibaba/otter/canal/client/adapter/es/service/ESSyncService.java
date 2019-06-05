@@ -675,7 +675,7 @@ public class ESSyncService {
                                    TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
         //防止最后出现groupby 导致sql解析异常
-        String[] sqlSplit = mapping.getSql().split("GROUP\\ BY(?!(.*)ON)");
+        String[] sqlSplit = mapping.getSql().split("(?i)GROUP\\ BY(?!(.*)ON)");
         String sqlNoWhere = sqlSplit[0];
 
         String sqlGroupBy = "";
