@@ -7,6 +7,7 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -19,6 +20,7 @@ import com.alibaba.otter.canal.parse.inbound.TableMeta;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/tsdb/mysql-tsdb.xml" })
+@Ignore
 public class MemoryTableMetaTest {
 
     @Test

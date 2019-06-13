@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.driver.mysql.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
@@ -28,7 +29,11 @@ public abstract class PacketManager {
     }
 
     public static void writePkg(SocketChannel ch, byte[]... srcs) throws IOException {
-        ch.write(srcs);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (byte[] src : srcs) {
+            out.write(src);
+        }
+        ch.write(out.toByteArray());
     }
 
     public static void writeBody(SocketChannel ch, byte[] body) throws IOException {

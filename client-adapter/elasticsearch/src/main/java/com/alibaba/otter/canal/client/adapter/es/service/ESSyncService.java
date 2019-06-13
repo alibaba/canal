@@ -1,9 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.es.service;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.sql.DataSource;
 
@@ -436,7 +433,7 @@ public class ESSyncService {
         Object idVal = esTemplate.getESDataFromDmlData(mapping, data, esFieldData);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("Single table insert ot es index, destination:{}, table: {}, index: {}, id: {}",
+            logger.trace("Single table insert to es index, destination:{}, table: {}, index: {}, id: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
@@ -459,7 +456,7 @@ public class ESSyncService {
         sql = ESSyncUtil.appendCondition(sql, condition);
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
-            logger.trace("Main table insert ot es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
+            logger.trace("Main table insert to es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
@@ -473,7 +470,7 @@ public class ESSyncService {
 
                     if (logger.isTraceEnabled()) {
                         logger.trace(
-                            "Main table insert ot es index by query sql, destination:{}, table: {}, index: {}, id: {}",
+                            "Main table insert to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
                             config.getDestination(),
                             dml.getTable(),
                             mapping.get_index(),
@@ -517,7 +514,7 @@ public class ESSyncService {
 
                     if (logger.isTraceEnabled()) {
                         logger.trace(
-                            "Main table delete ot es index by query sql, destination:{}, table: {}, index: {}, id: {}",
+                            "Main table delete to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
                             config.getDestination(),
                             dml.getTable(),
                             mapping.get_index(),
@@ -677,7 +674,17 @@ public class ESSyncService {
     private void wholeSqlOperation(ESSyncConfig config, Dml dml, Map<String, Object> data, Map<String, Object> old,
                                    TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
-        StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
+        //防止最后出现groupby 导致sql解析异常
+        String[] sqlSplit = mapping.getSql().split("GROUP\\ BY(?!(.*)ON)");
+        String sqlNoWhere = sqlSplit[0];
+
+        String sqlGroupBy = "";
+
+        if(sqlSplit.length > 1){
+            sqlGroupBy =  "GROUP BY "+ sqlSplit[1];
+        }
+
+        StringBuilder sql = new StringBuilder(sqlNoWhere + " WHERE ");
 
         for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
             String columnName = fkFieldItem.getColumn().getColumnName();
@@ -686,6 +693,8 @@ public class ESSyncService {
         }
         int len = sql.length();
         sql.delete(len - 5, len);
+        sql.append(sqlGroupBy);
+
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
             logger.trace("Join table update es index by query whole sql, destination:{}, table: {}, index: {}, sql: {}",
@@ -784,7 +793,7 @@ public class ESSyncService {
         Object idVal = esTemplate.getESDataFromDmlData(mapping, data, old, esFieldData);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("Main table update ot es index, destination:{}, table: {}, index: {}, id: {}",
+            logger.trace("Main table update to es index, destination:{}, table: {}, index: {}, id: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
@@ -807,7 +816,7 @@ public class ESSyncService {
         sql = ESSyncUtil.appendCondition(sql, condition);
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
-            logger.trace("Main table update ot es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
+            logger.trace("Main table update to es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
                 config.getDestination(),
                 dml.getTable(),
                 mapping.get_index(),
@@ -821,7 +830,7 @@ public class ESSyncService {
 
                     if (logger.isTraceEnabled()) {
                         logger.trace(
-                            "Main table update ot es index by query sql, destination:{}, table: {}, index: {}, id: {}",
+                            "Main table update to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
                             config.getDestination(),
                             dml.getTable(),
                             mapping.get_index(),

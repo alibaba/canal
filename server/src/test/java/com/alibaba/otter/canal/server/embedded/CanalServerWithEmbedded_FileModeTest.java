@@ -1,30 +1,29 @@
-package com.alibaba.otter.canal.server;
+package com.alibaba.otter.canal.server.embedded;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.HAMode;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.IndexMode;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.*;
+import org.junit.Ignore;
 
-public class CanalServerWithEmbedded_StandaloneTest extends BaseCanalServerWithEmbededTest {
+@Ignore
+public class CanalServerWithEmbedded_FileModeTest extends BaseCanalServerWithEmbededTest {
 
     protected Canal buildCanal() {
         Canal canal = new Canal();
         canal.setId(1L);
         canal.setName(DESTINATION);
-        canal.setDesc("test");
+        canal.setDesc("my standalone server test ");
 
         CanalParameter parameter = new CanalParameter();
 
-        parameter.setZkClusters(Arrays.asList("127.0.0.1:2188"));
-        parameter.setMetaMode(MetaMode.MEMORY);
+        parameter.setMetaMode(MetaMode.LOCAL_FILE);
+        parameter.setDataDir("./conf");
+        parameter.setMetaFileFlushPeriod(1000);
         parameter.setHaMode(HAMode.HEARTBEAT);
-        parameter.setIndexMode(IndexMode.MEMORY);
+        parameter.setIndexMode(IndexMode.MEMORY_META_FAILBACK);
 
         parameter.setStorageMode(StorageMode.MEMORY);
         parameter.setMemoryStorageBufferSize(32 * 1024);
@@ -34,8 +33,8 @@ public class CanalServerWithEmbedded_StandaloneTest extends BaseCanalServerWithE
             new InetSocketAddress(MYSQL_ADDRESS, 3306)));
         parameter.setDbUsername(USERNAME);
         parameter.setDbPassword(PASSWORD);
-        parameter.setPositions(Arrays.asList("{\"journalName\":\"mysql-bin.000003\",\"position\":14217L,\"timestamp\":\"1505998863000\"}",
-            "{\"journalName\":\"mysql-bin.000003\",\"position\":14377L,\"timestamp\":\"1505998863000\"}"));
+        parameter.setPositions(Arrays.asList("{\"journalName\":\"mysql-bin.000001\",\"position\":332L,\"timestamp\":\"1505998863000\"}",
+            "{\"journalName\":\"mysql-bin.000001\",\"position\":332L,\"timestamp\":\"1505998863000\"}"));
 
         parameter.setSlaveId(1234L);
 

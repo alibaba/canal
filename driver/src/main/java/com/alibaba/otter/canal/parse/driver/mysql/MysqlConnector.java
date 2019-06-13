@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.parse.driver.mysql;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.DigestException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,7 +38,7 @@ public class MysqlConnector {
     private String              password;
 
     private byte                charsetNumber     = 33;
-    private String              defaultSchema     = "test";
+    private String              defaultSchema;
     private int                 soTimeout         = 30 * 1000;
     private int                 connTimeout       = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
@@ -187,7 +188,7 @@ public class MysqlConnector {
         clientAuth.setServerCapabilities(handshakePacket.serverCapabilities);
         clientAuth.setDatabaseName(defaultSchema);
         clientAuth.setScrumbleBuff(joinAndCreateScrumbleBuff(handshakePacket));
-        clientAuth.setAuthPluginName(handshakePacket.authPluginName);
+        clientAuth.setAuthPluginName("mysql_native_password".getBytes());
 
         byte[] clientAuthPkgBody = clientAuth.toBytes();
         HeaderPacket h = new HeaderPacket();
@@ -218,28 +219,48 @@ public class MysqlConnector {
                 pluginName = packet.authName;
             }
 
+            boolean isSha2Password = false;
+            byte[] encryptedPassword = null;
             if (pluginName != null && "mysql_native_password".equals(pluginName)) {
-                byte[] encryptedPassword = null;
                 try {
                     encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), authData);
                 } catch (NoSuchAlgorithmException e) {
                     throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
                 }
-                AuthSwitchResponsePacket responsePacket = new AuthSwitchResponsePacket();
-                responsePacket.authData = encryptedPassword;
-                byte[] auth = responsePacket.toBytes();
+            } else if (pluginName != null && "caching_sha2_password".equals(pluginName)) {
+                isSha2Password = true;
+                try {
+                    encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(), authData);
+                } catch (DigestException e) {
+                    throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
+                }
+            }
+            assert encryptedPassword != null;
+            AuthSwitchResponsePacket responsePacket = new AuthSwitchResponsePacket();
+            responsePacket.authData = encryptedPassword;
+            byte[] auth = responsePacket.toBytes();
 
-                h = new HeaderPacket();
-                h.setPacketBodyLength(auth.length);
-                h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
-                PacketManager.writePkg(channel, h.toBytes(), auth);
-                logger.info("auth switch response packet is sent out.");
+            h = new HeaderPacket();
+            h.setPacketBodyLength(auth.length);
+            h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
+            PacketManager.writePkg(channel, h.toBytes(), auth);
+            logger.info("auth switch response packet is sent out.");
+
+            header = null;
+            header = PacketManager.readHeader(channel, 4);
+            body = null;
+            body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+            assert body != null;
+            if (isSha2Password) {
+                if (body[0] == 0x01 && body[1] == 0x04) {
+                    // password auth failed
+                    throw new IOException("caching_sha2_password Auth failed");
+                }
 
                 header = null;
                 header = PacketManager.readHeader(channel, 4);
                 body = null;
                 body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
-                assert body != null;
             }
         }
 

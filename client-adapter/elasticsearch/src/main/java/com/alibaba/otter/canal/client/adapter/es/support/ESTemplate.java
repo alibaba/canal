@@ -2,9 +2,7 @@ package com.alibaba.otter.canal.client.adapter.es.support;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -58,6 +56,10 @@ public class ESTemplate {
 
     public BulkRequestBuilder getBulk() {
         return bulkRequestBuilder;
+    }
+
+    public void resetBulkRequestBuilder() {
+        this.bulkRequestBuilder = this.transportClient.prepareBulk();
     }
 
     /**
@@ -136,11 +138,15 @@ public class ESTemplate {
         // 查询sql批量更新
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
-        paramsTmp.forEach(
-            (fieldName, value) -> sql.append("_v.").append(fieldName).append("=").append(value).append(" AND "));
+        List<Object> values = new ArrayList<>();
+        paramsTmp.forEach((fieldName, value) -> {
+            sql.append("_v.").append(fieldName).append("=? AND ");
+            values.add(value);
+        });
+        //TODO 直接外部包裹sql会导致全表扫描性能低, 待优化拼接内部where条件
         int len = sql.length();
         sql.delete(len - 4, len);
-        Integer syncCount = (Integer) Util.sqlRS(ds, sql.toString(), rs -> {
+        Integer syncCount = (Integer) Util.sqlRS(ds, sql.toString(), values, rs -> {
             int count = 0;
             try {
                 while (rs.next()) {
@@ -208,11 +214,12 @@ public class ESTemplate {
     }
 
     /**
-     * 如果大于批量数则提交批次
+     * 如果大于批量数则提交批次, 调用后es bulk请求后，numberOfActions不会清理，需要主动调用函数清0，否则不能起到批量请求的效果
      */
     private void commitBulk() {
         if (getBulk().numberOfActions() >= MAX_BATCH_SIZE) {
             commit();
+            resetBulkRequestBuilder();
         }
     }
 

@@ -1,9 +1,46 @@
 package com.alibaba.otter.canal.parse.driver.mysql.utils;
 
+import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class MySQLPasswordEncrypter {
+
+    private static final int CACHING_SHA2_DIGEST_LENGTH = 32;
+
+    public static byte[] scrambleCachingSha2(byte[] password, byte[] seed) throws DigestException {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ex) {
+            throw new DigestException(ex);
+        }
+
+        byte[] dig1 = new byte[CACHING_SHA2_DIGEST_LENGTH];
+        byte[] dig2 = new byte[CACHING_SHA2_DIGEST_LENGTH];
+        byte[] scramble1 = new byte[CACHING_SHA2_DIGEST_LENGTH];
+
+        // SHA2(src) => digest_stage1
+        md.update(password, 0, password.length);
+        md.digest(dig1, 0, CACHING_SHA2_DIGEST_LENGTH);
+        md.reset();
+
+        // SHA2(digest_stage1) => digest_stage2
+        md.update(dig1, 0, dig1.length);
+        md.digest(dig2, 0, CACHING_SHA2_DIGEST_LENGTH);
+        md.reset();
+
+        // SHA2(digest_stage2, m_rnd) => scramble_stage1
+        md.update(dig2, 0, dig1.length);
+        md.update(seed, 0, seed.length);
+        md.digest(scramble1, 0, CACHING_SHA2_DIGEST_LENGTH);
+
+        // XOR(digest_stage1, scramble_stage1) => scramble
+        byte[] mysqlScrambleBuff = new byte[CACHING_SHA2_DIGEST_LENGTH];
+        xorString(dig1, mysqlScrambleBuff, scramble1, CACHING_SHA2_DIGEST_LENGTH);
+
+        return mysqlScrambleBuff;
+    }
 
     public static final byte[] scramble411(byte[] pass, byte[] seed) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -69,6 +106,15 @@ public class MySQLPasswordEncrypter {
         result[0] = nr & 0x7fffffffL;
         result[1] = nr2 & 0x7fffffffL;
         return result;
+    }
+
+    private static void xorString(byte[] from, byte[] to, byte[] scramble, int length) {
+        int pos = 0;
+        int scrambleLength = scramble.length;
+        while (pos < length) {
+            to[pos] = (byte) (from[pos] ^ scramble[pos % scrambleLength]);
+            pos++;
+        }
     }
 
 }

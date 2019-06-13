@@ -1,31 +1,23 @@
 package com.alibaba.otter.canal.client.adapter.hbase.service;
 
-import java.sql.ResultSetMetaData;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.sql.DataSource;
 
+import com.alibaba.otter.canal.client.adapter.support.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.hbase.support.HRow;
-import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
-import com.alibaba.otter.canal.client.adapter.hbase.support.PhType;
-import com.alibaba.otter.canal.client.adapter.hbase.support.PhTypeUtil;
-import com.alibaba.otter.canal.client.adapter.hbase.support.Type;
-import com.alibaba.otter.canal.client.adapter.hbase.support.TypeUtil;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.alibaba.otter.canal.client.adapter.support.JdbcTypeUtil;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.hbase.support.*;
 import com.google.common.base.Joiner;
 
 /**
@@ -34,17 +26,21 @@ import com.google.common.base.Joiner;
  * @author rewerma @ 2018-10-20
  * @version 1.0.0
  */
-public class HbaseEtlService {
+public class HbaseEtlService extends AbstractEtlService {
 
-    private static Logger logger = LoggerFactory.getLogger(HbaseEtlService.class);
+    private HbaseTemplate hbaseTemplate;
+    private MappingConfig config;
+
+    public HbaseEtlService(HbaseTemplate hbaseTemplate, MappingConfig config){
+        super("HBase", config);
+        this.hbaseTemplate = hbaseTemplate;
+        this.config = config;
+    }
 
     /**
      * 建表
-     *
-     * @param hbaseTemplate
-     * @param config
      */
-    public static void createTable(HbaseTemplate hbaseTemplate, MappingConfig config) {
+    private void createTable() {
         try {
             // 判断hbase表是否存在，不存在则建表
             MappingConfig.HbaseMapping hbaseMapping = config.getHbaseMapping();
@@ -60,29 +56,14 @@ public class HbaseEtlService {
     /**
      * 导入数据
      *
-     * @param ds 数据源
-     * @param hbaseTemplate hbaseTemplate
-     * @param config 配置
      * @param params 筛选条件
      * @return 导入结果
      */
-    public static EtlResult importData(DataSource ds, HbaseTemplate hbaseTemplate, MappingConfig config,
-                                       List<String> params) {
+    public EtlResult importData(List<String> params) {
         EtlResult etlResult = new EtlResult();
-        AtomicLong successCount = new AtomicLong();
         List<String> errMsg = new ArrayList<>();
-        String hbaseTable = "";
         try {
-            if (config == null) {
-                logger.error("Config is null!");
-                etlResult.setSucceeded(false);
-                etlResult.setErrorMessage("Config is null!");
-                return etlResult;
-            }
             MappingConfig.HbaseMapping hbaseMapping = config.getHbaseMapping();
-            hbaseTable = hbaseMapping.getHbaseTable();
-
-            long start = System.currentTimeMillis();
 
             if (params != null && params.size() == 1 && "rebuild".equalsIgnoreCase(params.get(0))) {
                 logger.info(hbaseMapping.getHbaseTable() + " rebuild is starting!");
@@ -95,119 +76,28 @@ public class HbaseEtlService {
             } else {
                 logger.info(hbaseMapping.getHbaseTable() + " etl is starting!");
             }
-            createTable(hbaseTemplate, config);
+            createTable();
 
             // 拼接sql
             String sql = "SELECT * FROM " + config.getHbaseMapping().getDatabase() + "." + hbaseMapping.getTable();
 
-            // 拼接条件
-            if (params != null && params.size() == 1 && hbaseMapping.getEtlCondition() == null) {
-                AtomicBoolean stExists = new AtomicBoolean(false);
-                // 验证是否有SYS_TIME字段
-                Util.sqlRS(ds, sql, rs -> {
-                    try {
-                        ResultSetMetaData rsmd = rs.getMetaData();
-                        int cnt = rsmd.getColumnCount();
-                        for (int i = 1; i <= cnt; i++) {
-                            String columnName = rsmd.getColumnName(i);
-                            if ("SYS_TIME".equalsIgnoreCase(columnName)) {
-                                stExists.set(true);
-                                break;
-                            }
-                        }
-                    } catch (Exception e) {
-                        // ignore
-                    }
-                    return null;
-                });
-                if (stExists.get()) {
-                    sql += " WHERE SYS_TIME >= '" + params.get(0) + "' ";
-                }
-            } else if (hbaseMapping.getEtlCondition() != null && params != null) {
-                String etlCondition = hbaseMapping.getEtlCondition();
-                int size = params.size();
-                for (int i = 0; i < size; i++) {
-                    etlCondition = etlCondition.replace("{" + i + "}", params.get(i));
-                }
-
-                sql += " " + etlCondition;
-            }
-
-            // 获取总数
-            String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-            long cnt = (Long) Util.sqlRS(ds, countSql, rs -> {
-                Long count = null;
-                try {
-                    if (rs.next()) {
-                        count = ((Number) rs.getObject(1)).longValue();
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-                return count == null ? 0 : count;
-            });
-
-            // 当大于1万条记录时开启多线程
-            if (cnt >= 10000) {
-                int threadCount = 3;
-                long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
-                for (int i = 0; i < threadCount; i++) {
-                    long offset = i * perThreadCnt;
-                    Long size = null;
-                    if (i != threadCount - 1) {
-                        size = perThreadCnt;
-                    }
-                    String sqlFinal;
-                    if (size != null) {
-                        sqlFinal = sql + " LIMIT " + offset + "," + size;
-                    } else {
-                        sqlFinal = sql + " LIMIT " + offset + "," + cnt;
-                    }
-                    executor.submit(
-                        () -> executeSqlImport(ds, sqlFinal, hbaseMapping, hbaseTemplate, successCount, errMsg));
-                }
-
-                executor.shutdown();
-                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
-                    // ignore
-                }
-            } else {
-                executeSqlImport(ds, sql, hbaseMapping, hbaseTemplate, successCount, errMsg);
-            }
-
-            logger.info(hbaseMapping.getHbaseTable() + " etl completed in: "
-                        + (System.currentTimeMillis() - start) / 1000 + "s!");
-
-            etlResult.setResultMessage("导入HBase表 " + hbaseMapping.getHbaseTable() + " 数据：" + successCount.get() + " 条");
+            return super.importData(sql, params);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            errMsg.add(hbaseTable + " etl failed! ==>" + e.getMessage());
+            errMsg.add("HBase etl error ==>" + e.getMessage());
         }
-
-        if (errMsg.isEmpty()) {
-            etlResult.setSucceeded(true);
-        } else {
-            etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
-        }
+        etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
         return etlResult;
     }
 
     /**
      * 执行导入
-     *
-     * @param ds
-     * @param sql
-     * @param hbaseMapping
-     * @param hbaseTemplate
-     * @param successCount
-     * @param errMsg
-     * @return
      */
-    private static boolean executeSqlImport(DataSource ds, String sql, MappingConfig.HbaseMapping hbaseMapping,
-                                            HbaseTemplate hbaseTemplate, AtomicLong successCount, List<String> errMsg) {
+    protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
+                                       AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
+        MappingConfig.HbaseMapping hbaseMapping = (MappingConfig.HbaseMapping) mapping;
         try {
-            Util.sqlRS(ds, sql, rs -> {
+            Util.sqlRS(ds, sql, values, rs -> {
                 int i = 1;
 
                 try {
@@ -353,9 +243,9 @@ public class HbaseEtlService {
                             complete = true;
                         }
                         i++;
-                        successCount.incrementAndGet();
+                        impCount.incrementAndGet();
                         if (logger.isDebugEnabled()) {
-                            logger.debug("successful import count:" + successCount.get());
+                            logger.debug("successful import count:" + impCount.get());
                         }
                     }
 

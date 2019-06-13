@@ -3,7 +3,7 @@ package com.alibaba.otter.canal.common;
 import java.util.Properties;
 
 /**
- * kafka 配置项
+ * MQ 配置项
  *
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0
@@ -27,7 +27,10 @@ public class MQProperties {
     private String     aliyunSecretKey        = "";
     private boolean    transaction            = false;           // 是否开启事务
     private Properties properties             = new Properties();
-
+    private boolean    enableMessageTrace     = false;
+    private String     accessChannel          = null;
+    private String     customizedTraceTopic   = null;
+    private String     namespace              = "";
     public static class CanalDestination {
 
         private String  canalDestination;
@@ -220,5 +223,63 @@ public class MQProperties {
 
     public void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    public boolean isEnableMessageTrace() {
+        return enableMessageTrace;
+    }
+
+    public void setEnableMessageTrace(boolean enableMessageTrace) {
+        this.enableMessageTrace = enableMessageTrace;
+    }
+
+    public String getAccessChannel() {
+        return accessChannel;
+    }
+
+    public void setAccessChannel(String accessChannel) {
+        this.accessChannel = accessChannel;
+    }
+
+    public String getCustomizedTraceTopic() {
+        return customizedTraceTopic;
+    }
+
+    public void setCustomizedTraceTopic(String customizedTraceTopic) {
+        this.customizedTraceTopic = customizedTraceTopic;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    @Override public String toString() {
+        return "MQProperties{" +
+            "servers='" + servers + '\'' +
+            ", retries=" + retries +
+            ", batchSize=" + batchSize +
+            ", lingerMs=" + lingerMs +
+            ", maxRequestSize=" + maxRequestSize +
+            ", bufferMemory=" + bufferMemory +
+            ", filterTransactionEntry=" + filterTransactionEntry +
+            ", producerGroup='" + producerGroup + '\'' +
+            ", canalBatchSize=" + canalBatchSize +
+            ", canalGetTimeout=" + canalGetTimeout +
+            ", flatMessage=" + flatMessage +
+            ", compressionType='" + compressionType + '\'' +
+            ", acks='" + acks + '\'' +
+            ", aliyunAccessKey='" + aliyunAccessKey + '\'' +
+            ", aliyunSecretKey='" + aliyunSecretKey + '\'' +
+            ", transaction=" + transaction +
+            ", properties=" + properties +
+            ", enableMessageTrace=" + enableMessageTrace +
+            ", accessChannel='" + accessChannel + '\'' +
+            ", customizedTraceTopic='" + customizedTraceTopic + '\'' +
+            ", namespace='" + namespace + '\'' +
+            '}';
     }
 }

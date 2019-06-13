@@ -40,11 +40,11 @@ if [ -z "$JAVA" ]; then
   fi
 fi
 
-case "$#" 
+case "$#"
 in
-0 ) 
+0 )
   ;;
-2 ) 
+2 )
   if [ "$1" = "debug" ]; then
     DEBUG_PORT=$2
     DEBUG_SUSPEND="n"
@@ -76,7 +76,7 @@ echo "cd to $bin_abs_path for workaround relative path"
 cd $bin_abs_path
 
 echo CLASSPATH :$CLASSPATH
-$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $ADAPTER_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.adapter.launcher.CanalAdapterApplication 1>>$base/logs/adapter.log 2>&1 &
+$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $ADAPTER_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.adapter.launcher.CanalAdapterApplication 1>>/dev/null 2>&1 &
 echo $! > $base/bin/adapter.pid
 
 echo "cd to $current_path for continue"

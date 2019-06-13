@@ -65,7 +65,8 @@ public class CanalStater {
 
                         public boolean accept(File pathname) {
                             String filename = pathname.getName();
-                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename);
+                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename) &&
+                                    !"metrics".equalsIgnoreCase(filename);
                         }
                     });
                     if (instanceDirs != null && instanceDirs.length > 0) {
@@ -204,6 +205,26 @@ public class CanalStater {
         String producerGroup = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_PRODUCERGROUP);
         if (!StringUtils.isEmpty(producerGroup)) {
             mqProperties.setProducerGroup(producerGroup);
+        }
+
+        String enableMessageTrace = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_ENABLE_MESSAGE_TRACE);
+        if (!StringUtils.isEmpty(enableMessageTrace)) {
+            mqProperties.setEnableMessageTrace(Boolean.valueOf(enableMessageTrace));
+        }
+
+        String accessChannel = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_ACCESS_CHANNEL);
+        if (!StringUtils.isEmpty(accessChannel)) {
+            mqProperties.setAccessChannel(accessChannel);
+        }
+
+        String customizedTraceTopic = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CUSTOMIZED_TRACE_TOPIC);
+        if (!StringUtils.isEmpty(customizedTraceTopic)) {
+            mqProperties.setCustomizedTraceTopic(customizedTraceTopic);
+        }
+
+        String namespace = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_NAMESPACE);
+        if (!StringUtils.isEmpty(namespace)) {
+            mqProperties.setNamespace(namespace);
         }
 
         for (Object key : properties.keySet()) {

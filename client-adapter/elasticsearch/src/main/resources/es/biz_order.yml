@@ -17,5 +17,5 @@ esMapping:
         from biz_order t"
   skips:
     - customer_id
-  etlCondition: "where t.c_time>='{0}'"
+  etlCondition: "where t.c_time>={}"
   commitBatch: 3000

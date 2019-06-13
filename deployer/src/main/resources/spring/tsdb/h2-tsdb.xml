@@ -43,6 +43,7 @@
         <property name="testOnBorrow" value="false" />
         <property name="testOnReturn" value="false" />
         <property name="useUnfairLock" value="true" />
+        <property name="validationQuery" value="SELECT 1" />
 	</bean>
 
     <bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">

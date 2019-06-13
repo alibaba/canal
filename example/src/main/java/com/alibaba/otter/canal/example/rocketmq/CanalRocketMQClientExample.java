@@ -1,15 +1,12 @@
 package com.alibaba.otter.canal.example.rocketmq;
 
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.protocol.Message;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
-
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.example.kafka.AbstractKafkaTest;
-import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * Kafka client example
@@ -34,16 +31,28 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                                                         }
                                                     };
 
-    public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
+    public CanalRocketMQClientExample(String nameServers, String topic, String groupId) {
         connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, false);
+    }
+
+    public CanalRocketMQClientExample(String nameServers, String topic, String groupId, boolean enableMessageTrace,
+        String accessKey, String secretKey, String accessChannel, String namespace) {
+        connector = new RocketMQCanalConnector(nameServers, topic, groupId, accessKey,
+            secretKey, -1, false, enableMessageTrace,
+            null, accessChannel, namespace);
     }
 
     public static void main(String[] args) {
         try {
             final CanalRocketMQClientExample rocketMQClientExample = new CanalRocketMQClientExample(nameServers,
                 topic,
-                groupId);
-            logger.info("## Start the rocketmq consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
+                groupId,
+                enableMessageTrace,
+                accessKey,
+                secretKey,
+                accessChannel,
+                namespace);
+            logger.info("## Start the rocketmq consumer: {}-{}", topic, groupId);
             rocketMQClientExample.start();
             logger.info("## The canal rocketmq consumer is running now ......");
             Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -108,7 +117,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
+                    List<Message> messages = connector.getListWithoutAck(1000L, TimeUnit.MILLISECONDS); // 获取message
                     for (Message message : messages) {
                         long batchId = message.getId();
                         int size = message.getEntries().size();

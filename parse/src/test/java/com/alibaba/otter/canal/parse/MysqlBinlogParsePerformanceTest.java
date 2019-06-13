@@ -26,7 +26,9 @@ import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
+import org.junit.Ignore;
 
+@Ignore
 public class MysqlBinlogParsePerformanceTest {
 
     protected static Charset charset = Charset.forName("utf-8");

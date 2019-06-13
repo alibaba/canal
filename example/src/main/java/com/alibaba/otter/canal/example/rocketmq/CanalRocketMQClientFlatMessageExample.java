@@ -43,7 +43,7 @@ public class CanalRocketMQClientFlatMessageExample extends AbstractRocektMQTest 
             final CanalRocketMQClientFlatMessageExample rocketMQClientExample = new CanalRocketMQClientFlatMessageExample(nameServers,
                 topic,
                 groupId);
-            logger.info("## Start the rocketmq consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
+            logger.info("## Start the rocketmq consumer: {}-{}", topic, groupId);
             rocketMQClientExample.start();
             logger.info("## The canal rocketmq consumer is running now ......");
             Runtime.getRuntime().addShutdownHook(new Thread() {

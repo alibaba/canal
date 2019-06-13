@@ -221,16 +221,24 @@ public class MQMessageUtils {
                         partitionEntries[pkHash].add(entry);
                     } else {
                         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-                            int hashCode = table.hashCode();
+                            int hashCode = database.hashCode();
+                            CanalEntry.EventType eventType = rowChange.getEventType();
+                            List<CanalEntry.Column> columns = null;
+                            if (eventType == CanalEntry.EventType.DELETE) {
+                                columns = rowData.getBeforeColumnsList();
+                            } else {
+                                columns = rowData.getAfterColumnsList();
+                            }
+
                             if (hashMode.autoPkHash) {
                                 // isEmpty use default pkNames
-                                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                                for (CanalEntry.Column column : columns) {
                                     if (column.getIsKey()) {
                                         hashCode = hashCode ^ column.getValue().hashCode();
                                     }
                                 }
                             } else {
-                                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                                for (CanalEntry.Column column : columns) {
                                     if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
                                         hashCode = hashCode ^ column.getValue().hashCode();
                                     }
@@ -437,7 +445,7 @@ public class MQMessageUtils {
 
                     int idx = 0;
                     for (Map<String, String> row : flatMessage.getData()) {
-                        int hashCode = table.hashCode();
+                        int hashCode = database.hashCode();
                         for (String pkName : pkNames) {
                             String value = row.get(pkName);
                             if (value == null) {

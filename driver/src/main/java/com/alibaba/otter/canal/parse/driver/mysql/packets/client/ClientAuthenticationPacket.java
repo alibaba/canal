@@ -17,7 +17,7 @@ public class ClientAuthenticationPacket extends PacketWithHeaderPacket {
     private int    clientCapability = Capability.CLIENT_LONG_PASSWORD | Capability.CLIENT_LONG_FLAG
                                       | Capability.CLIENT_PROTOCOL_41 | Capability.CLIENT_INTERACTIVE
                                       | Capability.CLIENT_TRANSACTIONS | Capability.CLIENT_SECURE_CONNECTION
-                                      | Capability.CLIENT_MULTI_STATEMENTS;
+                                      | Capability.CLIENT_MULTI_STATEMENTS | Capability.CLIENT_PLUGIN_AUTH;
     private String username;
     private String password;
     private byte   charsetNumber;

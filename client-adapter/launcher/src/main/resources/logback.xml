@@ -8,17 +8,17 @@
 	</appender>
 
 	<appender name="CANAL-ROOT" class="ch.qos.logback.classic.sift.SiftingAppender">
-		<discriminator>
-			<Key>adapter</Key>
-			<DefaultValue>adapter</DefaultValue>
-		</discriminator>
+        <discriminator>
+            <Key>adapter</Key>
+            <DefaultValue>adapter</DefaultValue>
+        </discriminator>
 		<sift>
-			<appender name="FILE-${adapter}" class="ch.qos.logback.core.rolling.RollingFileAppender">
-				<File>../logs/${adapter}/${adapter}.log</File>
+			<appender name="FILE-adapter" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>../logs/adapter/adapter.log</File>
 				<rollingPolicy
 						class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 					<!-- rollover daily -->
-					<fileNamePattern>../logs/${adapter}/%d{yyyy-MM-dd}/${adapter}-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+					<fileNamePattern>../logs/adapter/%d{yyyy-MM-dd}/adapter-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
 					<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 						<!-- or whenever the file size reaches 100MB -->
 						<maxFileSize>512MB</maxFileSize>
@@ -36,14 +36,22 @@
 
 	<logger name="com.alibaba.otter.canal.client.adapter.hbase" additivity="false">
 		<level value="DEBUG" />
+		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
 	<logger name="com.alibaba.otter.canal.client.adapter.es" additivity="false">
 		<level value="DEBUG" />
+		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
 	<logger name="com.alibaba.otter.canal.client.adapter.rdb" additivity="false">
 		<level value="DEBUG" />
+		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+	<logger name="com.alibaba.otter.canal.client.adapter.logger" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
 

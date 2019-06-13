@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,6 +24,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/tsdb/h2-tsdb.xml" })
+@Ignore
 public class TableMetaManagerTest {
 
     @Resource

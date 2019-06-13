@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.instance.core.CanalInstance;
@@ -33,8 +34,8 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
-
-public class CanalServerWithNettyTest {
+@Ignore
+public class CanalServerTest {
 
     protected static final String cluster1      = "127.0.0.1:2188";
     protected static final String DESTINATION   = "ljhtest1";
