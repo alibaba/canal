@@ -1,11 +1,12 @@
 package com.alibaba.otter.canal.kafka;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.otter.canal.common.MQMessageUtils;
+import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.spi.CanalMQProducer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -14,13 +15,12 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.otter.canal.common.MQMessageUtils;
-import com.alibaba.otter.canal.common.MQProperties;
-import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.alibaba.otter.canal.protocol.Message;
-import com.alibaba.otter.canal.spi.CanalMQProducer;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
  * kafka producer 主操作类
@@ -59,6 +59,26 @@ public class CanalKafkaProducer implements CanalMQProducer {
         } else {
             properties.put("retries", kafkaProperties.getRetries());
         }
+
+        if (kafkaProperties.isKerberosEnable()){
+            File krb5File = new File(kafkaProperties.getKerberosKrb5FilePath());
+            File jaasFile = new File(kafkaProperties.getKerberosJaasFilePath());
+            if(krb5File.exists() && jaasFile.exists()){
+                //配置kerberos认证，需要使用绝对路径
+                System.setProperty("java.security.krb5.conf",
+                        krb5File.getAbsolutePath());
+                System.setProperty("java.security.auth.login.config",
+                        jaasFile.getAbsolutePath());
+                System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+                properties.put("security.protocol", "SASL_PLAINTEXT");
+                properties.put("sasl.kerberos.service.name", "kafka");
+            }else{
+                String errorMsg = "ERROR # The kafka kerberos configuration file does not exist! please check it";
+                logger.error(errorMsg);
+                throw new RuntimeException(errorMsg);
+            }
+        }
+
         if (!kafkaProperties.getFlatMessage()) {
             properties.put("value.serializer", MessageSerializer.class.getName());
             producer = new KafkaProducer<String, Message>(properties);

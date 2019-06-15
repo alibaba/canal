@@ -1,15 +1,5 @@
 package com.alibaba.otter.canal.deployer;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
 import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
@@ -18,6 +8,15 @@ import com.alibaba.otter.canal.spi.CanalMQProducer;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Canal server 启动类
@@ -225,6 +224,21 @@ public class CanalStater {
         String namespace = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_NAMESPACE);
         if (!StringUtils.isEmpty(namespace)) {
             mqProperties.setNamespace(namespace);
+        }
+
+        String kafkaKerberosEnable = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
+        if (!StringUtils.isEmpty(kafkaKerberosEnable)) {
+            mqProperties.setKerberosEnable(Boolean.valueOf(kafkaKerberosEnable));
+        }
+
+        String kafkaKerberosKrb5Filepath = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH);
+        if (!StringUtils.isEmpty(kafkaKerberosKrb5Filepath)) {
+            mqProperties.setKerberosKrb5FilePath(kafkaKerberosKrb5Filepath);
+        }
+
+        String kafkaKerberosJaasFilepath = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH);
+        if (!StringUtils.isEmpty(kafkaKerberosJaasFilepath)) {
+            mqProperties.setKerberosJaasFilePath(kafkaKerberosJaasFilepath);
         }
 
         for (Object key : properties.keySet()) {
