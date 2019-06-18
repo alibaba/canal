@@ -31,6 +31,10 @@ public class MQProperties {
     private String     accessChannel          = null;
     private String     customizedTraceTopic   = null;
     private String     namespace              = "";
+    private boolean    kerberosEnable         = false;           //kafka集群是否启动Kerberos认证
+    private String     kerberosKrb5FilePath   = "";              //启动Kerberos认证时配置为krb5.conf文件的路径
+    private String     kerberosJaasFilePath   = "";              //启动Kerberos认证时配置为jaas.conf文件的路径
+
     public static class CanalDestination {
 
         private String  canalDestination;
@@ -257,6 +261,30 @@ public class MQProperties {
         this.namespace = namespace;
     }
 
+    public boolean isKerberosEnable() {
+        return kerberosEnable;
+    }
+
+    public void setKerberosEnable(boolean kerberosEnable) {
+        this.kerberosEnable = kerberosEnable;
+    }
+
+    public String getKerberosKrb5FilePath() {
+        return kerberosKrb5FilePath;
+    }
+
+    public void setKerberosKrb5FilePath(String kerberosKrb5FilePath) {
+        this.kerberosKrb5FilePath = kerberosKrb5FilePath;
+    }
+
+    public String getKerberosJaasFilePath() {
+        return kerberosJaasFilePath;
+    }
+
+    public void setKerberosJaasFilePath(String kerberosJaasFilePath) {
+        this.kerberosJaasFilePath = kerberosJaasFilePath;
+    }
+
     @Override public String toString() {
         return "MQProperties{" +
             "servers='" + servers + '\'' +
@@ -280,6 +308,9 @@ public class MQProperties {
             ", accessChannel='" + accessChannel + '\'' +
             ", customizedTraceTopic='" + customizedTraceTopic + '\'' +
             ", namespace='" + namespace + '\'' +
+            ", kerberosEnable='" + kerberosEnable + '\'' +
+            ", kerberosKrb5FilePath='" + kerberosKrb5FilePath + '\'' +
+            ", kerberosJaasFilePath='" + kerberosJaasFilePath + '\'' +
             '}';
     }
 }
