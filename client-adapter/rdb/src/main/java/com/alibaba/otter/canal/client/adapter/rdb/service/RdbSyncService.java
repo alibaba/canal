@@ -272,7 +272,7 @@ public class RdbSyncService {
             batchExecutor.execute(insertSql.toString(), values);
         } catch (SQLException e) {
             if (skipDupException
-                && (e.getMessage().contains("Duplicate entry") || e.getMessage().startsWith("ORA-00001: 违反唯一约束条件"))) {
+                && (e.getMessage().contains("Duplicate entry") || e.getMessage().startsWith("ORA-00001:"))) {
                 // ignore
                 // TODO 增加更多关系数据库的主键冲突的错误码
             } else {
