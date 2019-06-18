@@ -473,6 +473,7 @@ public class MQMessageUtils {
                             flatMessageTmp.setMysqlType(flatMessage.getMysqlType());
                             flatMessageTmp.setEs(flatMessage.getEs());
                             flatMessageTmp.setTs(flatMessage.getTs());
+                            flatMessageTmp.setPkNames(flatMessage.getPkNames());
                         }
                         List<Map<String, String>> data = flatMessageTmp.getData();
                         if (data == null) {
