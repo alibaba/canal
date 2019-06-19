@@ -706,10 +706,8 @@ public class QueryLogEvent extends LogEvent {
                          * That's why you must write status vars in growing
                          * order of code
                          */
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Query_log_event has unknown status vars (first has code: " + code
-                                         + "), skipping the rest of them");
-                        }
+                        logger.error("Query_log_event has unknown status vars (first has code: " + code
+                                     + "), skipping the rest of them");
                         break; // Break loop
                 }
             }
