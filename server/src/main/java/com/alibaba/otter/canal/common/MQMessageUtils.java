@@ -222,15 +222,23 @@ public class MQMessageUtils {
                     } else {
                         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
                             int hashCode = database.hashCode();
+                            CanalEntry.EventType eventType = rowChange.getEventType();
+                            List<CanalEntry.Column> columns = null;
+                            if (eventType == CanalEntry.EventType.DELETE) {
+                                columns = rowData.getBeforeColumnsList();
+                            } else {
+                                columns = rowData.getAfterColumnsList();
+                            }
+
                             if (hashMode.autoPkHash) {
                                 // isEmpty use default pkNames
-                                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                                for (CanalEntry.Column column : columns) {
                                     if (column.getIsKey()) {
                                         hashCode = hashCode ^ column.getValue().hashCode();
                                     }
                                 }
                             } else {
-                                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                                for (CanalEntry.Column column : columns) {
                                     if (checkPkNamesHasContain(hashMode.pkNames, column.getName())) {
                                         hashCode = hashCode ^ column.getValue().hashCode();
                                     }
@@ -438,12 +446,14 @@ public class MQMessageUtils {
                     int idx = 0;
                     for (Map<String, String> row : flatMessage.getData()) {
                         int hashCode = database.hashCode();
-                        for (String pkName : pkNames) {
-                            String value = row.get(pkName);
-                            if (value == null) {
-                                value = "";
+                        if (pkNames != null) {
+                            for (String pkName : pkNames) {
+                                String value = row.get(pkName);
+                                if (value == null) {
+                                    value = "";
+                                }
+                                hashCode = hashCode ^ value.hashCode();
                             }
-                            hashCode = hashCode ^ value.hashCode();
                         }
 
                         int pkHash = Math.abs(hashCode) % partitionsNum;
@@ -463,6 +473,7 @@ public class MQMessageUtils {
                             flatMessageTmp.setMysqlType(flatMessage.getMysqlType());
                             flatMessageTmp.setEs(flatMessage.getEs());
                             flatMessageTmp.setTs(flatMessage.getTs());
+                            flatMessageTmp.setPkNames(flatMessage.getPkNames());
                         }
                         List<Map<String, String>> data = flatMessageTmp.getData();
                         if (data == null) {

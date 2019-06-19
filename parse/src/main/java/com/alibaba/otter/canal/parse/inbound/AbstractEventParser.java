@@ -242,7 +242,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         if (parallel) {
                             // build stage processor
                             multiStageCoprocessor = buildMultiStageCoprocessor();
-                            if (isGTIDMode()) {
+                            if (isGTIDMode() && StringUtils.isNotEmpty(startPosition.getGtid())) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
                                 GTIDSet gtidSet = MysqlGTIDSet.parse(startPosition.getGtid());
                                 ((MysqlMultiStageCoprocessor) multiStageCoprocessor).setGtidSet(gtidSet);
@@ -260,7 +260,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 }
                             }
                         } else {
-                            if (isGTIDMode()) {
+                            if (isGTIDMode() && StringUtils.isNotEmpty(startPosition.getGtid())) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
                                 erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), sinkHandler);
                             } else {
