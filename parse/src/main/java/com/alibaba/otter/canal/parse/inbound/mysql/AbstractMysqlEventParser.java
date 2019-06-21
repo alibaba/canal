@@ -50,6 +50,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         if (eventBlackFilter != null && eventBlackFilter instanceof AviaterRegexFilter) {
             convert.setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
+        
+        convert.setFieldFilterMap(getFieldFilterMap());
 
         convert.setCharset(connectionCharset);
         convert.setFilterQueryDcl(filterQueryDcl);
@@ -88,6 +90,20 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
                 ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
             }
+        }
+    }
+    
+    @Override
+    public void setFieldFilter(String fieldFilter) {
+    	super.setFieldFilter(fieldFilter);
+    	
+    	// 触发一下filter变更
+    	if (binlogParser instanceof LogEventConvert) {
+            ((LogEventConvert) binlogParser).setFieldFilterMap(getFieldFilterMap());
+        }
+
+        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            ((DatabaseTableMeta) tableMetaTSDB).setFieldFilterMap(getFieldFilterMap());
         }
     }
 

@@ -2,7 +2,9 @@ package com.alibaba.otter.canal.parse.inbound;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,6 +55,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected CanalEventFilter                       eventFilter                = null;
     protected CanalEventFilter                       eventBlackFilter           = null;
 
+    // 字段过滤
+    protected String		  			  			fieldFilter;
+    protected Map<String, List<String>> 			fieldFilterMap = new HashMap<String, List<String>>();
+    
     private CanalAlarmHandler                        alarmHandler               = null;
 
     // 统计参数
@@ -655,4 +661,33 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.serverId = serverId;
     }
 
+    public String getFieldFilter() {
+		return fieldFilter;
+	}
+
+	public void setFieldFilter(String fieldFilter) {
+		this.fieldFilter = fieldFilter.trim();
+		this.fieldFilterMap = new HashMap<String, List<String>>();
+		
+		if (StringUtils.isNotBlank(this.fieldFilter)) {
+			for (String filter : this.fieldFilter.split(",")) {
+				if (StringUtils.isBlank(this.fieldFilter)) {
+					continue;
+				}
+				
+				String[] filterConfig = filter.split("=");
+				fieldFilterMap.put(filterConfig[0].trim().toUpperCase(), Arrays.asList(filterConfig[1].trim().toUpperCase().split("/")));
+			}
+		}
+	}
+	
+	/**
+	 * 获取表字段过滤规则
+	 * @return
+	 * 	key:	schema.tableName
+	 * 	value:	字段列表
+	 */
+	public Map<String, List<String>> getFieldFilterMap() {
+		return fieldFilterMap;
+	}
 }

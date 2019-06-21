@@ -69,6 +69,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private volatile MysqlConnection        connection;                                                                 // 查询meta信息的链接
     private CanalEventFilter                filter;
     private CanalEventFilter                blackFilter;
+    private Map<String, List<String>> 		fieldFilterMap = new HashMap<String, List<String>>();
     private EntryPosition                   lastPosition;
     private boolean                         hasNewDdl;
     private MetaHistoryDAO                  metaHistoryDAO;
@@ -580,6 +581,10 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     public void setBlackFilter(CanalEventFilter blackFilter) {
         this.blackFilter = blackFilter;
     }
+    
+    public void setFieldFilterMap(Map<String, List<String>> fieldFilterMap) {
+		this.fieldFilterMap = fieldFilterMap;
+	}
 
     public int getSnapshotInterval() {
         return snapshotInterval;

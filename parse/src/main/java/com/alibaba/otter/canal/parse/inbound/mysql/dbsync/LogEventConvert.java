@@ -8,7 +8,9 @@ import java.nio.charset.Charset;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -86,6 +88,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
+    private Map<String, List<String>> 	fieldFilterMap = new HashMap<String, List<String>>();
 
     private TableMetaCache              tableMetaCache;
     private Charset                     charset             = Charset.defaultCharset();
@@ -584,6 +587,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         boolean tableError = false;
         // check table fileds count，只能处理加字段
         boolean existRDSNoPrimaryKey = false;
+        //获取字段过滤条件
+        List<String> fieldList = null;
+        if (tableMeta != null) {
+        	fieldList = fieldFilterMap.get(tableMeta.getFullName().toUpperCase());
+        }
+        
         if (tableMeta != null && columnInfo.length > tableMeta.getFields().size()) {
             if (tableMetaCache.isOnRDS()) {
                 // 特殊处理下RDS的场景
@@ -650,10 +659,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 columnBuilder.setSqlType(Types.BIGINT);
                 columnBuilder.setUpdated(false);
 
-                if (isAfter) {
-                    rowDataBuilder.addAfterColumns(columnBuilder.build());
-                } else {
-                    rowDataBuilder.addBeforeColumns(columnBuilder.build());
+                if (needField(fieldList, columnBuilder.getName())) {
+                	if (isAfter) {
+                        rowDataBuilder.addAfterColumns(columnBuilder.build());
+                    } else {
+                        rowDataBuilder.addBeforeColumns(columnBuilder.build());
+                    }
                 }
                 continue;
             }
@@ -820,10 +831,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                      && isUpdate(rowDataBuilder.getBeforeColumnsList(),
                                          columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
                                          i));
-            if (isAfter) {
-                rowDataBuilder.addAfterColumns(columnBuilder.build());
-            } else {
-                rowDataBuilder.addBeforeColumns(columnBuilder.build());
+            if (needField(fieldList, columnBuilder.getName())) {
+            	if (isAfter) {
+                    rowDataBuilder.addAfterColumns(columnBuilder.build());
+                } else {
+                    rowDataBuilder.addBeforeColumns(columnBuilder.build());
+                }
             }
         }
 
@@ -958,6 +971,13 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean isRDSHeartBeat(String schema, String table) {
         return "mysql".equalsIgnoreCase(schema) && "ha_health_check".equalsIgnoreCase(table);
     }
+    
+    /**
+     * 字段过滤判断
+     */
+    private boolean needField(List<String> fieldList, String columnName) {
+    	return fieldList == null || fieldList.isEmpty() || fieldList.contains(columnName.toUpperCase());
+    }
 
     public static TransactionBegin createTransactionBegin(long threadId) {
         TransactionBegin.Builder beginBuilder = TransactionBegin.newBuilder();
@@ -999,6 +1019,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         this.nameBlackFilter = nameBlackFilter;
         logger.warn("--> init table black filter : " + nameBlackFilter.toString());
     }
+    
+    public void setFieldFilterMap(Map<String, List<String>> fieldFilterMap) {
+		this.fieldFilterMap = fieldFilterMap;
+		
+		for (Map.Entry<String, List<String>> entry : fieldFilterMap.entrySet()) {
+			logger.warn("--> init field filter : " + entry.getKey() + "->" + entry.getValue());
+		}
+	}
 
     public void setTableMetaCache(TableMetaCache tableMetaCache) {
         this.tableMetaCache = tableMetaCache;
