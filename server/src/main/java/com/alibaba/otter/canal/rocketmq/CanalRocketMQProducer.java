@@ -18,6 +18,7 @@ import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.common.CanalMessageSerializer;
@@ -29,7 +30,7 @@ import com.alibaba.otter.canal.spi.CanalMQProducer;
 
 public class CanalRocketMQProducer implements CanalMQProducer {
 
-    private static final Logger logger = LoggerFactory.getLogger(CanalRocketMQProducer.class);
+    private static final Logger logger               = LoggerFactory.getLogger(CanalRocketMQProducer.class);
     private DefaultMQProducer   defaultMQProducer;
     private MQProperties        mqProperties;
     private static final String CLOUD_ACCESS_CHANNEL = "cloud";
@@ -46,11 +47,14 @@ public class CanalRocketMQProducer implements CanalMQProducer {
             rpcHook = new AclClientRPCHook(sessionCredentials);
         }
 
-        defaultMQProducer = new DefaultMQProducer(rocketMQProperties.getProducerGroup(), rpcHook, mqProperties.isEnableMessageTrace(), mqProperties.getCustomizedTraceTopic());
-        if (CLOUD_ACCESS_CHANNEL.equals(rocketMQProperties.getAccessChannel())){
+        defaultMQProducer = new DefaultMQProducer(rocketMQProperties.getProducerGroup(),
+            rpcHook,
+            mqProperties.isEnableMessageTrace(),
+            mqProperties.getCustomizedTraceTopic());
+        if (CLOUD_ACCESS_CHANNEL.equals(rocketMQProperties.getAccessChannel())) {
             defaultMQProducer.setAccessChannel(AccessChannel.CLOUD);
         }
-        if (!StringUtils.isEmpty(mqProperties.getNamespace())){
+        if (!StringUtils.isEmpty(mqProperties.getNamespace())) {
             defaultMQProducer.setNamespace(mqProperties.getNamespace());
         }
         defaultMQProducer.setNamesrvAddr(rocketMQProperties.getServers());
@@ -85,22 +89,6 @@ public class CanalRocketMQProducer implements CanalMQProducer {
             callback.commit();
         } catch (Throwable e) {
             callback.rollback();
-        }
-    }
-
-    private void sendMessage(Message message, int partition) throws Exception{
-        SendResult sendResult = this.defaultMQProducer.send(message, new MessageQueueSelector() {
-            @Override
-            public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
-                if (partition > mqs.size()) {
-                    return mqs.get(partition % mqs.size());
-                } else {
-                    return mqs.get(partition);
-                }
-            }
-        }, null);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Send Message Result: {}", sendResult);
         }
     }
 
@@ -200,6 +188,23 @@ public class CanalRocketMQProducer implements CanalMQProducer {
 
         if (logger.isDebugEnabled()) {
             logger.debug("send message to rocket topic: {}", destination.getTopic());
+        }
+    }
+
+    private void sendMessage(Message message, int partition) throws Exception {
+        SendResult sendResult = this.defaultMQProducer.send(message, new MessageQueueSelector() {
+
+            @Override
+            public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
+                if (partition > mqs.size()) {
+                    return mqs.get(partition % mqs.size());
+                } else {
+                    return mqs.get(partition);
+                }
+            }
+        }, null);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Send Message Result: {}", sendResult);
         }
     }
 
