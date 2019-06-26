@@ -88,7 +88,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
-    private Map<String, List<String>> 	fieldFilterMap = new HashMap<String, List<String>>();
+    private Map<String, List<String>> 	fieldFilterMap 		= new HashMap<String, List<String>>();
+    private Map<String, List<String>> 	fieldBlackFilterMap = new HashMap<String, List<String>>();
 
     private TableMetaCache              tableMetaCache;
     private Charset                     charset             = Charset.defaultCharset();
@@ -589,8 +590,11 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         boolean existRDSNoPrimaryKey = false;
         //获取字段过滤条件
         List<String> fieldList = null;
+        List<String> blackFieldList = null;
+        
         if (tableMeta != null) {
         	fieldList = fieldFilterMap.get(tableMeta.getFullName().toUpperCase());
+        	blackFieldList = fieldBlackFilterMap.get(tableMeta.getFullName().toUpperCase());
         }
         
         if (tableMeta != null && columnInfo.length > tableMeta.getFields().size()) {
@@ -659,7 +663,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 columnBuilder.setSqlType(Types.BIGINT);
                 columnBuilder.setUpdated(false);
 
-                if (needField(fieldList, columnBuilder.getName())) {
+                if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
                 	if (isAfter) {
                         rowDataBuilder.addAfterColumns(columnBuilder.build());
                     } else {
@@ -831,7 +835,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                      && isUpdate(rowDataBuilder.getBeforeColumnsList(),
                                          columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
                                          i));
-            if (needField(fieldList, columnBuilder.getName())) {
+            if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
             	if (isAfter) {
                     rowDataBuilder.addAfterColumns(columnBuilder.build());
                 } else {
@@ -975,8 +979,12 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     /**
      * 字段过滤判断
      */
-    private boolean needField(List<String> fieldList, String columnName) {
-    	return fieldList == null || fieldList.isEmpty() || fieldList.contains(columnName.toUpperCase());
+    private boolean needField(List<String> fieldList, List<String> blackFieldList, String columnName) {
+    	if (fieldList == null || fieldList.isEmpty()) {
+    		return blackFieldList == null || blackFieldList.isEmpty() || !blackFieldList.contains(columnName.toUpperCase());
+    	} else {
+    		return fieldList.contains(columnName.toUpperCase());
+    	}
     }
 
     public static TransactionBegin createTransactionBegin(long threadId) {
@@ -1021,10 +1029,27 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     }
     
     public void setFieldFilterMap(Map<String, List<String>> fieldFilterMap) {
-		this.fieldFilterMap = fieldFilterMap;
+    	if (fieldFilterMap != null) {
+    		this.fieldFilterMap = fieldFilterMap;
+    	} else {
+    		this.fieldFilterMap = new HashMap<String, List<String>>();
+    	}
 		
-		for (Map.Entry<String, List<String>> entry : fieldFilterMap.entrySet()) {
+		
+		for (Map.Entry<String, List<String>> entry : this.fieldFilterMap.entrySet()) {
 			logger.warn("--> init field filter : " + entry.getKey() + "->" + entry.getValue());
+		}
+	}
+    
+    public void setFieldBlackFilterMap(Map<String, List<String>> fieldBlackFilterMap) {
+		if (fieldBlackFilterMap != null) {
+    		this.fieldBlackFilterMap = fieldBlackFilterMap;
+    	} else {
+    		this.fieldBlackFilterMap = new HashMap<String, List<String>>();
+    	}
+		
+		for (Map.Entry<String, List<String>> entry : this.fieldBlackFilterMap.entrySet()) {
+			logger.warn("--> init field black filter : " + entry.getKey() + "->" + entry.getValue());
 		}
 	}
 

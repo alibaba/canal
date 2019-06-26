@@ -57,7 +57,9 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     // 字段过滤
     protected String		  			  			fieldFilter;
-    protected Map<String, List<String>> 			fieldFilterMap = new HashMap<String, List<String>>();
+    protected Map<String, List<String>> 			fieldFilterMap;
+    protected String		  			  			fieldBlackFilter;
+    protected Map<String, List<String>> 			fieldBlackFilterMap;
     
     private CanalAlarmHandler                        alarmHandler               = null;
 
@@ -534,6 +536,31 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         }
         heartBeatTimerTask = null;
     }
+    
+    /**
+     * 解析字段过滤规则
+     */
+    private Map<String, List<String>> parseFieldFilterMap(String config) {
+    	
+    	Map<String, List<String>> map = new HashMap<String, List<String>>();
+		
+		if (StringUtils.isNotBlank(config)) {
+			for (String filter : config.split(",")) {
+				if (StringUtils.isBlank(filter)) {
+					continue;
+				}
+				
+				String[] filterConfig = filter.split(":");
+				if (filterConfig.length != 2) {
+					continue;
+				}
+				
+				map.put(filterConfig[0].trim().toUpperCase(), Arrays.asList(filterConfig[1].trim().toUpperCase().split("/")));
+			}
+		}
+		
+		return map;
+    }
 
     public void setEventFilter(CanalEventFilter eventFilter) {
         this.eventFilter = eventFilter;
@@ -667,20 +694,18 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
 	public void setFieldFilter(String fieldFilter) {
 		this.fieldFilter = fieldFilter.trim();
-		this.fieldFilterMap = new HashMap<String, List<String>>();
-		
-		if (StringUtils.isNotBlank(this.fieldFilter)) {
-			for (String filter : this.fieldFilter.split(",")) {
-				if (StringUtils.isBlank(this.fieldFilter)) {
-					continue;
-				}
-				
-				String[] filterConfig = filter.split("=");
-				fieldFilterMap.put(filterConfig[0].trim().toUpperCase(), Arrays.asList(filterConfig[1].trim().toUpperCase().split("/")));
-			}
-		}
+		this.fieldFilterMap = parseFieldFilterMap(fieldFilter);
 	}
 	
+	public String getFieldBlackFilter() {
+		return fieldBlackFilter;
+	}
+
+	public void setFieldBlackFilter(String fieldBlackFilter) {
+		this.fieldBlackFilter = fieldBlackFilter;
+		this.fieldBlackFilterMap = parseFieldFilterMap(fieldBlackFilter);
+	}
+
 	/**
 	 * 获取表字段过滤规则
 	 * @return
@@ -690,4 +715,16 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 	public Map<String, List<String>> getFieldFilterMap() {
 		return fieldFilterMap;
 	}
+
+	/**
+	 * 获取表字段过滤规则黑名单
+	 * @return
+	 * 	key:	schema.tableName
+	 * 	value:	字段列表
+	 */
+	public Map<String, List<String>> getFieldBlackFilterMap() {
+		return fieldBlackFilterMap;
+	}
+	
+	
 }
