@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 
 import javax.sql.DataSource;
 
@@ -18,6 +19,8 @@ import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
@@ -493,17 +496,11 @@ public class ESTemplate {
         if (fieldType == null) {
             ImmutableOpenMap<String, MappingMetaData> mappings;
             try {
-                mappings = transportClient.admin()
-                    .cluster()
-                    .prepareState()
-                    .execute()
-                    .actionGet()
-                    .getState()
-                    .getMetaData()
-                    .getIndices()
-                    .get(mapping.get_index())
-                    .getMappings();
-            } catch (NullPointerException e) {
+                GetMappingsResponse res;
+                res = transportClient.admin().indices().getMappings(new GetMappingsRequest().indices(mapping.get_index())).get();
+                Iterator<ImmutableOpenMap<String, MappingMetaData>> it = res.getMappings().valuesIt();
+                mappings = it.next();
+            } catch (NullPointerException | InterruptedException | ExecutionException e) {
                 throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());
             }
             MappingMetaData mappingMetaData = mappings.get(mapping.get_type());
