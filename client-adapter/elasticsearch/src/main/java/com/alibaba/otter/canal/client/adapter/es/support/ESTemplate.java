@@ -183,8 +183,8 @@ public class ESTemplate {
                 .setSize(10000)
                 .get();
             for (SearchHit hit : response.getHits()) {
-                getBulk().add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), hit.getId())
-                    .setDoc(esFieldData));
+//                getBulk().add(transportClient.prepareUpdate(mapping.get_index(), mapping.get_type(), hit.getId()).setDoc(esFieldData));
+                getBulk().add(transportClient.prepareDelete(mapping.get_index(), mapping.get_type(), hit.getId()));
                 commitBulk();
             }
         }

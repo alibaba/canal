@@ -850,5 +850,6 @@ public class ESSyncService {
      */
     public void commit() {
         esTemplate.commit();
+        esTemplate.resetBulkRequestBuilder();
     }
 }
