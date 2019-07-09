@@ -81,7 +81,7 @@ public class TableMetaCache {
         }
     }
 
-    private TableMeta getTableMetaByDB(String fullname) throws IOException {
+    private synchronized TableMeta getTableMetaByDB(String fullname) throws IOException {
         try {
             ResultSetPacket packet = connection.query("show create table " + fullname);
             String[] names = StringUtils.split(fullname, "`.`");
@@ -159,7 +159,7 @@ public class TableMetaCache {
         return getTableMeta(schema, table, true, position);
     }
 
-    public TableMeta getTableMeta(String schema, String table, boolean useCache, EntryPosition position) {
+    public synchronized TableMeta getTableMeta(String schema, String table, boolean useCache, EntryPosition position) {
         TableMeta tableMeta = null;
         if (tableMetaTSDB != null) {
             tableMeta = tableMetaTSDB.find(schema, table);

@@ -40,6 +40,30 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
     }
 
+    public CanalAdapterRocketMQWorker(CanalClientConfig canalClientConfig, String nameServers, String topic,
+        String groupId, List<List<OuterAdapter>> canalOuterAdapters, String accessKey,
+        String secretKey, boolean flatMessage, boolean enableMessageTrace,
+        String customizedTraceTopic, String accessChannel, String namespace) {
+        super(canalOuterAdapters);
+        this.canalClientConfig = canalClientConfig;
+        this.topic = topic;
+        this.flatMessage = flatMessage;
+        super.canalDestination = topic;
+        super.groupId = groupId;
+        this.connector = new RocketMQCanalConnector(nameServers,
+            topic,
+            groupId,
+            accessKey,
+            secretKey,
+            canalClientConfig.getBatchSize(),
+            flatMessage,
+            enableMessageTrace,
+            customizedTraceTopic,
+            accessChannel,
+            namespace);
+        logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
+    }
+
     @Override
     protected void process() {
         while (!running) {
