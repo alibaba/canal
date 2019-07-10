@@ -126,6 +126,7 @@
         <module>example</module>
         <module>prometheus</module>
         <module>client-adapter</module>
+        <module>canal-admin</module>
     </modules>
 
     <dependencyManagement>
@@ -253,7 +254,7 @@
             <dependency>
                 <groupId>com.alibaba.fastsql</groupId>
                 <artifactId>fastsql</artifactId>
-                <version>2.0.0_preview_914</version>
+                <version>2.0.0_preview_896</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>

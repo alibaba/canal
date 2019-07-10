@@ -10,7 +10,7 @@ public class CanalConfig {
     private Long id;
     private String name;
     private String content;
-    private Timestamp modifiedTime;
+    private Date modifiedTime;
 
     public Long getId() {
         return id;
@@ -36,11 +36,11 @@ public class CanalConfig {
         this.content = content;
     }
 
-    public Timestamp getModifiedTime() {
+    public Date getModifiedTime() {
         return modifiedTime;
     }
 
-    public void setModifiedTime(Timestamp modifiedTime) {
+    public void setModifiedTime(Date modifiedTime) {
         this.modifiedTime = modifiedTime;
     }
 }
