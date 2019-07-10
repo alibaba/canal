@@ -1,12 +1,12 @@
 {
   "name": "canal-admin-ui",
-  "version": "4.2.1",
-  "description": "A vue admin template with Element UI & axios & iconfont & permission control & lint",
-  "author": "Pan <panfree23@gmail.com>",
+  "version": "1.1.4",
+  "description": "A canal-admin ui with Element UI & axios & iconfont & permission control & lint",
+  "author": "Machengyuan <rewerma@163.com>",
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve",
-    "build:prod": "vue-cli-service build",
+    "build": "vue-cli-service build",
     "build:stage": "vue-cli-service build --mode staging",
     "preview": "node build/index.js --preview",
     "lint": "eslint --ext .js,.vue src",
