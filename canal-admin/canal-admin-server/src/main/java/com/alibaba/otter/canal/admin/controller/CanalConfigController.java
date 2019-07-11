@@ -14,12 +14,12 @@ public class CanalConfigController {
     @Autowired
     CanalConfigService canalConfigService;
 
-    @RequestMapping(value = "/config", method = RequestMethod.GET)
+    @GetMapping(value = "/config")
     public BaseModel<CanalConfig> canalConfig(@PathVariable String env) {
         return BaseModel.getInstance(canalConfigService.getCanalConfig());
     }
 
-    @RequestMapping(value = "/config", method = RequestMethod.PUT)
+    @PutMapping(value = "/config")
     public BaseModel<String> updateConfig(@RequestBody CanalConfig canalConfig, @PathVariable String env) {
         canalConfigService.updateContent(canalConfig);
         return BaseModel.getInstance("success");

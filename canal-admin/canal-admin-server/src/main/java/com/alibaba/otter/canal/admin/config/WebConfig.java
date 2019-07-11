@@ -1,12 +1,10 @@
 package com.alibaba.otter.canal.admin.config;
 
+import java.io.PrintWriter;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.alibaba.otter.canal.admin.controller.UserController;
-import com.alibaba.otter.canal.admin.model.BaseModel;
-import com.alibaba.otter.canal.admin.model.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -14,7 +12,10 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.io.PrintWriter;
+import com.alibaba.otter.canal.admin.controller.UserController;
+import com.alibaba.otter.canal.admin.model.BaseModel;
+import com.alibaba.otter.canal.admin.model.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -75,42 +76,4 @@ public class WebConfig implements WebMvcConfigurer {
             }
         }).addPathPatterns("/api/**").excludePathPatterns("/api/**/user/**");
     }
-
-    /**
-     * 跨域支持
-     *
-     * @param registry
-     */
-    // @Override
-    // public void addCorsMappings(CorsRegistry registry) {
-    // registry.addMapping("/api")
-    // .allowedOrigins("http://127.0.0.1")
-    // .allowCredentials(true)
-    // .allowedMethods("*")
-    // .allowedHeaders("Origin, X-Requested-With, Content-Type, Accept,
-    // Authorization")
-    // .maxAge(3600 * 24);
-    // }
-
-    /**
-     * 添加静态资源--过滤swagger-api (开源的在线API文档)
-     *
-     * @param registry
-     */
-    // @Override
-    // public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    // // 过滤swagger
-    // registry.addResourceHandler("swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
-    //
-    // registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
-    //
-    // registry.addResourceHandler("/swagger-resources/**")
-    // .addResourceLocations("classpath:/META-INF/resources/swagger-resources/");
-    //
-    // registry.addResourceHandler("/swagger/**").addResourceLocations("classpath:/META-INF/resources/swagger*");
-    //
-    // registry.addResourceHandler("/v2/api-docs/**")
-    // .addResourceLocations("classpath:/META-INF/resources/v2/api-docs/");
-    //
-    // }
 }
