@@ -3,13 +3,13 @@ package com.alibaba.otter.canal.deployer.mbean;
 import com.alibaba.otter.canal.deployer.CanalLauncher;
 import com.alibaba.otter.canal.deployer.CanalStater;
 
-public class CanalServer implements CanalServerMXBean {
+public class CanalServerBean implements CanalServerMXBean {
 
     private volatile int status;
 
     private CanalStater  canalStater;
 
-    public CanalServer(CanalStater canalStater){
+    public CanalServerBean(CanalStater canalStater){
         this.canalStater = canalStater;
         this.status = canalStater.isRunning() ? 1 : 0;
     }
@@ -60,7 +60,7 @@ public class CanalServer implements CanalServerMXBean {
     @Override
     public synchronized boolean exit() {
         stop();
-        CanalLauncher.running = false;
+        CanalLauncher.runningLatch.countDown();
         return true;
     }
 

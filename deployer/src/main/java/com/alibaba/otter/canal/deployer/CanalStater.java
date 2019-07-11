@@ -113,7 +113,7 @@ public class CanalStater {
                 try {
                     logger.info("## stop the canal server");
                     controller.stop();
-                    CanalLauncher.running = false;
+                    CanalLauncher.runningLatch.countDown();
                 } catch (Throwable e) {
                     logger.warn("##something goes wrong when stopping canal Server:", e);
                 } finally {
