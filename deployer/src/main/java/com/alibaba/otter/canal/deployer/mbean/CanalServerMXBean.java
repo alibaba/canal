@@ -11,4 +11,12 @@ public interface CanalServerMXBean {
     boolean restart();
 
     boolean exit();
+
+    boolean startInstance(String destination);
+
+    boolean stopInstance(String destination);
+
+    boolean reloadInstance(String destination);
+
+    String getRunningInstances();
 }

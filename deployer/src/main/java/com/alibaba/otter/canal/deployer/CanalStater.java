@@ -51,6 +51,10 @@ public class CanalStater {
         this.properties = properties;
     }
 
+    public CanalController getController() {
+        return controller;
+    }
+
     /**
      * 启动方法
      *

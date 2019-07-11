@@ -2,8 +2,15 @@ package com.alibaba.otter.canal.deployer.mbean;
 
 import com.alibaba.otter.canal.deployer.CanalLauncher;
 import com.alibaba.otter.canal.deployer.CanalStater;
+import com.alibaba.otter.canal.deployer.InstanceConfig;
+import com.alibaba.otter.canal.deployer.monitor.InstanceAction;
+import com.alibaba.otter.canal.deployer.monitor.InstanceConfigMonitor;
+import com.alibaba.otter.canal.deployer.monitor.SpringInstanceConfigMonitor;
+import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 public class CanalServerBean implements CanalServerMXBean {
 
@@ -21,10 +28,6 @@ public class CanalServerBean implements CanalServerMXBean {
     @Override
     public int getStatus() {
         return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
     }
 
     @Override
@@ -66,6 +69,68 @@ public class CanalServerBean implements CanalServerMXBean {
         stop();
         CanalLauncher.runningLatch.countDown();
         return true;
+    }
+
+    @Override
+    public synchronized boolean startInstance(String destination) {
+        try {
+            InstanceAction instanceAction = getInstanceAction(destination);
+            if (instanceAction != null) {
+                instanceAction.start(destination);
+
+            }
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
+        return false;
+    }
+
+    @Override
+    public synchronized boolean stopInstance(String destination) {
+        try {
+            InstanceAction instanceAction = getInstanceAction(destination);
+            if (instanceAction != null) {
+                instanceAction.stop(destination);
+            }
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
+        return false;
+    }
+
+    @Override
+    public synchronized boolean reloadInstance(String destination) {
+        try {
+            InstanceAction instanceAction = getInstanceAction(destination);
+            if (instanceAction != null) {
+                instanceAction.reload(destination);
+            }
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
+        return false;
+    }
+
+    @Override
+    public synchronized String getRunningInstances() {
+        try {
+            Map<String, InstanceConfig> instanceConfigs = canalStater.getController().getInstanceConfigs();
+            if (instanceConfigs != null) {
+                return Joiner.on(",").join(instanceConfigs.keySet());
+            }
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
+        return "";
+    }
+
+    private InstanceAction getInstanceAction(String destination) {
+        Map<InstanceConfig.InstanceMode, InstanceConfigMonitor> monitors = canalStater.getController()
+            .getInstanceConfigMonitors();
+        SpringInstanceConfigMonitor monitor = (SpringInstanceConfigMonitor) monitors
+            .get(InstanceConfig.InstanceMode.SPRING);
+        Map<String, InstanceAction> instanceActions = monitor.getActions();
+        return instanceActions.get(destination);
     }
 
 }

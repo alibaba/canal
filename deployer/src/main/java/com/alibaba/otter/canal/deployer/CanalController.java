@@ -556,4 +556,12 @@ public class CanalController {
     public void setCanalMQStarter(CanalMQStarter canalMQStarter) {
         this.canalMQStarter = canalMQStarter;
     }
+
+    public Map<InstanceMode, InstanceConfigMonitor> getInstanceConfigMonitors() {
+        return instanceConfigMonitors;
+    }
+
+    public Map<String, InstanceConfig> getInstanceConfigs() {
+        return instanceConfigs;
+    }
 }
