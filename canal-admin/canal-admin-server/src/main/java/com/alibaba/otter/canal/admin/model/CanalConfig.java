@@ -1,16 +1,13 @@
 package com.alibaba.otter.canal.admin.model;
 
-import org.javalite.activejdbc.Model;
-import org.javalite.activejdbc.annotations.Table;
-
-import java.sql.Timestamp;
 import java.util.Date;
 
 public class CanalConfig {
-    private Long id;
+
+    private Long   id;
     private String name;
     private String content;
-    private Date modifiedTime;
+    private Date   modifiedTime;
 
     public Long getId() {
         return id;
