@@ -2,12 +2,16 @@ package com.alibaba.otter.canal.deployer.mbean;
 
 import com.alibaba.otter.canal.deployer.CanalLauncher;
 import com.alibaba.otter.canal.deployer.CanalStater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CanalServerBean implements CanalServerMXBean {
 
-    private volatile int status;
+    private static final Logger logger = LoggerFactory.getLogger(CanalServerBean.class);
 
-    private CanalStater  canalStater;
+    private volatile int        status;
+
+    private CanalStater         canalStater;
 
     public CanalServerBean(CanalStater canalStater){
         this.canalStater = canalStater;
@@ -32,7 +36,7 @@ public class CanalServerBean implements CanalServerMXBean {
                 return true;
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return false;
     }
@@ -46,7 +50,7 @@ public class CanalServerBean implements CanalServerMXBean {
                 return true;
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return false;
     }

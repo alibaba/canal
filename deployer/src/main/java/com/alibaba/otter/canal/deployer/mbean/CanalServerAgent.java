@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.deployer.mbean;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -15,6 +17,8 @@ import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 
 public class CanalServerAgent implements NotificationListener {
+
+    private static final Logger         logger      = LoggerFactory.getLogger(CanalServerBean.class);
 
     private MBeanServer                 mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
@@ -47,16 +51,13 @@ public class CanalServerAgent implements NotificationListener {
 
                 LocateRegistry.createRegistry(port);
 
-                // 构造JMXServiceURL
                 JMXServiceURL jmxServiceURL = new JMXServiceURL(
                     "service:jmx:rmi:///jndi/rmi://" + ip + ":" + port + "/jmxrmi");
-                // 创建JMXConnectorServer
                 cs = JMXConnectorServerFactory.newJMXConnectorServer(jmxServiceURL, null, mBeanServer);
-                // 启动
                 cs.start();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -65,7 +66,7 @@ public class CanalServerAgent implements NotificationListener {
             try {
                 cs.stop();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
             }
         }
     }
