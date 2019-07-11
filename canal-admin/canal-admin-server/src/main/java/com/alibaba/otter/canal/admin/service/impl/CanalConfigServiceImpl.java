@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.alibaba.otter.canal.admin.dao.CanalConfigDao;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
 import com.alibaba.otter.canal.admin.service.CanalConfigService;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CanalConfigServiceImpl implements CanalConfigService {
@@ -22,6 +23,6 @@ public class CanalConfigServiceImpl implements CanalConfigService {
     }
 
     public void updateContent(CanalConfig canalConfig) {
-        canalConfigDao.findById(canalConfig.getId());
+        canalConfigDao.updateContent(canalConfig);
     }
 }

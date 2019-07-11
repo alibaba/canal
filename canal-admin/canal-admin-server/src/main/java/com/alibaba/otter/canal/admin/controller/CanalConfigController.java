@@ -2,10 +2,7 @@ package com.alibaba.otter.canal.admin.controller;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.otter.canal.admin.model.CanalConfig;
 import com.alibaba.otter.canal.admin.service.CanalConfigService;
@@ -20,5 +17,11 @@ public class CanalConfigController {
     @RequestMapping(value = "/config", method = RequestMethod.GET)
     public BaseModel<CanalConfig> canalConfig(@PathVariable String env) {
         return BaseModel.getInstance(canalConfigService.getCanalConfig());
+    }
+
+    @RequestMapping(value = "/config", method = RequestMethod.PUT)
+    public BaseModel<String> updateConfig(@RequestBody CanalConfig canalConfig, @PathVariable String env) {
+        canalConfigService.updateContent(canalConfig);
+        return BaseModel.getInstance("success");
     }
 }

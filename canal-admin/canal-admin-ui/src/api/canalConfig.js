@@ -6,3 +6,11 @@ export function getCanalConfig() {
     method: 'get'
   })
 }
+
+export function updateCanalConfig(data) {
+  return request({
+    url: '/canal/config',
+    method: 'put',
+    data
+  })
+}
