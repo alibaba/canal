@@ -56,6 +56,28 @@ export const constantRoutes = [
   },
 
   {
+    path: '/canalServer',
+    component: Layout,
+    redirect: '/canalServer/config',
+    name: 'Canal Server',
+    meta: { title: 'Canal Server', icon: 'example' },
+    children: [
+      {
+        path: 'canalServer',
+        name: 'Canal主配置',
+        component: () => import('@/views/canalServer/config'),
+        meta: { title: 'Canal主配置', icon: 'form' }
+      },
+      {
+        path: 'tree',
+        name: 'Tree',
+        component: () => import('@/views/tree/index'),
+        meta: { title: 'Tree', icon: 'tree' }
+      }
+    ]
+  },
+
+  {
     path: '/example',
     component: Layout,
     redirect: '/example/table',
