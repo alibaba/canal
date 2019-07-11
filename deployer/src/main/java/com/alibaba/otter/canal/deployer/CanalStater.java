@@ -32,14 +32,31 @@ public class CanalStater {
     private CanalMQProducer     canalMQProducer = null;
     private Thread              shutdownThread  = null;
     private CanalMQStarter      canalMQStarter  = null;
+    private volatile Properties properties;
+    private volatile boolean    running         = false;
+
+    public CanalStater(Properties properties){
+        this.properties = properties;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
 
     /**
      * 启动方法
      *
-     * @param properties canal.properties 配置
      * @throws Throwable
      */
-    synchronized void start(Properties properties) throws Throwable {
+    public synchronized void start() throws Throwable {
         String serverMode = CanalController.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
         if (serverMode.equalsIgnoreCase("kafka")) {
             canalMQProducer = new CanalKafkaProducer();
@@ -64,8 +81,8 @@ public class CanalStater {
 
                         public boolean accept(File pathname) {
                             String filename = pathname.getName();
-                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename) &&
-                                    !"metrics".equalsIgnoreCase(filename);
+                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename)
+                                   && !"metrics".equalsIgnoreCase(filename);
                         }
                     });
                     if (instanceDirs != null && instanceDirs.length > 0) {
@@ -113,6 +130,8 @@ public class CanalStater {
             canalMQStarter.start(mqProperties);
             controller.setCanalMQStarter(canalMQStarter);
         }
+
+        running = true;
     }
 
     /**
@@ -120,7 +139,7 @@ public class CanalStater {
      *
      * @throws Throwable
      */
-    synchronized void destroy() throws Throwable {
+    public synchronized void stop() throws Throwable {
         if (controller != null) {
             controller.stop();
             controller = null;
@@ -134,6 +153,7 @@ public class CanalStater {
             canalMQStarter = null;
             canalMQProducer = null;
         }
+        running = false;
     }
 
     /**
@@ -206,7 +226,8 @@ public class CanalStater {
             mqProperties.setProducerGroup(producerGroup);
         }
 
-        String enableMessageTrace = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_ENABLE_MESSAGE_TRACE);
+        String enableMessageTrace = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_ENABLE_MESSAGE_TRACE);
         if (!StringUtils.isEmpty(enableMessageTrace)) {
             mqProperties.setEnableMessageTrace(Boolean.valueOf(enableMessageTrace));
         }
@@ -216,7 +237,8 @@ public class CanalStater {
             mqProperties.setAccessChannel(accessChannel);
         }
 
-        String customizedTraceTopic = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_CUSTOMIZED_TRACE_TOPIC);
+        String customizedTraceTopic = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_CUSTOMIZED_TRACE_TOPIC);
         if (!StringUtils.isEmpty(customizedTraceTopic)) {
             mqProperties.setCustomizedTraceTopic(customizedTraceTopic);
         }
@@ -226,17 +248,20 @@ public class CanalStater {
             mqProperties.setNamespace(namespace);
         }
 
-        String kafkaKerberosEnable = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
+        String kafkaKerberosEnable = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
         if (!StringUtils.isEmpty(kafkaKerberosEnable)) {
             mqProperties.setKerberosEnable(Boolean.valueOf(kafkaKerberosEnable));
         }
 
-        String kafkaKerberosKrb5Filepath = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH);
+        String kafkaKerberosKrb5Filepath = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH);
         if (!StringUtils.isEmpty(kafkaKerberosKrb5Filepath)) {
             mqProperties.setKerberosKrb5FilePath(kafkaKerberosKrb5Filepath);
         }
 
-        String kafkaKerberosJaasFilepath = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH);
+        String kafkaKerberosJaasFilepath = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH);
         if (!StringUtils.isEmpty(kafkaKerberosJaasFilepath)) {
             mqProperties.setKerberosJaasFilePath(kafkaKerberosJaasFilepath);
         }
