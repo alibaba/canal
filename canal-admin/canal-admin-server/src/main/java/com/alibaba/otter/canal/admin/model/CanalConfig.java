@@ -1,9 +1,29 @@
 package com.alibaba.otter.canal.admin.model;
 
+import io.ebean.Finder;
+
 import java.util.Date;
 
-public class CanalConfig {
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
+@Entity
+public class CanalConfig extends Model {
+
+    public static final CanalConfigFinder find = new CanalConfigFinder();
+
+    public static class CanalConfigFinder extends Finder<Long, CanalConfig> {
+
+        /**
+         * Construct using the default EbeanServer.
+         */
+        public CanalConfigFinder(){
+            super(CanalConfig.class);
+        }
+
+    }
+
+    @Id
     private Long   id;
     private String name;
     private String content;
