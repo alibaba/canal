@@ -77,7 +77,7 @@ public class CanalServerBean implements CanalServerMXBean {
             InstanceAction instanceAction = getInstanceAction(destination);
             if (instanceAction != null) {
                 instanceAction.start(destination);
-
+                return true;
             }
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
@@ -91,6 +91,7 @@ public class CanalServerBean implements CanalServerMXBean {
             InstanceAction instanceAction = getInstanceAction(destination);
             if (instanceAction != null) {
                 instanceAction.stop(destination);
+                return true;
             }
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
@@ -104,6 +105,7 @@ public class CanalServerBean implements CanalServerMXBean {
             InstanceAction instanceAction = getInstanceAction(destination);
             if (instanceAction != null) {
                 instanceAction.reload(destination);
+                return true;
             }
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
