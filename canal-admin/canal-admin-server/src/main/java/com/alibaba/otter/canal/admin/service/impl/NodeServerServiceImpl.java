@@ -33,8 +33,6 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
 
         nodeServer.save();
-
-        // 检测节点状态
     }
 
     public NodeServer detail(Long id) {
@@ -43,8 +41,6 @@ public class NodeServerServiceImpl implements NodeServerService {
 
     public void update(NodeServer nodeServer) {
         nodeServer.update("name", "ip", "port", "port2");
-
-        // 检测节点状态
     }
 
     public void delete(Long id) {
@@ -66,10 +62,13 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
         query.order().asc("id");
         List<NodeServer> nodeServers = query.findList();
+        if (nodeServers.isEmpty()) {
+            return nodeServers;
+        }
 
         ExecutorService executorService = Executors.newFixedThreadPool(nodeServers.size());
         List<Future<Boolean>> futures = new ArrayList<>(nodeServers.size());
-        // 取每个节点的状态
+        // get all nodes status
         for (NodeServer ns : nodeServers) {
             futures.add(executorService.submit(() -> {
                 int status = -1;

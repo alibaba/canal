@@ -21,12 +21,6 @@ public class NodeServerController {
         return BaseModel.getInstance(nodeServerService.findList(nodeServer));
     }
 
-    @DeleteMapping(value = "/nodeServer/{id}")
-    public BaseModel<String> delete(@PathVariable Long id, @PathVariable String env) {
-        nodeServerService.delete(id);
-        return BaseModel.getInstance("success");
-    }
-
     @PostMapping(value = "/nodeServer")
     public BaseModel<String> save(@RequestBody NodeServer nodeServer, @PathVariable String env) {
         nodeServerService.save(nodeServer);
@@ -38,8 +32,21 @@ public class NodeServerController {
         return BaseModel.getInstance(nodeServerService.detail(id));
     }
 
+    @PutMapping(value = "/nodeServer")
+    public BaseModel<String> update(@RequestBody NodeServer nodeServer, @PathVariable String env) {
+        nodeServerService.update(nodeServer);
+        return BaseModel.getInstance("success");
+    }
+
+    @DeleteMapping(value = "/nodeServer/{id}")
+    public BaseModel<String> delete(@PathVariable Long id, @PathVariable String env) {
+        nodeServerService.delete(id);
+        return BaseModel.getInstance("success");
+    }
+
     @GetMapping(value = "/nodeServer/status")
     public BaseModel<Integer> status(@RequestParam String ip, @RequestParam Integer port, @PathVariable String env) {
-        return BaseModel.getInstance(nodeServerService.remoteNodeStatus(ip,port));
+        return BaseModel.getInstance(nodeServerService.remoteNodeStatus(ip, port));
     }
+
 }
