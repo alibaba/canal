@@ -10,9 +10,10 @@ import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.NotificationBroadcasterSupport;
 import java.util.Map;
 
-public class CanalServerBean implements CanalServerMXBean {
+public class CanalServerBean extends NotificationBroadcasterSupport implements CanalServerMXBean {
 
     private static final Logger logger = LoggerFactory.getLogger(CanalServerBean.class);
 
