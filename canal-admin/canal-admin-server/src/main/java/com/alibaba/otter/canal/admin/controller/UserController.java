@@ -1,12 +1,15 @@
 package com.alibaba.otter.canal.admin.controller;
 
+import com.alibaba.otter.canal.admin.service.UserService;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.User;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,12 +24,16 @@ public class UserController {
         .expireAfterAccess(10, TimeUnit.MINUTES)
         .build(key -> null);
 
+    @Autowired
+    UserService                                    userService;
+
     @PostMapping(value = "/login")
     public BaseModel<Map<String, String>> login(@RequestBody User user, @PathVariable String env) {
-        if ("admin".equals(user.getUsername()) && "121212".equals(user.getPassword())) {
+        User loginUser = userService.find4Login(user.getUsername(), user.getPassword());
+        if (loginUser != null) {
             Map<String, String> tokenResp = new HashMap<>();
             String token = UUID.randomUUID().toString();
-            loginUsers.put(token, user);
+            loginUsers.put(token, loginUser);
             tokenResp.put("token", token);
             return BaseModel.getInstance(tokenResp);
         } else {
@@ -48,6 +55,15 @@ public class UserController {
             model.setMessage("Invalid token");
             return model;
         }
+    }
+
+    @PutMapping(value = "")
+    public BaseModel<String> update(@RequestBody User user, @PathVariable String env,
+                                    HttpServletRequest httpServletRequest) {
+        userService.update(user);
+        String token = (String) httpServletRequest.getAttribute("token");
+        loginUsers.put(token, user);
+        return BaseModel.getInstance("success");
     }
 
     @PostMapping(value = "/logout")

@@ -43,37 +43,43 @@ public class WebConfig implements WebMvcConfigurer {
             }
         }).addPathPatterns("/api/**");
 
-//        registry.addInterceptor(new HandlerInterceptor() {
-//
-//            @Override
-//            public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-//                                     Object o) throws Exception {
-//                String token = httpServletRequest.getHeader("X-Token");
-//                boolean valid = false;
-//                if (token != null) {
-//                    User user = UserController.loginUsers.getIfPresent(token);
-//                    if (user != null) {
-//                        valid = true;
-//                    }
-//                }
-//                if (!valid) {
-//                    BaseModel baseModel = BaseModel.getInstance(null);
-//                    baseModel.setCode(50014);
-//                    baseModel.setMessage("Expired token");
-//                    ObjectMapper mapper = new ObjectMapper();
-//                    String json = mapper.writeValueAsString(baseModel);
-//                    try {
-//                        httpServletResponse.setContentType("application/json;charset=UTF-8");
-//                        PrintWriter out = httpServletResponse.getWriter();
-//                        out.print(json);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                    return false;
-//                }
-//
-//                return true;
-//            }
-//        }).addPathPatterns("/api/**").excludePathPatterns("/api/**/user/**");
+        registry.addInterceptor(new HandlerInterceptor() {
+
+            @Override
+            public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                     Object o) throws Exception {
+                String token = httpServletRequest.getHeader("X-Token");
+                boolean valid = false;
+                if (token != null) {
+                    User user = UserController.loginUsers.getIfPresent(token);
+                    if (user != null) {
+                        valid = true;
+                        httpServletRequest.setAttribute("user", user);
+                        httpServletRequest.setAttribute("token", token);
+                    }
+                }
+                if (!valid) {
+                    BaseModel baseModel = BaseModel.getInstance(null);
+                    baseModel.setCode(50014);
+                    baseModel.setMessage("Expired token");
+                    ObjectMapper mapper = new ObjectMapper();
+                    String json = mapper.writeValueAsString(baseModel);
+                    try {
+                        httpServletResponse.setContentType("application/json;charset=UTF-8");
+                        PrintWriter out = httpServletResponse.getWriter();
+                        out.print(json);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return false;
+                }
+
+                return true;
+            }
+        })
+            .addPathPatterns("/api/**")
+            .excludePathPatterns("/api/**/user/login")
+            .excludePathPatterns("/api/**/user/logout")
+            .excludePathPatterns("/api/**/user/info");
     }
 }

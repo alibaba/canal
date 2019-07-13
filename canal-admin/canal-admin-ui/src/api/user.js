@@ -22,3 +22,11 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function updateUser(data) {
+  return request({
+    url: '/user',
+    method: 'put',
+    data
+  })
+}

@@ -4,10 +4,12 @@ import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 import io.ebean.Finder;
 
 @Entity
+@Table(name = "canal_node_server")
 public class NodeServer extends Model {
 
     public static final NodeServerFinder find = new NodeServerFinder();

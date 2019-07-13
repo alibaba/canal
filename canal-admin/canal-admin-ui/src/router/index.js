@@ -49,154 +49,64 @@ export const constantRoutes = [
     redirect: '/dashboard',
     children: [{
       path: 'dashboard',
-      name: 'Dashboard',
+      name: '主页',
       component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
-    }]
+      meta: { title: '主页', icon: 'dashboard' }
+    }],
+    hidden: true
+  },
+
+  {
+    path: '/sys',
+    component: Layout,
+    redirect: '/user',
+    children: [{
+      path: 'user',
+      name: '用户信息',
+      component: () => import('@/views/sys/UserInfo'),
+      meta: { title: '用户信息' }
+    }],
+    hidden: true
   },
 
   {
     path: '/canalServer',
     component: Layout,
-    redirect: '/canalServer/config',
+    redirect: '/canalServer/nodeServers',
     name: 'Canal Server',
     meta: { title: 'Canal Server', icon: 'example' },
     children: [
       {
         path: 'nodeServers',
         name: '节点状态',
-        component: () => import('@/views/canalServer/nodeServer'),
+        component: () => import('@/views/canalServer/NodeServer'),
         meta: { title: '节点管理', icon: 'tree' }
       },
       {
         path: 'config',
         name: 'Canal主配置',
-        component: () => import('@/views/canalServer/config'),
+        component: () => import('@/views/canalServer/Config'),
         meta: { title: 'Canal主配置', icon: 'form' }
       },
       {
         path: 'canalInstances',
         name: '实例管理',
-        component: () => import('@/views/canalServer/canalInstance'),
+        component: () => import('@/views/canalServer/CanalInstance'),
         meta: { title: '实例管理', icon: 'nested' }
       },
       {
         path: 'canalInstance/add',
         name: '新建实例配置',
-        component: () => import('@/views/canalServer/canalInstanceAdd'),
+        component: () => import('@/views/canalServer/CanalInstanceAdd'),
         meta: { title: '新建实例配置' },
         hidden: true
       },
       {
         path: 'canalInstance/modify',
         name: '修改实例配置',
-        component: () => import('@/views/canalServer/canalInstanceUpdate'),
+        component: () => import('@/views/canalServer/CanalInstanceUpdate'),
         meta: { title: '修改实例配置' },
         hidden: true
-      }
-    ]
-  },
-
-  {
-    path: '/example',
-    component: Layout,
-    redirect: '/example/table',
-    name: 'Example',
-    meta: { title: 'Example', icon: 'example' },
-    children: [
-      {
-        path: 'table',
-        name: 'Table',
-        component: () => import('@/views/table/index'),
-        meta: { title: 'Table', icon: 'table' }
-      },
-      {
-        path: 'tree',
-        name: 'Tree',
-        component: () => import('@/views/tree/index'),
-        meta: { title: 'Tree', icon: 'tree' }
-      }
-    ]
-  },
-
-  {
-    path: '/form',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Form',
-        component: () => import('@/views/form/index'),
-        meta: { title: 'Form', icon: 'form' }
-      }
-    ]
-  },
-
-  {
-    path: '/nested',
-    component: Layout,
-    redirect: '/nested/menu1',
-    name: 'Nested',
-    meta: {
-      title: 'Nested',
-      icon: 'nested'
-    },
-    children: [
-      {
-        path: 'menu1',
-        component: () => import('@/views/nested/menu1/index'), // Parent router-view
-        name: 'Menu1',
-        meta: { title: 'Menu1' },
-        children: [
-          {
-            path: 'menu1-1',
-            component: () => import('@/views/nested/menu1/menu1-1'),
-            name: 'Menu1-1',
-            meta: { title: 'Menu1-1' }
-          },
-          {
-            path: 'menu1-2',
-            component: () => import('@/views/nested/menu1/menu1-2'),
-            name: 'Menu1-2',
-            meta: { title: 'Menu1-2' },
-            children: [
-              {
-                path: 'menu1-2-1',
-                component: () => import('@/views/nested/menu1/menu1-2/menu1-2-1'),
-                name: 'Menu1-2-1',
-                meta: { title: 'Menu1-2-1' }
-              },
-              {
-                path: 'menu1-2-2',
-                component: () => import('@/views/nested/menu1/menu1-2/menu1-2-2'),
-                name: 'Menu1-2-2',
-                meta: { title: 'Menu1-2-2' }
-              }
-            ]
-          },
-          {
-            path: 'menu1-3',
-            component: () => import('@/views/nested/menu1/menu1-3'),
-            name: 'Menu1-3',
-            meta: { title: 'Menu1-3' }
-          }
-        ]
-      },
-      {
-        path: 'menu2',
-        component: () => import('@/views/nested/menu2/index'),
-        meta: { title: 'menu2' }
-      }
-    ]
-  },
-
-  {
-    path: 'external-link',
-    component: Layout,
-    children: [
-      {
-        path: 'https://panjiachen.github.io/vue-element-admin-site/#/',
-        meta: { title: 'External Link', icon: 'link' }
       }
     ]
   },
