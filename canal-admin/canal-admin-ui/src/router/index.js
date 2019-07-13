@@ -75,9 +75,9 @@ export const constantRoutes = [
         meta: { title: 'Canal主配置', icon: 'form' }
       },
       {
-        path: 'tree',
+        path: 'canalInstance',
         name: '实例管理',
-        component: () => import('@/views/tree/index'),
+        component: () => import('@/views/canalServer/canalInstance'),
         meta: { title: '实例管理', icon: 'nested' }
       }
     ]

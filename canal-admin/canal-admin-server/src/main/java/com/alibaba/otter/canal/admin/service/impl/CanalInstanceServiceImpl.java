@@ -2,16 +2,16 @@ package com.alibaba.otter.canal.admin.service.impl;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.admin.service.CanalInstanceService;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
 
 import com.alibaba.otter.canal.admin.jmx.CanalServerMXBean;
 import com.alibaba.otter.canal.admin.jmx.JMXConnection;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
+import com.alibaba.otter.canal.admin.service.CanalInstanceService;
 
 import io.ebean.Query;
-import org.springframework.stereotype.Service;
 
 @Service
 public class CanalInstanceServiceImpl implements CanalInstanceService {
@@ -25,6 +25,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
                 query.where().like("name", "%" + canalInstanceConfig.getName() + "%");
             }
         }
+        query.order().asc("id");
         List<CanalInstanceConfig> canalInstanceConfigs = query.findList();
 
         // check all canal instances running status
@@ -39,8 +40,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
             for (String instance : instances) {
                 for (CanalInstanceConfig cig : canalInstanceConfigs) {
                     if (instance.equals(cig.getName())) {
-                        cig.setNodeServer(nodeServer);
-                        cig.setStatus(1);
+                        cig.setNodeIp(nodeServer.getIp());
                         break;
                     }
                 }

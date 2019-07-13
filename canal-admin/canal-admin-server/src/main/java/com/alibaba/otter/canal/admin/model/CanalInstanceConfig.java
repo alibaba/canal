@@ -24,15 +24,13 @@ public class CanalInstanceConfig extends Model {
     }
 
     @Id
-    private Long       id;
-    private String     name;
-    private String     content;
-    private Date       modifiedTime;
+    private Long   id;
+    private String name;
+    private String content;
+    private Date   modifiedTime;
 
     @Transient
-    private NodeServer nodeServer;
-    @Transient
-    private Integer    status = 0;
+    private String nodeIp;
 
     public Long getId() {
         return id;
@@ -66,19 +64,11 @@ public class CanalInstanceConfig extends Model {
         this.modifiedTime = modifiedTime;
     }
 
-    public NodeServer getNodeServer() {
-        return nodeServer;
+    public String getNodeIp() {
+        return nodeIp;
     }
 
-    public void setNodeServer(NodeServer nodeServer) {
-        this.nodeServer = nodeServer;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
+    public void setNodeIp(String nodeIp) {
+        this.nodeIp = nodeIp;
     }
 }

@@ -16,30 +16,30 @@ public class CanalInstanceController {
     @Autowired
     CanalInstanceService canalInstanceConfigService;
 
-    @GetMapping(value = "/canalInstances")
+    @GetMapping(value = "/instances")
     public BaseModel<List<CanalInstanceConfig>> nodeServers(CanalInstanceConfig canalInstanceConfig,
                                                             @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig));
     }
 
-    @PostMapping(value = "/canalInstance")
+    @PostMapping(value = "/iInstance")
     public BaseModel<String> save(@RequestBody CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
         canalInstanceConfigService.save(canalInstanceConfig);
         return BaseModel.getInstance("success");
     }
 
-    @GetMapping(value = "/canalInstance/{id}")
+    @GetMapping(value = "/instance/{id}")
     public BaseModel<CanalInstanceConfig> detail(@PathVariable Long id, @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.detail(id));
     }
 
-    @PutMapping(value = "/canalInstance")
+    @PutMapping(value = "/instance")
     public BaseModel<String> update(@RequestBody  CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
         canalInstanceConfigService.updateContent(canalInstanceConfig);
         return BaseModel.getInstance("success");
     }
 
-    @DeleteMapping(value = "/nodeServer/{id}")
+    @DeleteMapping(value = "/instance/{id}")
     public BaseModel<String> delete(@PathVariable Long id, @PathVariable String env) {
         canalInstanceConfigService.delete(id);
         return BaseModel.getInstance("success");
