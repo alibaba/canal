@@ -17,4 +17,6 @@ public interface NodeServerService {
     List<NodeServer> findList(NodeServer nodeServer);
 
     int remoteNodeStatus(String ip, Integer port);
+
+    boolean remoteOperation(Long id, String option);
 }

@@ -49,8 +49,8 @@
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item @click.native="handleUpdate(scope.row)">修改节点</el-dropdown-item>
               <el-dropdown-item @click.native="handleDelete(scope.row)">删除节点</el-dropdown-item>
-              <el-dropdown-item @click.native="handleResume(scope.row)">启动服务</el-dropdown-item>
-              <el-dropdown-item @click.native="handleDelete(scope.row)">停止服务</el-dropdown-item>
+              <el-dropdown-item @click.native="handleStart(scope.row)">启动服务</el-dropdown-item>
+              <el-dropdown-item @click.native="handleStop(scope.row)">停止服务</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -100,7 +100,7 @@
 </template>
 
 <script>
-import { addNodeServer, getNodeServers, updateNodeServer, deleteNodeServer } from '@/api/nodeServer'
+import { addNodeServer, getNodeServers, updateNodeServer, deleteNodeServer, startNodeServer } from '@/api/nodeServer'
 
 export default {
   filters: {
@@ -233,6 +233,58 @@ export default {
           } else {
             this.$message({
               message: '删除点信息失败',
+              type: 'error'
+            })
+          }
+        })
+      })
+    },
+    handleStart(row) {
+      if (row.status !== 0) {
+        this.$message({ message: '当前节点不是停止状态，无法启动', type: 'error' })
+        return
+      }
+      this.$confirm('启动节点 Canal Server 服务', '确定启动节点服务', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        startNodeServer(row.id).then((res) => {
+          if (res.data) {
+            this.fetchData()
+            this.$message({
+              message: '启动成功',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: '启动节点服务出现异常',
+              type: 'error'
+            })
+          }
+        })
+      })
+    },
+    handleStop(row) {
+      if (row.status !== 1) {
+        this.$message({ message: '当前节点不是启动状态，无法停止', type: 'error' })
+        return
+      }
+      this.$confirm('停止节点 Canal Server 服务', '确定停止节点服务', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        startNodeServer(row.id).then((res) => {
+          if (res.data) {
+            this.fetchData()
+            this.$message({
+              message: '停止成功',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: '停止节点服务出现异常',
               type: 'error'
             })
           }

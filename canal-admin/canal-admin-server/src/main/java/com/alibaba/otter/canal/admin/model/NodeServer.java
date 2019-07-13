@@ -29,11 +29,11 @@ public class NodeServer extends Model {
     private String  ip;
     private Integer port;
     private Integer port2;
-    private Integer status = -1;
+    private Integer status;
     private Date    modifiedTime;
 
     public void init() {
-
+        status = -1;
     }
 
     public Long getId() {

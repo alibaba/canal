@@ -12,19 +12,33 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 public class JMXConnection {
 
-    private Logger            logger = LoggerFactory.getLogger(JMXConnection.class);
+    private static final Logger logger = LoggerFactory.getLogger(JMXConnection.class);
 
-    private String            ip;
-    private Integer           port;
-    private JMXConnector      jmxc;
-    private CanalServerMXBean canalServerMXBean;
+    private String              ip;
+    private Integer             port;
+    private JMXConnector        jmxc;
+    private CanalServerMXBean   canalServerMXBean;
 
     public JMXConnection(String ip, Integer port){
         this.ip = ip;
         this.port = port;
+    }
+
+    public static <R> R execute(String ip, int port, Function<CanalServerMXBean, R> function) {
+        JMXConnection jmxConnection = new JMXConnection(ip, port);
+        try {
+            CanalServerMXBean canalServerMXBean = jmxConnection.getCanalServerMXBean();
+            return function.apply(canalServerMXBean);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            jmxConnection.close();
+        }
+        return null;
     }
 
     public void connect() {
@@ -44,7 +58,7 @@ public class JMXConnection {
     }
 
     private static JMXConnector connectWithTimeout(final JMXServiceURL url, long timeout,
-                                                  TimeUnit unit) throws IOException {
+                                                   TimeUnit unit) throws IOException {
         final BlockingQueue<Object> mailbox = new ArrayBlockingQueue<>(1);
         ExecutorService executor = Executors.newSingleThreadExecutor(daemonThreadFactory);
         executor.submit(() -> {

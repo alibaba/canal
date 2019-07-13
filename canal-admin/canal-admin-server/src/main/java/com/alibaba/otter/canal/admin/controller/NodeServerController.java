@@ -49,4 +49,13 @@ public class NodeServerController {
         return BaseModel.getInstance(nodeServerService.remoteNodeStatus(ip, port));
     }
 
+    @PutMapping(value = "/nodeServer/start/{id}")
+    public BaseModel<Boolean> start(@PathVariable Long id, @PathVariable String env) {
+        return BaseModel.getInstance(nodeServerService.remoteOperation(id, "start"));
+    }
+
+    @PutMapping(value = "/nodeServer/stop/{id}")
+    public BaseModel<Boolean> stop(@PathVariable Long id, @PathVariable String env) {
+        return BaseModel.getInstance(nodeServerService.remoteOperation(id, "stop"));
+    }
 }

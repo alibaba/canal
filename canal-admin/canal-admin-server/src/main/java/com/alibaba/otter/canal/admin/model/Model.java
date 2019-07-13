@@ -4,11 +4,52 @@ import io.ebean.Ebean;
 import io.ebean.EbeanServer;
 import org.apache.commons.beanutils.PropertyUtils;
 
+import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OptimisticLockException;
+import java.lang.reflect.Field;
 
 @MappedSuperclass
 public abstract class Model extends io.ebean.Model {
+
+    public void init() {
+    }
+
+    public void save() {
+        init();
+        super.save();
+    }
+
+    public void insert() {
+        init();
+        super.insert();
+    }
+
+    public void saveOrUpdate() {
+        try {
+            Field idField = null;
+            // find id field
+            Field[] fields = this.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                Id idAnn = field.getAnnotation(Id.class);
+                if (idAnn != null) {
+                    idField = field;
+                    break;
+                }
+            }
+            if (idField == null) {
+                return;
+            }
+            Object idVal = PropertyUtils.getProperty(this, idField.getName());
+            if (idVal == null) {
+                this.save();
+            } else {
+                this.update();
+            }
+        } catch (Exception e) {
+            throw new OptimisticLockException(e);
+        }
+    }
 
     public void update(String... propertiesNames) {
         try {

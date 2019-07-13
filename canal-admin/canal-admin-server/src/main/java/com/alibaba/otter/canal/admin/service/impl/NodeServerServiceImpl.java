@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.admin.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.jmx.CanalServerMXBean;
@@ -99,15 +100,30 @@ public class NodeServerServiceImpl implements NodeServerService {
     }
 
     public int remoteNodeStatus(String ip, Integer port) {
-        JMXConnection jmxConnection = new JMXConnection(ip, port);
-        try {
-            CanalServerMXBean canalServerMXBean = jmxConnection.getCanalServerMXBean();
-            return canalServerMXBean.getStatus();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            jmxConnection.close();
+        Integer resutl = JMXConnection.execute(ip, port, CanalServerMXBean::getStatus);
+        if (resutl == null) {
+            resutl = -1;
         }
-        return -1;
+        return resutl;
+    }
+
+    public boolean remoteOperation(Long id, String option) {
+        NodeServer nodeServer = NodeServer.find.byId(id);
+        if (nodeServer == null) {
+            return false;
+        }
+        Boolean resutl = null;
+        if ("start".equals(option)) {
+            resutl = JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::start);
+        } else if ("stop".equals(option)) {
+            JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::stop);
+        } else {
+            return false;
+        }
+
+        if (resutl == null) {
+            resutl = false;
+        }
+        return resutl;
     }
 }
