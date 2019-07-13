@@ -1,13 +1,11 @@
 <template>
   <div>
     <el-form ref="form" :model="form">
-      <div style="padding-left: 10px;padding-top: 20px;">
-        <el-form-item>
-          {{ form.name }}&nbsp;&nbsp;&nbsp;&nbsp;
-          <el-button type="primary" @click="onSubmit">修改</el-button>
-          <el-button type="warning" @click="onCancel">重置</el-button>
-          <el-button type="info" @click="onBack">返回</el-button>
-        </el-form-item>
+      <div class="filter-container" style="padding-left: 10px;padding-top: 20px;">
+        <el-input v-model="form.name" placeholder="实例名称" style="width: 200px;" class="filter-item" />
+        &nbsp;
+        <el-button class="filter-item" type="primary" @click="onSubmit">新建</el-button>
+        <el-button class="filter-item" type="info" @click="onBack">返回</el-button>
       </div>
       <editor v-model="form.content" lang="properties" theme="chrome" width="100%" :height="800" @init="editorInit" />
     </el-form>
@@ -15,7 +13,7 @@
 </template>
 
 <script>
-import { canalInstanceDetail, updateCanalInstance } from '@/api/canalInstance'
+import { addCanalInstance } from '@/api/canalInstance'
 
 export default {
   components: {
@@ -24,14 +22,12 @@ export default {
   data() {
     return {
       form: {
-        id: null,
         name: '',
         content: ''
       }
     }
   },
   created() {
-    this.loadCanalConfig()
   },
   methods: {
     editorInit() {
@@ -44,42 +40,38 @@ export default {
       require('brace/theme/chrome')
       require('brace/snippets/javascript')
     },
-    loadCanalConfig() {
-      canalInstanceDetail(this.$route.query.id).then(response => {
-        const data = response.data
-        this.form.id = data.id
-        this.form.name = data.name + '/instance.propertios'
-        this.form.content = data.content
-      })
-    },
     onSubmit() {
+      if (this.form.name === '') {
+        this.$message({
+          message: '请输入实例名称',
+          type: 'error'
+        })
+        return
+      }
       this.$confirm(
-        '修改Canal实例配置可能会导致实例重启，是否继续？',
-        '确定修改',
+        '确定新建',
+        '确定新建',
         {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }
       ).then(() => {
-        updateCanalInstance(this.form).then(response => {
+        addCanalInstance(this.form).then(response => {
           if (response.data === 'success') {
             this.$message({
-              message: '修改成功',
+              message: '新建成功',
               type: 'success'
             })
-            this.loadCanalConfig()
+            this.$router.push('/canalServer/canalInstances')
           } else {
             this.$message({
-              message: '修改失败',
+              message: '新建失败',
               type: 'error'
             })
           }
         })
       })
-    },
-    onCancel() {
-      this.loadCanalConfig()
     },
     onBack() {
       history.go(-1)

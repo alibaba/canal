@@ -75,10 +75,24 @@ export const constantRoutes = [
         meta: { title: 'Canal主配置', icon: 'form' }
       },
       {
-        path: 'canalInstance',
+        path: 'canalInstances',
         name: '实例管理',
         component: () => import('@/views/canalServer/canalInstance'),
         meta: { title: '实例管理', icon: 'nested' }
+      },
+      {
+        path: 'canalInstance/add',
+        name: '新建实例配置',
+        component: () => import('@/views/canalServer/canalInstanceAdd'),
+        meta: { title: '新建实例配置' },
+        hidden: true
+      },
+      {
+        path: 'canalInstance/modify',
+        name: '修改实例配置',
+        component: () => import('@/views/canalServer/canalInstanceUpdate'),
+        meta: { title: '修改实例配置' },
+        hidden: true
       }
     ]
   },

@@ -100,7 +100,7 @@
 </template>
 
 <script>
-import { addNodeServer, getNodeServers, updateNodeServer, deleteNodeServer, startNodeServer } from '@/api/nodeServer'
+import { addNodeServer, getNodeServers, updateNodeServer, deleteNodeServer, startNodeServer, stopNodeServer } from '@/api/nodeServer'
 
 export default {
   filters: {
@@ -227,12 +227,12 @@ export default {
           if (res.data === 'success') {
             this.fetchData()
             this.$message({
-              message: '删除点信息成功',
+              message: '删除节点信息成功',
               type: 'success'
             })
           } else {
             this.$message({
-              message: '删除点信息失败',
+              message: '删除节点信息失败',
               type: 'error'
             })
           }
@@ -275,7 +275,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        startNodeServer(row.id).then((res) => {
+        stopNodeServer(row.id).then((res) => {
           if (res.data) {
             this.fetchData()
             this.$message({

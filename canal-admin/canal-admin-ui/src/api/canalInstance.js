@@ -22,3 +22,32 @@ export function updateCanalInstance(data) {
     data
   })
 }
+
+export function addCanalInstance(data) {
+  return request({
+    url: '/canal/instance',
+    method: 'post',
+    data
+  })
+}
+
+export function deleteCanalInstance(id) {
+  return request({
+    url: '/canal/instance/' + id,
+    method: 'delete'
+  })
+}
+
+export function startInstance(id) {
+  return request({
+    url: '/canal/instance/start/' + id,
+    method: 'put'
+  })
+}
+
+export function stopNodeServer(id, nodeId) {
+  return request({
+    url: '/canal/instance/stop/' + id + '/' + nodeId,
+    method: 'put'
+  })
+}

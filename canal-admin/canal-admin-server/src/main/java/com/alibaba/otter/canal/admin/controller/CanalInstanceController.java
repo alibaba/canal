@@ -22,7 +22,7 @@ public class CanalInstanceController {
         return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig));
     }
 
-    @PostMapping(value = "/iInstance")
+    @PostMapping(value = "/instance")
     public BaseModel<String> save(@RequestBody CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
         canalInstanceConfigService.save(canalInstanceConfig);
         return BaseModel.getInstance("success");
@@ -34,7 +34,7 @@ public class CanalInstanceController {
     }
 
     @PutMapping(value = "/instance")
-    public BaseModel<String> update(@RequestBody  CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
+    public BaseModel<String> update(@RequestBody CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
         canalInstanceConfigService.updateContent(canalInstanceConfig);
         return BaseModel.getInstance("success");
     }
@@ -43,5 +43,15 @@ public class CanalInstanceController {
     public BaseModel<String> delete(@PathVariable Long id, @PathVariable String env) {
         canalInstanceConfigService.delete(id);
         return BaseModel.getInstance("success");
+    }
+
+    @PutMapping(value = "/instance/start/{id}")
+    public BaseModel<Boolean> start(@PathVariable Long id, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.remoteOperation(id, null, "start"));
+    }
+
+    @PutMapping(value = "/instance/stop/{id}/{nodeId}")
+    public BaseModel<Boolean> stop(@PathVariable Long id, @PathVariable Long nodeId, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.remoteOperation(id, nodeId, "stop"));
     }
 }

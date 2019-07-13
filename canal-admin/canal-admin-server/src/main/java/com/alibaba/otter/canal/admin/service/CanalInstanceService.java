@@ -15,4 +15,6 @@ public interface CanalInstanceService {
     void updateContent(CanalInstanceConfig canalInstanceConfig);
 
     void delete(Long id);
+
+    boolean remoteOperation(Long id, Long nodeId, String option);
 }

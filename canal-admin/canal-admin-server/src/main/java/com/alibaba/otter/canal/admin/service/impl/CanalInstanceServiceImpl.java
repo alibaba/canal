@@ -40,6 +40,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
             for (String instance : instances) {
                 for (CanalInstanceConfig cig : canalInstanceConfigs) {
                     if (instance.equals(cig.getName())) {
+                        cig.setNodeId(nodeServer.getId());
                         cig.setNodeIp(nodeServer.getIp());
                         break;
                     }
@@ -69,4 +70,40 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
     }
 
+    public boolean remoteOperation(Long id, Long nodeId, String option) {
+        NodeServer nodeServer = null;
+        if ("start".equals(option)) {
+            // select the first node server
+            nodeServer = NodeServer.find.query().findOne();
+        } else {
+            if (nodeId == null) {
+                return false;
+            }
+            nodeServer = NodeServer.find.byId(nodeId);
+        }
+        if (nodeServer == null) {
+            return false;
+        }
+        CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
+        if (canalInstanceConfig == null) {
+            return false;
+        }
+        Boolean resutl = null;
+        if ("start".equals(option)) {
+            resutl = JMXConnection.execute(nodeServer.getIp(),
+                nodeServer.getPort(),
+                canalServerMXBean -> canalServerMXBean.startInstance(canalInstanceConfig.getName()));
+        } else if ("stop".equals(option)) {
+            resutl = JMXConnection.execute(nodeServer.getIp(),
+                nodeServer.getPort(),
+                canalServerMXBean -> canalServerMXBean.stopInstance(canalInstanceConfig.getName()));
+        } else {
+            return false;
+        }
+
+        if (resutl == null) {
+            resutl = false;
+        }
+        return resutl;
+    }
 }

@@ -116,7 +116,7 @@ public class NodeServerServiceImpl implements NodeServerService {
         if ("start".equals(option)) {
             resutl = JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::start);
         } else if ("stop".equals(option)) {
-            JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::stop);
+            resutl = JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::stop);
         } else {
             return false;
         }

@@ -30,6 +30,8 @@ public class CanalInstanceConfig extends Model {
     private Date   modifiedTime;
 
     @Transient
+    private Long nodeId;
+    @Transient
     private String nodeIp;
 
     public Long getId() {
@@ -62,6 +64,14 @@ public class CanalInstanceConfig extends Model {
 
     public void setModifiedTime(Date modifiedTime) {
         this.modifiedTime = modifiedTime;
+    }
+
+    public Long getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(Long nodeId) {
+        this.nodeId = nodeId;
     }
 
     public String getNodeIp() {

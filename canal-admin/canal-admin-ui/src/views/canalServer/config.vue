@@ -5,7 +5,7 @@
         <el-form-item>
           {{ form.name }}&nbsp;&nbsp;&nbsp;&nbsp;
           <el-button type="primary" @click="onSubmit">修改</el-button>
-          <el-button @click="onCancel">重置</el-button>
+          <el-button type="warning" @click="onCancel">重置</el-button>
         </el-form-item>
       </div>
       <editor v-model="form.content" lang="properties" theme="chrome" width="100%" :height="800" @init="editorInit" />
