@@ -126,6 +126,7 @@
         <module>example</module>
         <module>prometheus</module>
         <module>client-adapter</module>
+        <module>canal-admin</module>
     </modules>
 
     <dependencyManagement>

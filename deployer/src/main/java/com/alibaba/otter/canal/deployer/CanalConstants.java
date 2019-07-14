@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 
 /**
  * 启动常用变量
- * 
+ *
  * @author jianghang 2012-11-8 下午03:15:55
  * @version 1.0.0
  */
@@ -16,6 +16,7 @@ public class CanalConstants {
     public static final String CANAL_IP                             = ROOT + "." + "ip";
     public static final String CANAL_PORT                           = ROOT + "." + "port";
     public static final String CANAL_METRICS_PULL_PORT              = ROOT + "." + "metrics.pull.port";
+    public static final String CANAL_ADMIN_JMX_PORT                 = ROOT + "." + "admin.jmx.port";
     public static final String CANAL_ZKSERVERS                      = ROOT + "." + "zkServers";
     public static final String CANAL_WITHOUT_NETTY                  = ROOT + "." + "withoutNetty";
 
@@ -48,6 +49,7 @@ public class CanalConstants {
     public static final String CANAL_MQ_FLATMESSAGE                 = ROOT + "." + "mq.flatMessage";
     public static final String CANAL_MQ_COMPRESSION_TYPE            = ROOT + "." + "mq.compressionType";
     public static final String CANAL_MQ_ACKS                        = ROOT + "." + "mq.acks";
+    public static final String CANAL_MQ_TRANSACTION                 = ROOT + "." + "mq.transaction";
     public static final String CANAL_MQ_PRODUCERGROUP               = ROOT + "." + "mq.producerGroup";
     public static final String CANAL_ALIYUN_ACCESSKEY               = ROOT + "." + "aliyun.accessKey";
     public static final String CANAL_ALIYUN_SECRETKEY               = ROOT + "." + "aliyun.secretKey";

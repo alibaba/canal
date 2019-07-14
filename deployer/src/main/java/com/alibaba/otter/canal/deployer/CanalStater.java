@@ -33,14 +33,35 @@ public class CanalStater {
     private CanalMQProducer     canalMQProducer = null;
     private Thread              shutdownThread  = null;
     private CanalMQStarter      canalMQStarter  = null;
+    private volatile Properties properties;
+    private volatile boolean    running         = false;
+
+    public CanalStater(Properties properties){
+        this.properties = properties;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
+    public CanalController getController() {
+        return controller;
+    }
 
     /**
      * 启动方法
      *
-     * @param properties canal.properties 配置
      * @throws Throwable
      */
-    synchronized void start(Properties properties) throws Throwable {
+    public synchronized void start() throws Throwable {
         String serverMode = CanalController.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
         if (serverMode.equalsIgnoreCase("kafka")) {
             canalMQProducer = new CanalKafkaProducer();
@@ -97,7 +118,7 @@ public class CanalStater {
                 try {
                     logger.info("## stop the canal server");
                     controller.stop();
-                    CanalLauncher.running = false;
+                    CanalLauncher.runningLatch.countDown();
                 } catch (Throwable e) {
                     logger.warn("##something goes wrong when stopping canal Server:", e);
                 } finally {
@@ -114,6 +135,8 @@ public class CanalStater {
             canalMQStarter.start(mqProperties);
             controller.setCanalMQStarter(canalMQStarter);
         }
+
+        running = true;
     }
 
     /**
@@ -121,7 +144,7 @@ public class CanalStater {
      *
      * @throws Throwable
      */
-    synchronized void destroy() throws Throwable {
+    public synchronized void stop() throws Throwable {
         if (controller != null) {
             controller.stop();
             controller = null;
@@ -135,6 +158,7 @@ public class CanalStater {
             canalMQStarter = null;
             canalMQProducer = null;
         }
+        running = false;
     }
 
     /**

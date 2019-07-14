@@ -18,3 +18,7 @@ jtester.properties
 *.rpm
 client-adapter/example/
 *.dat
+
+canal-admin/canal-admin-ui/dist
+canal-admin/canal-admin-ui/node
+canal-admin/canal-admin-ui/node_modules

@@ -50,6 +50,10 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
 
     private volatile boolean                 isFirst              = true;
 
+    public Map<String, InstanceAction> getActions() {
+        return actions;
+    }
+
     public void start() {
         super.start();
         Assert.notNull(rootConf, "root conf dir is null!");
