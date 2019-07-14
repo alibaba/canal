@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
@@ -137,7 +138,7 @@ public class CanalMQStarter {
         }
 
         logger.info("## start the MQ producer: {}.", destination);
-
+        MDC.put("destination", destination);
         final ClientIdentity clientIdentity = new ClientIdentity(destination, (short) 1001, "");
         while (running && destinationRunning.get()) {
             try {
