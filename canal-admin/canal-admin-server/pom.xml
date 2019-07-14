@@ -51,6 +51,7 @@
     </dependencies>
 
     <build>
+        <finalName>canal-admin-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -95,6 +96,8 @@
                                     <includes>
                                         <include>static/</include>
                                         <include>index.html</include>
+                                        <include>avatar.gif</include>
+                                        <include>logo.png./</include>
                                     </includes>
                                 </resource>
                             </resources>
