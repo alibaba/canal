@@ -51,3 +51,10 @@ export function stopNodeServer(id) {
     method: 'put'
   })
 }
+
+export function nodeServerLog(id) {
+  return request({
+    url: '/nodeServer/log/' + id,
+    method: 'get'
+  })
+}

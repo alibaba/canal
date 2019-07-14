@@ -45,9 +45,16 @@ export function startInstance(id) {
   })
 }
 
-export function stopNodeServer(id, nodeId) {
+export function stopInstance(id, nodeId) {
   return request({
     url: '/canal/instance/stop/' + id + '/' + nodeId,
     method: 'put'
+  })
+}
+
+export function instanceLog(id, nodeId) {
+  return request({
+    url: '/canal/instance/log/' + id + '/' + nodeId,
+    method: 'get'
   })
 }

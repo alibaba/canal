@@ -18,5 +18,7 @@ public interface NodeServerService {
 
     int remoteNodeStatus(String ip, Integer port);
 
+    String remoteCanalLog(Long id);
+
     boolean remoteOperation(Long id, String option);
 }

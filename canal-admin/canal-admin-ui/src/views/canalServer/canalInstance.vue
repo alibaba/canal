@@ -41,6 +41,7 @@
               <el-dropdown-item @click.native="handleDelete(scope.row)">删除实例</el-dropdown-item>
               <el-dropdown-item @click.native="handleStart(scope.row)">启动服务</el-dropdown-item>
               <el-dropdown-item @click.native="handleStop(scope.row)">停止服务</el-dropdown-item>
+              <el-dropdown-item @click.native="handleLog(scope.row)">日志详情</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -50,7 +51,7 @@
 </template>
 
 <script>
-import { getCanalInstances, deleteCanalInstance, startInstance, stopNodeServer } from '@/api/canalInstance'
+import { getCanalInstances, deleteCanalInstance, startInstance, stopInstance } from '@/api/canalInstance'
 
 export default {
   filters: {
@@ -147,7 +148,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        stopNodeServer(row.id, row.nodeId).then((res) => {
+        stopInstance(row.id, row.nodeId).then((res) => {
           if (res.data) {
             this.fetchData()
             this.$message({
@@ -162,6 +163,13 @@ export default {
           }
         })
       })
+    },
+    handleLog(row) {
+      if (row.nodeId === null) {
+        this.$message({ message: '当前实例不是启动状态，无法查看日志', type: 'warning' })
+        return
+      }
+      this.$router.push('canalInstance/log?id=' + row.id + '&nodeId=' + row.nodeId)
     }
   }
 }

@@ -2,17 +2,19 @@ package com.alibaba.otter.canal.admin.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.function.Function;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import com.alibaba.otter.canal.admin.common.exception.ServiceException;
-import com.alibaba.otter.canal.admin.jmx.CanalServerMXBean;
-import com.alibaba.otter.canal.admin.jmx.JMXConnection;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.otter.canal.admin.common.exception.ServiceException;
+import com.alibaba.otter.canal.admin.jmx.CanalServerMXBean;
+import com.alibaba.otter.canal.admin.jmx.JMXConnection;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
 
@@ -105,6 +107,14 @@ public class NodeServerServiceImpl implements NodeServerService {
             resutl = -1;
         }
         return resutl;
+    }
+
+    public String remoteCanalLog(Long id) {
+        NodeServer nodeServer = NodeServer.find.byId(id);
+        if (nodeServer == null) {
+            return "";
+        }
+        return JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::canalLog);
     }
 
     public boolean remoteOperation(Long id, String option) {

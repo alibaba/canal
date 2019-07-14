@@ -19,4 +19,8 @@ public interface CanalServerMXBean {
     boolean reloadInstance(String destination);
 
     String getRunningInstances();
+
+    String canalLog();
+
+    String instanceLog(String destination);
 }

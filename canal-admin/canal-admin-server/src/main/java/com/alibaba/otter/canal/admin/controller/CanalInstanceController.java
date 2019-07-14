@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.admin.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -53,5 +54,11 @@ public class CanalInstanceController {
     @PutMapping(value = "/instance/stop/{id}/{nodeId}")
     public BaseModel<Boolean> stop(@PathVariable Long id, @PathVariable Long nodeId, @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.remoteOperation(id, nodeId, "stop"));
+    }
+
+    @GetMapping(value = "/instance/log/{id}/{nodeId}")
+    public BaseModel<Map<String, String>> start(@PathVariable Long id, @PathVariable Long nodeId,
+                                                @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.remoteInstanceLog(id, nodeId));
     }
 }

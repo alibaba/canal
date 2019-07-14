@@ -107,6 +107,20 @@ export const constantRoutes = [
         component: () => import('@/views/canalServer/CanalInstanceUpdate'),
         meta: { title: '修改实例配置' },
         hidden: true
+      },
+      {
+        path: 'nodeServer/log',
+        name: 'Canal日志',
+        component: () => import('@/views/canalServer/CanalLogDetail'),
+        meta: { title: 'Canal日志' },
+        hidden: true
+      },
+      {
+        path: 'canalInstance/log',
+        name: 'Canal Instance日志',
+        component: () => import('@/views/canalServer/CanalInstanceLogDetail'),
+        meta: { title: 'Canal Instance日志' },
+        hidden: true
       }
     ]
   },

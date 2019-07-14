@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -68,6 +70,27 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         if (canalInstanceConfig != null) {
             canalInstanceConfig.delete();
         }
+    }
+
+    public Map<String, String> remoteInstanceLog(Long id, Long nodeId) {
+        Map<String, String> result = new HashMap<>();
+
+        NodeServer nodeServer = NodeServer.find.byId(nodeId);
+        if (nodeServer == null) {
+            return result;
+        }
+        CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
+        if (canalInstanceConfig == null) {
+            return result;
+        }
+
+        String log = JMXConnection.execute(nodeServer.getIp(),
+            nodeServer.getPort(),
+            canalServerMXBean -> canalServerMXBean.instanceLog(canalInstanceConfig.getName()));
+
+        result.put("instance", canalInstanceConfig.getName());
+        result.put("log", log);
+        return result;
     }
 
     public boolean remoteOperation(Long id, Long nodeId, String option) {

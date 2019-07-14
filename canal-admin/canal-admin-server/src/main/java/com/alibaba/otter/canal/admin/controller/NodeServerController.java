@@ -54,6 +54,11 @@ public class NodeServerController {
         return BaseModel.getInstance(nodeServerService.remoteOperation(id, "start"));
     }
 
+    @GetMapping(value = "/nodeServer/log/{id}")
+    public BaseModel<String> log(@PathVariable Long id, @PathVariable String env) {
+        return BaseModel.getInstance(nodeServerService.remoteCanalLog(id));
+    }
+
     @PutMapping(value = "/nodeServer/stop/{id}")
     public BaseModel<Boolean> stop(@PathVariable Long id, @PathVariable String env) {
         return BaseModel.getInstance(nodeServerService.remoteOperation(id, "stop"));

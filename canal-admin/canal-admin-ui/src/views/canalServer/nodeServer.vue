@@ -51,6 +51,7 @@
               <el-dropdown-item @click.native="handleDelete(scope.row)">删除节点</el-dropdown-item>
               <el-dropdown-item @click.native="handleStart(scope.row)">启动服务</el-dropdown-item>
               <el-dropdown-item @click.native="handleStop(scope.row)">停止服务</el-dropdown-item>
+              <el-dropdown-item @click.native="handleLog(scope.row)">日志详情</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -290,6 +291,9 @@ export default {
           }
         })
       })
+    },
+    handleLog(row) {
+      this.$router.push('nodeServer/log?id=' + row.id)
     }
   }
 }

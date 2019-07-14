@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.deployer.mbean;
 
+import com.alibaba.otter.canal.common.utils.FileUtils;
 import com.alibaba.otter.canal.deployer.CanalLauncher;
 import com.alibaba.otter.canal.deployer.CanalStater;
 import com.alibaba.otter.canal.deployer.InstanceConfig;
@@ -125,6 +126,16 @@ public class CanalServerBean extends NotificationBroadcasterSupport implements C
             logger.error(e.getMessage(), e);
         }
         return "";
+    }
+
+    @Override
+    public String canalLog() {
+        return FileUtils.readFileFromOffset("../logs/canal/canal.log", 100, "UTF-8");
+    }
+
+    @Override
+    public String instanceLog(String destination) {
+        return FileUtils.readFileFromOffset("../logs/" + destination + "/" + destination + ".log", 100, "UTF-8");
     }
 
     private InstanceAction getInstanceAction(String destination) {
