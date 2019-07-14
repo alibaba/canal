@@ -97,7 +97,7 @@
                                         <include>static/</include>
                                         <include>index.html</include>
                                         <include>avatar.gif</include>
-                                        <include>logo.png./</include>
+                                        <include>logo.png</include>
                                     </includes>
                                 </resource>
                             </resources>
