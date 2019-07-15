@@ -17,6 +17,12 @@ import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * 相关MVC拦截器配置
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 

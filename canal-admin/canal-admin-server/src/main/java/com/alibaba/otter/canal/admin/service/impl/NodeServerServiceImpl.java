@@ -20,6 +20,12 @@ import com.alibaba.otter.canal.admin.service.NodeServerService;
 
 import io.ebean.Query;
 
+/**
+ * 节点信息业务层
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @Service
 public class NodeServerServiceImpl implements NodeServerService {
 

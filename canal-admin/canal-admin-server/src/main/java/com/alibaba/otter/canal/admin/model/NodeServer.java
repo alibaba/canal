@@ -8,6 +8,12 @@ import javax.persistence.Table;
 
 import io.ebean.Finder;
 
+/**
+ * 节点信息实体类
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @Entity
 @Table(name = "canal_node_server")
 public class NodeServer extends Model {

@@ -14,6 +14,12 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
+/**
+ * Canal Server JMX 控制层
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 public class JMXConnection {
 
     private static final Logger logger = LoggerFactory.getLogger(JMXConnection.class);
@@ -28,6 +34,15 @@ public class JMXConnection {
         this.port = port;
     }
 
+    /**
+     * 执行相关操作
+     *
+     * @param ip jmx ip
+     * @param port jmx port
+     * @param function 执行方法
+     * @param <R> 返回泛型
+     * @return 执行结果
+     */
     public static <R> R execute(String ip, int port, Function<CanalServerMXBean, R> function) {
         JMXConnection jmxConnection = new JMXConnection(ip, port);
         try {
@@ -41,6 +56,9 @@ public class JMXConnection {
         return null;
     }
 
+    /**
+     * 连接远程jmx
+     */
     public void connect() {
         try {
             JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + ip + ":" + port + "/jmxrmi");
@@ -57,6 +75,15 @@ public class JMXConnection {
         }
     }
 
+    /**
+     * 带超时的jmx连接器
+     *
+     * @param url jmx url
+     * @param timeout 超时时间
+     * @param unit 超时时间单位
+     * @return JMXConnector
+     * @throws IOException 连接异常
+     */
     private static JMXConnector connectWithTimeout(final JMXServiceURL url, long timeout,
                                                    TimeUnit unit) throws IOException {
         final BlockingQueue<Object> mailbox = new ArrayBlockingQueue<>(1);
@@ -108,6 +135,11 @@ public class JMXConnection {
 
     private static final ThreadFactory daemonThreadFactory = new DaemonThreadFactory();
 
+    /**
+     * 获取MBean
+     *
+     * @return canalServerMXBean
+     */
     public CanalServerMXBean getCanalServerMXBean() {
         if (jmxc == null) {
             connect();
@@ -115,6 +147,9 @@ public class JMXConnection {
         return canalServerMXBean;
     }
 
+    /**
+     * 关闭jmx连接
+     */
     public void close() {
         try {
             if (jmxc != null) {

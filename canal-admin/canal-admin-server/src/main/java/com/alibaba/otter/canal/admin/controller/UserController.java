@@ -15,6 +15,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 用户管理控制层
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @RestController
 @RequestMapping("/api/{env}/user")
 public class UserController {
@@ -22,11 +28,18 @@ public class UserController {
     public static final LoadingCache<String, User> loginUsers = Caffeine.newBuilder()
         .maximumSize(10_000)
         .expireAfterAccess(10, TimeUnit.MINUTES)
-        .build(key -> null);
+        .build(key -> null);                                                         // 用户登录信息缓存
 
     @Autowired
     UserService                                    userService;
 
+    /**
+     * 用户登录
+     *
+     * @param user 账号密码
+     * @param env 环境变量
+     * @return token
+     */
     @PostMapping(value = "/login")
     public BaseModel<Map<String, String>> login(@RequestBody User user, @PathVariable String env) {
         User loginUser = userService.find4Login(user.getUsername(), user.getPassword());
@@ -44,6 +57,13 @@ public class UserController {
         }
     }
 
+    /**
+     * 获取用户信息
+     *
+     * @param token token
+     * @param env 环境变量
+     * @return 用户信息
+     */
     @GetMapping(value = "/info")
     public BaseModel<User> info(@RequestParam String token, @PathVariable String env) {
         User user = loginUsers.getIfPresent(token);
@@ -57,6 +77,14 @@ public class UserController {
         }
     }
 
+    /**
+     * 修改用户信息
+     *
+     * @param user 用户信息
+     * @param env 环境变量
+     * @param httpServletRequest httpServletRequest
+     * @return 是否成功
+     */
     @PutMapping(value = "")
     public BaseModel<String> update(@RequestBody User user, @PathVariable String env,
                                     HttpServletRequest httpServletRequest) {
@@ -66,6 +94,12 @@ public class UserController {
         return BaseModel.getInstance("success");
     }
 
+    /**
+     * 用户退出
+     *
+     * @param env 环境变量
+     * @return 是否成功
+     */
     @PostMapping(value = "/logout")
     public BaseModel<String> logout(@PathVariable String env) {
         return BaseModel.getInstance("success");

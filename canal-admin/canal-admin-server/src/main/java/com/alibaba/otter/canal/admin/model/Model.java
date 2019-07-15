@@ -9,6 +9,12 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.OptimisticLockException;
 import java.lang.reflect.Field;
 
+/**
+ * EBean Model扩展类
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @MappedSuperclass
 public abstract class Model extends io.ebean.Model {
 
