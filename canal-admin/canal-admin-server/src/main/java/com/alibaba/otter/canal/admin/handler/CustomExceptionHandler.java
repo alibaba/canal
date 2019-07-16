@@ -10,11 +10,23 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+/**
+ * MVC异常拦截器
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @ControllerAdvice(annotations = ResponseBody.class)
 public class CustomExceptionHandler {
 
     private static Logger logger = LoggerFactory.getLogger(CustomExceptionHandler.class);
 
+    /**
+     * 通用异常处理
+     *
+     * @param e 异常
+     * @return
+     */
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @ExceptionHandler(value = Exception.class)

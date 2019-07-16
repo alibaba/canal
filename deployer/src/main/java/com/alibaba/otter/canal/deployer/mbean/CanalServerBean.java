@@ -14,6 +14,12 @@ import org.slf4j.LoggerFactory;
 import javax.management.NotificationBroadcasterSupport;
 import java.util.Map;
 
+/**
+ * Canal配置信息业务层
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 public class CanalServerBean extends NotificationBroadcasterSupport implements CanalServerMXBean {
 
     private static final Logger logger = LoggerFactory.getLogger(CanalServerBean.class);

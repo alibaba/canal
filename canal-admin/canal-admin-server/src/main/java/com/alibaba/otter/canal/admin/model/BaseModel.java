@@ -1,5 +1,11 @@
 package com.alibaba.otter.canal.admin.model;
 
+/**
+ * 基础Model
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 public class BaseModel<T> {
 
     private Integer code = 20000;

@@ -16,6 +16,12 @@ import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 
+/**
+ * Canal Server Agent 用于远程JMX调用
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 public class CanalServerAgent implements NotificationListener {
 
     private static final Logger         logger      = LoggerFactory.getLogger(CanalServerBean.class);

@@ -18,9 +18,4 @@ public class CanalAdminApplication {
         application.setBannerMode(Banner.Mode.OFF);
         application.run(args);
     }
-
-    // public static void main(String[] args) throws Exception {
-    // UserAgent userAgent = new UserAgent();
-    //// HelloAgent helloAgent = new HelloAgent
-    // }
 }

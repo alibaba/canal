@@ -7,6 +7,12 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+/**
+ * Canal住配置实体类
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @Entity
 public class CanalConfig extends Model {
 

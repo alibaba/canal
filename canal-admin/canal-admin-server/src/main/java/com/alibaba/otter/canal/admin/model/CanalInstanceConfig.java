@@ -7,6 +7,12 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 import java.util.Date;
 
+/**
+ * Canal实例配置信息实体类
+ *
+ * @author rewerma 2019-07-13 下午05:12:16
+ * @version 1.0.0
+ */
 @Entity
 public class CanalInstanceConfig extends Model {
 
@@ -30,7 +36,7 @@ public class CanalInstanceConfig extends Model {
     private Date   modifiedTime;
 
     @Transient
-    private Long nodeId;
+    private Long   nodeId;
     @Transient
     private String nodeIp;
 

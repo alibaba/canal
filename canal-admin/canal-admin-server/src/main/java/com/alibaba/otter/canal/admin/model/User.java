@@ -8,9 +8,12 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.util.Date;
 
+/**
+ * 用户信息实体类
+ */
 @Entity
 @Table(name = "canal_user")
-public class User extends Model{
+public class User extends Model {
 
     public static final UserFinder find = new UserFinder();
 
