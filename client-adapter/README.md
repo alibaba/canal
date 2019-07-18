@@ -350,12 +350,14 @@ canal.conf:
   - instance: example
     adapterGroups:
     - outAdapters:
-      - name: es
-        hosts: 127.0.0.1:9300               # es 集群地址, 逗号分隔
+      - name: es            es为tcp方式的调用，若配置为es_http即为http方式的调用
+        hosts: 127.0.0.1:9300               # es 集群地址, 逗号分隔（tcp方式） 若为http方式的调用请修改对应的端口
         properties:
           cluster.name: elasticsearch       # es cluster name
+          xpack.security.user: elastic:elastic # 用户名:密码
 ```
-adapter将会自动加载 conf/es 下的所有.yml结尾的配置文件
+* 若为基于tcp协议的调用 请将配置文件放置于 conf/es 下 adapter将会自动加载 conf/es 下的所有.yml结尾的配置文件;
+* 若为基于http协议的调用 请将配置文件放置于 conf/es_http 下 adapter将会自动加载 conf/es_http 下的所有.yml结尾的配置文件
 ### 5.2 适配器表映射文件
 修改 conf/es/mytest_user.yml文件:
 ```

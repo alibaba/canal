@@ -7,19 +7,29 @@ import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfigLoader;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SqlParser;
-import com.alibaba.otter.canal.client.adapter.es.monitor.ESConfigMonitor;
-import com.alibaba.otter.canal.client.adapter.es.service.ESEtlService;
-import com.alibaba.otter.canal.client.adapter.es.service.ESSyncService;
-import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
+import com.alibaba.otter.canal.client.adapter.es.monitor.ESHttpConfigMonitor;
+import com.alibaba.otter.canal.client.adapter.es.service.ESHttpEtlService;
+import com.alibaba.otter.canal.client.adapter.es.service.ESHttpSyncService;
+import com.alibaba.otter.canal.client.adapter.es.support.ESHttpTemplate;
 import com.alibaba.otter.canal.client.adapter.support.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,26 +46,26 @@ import java.util.regex.Pattern;
  * @author rewerma 2018-10-20
  * @version 1.0.0
  */
-@SPI("es")
-public class ESAdapter implements OuterAdapter {
-
+@SPI("es_http")
+public class ESHttpAdapter implements OuterAdapter {
+    private static Logger logger = LoggerFactory.getLogger(ESHttpAdapter.class);
     private Map<String, ESSyncConfig>              esSyncConfig        = new ConcurrentHashMap<>(); // 文件名对应配置
     private Map<String, Map<String, ESSyncConfig>> dbTableEsSyncConfig = new ConcurrentHashMap<>(); // schema-table对应配置
 
-    private TransportClient                        transportClient;
+    private RestHighLevelClient                    restHighLevelClient;
 
-    private ESSyncService                          esSyncService;
+    private ESHttpSyncService                          esHttpSyncService;
 
-    private ESConfigMonitor                        esConfigMonitor;
+    private ESHttpConfigMonitor                        esConfigMonitor;
 
     private Properties                             envProperties;
 
-    public TransportClient getTransportClient() {
-        return transportClient;
+    public RestHighLevelClient getRestHighLevelClient() {
+        return restHighLevelClient;
     }
 
-    public ESSyncService getEsSyncService() {
-        return esSyncService;
+    public ESHttpSyncService getEsHttpSyncService() {
+        return esHttpSyncService;
     }
 
     public Map<String, ESSyncConfig> getEsSyncConfig() {
@@ -119,20 +129,30 @@ public class ESAdapter implements OuterAdapter {
             }
 
             Map<String, String> properties = configuration.getProperties();
-            Settings.Builder settingBuilder = Settings.builder();
-            properties.forEach(settingBuilder::put);
-            Settings settings = settingBuilder.build();
-            transportClient = new PreBuiltXPackTransportClient(settings);
             String[] hostArray = configuration.getHosts().split(",");
-            for (String host : hostArray) {
-                int i = host.indexOf(":");
-                transportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.substring(0, i)),
-                    Integer.parseInt(host.substring(i + 1))));
+            HttpHost[] httpHosts = new HttpHost[hostArray.length];
+            for (int i = 0; i < hostArray.length;i++) {
+                String host = hostArray[i];
+                int j = host.indexOf(":");
+                HttpHost httpHost = new HttpHost(InetAddress.getByName(host.substring(0, j)),
+                        Integer.parseInt(host.substring(j + 1)));
+                httpHosts[i] = httpHost;
             }
-            ESTemplate esTemplate = new ESTemplate(transportClient);
-            esSyncService = new ESSyncService(esTemplate);
+            RestClientBuilder restClientBuilder = RestClient.builder(httpHosts);
+            String nameAndPwd = properties.get("xpack.security.user");
+            if (StringUtils.isNotEmpty(nameAndPwd) && nameAndPwd.contains(":")) {
+                String[] nameAndPwdArr = nameAndPwd.split(":");
+                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(AuthScope.ANY,
+                        new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
+                restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            }
+            restHighLevelClient = new RestHighLevelClient(restClientBuilder);
 
-            esConfigMonitor = new ESConfigMonitor();
+            ESHttpTemplate esHttpTemplate = new ESHttpTemplate(restHighLevelClient);
+            esHttpSyncService = new ESHttpSyncService(esHttpTemplate);
+
+            esConfigMonitor = new ESHttpConfigMonitor();
             esConfigMonitor.init(this, envProperties);
         } catch (Throwable e) {
             throw new RuntimeException(e);
@@ -149,7 +169,7 @@ public class ESAdapter implements OuterAdapter {
                 sync(dml);
             }
         }
-        esSyncService.commit(); // 批次统一提交
+        esHttpSyncService.commit(); // 批次统一提交
 
     }
 
@@ -167,7 +187,7 @@ public class ESAdapter implements OuterAdapter {
         }
 
         if (configMap != null && !configMap.values().isEmpty()) {
-            esSyncService.sync(configMap.values(), dml);
+            esHttpSyncService.sync(configMap.values(), dml);
         }
     }
 
@@ -177,7 +197,7 @@ public class ESAdapter implements OuterAdapter {
         ESSyncConfig config = esSyncConfig.get(task);
         if (config != null) {
             DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-            ESEtlService esEtlService = new ESEtlService(transportClient, config);
+            ESHttpEtlService esEtlService = new ESHttpEtlService(restHighLevelClient, config);
             if (dataSource != null) {
                 return esEtlService.importData(params);
             } else {
@@ -192,7 +212,7 @@ public class ESAdapter implements OuterAdapter {
             for (ESSyncConfig configTmp : esSyncConfig.values()) {
                 // 取所有的destination为task的配置
                 if (configTmp.getDestination().equals(task)) {
-                    ESEtlService esEtlService = new ESEtlService(transportClient, configTmp);
+                    ESHttpEtlService esEtlService = new ESHttpEtlService(restHighLevelClient, configTmp);
                     EtlResult etlRes = esEtlService.importData(params);
                     if (!etlRes.getSucceeded()) {
                         resSuccess = false;
@@ -221,12 +241,21 @@ public class ESAdapter implements OuterAdapter {
     public Map<String, Object> count(String task) {
         ESSyncConfig config = esSyncConfig.get(task);
         ESMapping mapping = config.getEsMapping();
-        SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-            .setTypes(mapping.get_type())
-            .setSize(0)
-            .get();
-
-        long rowCount = response.getHits().getTotalHits();
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        builder.size(0);
+        SearchRequest request = new SearchRequest(mapping.get_index());
+        request.types(mapping.get_type())
+                .source(builder);
+        SearchResponse response = null;
+        try {
+            response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            logger.error("在count()函数中执行搜索时出现异常",e);
+        }
+        long rowCount = -1;
+        if (response != null) {
+            rowCount = response.getHits().getTotalHits();
+        }
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("esIndex", mapping.get_index());
         res.put("count", rowCount);
@@ -238,8 +267,12 @@ public class ESAdapter implements OuterAdapter {
         if (esConfigMonitor != null) {
             esConfigMonitor.destroy();
         }
-        if (transportClient != null) {
-            transportClient.close();
+        if (restHighLevelClient != null) {
+            try {
+                restHighLevelClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -1,10 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es.test;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -15,12 +10,16 @@ import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-@Ignore
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class ESTest {
 
     private TransportClient transportClient;
@@ -29,8 +28,12 @@ public class ESTest {
     public void init() throws UnknownHostException {
         Settings.Builder settingBuilder = Settings.builder();
         settingBuilder.put("cluster.name", TestConstant.clusterName);
+//        settingBuilder.put("xpack.security.transport.ssl.enabled", false);
+//        settingBuilder.put("xpack.security.enabled", true);
+        settingBuilder.put("xpack.security.user", "elastic:elastic");
+//        settingBuilder.put("client.transport.sniff", false);
         Settings settings = settingBuilder.build();
-        transportClient = new PreBuiltTransportClient(settings);
+        transportClient = new PreBuiltXPackTransportClient(settings);
         String[] hostArray = TestConstant.esHosts.split(",");
         for (String host : hostArray) {
             int i = host.indexOf(":");

@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.client.adapter.es.monitor;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
-import com.alibaba.otter.canal.client.adapter.es.ESAdapter;
+import com.alibaba.otter.canal.client.adapter.es.ESHttpAdapter;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SqlParser;
@@ -23,19 +23,19 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ESConfigMonitor {
+public class ESHttpConfigMonitor {
 
-    private static final Logger   logger      = LoggerFactory.getLogger(ESConfigMonitor.class);
+    private static final Logger   logger      = LoggerFactory.getLogger(ESHttpConfigMonitor.class);
 
-    private String                adapterName;
+    private String  adapterName;
 
-    private ESAdapter             esAdapter;
+    private ESHttpAdapter esAdapter;
 
     private Properties            envProperties;
 
     private FileAlterationMonitor fileMonitor;
 
-    public void init(ESAdapter esAdapter, Properties envProperties) {
+    public void init(ESHttpAdapter esAdapter, Properties envProperties) {
         this.esAdapter = esAdapter;
         this.envProperties = envProperties;
         adapterName = envProperties.getProperty("esType");
