@@ -1,1 +1,2 @@
+es_http=com.alibaba.otter.canal.client.adapter.es.ESHttpAdapter
 es=com.alibaba.otter.canal.client.adapter.es.ESAdapter
