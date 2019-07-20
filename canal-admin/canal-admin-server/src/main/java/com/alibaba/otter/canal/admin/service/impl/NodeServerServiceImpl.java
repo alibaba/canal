@@ -49,6 +49,16 @@ public class NodeServerServiceImpl implements NodeServerService {
     }
 
     public void update(NodeServer nodeServer) {
+        int cnt = NodeServer.find.query()
+            .where()
+            .eq("ip", nodeServer.getIp())
+            .eq("port", nodeServer.getPort())
+            .ne("id", nodeServer.getId())
+            .findCount();
+        if (cnt > 0) {
+            throw new ServiceException("节点信息已存在");
+        }
+
         nodeServer.update("name", "ip", "port", "port2");
     }
 
