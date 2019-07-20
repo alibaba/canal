@@ -102,8 +102,11 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
     public boolean remoteOperation(Long id, Long nodeId, String option) {
         NodeServer nodeServer = null;
         if ("start".equals(option)) {
-            // select the first node server
-            nodeServer = NodeServer.find.query().findOne();
+            if (nodeId != null) {
+                nodeServer = NodeServer.find.byId(nodeId);
+            } else {
+                nodeServer = NodeServer.find.query().findOne();
+            }
         } else {
             if (nodeId == null) {
                 return false;
