@@ -126,7 +126,9 @@
         <module>example</module>
         <module>prometheus</module>
         <module>client-adapter</module>
-        <module>canal-admin</module>
+        <!-- if you need admin console,remove this annotation,this module compile need much time,be patient
+          <module>canal-admin</module>
+        -->
     </modules>
 
     <dependencyManagement>
@@ -415,6 +417,13 @@
                         </execution>
                     </executions>
                 <configuration>
+                  <!-- workaround for https://bugs.openjdk.java.net/browse/JDK-8212233 -->
+                  <javaApiLinks>
+                     <property>
+                         <name>foo</name>
+                         <value>bar</value>
+                     </property>
+                  </javaApiLinks>
                   <encoding>${file_encoding}</encoding>
                   <charset>${file_encoding}</charset>
                   <additionalparam>-Xdoclint:none</additionalparam>
