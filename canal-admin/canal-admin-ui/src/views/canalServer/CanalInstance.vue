@@ -142,6 +142,7 @@ export default {
       }
 
       this.currentId = row.id
+      this.nodeModel.id = null
 
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
