@@ -2,10 +2,11 @@ language: java
 sudo: false # faster builds
 
 jdk:
+  - oraclejdk12
+  - openjdk12
   - openjdk11
   - oraclejdk11
   - openjdk8
-  - oraclejdk8
 
 cache:
   directories:
