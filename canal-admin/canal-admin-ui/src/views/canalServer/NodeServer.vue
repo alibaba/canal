@@ -126,7 +126,8 @@ export default {
         name: [{ required: true, message: '节点名称不能为空', trigger: 'change' }],
         ip: [{ required: true, message: '节点IP不能为空', trigger: 'change' }],
         port: [{ required: true, message: '节点端口不能为空', trigger: 'change' }]
-      }
+      },
+      dialogStatus: 'create'
     }
   },
   // { min: 2, max: 5, message: '长度在 2 到 5 个字符', trigger: 'change' }

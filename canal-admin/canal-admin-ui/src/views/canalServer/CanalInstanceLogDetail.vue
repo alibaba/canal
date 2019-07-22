@@ -7,7 +7,7 @@
           <el-button type="primary" @click="onRefresh">刷新</el-button>
           <el-button type="info" @click="onBack">返回</el-button>
         </el-form-item>
-        <el-input v-model="form.desc" :rows="35" readonly="true" type="textarea" />
+        <el-input v-model="form.desc" :rows="35" :readonly="'readonly'" type="textarea" />
       </div>
     </el-form>
   </div>

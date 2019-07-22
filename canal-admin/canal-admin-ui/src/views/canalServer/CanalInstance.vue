@@ -47,11 +47,25 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-dialog :visible.sync="dialogFormVisible" title="确定启动服务" width="400px">
+      <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="80px" style="width: 350px; margin-left:30px;">
+        <el-form-item label="选择节点" prop="nodeId">
+          <el-select v-model="nodeModel.id" placeholder="选择节点">
+            <el-option v-for="item in nodeServices" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取消</el-button>
+        <el-button type="primary" @click="doStartInstance()">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getCanalInstances, deleteCanalInstance, startInstance, stopInstance } from '@/api/canalInstance'
+import { getNodeServers } from '@/api/nodeServer'
 
 export default {
   filters: {
@@ -68,8 +82,17 @@ export default {
     return {
       list: null,
       listLoading: true,
+      dialogFormVisible: false,
+      nodeServices: [],
       listQuery: {
         name: ''
+      },
+      currentId: null,
+      nodeModel: {
+        id: null
+      },
+      rules: {
+        id: [{ required: true, message: '请选择节点', trigger: 'change' }]
       }
     }
   },
@@ -117,25 +140,34 @@ export default {
         this.$message({ message: '当前实例不是停止状态，无法启动', type: 'error' })
         return
       }
-      this.$confirm('启动Canal Instance: ' + row.name, '确定启动实例服务', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        startInstance(row.id).then((res) => {
-          if (res.data) {
-            this.fetchData()
-            this.$message({
-              message: '启动成功',
-              type: 'success'
-            })
-          } else {
-            this.$message({
-              message: '启动实例服务出现异常',
-              type: 'error'
-            })
-          }
-        })
+
+      this.currentId = row.id
+      this.nodeModel.id = null
+
+      this.$nextTick(() => {
+        this.$refs['dataForm'].clearValidate()
+      })
+
+      getNodeServers().then((res) => {
+        this.nodeServices = res.data
+        this.dialogFormVisible = true
+      })
+    },
+    doStartInstance() {
+      startInstance(this.currentId, this.nodeModel.id).then((res) => {
+        if (res.data) {
+          this.fetchData()
+          this.$message({
+            message: '启动成功',
+            type: 'success'
+          })
+          this.dialogFormVisible = false
+        } else {
+          this.$message({
+            message: '启动实例服务出现异常',
+            type: 'error'
+          })
+        }
       })
     },
     handleStop(row) {
