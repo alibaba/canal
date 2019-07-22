@@ -61,3 +61,7 @@ canal.conf:
 #        hosts: 127.0.0.1:9300
 #        properties:
 #          cluster.name: elasticsearch
+#      - name: redis
+#        hosts: 127.0.0.1:6379
+#        properties:
+#          redis.cluster: false

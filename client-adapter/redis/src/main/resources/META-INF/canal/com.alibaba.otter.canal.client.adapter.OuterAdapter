@@ -1,0 +1,1 @@
+redis=com.alibaba.otter.canal.client.adapter.redis.RedisAdapter
