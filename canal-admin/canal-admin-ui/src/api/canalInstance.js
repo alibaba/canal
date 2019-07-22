@@ -38,9 +38,9 @@ export function deleteCanalInstance(id) {
   })
 }
 
-export function startInstance(id) {
+export function startInstance(id, nodeId) {
   return request({
-    url: '/canal/instance/start/' + id,
+    url: '/canal/instance/start/' + id + '/' + nodeId,
     method: 'put'
   })
 }

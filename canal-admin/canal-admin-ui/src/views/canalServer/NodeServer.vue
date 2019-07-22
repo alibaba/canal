@@ -57,26 +57,6 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog :visible.sync="dialogFormVisible" title="新建节点信息" width="600px">
-      <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="80px" style="width: 350px; margin-left:80px;">
-        <el-form-item label="节点名称" prop="name">
-          <el-input v-model="nodeModel.name" />
-        </el-form-item>
-        <el-form-item label="节点IP" prop="ip">
-          <el-input v-model="nodeModel.ip" />
-        </el-form-item>
-        <el-form-item label="节点端口" prop="port">
-          <el-input v-model="nodeModel.port" placeholder="11113" type="number" />
-        </el-form-item>
-        <el-form-item label="监控端口" prop="port2">
-          <el-input v-model="nodeModel.port2" type="number" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button type="primary" @click="createData()">确定</el-button>
-      </div>
-    </el-dialog>
     <el-dialog :visible.sync="dialogFormVisible" :title="textMap[dialogStatus]" width="600px">
       <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="80px" style="width: 350px; margin-left:80px;">
         <el-form-item label="节点名称" prop="name">
@@ -146,7 +126,8 @@ export default {
         name: [{ required: true, message: '节点名称不能为空', trigger: 'change' }],
         ip: [{ required: true, message: '节点IP不能为空', trigger: 'change' }],
         port: [{ required: true, message: '节点端口不能为空', trigger: 'change' }]
-      }
+      },
+      dialogStatus: 'create'
     }
   },
   // { min: 2, max: 5, message: '长度在 2 到 5 个字符', trigger: 'change' }

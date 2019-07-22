@@ -94,9 +94,9 @@ public class CanalInstanceController {
      * @param env 环境变量
      * @return 是否成功
      */
-    @PutMapping(value = "/instance/start/{id}")
-    public BaseModel<Boolean> start(@PathVariable Long id, @PathVariable String env) {
-        return BaseModel.getInstance(canalInstanceConfigService.remoteOperation(id, null, "start"));
+    @PutMapping(value = "/instance/start/{id}/{nodeId}")
+    public BaseModel<Boolean> start(@PathVariable Long id, @PathVariable Long nodeId, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.remoteOperation(id, nodeId, "start"));
     }
 
     /**
@@ -121,8 +121,8 @@ public class CanalInstanceController {
      * @return 实例日志信息
      */
     @GetMapping(value = "/instance/log/{id}/{nodeId}")
-    public BaseModel<Map<String, String>> start(@PathVariable Long id, @PathVariable Long nodeId,
-                                                @PathVariable String env) {
+    public BaseModel<Map<String, String>> instanceLog(@PathVariable Long id, @PathVariable Long nodeId,
+                                                      @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.remoteInstanceLog(id, nodeId));
     }
 }
