@@ -11,6 +11,7 @@ import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.deployer.admin.CanalAdminController;
 import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
 import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
+import com.alibaba.otter.canal.rabbitmq.CanalRabbitMQProducer;
 import com.alibaba.otter.canal.server.CanalMQStarter;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
 
@@ -64,6 +65,8 @@ public class CanalStarter {
             canalMQProducer = new CanalKafkaProducer();
         } else if (serverMode.equalsIgnoreCase("rocketmq")) {
             canalMQProducer = new CanalRocketMQProducer();
+        } else if (serverMode.equalsIgnoreCase("rabbitmq")) {
+            canalMQProducer = new CanalRabbitMQProducer();
         }
 
         if (canalMQProducer != null) {
@@ -258,6 +261,31 @@ public class CanalStarter {
             CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH);
         if (!StringUtils.isEmpty(kafkaKerberosJaasFilepath)) {
             mqProperties.setKerberosJaasFilePath(kafkaKerberosJaasFilepath);
+        }
+
+        String vhost = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_VHOST);
+        if (!StringUtils.isEmpty(vhost)) {
+            mqProperties.setVhost(vhost);
+        }
+
+        String username = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_USERNAME);
+        if (!StringUtils.isEmpty(username)) {
+            mqProperties.setUsername(username);
+        }
+
+        String password = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_PASSWORD);
+        if (!StringUtils.isEmpty(password)) {
+            mqProperties.setPassword(password);
+        }
+
+        String aliyunUID = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_ALIYUN_UID);
+        if (!StringUtils.isEmpty(aliyunUID)) {
+            mqProperties.setAliyunUID(Long.valueOf(aliyunUID));
+        }
+
+        String exchange = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_EXCHANGE);
+        if (!StringUtils.isEmpty(exchange)) {
+            mqProperties.setExchange(exchange);
         }
 
         for (Object key : properties.keySet()) {
