@@ -209,7 +209,7 @@ public class ESSyncUtil {
                     if (value.contains(";")) {
                         separator = ";";
                     } else if (value.contains("|")) {
-                        separator = "|";
+                        separator = "\\|";
                     } else if (value.contains("-")) {
                         separator = "-";
                     }

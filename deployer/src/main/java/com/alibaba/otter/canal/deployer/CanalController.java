@@ -152,6 +152,9 @@ public class CanalController {
                             try {
                                 MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
                                 embededCanalServer.start(destination);
+                                if (canalMQStarter != null) {
+                                    canalMQStarter.startDestination(destination);
+                                }
                             } finally {
                                 MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
@@ -160,6 +163,9 @@ public class CanalController {
                         public void processActiveExit() {
                             try {
                                 MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                                if (canalMQStarter != null) {
+                                    canalMQStarter.stopDestination(destination);
+                                }
                                 embededCanalServer.stop(destination);
                             } finally {
                                 MDC.remove(CanalConstants.MDC_DESTINATION);
@@ -234,9 +240,6 @@ public class CanalController {
                         ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
                         if (!config.getLazy() && !runningMonitor.isStart()) {
                             runningMonitor.start();
-                            if (canalMQStarter != null) {
-                                canalMQStarter.startDestination(destination);
-                            }
                         }
                     }
                 }
@@ -245,9 +248,6 @@ public class CanalController {
                     // 此处的stop，代表强制退出，非HA机制，所以需要退出HA的monitor和配置信息
                     InstanceConfig config = instanceConfigs.remove(destination);
                     if (config != null) {
-                        if (canalMQStarter != null) {
-                            canalMQStarter.stopDestination(destination);
-                        }
                         embededCanalServer.stop(destination);
                         ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
                         if (runningMonitor.isStart()) {
@@ -555,5 +555,13 @@ public class CanalController {
 
     public void setCanalMQStarter(CanalMQStarter canalMQStarter) {
         this.canalMQStarter = canalMQStarter;
+    }
+
+    public Map<InstanceMode, InstanceConfigMonitor> getInstanceConfigMonitors() {
+        return instanceConfigMonitors;
+    }
+
+    public Map<String, InstanceConfig> getInstanceConfigs() {
+        return instanceConfigs;
     }
 }

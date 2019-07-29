@@ -120,6 +120,11 @@ public class CanalParameter implements Serializable {
     private Long                     standbyTimestamp                   = null;
     private Boolean                  parallel                           = Boolean.FALSE;
 
+    //自定义alarmHandler类全路径
+    private String                   alarmHandlerClass                  = null;
+    //自定义alarmHandler插件文件夹路径
+    private String                   alarmHandlerPluginDir              = null;
+
     public static enum RunMode {
 
         /** 嵌入式 */
@@ -989,6 +994,22 @@ public class CanalParameter implements Serializable {
 
     public void setParallel(Boolean parallel) {
         this.parallel = parallel;
+    }
+
+    public String getAlarmHandlerClass() {
+        return alarmHandlerClass;
+    }
+
+    public void setAlarmHandlerClass(String alarmHandlerClass) {
+        this.alarmHandlerClass = alarmHandlerClass;
+    }
+
+    public String getAlarmHandlerPluginDir() {
+        return alarmHandlerPluginDir;
+    }
+
+    public void setAlarmHandlerPluginDir(String alarmHandlerPluginDir) {
+        this.alarmHandlerPluginDir = alarmHandlerPluginDir;
     }
 
     public String toString() {

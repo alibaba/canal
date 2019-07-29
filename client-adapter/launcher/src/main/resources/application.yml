@@ -7,10 +7,10 @@ spring:
     default-property-inclusion: non_null
 
 canal.conf:
-  mode: tcp # kafka rocketMQ
-  canalServerHost: 127.0.0.1:11111
+  mode: kafka # kafka rocketMQ
+#  canalServerHost: 127.0.0.1:11111
 #  zookeeperHosts: slave1:2181
-#  mqServers: 127.0.0.1:9092 #or rocketmq
+  mqServers: 127.0.0.1:9092 #or rocketmq
 #  flatMessage: true
   batchSize: 500
   syncBatchSize: 1000

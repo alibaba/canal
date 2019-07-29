@@ -432,8 +432,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         }
 
         // 可定时清理数据
-        canalInstance.getEventStore().ack(positionRanges.getEnd());
-
+        canalInstance.getEventStore().ack(positionRanges.getEnd(), positionRanges.getEndSeq());
     }
 
     /**

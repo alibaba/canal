@@ -521,7 +521,7 @@ public class MysqlConnection implements ErosaConnection {
         try {
             rs = query("select @@global.binlog_checksum");
             List<String> columnValues = rs.getFieldValues();
-            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0).toUpperCase().equals("CRC32")) {
+            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0) != null && columnValues.get(0).toUpperCase().equals("CRC32")) {
                 binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
             } else {
                 binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;

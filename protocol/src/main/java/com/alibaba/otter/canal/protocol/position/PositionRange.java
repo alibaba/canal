@@ -19,6 +19,8 @@ public class PositionRange<T extends Position> implements Serializable {
     // add by ljh at 2012-09-05，用于记录一个可被ack的位置，保证每次提交到cursor中的位置是一个完整事务的结束
     private T                 ack;
     private T                 end;
+    // add by ljh at 2019-06-25，用于精确记录ringbuffer中的位点
+    private Long              endSeq           = -1L;
 
     public PositionRange(){
     }
@@ -50,6 +52,14 @@ public class PositionRange<T extends Position> implements Serializable {
 
     public void setAck(T ack) {
         this.ack = ack;
+    }
+
+    public Long getEndSeq() {
+        return endSeq;
+    }
+
+    public void setEndSeq(Long endSeq) {
+        this.endSeq = endSeq;
     }
 
     @Override

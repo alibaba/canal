@@ -106,8 +106,8 @@
 			<artifactId>rocketmq-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.aliyun.openservices</groupId>
-			<artifactId>aliware-apache-rocketmq-cloud</artifactId>
+			<groupId>org.apache.rocketmq</groupId>
+			<artifactId>rocketmq-acl</artifactId>
 		</dependency>
 		<!-- 客户端要使用请单独引入kafka-clients依赖 -->
 		<dependency>
@@ -130,7 +130,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.4.1</version>
+				<version>3.2.1</version>
 				<configuration>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<artifactSet>

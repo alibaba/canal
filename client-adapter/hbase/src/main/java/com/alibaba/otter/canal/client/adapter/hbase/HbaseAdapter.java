@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -25,7 +23,10 @@ import com.alibaba.otter.canal.client.adapter.hbase.monitor.HbaseConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
 import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
 import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
-import com.alibaba.otter.canal.client.adapter.support.*;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.SPI;
 
 /**
  * HBase外部适配器
@@ -147,27 +148,16 @@ public class HbaseAdapter implements OuterAdapter {
     public EtlResult etl(String task, List<String> params) {
         EtlResult etlResult = new EtlResult();
         MappingConfig config = hbaseMapping.get(task);
+        HbaseEtlService hbaseEtlService = new HbaseEtlService(hbaseTemplate, config);
         if (config != null) {
-            DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-            if (dataSource != null) {
-                return HbaseEtlService.importData(dataSource, hbaseTemplate, config, params);
-            } else {
-                etlResult.setSucceeded(false);
-                etlResult.setErrorMessage("DataSource not found");
-                return etlResult;
-            }
+            return hbaseEtlService.importData(params);
         } else {
             StringBuilder resultMsg = new StringBuilder();
             boolean resSucc = true;
-            // ds不为空说明传入的是datasourceKey
             for (MappingConfig configTmp : hbaseMapping.values()) {
                 // 取所有的destination为task的配置
                 if (configTmp.getDestination().equals(task)) {
-                    DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(configTmp.getDataSourceKey());
-                    if (dataSource == null) {
-                        continue;
-                    }
-                    EtlResult etlRes = HbaseEtlService.importData(dataSource, hbaseTemplate, configTmp, params);
+                    EtlResult etlRes = hbaseEtlService.importData(params);
                     if (!etlRes.getSucceeded()) {
                         resSucc = false;
                         resultMsg.append(etlRes.getErrorMessage()).append("\n");

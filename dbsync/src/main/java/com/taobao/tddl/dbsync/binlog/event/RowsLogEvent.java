@@ -2,6 +2,7 @@ package com.taobao.tddl.dbsync.binlog.event;
 
 import java.util.BitSet;
 
+import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
@@ -178,6 +179,10 @@ public abstract class RowsLogEvent extends LogEvent {
 
     public final void fillTable(LogContext context) {
         table = context.getTable(tableId);
+
+        if (table == null) {
+            throw new TableIdNotFoundException("not found tableId:" + tableId);
+        }
 
         // end of statement check:
         if ((flags & RowsLogEvent.STMT_END_F) != 0) {

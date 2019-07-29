@@ -1,30 +1,21 @@
 package com.alibaba.otter.canal.client.adapter.rdb.service;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.sql.DataSource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig.DbMapping;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
+import com.alibaba.otter.canal.client.adapter.support.AbstractEtlService;
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-import com.google.common.base.Joiner;
 
 /**
  * RDB ETL 操作业务类
@@ -32,139 +23,33 @@ import com.google.common.base.Joiner;
  * @author rewerma @ 2018-11-7
  * @version 1.0.0
  */
-public class RdbEtlService {
+public class RdbEtlService extends AbstractEtlService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RdbEtlService.class);
+    private DataSource    targetDS;
+    private MappingConfig config;
+
+    public RdbEtlService(DataSource targetDS, MappingConfig config){
+        super("RDB", config);
+        this.targetDS = targetDS;
+        this.config = config;
+    }
 
     /**
      * 导入数据
      */
-    public static EtlResult importData(DataSource srcDS, DataSource targetDS, MappingConfig config,
-                                       List<String> params) {
-        EtlResult etlResult = new EtlResult();
-        AtomicLong successCount = new AtomicLong();
-        List<String> errMsg = new ArrayList<>();
-        String hbaseTable = "";
-        try {
-            if (config == null) {
-                logger.error("Config is null!");
-                etlResult.setSucceeded(false);
-                etlResult.setErrorMessage("Config is null!");
-                return etlResult;
-            }
-            DbMapping dbMapping = config.getDbMapping();
-
-            long start = System.currentTimeMillis();
-
-            // 拼接sql
-            StringBuilder sql = new StringBuilder(
-                "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable());
-
-            // 拼接条件
-            appendCondition(params, dbMapping, srcDS, sql);
-
-            // 获取总数
-            String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-            long cnt = (Long) Util.sqlRS(srcDS, countSql, rs -> {
-                Long count = null;
-                try {
-                    if (rs.next()) {
-                        count = ((Number) rs.getObject(1)).longValue();
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-                return count == null ? 0 : count;
-            });
-
-            // 当大于1万条记录时开启多线程
-            if (cnt >= 10000) {
-                int threadCount = 3;
-                long perThreadCnt = cnt / threadCount;
-                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
-                for (int i = 0; i < threadCount; i++) {
-                    long offset = i * perThreadCnt;
-                    Long size = null;
-                    if (i != threadCount - 1) {
-                        size = perThreadCnt;
-                    }
-                    String sqlFinal;
-                    if (size != null) {
-                        sqlFinal = sql + " LIMIT " + offset + "," + size;
-                    } else {
-                        sqlFinal = sql + " LIMIT " + offset + "," + cnt;
-                    }
-                    executor
-                        .execute(() -> executeSqlImport(srcDS, targetDS, sqlFinal, dbMapping, successCount, errMsg));
-                }
-
-                executor.shutdown();
-                while (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
-                    // ignore
-                }
-            } else {
-                executeSqlImport(srcDS, targetDS, sql.toString(), dbMapping, successCount, errMsg);
-            }
-
-            logger.info(
-                dbMapping.getTable() + " etl completed in: " + (System.currentTimeMillis() - start) / 1000 + "s!");
-
-            etlResult
-                .setResultMessage("导入目标表 " + SyncUtil.getDbTableName(dbMapping) + " 数据：" + successCount.get() + " 条");
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            errMsg.add(hbaseTable + " etl failed! ==>" + e.getMessage());
-        }
-
-        if (errMsg.isEmpty()) {
-            etlResult.setSucceeded(true);
-        } else {
-            etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
-        }
-        return etlResult;
-    }
-
-    private static void appendCondition(List<String> params, DbMapping dbMapping, DataSource ds,
-                                        StringBuilder sql) throws SQLException {
-        if (params != null && params.size() == 1 && dbMapping.getEtlCondition() == null) {
-            AtomicBoolean stExists = new AtomicBoolean(false);
-            // 验证是否有SYS_TIME字段
-            Util.sqlRS(ds, sql.toString(), rs -> {
-                try {
-                    ResultSetMetaData rsmd = rs.getMetaData();
-                    int cnt = rsmd.getColumnCount();
-                    for (int i = 1; i <= cnt; i++) {
-                        String columnName = rsmd.getColumnName(i);
-                        if ("SYS_TIME".equalsIgnoreCase(columnName)) {
-                            stExists.set(true);
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    // ignore
-                }
-                return null;
-            });
-            if (stExists.get()) {
-                sql.append(" WHERE SYS_TIME >= '").append(params.get(0)).append("' ");
-            }
-        } else if (dbMapping.getEtlCondition() != null && params != null) {
-            String etlCondition = dbMapping.getEtlCondition();
-            int size = params.size();
-            for (int i = 0; i < size; i++) {
-                etlCondition = etlCondition.replace("{" + i + "}", params.get(i));
-            }
-
-            sql.append(" ").append(etlCondition);
-        }
+    public EtlResult importData(List<String> params) {
+        DbMapping dbMapping = config.getDbMapping();
+        String sql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable();
+        return importData(sql, params);
     }
 
     /**
      * 执行导入
      */
-    private static boolean executeSqlImport(DataSource srcDS, DataSource targetDS, String sql, DbMapping dbMapping,
-                                            AtomicLong successCount, List<String> errMsg) {
+    protected boolean executeSqlImport(DataSource srcDS, String sql, List<Object> values,
+                                       AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
         try {
+            DbMapping dbMapping = (DbMapping) mapping;
             Map<String, String> columnsMap = new LinkedHashMap<>();
             Map<String, Integer> columnType = new LinkedHashMap<>();
 
@@ -187,17 +72,11 @@ public class RdbEtlService {
                 }
             });
 
-            Util.sqlRS(srcDS, sql, rs -> {
+            Util.sqlRS(srcDS, sql, values, rs -> {
                 int idx = 1;
 
                 try {
                     boolean completed = false;
-
-                    // if (dbMapping.isMapAll()) {
-                    // columnsMap = dbMapping.getAllColumns();
-                    // } else {
-                    // columnsMap = dbMapping.getTargetColumns();
-                    // }
 
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
@@ -222,13 +101,13 @@ public class RdbEtlService {
                             pstmt.clearParameters();
 
                             // 删除数据
-                            Map<String, Object> values = new LinkedHashMap<>();
+                            Map<String, Object> pkVal = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
                                 "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
-                            appendCondition(dbMapping, deleteSql, values, rs);
+                            appendCondition(dbMapping, deleteSql, pkVal, rs);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
                                 int k = 1;
-                                for (Object val : values.values()) {
+                                for (Object val : pkVal.values()) {
                                     pstmt2.setObject(k++, val);
                                 }
                                 pstmt2.execute();
@@ -264,9 +143,9 @@ public class RdbEtlService {
                                 completed = true;
                             }
                             idx++;
-                            successCount.incrementAndGet();
+                            impCount.incrementAndGet();
                             if (logger.isDebugEnabled()) {
-                                logger.debug("successful import count:" + successCount.get());
+                                logger.debug("successful import count:" + impCount.get());
                             }
                         }
                         if (!completed) {

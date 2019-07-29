@@ -16,6 +16,8 @@ dbMapping:
     role_id:
     c_time:
     test1:
+  etlCondition: "where c_time>={}"
+  commitBatch: 3000 # 批量提交的大小
 
 
 ## Mirror schema synchronize config

@@ -33,14 +33,35 @@ public class CanalStater {
     private CanalMQProducer     canalMQProducer = null;
     private Thread              shutdownThread  = null;
     private CanalMQStarter      canalMQStarter  = null;
+    private volatile Properties properties;
+    private volatile boolean    running         = false;
+
+    public CanalStater(Properties properties){
+        this.properties = properties;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
+    public CanalController getController() {
+        return controller;
+    }
 
     /**
      * 启动方法
      *
-     * @param properties canal.properties 配置
      * @throws Throwable
      */
-    synchronized void start(Properties properties) throws Throwable {
+    public synchronized void start() throws Throwable {
         String serverMode = CanalController.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
         if (serverMode.equalsIgnoreCase("kafka")) {
             canalMQProducer = new CanalKafkaProducer();
@@ -65,8 +86,8 @@ public class CanalStater {
 
                         public boolean accept(File pathname) {
                             String filename = pathname.getName();
-                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename) &&
-                                    !"metrics".equalsIgnoreCase(filename);
+                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename)
+                                   && !"metrics".equalsIgnoreCase(filename);
                         }
                     });
                     if (instanceDirs != null && instanceDirs.length > 0) {
@@ -97,7 +118,7 @@ public class CanalStater {
                 try {
                     logger.info("## stop the canal server");
                     controller.stop();
-                    CanalLauncher.running = false;
+                    CanalLauncher.runningLatch.countDown();
                 } catch (Throwable e) {
                     logger.warn("##something goes wrong when stopping canal Server:", e);
                 } finally {
@@ -114,6 +135,8 @@ public class CanalStater {
             canalMQStarter.start(mqProperties);
             controller.setCanalMQStarter(canalMQStarter);
         }
+
+        running = true;
     }
 
     /**
@@ -121,7 +144,7 @@ public class CanalStater {
      *
      * @throws Throwable
      */
-    synchronized void destroy() throws Throwable {
+    public synchronized void stop() throws Throwable {
         if (controller != null) {
             controller.stop();
             controller = null;
@@ -135,6 +158,7 @@ public class CanalStater {
             canalMQStarter = null;
             canalMQProducer = null;
         }
+        running = false;
     }
 
     /**
@@ -197,14 +221,50 @@ public class CanalStater {
         if (!StringUtils.isEmpty(aliyunSecretKey)) {
             mqProperties.setAliyunSecretKey(aliyunSecretKey);
         }
-        String transaction = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_TRANSACTION);
-        if (!StringUtils.isEmpty(transaction)) {
-            mqProperties.setTransaction(Boolean.valueOf(transaction));
-        }
 
         String producerGroup = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_PRODUCERGROUP);
         if (!StringUtils.isEmpty(producerGroup)) {
             mqProperties.setProducerGroup(producerGroup);
+        }
+
+        String enableMessageTrace = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_ENABLE_MESSAGE_TRACE);
+        if (!StringUtils.isEmpty(enableMessageTrace)) {
+            mqProperties.setEnableMessageTrace(Boolean.valueOf(enableMessageTrace));
+        }
+
+        String accessChannel = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_ACCESS_CHANNEL);
+        if (!StringUtils.isEmpty(accessChannel)) {
+            mqProperties.setAccessChannel(accessChannel);
+        }
+
+        String customizedTraceTopic = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_CUSTOMIZED_TRACE_TOPIC);
+        if (!StringUtils.isEmpty(customizedTraceTopic)) {
+            mqProperties.setCustomizedTraceTopic(customizedTraceTopic);
+        }
+
+        String namespace = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_NAMESPACE);
+        if (!StringUtils.isEmpty(namespace)) {
+            mqProperties.setNamespace(namespace);
+        }
+
+        String kafkaKerberosEnable = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
+        if (!StringUtils.isEmpty(kafkaKerberosEnable)) {
+            mqProperties.setKerberosEnable(Boolean.valueOf(kafkaKerberosEnable));
+        }
+
+        String kafkaKerberosKrb5Filepath = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH);
+        if (!StringUtils.isEmpty(kafkaKerberosKrb5Filepath)) {
+            mqProperties.setKerberosKrb5FilePath(kafkaKerberosKrb5Filepath);
+        }
+
+        String kafkaKerberosJaasFilepath = CanalController.getProperty(properties,
+            CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH);
+        if (!StringUtils.isEmpty(kafkaKerberosJaasFilepath)) {
+            mqProperties.setKerberosJaasFilePath(kafkaKerberosJaasFilepath);
         }
 
         for (Object key : properties.keySet()) {
