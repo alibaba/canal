@@ -148,10 +148,7 @@ public class ESConnection {
                 logger.error(e.getMessage(), e);
                 return null;
             }
-            ImmutableOpenMap<String, MappingMetaData> iom = mappings.get(index);
-            if (iom.keysIt().hasNext()) {
-                mappingMetaData = iom.get(iom.keysIt().next());
-            }
+            mappingMetaData = mappings.get(index).get(type);
         }
         return mappingMetaData;
     }
