@@ -14,13 +14,6 @@ import java.io.IOException;
  */
 public class RequestConvertersExt {
 
-    static String endpoint(String[] indices, String endpoint, String[] suffixes) {
-        return new RequestConverters.EndpointBuilder().addCommaSeparatedPathParts(indices)
-            .addPathPartAsIs(endpoint)
-            .addCommaSeparatedPathParts(suffixes)
-            .build();
-    }
-
     /**
      * 修改 getMappings 去掉request参数
      *
@@ -32,6 +25,6 @@ public class RequestConvertersExt {
         String[] indices = getMappingsRequest.indices() == null ? Strings.EMPTY_ARRAY : getMappingsRequest.indices();
         String[] types = getMappingsRequest.types() == null ? Strings.EMPTY_ARRAY : getMappingsRequest.types();
 
-        return new Request(HttpGet.METHOD_NAME, RequestConvertersExt.endpoint(indices, "_mapping", types));
+        return new Request(HttpGet.METHOD_NAME, RequestConverters.endpoint(indices, "_mapping", types));
     }
 }
