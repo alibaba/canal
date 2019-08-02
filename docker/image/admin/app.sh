@@ -6,7 +6,12 @@ export JAVA_HOME=/usr/java/latest
 export PATH=$JAVA_HOME/bin:$PATH
 touch /tmp/start.log
 chown admin: /tmp/start.log
-chown -R admin: /home/admin/canal-server
+#chown -R admin: /home/admin/canal-server/logs
+#chown -R admin: /home/admin/canal-server/bin
+#chown -R admin: /home/admin/canal-server/lib
+#chown -R admin: /home/admin/canal-server/conf/metrics
+#chown -R admin: /home/admin/canal-server/conf/spring
+rm -rf /home/admin/canal-server/conf/example
 host=`hostname -i`
 
 # waitterm
@@ -81,17 +86,17 @@ function start_canal() {
         metricsPort=11112
     fi
 
-    destination=`perl -le 'print $ENV{"canal.destinations"}'`
-    if [[ "$destination" =~ ',' ]]; then
-        echo "multi destination:$destination is not support"
-        exit 1;
-    else
-        if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
-            if [ -d /home/admin/canal-server/conf/example ]; then
-                mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
-            fi
-        fi 
-    fi
+#    destination=`perl -le 'print $ENV{"canal.destinations"}'`
+#    if [[ "$destination" =~ ',' ]]; then
+#        echo "multi destination:$destination is not support"
+#        exit 1;
+#    else
+#        if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
+#            if [ -d /home/admin/canal-server/conf/example ]; then
+#                mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+#            fi
+#        fi 
+#    fi
     su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh 1>>/tmp/start.log 2>&1'
     sleep 5
     #check start
