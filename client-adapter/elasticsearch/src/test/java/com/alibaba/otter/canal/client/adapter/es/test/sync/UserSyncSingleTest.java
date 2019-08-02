@@ -15,6 +15,7 @@ import org.junit.Test;
 import com.alibaba.otter.canal.client.adapter.es.ESAdapter;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
+
 @Ignore
 public class UserSyncSingleTest {
 
@@ -52,7 +53,10 @@ public class UserSyncSingleTest {
 
         esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
-        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        GetResponse response = esAdapter.getEsConnection()
+            .getTransportClient()
+            .prepareGet("mytest_user", "_doc", "1")
+            .get();
         Assert.assertEquals("Eric", response.getSource().get("_name"));
     }
 
@@ -85,7 +89,10 @@ public class UserSyncSingleTest {
 
         esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
-        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        GetResponse response = esAdapter.getEsConnection()
+            .getTransportClient()
+            .prepareGet("mytest_user", "_doc", "1")
+            .get();
         Assert.assertEquals("Eric2", response.getSource().get("_name"));
     }
 
@@ -115,7 +122,10 @@ public class UserSyncSingleTest {
 
         esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
-        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        GetResponse response = esAdapter.getEsConnection()
+            .getTransportClient()
+            .prepareGet("mytest_user", "_doc", "1")
+            .get();
         Assert.assertNull(response.getSource());
     }
 

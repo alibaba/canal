@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es;
 
-import java.net.InetAddress;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,10 +12,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
@@ -28,6 +23,7 @@ import com.alibaba.otter.canal.client.adapter.es.config.SqlParser;
 import com.alibaba.otter.canal.client.adapter.es.monitor.ESConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.es.service.ESEtlService;
 import com.alibaba.otter.canal.client.adapter.es.service.ESSyncService;
+import com.alibaba.otter.canal.client.adapter.es.support.ESConnection;
 import com.alibaba.otter.canal.client.adapter.es.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.*;
 
@@ -43,17 +39,13 @@ public class ESAdapter implements OuterAdapter {
     private Map<String, ESSyncConfig>              esSyncConfig        = new ConcurrentHashMap<>(); // 文件名对应配置
     private Map<String, Map<String, ESSyncConfig>> dbTableEsSyncConfig = new ConcurrentHashMap<>(); // schema-table对应配置
 
-    private TransportClient                        transportClient;
+    private ESConnection                           esConnection;
 
     private ESSyncService                          esSyncService;
 
     private ESConfigMonitor                        esConfigMonitor;
 
     private Properties                             envProperties;
-
-    public TransportClient getTransportClient() {
-        return transportClient;
-    }
 
     public ESSyncService getEsSyncService() {
         return esSyncService;
@@ -65,6 +57,14 @@ public class ESAdapter implements OuterAdapter {
 
     public Map<String, Map<String, ESSyncConfig>> getDbTableEsSyncConfig() {
         return dbTableEsSyncConfig;
+    }
+
+    public ESConnection getEsConnection() {
+        return esConnection;
+    }
+
+    public void setEsConnection(ESConnection esConnection) {
+        this.esConnection = esConnection;
     }
 
     @Override
@@ -119,17 +119,16 @@ public class ESAdapter implements OuterAdapter {
             }
 
             Map<String, String> properties = configuration.getProperties();
-            Settings.Builder settingBuilder = Settings.builder();
-            properties.forEach(settingBuilder::put);
-            Settings settings = settingBuilder.build();
-            transportClient = new PreBuiltTransportClient(settings);
+
             String[] hostArray = configuration.getHosts().split(",");
-            for (String host : hostArray) {
-                int i = host.indexOf(":");
-                transportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.substring(0, i)),
-                    Integer.parseInt(host.substring(i + 1))));
+            String mode = properties.get("mode");
+            if ("rest".equalsIgnoreCase(mode) || "http".equalsIgnoreCase(mode)) {
+                esConnection = new ESConnection(hostArray, properties, ESConnection.ESClientMode.REST);
+            } else {
+                esConnection = new ESConnection(hostArray, properties, ESConnection.ESClientMode.TRANSPORT);
             }
-            ESTemplate esTemplate = new ESTemplate(transportClient);
+
+            ESTemplate esTemplate = new ESTemplate(esConnection);
             esSyncService = new ESSyncService(esTemplate);
 
             esConfigMonitor = new ESConfigMonitor();
@@ -177,7 +176,7 @@ public class ESAdapter implements OuterAdapter {
         ESSyncConfig config = esSyncConfig.get(task);
         if (config != null) {
             DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-            ESEtlService esEtlService = new ESEtlService(transportClient, config);
+            ESEtlService esEtlService = new ESEtlService(esConnection, config);
             if (dataSource != null) {
                 return esEtlService.importData(params);
             } else {
@@ -191,7 +190,7 @@ public class ESAdapter implements OuterAdapter {
             for (ESSyncConfig configTmp : esSyncConfig.values()) {
                 // 取所有的destination为task的配置
                 if (configTmp.getDestination().equals(task)) {
-                    ESEtlService esEtlService = new ESEtlService(transportClient, configTmp);
+                    ESEtlService esEtlService = new ESEtlService(esConnection, configTmp);
                     EtlResult etlRes = esEtlService.importData(params);
                     if (!etlRes.getSucceeded()) {
                         resSuccess = false;
@@ -220,10 +219,8 @@ public class ESAdapter implements OuterAdapter {
     public Map<String, Object> count(String task) {
         ESSyncConfig config = esSyncConfig.get(task);
         ESMapping mapping = config.getEsMapping();
-        SearchResponse response = transportClient.prepareSearch(mapping.get_index())
-            .setTypes(mapping.get_type())
-            .setSize(0)
-            .get();
+        SearchResponse response = this.esConnection.new ESSearchRequest(mapping.get_index(), mapping.get_type()).size(0)
+            .getResponse();
 
         long rowCount = response.getHits().getTotalHits();
         Map<String, Object> res = new LinkedHashMap<>();
@@ -237,8 +234,8 @@ public class ESAdapter implements OuterAdapter {
         if (esConfigMonitor != null) {
             esConfigMonitor.destroy();
         }
-        if (transportClient != null) {
-            transportClient.close();
+        if (esConnection != null) {
+            esConnection.close();
         }
     }
 
