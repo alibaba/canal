@@ -43,15 +43,15 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
  */
 public class ESTemplate {
 
-    private static final Logger logger         = LoggerFactory.getLogger(ESTemplate.class);
+    private static final Logger logger = LoggerFactory.getLogger(ESTemplate.class);
 
-    private static final int    MAX_BATCH_SIZE = 1000;
+    private static final int MAX_BATCH_SIZE = 1000;
 
-    private ESConnection        esConnection;
+    private ESConnection esConnection;
 
-    private ESBulkRequest       esBulkRequest;
+    private ESBulkRequest esBulkRequest;
 
-    public ESTemplate(ESConnection esConnection){
+    public ESTemplate(ESConnection esConnection) {
         this.esConnection = esConnection;
         this.esBulkRequest = this.esConnection.new ESBulkRequest();
     }
@@ -67,8 +67,8 @@ public class ESTemplate {
     /**
      * 插入数据
      *
-     * @param mapping 配置对象
-     * @param pkVal 主键值
+     * @param mapping     配置对象
+     * @param pkVal       主键值
      * @param esFieldData 数据Map
      */
     public void insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
@@ -76,16 +76,16 @@ public class ESTemplate {
             String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
                 ESUpdateRequest updateRequest = esConnection.new ESUpdateRequest(mapping.get_index(),
-                    mapping.get_type(),
-                    pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
+                        mapping.get_type(),
+                        pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     updateRequest.setRouting(parentVal);
                 }
                 getBulk().add(updateRequest);
             } else {
                 ESIndexRequest indexRequest = esConnection.new ESIndexRequest(mapping.get_index(),
-                    mapping.get_type(),
-                    pkVal.toString()).setSource(esFieldData);
+                        mapping.get_type(),
+                        pkVal.toString()).setSource(esFieldData);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     indexRequest.setRouting(parentVal);
                 }
@@ -94,13 +94,13 @@ public class ESTemplate {
             commitBulk();
         } else {
             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index(),
-                mapping.get_type()).setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal)).size(10000);
+                    mapping.get_type()).setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal)).size(10000);
             SearchResponse response = esSearchRequest.getResponse();
 
             for (SearchHit hit : response.getHits()) {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ESUpdateRequest(mapping.get_index(),
-                    mapping.get_type(),
-                    hit.getId()).setDoc(esFieldData);
+                        mapping.get_type(),
+                        hit.getId()).setDoc(esFieldData);
                 getBulk().add(esUpdateRequest);
                 commitBulk();
             }
@@ -111,8 +111,8 @@ public class ESTemplate {
     /**
      * 根据主键更新数据
      *
-     * @param mapping 配置对象
-     * @param pkVal 主键值
+     * @param mapping     配置对象
+     * @param pkVal       主键值
      * @param esFieldData 数据Map
      */
     public void update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
@@ -125,8 +125,8 @@ public class ESTemplate {
     /**
      * update by query
      *
-     * @param config 配置对象
-     * @param paramsTmp sql查询条件
+     * @param config      配置对象
+     * @param paramsTmp   sql查询条件
      * @param esFieldData 数据Map
      */
     public void updateByQuery(ESSyncConfig config, Map<String, Object> paramsTmp, Map<String, Object> esFieldData) {
@@ -170,25 +170,25 @@ public class ESTemplate {
     /**
      * 通过主键删除数据
      *
-     * @param mapping 配置对象
-     * @param pkVal 主键值
+     * @param mapping     配置对象
+     * @param pkVal       主键值
      * @param esFieldData 数据Map
      */
     public void delete(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.get_id() != null) {
             ESDeleteRequest esDeleteRequest = this.esConnection.new ESDeleteRequest(mapping.get_index(),
-                mapping.get_type(),
-                pkVal.toString());
+                    mapping.get_type(),
+                    pkVal.toString());
             getBulk().add(esDeleteRequest);
             commitBulk();
         } else {
             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index(),
-                mapping.get_type()).setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal)).size(10000);
+                    mapping.get_type()).setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal)).size(10000);
             SearchResponse response = esSearchRequest.getResponse();
             for (SearchHit hit : response.getHits()) {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ESUpdateRequest(mapping.get_index(),
-                    mapping.get_type(),
-                    hit.getId()).setDoc(esFieldData);
+                        mapping.get_type(),
+                        hit.getId()).setDoc(esFieldData);
                 getBulk().add(esUpdateRequest);
                 commitBulk();
             }
@@ -233,16 +233,16 @@ public class ESTemplate {
             String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ESUpdateRequest(mapping.get_index(),
-                    mapping.get_type(),
-                    pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
+                        mapping.get_type(),
+                        pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     esUpdateRequest.setRouting(parentVal);
                 }
                 getBulk().add(esUpdateRequest);
             } else {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ESUpdateRequest(mapping.get_index(),
-                    mapping.get_type(),
-                    pkVal.toString()).setDoc(esFieldData);
+                        mapping.get_type(),
+                        pkVal.toString()).setDoc(esFieldData);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     esUpdateRequest.setRouting(parentVal);
                 }
@@ -250,12 +250,12 @@ public class ESTemplate {
             }
         } else {
             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index(),
-                mapping.get_type()).setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal)).size(10000);
+                    mapping.get_type()).setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal)).size(10000);
             SearchResponse response = esSearchRequest.getResponse();
             for (SearchHit hit : response.getHits()) {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ESUpdateRequest(mapping.get_index(),
-                    mapping.get_type(),
-                    hit.getId()).setDoc(esFieldData);
+                        mapping.get_type(),
+                        hit.getId()).setDoc(esFieldData);
                 getBulk().add(esUpdateRequest);
             }
         }
@@ -295,7 +295,7 @@ public class ESTemplate {
             }
 
             if (!fieldItem.getFieldName().equals(mapping.get_id())
-                && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                    && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
             }
         }
@@ -333,9 +333,9 @@ public class ESTemplate {
 
             for (ColumnItem columnItem : fieldItem.getColumnItems()) {
                 if (dmlOld.containsKey(columnItem.getColumnName())
-                    && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                        && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                     esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
-                        getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName()));
+                            getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName()));
                     break;
                 }
             }
@@ -367,8 +367,8 @@ public class ESTemplate {
     /**
      * 将dml的data转换为es的data
      *
-     * @param mapping 配置mapping
-     * @param dmlData dml data
+     * @param mapping     配置mapping
+     * @param dmlData     dml data
      * @param esFieldData es data
      * @return 返回 id 值
      */
@@ -386,7 +386,7 @@ public class ESTemplate {
             }
 
             if (!fieldItem.getFieldName().equals(mapping.get_id())
-                && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                    && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
             }
         }
@@ -399,8 +399,8 @@ public class ESTemplate {
     /**
      * 将dml的data, old转换为es的data
      *
-     * @param mapping 配置mapping
-     * @param dmlData dml data
+     * @param mapping     配置mapping
+     * @param dmlData     dml data
      * @param esFieldData es data
      * @return 返回 id 值
      */
@@ -418,7 +418,7 @@ public class ESTemplate {
 
             if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
-                    getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
+                        getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }
         }
 
@@ -439,9 +439,9 @@ public class ESTemplate {
                     Object parentVal;
                     try {
                         parentVal = getValFromRS(mapping,
-                            resultSet,
-                            parentFieldItem.getFieldName(),
-                            parentFieldItem.getFieldName());
+                                resultSet,
+                                parentFieldItem.getFieldName(),
+                                parentFieldItem.getFieldName());
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
@@ -486,7 +486,7 @@ public class ESTemplate {
     /**
      * 获取es mapping中的属性类型
      *
-     * @param mapping mapping配置
+     * @param mapping   mapping配置
      * @param fieldName 属性名
      * @return 类型
      */
@@ -497,55 +497,7 @@ public class ESTemplate {
         if (fieldType != null) {
             return fieldType.get(fieldName);
         } else {
-            MappingMetaData mappingMetaData = null;
-            if (esConnection.getMode() == ESClientMode.TRANSPORT) {
-                ImmutableOpenMap<String, MappingMetaData> mappings;
-                try {
-                    mappings = esConnection.getTransportClient()
-                        .admin()
-                        .cluster()
-                        .prepareState()
-                        .execute()
-                        .actionGet()
-                        .getState()
-                        .getMetaData()
-                        .getIndices()
-                        .get(mapping.get_index())
-                        .getMappings();
-                } catch (NullPointerException e) {
-                    throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());
-                }
-                mappingMetaData = mappings.get(mapping.get_type());
-
-            } else {
-                ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings;
-                try {
-                    GetMappingsRequest request = new GetMappingsRequest();
-                    request.indices(mapping.get_index());
-                    GetMappingsResponse response;
-                    try {
-                        response = esConnection.getRestHighLevelClient()
-                            .indices()
-                            .getMapping(request, RequestOptions.DEFAULT);
-                        // 6.3以下版本直接使用该接口会报错
-                    } catch (Exception e) {
-                        logger.warn("Low ElasticSearch version for getMapping");
-                        response = RestHighLevelClientExt
-                            .getMapping(esConnection.getRestHighLevelClient(), request, RequestOptions.DEFAULT);
-                    }
-
-                    mappings = response.mappings();
-                } catch (NullPointerException e) {
-                    throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
-                    return null;
-                }
-                ImmutableOpenMap<String, MappingMetaData> iom = mappings.get(mapping.get_index());
-                if (iom.keysIt().hasNext()) {
-                    mappingMetaData = iom.get(iom.keysIt().next());
-                }
-            }
+            MappingMetaData mappingMetaData = esConnection.getMapping(mapping.get_index(), mapping.get_type());
 
             if (mappingMetaData == null) {
                 throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());

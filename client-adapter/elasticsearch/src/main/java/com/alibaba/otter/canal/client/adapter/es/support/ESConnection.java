@@ -11,6 +11,8 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -23,16 +25,17 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.*;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ES 连接器, Transport Rest 两种方式
@@ -41,18 +44,19 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
  * @version 1.0.0
  */
 public class ESConnection {
+    private static final Logger logger = LoggerFactory.getLogger(ESConnection.class);
 
     public enum ESClientMode {
-                              TRANSPORT, REST
+        TRANSPORT, REST
     }
 
-    private ESClientMode        mode;
+    private ESClientMode mode;
 
-    private TransportClient     transportClient;
+    private TransportClient transportClient;
 
     private RestHighLevelClient restHighLevelClient;
 
-    public ESConnection(String[] hosts, Map<String, String> properties, ESClientMode mode) throws UnknownHostException{
+    public ESConnection(String[] hosts, Map<String, String> properties, ESClientMode mode) throws UnknownHostException {
         this.mode = mode;
         if (mode == ESClientMode.TRANSPORT) {
             Settings.Builder settingBuilder = Settings.builder();
@@ -62,7 +66,7 @@ public class ESConnection {
             for (String host : hosts) {
                 int i = host.indexOf(":");
                 transportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.substring(0, i)),
-                    Integer.parseInt(host.substring(i + 1))));
+                        Integer.parseInt(host.substring(i + 1))));
             }
         } else {
             HttpHost[] httpHosts = new HttpHost[hosts.length];
@@ -70,7 +74,7 @@ public class ESConnection {
                 String host = hosts[i];
                 int j = host.indexOf(":");
                 HttpHost httpHost = new HttpHost(InetAddress.getByName(host.substring(0, j)),
-                    Integer.parseInt(host.substring(j + 1)));
+                        Integer.parseInt(host.substring(j + 1)));
                 httpHosts[i] = httpHost;
             }
             RestClientBuilder restClientBuilder = RestClient.builder(httpHosts);
@@ -79,9 +83,9 @@ public class ESConnection {
                 String[] nameAndPwdArr = nameAndPwd.split(":");
                 final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
                 credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
+                        new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
                 restClientBuilder.setHttpClientConfigCallback(
-                    httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+                        httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
             }
             restHighLevelClient = new RestHighLevelClient(restClientBuilder);
         }
@@ -99,13 +103,66 @@ public class ESConnection {
         }
     }
 
+    public MappingMetaData getMapping(String index, String type) {
+        MappingMetaData mappingMetaData = null;
+        if (mode == ESClientMode.TRANSPORT) {
+            ImmutableOpenMap<String, MappingMetaData> mappings;
+            try {
+                mappings = transportClient
+                        .admin()
+                        .cluster()
+                        .prepareState()
+                        .execute()
+                        .actionGet()
+                        .getState()
+                        .getMetaData()
+                        .getIndices()
+                        .get(index)
+                        .getMappings();
+            } catch (NullPointerException e) {
+                throw new IllegalArgumentException("Not found the mapping info of index: " + index);
+            }
+            mappingMetaData = mappings.get(type);
+
+        } else {
+            ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings;
+            try {
+                GetMappingsRequest request = new GetMappingsRequest();
+                request.indices(index);
+                GetMappingsResponse response;
+                try {
+                    response = restHighLevelClient
+                            .indices()
+                            .getMapping(request, RequestOptions.DEFAULT);
+                    // 6.4以下版本直接使用该接口会报错
+                } catch (Exception e) {
+                    logger.warn("Low ElasticSearch version for getMapping");
+                    response = RestHighLevelClientExt
+                            .getMapping(restHighLevelClient, request, RequestOptions.DEFAULT);
+                }
+
+                mappings = response.mappings();
+            } catch (NullPointerException e) {
+                throw new IllegalArgumentException("Not found the mapping info of index: " + index);
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+                return null;
+            }
+            ImmutableOpenMap<String, MappingMetaData> iom = mappings.get(index);
+            if (iom.keysIt().hasNext()) {
+                mappingMetaData = iom.get(iom.keysIt().next());
+            }
+        }
+        return mappingMetaData;
+    }
+
     public class ESIndexRequest {
 
         private IndexRequestBuilder indexRequestBuilder;
 
-        private IndexRequest        indexRequest;
+        private IndexRequest indexRequest;
 
-        public ESIndexRequest(String index, String type, String id){
+        public ESIndexRequest(String index, String type, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 indexRequestBuilder = transportClient.prepareIndex(index, type, id);
             } else {
@@ -152,9 +209,9 @@ public class ESConnection {
 
         private UpdateRequestBuilder updateRequestBuilder;
 
-        private UpdateRequest        updateRequest;
+        private UpdateRequest updateRequest;
 
-        public ESUpdateRequest(String index, String type, String id){
+        public ESUpdateRequest(String index, String type, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 updateRequestBuilder = transportClient.prepareUpdate(index, type, id);
             } else {
@@ -210,9 +267,9 @@ public class ESConnection {
 
         private DeleteRequestBuilder deleteRequestBuilder;
 
-        private DeleteRequest        deleteRequest;
+        private DeleteRequest deleteRequest;
 
-        public ESDeleteRequest(String index, String type, String id){
+        public ESDeleteRequest(String index, String type, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 deleteRequestBuilder = transportClient.prepareDelete(index, type, id);
             } else {
@@ -241,11 +298,11 @@ public class ESConnection {
 
         private SearchRequestBuilder searchRequestBuilder;
 
-        private SearchRequest        searchRequest;
+        private SearchRequest searchRequest;
 
-        private SearchSourceBuilder  sourceBuilder;
+        private SearchSourceBuilder sourceBuilder;
 
-        public ESSearchRequest(String index, String... types){
+        public ESSearchRequest(String index, String... types) {
             if (mode == ESClientMode.TRANSPORT) {
                 searchRequestBuilder = transportClient.prepareSearch(index).setTypes(types);
             } else {
@@ -306,9 +363,9 @@ public class ESConnection {
 
         private BulkRequestBuilder bulkRequestBuilder;
 
-        private BulkRequest        bulkRequest;
+        private BulkRequest bulkRequest;
 
-        public ESBulkRequest(){
+        public ESBulkRequest() {
             if (mode == ESClientMode.TRANSPORT) {
                 bulkRequestBuilder = transportClient.prepareBulk();
             } else {
