@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.client.kafka.KafkaCanalConnector;
+import com.alibaba.otter.canal.example.MQMessageUtils;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -124,8 +127,20 @@ public class CanalKafkaClientExample {
                                 // }
                             } else {
                                 // printSummary(message, batchId, size);
+                            	 message.getEntries();
+                            	 for (CanalEntry.Entry entry: message.getEntries()) {
+                            		// System.out.println(entry);
+                            		 entry.getHeader().getEventType();
+                            		 
+                            	 }
+//                            	 List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(message);
+//                            	 for (FlatMessage msg: flatMessages) {
+//                            		 System.out.println(msg.getSql());
+//                            		 System.out.println(msg.getType());
+//                            	 }
                                 // printEntry(message.getEntries());
-                                logger.info(message.toString());
+                            	// logger.info(message.toString());
+                            //    logger.info(flatMessages.toString());
                             }
                         }
 
