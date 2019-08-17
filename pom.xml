@@ -99,7 +99,7 @@
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
         <spring_version>3.2.18.RELEASE</spring_version>
-        <rocketmq_version>4.5.1</rocketmq_version>
+        <rocketmq_version>4.5.2</rocketmq_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
         <maven-surefire.version>2.22.1</maven-surefire.version>
         <argline>-server -Xms512m -Xmx1024m -Dfile.encoding=UTF-8
