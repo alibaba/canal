@@ -51,7 +51,14 @@
 			<artifactId>netty</artifactId>
 			<version>3.2.2.Final</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba.mq-amqp</groupId>
+			<artifactId>mq-amqp-client</artifactId>
+		</dependency>
 		<!-- test dependency -->
 		<dependency>
 			<groupId>junit</groupId>

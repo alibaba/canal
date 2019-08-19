@@ -61,6 +61,12 @@ public class CanalConstants {
     public static final String CANAL_MQ_KAFKA_KERBEROS_ENABLE       = ROOT + "." + "mq.kafka.kerberos.enable";
     public static final String CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH = ROOT + "." + "mq.kafka.kerberos.krb5FilePath";
     public static final String CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH = ROOT + "." + "mq.kafka.kerberos.jaasFilePath";
+    public static final String CANAL_RABBITMQ_HOST               = ROOT + "." + "rabbitmq.host";
+    public static final String CANAL_RABBITMQ_PORT               = ROOT + "." + "rabbitmq.port";
+    public static final String CANAL_RABBITMQ_VIRTUALHOST       = ROOT + "." + "rabbitmq.virtualhost";
+    public static final String CANAL_RABBITMQ_OWNERID           = ROOT + "." + "rabbitmq.ownerid";
+    public static final String CANAL_RABBITMQ_USERNAME           = ROOT + "." + "rabbitmq.username";
+    public static final String CANAL_RABBITMQ_PASSWORD           = ROOT + "." + "rabbitmq.password";
 
     public static String getInstanceModeKey(String destination) {
         return MessageFormat.format(INSTANCE_MODE_TEMPLATE, destination);

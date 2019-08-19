@@ -33,6 +33,12 @@ public class MQProperties {
     private boolean    kerberosEnable         = false;           // kafka集群是否启动Kerberos认证
     private String     kerberosKrb5FilePath   = "";              // 启动Kerberos认证时配置为krb5.conf文件的路径
     private String     kerberosJaasFilePath   = "";              // 启动Kerberos认证时配置为jaas.conf文件的路径
+    private int       rabbitmqPort            = 5672;
+    private String     rabbitmqHost          = "rabbitmq";
+    private long     rabbitmqOwnerid        = 0L;
+    private String     rabbitmqUsername     = "guest";
+    private String     rabbitmqPassword     = "guest";
+    private String     rabbitmqVirtualhost  = "/";
 
     public static class CanalDestination {
 
@@ -276,17 +282,86 @@ public class MQProperties {
         this.kerberosJaasFilePath = kerberosJaasFilePath;
     }
 
+    public int getRabbitmqPort() {
+        return rabbitmqPort;
+    }
+
+    public void setRabbitmqPort(int rabbitmqPort) {
+        this.rabbitmqPort = rabbitmqPort;
+    }
+
+    public String getRabbitmqHost() {
+        return rabbitmqHost;
+    }
+
+    public void setRabbitmqHost(String rabbitmqHost) {
+        this.rabbitmqHost = rabbitmqHost;
+    }
+
+    public long getRabbitmqOwnerid() {
+        return rabbitmqOwnerid;
+    }
+
+    public void setRabbitmqOwnerid(long rabbitmqOwnerid) {
+        this.rabbitmqOwnerid = rabbitmqOwnerid;
+    }
+
+    public String getRabbitmqUsername() {
+        return rabbitmqUsername;
+    }
+
+    public void setRabbitmqUsername(String rabbitmqUsername) {
+        this.rabbitmqUsername = rabbitmqUsername;
+    }
+
+    public String getRabbitmqPassword() {
+        return rabbitmqPassword;
+    }
+
+    public void setRabbitmqPassword(String rabbitmqPassword) {
+        this.rabbitmqPassword = rabbitmqPassword;
+    }
+
+    public String getRabbitmqVirtualhost() {
+        return rabbitmqVirtualhost;
+    }
+
+    public void setRabbitmqVirtualhost(String rabbitmqVirtualhost) {
+        this.rabbitmqVirtualhost = rabbitmqVirtualhost;
+    }
+
     @Override
     public String toString() {
-        return "MQProperties{" + "servers='" + servers + '\'' + ", retries=" + retries + ", batchSize=" + batchSize
-               + ", lingerMs=" + lingerMs + ", maxRequestSize=" + maxRequestSize + ", bufferMemory=" + bufferMemory
-               + ", filterTransactionEntry=" + filterTransactionEntry + ", producerGroup='" + producerGroup + '\''
-               + ", canalBatchSize=" + canalBatchSize + ", canalGetTimeout=" + canalGetTimeout + ", flatMessage="
-               + flatMessage + ", compressionType='" + compressionType + '\'' + ", acks='" + acks + '\''
-               + ", aliyunAccessKey='" + aliyunAccessKey + '\'' + ", aliyunSecretKey='" + aliyunSecretKey + '\''
-               + ", properties=" + properties + ", enableMessageTrace=" + enableMessageTrace + ", accessChannel='"
-               + accessChannel + '\'' + ", customizedTraceTopic='" + customizedTraceTopic + '\'' + ", namespace='"
-               + namespace + '\'' + ", kerberosEnable='" + kerberosEnable + '\'' + ", kerberosKrb5FilePath='"
-               + kerberosKrb5FilePath + '\'' + ", kerberosJaasFilePath='" + kerberosJaasFilePath + '\'' + '}';
+        return "MQProperties{" +
+                "servers='" + servers + '\'' +
+                ", retries=" + retries +
+                ", batchSize=" + batchSize +
+                ", lingerMs=" + lingerMs +
+                ", maxRequestSize=" + maxRequestSize +
+                ", bufferMemory=" + bufferMemory +
+                ", filterTransactionEntry=" + filterTransactionEntry +
+                ", producerGroup='" + producerGroup + '\'' +
+                ", canalBatchSize=" + canalBatchSize +
+                ", canalGetTimeout=" + canalGetTimeout +
+                ", flatMessage=" + flatMessage +
+                ", compressionType='" + compressionType + '\'' +
+                ", acks='" + acks + '\'' +
+                ", aliyunAccessKey='" + aliyunAccessKey + '\'' +
+                ", aliyunSecretKey='" + aliyunSecretKey + '\'' +
+                ", properties=" + properties +
+                ", enableMessageTrace=" + enableMessageTrace +
+                ", accessChannel='" + accessChannel + '\'' +
+                ", customizedTraceTopic='" + customizedTraceTopic + '\'' +
+                ", namespace='" + namespace + '\'' +
+                ", kerberosEnable=" + kerberosEnable +
+                ", kerberosKrb5FilePath='" + kerberosKrb5FilePath + '\'' +
+                ", kerberosJaasFilePath='" + kerberosJaasFilePath + '\'' +
+                ", rabbitmqPort=" + rabbitmqPort +
+                ", rabbitmqHost='" + rabbitmqHost + '\'' +
+                ", rabbitmqOwnerid='" + rabbitmqOwnerid + '\'' +
+                ", rabbitmqUsername='" + rabbitmqUsername + '\'' +
+                ", rabbitmqPassword='" + rabbitmqPassword + '\'' +
+                ", rabbitmqVirtualhost='" + rabbitmqVirtualhost + '\'' +
+                '}';
     }
 }

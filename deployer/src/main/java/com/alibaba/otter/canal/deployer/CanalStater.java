@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import com.alibaba.otter.canal.rabbitmq.CanalRabbitMQProducer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,8 @@ public class CanalStater {
             canalMQProducer = new CanalKafkaProducer();
         } else if (serverMode.equalsIgnoreCase("rocketmq")) {
             canalMQProducer = new CanalRocketMQProducer();
+        } else if (serverMode.equalsIgnoreCase("rabbitmq")) {
+            canalMQProducer = new CanalRabbitMQProducer();
         }
 
         if (canalMQProducer != null) {
@@ -265,6 +268,31 @@ public class CanalStater {
             CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH);
         if (!StringUtils.isEmpty(kafkaKerberosJaasFilepath)) {
             mqProperties.setKerberosJaasFilePath(kafkaKerberosJaasFilepath);
+        }
+
+        String rabbitmqHost = CanalController.getProperty(properties, CanalConstants.CANAL_RABBITMQ_HOST);
+        if (!StringUtils.isEmpty(rabbitmqHost)) {
+            mqProperties.setRabbitmqHost(rabbitmqHost);
+        }
+        String rabbitmqPort = CanalController.getProperty(properties, CanalConstants.CANAL_RABBITMQ_PORT);
+        if (!StringUtils.isEmpty(rabbitmqPort)) {
+            mqProperties.setRabbitmqPort(Integer.valueOf(rabbitmqPort));
+        }
+        String rabbitmqVirtualHost = CanalController.getProperty(properties, CanalConstants.CANAL_RABBITMQ_VIRTUALHOST);
+        if (!StringUtils.isEmpty(rabbitmqVirtualHost)) {
+            mqProperties.setRabbitmqVirtualhost(rabbitmqVirtualHost);
+        }
+        String rabbitmqOwnerid = CanalController.getProperty(properties, CanalConstants.CANAL_RABBITMQ_OWNERID);
+        if (!StringUtils.isEmpty(rabbitmqOwnerid)) {
+            mqProperties.setRabbitmqOwnerid(Long.valueOf(rabbitmqOwnerid));
+        }
+        String rabbitmqUsername = CanalController.getProperty(properties, CanalConstants.CANAL_RABBITMQ_USERNAME);
+        if (!StringUtils.isEmpty(rabbitmqUsername)) {
+            mqProperties.setRabbitmqUsername(rabbitmqUsername);
+        }
+        String rabbitmqPassword = CanalController.getProperty(properties, CanalConstants.CANAL_RABBITMQ_PASSWORD);
+        if (!StringUtils.isEmpty(rabbitmqPassword)) {
+            mqProperties.setRabbitmqPassword(rabbitmqPassword);
         }
 
         for (Object key : properties.keySet()) {
