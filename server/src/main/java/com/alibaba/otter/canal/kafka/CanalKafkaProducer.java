@@ -177,6 +177,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
 
                     // 每条记录需要flush
                     produce(topicName, records, true);
+                    records.clear();
                 }
             }
         }
