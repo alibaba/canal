@@ -176,6 +176,15 @@ public class MemoryTableMeta implements TableMetaTSDB {
             // String charset = getSqlName(column.getCharsetExpr());
             SQLDataType dataType = column.getDataType();
             String dataTypStr = dataType.getName();
+            if (StringUtils.equalsIgnoreCase(dataTypStr, "float")) {
+                if (dataType.getArguments().size() == 1) {
+                    int num = Integer.valueOf(dataType.getArguments().get(0).toString());
+                    if (num > 24) {
+                        dataTypStr = "double";
+                    }
+                }
+            }
+
             if (dataType.getArguments().size() > 0) {
                 dataTypStr += "(";
                 for (int i = 0; i < column.getDataType().getArguments().size(); i++) {
@@ -195,6 +204,12 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 }
 
                 if (dataTypeImpl.isZerofill()) {
+                    // mysql default behaiver
+                    // 如果设置了zerofill，自动给列添加unsigned属性
+                    if (!dataTypeImpl.isUnsigned()) {
+                        dataTypStr += " unsigned";
+                    }
+
                     dataTypStr += " zerofill";
                 }
             }

@@ -7,7 +7,6 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,7 +19,6 @@ import com.alibaba.otter.canal.parse.inbound.TableMeta;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/tsdb/h2-tsdb.xml" })
-@Ignore
 public class MemoryTableMeta_DDL_Test {
 
     @Test
