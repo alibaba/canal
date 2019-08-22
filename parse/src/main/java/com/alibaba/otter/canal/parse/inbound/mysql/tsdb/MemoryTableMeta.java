@@ -76,7 +76,9 @@ public class MemoryTableMeta implements TableMetaTSDB {
                 // druid暂时flush privileges语法解析有问题
                 if (!StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "flush")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "grant")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "revoke")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create user")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "alter user")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "drop user")) {
                     repository.console(ddl);
                 }
