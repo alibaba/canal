@@ -1,4 +1,4 @@
-package com.alibaba.otter.cancel.store.memory.buffer;
+package com.alibaba.otter.canal.store.memory.buffer;
 
 import java.util.ArrayList;
 import java.util.List;

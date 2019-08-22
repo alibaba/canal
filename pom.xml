@@ -98,6 +98,7 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
+        <javadoc_skip>true</javadoc_skip>
         <spring_version>3.2.18.RELEASE</spring_version>
         <rocketmq_version>4.5.2</rocketmq_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
@@ -221,7 +222,7 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.2.28</version>
+                <version>1.2.58</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -417,6 +418,7 @@
                         </execution>
                     </executions>
                 <configuration>
+                  <skip>${javadoc_skip}</skip>
                   <!-- workaround for https://bugs.openjdk.java.net/browse/JDK-8212233 -->
                   <javaApiLinks>
                      <property>
