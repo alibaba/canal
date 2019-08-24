@@ -18,6 +18,7 @@ import com.alibaba.otter.canal.client.adapter.es.ESAdapter;
 import com.alibaba.otter.canal.client.adapter.es.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
+
 @Ignore
 public class RoleSyncJoinOne2Test {
 
@@ -57,7 +58,10 @@ public class RoleSyncJoinOne2Test {
 
         esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
-        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        GetResponse response = esAdapter.getEsConnection()
+            .getTransportClient()
+            .prepareGet("mytest_user", "_doc", "1")
+            .get();
         Assert.assertEquals("admin_", response.getSource().get("_role_name"));
     }
 
@@ -94,7 +98,10 @@ public class RoleSyncJoinOne2Test {
 
         esAdapter.getEsSyncService().sync(esSyncConfigs.values(), dml);
 
-        GetResponse response = esAdapter.getTransportClient().prepareGet("mytest_user", "_doc", "1").get();
+        GetResponse response = esAdapter.getEsConnection()
+            .getTransportClient()
+            .prepareGet("mytest_user", "_doc", "1")
+            .get();
         Assert.assertEquals("admin3_", response.getSource().get("_role_name"));
     }
 }

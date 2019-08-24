@@ -2,9 +2,9 @@
   <div>
     <el-form ref="form" :model="form">
       <div class="filter-container" style="padding-left: 10px;padding-top: 20px;">
-        <el-input v-model="form.name" placeholder="实例名称" style="width: 200px;" class="filter-item" />
+        <el-input v-model="form.name" placeholder="Instance名称" style="width: 200px;" class="filter-item" />
         &nbsp;
-        <el-button class="filter-item" type="primary" @click="onSubmit">新建</el-button>
+        <el-button class="filter-item" type="primary" @click="onSubmit">保存</el-button>
         <el-button class="filter-item" type="info" @click="onBack">返回</el-button>
       </div>
       <editor v-model="form.content" lang="properties" theme="chrome" width="100%" :height="800" @init="editorInit" />
@@ -43,7 +43,7 @@ export default {
     onSubmit() {
       if (this.form.name === '') {
         this.$message({
-          message: '请输入实例名称',
+          message: '请输入Instance名称',
           type: 'error'
         })
         return

@@ -78,48 +78,48 @@ export const constantRoutes = [
     children: [
       {
         path: 'nodeServers',
-        name: '节点状态',
+        name: 'Server 状态',
         component: () => import('@/views/canalServer/NodeServer'),
-        meta: { title: '节点管理', icon: 'tree' }
+        meta: { title: 'Server 管理', icon: 'tree' }
       },
       {
         path: 'config',
-        name: 'Canal主配置',
+        name: 'Server 全局配置',
         component: () => import('@/views/canalServer/Config'),
-        meta: { title: 'Canal主配置', icon: 'form' }
+        meta: { title: 'Server 全局配置', icon: 'form' }
       },
       {
         path: 'canalInstances',
-        name: '实例管理',
+        name: 'Instance 管理',
         component: () => import('@/views/canalServer/CanalInstance'),
-        meta: { title: '实例管理', icon: 'nested' }
+        meta: { title: 'Instance 管理', icon: 'nested' }
       },
       {
         path: 'canalInstance/add',
-        name: '新建实例配置',
+        name: '新建Instance配置',
         component: () => import('@/views/canalServer/CanalInstanceAdd'),
-        meta: { title: '新建实例配置' },
+        meta: { title: '新建Instance配置' },
         hidden: true
       },
       {
         path: 'canalInstance/modify',
-        name: '修改实例配置',
+        name: '修改Instance配置',
         component: () => import('@/views/canalServer/CanalInstanceUpdate'),
-        meta: { title: '修改实例配置' },
+        meta: { title: '修改Instance配置' },
         hidden: true
       },
       {
         path: 'nodeServer/log',
-        name: 'Canal日志',
+        name: 'Server 日志',
         component: () => import('@/views/canalServer/CanalLogDetail'),
-        meta: { title: 'Canal日志' },
+        meta: { title: 'Server 日志' },
         hidden: true
       },
       {
         path: 'canalInstance/log',
-        name: 'Canal Instance日志',
+        name: 'Instance 日志',
         component: () => import('@/views/canalServer/CanalInstanceLogDetail'),
-        meta: { title: 'Canal Instance日志' },
+        meta: { title: 'Instance 日志' },
         hidden: true
       }
     ]

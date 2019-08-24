@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,8 +151,9 @@ public abstract class AbstractCanalAdapterWorker {
                     if (flatMessage) {
                         // batch write
                         writeOut((List<FlatMessage>) messages);
-                        //FIXME xxx
-                        messages.forEach((message -> System.out.println(JSON.toJSONString(message))));
+                        // FIXME xxx
+                        // messages.forEach((message ->
+                        // System.out.println(JSON.toJSONString(message))));
                     } else {
                         for (final Object message : messages) {
                             writeOut((Message) message);

@@ -80,6 +80,7 @@ canal 特别设计了 client-server 模式，交互协议使用 protobuf 3.0 , c
 - canal c# 客户端: [https://github.com/dotnetcore/CanalSharp](https://github.com/dotnetcore/CanalSharp)
 - canal go客户端: [https://github.com/CanalClient/canal-go](https://github.com/CanalClient/canal-go)
 - canal php客户端: [https://github.com/xingwenge/canal-php](https://github.com/xingwenge/canal-php)
+- canal Python客户端：[https://github.com/haozi3156666/canal-python](https://github.com/haozi3156666/canal-python)
 
 canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递到 MQ 系统中，比如 Kafka/RocketMQ，可以借助于 MQ 的多语言能力 
 

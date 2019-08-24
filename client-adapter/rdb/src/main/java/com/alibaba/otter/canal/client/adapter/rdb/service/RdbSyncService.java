@@ -105,6 +105,11 @@ public class RdbSyncService {
                 List<Future<Boolean>> futures = new ArrayList<>();
                 for (int i = 0; i < threads; i++) {
                     int j = i;
+                    if (dmlsPartition[j].isEmpty()) {
+                        // bypass
+                        continue;
+                    }
+
                     futures.add(executorThreads[i].submit(() -> {
                         try {
                             dmlsPartition[j].forEach(syncItem -> sync(batchExecutors[j],

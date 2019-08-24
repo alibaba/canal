@@ -54,7 +54,7 @@ export default {
     },
     onSubmit() {
       this.$confirm(
-        '修改Canal实例配置可能会导致实例重启，是否继续？',
+        '修改Instance配置可能会导致重启，是否继续？',
         '确定修改',
         {
           confirmButtonText: '确定',

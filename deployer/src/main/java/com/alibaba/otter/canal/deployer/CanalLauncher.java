@@ -4,16 +4,16 @@ import java.io.FileInputStream;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
-import com.alibaba.otter.canal.deployer.mbean.CanalServerAgent;
-import com.alibaba.otter.canal.deployer.mbean.CanalServerMXBean;
-import com.alibaba.otter.canal.deployer.mbean.CanalServerBean;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.deployer.mbean.CanalServerAgent;
+import com.alibaba.otter.canal.deployer.mbean.CanalServerBean;
+import com.alibaba.otter.canal.deployer.mbean.CanalServerMXBean;
+import com.alibaba.otter.canal.deployer.monitor.remote.RemoteCanalConfigMonitor;
 import com.alibaba.otter.canal.deployer.monitor.remote.RemoteConfigLoader;
 import com.alibaba.otter.canal.deployer.monitor.remote.RemoteConfigLoaderFactory;
-import com.alibaba.otter.canal.deployer.monitor.remote.RemoteCanalConfigMonitor;
 
 /**
  * canal独立版本启动的入口类
@@ -80,8 +80,13 @@ public class CanalLauncher {
             String jmxPort = properties.getProperty(CanalConstants.CANAL_ADMIN_JMX_PORT);
             if (StringUtils.isNotEmpty(jmxPort)) {
                 String ip = properties.getProperty(CanalConstants.CANAL_IP);
+                String registerIp = properties.getProperty(CanalConstants.CANAL_REGISTER_IP);
+                if (StringUtils.isEmpty(registerIp)) {
+                    // 兼容老的配置
+                    registerIp = ip;
+                }
                 CanalServerMXBean canalServerMBean = new CanalServerBean(canalStater);
-                canalServerAgent = new CanalServerAgent(ip, Integer.parseInt(jmxPort), canalServerMBean);
+                canalServerAgent = new CanalServerAgent(registerIp, Integer.parseInt(jmxPort), canalServerMBean);
                 Thread agentThread = new Thread(canalServerAgent::start);
                 agentThread.start();
             }
