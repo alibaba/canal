@@ -53,7 +53,7 @@ export default {
     },
     onSubmit() {
       this.$confirm(
-        '修改Canal主配置可能会导致Server重启，是否继续？',
+        '修改Server主配置可能会导致Server重启，是否继续？',
         '确定修改',
         {
           confirmButtonText: '确定',

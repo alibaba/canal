@@ -1,11 +1,11 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <!-- <el-input v-model="listQuery.name" placeholder="节点名称" style="width: 200px;" class="filter-item" />
-      <el-input v-model="listQuery.ip" placeholder="节点IP" style="width: 200px;" class="filter-item" />
+      <!-- <el-input v-model="listQuery.name" placeholder="Server 名称" style="width: 200px;" class="filter-item" />
+      <el-input v-model="listQuery.ip" placeholder="Server IP" style="width: 200px;" class="filter-item" />
       <el-button class="filter-item" type="primary" icon="el-icon-search" plain @click="fetchData()">查询</el-button> -->
-      <el-button class="filter-item" type="primary" @click="handleCreate()">新建节点</el-button>
-      <el-button class="filter-item" type="info" @click="fetchData()">刷新节点</el-button>
+      <el-button class="filter-item" type="primary" @click="handleCreate()">新建Server</el-button>
+      <el-button class="filter-item" type="info" @click="fetchData()">刷新列表</el-button>
     </div>
     <el-table
       v-loading="listLoading"
@@ -15,17 +15,17 @@
       fit
       highlight-current-row
     >
-      <el-table-column label="节点名称" min-width="200" align="center">
+      <el-table-column label="Server 名称" min-width="200" align="center">
         <template slot-scope="scope">
           {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column label="IP" min-width="200" align="center">
+      <el-table-column label="Server IP" min-width="200" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.ip }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="端口" min-width="100" align="center">
+      <el-table-column label="JMX端口" min-width="100" align="center">
         <template slot-scope="scope">
           {{ scope.row.port }}
         </template>
@@ -47,29 +47,29 @@
               操作<i class="el-icon-arrow-down el-icon--right" />
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="handleUpdate(scope.row)">修改节点</el-dropdown-item>
-              <el-dropdown-item @click.native="handleDelete(scope.row)">删除节点</el-dropdown-item>
-              <el-dropdown-item @click.native="handleStart(scope.row)">启动服务</el-dropdown-item>
-              <el-dropdown-item @click.native="handleStop(scope.row)">停止服务</el-dropdown-item>
-              <el-dropdown-item @click.native="handleLog(scope.row)">日志详情</el-dropdown-item>
+              <el-dropdown-item @click.native="handleUpdate(scope.row)">修改</el-dropdown-item>
+              <el-dropdown-item @click.native="handleDelete(scope.row)">删除</el-dropdown-item>
+              <el-dropdown-item @click.native="handleStart(scope.row)">启动</el-dropdown-item>
+              <el-dropdown-item @click.native="handleStop(scope.row)">停止</el-dropdown-item>
+              <el-dropdown-item @click.native="handleLog(scope.row)">日志</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
     <el-dialog :visible.sync="dialogFormVisible" :title="textMap[dialogStatus]" width="600px">
-      <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="80px" style="width: 350px; margin-left:80px;">
-        <el-form-item label="节点名称" prop="name">
+      <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="120px" style="width: 400px; margin-left:30px;">
+        <el-form-item label="Server 名称" prop="name">
           <el-input v-model="nodeModel.name" />
         </el-form-item>
-        <el-form-item label="节点IP" prop="ip">
+        <el-form-item label="Server IP" prop="ip">
           <el-input v-model="nodeModel.ip" />
         </el-form-item>
-        <el-form-item label="节点端口" prop="port">
+        <el-form-item label="JMX端口" prop="port">
           <el-input v-model="nodeModel.port" placeholder="11113" type="number" />
         </el-form-item>
         <el-form-item label="监控端口" prop="port2">
-          <el-input v-model="nodeModel.port2" type="number" />
+          <el-input v-model="nodeModel.port2" placeholder="11112" type="number" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -112,20 +112,20 @@ export default {
       },
       dialogFormVisible: false,
       textMap: {
-        create: '新建节点信息',
-        update: '修改节点信息'
+        create: '新建Server信息',
+        update: '修改Server信息'
       },
       nodeModel: {
         id: undefined,
         name: null,
         ip: null,
         port: 11113,
-        port2: null
+        port2: 11112
       },
       rules: {
-        name: [{ required: true, message: '节点名称不能为空', trigger: 'change' }],
-        ip: [{ required: true, message: '节点IP不能为空', trigger: 'change' }],
-        port: [{ required: true, message: '节点端口不能为空', trigger: 'change' }]
+        name: [{ required: true, message: 'Server 名称不能为空', trigger: 'change' }],
+        ip: [{ required: true, message: 'Server IP不能为空', trigger: 'change' }],
+        port: [{ required: true, message: 'Server JMX端口不能为空', trigger: 'change' }]
       },
       dialogStatus: 'create'
     }
@@ -200,7 +200,7 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$confirm('删除节点信息并不会导致节点服务停止', '确定删除节点信息', {
+      this.$confirm('删除Server信息并不会导致节点服务停止', '确定删除Server信息', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -209,12 +209,12 @@ export default {
           if (res.data === 'success') {
             this.fetchData()
             this.$message({
-              message: '删除节点信息成功',
+              message: '删除Server信息成功',
               type: 'success'
             })
           } else {
             this.$message({
-              message: '删除节点信息失败',
+              message: '删除Server信息失败',
               type: 'error'
             })
           }
@@ -223,10 +223,10 @@ export default {
     },
     handleStart(row) {
       if (row.status !== 0) {
-        this.$message({ message: '当前节点不是停止状态，无法启动', type: 'error' })
+        this.$message({ message: '当前Server不是停止状态，无法启动', type: 'error' })
         return
       }
-      this.$confirm('启动节点 Canal Server 服务', '确定启动节点服务', {
+      this.$confirm('启动Server服务', '确定启动Server服务', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -240,7 +240,7 @@ export default {
             })
           } else {
             this.$message({
-              message: '启动节点服务出现异常',
+              message: '启动Server服务出现异常',
               type: 'error'
             })
           }
@@ -249,10 +249,10 @@ export default {
     },
     handleStop(row) {
       if (row.status !== 1) {
-        this.$message({ message: '当前节点不是启动状态，无法停止', type: 'error' })
+        this.$message({ message: '当前Server不是启动状态，无法停止', type: 'error' })
         return
       }
-      this.$confirm('停止节点 Canal Server 服务', '确定停止节点服务', {
+      this.$confirm('停止 Server 服务', '确定停止Server服务', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -266,7 +266,7 @@ export default {
             })
           } else {
             this.$message({
-              message: '停止节点服务出现异常',
+              message: '停止Server服务出现异常',
               type: 'error'
             })
           }
