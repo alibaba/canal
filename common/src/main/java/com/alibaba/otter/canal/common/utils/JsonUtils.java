@@ -29,7 +29,10 @@ public class JsonUtils {
         SerializeConfig.getGlobalInstance().put(InetAddress.class, InetAddressSerializer.instance);
         SerializeConfig.getGlobalInstance().put(Inet4Address.class, InetAddressSerializer.instance);
         SerializeConfig.getGlobalInstance().put(Inet6Address.class, InetAddressSerializer.instance);
-        ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
+        // ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
+
+        ParserConfig.getGlobalInstance().addAccept("com.alibaba.otter.");
+        ParserConfig.getGlobalInstance().addAccept("com.taobao.tddl.dbsync.");
     }
 
     public static <T> T unmarshalFromByte(byte[] bytes, Class<T> targetClass) {

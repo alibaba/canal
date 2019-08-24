@@ -44,7 +44,10 @@ public class ESSyncUtil {
             String[] values = val.toString().split(separator);
             return Arrays.asList(values);
         } else if (fieldInfo.startsWith("object")) {
-            return JSON.parse(val.toString());
+            if (val instanceof String){
+                return JSON.parse(val.toString());
+            }
+            return JSON.parse(new String((byte[])val));
         }
         return null;
     }

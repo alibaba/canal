@@ -334,6 +334,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
         range.setStart(CanalEventUtils.createPosition(entrys.get(0)));
         range.setEnd(CanalEventUtils.createPosition(entrys.get(result.getEvents().size() - 1)));
+        range.setEndSeq(end);
         // 记录一下是否存在可以被ack的点
 
         for (int i = entrys.size() - 1; i >= 0; i--) {
@@ -369,9 +370,9 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                 return CanalEventUtils.createPosition(event, false);
             } else if (firstSeqeuence > INIT_SEQUENCE && firstSeqeuence < putSequence.get()) {
                 // ack未追上put操作
-                Event event = entries[getIndex(firstSeqeuence + 1)]; // 最后一次ack的位置数据
-                                                                     // + 1
-                return CanalEventUtils.createPosition(event, true);
+                Event event = entries[getIndex(firstSeqeuence)]; // 最后一次ack的位置数据,需要移动到下一条,included
+                // = false
+                return CanalEventUtils.createPosition(event, false);
             } else if (firstSeqeuence > INIT_SEQUENCE && firstSeqeuence == putSequence.get()) {
                 // 已经追上，store中没有数据
                 Event event = entries[getIndex(firstSeqeuence)]; // 最后一次ack的位置数据，和last为同一条，included
@@ -410,10 +411,19 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     }
 
     public void ack(Position position) throws CanalStoreException {
-        cleanUntil(position);
+        cleanUntil(position, -1L);
     }
 
+    public void ack(Position position, Long seqId) throws CanalStoreException {
+        cleanUntil(position, seqId);
+    }
+
+    @Override
     public void cleanUntil(Position position) throws CanalStoreException {
+        cleanUntil(position, -1L);
+    }
+
+    public void cleanUntil(Position position, Long seqId) throws CanalStoreException {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
@@ -425,6 +435,9 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             // ack没有list，但有已存在的foreach，还是节省一下list的开销
             long localExecTime = 0L;
             int deltaRows = 0;
+            if (seqId > 0) {
+                maxSequence = seqId;
+            }
             for (long next = sequence + 1; next <= maxSequence; next++) {
                 Event event = entries[getIndex(next)];
                 if (localExecTime == 0 && event.getExecuteTime() > 0) {
@@ -432,8 +445,8 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                 }
                 deltaRows += event.getRowsCount();
                 memsize += calculateSize(event);
-                boolean match = CanalEventUtils.checkPosition(event, (LogPosition) position);
-                if (match) {// 找到对应的position，更新ack seq
+                if ((seqId < 0 || next == seqId) && CanalEventUtils.checkPosition(event, (LogPosition) position)) {
+                    // 找到对应的position，更新ack seq
                     hasMatch = true;
 
                     if (batchMode.isMemSize()) {
@@ -442,6 +455,12 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                         for (long index = sequence + 1; index < next; index++) {
                             entries[getIndex(index)] = null;// 设置为null
                         }
+
+                        // 考虑getFirstPosition/getLastPosition会获取最后一次ack的position信息
+                        // ack清理的时候只处理entry=null，释放内存
+                        Event lastEvent = entries[getIndex(next)];
+                        lastEvent.setEntry(null);
+                        lastEvent.setRawEntry(null);
                     }
 
                     if (ackSequence.compareAndSet(sequence, next)) {// 避免并发ack
@@ -680,6 +699,5 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     public AtomicLong getAckTableRows() {
         return ackTableRows;
     }
-
 
 }

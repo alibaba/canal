@@ -77,6 +77,13 @@ public interface CanalEventStore<T> extends CanalLifeCycle, CanalStoreScavenge {
     void ack(Position position) throws CanalStoreException;
 
     /**
+     * 删除指定seqId之前的数据
+     * 
+     * @Since 1.1.4
+     */
+    void ack(Position position, Long seqId) throws CanalStoreException;
+
+    /**
      * 出错时执行回滚操作(未提交ack的所有状态信息重新归位，减少出错时数据全部重来的成本)
      */
     void rollback() throws CanalStoreException;

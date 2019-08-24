@@ -200,8 +200,7 @@ public class HbaseSyncService {
                 String rowKeyVale = getRowKeys(rowKeyColumns, r);
                 rowKeyBytes = Bytes.toBytes(rowKeyVale);
             } else if (rowKeyColumn == null) {
-                Map<String, Object> rowKey = data.get(0);
-                rowKeyBytes = typeConvert(null, hbaseMapping, rowKey.values().iterator().next());
+                rowKeyBytes = typeConvert(null, hbaseMapping, r.values().iterator().next());
             } else {
                 rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }
@@ -285,8 +284,7 @@ public class HbaseSyncService {
                 rowKeyBytes = Bytes.toBytes(rowKeyVale);
             } else if (rowKeyColumn == null) {
                 // 如果不需要类型转换
-                Map<String, Object> rowKey = data.get(0);
-                rowKeyBytes = typeConvert(null, hbaseMapping, rowKey.values().iterator().next());
+                rowKeyBytes = typeConvert(null, hbaseMapping, r.values().iterator().next());
             } else {
                 rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }

@@ -190,17 +190,17 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             return false;
         }
 
-        /**
-         * 由于改为processor仅终止自身stage而不是stop，那么需要由incident标识coprocessor是否正常工作。
-         * 让dump线程能够及时感知
-         */
-        if (exception != null) {
-            throw exception;
-        }
         boolean interupted = false;
         long blockingStart = 0L;
         int fullTimes = 0;
         do {
+            /**
+             * 由于改为processor仅终止自身stage而不是stop，那么需要由incident标识coprocessor是否正常工作。
+             * 让dump线程能够及时感知
+             */
+            if (exception != null) {
+                throw exception;
+            }
             try {
                 long next = disruptorMsgBuffer.tryNext();
                 MessageEvent data = disruptorMsgBuffer.get(next);
@@ -441,6 +441,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         @Override
         public void handleEventException(final Throwable ex, final long sequence, final Object event) {
+            //异常上抛，否则processEvents的逻辑会默认会mark为成功执行，有丢数据风险
+            throw new CanalParseException(ex);
         }
 
         @Override

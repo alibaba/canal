@@ -446,12 +446,14 @@ public class MQMessageUtils {
                     int idx = 0;
                     for (Map<String, String> row : flatMessage.getData()) {
                         int hashCode = database.hashCode();
-                        for (String pkName : pkNames) {
-                            String value = row.get(pkName);
-                            if (value == null) {
-                                value = "";
+                        if (pkNames != null) {
+                            for (String pkName : pkNames) {
+                                String value = row.get(pkName);
+                                if (value == null) {
+                                    value = "";
+                                }
+                                hashCode = hashCode ^ value.hashCode();
                             }
-                            hashCode = hashCode ^ value.hashCode();
                         }
 
                         int pkHash = Math.abs(hashCode) % partitionsNum;
@@ -471,6 +473,7 @@ public class MQMessageUtils {
                             flatMessageTmp.setMysqlType(flatMessage.getMysqlType());
                             flatMessageTmp.setEs(flatMessage.getEs());
                             flatMessageTmp.setTs(flatMessage.getTs());
+                            flatMessageTmp.setPkNames(flatMessage.getPkNames());
                         }
                         List<Map<String, String>> data = flatMessageTmp.getData();
                         if (data == null) {

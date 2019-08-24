@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.instance.manager;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -117,7 +118,13 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         } else {
             try {
                 File externalLibDir = new File(alarmHandlerPluginDir);
-                File[] jarFiles = externalLibDir.listFiles((dir1, name) -> name.endsWith(".jar"));
+                File[] jarFiles = externalLibDir.listFiles(new FilenameFilter() {
+
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.endsWith(".jar");
+                    }
+                });
                 if (jarFiles == null || jarFiles.length == 0) {
                     throw new IllegalStateException(String.format("alarmHandlerPluginDir [%s] can't find any name endswith \".jar\" file.",
                         alarmHandlerPluginDir));
@@ -126,14 +133,16 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                 for (int i = 0; i < jarFiles.length; i++) {
                     urls[i] = jarFiles[i].toURI().toURL();
                 }
-                ClassLoader currentClassLoader = new URLClassLoader(urls, CanalInstanceWithManager.class.getClassLoader());
-                Class<CanalAlarmHandler> _alarmClass =
-                    (Class<CanalAlarmHandler>)currentClassLoader.loadClass(alarmHandlerClass);
+                ClassLoader currentClassLoader = new URLClassLoader(urls,
+                    CanalInstanceWithManager.class.getClassLoader());
+                Class<CanalAlarmHandler> _alarmClass = (Class<CanalAlarmHandler>) currentClassLoader.loadClass(alarmHandlerClass);
                 alarmHandler = _alarmClass.newInstance();
                 logger.info("init [{}] alarm handler success.", alarmHandlerClass);
             } catch (Throwable e) {
                 String errorMsg = String.format("init alarmHandlerPluginDir [%s] alarm handler [%s] error: %s",
-                    alarmHandlerPluginDir, alarmHandlerClass, ExceptionUtils.getFullStackTrace(e));
+                    alarmHandlerPluginDir,
+                    alarmHandlerClass,
+                    ExceptionUtils.getFullStackTrace(e));
                 logger.error(errorMsg);
                 throw new CanalException(errorMsg, e);
             }

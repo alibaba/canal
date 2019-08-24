@@ -2,14 +2,18 @@ package com.alibaba.otter.canal.deployer;
 
 import java.io.FileInputStream;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.deployer.mbean.CanalServerAgent;
+import com.alibaba.otter.canal.deployer.mbean.CanalServerBean;
+import com.alibaba.otter.canal.deployer.mbean.CanalServerMXBean;
+import com.alibaba.otter.canal.deployer.monitor.remote.RemoteCanalConfigMonitor;
 import com.alibaba.otter.canal.deployer.monitor.remote.RemoteConfigLoader;
 import com.alibaba.otter.canal.deployer.monitor.remote.RemoteConfigLoaderFactory;
-import com.alibaba.otter.canal.deployer.monitor.remote.RemoteCanalConfigMonitor;
 
 /**
  * canal独立版本启动的入口类
@@ -19,13 +23,12 @@ import com.alibaba.otter.canal.deployer.monitor.remote.RemoteCanalConfigMonitor;
  */
 public class CanalLauncher {
 
-    private static final String    CLASSPATH_URL_PREFIX = "classpath:";
-    private static final Logger    logger               = LoggerFactory.getLogger(CanalLauncher.class);
-    public static volatile boolean running              = false;
+    private static final String        CLASSPATH_URL_PREFIX = "classpath:";
+    private static final Logger        logger               = LoggerFactory.getLogger(CanalLauncher.class);
+    public static final CountDownLatch runningLatch         = new CountDownLatch(1);
 
     public static void main(String[] args) {
         try {
-            running = true;
             logger.info("## set default uncaught exception handler");
             setGlobalUncaughtExceptionHandler();
 
@@ -53,8 +56,8 @@ public class CanalLauncher {
                 }
             }
 
-            final CanalStater canalStater = new CanalStater();
-            canalStater.start(properties);
+            final CanalStater canalStater = new CanalStater(properties);
+            canalStater.start();
 
             if (remoteConfigLoader != null) {
                 remoteConfigLoader.startMonitor(new RemoteCanalConfigMonitor() {
@@ -63,8 +66,9 @@ public class CanalLauncher {
                     public void onChange(Properties properties) {
                         try {
                             // 远程配置canal.properties修改重新加载整个应用
-                            canalStater.destroy();
-                            canalStater.start(properties);
+                            canalStater.stop();
+                            canalStater.setProperties(properties);
+                            canalStater.start();
                         } catch (Throwable throwable) {
                             logger.error(throwable.getMessage(), throwable);
                         }
@@ -72,8 +76,25 @@ public class CanalLauncher {
                 });
             }
 
-            while (running) {
-                Thread.sleep(1000);
+            CanalServerAgent canalServerAgent = null;
+            String jmxPort = properties.getProperty(CanalConstants.CANAL_ADMIN_JMX_PORT);
+            if (StringUtils.isNotEmpty(jmxPort)) {
+                String ip = properties.getProperty(CanalConstants.CANAL_IP);
+                String registerIp = properties.getProperty(CanalConstants.CANAL_REGISTER_IP);
+                if (StringUtils.isEmpty(registerIp)) {
+                    // 兼容老的配置
+                    registerIp = ip;
+                }
+                CanalServerMXBean canalServerMBean = new CanalServerBean(canalStater);
+                canalServerAgent = new CanalServerAgent(registerIp, Integer.parseInt(jmxPort), canalServerMBean);
+                Thread agentThread = new Thread(canalServerAgent::start);
+                agentThread.start();
+            }
+
+            runningLatch.await();
+
+            if (canalServerAgent != null) {
+                canalServerAgent.stop();
             }
 
             if (remoteConfigLoader != null) {

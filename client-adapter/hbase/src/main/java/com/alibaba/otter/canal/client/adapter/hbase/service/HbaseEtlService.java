@@ -79,7 +79,7 @@ public class HbaseEtlService extends AbstractEtlService {
             createTable();
 
             // 拼接sql
-            String sql = "SELECT * FROM " + config.getHbaseMapping().getDatabase() + "." + hbaseMapping.getTable();
+            String sql = "SELECT * FROM `" + config.getHbaseMapping().getDatabase() + "`.`" + hbaseMapping.getTable() + "`";
 
             return super.importData(sql, params);
         } catch (Exception e) {
