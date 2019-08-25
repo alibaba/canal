@@ -18,6 +18,15 @@ public class CanalConfigServiceImpl implements CanalConfigService {
         return CanalConfig.find.byId(1L);
     }
 
+    public CanalConfig getCanalConfigSummary() {
+        return CanalConfig.find.query()
+            .setDisableLazyLoading(true)
+            .select("name, modifiedTime")
+            .where()
+            .eq("id", 1L)
+            .findOne();
+    }
+
     public CanalConfig getAdapterConfig() {
         return CanalConfig.find.byId(2L);
     }
