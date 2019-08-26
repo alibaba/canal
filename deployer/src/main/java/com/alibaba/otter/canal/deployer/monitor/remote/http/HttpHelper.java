@@ -1,11 +1,9 @@
 package com.alibaba.otter.canal.deployer.monitor.remote.http;
 
-import static org.apache.http.client.config.RequestConfig.custom;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.alibaba.otter.canal.deployer.monitor.remote.ConfigItem;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -20,9 +18,11 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
+
+import static org.apache.http.client.config.RequestConfig.custom;
 
 public class HttpHelper {
 
@@ -30,20 +30,14 @@ public class HttpHelper {
 
     private CloseableHttpClient httpclient;
 
-    public HttpHelper(){
+    public HttpHelper() {
         HttpClientBuilder builder = HttpClientBuilder.create();
         builder.setMaxConnPerRoute(50);
         builder.setMaxConnTotal(100);
         httpclient = builder.build();
     }
 
-    public <T> Model.ResponseModel<T> get(String url, Map<String, String> heads, int timeout) {
-        String resp = get0(url, heads, timeout);
-        return JSONObject.parseObject(resp, new TypeReference<Model.ResponseModel<T>>() {
-        });
-    }
-
-    public String get0(String url, Map<String, String> heads, int timeout) {
+    public String get(String url, Map<String, String> heads, int timeout) {
         // 支持采用https协议，忽略证书
         url = url.trim();
         if (url.startsWith("https")) {
@@ -55,9 +49,9 @@ public class HttpHelper {
         try {
             URI uri = new URIBuilder(url).build();
             RequestConfig config = custom().setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
+                    .setConnectionRequestTimeout(timeout)
+                    .setSocketTimeout(timeout)
+                    .build();
             httpGet = new HttpGet(uri);
             if (heads != null) {
                 for (Map.Entry<String, String> entry : heads.entrySet()) {
@@ -74,7 +68,7 @@ public class HttpHelper {
             } else {
                 String errorMsg = EntityUtils.toString(response.getEntity());
                 throw new RuntimeException("requestGet remote error, url=" + uri.toString() + ", code=" + statusCode
-                                           + ", error msg=" + errorMsg);
+                        + ", error msg=" + errorMsg);
             }
         } catch (Throwable t) {
             throw new RuntimeException("requestGet remote error, request : " + url, t);
@@ -92,11 +86,9 @@ public class HttpHelper {
         }
     }
 
-    public <T> Model.ResponseModel<T> post(String url, Map<String, String> heads, Object requestBody, int timeout) {
+    public String post(String url, Map<String, String> heads, Object requestBody, int timeout) {
         String json = JSON.toJSONString(requestBody);
-        String resp = post0(url, heads, json, timeout);
-        return JSONObject.parseObject(resp, new TypeReference<Model.ResponseModel<T>>() {
-        });
+        return post0(url, heads, json, timeout);
     }
 
     public String post0(String url, Map<String, String> heads, String requestBody, int timeout) {
@@ -111,9 +103,9 @@ public class HttpHelper {
         try {
             URI uri = new URIBuilder(url).build();
             RequestConfig config = custom().setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
+                    .setConnectionRequestTimeout(timeout)
+                    .setSocketTimeout(timeout)
+                    .build();
             httpPost = new HttpPost(uri);
             StringEntity entity = new StringEntity(requestBody, "UTF-8");
             httpPost.setEntity(entity);
@@ -133,7 +125,7 @@ public class HttpHelper {
                 return EntityUtils.toString(response.getEntity());
             } else {
                 throw new RuntimeException("requestPost remote error, request : " + url + ", statusCode=" + statusCode
-                                           + ";" + EntityUtils.toString(response.getEntity()));
+                        + ";" + EntityUtils.toString(response.getEntity()));
             }
         } catch (Throwable t) {
             throw new RuntimeException("requestPost remote error, request : " + url, t);

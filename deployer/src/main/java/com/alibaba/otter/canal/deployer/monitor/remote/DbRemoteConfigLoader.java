@@ -85,7 +85,7 @@ public class DbRemoteConfigLoader implements RemoteConfigLoader {
                     properties = new Properties();
                     properties.load(new ByteArrayInputStream(configItem.getContent().getBytes(StandardCharsets.UTF_8)));
                     scanIntervalInSecond = Integer
-                        .valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
+                        .parseInt(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
                     logger.info("## Loaded remote canal config: canal.properties ");
                 }
             }
