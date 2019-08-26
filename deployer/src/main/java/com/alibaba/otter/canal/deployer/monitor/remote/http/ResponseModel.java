@@ -1,6 +1,12 @@
 package com.alibaba.otter.canal.deployer.monitor.remote.http;
 
-public class ResponseModel <T> {
+/**
+ * 响应类
+ *
+ * @author rewerma 2019-08-26 上午09:40:36
+ * @version 1.0.0
+ */
+public class ResponseModel<T> {
 
     private Integer code;
     private String  message;

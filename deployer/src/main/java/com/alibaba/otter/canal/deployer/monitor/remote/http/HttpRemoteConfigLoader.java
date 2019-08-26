@@ -19,28 +19,36 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 基于HTTP的远程配置装载器
+ *
+ * @author rewerma 2019-08-26 上午09:40:36
+ * @version 1.0.0
+ */
 public class HttpRemoteConfigLoader implements RemoteConfigLoader {
 
-    private final static Logger logger = LoggerFactory.getLogger(HttpRemoteConfigLoader.class);
+    private final static Logger      logger                 = LoggerFactory.getLogger(HttpRemoteConfigLoader.class);
 
-    private String baseUrl;
-    private String username;
-    private String password;
+    private final static Integer     REQUEST_TIMEOUT        = 5000;
 
-    private String token;
+    private String                   baseUrl;
+    private String                   username;
+    private String                   password;
 
-    private HttpHelper httpHelper;
+    private String                   token;
 
-    private long currentConfigTimestamp = 0;
-    private Map<String, ConfigItem> remoteInstanceConfigs = new MapMaker().makeMap();
+    private HttpHelper               httpHelper;
 
-    private RemoteInstanceMonitor remoteInstanceMonitor = new RemoteInstanceMonitorImpl();
+    private long                     currentConfigTimestamp = 0;
+    private Map<String, ConfigItem>  remoteInstanceConfigs  = new MapMaker().makeMap();
 
-    private long scanIntervalInSecond = 5;
-    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(2,
-            new NamedThreadFactory("remote-http-canal-config-scan"));
+    private RemoteInstanceMonitor    remoteInstanceMonitor  = new RemoteInstanceMonitorImpl();
 
-    public HttpRemoteConfigLoader(String baseUrl, String username, String password) {
+    private long                     scanIntervalInSecond   = 5;
+    private ScheduledExecutorService executor               = Executors.newScheduledThreadPool(2,
+        new NamedThreadFactory("remote-http-canal-config-scan"));
+
+    public HttpRemoteConfigLoader(String baseUrl, String username, String password){
         this.baseUrl = baseUrl;
         this.username = username;
         this.password = password;
@@ -51,10 +59,11 @@ public class HttpRemoteConfigLoader implements RemoteConfigLoader {
         Map<String, Object> reqBody = new HashMap<>();
         reqBody.put("username", username);
         reqBody.put("password", password);
-        String response = httpHelper.post(baseUrl + "/api/v1/user/login", null, reqBody, 5000);
-        ResponseModel<JSONObject> resp = JSONObject.parseObject(response, new TypeReference<ResponseModel<JSONObject>>() {
-        });
-        if (resp.getCode() != 20000) {
+        String response = httpHelper.post(baseUrl + "/api/v1/user/login", null, reqBody, REQUEST_TIMEOUT);
+        ResponseModel<JSONObject> resp = JSONObject.parseObject(response,
+            new TypeReference<ResponseModel<JSONObject>>() {
+            });
+        if (!HttpHelper.REST_STATE_OK.equals(resp.getCode())) {
             throw new RuntimeException("requestPost for login error: " + resp.getMessage());
         }
         return (String) resp.getData().get("token");
@@ -69,17 +78,17 @@ public class HttpRemoteConfigLoader implements RemoteConfigLoader {
                 if (configItem.getModifiedTime() != currentConfigTimestamp) { // 修改时就不同说明配置有更新
                     Map<String, String> heads = new HashMap<>();
                     heads.put("X-Token", token);
-                    String response = httpHelper
-                            .get(baseUrl + "/api/v1/canal/config", heads, 5000);
-                    ResponseModel<ConfigItem> resp = JSONObject.parseObject(response, new TypeReference<ResponseModel<ConfigItem>>() {
-                    });
+                    String response = httpHelper.get(baseUrl + "/api/v1/canal/config", heads, REQUEST_TIMEOUT);
+                    ResponseModel<ConfigItem> resp = JSONObject.parseObject(response,
+                        new TypeReference<ResponseModel<ConfigItem>>() {
+                        });
                     currentConfigTimestamp = configItem.getModifiedTime();
                     overrideLocalCanalConfig(resp.getData().getContent());
                     properties = new Properties();
                     properties
-                            .load(new ByteArrayInputStream(resp.getData().getContent().getBytes(StandardCharsets.UTF_8)));
+                        .load(new ByteArrayInputStream(resp.getData().getContent().getBytes(StandardCharsets.UTF_8)));
                     scanIntervalInSecond = Integer
-                            .parseInt(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
+                        .parseInt(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
                     logger.info("## Loaded http remote canal config: canal.properties ");
                 }
             }
@@ -101,18 +110,19 @@ public class HttpRemoteConfigLoader implements RemoteConfigLoader {
 
         Map<String, String> heads = new HashMap<>();
         heads.put("X-Token", token);
-        String response = httpHelper.get(baseUrl + "/api/v1/canal/config/summary", heads, 5000);
-        ResponseModel<ConfigItem> resp = JSONObject.parseObject(response, new TypeReference<ResponseModel<ConfigItem>>() {
-        });
-        if (resp.getCode() == 50014) {
+        String response = httpHelper.get(baseUrl + "/api/v1/canal/config/summary", heads, REQUEST_TIMEOUT);
+        ResponseModel<ConfigItem> resp = JSONObject.parseObject(response,
+            new TypeReference<ResponseModel<ConfigItem>>() {
+            });
+        if (HttpHelper.REST_STATE_TOKEN_INVALID.equals(resp.getCode())) {
             // token 失效
             token = login4Token(httpHelper);
             heads.put("X-Token", token);
-            response = httpHelper.get(baseUrl + "/api/v1/canal/config/summary", heads, 5000);
+            response = httpHelper.get(baseUrl + "/api/v1/canal/config/summary", heads, REQUEST_TIMEOUT);
             resp = JSONObject.parseObject(response, new TypeReference<ResponseModel<ConfigItem>>() {
             });
         }
-        if (resp.getCode() != 20000) {
+        if (!HttpHelper.REST_STATE_OK.equals(resp.getCode())) {
             throw new RuntimeException("requestGet for canal config error: " + resp.getMessage());
         }
         return resp.getData();
@@ -140,20 +150,19 @@ public class HttpRemoteConfigLoader implements RemoteConfigLoader {
 
         Map<String, String> heads = new HashMap<>();
         heads.put("X-Token", token);
-        String response = httpHelper
-                .get(baseUrl + "/api/v1/canal/instances", heads, 5000);
+        String response = httpHelper.get(baseUrl + "/api/v1/canal/instances", heads, REQUEST_TIMEOUT);
         ResponseModel<List<ConfigItem>> resp = JSONObject.parseObject(response,
-                new TypeReference<ResponseModel<List<ConfigItem>>>() {
-                });
-        if (resp.getCode() == 50014) {
+            new TypeReference<ResponseModel<List<ConfigItem>>>() {
+            });
+        if (HttpHelper.REST_STATE_TOKEN_INVALID.equals(resp.getCode())) {
             // token 失效
             token = login4Token(httpHelper);
             heads.put("X-Token", token);
-            response = httpHelper.get(baseUrl + "/api/v1/canal/instances", heads, 5000);
+            response = httpHelper.get(baseUrl + "/api/v1/canal/instances", heads, REQUEST_TIMEOUT);
             resp = JSONObject.parseObject(response, new TypeReference<ResponseModel<List<ConfigItem>>>() {
             });
         }
-        if (resp.getCode() != 20000) {
+        if (!HttpHelper.REST_STATE_OK.equals(resp.getCode())) {
             throw new RuntimeException("requestGet for canal instances error: " + resp.getMessage());
         }
         for (ConfigItem configItem : resp.getData()) {
@@ -178,10 +187,10 @@ public class HttpRemoteConfigLoader implements RemoteConfigLoader {
             if (!changedIds.isEmpty()) {
                 for (Long changedId : changedIds) {
                     String response2 = httpHelper
-                            .get(baseUrl + "/api/v1/canal/instance/" + changedId, heads, 5000);
+                        .get(baseUrl + "/api/v1/canal/instance/" + changedId, heads, REQUEST_TIMEOUT);
                     ResponseModel<ConfigItem> resp2 = JSONObject.parseObject(response2,
-                            new TypeReference<ResponseModel<ConfigItem>>() {
-                            });
+                        new TypeReference<ResponseModel<ConfigItem>>() {
+                        });
                     ConfigItem configItemNew = resp2.getData();
                     remoteInstanceConfigs.put(configItemNew.getName(), configItemNew);
                     remoteInstanceMonitor.onModify(configItemNew);

@@ -24,13 +24,23 @@ import java.util.Map;
 
 import static org.apache.http.client.config.RequestConfig.custom;
 
+/**
+ * http client 工具类
+ *
+ * @author rewerma 2019-08-26 上午09:40:36
+ * @version 1.0.0
+ */
 public class HttpHelper {
 
-    private final static Logger logger = LoggerFactory.getLogger(HttpRemoteConfigLoader.class);
+    private final static Logger logger                   = LoggerFactory.getLogger(HttpRemoteConfigLoader.class);
+
+    public static final Integer REST_STATE_OK            = 20000;
+    public static final Integer REST_STATE_TOKEN_INVALID = 50014;
+    public static final Integer REST_STATE_ERROR         = 50000;
 
     private CloseableHttpClient httpclient;
 
-    public HttpHelper() {
+    public HttpHelper(){
         HttpClientBuilder builder = HttpClientBuilder.create();
         builder.setMaxConnPerRoute(50);
         builder.setMaxConnTotal(100);
@@ -49,9 +59,9 @@ public class HttpHelper {
         try {
             URI uri = new URIBuilder(url).build();
             RequestConfig config = custom().setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout)
-                    .setSocketTimeout(timeout)
-                    .build();
+                .setConnectionRequestTimeout(timeout)
+                .setSocketTimeout(timeout)
+                .build();
             httpGet = new HttpGet(uri);
             if (heads != null) {
                 for (Map.Entry<String, String> entry : heads.entrySet()) {
@@ -68,7 +78,7 @@ public class HttpHelper {
             } else {
                 String errorMsg = EntityUtils.toString(response.getEntity());
                 throw new RuntimeException("requestGet remote error, url=" + uri.toString() + ", code=" + statusCode
-                        + ", error msg=" + errorMsg);
+                                           + ", error msg=" + errorMsg);
             }
         } catch (Throwable t) {
             throw new RuntimeException("requestGet remote error, request : " + url, t);
@@ -103,9 +113,9 @@ public class HttpHelper {
         try {
             URI uri = new URIBuilder(url).build();
             RequestConfig config = custom().setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout)
-                    .setSocketTimeout(timeout)
-                    .build();
+                .setConnectionRequestTimeout(timeout)
+                .setSocketTimeout(timeout)
+                .build();
             httpPost = new HttpPost(uri);
             StringEntity entity = new StringEntity(requestBody, "UTF-8");
             httpPost.setEntity(entity);
@@ -125,7 +135,7 @@ public class HttpHelper {
                 return EntityUtils.toString(response.getEntity());
             } else {
                 throw new RuntimeException("requestPost remote error, request : " + url + ", statusCode=" + statusCode
-                        + ";" + EntityUtils.toString(response.getEntity()));
+                                           + ";" + EntityUtils.toString(response.getEntity()));
             }
         } catch (Throwable t) {
             throw new RuntimeException("requestPost remote error, request : " + url, t);
