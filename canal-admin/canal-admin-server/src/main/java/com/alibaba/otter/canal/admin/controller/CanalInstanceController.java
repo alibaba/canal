@@ -4,7 +4,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
@@ -47,6 +54,18 @@ public class CanalInstanceController {
     public BaseModel<String> save(@RequestBody CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
         canalInstanceConfigService.save(canalInstanceConfig);
         return BaseModel.getInstance("success");
+    }
+
+    /**
+     * 实例详情信息
+     *
+     * @param id 实例配置id
+     * @param env 环境变量
+     * @return 实例信息
+     */
+    @GetMapping(value = "/instance")
+    public BaseModel<CanalInstanceConfig> config(@PathVariable Long id, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.detail(id));
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
+import io.ebean.Query;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -8,17 +10,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
-import com.alibaba.otter.canal.admin.jmx.CanalServerMXBean;
-import com.alibaba.otter.canal.admin.jmx.JMXConnection;
+import com.alibaba.otter.canal.admin.connector.AdminConnector;
+import com.alibaba.otter.canal.admin.connector.SimpleAdminConnectors;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
-
-import io.ebean.Query;
 
 /**
  * 节点信息业务层
@@ -28,8 +26,6 @@ import io.ebean.Query;
  */
 @Service
 public class NodeServerServiceImpl implements NodeServerService {
-
-    private static final Logger logger = LoggerFactory.getLogger(NodeServerServiceImpl.class);
 
     public void save(NodeServer nodeServer) {
         int cnt = NodeServer.find.query()
@@ -90,18 +86,9 @@ public class NodeServerServiceImpl implements NodeServerService {
         // get all nodes status
         for (NodeServer ns : nodeServers) {
             futures.add(executorService.submit(() -> {
-                int status = -1;
-                JMXConnection jmxConnection = new JMXConnection(ns.getIp(), ns.getPort());
-                try {
-                    CanalServerMXBean canalServerMXBean = jmxConnection.getCanalServerMXBean();
-                    status = canalServerMXBean.getStatus();
-                } catch (Exception e) {
-                    logger.warn(e.getMessage());
-                } finally {
-                    jmxConnection.close();
-                }
-                ns.setStatus(status);
-                return status != -1;
+                boolean status = SimpleAdminConnectors.execute(ns.getIp(), ns.getPort(), AdminConnector::check);
+                ns.setStatus(status ? 1 : 0);
+                return !status;
             }));
         }
         futures.forEach(f -> {
@@ -118,11 +105,8 @@ public class NodeServerServiceImpl implements NodeServerService {
     }
 
     public int remoteNodeStatus(String ip, Integer port) {
-        Integer resutl = JMXConnection.execute(ip, port, CanalServerMXBean::getStatus);
-        if (resutl == null) {
-            resutl = -1;
-        }
-        return resutl;
+        boolean result = SimpleAdminConnectors.execute(ip, port, AdminConnector::check);
+        return result ? 1 : 0;
     }
 
     public String remoteCanalLog(Long id) {
@@ -130,7 +114,9 @@ public class NodeServerServiceImpl implements NodeServerService {
         if (nodeServer == null) {
             return "";
         }
-        return JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::canalLog);
+        return SimpleAdminConnectors.execute(nodeServer.getIp(),
+            nodeServer.getPort(),
+            adminConnector -> adminConnector.canalLog(100));
     }
 
     public boolean remoteOperation(Long id, String option) {
@@ -138,18 +124,18 @@ public class NodeServerServiceImpl implements NodeServerService {
         if (nodeServer == null) {
             return false;
         }
-        Boolean resutl = null;
+        Boolean result = null;
         if ("start".equals(option)) {
-            resutl = JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::start);
+            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getPort(), AdminConnector::start);
         } else if ("stop".equals(option)) {
-            resutl = JMXConnection.execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::stop);
+            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getPort(), AdminConnector::stop);
         } else {
             return false;
         }
 
-        if (resutl == null) {
-            resutl = false;
+        if (result == null) {
+            result = false;
         }
-        return resutl;
+        return result;
     }
 }

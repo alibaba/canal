@@ -1,8 +1,7 @@
-package com.alibaba.otter.canal.server.netty.handler;
+package com.alibaba.otter.canal.admin.handler;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -14,37 +13,34 @@ import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.slf4j.helpers.MessageFormatter;
 
-import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitor;
-import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
-import com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth;
-import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
-import com.alibaba.otter.canal.protocol.ClientIdentity;
-import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
+import com.alibaba.otter.canal.admin.CanalAdmin;
+import com.alibaba.otter.canal.admin.netty.AdminNettyUtils;
+import com.alibaba.otter.canal.protocol.AdminPacket.ClientAuth;
+import com.alibaba.otter.canal.protocol.AdminPacket.Packet;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
 
 /**
  * 客户端身份认证处理
  * 
- * @author jianghang 2012-10-24 上午11:12:45
- * @version 1.0.0
+ * @author agapple 2019年8月24日 下午10:58:53
+ * @since 1.1.4
  */
 public class ClientAuthenticationHandler extends SimpleChannelHandler {
 
-    private static final Logger     logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
-    private final int               SUPPORTED_VERSION                       = 3;
-    private final int               defaultSubscriptorDisconnectIdleTimeout = 60 * 60 * 1000;
-    private CanalServerWithEmbedded embeddedServer;
-    private byte[]                  seed;
+    private static final Logger logger                                  = LoggerFactory.getLogger(ClientAuthenticationHandler.class);
+    private final int           SUPPORTED_VERSION                       = 3;
+    private final int           defaultSubscriptorDisconnectIdleTimeout = 60 * 60 * 1000;
+    private CanalAdmin          canalAdmin;
+    private byte[]              seed;
 
     public ClientAuthenticationHandler(){
 
     }
 
-    public ClientAuthenticationHandler(CanalServerWithEmbedded embeddedServer){
-        this.embeddedServer = embeddedServer;
+    public ClientAuthenticationHandler(CanalAdmin canalAdmin){
+        this.canalAdmin = canalAdmin;
     }
 
     public void messageReceived(final ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -55,39 +51,19 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
             default:
                 final ClientAuth clientAuth = ClientAuth.parseFrom(packet.getBody());
                 if (seed == null) {
-                    byte[] errorBytes = NettyUtils.errorPacket(400,
+                    byte[] errorBytes = AdminNettyUtils.errorPacket(300,
                         MessageFormatter.format("auth failed for seed is null", clientAuth.getUsername()).getMessage());
-                    NettyUtils.write(ctx.getChannel(), errorBytes, null);
+                    AdminNettyUtils.write(ctx.getChannel(), errorBytes);
                 }
 
-                if (!embeddedServer.auth(clientAuth.getUsername(), clientAuth.getPassword().toStringUtf8(), seed)) {
-                    byte[] errorBytes = NettyUtils.errorPacket(400,
+                if (!canalAdmin.auth(clientAuth.getUsername(), clientAuth.getPassword().toStringUtf8(), seed)) {
+                    byte[] errorBytes = AdminNettyUtils.errorPacket(300,
                         MessageFormatter.format("auth failed for user:{}", clientAuth.getUsername()).getMessage());
-                    NettyUtils.write(ctx.getChannel(), errorBytes, null);
+                    AdminNettyUtils.write(ctx.getChannel(), errorBytes);
                 }
 
-                // 如果存在订阅信息
-                if (StringUtils.isNotEmpty(clientAuth.getDestination())
-                    && StringUtils.isNotEmpty(clientAuth.getClientId())) {
-                    ClientIdentity clientIdentity = new ClientIdentity(clientAuth.getDestination(),
-                        Short.valueOf(clientAuth.getClientId()),
-                        clientAuth.getFilter());
-                    try {
-                        MDC.put("destination", clientIdentity.getDestination());
-                        embeddedServer.subscribe(clientIdentity);
-                        // 尝试启动，如果已经启动，忽略
-                        if (!embeddedServer.isStart(clientIdentity.getDestination())) {
-                            ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
-                            if (!runningMonitor.isStart()) {
-                                runningMonitor.start();
-                            }
-                        }
-                    } finally {
-                        MDC.remove("destination");
-                    }
-                }
-                // 鉴权一次性，暂不统计
-                NettyUtils.ack(ctx.getChannel(), new ChannelFutureListener() {
+                byte[] ackBytes = AdminNettyUtils.ackPacket();
+                AdminNettyUtils.write(ctx.getChannel(), ackBytes, new ChannelFutureListener() {
 
                     public void operationComplete(ChannelFuture future) throws Exception {
                         logger.info("remove unused channel handlers after authentication is done successfully.");
@@ -132,8 +108,8 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
         }
     }
 
-    public void setEmbeddedServer(CanalServerWithEmbedded embeddedServer) {
-        this.embeddedServer = embeddedServer;
+    public void setCanalAdmin(CanalAdmin canalAdmin) {
+        this.canalAdmin = canalAdmin;
     }
 
     public void setSeed(byte[] seed) {

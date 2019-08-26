@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.server.netty.handler;
+package com.alibaba.otter.canal.admin.handler;
 
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -9,17 +9,17 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.protocol.CanalPacket;
-import com.alibaba.otter.canal.protocol.CanalPacket.Handshake;
-import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
-import com.alibaba.otter.canal.server.netty.NettyUtils;
+import com.alibaba.otter.canal.admin.netty.AdminNettyUtils;
+import com.alibaba.otter.canal.protocol.AdminPacket;
+import com.alibaba.otter.canal.protocol.AdminPacket.Handshake;
+import com.alibaba.otter.canal.protocol.AdminPacket.Packet;
 import com.google.protobuf.ByteString;
 
 /**
  * handshake交互
  * 
- * @author jianghang 2012-10-24 上午11:39:54
- * @version 1.0.0
+ * @author agapple 2019年8月24日 下午10:58:34
+ * @since 1.1.4
  */
 public class HandshakeInitializationHandler extends SimpleChannelHandler {
 
@@ -40,15 +40,16 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
 
         final byte[] seed = org.apache.commons.lang3.RandomUtils.nextBytes(8);
         byte[] body = Packet.newBuilder()
-            .setType(CanalPacket.PacketType.HANDSHAKE)
-            .setVersion(NettyUtils.VERSION)
+            .setType(AdminPacket.PacketType.HANDSHAKE)
+            .setVersion(AdminNettyUtils.VERSION)
             .setBody(Handshake.newBuilder().setSeeds(ByteString.copyFrom(seed)).build().toByteString())
             .build()
             .toByteArray();
 
-        NettyUtils.write(ctx.getChannel(), body, new ChannelFutureListener() {
+        AdminNettyUtils.write(ctx.getChannel(), body, new ChannelFutureListener() {
 
             public void operationComplete(ChannelFuture future) throws Exception {
+                logger.info("remove unused channel handlers after authentication is done successfully.");
                 ctx.getPipeline().get(HandshakeInitializationHandler.class.getName());
                 ClientAuthenticationHandler handler = (ClientAuthenticationHandler) ctx.getPipeline()
                     .get(ClientAuthenticationHandler.class.getName());
