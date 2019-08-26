@@ -148,6 +148,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             activeData = serverData;
             processActiveEnter();// 触发一下事件
             mutex.set(true);
+            release = false;
         } catch (ZkNodeExistsException e) {
             bytes = zkClient.readData(path, true);
             if (bytes == null) {// 如果不存在节点，立即尝试一次

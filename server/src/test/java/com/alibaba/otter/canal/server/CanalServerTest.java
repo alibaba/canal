@@ -34,6 +34,8 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
+import com.alibaba.otter.canal.server.netty.NettyUtils;
+
 @Ignore
 public class CanalServerTest {
 
@@ -68,7 +70,6 @@ public class CanalServerTest {
     @Test
     public void testAuth() {
 
-
         try {
             SocketChannel channel = SocketChannel.open();
             channel.connect(new InetSocketAddress("127.0.0.1", 1088));
@@ -93,6 +94,7 @@ public class CanalServerTest {
             writeWithHeader(channel,
                 Packet.newBuilder()
                     .setType(PacketType.CLIENTAUTHENTICATION)
+                    .setVersion(NettyUtils.VERSION)
                     .setBody(ca.toByteString())
                     .build()
                     .toByteArray());
@@ -107,12 +109,12 @@ public class CanalServerTest {
                 throw new Exception("something goes wrong when doing authentication: " + ack.getErrorMessage());
             }
 
-            writeWithHeader(channel,
-                Packet.newBuilder()
-                    .setType(PacketType.SUBSCRIPTION)
-                    .setBody(Sub.newBuilder().setDestination(DESTINATION).setClientId("1").build().toByteString())
-                    .build()
-                    .toByteArray());
+            writeWithHeader(channel, Packet.newBuilder()
+                .setType(PacketType.SUBSCRIPTION)
+                .setVersion(NettyUtils.VERSION)
+                .setBody(Sub.newBuilder().setDestination(DESTINATION).setClientId("1").build().toByteString())
+                .build()
+                .toByteArray());
             //
             p = Packet.parseFrom(readNextPacket(channel));
             ack = Ack.parseFrom(p.getBody());
@@ -124,6 +126,7 @@ public class CanalServerTest {
                 writeWithHeader(channel,
                     Packet.newBuilder()
                         .setType(PacketType.GET)
+                        .setVersion(NettyUtils.VERSION)
                         .setBody(Get.newBuilder()
                             .setDestination(DESTINATION)
                             .setClientId("1")
@@ -158,6 +161,7 @@ public class CanalServerTest {
                 writeWithHeader(channel,
                     Packet.newBuilder()
                         .setType(PacketType.CLIENTACK)
+                        .setVersion(NettyUtils.VERSION)
                         .setBody(ClientAck.newBuilder()
                             .setDestination(DESTINATION)
                             .setClientId("1")
@@ -171,6 +175,7 @@ public class CanalServerTest {
             writeWithHeader(channel,
                 Packet.newBuilder()
                     .setType(PacketType.CLIENTROLLBACK)
+                    .setVersion(NettyUtils.VERSION)
                     .setBody(ClientRollback.newBuilder()
                         .setDestination(DESTINATION)
                         .setClientId("1")
@@ -182,6 +187,7 @@ public class CanalServerTest {
             writeWithHeader(channel,
                 Packet.newBuilder()
                     .setType(PacketType.UNSUBSCRIPTION)
+                    .setVersion(NettyUtils.VERSION)
                     .setBody(Unsub.newBuilder().setDestination(DESTINATION).setClientId("1").build().toByteString())
                     .build()
                     .toByteArray());

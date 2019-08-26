@@ -12,6 +12,12 @@
     <artifactId>canal-admin-server</artifactId>
 
     <dependencies>
+    	<dependency>
+			<groupId>com.alibaba.otter</groupId>
+			<artifactId>canal.protocol</artifactId>
+			<version>${project.version}</version>
+			<optional>true</optional>
+		</dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -129,6 +135,63 @@
                                                 <include>index.html</include>
                                                 <include>avatar.gif</include>
                                                 <include>logo.png</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy canal default conf</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>src/main/resources/conf</outputDirectory>
+                                    <overwrite>true</overwrite>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.parent.basedir}/../deployer/src/main/resources</directory>
+                                            <includes>
+                                                <include>canal.properties</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy instance default conf</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>src/main/resources/conf</outputDirectory>
+                                    <overwrite>true</overwrite>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.parent.basedir}/../deployer/src/main/resources/example</directory>
+                                            <includes>
+                                                <include>instance.properties</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy client default conf</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>src/main/resources/conf</outputDirectory>
+                                    <overwrite>true</overwrite>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.parent.basedir}/../client-adapter/launcher/src/main/resources</directory>
+                                            <includes>
+                                                <include>application.yml</include>
                                             </includes>
                                         </resource>
                                     </resources>

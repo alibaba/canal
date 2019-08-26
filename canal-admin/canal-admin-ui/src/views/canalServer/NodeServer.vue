@@ -25,7 +25,7 @@
           <span>{{ scope.row.ip }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="JMX端口" min-width="100" align="center">
+      <el-table-column label="Admin 端口" min-width="100" align="center">
         <template slot-scope="scope">
           {{ scope.row.port }}
         </template>
@@ -65,8 +65,8 @@
         <el-form-item label="Server IP" prop="ip">
           <el-input v-model="nodeModel.ip" />
         </el-form-item>
-        <el-form-item label="JMX端口" prop="port">
-          <el-input v-model="nodeModel.port" placeholder="11113" type="number" />
+        <el-form-item label="Admin 端口" prop="port">
+          <el-input v-model="nodeModel.port" placeholder="11110" type="number" />
         </el-form-item>
         <el-form-item label="监控端口" prop="port2">
           <el-input v-model="nodeModel.port2" placeholder="11112" type="number" />
@@ -119,13 +119,13 @@ export default {
         id: undefined,
         name: null,
         ip: null,
-        port: 11113,
+        port: 11110,
         port2: 11112
       },
       rules: {
         name: [{ required: true, message: 'Server 名称不能为空', trigger: 'change' }],
         ip: [{ required: true, message: 'Server IP不能为空', trigger: 'change' }],
-        port: [{ required: true, message: 'Server JMX端口不能为空', trigger: 'change' }]
+        port: [{ required: true, message: 'Server Admin端口不能为空', trigger: 'change' }]
       },
       dialogStatus: 'create'
     }

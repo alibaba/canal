@@ -10,7 +10,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.admin.netty.CanalAdminWithNetty;
 import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.deployer.admin.CanalAdminController;
 import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
 import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.server.CanalMQStarter;
@@ -35,6 +37,8 @@ public class CanalStater {
     private CanalMQStarter      canalMQStarter  = null;
     private volatile Properties properties;
     private volatile boolean    running         = false;
+
+    private CanalAdminWithNetty canalAdmin;
 
     public CanalStater(Properties properties){
         this.properties = properties;
@@ -136,7 +140,29 @@ public class CanalStater {
             controller.setCanalMQStarter(canalMQStarter);
         }
 
+        // start canalAdmin
+        String port = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT);
+        if (canalAdmin == null && StringUtils.isNotEmpty(port)) {
+            String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
+            String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
+            CanalAdminController canalAdmin = new CanalAdminController(this);
+            canalAdmin.setUser(user);
+            canalAdmin.setPasswd(passwd);
+
+            String ip = properties.getProperty(CanalConstants.CANAL_IP);
+            CanalAdminWithNetty canalAdminWithNetty = CanalAdminWithNetty.instance();
+            canalAdminWithNetty.setCanalAdmin(canalAdmin);
+            canalAdminWithNetty.setPort(Integer.valueOf(port));
+            canalAdminWithNetty.setIp(ip);
+            canalAdminWithNetty.start();
+            this.canalAdmin = canalAdminWithNetty;
+        }
+
         running = true;
+    }
+
+    public synchronized void stop() throws Throwable {
+        stop(false);
     }
 
     /**
@@ -144,7 +170,12 @@ public class CanalStater {
      *
      * @throws Throwable
      */
-    public synchronized void stop() throws Throwable {
+    public synchronized void stop(boolean stopByAdmin) throws Throwable {
+        if (!stopByAdmin && canalAdmin != null) {
+            canalAdmin.stop();
+            canalAdmin = null;
+        }
+
         if (controller != null) {
             controller.stop();
             controller = null;

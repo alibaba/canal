@@ -121,6 +121,9 @@ public class CanalController {
             embededCanalServer.setMetricsPort(11112);
         }
 
+        embededCanalServer.setUser(getProperty(properties, CanalConstants.CANAL_USER));
+        embededCanalServer.setPasswd(getProperty(properties, CanalConstants.CANAL_PASSWD));
+
         String canalWithoutNetty = getProperty(properties, CanalConstants.CANAL_WITHOUT_NETTY);
         if (canalWithoutNetty == null || "false".equals(canalWithoutNetty)) {
             canalServer = CanalServerWithNetty.instance();
@@ -571,4 +574,5 @@ public class CanalController {
     public Map<String, InstanceConfig> getInstanceConfigs() {
         return instanceConfigs;
     }
+
 }

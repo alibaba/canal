@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
+import io.ebean.Query;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,13 +9,11 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.otter.canal.admin.jmx.CanalServerMXBean;
-import com.alibaba.otter.canal.admin.jmx.JMXConnection;
+import com.alibaba.otter.canal.admin.connector.AdminConnector;
+import com.alibaba.otter.canal.admin.connector.SimpleAdminConnectors;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.CanalInstanceService;
-
-import io.ebean.Query;
 
 /**
  * Canal实例配置信息业务层
@@ -39,8 +39,9 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         // check all canal instances running status
         List<NodeServer> nodeServers = NodeServer.find.query().findList();
         for (NodeServer nodeServer : nodeServers) {
-            String runningInstances = JMXConnection
-                .execute(nodeServer.getIp(), nodeServer.getPort(), CanalServerMXBean::getRunningInstances);
+            String runningInstances = SimpleAdminConnectors.execute(nodeServer.getIp(),
+                nodeServer.getPort(),
+                AdminConnector::getRunningInstances);
             if (runningInstances == null) {
                 continue;
             }
@@ -90,9 +91,9 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
             return result;
         }
 
-        String log = JMXConnection.execute(nodeServer.getIp(),
+        String log = SimpleAdminConnectors.execute(nodeServer.getIp(),
             nodeServer.getPort(),
-            canalServerMXBean -> canalServerMXBean.instanceLog(canalInstanceConfig.getName()));
+            adminConnector -> adminConnector.instanceLog(canalInstanceConfig.getName(), null, 100));
 
         result.put("instance", canalInstanceConfig.getName());
         result.put("log", log);
@@ -122,13 +123,13 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
         Boolean resutl = null;
         if ("start".equals(option)) {
-            resutl = JMXConnection.execute(nodeServer.getIp(),
+            resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
                 nodeServer.getPort(),
-                canalServerMXBean -> canalServerMXBean.startInstance(canalInstanceConfig.getName()));
+                adminConnector -> adminConnector.startInstance(canalInstanceConfig.getName()));
         } else if ("stop".equals(option)) {
-            resutl = JMXConnection.execute(nodeServer.getIp(),
+            resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
                 nodeServer.getPort(),
-                canalServerMXBean -> canalServerMXBean.stopInstance(canalInstanceConfig.getName()));
+                adminConnector -> adminConnector.stopInstance(canalInstanceConfig.getName()));
         } else {
             return false;
         }
