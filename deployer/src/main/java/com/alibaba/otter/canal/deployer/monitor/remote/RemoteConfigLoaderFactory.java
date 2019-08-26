@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.deployer.monitor.remote;
 
 import java.util.Properties;
 
+import com.alibaba.otter.canal.deployer.monitor.remote.http.HttpRemoteConfigLoader;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +19,19 @@ public class RemoteConfigLoaderFactory {
 
     public static RemoteConfigLoader getRemoteConfigLoader(Properties localProperties) {
         String jdbcUrl = localProperties.getProperty("canal.manager.jdbc.url");
+        String httpUrl = localProperties.getProperty("canal.manager.http.url");
         if (!StringUtils.isEmpty(jdbcUrl)) {
-            logger.info("## load remote canal configurations");
+            logger.info("## load remote db canal configurations");
             // load remote config
             String driverName = localProperties.getProperty("canal.manager.jdbc.driverName");
             String jdbcUsername = localProperties.getProperty("canal.manager.jdbc.username");
             String jdbcPassword = localProperties.getProperty("canal.manager.jdbc.password");
             return new DbRemoteConfigLoader(driverName, jdbcUrl, jdbcUsername, jdbcPassword);
+        } else if (!StringUtils.isEmpty(httpUrl)) {
+            logger.info("## load remote http canal configurations");
+            String httpUsername = localProperties.getProperty("canal.manager.http.username");
+            String httpPassword = localProperties.getProperty("canal.manager.http.password");
+            return new HttpRemoteConfigLoader(httpUrl, httpUsername, httpPassword);
         }
         // 可扩展其它远程配置加载器
 

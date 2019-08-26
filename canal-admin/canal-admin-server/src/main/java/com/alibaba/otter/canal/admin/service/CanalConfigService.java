@@ -6,6 +6,8 @@ public interface CanalConfigService {
 
     CanalConfig getCanalConfig();
 
+    CanalConfig getCanalConfigSummary();
+
     CanalConfig getAdapterConfig();
 
     void updateContent(CanalConfig canalConfig);

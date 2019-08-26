@@ -130,6 +130,7 @@
         <!-- if you need admin console,remove this annotation,this module compile need much time,be patient
           <module>canal-admin</module>
         -->
+
     </modules>
 
     <dependencyManagement>
