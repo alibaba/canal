@@ -20,7 +20,7 @@
 
   <profiles>
     <profile>
-      <id>release</id>
+      <id>npm</id>
       <activation>
         <property>
           <name>env</name>

@@ -64,19 +64,6 @@
         <finalName>canal-admin-${project.version}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.0.1.RELEASE</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>io.repaint.maven</groupId>
                 <artifactId>tiles-maven-plugin</artifactId>
                 <version>2.12</version>
@@ -87,12 +74,52 @@
                     </tiles>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>assemble</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <attach>false</attach>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>com.alibaba.otter.canal.admin.CanalAdminApplication</mainClass>
+                        </manifest>
+                    </archive>
+                    <excludes>
+                        <exclude>**/*.properties</exclude>
+                        <exclude>**/*.xml</exclude>
+                        <exclude>**/*.yml</exclude>
+                        <exclude>static/**</exclude>
+                        <exclude>public/**</exclude>
+                        <exclude>templates/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
     <profiles>
         <profile>
-            <id>release</id>
+            <id>npm</id>
             <activation>
                 <property>
                     <name>env</name>
@@ -138,95 +165,57 @@
                                     </resources>
                                 </configuration>
                             </execution>
-                            <execution>
-                                <id>copy canal default conf</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>src/main/resources/conf</outputDirectory>
-                                    <overwrite>true</overwrite>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.parent.basedir}/../deployer/src/main/resources</directory>
-                                            <includes>
-                                                <include>canal.properties</include>
-                                            </includes>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>copy instance default conf</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>src/main/resources/conf</outputDirectory>
-                                    <overwrite>true</overwrite>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.parent.basedir}/../deployer/src/main/resources/example</directory>
-                                            <includes>
-                                                <include>instance.properties</include>
-                                            </includes>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>copy client default conf</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>src/main/resources/conf</outputDirectory>
-                                    <overwrite>true</overwrite>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.parent.basedir}/../client-adapter/launcher/src/main/resources</directory>
-                                            <includes>
-                                                <include>application.yml</include>
-                                            </includes>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
                         </executions>
                     </plugin>
-                    <plugin>
-		                <groupId>org.apache.maven.plugins</groupId>
-		                <artifactId>maven-jar-plugin</artifactId>
-		                <version>3.0.2</version>
-		                <configuration>
-		                    <excludes>
-		                        <exclude>application.yml</exclude>
-		                        <exclude>canal_manager.sql</exclude>
-		                    </excludes>
-		                </configuration>
-		            </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>env</name>
+                    <value>!release</value>
+                </property>
+            </activation>
+
+            <build>
+                <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.2.1</version>
-                        <executions>
-					        <execution>
-				                <id>assemble</id>
-				                <goals>
-			                        <goal>single</goal>
-				                </goals>
-				                <phase>package</phase>
-					        </execution>
-						</executions>
                         <configuration>
-                        	<appendAssemblyId>false</appendAssemblyId>
-							<attach>false</attach>
+                            <descriptors>
+                                <descriptor>${basedir}/src/main/assembly/dev.xml</descriptor>
+                            </descriptors>
+                            <finalName>canal-admin</finalName>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>release</value>
+                </property>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
                             <descriptors>
                                 <descriptor>${basedir}/src/main/assembly/release.xml</descriptor>
                             </descriptors>
-                            <finalName>canal-admin-${project.version}</finalName>
+                            <finalName>canal.admin-${project.version}</finalName>
                             <outputDirectory>${project.basedir}/../../target</outputDirectory>
                         </configuration>
                     </plugin>
