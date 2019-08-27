@@ -13,3 +13,7 @@ spring.datasource:
     hikari:
       maximum-pool-size: 10
       minimum-idle: 1
+
+canal:
+    adminUser: admin
+    adminPasswd: admin

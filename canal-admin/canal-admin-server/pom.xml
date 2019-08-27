@@ -8,9 +8,7 @@
         <version>1.1.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>canal-admin-server</artifactId>
-
     <dependencies>
     	<dependency>
 			<groupId>com.alibaba.otter</groupId>
@@ -198,6 +196,39 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+		                <groupId>org.apache.maven.plugins</groupId>
+		                <artifactId>maven-jar-plugin</artifactId>
+		                <version>3.0.2</version>
+		                <configuration>
+		                    <excludes>
+		                        <exclude>application.yml</exclude>
+		                        <exclude>canal_manager.sql</exclude>
+		                    </excludes>
+		                </configuration>
+		            </plugin>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+					        <execution>
+				                <id>assemble</id>
+				                <goals>
+			                        <goal>single</goal>
+				                </goals>
+				                <phase>package</phase>
+					        </execution>
+						</executions>
+                        <configuration>
+                        	<appendAssemblyId>false</appendAssemblyId>
+							<attach>false</attach>
+                            <descriptors>
+                                <descriptor>${basedir}/src/main/assembly/release.xml</descriptor>
+                            </descriptors>
+                            <finalName>canal-admin-${project.version}</finalName>
+                            <outputDirectory>${project.basedir}/../../target</outputDirectory>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

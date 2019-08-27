@@ -25,14 +25,19 @@
           <span>{{ scope.row.ip }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Admin 端口" min-width="100" align="center">
+      <el-table-column label="admin 端口" min-width="100" align="center">
         <template slot-scope="scope">
-          {{ scope.row.port }}
+          {{ scope.row.adminPort }}
         </template>
       </el-table-column>
-      <el-table-column label="监控端口" min-width="100" align="center">
+      <el-table-column label="tcp 端口" min-width="100" align="center">
         <template slot-scope="scope">
-          {{ scope.row.port2 }}
+          {{ scope.row.tcpPort }}
+        </template>
+      </el-table-column>
+      <el-table-column label="metric 端口" min-width="100" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.metricPort }}
         </template>
       </el-table-column>
       <el-table-column class-name="status-col" label="状态" min-width="150" align="center">
@@ -65,11 +70,14 @@
         <el-form-item label="Server IP" prop="ip">
           <el-input v-model="nodeModel.ip" />
         </el-form-item>
-        <el-form-item label="Admin 端口" prop="port">
-          <el-input v-model="nodeModel.port" placeholder="11110" type="number" />
+        <el-form-item label="admin 端口" prop="adminPort">
+          <el-input v-model="nodeModel.adminPort" placeholder="11110" type="number" />
         </el-form-item>
-        <el-form-item label="监控端口" prop="port2">
-          <el-input v-model="nodeModel.port2" placeholder="11112" type="number" />
+        <el-form-item label="tcp 端口" prop="tcpPort">
+          <el-input v-model="nodeModel.tcpPort" placeholder="11111" type="number" />
+        </el-form-item>
+        <el-form-item label="metric 端口" prop="metricPort">
+          <el-input v-model="nodeModel.metricPort" placeholder="11112" type="number" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -119,13 +127,14 @@ export default {
         id: undefined,
         name: null,
         ip: null,
-        port: 11110,
-        port2: 11112
+        adminPort: 11110,
+        tcpPort: 11111,
+        metricPort: 11112
       },
       rules: {
         name: [{ required: true, message: 'Server 名称不能为空', trigger: 'change' }],
         ip: [{ required: true, message: 'Server IP不能为空', trigger: 'change' }],
-        port: [{ required: true, message: 'Server Admin端口不能为空', trigger: 'change' }]
+        port: [{ required: true, message: 'Server admin端口不能为空', trigger: 'change' }]
       },
       dialogStatus: 'create'
     }
@@ -147,8 +156,9 @@ export default {
         id: undefined,
         name: null,
         ip: null,
-        port: null,
-        port2: null
+        adminPort: null,
+        tcpPort: null,
+        metricPort: null
       }
     },
     handleCreate() {
@@ -222,7 +232,7 @@ export default {
       })
     },
     handleStart(row) {
-      if (row.status !== 0) {
+      if (row.status !== '0') {
         this.$message({ message: '当前Server不是停止状态，无法启动', type: 'error' })
         return
       }
@@ -248,7 +258,7 @@ export default {
       })
     },
     handleStop(row) {
-      if (row.status !== 1) {
+      if (row.status !== '1') {
         this.$message({ message: '当前Server不是启动状态，无法停止', type: 'error' })
         return
       }

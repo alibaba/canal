@@ -19,6 +19,7 @@ import com.alibaba.otter.canal.deployer.CanalStater;
 import com.alibaba.otter.canal.deployer.InstanceConfig;
 import com.alibaba.otter.canal.deployer.monitor.InstanceAction;
 import com.alibaba.otter.canal.deployer.monitor.InstanceConfigMonitor;
+import com.alibaba.otter.canal.deployer.monitor.ManagerInstanceConfigMonitor;
 import com.alibaba.otter.canal.deployer.monitor.SpringInstanceConfigMonitor;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
@@ -204,9 +205,24 @@ public class CanalAdminController implements CanalAdmin {
     private InstanceAction getInstanceAction(String destination) {
         Map<InstanceConfig.InstanceMode, InstanceConfigMonitor> monitors = canalStater.getController()
             .getInstanceConfigMonitors();
-        SpringInstanceConfigMonitor monitor = (SpringInstanceConfigMonitor) monitors.get(InstanceConfig.InstanceMode.SPRING);
-        Map<String, InstanceAction> instanceActions = monitor.getActions();
-        return instanceActions.get(destination);
+
+        InstanceAction instanceAction = null;
+        if (monitors.containsKey(InstanceConfig.InstanceMode.SPRING)) {
+            SpringInstanceConfigMonitor monitor = (SpringInstanceConfigMonitor) monitors.get(InstanceConfig.InstanceMode.SPRING);
+            Map<String, InstanceAction> instanceActions = monitor.getActions();
+            instanceAction = instanceActions.get(destination);
+        }
+
+        if (instanceAction != null) {
+            return instanceAction;
+        }
+
+        if (monitors.containsKey(InstanceConfig.InstanceMode.MANAGER)) {
+            ManagerInstanceConfigMonitor monitor = (ManagerInstanceConfigMonitor) monitors.get(InstanceConfig.InstanceMode.MANAGER);
+            Map<String, InstanceAction> instanceActions = monitor.getActions();
+            instanceAction = instanceActions.get(destination);
+        }
+        return instanceAction;
     }
 
     public void setUser(String user) {

@@ -3,6 +3,8 @@ package com.alibaba.otter.canal.protocol;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <pre>
@@ -18,6 +20,25 @@ import java.util.Arrays;
  * @since 1.1.4
  */
 public class SecurityUtil {
+
+    private static char[]                  digits  = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
+            'd', 'e', 'f'                         };
+
+    private static Map<Character, Integer> rDigits = new HashMap<Character, Integer>(16);
+    static {
+        for (int i = 0; i < digits.length; ++i) {
+            rDigits.put(digits[i], i);
+        }
+    }
+
+    public static String md5String(String content) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("md5");
+        byte[] bt = md.digest(content.getBytes());
+        if (null == bt || bt.length != 16) {
+            throw new IllegalArgumentException("md5 need");
+        }
+        return byte2HexStr(bt);
+    }
 
     public static final String scrambleGenPass(byte[] pass) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");

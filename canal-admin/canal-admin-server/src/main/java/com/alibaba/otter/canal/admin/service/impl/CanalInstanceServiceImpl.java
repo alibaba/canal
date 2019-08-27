@@ -40,7 +40,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         List<NodeServer> nodeServers = NodeServer.find.query().findList();
         for (NodeServer nodeServer : nodeServers) {
             String runningInstances = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                nodeServer.getPort(),
+                nodeServer.getAdminPort(),
                 AdminConnector::getRunningInstances);
             if (runningInstances == null) {
                 continue;
@@ -79,6 +79,16 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
     }
 
+    @Override
+    public CanalInstanceConfig findOne(String name) {
+        CanalInstanceConfig config = CanalInstanceConfig.find.query()
+            .setDisableLazyLoading(true)
+            .where()
+            .eq("name", name)
+            .findOne();
+        return config;
+    }
+
     public Map<String, String> remoteInstanceLog(Long id, Long nodeId) {
         Map<String, String> result = new HashMap<>();
 
@@ -92,7 +102,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
 
         String log = SimpleAdminConnectors.execute(nodeServer.getIp(),
-            nodeServer.getPort(),
+            nodeServer.getAdminPort(),
             adminConnector -> adminConnector.instanceLog(canalInstanceConfig.getName(), null, 100));
 
         result.put("instance", canalInstanceConfig.getName());
@@ -124,11 +134,11 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         Boolean resutl = null;
         if ("start".equals(option)) {
             resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                nodeServer.getPort(),
+                nodeServer.getAdminPort(),
                 adminConnector -> adminConnector.startInstance(canalInstanceConfig.getName()));
         } else if ("stop".equals(option)) {
             resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                nodeServer.getPort(),
+                nodeServer.getAdminPort(),
                 adminConnector -> adminConnector.stopInstance(canalInstanceConfig.getName()));
         } else {
             return false;
@@ -139,4 +149,5 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
         return resutl;
     }
+
 }
