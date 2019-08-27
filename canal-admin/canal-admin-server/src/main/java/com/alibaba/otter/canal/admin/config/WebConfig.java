@@ -74,8 +74,8 @@ public class WebConfig implements WebMvcConfigurer {
                         httpServletResponse.setContentType("application/json;charset=UTF-8");
                         PrintWriter out = httpServletResponse.getWriter();
                         out.print(json);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } catch (Throwable e) {
+                        throw new RuntimeException(e);
                     }
                     return false;
                 }
@@ -84,6 +84,7 @@ public class WebConfig implements WebMvcConfigurer {
             }
         })
             .addPathPatterns("/api/**")
+            .excludePathPatterns("/api/**/config/**")
             .excludePathPatterns("/api/**/user/login")
             .excludePathPatterns("/api/**/user/logout")
             .excludePathPatterns("/api/**/user/info");

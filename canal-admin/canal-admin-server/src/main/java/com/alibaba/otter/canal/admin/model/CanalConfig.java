@@ -33,6 +33,7 @@ public class CanalConfig extends Model {
     private Long   id;
     private String name;
     private String content;
+    private String status;
     private Date   modifiedTime;
 
     public Long getId() {
@@ -66,4 +67,13 @@ public class CanalConfig extends Model {
     public void setModifiedTime(Date modifiedTime) {
         this.modifiedTime = modifiedTime;
     }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
 }

@@ -1,9 +1,9 @@
 package com.alibaba.otter.canal.admin.service;
 
-import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
-
 import java.util.List;
 import java.util.Map;
+
+import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 
 /**
  * Canal实例配置信息业务层接口
@@ -18,6 +18,8 @@ public interface CanalInstanceService {
     void save(CanalInstanceConfig canalInstanceConfig);
 
     CanalInstanceConfig detail(Long id);
+
+    CanalInstanceConfig findOne(String name);
 
     void updateContent(CanalInstanceConfig canalInstanceConfig);
 

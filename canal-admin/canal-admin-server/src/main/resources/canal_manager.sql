@@ -13,10 +13,11 @@ CREATE TABLE `canal_adapter_config` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `category` varchar(45) NOT NULL,
   `name` varchar(45) NOT NULL,
+  `status` varchar(45) DEFAULT NULL,
   `content` text NOT NULL,
   `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Table structure for canal_config
@@ -25,11 +26,12 @@ DROP TABLE IF EXISTS `canal_config`;
 CREATE TABLE `canal_config` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
+  `status` varchar(45) DEFAULT NULL,
   `content` text NOT NULL,
   `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Table structure for canal_instance_config
@@ -38,11 +40,12 @@ DROP TABLE IF EXISTS `canal_instance_config`;
 CREATE TABLE `canal_instance_config` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
+  `status` varchar(45) DEFAULT NULL,
   `content` text NOT NULL,
   `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Table structure for canal_node_server
@@ -52,9 +55,10 @@ CREATE TABLE `canal_node_server` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(63) NOT NULL,
   `ip` varchar(63) NOT NULL,
-  `port` int(11) DEFAULT NULL,
-  `port2` int(11) DEFAULT NULL,
-  `status` int(11) NOT NULL,
+  `admin_port` int(11) DEFAULT NULL,
+  `tcp_port` int(11) DEFAULT NULL,
+  `metric_port` int(11) DEFAULT NULL,
+  `status` varchar(45) DEFAULT NULL,
   `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -73,7 +77,7 @@ CREATE TABLE `canal_user` (
   `avatar` varchar(255) DEFAULT NULL,
   `creation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of canal_user

@@ -2,10 +2,11 @@ package com.alibaba.otter.canal.admin.model;
 
 import io.ebean.Finder;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
-import java.util.Date;
 
 /**
  * Canal实例配置信息实体类
@@ -33,6 +34,7 @@ public class CanalInstanceConfig extends Model {
     private Long   id;
     private String name;
     private String content;
+    private String status;
     private Date   modifiedTime;
 
     @Transient
@@ -62,6 +64,14 @@ public class CanalInstanceConfig extends Model {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Date getModifiedTime() {

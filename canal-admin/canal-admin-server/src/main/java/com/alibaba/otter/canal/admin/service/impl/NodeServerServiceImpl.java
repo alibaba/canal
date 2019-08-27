@@ -31,7 +31,7 @@ public class NodeServerServiceImpl implements NodeServerService {
         int cnt = NodeServer.find.query()
             .where()
             .eq("ip", nodeServer.getIp())
-            .eq("port", nodeServer.getPort())
+            .eq("admin_port", nodeServer.getAdminPort())
             .findCount();
         if (cnt > 0) {
             throw new ServiceException("节点信息已存在");
@@ -48,14 +48,14 @@ public class NodeServerServiceImpl implements NodeServerService {
         int cnt = NodeServer.find.query()
             .where()
             .eq("ip", nodeServer.getIp())
-            .eq("port", nodeServer.getPort())
+            .eq("admin_port", nodeServer.getAdminPort())
             .ne("id", nodeServer.getId())
             .findCount();
         if (cnt > 0) {
             throw new ServiceException("节点信息已存在");
         }
 
-        nodeServer.update("name", "ip", "port", "port2");
+        nodeServer.update("name", "ip", "admin_port", "tcp_port", "metric_port");
     }
 
     public void delete(Long id) {
@@ -86,8 +86,8 @@ public class NodeServerServiceImpl implements NodeServerService {
         // get all nodes status
         for (NodeServer ns : nodeServers) {
             futures.add(executorService.submit(() -> {
-                boolean status = SimpleAdminConnectors.execute(ns.getIp(), ns.getPort(), AdminConnector::check);
-                ns.setStatus(status ? 1 : 0);
+                boolean status = SimpleAdminConnectors.execute(ns.getIp(), ns.getAdminPort(), AdminConnector::check);
+                ns.setStatus(status ? "1" : "0");
                 return !status;
             }));
         }
@@ -115,7 +115,7 @@ public class NodeServerServiceImpl implements NodeServerService {
             return "";
         }
         return SimpleAdminConnectors.execute(nodeServer.getIp(),
-            nodeServer.getPort(),
+            nodeServer.getAdminPort(),
             adminConnector -> adminConnector.canalLog(100));
     }
 
@@ -126,9 +126,9 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
         Boolean result = null;
         if ("start".equals(option)) {
-            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getPort(), AdminConnector::start);
+            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::start);
         } else if ("stop".equals(option)) {
-            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getPort(), AdminConnector::stop);
+            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::stop);
         } else {
             return false;
         }

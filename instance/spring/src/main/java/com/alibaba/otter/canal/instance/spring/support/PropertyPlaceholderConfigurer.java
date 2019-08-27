@@ -21,10 +21,19 @@ import org.springframework.util.Assert;
  */
 public class PropertyPlaceholderConfigurer extends org.springframework.beans.factory.config.PropertyPlaceholderConfigurer implements ResourceLoaderAware, InitializingBean {
 
-    private static final String PLACEHOLDER_PREFIX = "${";
-    private static final String PLACEHOLDER_SUFFIX = "}";
-    private ResourceLoader      loader;
-    private String[]            locationNames;
+    private static final String           PLACEHOLDER_PREFIX = "${";
+    private static final String           PLACEHOLDER_SUFFIX = "}";
+    public static ThreadLocal<Properties> propertiesLocal    = new ThreadLocal<Properties>() {
+
+                                                                 @Override
+                                                                 protected Properties initialValue() {
+                                                                     return new Properties();
+                                                                 }
+
+                                                             };
+
+    private ResourceLoader                loader;
+    private String[]                      locationNames;
 
     public PropertyPlaceholderConfigurer(){
         setIgnoreUnresolvablePlaceholders(true);
@@ -117,13 +126,31 @@ public class PropertyPlaceholderConfigurer extends org.springframework.beans.fac
     @Override
     protected String resolvePlaceholder(String placeholder, Properties props, int systemPropertiesMode) {
         DefaultablePlaceholder dp = new DefaultablePlaceholder(placeholder);
-        String value = super.resolvePlaceholder(dp.placeholder, props, systemPropertiesMode);
-
-        if (value == null) {
-            value = dp.defaultValue;
+        String propVal = null;
+        // 以system为准覆盖本地配置, 适用于docker
+        if (systemPropertiesMode == SYSTEM_PROPERTIES_MODE_OVERRIDE) {
+            propVal = resolveSystemProperty(dp.placeholder);
         }
 
-        return trimToEmpty(value);
+        // 以threadlocal的为准覆盖file properties
+        if (propVal == null) {
+            Properties localProperties = propertiesLocal.get();
+            propVal = resolvePlaceholder(dp.placeholder, localProperties);
+        }
+
+        if (propVal == null) {
+            propVal = resolvePlaceholder(dp.placeholder, props);
+        }
+
+        if (propVal == null && systemPropertiesMode == SYSTEM_PROPERTIES_MODE_FALLBACK) {
+            propVal = resolveSystemProperty(dp.placeholder);
+        }
+
+        if (propVal == null) {
+            propVal = dp.defaultValue;
+        }
+
+        return trimToEmpty(propVal);
     }
 
     private static class DefaultablePlaceholder {

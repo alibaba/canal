@@ -1,7 +1,12 @@
 package com.alibaba.otter.canal.admin.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
@@ -32,17 +37,6 @@ public class CanalConfigController {
     }
 
     /**
-     * 获取配置信息摘要(无配置内容)
-     *
-     * @param env 环境变量
-     * @return 配置信息摘要
-     */
-    @GetMapping(value = "/config/summary")
-    public BaseModel<CanalConfig> canalConfigSummary(@PathVariable String env) {
-        return BaseModel.getInstance(canalConfigService.getCanalConfigSummary());
-    }
-
-    /**
      * 修改配置
      *
      * @param canalConfig 配置信息对象
@@ -54,4 +48,5 @@ public class CanalConfigController {
         canalConfigService.updateContent(canalConfig);
         return BaseModel.getInstance("success");
     }
+
 }
