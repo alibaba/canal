@@ -26,6 +26,9 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         User user = User.find.query().where().eq("username", username).findOne();
+        if (user == null) {
+            throw new ServiceException("user:" + username + " auth failed!");
+        }
         try {
             byte[] pass = SecurityUtil.scramble411(password.getBytes(), seeds);
             if (!SecurityUtil.scrambleServerAuth(pass, SecurityUtil.hexStr2Bytes(user.getPassword()), seeds)) {
@@ -35,9 +38,7 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("user:" + user.getName() + " auth failed!");
         }
 
-        if (user != null) {
-            user.setPassword("");
-        }
+        user.setPassword("");
         return user;
     }
 
