@@ -1,9 +1,11 @@
 package com.alibaba.otter.canal.admin;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.admin.connector.SimpleAdminConnector;
 
+@Ignore
 public class SimpleAdminConnectorTest {
 
     @Test
