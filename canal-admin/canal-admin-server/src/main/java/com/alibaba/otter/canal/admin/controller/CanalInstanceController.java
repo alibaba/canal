@@ -38,8 +38,7 @@ public class CanalInstanceController {
      * @return 实例列表
      */
     @GetMapping(value = "/instances")
-    public BaseModel<List<CanalInstanceConfig>> nodeServers(CanalInstanceConfig canalInstanceConfig,
-                                                            @PathVariable String env) {
+    public BaseModel<List<CanalInstanceConfig>> list(CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig));
     }
 

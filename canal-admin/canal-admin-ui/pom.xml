@@ -20,11 +20,11 @@
 
   <profiles>
     <profile>
-      <id>release</id>
+      <id>npm</id>
       <activation>
         <property>
           <name>env</name>
-          <value>release</value>
+          <value>npm</value>
         </property>
       </activation>
       <build>

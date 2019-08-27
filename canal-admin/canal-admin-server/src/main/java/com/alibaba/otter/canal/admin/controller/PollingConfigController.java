@@ -113,7 +113,7 @@ public class PollingConfigController {
 
         CanalInstanceConfig canalInstanceConfig = new CanalInstanceConfig();
         List<CanalInstanceConfig> configs = canalInstanceConfigService.findList(canalInstanceConfig);
-        List<String> instances = configs.stream().map(config -> config.getName()).collect(Collectors.toList());
+        List<String> instances = configs.stream().map(CanalInstanceConfig::getName).collect(Collectors.toList());
         String data = Joiner.on(',').join(instances);
         canalInstanceConfig.setContent(data);
         if (StringUtils.isEmpty(md5)) {

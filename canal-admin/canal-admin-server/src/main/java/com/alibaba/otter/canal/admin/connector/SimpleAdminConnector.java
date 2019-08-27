@@ -138,22 +138,22 @@ public class SimpleAdminConnector implements AdminConnector {
 
     @Override
     public boolean check() {
-        return BooleanUtils.toBoolean(Integer.valueOf(doServerAdmin("check")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doServerAdmin("check")));
     }
 
     @Override
     public boolean start() {
-        return BooleanUtils.toBoolean(Integer.valueOf(doServerAdmin("start")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doServerAdmin("start")));
     }
 
     @Override
     public boolean stop() {
-        return BooleanUtils.toBoolean(Integer.valueOf(doServerAdmin("stop")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doServerAdmin("stop")));
     }
 
     @Override
     public boolean restart() {
-        return BooleanUtils.toBoolean(Integer.valueOf(doServerAdmin("restart")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doServerAdmin("restart")));
     }
 
     @Override
@@ -163,22 +163,22 @@ public class SimpleAdminConnector implements AdminConnector {
 
     @Override
     public boolean checkInstance(String destination) {
-        return BooleanUtils.toBoolean(Integer.valueOf(doInstanceAdmin(destination, "check")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doInstanceAdmin(destination, "check")));
     }
 
     @Override
     public boolean startInstance(String destination) {
-        return BooleanUtils.toBoolean(Integer.valueOf(doInstanceAdmin(destination, "start")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doInstanceAdmin(destination, "start")));
     }
 
     @Override
     public boolean stopInstance(String destination) {
-        return BooleanUtils.toBoolean(Integer.valueOf(doInstanceAdmin(destination, "stop")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doInstanceAdmin(destination, "stop")));
     }
 
     @Override
     public boolean restartInstance(String destination) {
-        return BooleanUtils.toBoolean(Integer.valueOf(doInstanceAdmin(destination, "restart")));
+        return BooleanUtils.toBoolean(Integer.parseInt(doInstanceAdmin(destination, "restart")));
     }
 
     @Override
