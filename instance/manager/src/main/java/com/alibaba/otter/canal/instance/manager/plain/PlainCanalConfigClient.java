@@ -53,7 +53,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/server_poll?md5=" + md5;
+        String url = configURL + "/api/v1/config/server_polling?md5=" + md5;
         return queryConfig(url);
     }
 
@@ -64,7 +64,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/instance_poll/" + destination + "?md5=" + md5;
+        String url = configURL + "/api/v1/config/instance_polling/" + destination + "?md5=" + md5;
         return queryConfig(url);
     }
 
@@ -75,7 +75,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/instances_poll?md5=" + md5 + "&ip=" + ip + "&port=" + port;
+        String url = configURL + "/api/v1/config/instances_polling?md5=" + md5 + "&ip=" + ip + "&port=" + port;
         ResponseModel<CanalConfig> config = doQuery(url);
         if (config.data != null) {
             return config.data.content;

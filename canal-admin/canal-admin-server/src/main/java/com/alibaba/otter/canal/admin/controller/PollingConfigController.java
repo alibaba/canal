@@ -30,7 +30,7 @@ import com.google.common.base.Joiner;
  */
 @RestController
 @RequestMapping("/api/{env}/config")
-public class PollConfigController {
+public class PollingConfigController {
 
     private static final byte[] seeds = "canal is best!".getBytes();
 
@@ -49,7 +49,7 @@ public class PollConfigController {
     /**
      * 获取server全局配置
      */
-    @GetMapping(value = "/server_poll")
+    @GetMapping(value = "/server_polling")
     public BaseModel<CanalConfig> canalConfigPoll(@RequestHeader String user, @RequestHeader String passwd,
                                                   @PathVariable String env, @RequestParam String md5) {
         if (!auth(user, passwd)) {
@@ -76,7 +76,7 @@ public class PollConfigController {
     /**
      * 获取单个instance的配置
      */
-    @GetMapping(value = "/instance_poll/{destination}")
+    @GetMapping(value = "/instance_polling/{destination}")
     public BaseModel<CanalInstanceConfig> instanceConfigPoll(@RequestHeader String user, @RequestHeader String passwd,
                                                              @PathVariable String env,
                                                              @PathVariable String destination, @RequestParam String md5) {
@@ -103,7 +103,7 @@ public class PollConfigController {
     /**
      * 获取对应server(ip+port)所需要运行的instance列表
      */
-    @GetMapping(value = "/instances_poll")
+    @GetMapping(value = "/instances_polling")
     public BaseModel<CanalInstanceConfig> instancesPoll(@RequestHeader String user, @RequestHeader String passwd,
                                                         @PathVariable String env, @RequestParam String ip,
                                                         @RequestParam String port, @RequestParam String md5) {
