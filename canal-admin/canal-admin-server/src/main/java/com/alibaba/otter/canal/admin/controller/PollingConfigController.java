@@ -56,7 +56,8 @@ public class PollingConfigController {
             throw new RuntimeException("auth :" + user + " is failed");
         }
 
-        CanalConfig config = canalConfigService.getCanalConfig();
+        //TODO
+        CanalConfig config = canalConfigService.getCanalConfig(1L);
         if (StringUtils.isEmpty(md5)) {
             return BaseModel.getInstance(config);
         } else {

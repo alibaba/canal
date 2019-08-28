@@ -20,9 +20,20 @@
           {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column label="运行Server" min-width="200" align="center">
+      <el-table-column label="所属集群" min-width="200" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.nodeIp }}</span>
+          <span v-if="scope.row.canalCluster !== null">
+            {{ scope.row.canalCluster.name }}
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="所属主机" min-width="200" align="center">
+        <template slot-scope="scope">
+          <span v-if="scope.row.nodeServer !== null">
+            {{ scope.row.nodeServer.name }}
+          </span>
+          <span v-else>-</span>
         </template>
       </el-table-column>
       <el-table-column label="修改时间" min-width="200" align="center">

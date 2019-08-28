@@ -14,6 +14,8 @@ public interface NodeServerService {
 
     void delete(Long id);
 
+    List<NodeServer> findAll(NodeServer nodeServer);
+
     List<NodeServer> findList(NodeServer nodeServer);
 
     int remoteNodeStatus(String ip, Integer port);

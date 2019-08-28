@@ -77,16 +77,23 @@ export const constantRoutes = [
     meta: { title: 'Canal Server', icon: 'example' },
     children: [
       {
+        path: 'canalClusters',
+        name: 'Canal 集群管理',
+        component: () => import('@/views/canalServer/CanalCluster'),
+        meta: { title: 'Canal 集群管理', icon: 'tree' }
+      },
+      {
         path: 'nodeServers',
         name: 'Server 状态',
         component: () => import('@/views/canalServer/NodeServer'),
-        meta: { title: 'Server 管理', icon: 'tree' }
+        meta: { title: 'Server 管理', icon: 'form' }
       },
       {
-        path: 'config',
-        name: 'Server 全局配置',
-        component: () => import('@/views/canalServer/Config'),
-        meta: { title: 'Server 全局配置', icon: 'form' }
+        path: 'nodeServer/config',
+        name: 'Server 配置',
+        component: () => import('@/views/canalServer/CanalConfig'),
+        meta: { title: 'Server 配置' },
+        hidden: true
       },
       {
         path: 'canalInstances',

@@ -2,6 +2,8 @@ package com.alibaba.otter.canal.admin.controller;
 
 import java.util.List;
 
+import com.alibaba.otter.canal.admin.model.CanalConfig;
+import com.alibaba.otter.canal.admin.service.CanalConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +22,7 @@ import com.alibaba.otter.canal.admin.service.NodeServerService;
 public class NodeServerController {
 
     @Autowired
-    NodeServerService nodeServerService;
+    NodeServerService  nodeServerService;
 
     /**
      * 获取所有节点信息列表

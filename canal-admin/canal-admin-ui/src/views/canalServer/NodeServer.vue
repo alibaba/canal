@@ -1,9 +1,14 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <!-- <el-input v-model="listQuery.name" placeholder="Server 名称" style="width: 200px;" class="filter-item" />
+<!--      <el-input v-model="listQuery.name" placeholder="Server 名称" style="width: 200px;" class="filter-item" />-->
+      <el-select v-model="listQuery.clusterId" placeholder="所属集群" class="filter-item">
+        <el-option key="" label="所属集群" value="" />
+        <el-option key="-1" label="STANDALONE" value="-1" />
+        <el-option v-for="item in canalClusters" :key="item.id" :label="item.name" :value="item.id" />
+      </el-select>
       <el-input v-model="listQuery.ip" placeholder="Server IP" style="width: 200px;" class="filter-item" />
-      <el-button class="filter-item" type="primary" icon="el-icon-search" plain @click="fetchData()">查询</el-button> -->
+      <el-button class="filter-item" type="primary" icon="el-icon-search" plain @click="fetchData()">查询</el-button>
       <el-button class="filter-item" type="primary" @click="handleCreate()">新建Server</el-button>
       <el-button class="filter-item" type="info" @click="fetchData()">刷新列表</el-button>
     </div>
@@ -15,6 +20,16 @@
       fit
       highlight-current-row
     >
+      <el-table-column label="所属集群" min-width="200" align="center">
+        <template slot-scope="scope">
+          <span v-if="scope.row.canalCluster !== null">
+            {{ scope.row.canalCluster.name }}
+          </span>
+          <span v-else style="color:green">
+            STANDALONE
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="Server 名称" min-width="200" align="center">
         <template slot-scope="scope">
           {{ scope.row.name }}
@@ -52,6 +67,7 @@
               操作<i class="el-icon-arrow-down el-icon--right" />
             </el-button>
             <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="handleConfig(scope.row)">配置</el-dropdown-item>
               <el-dropdown-item @click.native="handleUpdate(scope.row)">修改</el-dropdown-item>
               <el-dropdown-item @click.native="handleDelete(scope.row)">删除</el-dropdown-item>
               <el-dropdown-item @click.native="handleStart(scope.row)">启动</el-dropdown-item>
@@ -64,6 +80,12 @@
     </el-table>
     <el-dialog :visible.sync="dialogFormVisible" :title="textMap[dialogStatus]" width="600px">
       <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="120px" style="width: 400px; margin-left:30px;">
+        <el-form-item label="所属集群" prop="clusterId">
+          <el-select v-model="nodeModel.clusterId" placeholder="选择所属集群">
+            <el-option key="" label="STANDALONE" value="" />
+            <el-option v-for="item in canalClusters" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="Server 名称" prop="name">
           <el-input v-model="nodeModel.name" />
         </el-form-item>
@@ -90,6 +112,7 @@
 
 <script>
 import { addNodeServer, getNodeServers, updateNodeServer, deleteNodeServer, startNodeServer, stopNodeServer } from '@/api/nodeServer'
+import { getCanalClusters } from '@/api/canalCluster'
 
 export default {
   filters: {
@@ -114,6 +137,7 @@ export default {
     return {
       list: null,
       listLoading: true,
+      canalClusters: [],
       listQuery: {
         name: '',
         ip: ''
@@ -125,6 +149,7 @@ export default {
       },
       nodeModel: {
         id: undefined,
+        clusterId: null,
         name: null,
         ip: null,
         adminPort: 11110,
@@ -142,6 +167,10 @@ export default {
   // { min: 2, max: 5, message: '长度在 2 到 5 个字符', trigger: 'change' }
   created() {
     this.fetchData()
+
+    getCanalClusters().then((res) => {
+      this.canalClusters = res.data
+    })
   },
   methods: {
     fetchData() {
@@ -154,6 +183,7 @@ export default {
     resetModel() {
       this.nodeModel = {
         id: undefined,
+        clusterId: null,
         name: null,
         ip: null,
         adminPort: null,
@@ -200,6 +230,9 @@ export default {
         })
       }
     },
+    handleConfig(row) {
+      this.$router.push('/canalServer/nodeServer/config?serverId=' + row.id)
+    },
     handleUpdate(row) {
       this.resetModel()
       this.nodeModel = Object.assign({}, row)
@@ -210,7 +243,7 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$confirm('删除Server信息并不会导致节点服务停止', '确定删除Server信息', {
+      this.$confirm('删除Server信息会导致节点服务停止', '确定删除Server信息', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'

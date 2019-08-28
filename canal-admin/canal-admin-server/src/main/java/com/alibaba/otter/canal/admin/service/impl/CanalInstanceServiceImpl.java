@@ -1,10 +1,16 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
+import com.alibaba.otter.canal.admin.common.DaemonThreadFactory;
+import com.alibaba.otter.canal.admin.common.exception.ServiceException;
+import com.alibaba.otter.canal.protocol.SecurityUtil;
 import io.ebean.Query;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -27,7 +33,9 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
     public List<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig) {
         Query<CanalInstanceConfig> query = CanalInstanceConfig.find.query()
             .setDisableLazyLoading(true)
-            .select("name, modifiedTime");
+            .select("name, modifiedTime")
+            .fetch("canalCluster", "name")
+            .fetch("nodeServer", "name");
         if (canalInstanceConfig != null) {
             if (StringUtils.isNotEmpty(canalInstanceConfig.getName())) {
                 query.where().like("name", "%" + canalInstanceConfig.getName() + "%");
@@ -38,38 +46,107 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
 
         // check all canal instances running status
         List<NodeServer> nodeServers = NodeServer.find.query().findList();
-        for (NodeServer nodeServer : nodeServers) {
-            String runningInstances = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                nodeServer.getAdminPort(),
-                AdminConnector::getRunningInstances);
-            if (runningInstances == null) {
-                continue;
-            }
-            String[] instances = runningInstances.split(",");
-            for (String instance : instances) {
-                for (CanalInstanceConfig cig : canalInstanceConfigs) {
-                    if (instance.equals(cig.getName())) {
-                        cig.setNodeId(nodeServer.getId());
-                        cig.setNodeIp(nodeServer.getIp());
-                        break;
-                    }
-                }
-            }
+
+        if (nodeServers.isEmpty()) {
+            return canalInstanceConfigs;
         }
+
+        // ExecutorService executorService =
+        // Executors.newFixedThreadPool(nodeServers.size(),
+        // DaemonThreadFactory.daemonThreadFactory);
+        // List<Future<Void>> futures = new ArrayList<>(nodeServers.size());
+        //
+        // for (NodeServer nodeServer : nodeServers) {
+        // futures.add(executorService.submit(() -> {
+        // String runningInstances = SimpleAdminConnectors
+        // .execute(nodeServer.getIp(), nodeServer.getAdminPort(),
+        // AdminConnector::getRunningInstances);
+        // if (runningInstances == null) {
+        // return null;
+        // }
+        // String[] instances = runningInstances.split(",");
+        // for (String instance : instances) {
+        // for (CanalInstanceConfig cig : canalInstanceConfigs) {
+        // if (instance.equals(cig.getName())) {
+        // cig.setNodeId(nodeServer.getId());
+        // cig.setNodeIp(nodeServer.getIp());
+        // break;
+        // }
+        // }
+        // }
+        // return null;
+        // }));
+        // }
+        //
+        // futures.forEach(f -> {
+        // try {
+        // f.get(3, TimeUnit.SECONDS);
+        // } catch (TimeoutException | InterruptedException | ExecutionException e) {
+        // // ignore
+        // }
+        // });
+        //
+        // executorService.shutdownNow();
 
         return canalInstanceConfigs;
     }
 
     public void save(CanalInstanceConfig canalInstanceConfig) {
+        if (StringUtils.isEmpty(canalInstanceConfig.getClusterServerId())) {
+            throw new ServiceException("empty cluster or server id");
+        }
+        if (canalInstanceConfig.getClusterServerId().startsWith("cluster:")) {
+            Long clusterId = Long.parseLong(canalInstanceConfig.getClusterServerId().substring(8));
+            canalInstanceConfig.setClusterId(clusterId);
+        } else if (canalInstanceConfig.getClusterServerId().startsWith("server:")) {
+            Long serverId = Long.parseLong(canalInstanceConfig.getClusterServerId().substring(7));
+            canalInstanceConfig.setServerId(serverId);
+        }
+
+        try {
+            String contentMd5 = SecurityUtil.md5String(canalInstanceConfig.getContent());
+            canalInstanceConfig.setContentMd5(contentMd5);
+        } catch (NoSuchAlgorithmException e) {
+            // ignore
+        }
+
         canalInstanceConfig.insert();
     }
 
     public CanalInstanceConfig detail(Long id) {
-        return CanalInstanceConfig.find.byId(id);
+        CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
+        if (canalInstanceConfig != null) {
+            if (canalInstanceConfig.getClusterId() != null) {
+                canalInstanceConfig.setClusterServerId("cluster:" + canalInstanceConfig.getClusterId());
+            } else if (canalInstanceConfig.getServerId() != null) {
+                canalInstanceConfig.setClusterServerId("server:" + canalInstanceConfig.getServerId());
+            }
+        }
+        return canalInstanceConfig;
     }
 
     public void updateContent(CanalInstanceConfig canalInstanceConfig) {
-        canalInstanceConfig.update("content");
+        if (StringUtils.isEmpty(canalInstanceConfig.getClusterServerId())) {
+            throw new ServiceException("empty cluster or server id");
+        }
+        if (canalInstanceConfig.getClusterServerId().startsWith("cluster:")) {
+            Long clusterId = Long.parseLong(canalInstanceConfig.getClusterServerId().substring(8));
+            canalInstanceConfig.setClusterId(clusterId);
+            canalInstanceConfig.setServerId(null);
+        } else if (canalInstanceConfig.getClusterServerId().startsWith("server:")) {
+            Long serverId = Long.parseLong(canalInstanceConfig.getClusterServerId().substring(7));
+            canalInstanceConfig.setServerId(serverId);
+            canalInstanceConfig.setClusterId(null);
+        }
+
+        try {
+            String contentMd5 = SecurityUtil.md5String(canalInstanceConfig.getContent());
+            canalInstanceConfig.setContentMd5(contentMd5);
+        } catch (NoSuchAlgorithmException e) {
+            // ignore
+        }
+
+        canalInstanceConfig.update("content", "contentMd5", "clusterId", "serverId");
     }
 
     public void delete(Long id) {

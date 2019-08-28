@@ -4,8 +4,9 @@
       <div style="padding-left: 10px;padding-top: 20px;">
         <el-form-item>
           {{ form.name }}&nbsp;&nbsp;&nbsp;&nbsp;
-          <el-button type="primary" @click="onSubmit">修改</el-button>
+          <el-button type="primary" @click="onSubmit">保存</el-button>
           <el-button type="warning" @click="onCancel">重置</el-button>
+          <el-button type="info" @click="onBack">返回</el-button>
         </el-form-item>
       </div>
       <editor v-model="form.content" lang="properties" theme="chrome" width="100%" :height="800" @init="editorInit" />
@@ -25,7 +26,8 @@ export default {
       form: {
         id: null,
         name: '',
-        content: ''
+        content: '',
+        serverId: null
       }
     }
   },
@@ -44,14 +46,22 @@ export default {
       require('brace/snippets/javascript')
     },
     loadCanalConfig() {
-      getCanalConfig().then(response => {
+      getCanalConfig(this.$route.query.serverId).then(response => {
         const data = response.data
         this.form.id = data.id
         this.form.name = data.name
         this.form.content = data.content
+        this.form.serverId = this.$route.query.serverId
       })
     },
     onSubmit() {
+      if (this.form.content === null || this.form.content === '') {
+        this.$message({
+          message: '配置内容不能为空',
+          type: 'error'
+        })
+        return
+      }
       this.$confirm(
         '修改Server主配置可能会导致Server重启，是否继续？',
         '确定修改',
@@ -64,13 +74,13 @@ export default {
         updateCanalConfig(this.form).then(response => {
           if (response.data === 'success') {
             this.$message({
-              message: '修改成功',
+              message: '保存成功',
               type: 'success'
             })
             this.loadCanalConfig()
           } else {
             this.$message({
-              message: '修改失败',
+              message: '保存失败',
               type: 'error'
             })
           }
@@ -79,6 +89,9 @@ export default {
     },
     onCancel() {
       this.loadCanalConfig()
+    },
+    onBack() {
+      history.go(-1)
     }
   }
 }

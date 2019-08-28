@@ -1,13 +1,13 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
+import com.alibaba.otter.canal.admin.common.DaemonThreadFactory;
+import com.alibaba.otter.canal.admin.model.CanalCluster;
+import com.alibaba.otter.canal.admin.model.CanalConfig;
 import io.ebean.Query;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ public class NodeServerServiceImpl implements NodeServerService {
         int cnt = NodeServer.find.query()
             .where()
             .eq("ip", nodeServer.getIp())
-            .eq("admin_port", nodeServer.getAdminPort())
+            .eq("adminPort", nodeServer.getAdminPort())
             .findCount();
         if (cnt > 0) {
             throw new ServiceException("节点信息已存在");
@@ -48,25 +48,36 @@ public class NodeServerServiceImpl implements NodeServerService {
         int cnt = NodeServer.find.query()
             .where()
             .eq("ip", nodeServer.getIp())
-            .eq("admin_port", nodeServer.getAdminPort())
+            .eq("adminPort", nodeServer.getAdminPort())
             .ne("id", nodeServer.getId())
             .findCount();
         if (cnt > 0) {
             throw new ServiceException("节点信息已存在");
         }
 
-        nodeServer.update("name", "ip", "admin_port", "tcp_port", "metric_port");
+        nodeServer.update("name", "ip", "adminPort", "tcpPort", "metricPort", "clusterId");
     }
 
     public void delete(Long id) {
         NodeServer nodeServer = NodeServer.find.byId(id);
         if (nodeServer != null) {
+            // TODO 判断是否存在实例
+
+            // 同时删除配置
+            CanalConfig canalConfig = CanalConfig.find.query().where().eq("serverId", id).findOne();
+            if (canalConfig != null) {
+                canalConfig.delete();
+            }
+
             nodeServer.delete();
         }
     }
 
-    public List<NodeServer> findList(NodeServer nodeServer) {
+    public List<NodeServer> findAll(NodeServer nodeServer) {
         Query<NodeServer> query = NodeServer.find.query();
+
+        query.fetch("canalCluster", "name").setDisableLazyLoading(true);
+
         if (nodeServer != null) {
             if (StringUtils.isNotEmpty(nodeServer.getName())) {
                 query.where().like("name", "%" + nodeServer.getName() + "%");
@@ -74,14 +85,26 @@ public class NodeServerServiceImpl implements NodeServerService {
             if (StringUtils.isNotEmpty(nodeServer.getIp())) {
                 query.where().eq("ip", nodeServer.getIp());
             }
+            if (nodeServer.getClusterId() != null) {
+                if (nodeServer.getClusterId() == -1) {
+                    query.where().isNull("clusterId");
+                } else {
+                    query.where().eq("clusterId", nodeServer.getClusterId());
+                }
+            }
         }
         query.order().asc("id");
-        List<NodeServer> nodeServers = query.findList();
+        return query.findList();
+    }
+
+    public List<NodeServer> findList(NodeServer nodeServer) {
+        List<NodeServer> nodeServers = findAll(nodeServer);
         if (nodeServers.isEmpty()) {
             return nodeServers;
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(nodeServers.size());
+        ExecutorService executorService = Executors.newFixedThreadPool(nodeServers.size(),
+            DaemonThreadFactory.daemonThreadFactory);
         List<Future<Boolean>> futures = new ArrayList<>(nodeServers.size());
         // get all nodes status
         for (NodeServer ns : nodeServers) {
@@ -93,8 +116,8 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
         futures.forEach(f -> {
             try {
-                f.get();
-            } catch (InterruptedException | ExecutionException e) {
+                f.get(3, TimeUnit.SECONDS);
+            } catch (TimeoutException | InterruptedException | ExecutionException e) {
                 // ignore
             }
         });
@@ -114,9 +137,8 @@ public class NodeServerServiceImpl implements NodeServerService {
         if (nodeServer == null) {
             return "";
         }
-        return SimpleAdminConnectors.execute(nodeServer.getIp(),
-            nodeServer.getAdminPort(),
-            adminConnector -> adminConnector.canalLog(100));
+        return SimpleAdminConnectors
+            .execute(nodeServer.getIp(), nodeServer.getAdminPort(), adminConnector -> adminConnector.canalLog(100));
     }
 
     public boolean remoteOperation(Long id, String option) {
@@ -126,7 +148,8 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
         Boolean result = null;
         if ("start".equals(option)) {
-            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::start);
+            result = SimpleAdminConnectors
+                .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::start);
         } else if ("stop".equals(option)) {
             result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::stop);
         } else {

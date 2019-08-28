@@ -1,12 +1,10 @@
 package com.alibaba.otter.canal.admin.model;
 
-import io.ebean.Finder;
-
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Transient;
+import javax.persistence.*;
+
+import io.ebean.Finder;
 
 /**
  * Canal实例配置信息实体类
@@ -31,16 +29,29 @@ public class CanalInstanceConfig extends Model {
     }
 
     @Id
-    private Long   id;
-    private String name;
-    private String content;
-    private String status;
-    private Date   modifiedTime;
+    private Long         id;
+    @Column(name = "cluster_id")
+    private Long         clusterId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cluster_id", updatable = false, insertable = false)
+    private CanalCluster canalCluster;
+    @Column(name = "server_id")
+    private Long         serverId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "server_id", updatable = false, insertable = false)
+    private NodeServer   nodeServer;
+    private String       name;
+    private String       content;
+    private String       contentMd5;
+    private String       status;
+    private Date         modifiedTime;
 
     @Transient
-    private Long   nodeId;
+    private Long         nodeId;
     @Transient
-    private String nodeIp;
+    private String       nodeIp;
+    @Transient
+    private String       clusterServerId;
 
     public Long getId() {
         return id;
@@ -48,6 +59,38 @@ public class CanalInstanceConfig extends Model {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getClusterId() {
+        return clusterId;
+    }
+
+    public void setClusterId(Long clusterId) {
+        this.clusterId = clusterId;
+    }
+
+    public CanalCluster getCanalCluster() {
+        return canalCluster;
+    }
+
+    public void setCanalCluster(CanalCluster canalCluster) {
+        this.canalCluster = canalCluster;
+    }
+
+    public Long getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(Long serverId) {
+        this.serverId = serverId;
+    }
+
+    public NodeServer getNodeServer() {
+        return nodeServer;
+    }
+
+    public void setNodeServer(NodeServer nodeServer) {
+        this.nodeServer = nodeServer;
     }
 
     public String getName() {
@@ -64,6 +107,14 @@ public class CanalInstanceConfig extends Model {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getContentMd5() {
+        return contentMd5;
+    }
+
+    public void setContentMd5(String contentMd5) {
+        this.contentMd5 = contentMd5;
     }
 
     public String getStatus() {
@@ -96,5 +147,13 @@ public class CanalInstanceConfig extends Model {
 
     public void setNodeIp(String nodeIp) {
         this.nodeIp = nodeIp;
+    }
+
+    public String getClusterServerId() {
+        return clusterServerId;
+    }
+
+    public void setClusterServerId(String clusterServerId) {
+        this.clusterServerId = clusterServerId;
     }
 }
