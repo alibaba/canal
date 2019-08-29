@@ -4,14 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
@@ -38,7 +31,8 @@ public class CanalInstanceController {
      * @return 实例列表
      */
     @GetMapping(value = "/instances")
-    public BaseModel<List<CanalInstanceConfig>> list(CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
+    public BaseModel<List<CanalInstanceConfig>> list(CanalInstanceConfig canalInstanceConfig,
+                                                     @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig));
     }
 
@@ -128,6 +122,20 @@ public class CanalInstanceController {
     @PutMapping(value = "/instance/stop/{id}/{nodeId}")
     public BaseModel<Boolean> stop(@PathVariable Long id, @PathVariable Long nodeId, @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.remoteOperation(id, nodeId, "stop"));
+    }
+
+    /**
+     * 通过操作instance状态启动/停止远程instance
+     *
+     * @param id 实例配置id
+     * @param option 操作类型: start/stop
+     * @param env 环境变量
+     * @return 是否成功
+     */
+    @PutMapping(value = "/instance/status/{id}")
+    public BaseModel<Boolean> instanceStart(@PathVariable Long id, @RequestParam String option,
+                                            @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.instanceOperation(id, option));
     }
 
     /**

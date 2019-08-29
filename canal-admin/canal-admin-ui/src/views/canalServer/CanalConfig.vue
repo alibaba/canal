@@ -27,7 +27,8 @@ export default {
         id: null,
         name: '',
         content: '',
-        serverId: null
+        serverId: null,
+        clusterId: null
       }
     }
   },
@@ -46,12 +47,20 @@ export default {
       require('brace/snippets/javascript')
     },
     loadCanalConfig() {
-      getCanalConfig(this.$route.query.serverId).then(response => {
+      let clusterId = 0
+      let serverId = 0
+      if (this.$route.query.clusterId) {
+        clusterId = this.$route.query.clusterId
+      } else if (this.$route.query.serverId) {
+        serverId = this.$route.query.serverId
+      }
+      getCanalConfig(clusterId, serverId).then(response => {
         const data = response.data
         this.form.id = data.id
         this.form.name = data.name
         this.form.content = data.content
         this.form.serverId = this.$route.query.serverId
+        this.form.clusterId = this.$route.query.clusterId
       })
     },
     onSubmit() {
@@ -63,7 +72,7 @@ export default {
         return
       }
       this.$confirm(
-        '修改Server主配置可能会导致Server重启，是否继续？',
+        '修改主配置可能会导致Server重启，是否继续？',
         '确定修改',
         {
           confirmButtonText: '确定',

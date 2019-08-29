@@ -5,7 +5,11 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
+import com.alibaba.otter.canal.admin.common.exception.ServiceException;
+import com.alibaba.otter.canal.admin.model.CanalCluster;
+import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
+import io.ebean.Query;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -29,8 +33,24 @@ public class CanalConfigServiceImpl implements CanalConfigService {
     private static final String CANAL_GLOBAL_CONFIG  = "canal.properties";
     private static final String CANAL_ADAPTER_CONFIG = "application.yml";
 
-    public CanalConfig getCanalConfig(Long serverId) {
-        CanalConfig config = CanalConfig.find.query().where().eq("serverId", serverId).findOne();
+    public CanalConfig getCanalConfig(Long clusterId, Long serverId) {
+        CanalConfig config = null;
+        if (clusterId != null && clusterId != 0) {
+            config = CanalConfig.find.query().where().eq("clusterId", clusterId).findOne();
+        } else if (serverId != null && serverId != 0) {
+            config = CanalConfig.find.query().where().eq("serverId", serverId).findOne();
+            if (config == null) {
+                NodeServer nodeServer = NodeServer.find.byId(serverId);
+                if (nodeServer != null) {
+                    Long cid = nodeServer.getClusterId();
+                    if (cid != null) {
+                        config = CanalConfig.find.query().where().eq("clusterId", cid).findOne();
+                    }
+                }
+            }
+        } else {
+            throw new ServiceException("clusterId and serverId are all empty");
+        }
         if (config == null) {
             config = new CanalConfig();
             config.setName(CANAL_GLOBAL_CONFIG);
@@ -76,7 +96,15 @@ public class CanalConfigServiceImpl implements CanalConfigService {
         } catch (NoSuchAlgorithmException e) {
             // ignore
         }
-        canalConfig.saveOrUpdate();
+        if (canalConfig.getId() != null) {
+            CanalConfig canalConfigTmp = CanalConfig.find.byId(canalConfig.getId());
+            if (canalConfigTmp != null && canalConfigTmp.getClusterId() != null) {
+                canalConfig.setServerId(null);
+            }
+            canalConfig.update("serverId", "content", "contentMd5");
+        } else {
+            canalConfig.save();
+        }
     }
 
     private String loadDefaultConf(String confFileName) {

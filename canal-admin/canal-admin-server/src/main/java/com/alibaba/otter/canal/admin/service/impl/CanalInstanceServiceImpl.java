@@ -21,6 +21,8 @@ import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.CanalInstanceService;
 
+import javax.xml.soap.Node;
+
 /**
  * Canal实例配置信息业务层
  *
@@ -51,42 +53,43 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
             return canalInstanceConfigs;
         }
 
-        // ExecutorService executorService =
-        // Executors.newFixedThreadPool(nodeServers.size(),
-        // DaemonThreadFactory.daemonThreadFactory);
-        // List<Future<Void>> futures = new ArrayList<>(nodeServers.size());
-        //
-        // for (NodeServer nodeServer : nodeServers) {
-        // futures.add(executorService.submit(() -> {
-        // String runningInstances = SimpleAdminConnectors
-        // .execute(nodeServer.getIp(), nodeServer.getAdminPort(),
-        // AdminConnector::getRunningInstances);
-        // if (runningInstances == null) {
-        // return null;
-        // }
-        // String[] instances = runningInstances.split(",");
-        // for (String instance : instances) {
-        // for (CanalInstanceConfig cig : canalInstanceConfigs) {
-        // if (instance.equals(cig.getName())) {
-        // cig.setNodeId(nodeServer.getId());
-        // cig.setNodeIp(nodeServer.getIp());
-        // break;
-        // }
-        // }
-        // }
-        // return null;
-        // }));
-        // }
-        //
-        // futures.forEach(f -> {
-        // try {
-        // f.get(3, TimeUnit.SECONDS);
-        // } catch (TimeoutException | InterruptedException | ExecutionException e) {
-        // // ignore
-        // }
-        // });
-        //
-        // executorService.shutdownNow();
+        ExecutorService executorService = Executors.newFixedThreadPool(nodeServers.size(),
+            DaemonThreadFactory.daemonThreadFactory);
+        List<Future<Void>> futures = new ArrayList<>(nodeServers.size());
+
+        for (NodeServer nodeServer : nodeServers) {
+            futures.add(executorService.submit(() -> {
+                String runningInstances = SimpleAdminConnectors
+                    .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
+                if (runningInstances == null) {
+                    return null;
+                }
+                String[] instances = runningInstances.split(",");
+                for (String instance : instances) {
+                    for (CanalInstanceConfig cig : canalInstanceConfigs) {
+                        if (instance.equals(cig.getName())) {
+                            if (cig.getNodeServer() == null) { // 集群模式下 server 对象为空
+                                cig.setNodeServer(new NodeServer());
+                                cig.getNodeServer().setName(instance);
+                            }
+                            cig.setRunningStatus("1");
+                            break;
+                        }
+                    }
+                }
+                return null;
+            }));
+        }
+
+        futures.forEach(f -> {
+            try {
+                f.get(3, TimeUnit.SECONDS);
+            } catch (TimeoutException | InterruptedException | ExecutionException e) {
+                // ignore
+            }
+        });
+
+        executorService.shutdownNow();
 
         return canalInstanceConfigs;
     }
@@ -227,4 +230,20 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         return resutl;
     }
 
+    public boolean instanceOperation(Long id, String option) {
+        CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
+        if (canalInstanceConfig == null) {
+            return false;
+        }
+        if ("stop".equals(option)) {
+            canalInstanceConfig.setStatus("0");
+            canalInstanceConfig.update("status");
+        } else if ("start".equals(option)) {
+            canalInstanceConfig.setStatus("1");
+            canalInstanceConfig.update("status");
+        } else {
+            return false;
+        }
+        return true;
+    }
 }

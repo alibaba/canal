@@ -1,8 +1,8 @@
 import request from '@/utils/request'
 
-export function getCanalConfig(serverId) {
+export function getCanalConfig(clusterId, serverId) {
   return request({
-    url: '/canal/config/' + serverId,
+    url: '/canal/config/' + clusterId + '/' + serverId,
     method: 'get'
   })
 }

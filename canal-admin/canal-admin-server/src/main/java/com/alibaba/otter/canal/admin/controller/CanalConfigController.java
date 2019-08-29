@@ -31,9 +31,10 @@ public class CanalConfigController {
      * @param env 环境变量
      * @return 配置信息
      */
-    @GetMapping(value = "/config/{serverId}")
-    public BaseModel<CanalConfig> canalConfig(@PathVariable Long serverId, @PathVariable String env) {
-        return BaseModel.getInstance(canalConfigService.getCanalConfig(serverId));
+    @GetMapping(value = "/config/{clusterId}/{serverId}")
+    public BaseModel<CanalConfig> canalConfig(@PathVariable Long clusterId, @PathVariable Long serverId,
+                                              @PathVariable String env) {
+        return BaseModel.getInstance(canalConfigService.getCanalConfig(clusterId, serverId));
     }
 
     /**

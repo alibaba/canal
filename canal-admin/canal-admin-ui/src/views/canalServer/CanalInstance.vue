@@ -36,6 +36,11 @@
           <span v-else>-</span>
         </template>
       </el-table-column>
+      <el-table-column class-name="status-col" label="状态" min-width="150" align="center">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.runningStatus | statusFilter">{{ scope.row.runningStatus | statusLabel }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="修改时间" min-width="200" align="center">
         <template slot-scope="scope">
           {{ scope.row.modifiedTime }}
@@ -58,33 +63,25 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog :visible.sync="dialogFormVisible" title="确定启动Instance" width="500px">
-      <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="120px" style="width: 350px; margin-left:30px;">
-        <el-form-item label="选择运行Server" prop="nodeId">
-          <el-select v-model="nodeModel.id" placeholder="选择运行Server">
-            <el-option v-for="item in nodeServices" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button type="primary" @click="doStartInstance()">确定</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getCanalInstances, deleteCanalInstance, startInstance, stopInstance } from '@/api/canalInstance'
-import { getNodeServers } from '@/api/nodeServer'
+import { getCanalInstances, deleteCanalInstance, instanceStatus } from '@/api/canalInstance'
 
 export default {
   filters: {
     statusFilter(status) {
       const statusMap = {
-        published: 'success',
-        draft: 'gray',
-        deleted: 'danger'
+        '1': 'success',
+        '0': 'gray'
+      }
+      return statusMap[status]
+    },
+    statusLabel(status) {
+      const statusMap = {
+        '1': '启动',
+        '0': '停止'
       }
       return statusMap[status]
     }
@@ -99,9 +96,6 @@ export default {
         name: ''
       },
       currentId: null,
-      nodeModel: {
-        id: null
-      },
       rules: {
         id: [{ required: true, message: '请选择运行Server', trigger: 'change' }]
       }
@@ -115,6 +109,7 @@ export default {
       this.listLoading = true
       getCanalInstances(this.listQuery).then(res => {
         this.list = res.data
+      }).finally(() => {
         this.listLoading = false
       })
     },
@@ -147,42 +142,33 @@ export default {
       })
     },
     handleStart(row) {
-      if (row.nodeId !== null) {
-        this.$message({ message: '当前Instance已处于启动状态!', type: 'error' })
+      if (row.runningStatus === '1') {
+        this.$message({ message: '当前Instance已处于启动状态！', type: 'error' })
         return
       }
-
-      this.currentId = row.id
-      this.nodeModel.id = null
-
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
-
-      getNodeServers().then((res) => {
-        this.nodeServices = res.data
-        this.dialogFormVisible = true
-      })
-    },
-    doStartInstance() {
-      startInstance(this.currentId, this.nodeModel.id).then((res) => {
-        if (res.data) {
-          this.fetchData()
-          this.$message({
-            message: '启动成功',
-            type: 'success'
-          })
-          this.dialogFormVisible = false
-        } else {
-          this.$message({
-            message: '启动Instance出现异常',
-            type: 'error'
-          })
-        }
+      this.$confirm('启动Instance: ' + row.name, '确定启动Instance服务', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        instanceStatus(row.id, 'start').then((res) => {
+          if (res.data) {
+            this.fetchData()
+            this.$message({
+              message: '启动成功, 稍后请刷新列表查看状态',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: '启动Instance出现异常',
+              type: 'error'
+            })
+          }
+        })
       })
     },
     handleStop(row) {
-      if (row.nodeId === null) {
+      if (row.runningStatus === '0') {
         this.$message({ message: '当前Instance已处于停止状态！', type: 'error' })
         return
       }
@@ -191,11 +177,11 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        stopInstance(row.id, row.nodeId).then((res) => {
+        instanceStatus(row.id, 'stop').then((res) => {
           if (res.data) {
             this.fetchData()
             this.$message({
-              message: '停止成功',
+              message: '停止成功, 稍后请刷新列表查看状态',
               type: 'success'
             })
           } else {

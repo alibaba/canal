@@ -43,15 +43,17 @@ public class CanalInstanceConfig extends Model {
     private String       name;
     private String       content;
     private String       contentMd5;
-    private String       status;
+    private String       status;         // 1: 正常 0: 停止
     private Date         modifiedTime;
 
     @Transient
-    private Long         nodeId;
-    @Transient
-    private String       nodeIp;
-    @Transient
     private String       clusterServerId;
+    @Transient
+    private String       runningStatus = "0";  // 1: 运行中 0: 停止
+
+    public void init() {
+        status = "1";
+    }
 
     public Long getId() {
         return id;
@@ -133,27 +135,19 @@ public class CanalInstanceConfig extends Model {
         this.modifiedTime = modifiedTime;
     }
 
-    public Long getNodeId() {
-        return nodeId;
-    }
-
-    public void setNodeId(Long nodeId) {
-        this.nodeId = nodeId;
-    }
-
-    public String getNodeIp() {
-        return nodeIp;
-    }
-
-    public void setNodeIp(String nodeIp) {
-        this.nodeIp = nodeIp;
-    }
-
     public String getClusterServerId() {
         return clusterServerId;
     }
 
     public void setClusterServerId(String clusterServerId) {
         this.clusterServerId = clusterServerId;
+    }
+
+    public String getRunningStatus() {
+        return runningStatus;
+    }
+
+    public void setRunningStatus(String runningStatus) {
+        this.runningStatus = runningStatus;
     }
 }

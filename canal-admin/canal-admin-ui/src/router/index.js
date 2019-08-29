@@ -80,7 +80,7 @@ export const constantRoutes = [
         path: 'canalClusters',
         name: 'Canal 集群管理',
         component: () => import('@/views/canalServer/CanalCluster'),
-        meta: { title: 'Canal 集群管理', icon: 'tree' }
+        meta: { title: '集群管理', icon: 'tree' }
       },
       {
         path: 'nodeServers',

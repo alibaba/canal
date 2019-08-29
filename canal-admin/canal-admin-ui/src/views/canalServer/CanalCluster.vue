@@ -31,8 +31,10 @@
               操作<i class="el-icon-arrow-down el-icon--right" />
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="handleUpdate(scope.row)">修改</el-dropdown-item>
-              <el-dropdown-item @click.native="handleDelete(scope.row)">删除</el-dropdown-item>
+              <el-dropdown-item @click.native="handleConfig(scope.row)">主配置</el-dropdown-item>
+              <el-dropdown-item @click.native="handleUpdate(scope.row)">修改集群</el-dropdown-item>
+              <el-dropdown-item @click.native="handleDelete(scope.row)">删除集群</el-dropdown-item>
+              <el-dropdown-item @click.native="handleView(scope.row)">查看Server</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -110,6 +112,7 @@ export default {
       this.listLoading = true
       getCanalClusters(this.listQuery).then(res => {
         this.list = res.data
+      }).finally(() => {
         this.listLoading = false
       })
     },
@@ -159,6 +162,12 @@ export default {
         })
       }
     },
+    handleView(row) {
+      this.$router.push('/canalServer/nodeServers?clusterId=' + row.id)
+    },
+    handleConfig(row) {
+      this.$router.push('/canalServer/nodeServer/config?clusterId=' + row.id)
+    },
     handleUpdate(row) {
       this.resetModel()
       this.canalCluster = Object.assign({}, row)
@@ -169,7 +178,7 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$confirm('删除Server信息会导致节点服务停止', '确定删除Server信息', {
+      this.$confirm('删除集群信息会导致服务停止', '确定删除集群信息', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -178,12 +187,12 @@ export default {
           if (res.data === 'success') {
             this.fetchData()
             this.$message({
-              message: '删除Server信息成功',
+              message: '删除集群信息成功',
               type: 'success'
             })
           } else {
             this.$message({
-              message: '删除Server信息失败',
+              message: '删除集群信息失败',
               type: 'error'
             })
           }

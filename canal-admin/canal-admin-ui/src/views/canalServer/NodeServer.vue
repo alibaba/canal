@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-<!--      <el-input v-model="listQuery.name" placeholder="Server 名称" style="width: 200px;" class="filter-item" />-->
+      <!--<el-input v-model="listQuery.name" placeholder="Server 名称" style="width: 200px;" class="filter-item" />-->
       <el-select v-model="listQuery.clusterId" placeholder="所属集群" class="filter-item">
         <el-option key="" label="所属集群" value="" />
         <el-option key="-1" label="STANDALONE" value="-1" />
@@ -81,7 +81,11 @@
     <el-dialog :visible.sync="dialogFormVisible" :title="textMap[dialogStatus]" width="600px">
       <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="120px" style="width: 400px; margin-left:30px;">
         <el-form-item label="所属集群" prop="clusterId">
-          <el-select v-model="nodeModel.clusterId" placeholder="选择所属集群">
+          <el-select v-if="dialogStatus === 'create'" v-model="nodeModel.clusterId" placeholder="选择所属集群">
+            <el-option key="" label="STANDALONE" value="" />
+            <el-option v-for="item in canalClusters" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+          <el-select v-else v-model="nodeModel.clusterId" placeholder="选择所属集群" disabled="disabled">
             <el-option key="" label="STANDALONE" value="" />
             <el-option v-for="item in canalClusters" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
@@ -140,7 +144,8 @@ export default {
       canalClusters: [],
       listQuery: {
         name: '',
-        ip: ''
+        ip: '',
+        clusterId: null
       },
       dialogFormVisible: false,
       textMap: {
@@ -159,24 +164,31 @@ export default {
       rules: {
         name: [{ required: true, message: 'Server 名称不能为空', trigger: 'change' }],
         ip: [{ required: true, message: 'Server IP不能为空', trigger: 'change' }],
-        port: [{ required: true, message: 'Server admin端口不能为空', trigger: 'change' }]
+        adminPort: [{ required: true, message: 'Server admin端口不能为空', trigger: 'change' }]
       },
       dialogStatus: 'create'
     }
   },
   // { min: 2, max: 5, message: '长度在 2 到 5 个字符', trigger: 'change' }
   created() {
-    this.fetchData()
-
     getCanalClusters().then((res) => {
       this.canalClusters = res.data
     })
+    if (this.$route.query.clusterId) {
+      try {
+        this.listQuery.clusterId = Number(this.$route.query.clusterId)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    this.fetchData()
   },
   methods: {
     fetchData() {
       this.listLoading = true
       getNodeServers(this.listQuery).then(res => {
         this.list = res.data
+      }).finally(() => {
         this.listLoading = false
       })
     },

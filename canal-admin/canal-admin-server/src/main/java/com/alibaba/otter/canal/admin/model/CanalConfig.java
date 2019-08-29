@@ -31,6 +31,7 @@ public class CanalConfig extends Model {
 
     @Id
     private Long   id;
+    private Long   clusterId;
     private Long   serverId;
     private String name;
     private String content;
@@ -44,6 +45,14 @@ public class CanalConfig extends Model {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getClusterId() {
+        return clusterId;
+    }
+
+    public void setClusterId(Long clusterId) {
+        this.clusterId = clusterId;
     }
 
     public Long getServerId() {
