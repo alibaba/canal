@@ -31,4 +31,6 @@ public interface CanalInstanceService {
     boolean remoteOperation(Long id, Long nodeId, String option);
 
     boolean instanceOperation(Long id, String option);
+
+    List<CanalInstanceConfig> findActiveInstaceByServerId(Long serverId);
 }

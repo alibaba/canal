@@ -72,6 +72,7 @@
               <el-dropdown-item @click.native="handleDelete(scope.row)">删除</el-dropdown-item>
               <el-dropdown-item @click.native="handleStart(scope.row)">启动</el-dropdown-item>
               <el-dropdown-item @click.native="handleStop(scope.row)">停止</el-dropdown-item>
+              <el-dropdown-item @click.native="handleInstances(scope.row)">实例</el-dropdown-item>
               <el-dropdown-item @click.native="handleLog(scope.row)">日志</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -112,11 +113,49 @@
         <el-button type="primary" @click="dataOperation()">确定</el-button>
       </div>
     </el-dialog>
+    <el-dialog :visible.sync="dialogInstances" title="实例列表" width="800px">
+      <div class="filter-container">
+        <el-button class="filter-item" type="info" @click="activeInstances()">刷新列表</el-button>
+      </div>
+      <el-table
+        v-loading="listLoading2"
+        :data="instanceList"
+        element-loading-text="Loading"
+        border
+        fit
+        highlight-current-row
+      >
+        <el-table-column label="Instance 名称" min-width="200" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.name }}
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="200" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.runningStatus | statusFilter">{{ scope.row.runningStatus | statusLabel }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="200" align="center">
+          <template slot-scope="scope">
+            <el-dropdown trigger="click">
+              <el-button type="primary" size="mini">
+                操作<i class="el-icon-arrow-down el-icon--right" />
+              </el-button>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item @click.native="handleStartInstance(scope.row)">启动</el-dropdown-item>
+                <el-dropdown-item @click.native="handleStopInstance(scope.row)">停止</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { addNodeServer, getNodeServers, updateNodeServer, deleteNodeServer, startNodeServer, stopNodeServer } from '@/api/nodeServer'
+import { getActiveInstances, stopInstance, startInstance } from '@/api/canalInstance'
 import { getCanalClusters } from '@/api/canalCluster'
 import Pagination from '@/components/Pagination'
 
@@ -143,7 +182,10 @@ export default {
   data() {
     return {
       list: null,
+      instanceList: null,
       listLoading: true,
+      listLoading2: true,
+      serverIdTmp: null,
       canalClusters: [],
       count: 0,
       listQuery: {
@@ -154,6 +196,7 @@ export default {
         size: 20
       },
       dialogFormVisible: false,
+      dialogInstances: false,
       textMap: {
         create: '新建Server信息',
         update: '修改Server信息'
@@ -220,6 +263,19 @@ export default {
       this.dialogFormVisible = true
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
+      })
+    },
+    handleInstances(row) {
+      this.serverIdTmp = row.id
+      this.activeInstances()
+    },
+    activeInstances() {
+      this.listLoading2 = true
+      this.dialogInstances = true
+      getActiveInstances(this.serverIdTmp).then(res => {
+        this.instanceList = res.data
+      }).finally(() => {
+        this.listLoading2 = false
       })
     },
     dataOperation() {
@@ -341,6 +397,58 @@ export default {
     },
     handleLog(row) {
       this.$router.push('nodeServer/log?id=' + row.id)
+    },
+    handleStartInstance(row) {
+      if (row.runningStatus !== '0') {
+        this.$message({ message: '当前Instance不是停止状态，无法启动', type: 'error' })
+        return
+      }
+      this.$confirm('启动Instance服务', '确定启动Instance服务', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        startInstance(row.id, this.serverIdTmp).then((res) => {
+          if (res.data) {
+            this.activeInstances()
+            this.$message({
+              message: '启动成功, 稍后请刷新列表查看状态',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: '启动Instance服务出现异常',
+              type: 'error'
+            })
+          }
+        })
+      })
+    },
+    handleStopInstance(row) {
+      if (row.runningStatus !== '1') {
+        this.$message({ message: '当前Instance不是运行状态，无法停止', type: 'error' })
+        return
+      }
+      this.$confirm('集群模式下停止实例其它主机将会抢占执行该实例', '停止 Instance 服务', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        stopInstance(row.id, this.serverIdTmp).then((res) => {
+          if (res.data) {
+            this.activeInstances()
+            this.$message({
+              message: '停止成功, 稍后请刷新列表查看状态',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: '停止Instance服务出现异常',
+              type: 'error'
+            })
+          }
+        })
+      })
     }
   }
 }

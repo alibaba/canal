@@ -165,10 +165,10 @@ export default {
       })
     },
     handleStart(row) {
-      if (row.runningStatus === '1') {
-        this.$message({ message: '当前Instance已处于启动状态！', type: 'error' })
-        return
-      }
+      // if (row.runningStatus === '1') {
+      //   this.$message({ message: '当前Instance已处于启动状态！', type: 'error' })
+      //   return
+      // }
       this.$confirm('启动Instance: ' + row.name, '确定启动Instance服务', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -191,10 +191,10 @@ export default {
       })
     },
     handleStop(row) {
-      if (row.runningStatus === '0') {
-        this.$message({ message: '当前Instance已处于停止状态！', type: 'error' })
-        return
-      }
+      // if (row.runningStatus === '0') {
+      //   this.$message({ message: '当前Instance已处于停止状态！', type: 'error' })
+      //   return
+      // }
       this.$confirm('停止Instance: ' + row.name, '确定停止Instance服务', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -221,7 +221,7 @@ export default {
         this.$message({ message: '当前Instance不是启动状态，无法查看日志', type: 'warning' })
         return
       }
-      this.$router.push('canalInstance/log?id=' + row.id + '&nodeId=' + row.nodeId)
+      this.$router.push('canalInstance/log?id=' + row.id + '&nodeId=' + row.nodeServer.id)
     }
   }
 }

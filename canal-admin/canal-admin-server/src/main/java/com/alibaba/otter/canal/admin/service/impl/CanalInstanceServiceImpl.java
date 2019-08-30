@@ -114,6 +114,54 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         return pager;
     }
 
+    /**
+     * 通过Server id获取当前Server下所有运行的Instance
+     *
+     * @param serverId server id
+     */
+    public List<CanalInstanceConfig> findActiveInstaceByServerId(Long serverId) {
+        NodeServer nodeServer = NodeServer.find.byId(serverId);
+        if (nodeServer == null) {
+            return null;
+        }
+        String runningInstances = SimpleAdminConnectors
+            .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
+        if (runningInstances == null) {
+            return null;
+        }
+
+        String[] instances = runningInstances.split(",");
+
+        // 单机模式和集群模式区分处理
+        if (nodeServer.getClusterId() != null) { // 集群模式
+            List<CanalInstanceConfig> list = CanalInstanceConfig.find.query()
+                .setDisableLazyLoading(true)
+                .select("clusterId, serverId, name, modifiedTime")
+                .where()
+                // 暂停的实例也显示 .eq("status", "1")
+                .in("name", instances)
+                .findList();
+            list.forEach(config -> config.setRunningStatus("1"));
+            return list; // 集群模式直接返回当前运行的Instances
+        } else { // 单机模式
+            // 当前Server所配置的所有Instance
+            List<CanalInstanceConfig> list = CanalInstanceConfig.find.query()
+                .setDisableLazyLoading(true)
+                .select("clusterId, serverId, name, modifiedTime")
+                .where()
+                // 暂停的实例也显示 .eq("status", "1")
+                .eq("serverId", serverId)
+                .findList();
+            List<String> instanceList = Arrays.asList(instances);
+            list.forEach(config -> {
+                if (instanceList.contains(config.getName())) {
+                    config.setRunningStatus("1");
+                }
+            });
+            return list;
+        }
+    }
+
     public void save(CanalInstanceConfig canalInstanceConfig) {
         if (StringUtils.isEmpty(canalInstanceConfig.getClusterServerId())) {
             throw new ServiceException("empty cluster or server id");
@@ -233,13 +281,34 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
         Boolean resutl = null;
         if ("start".equals(option)) {
-            resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                nodeServer.getAdminPort(),
-                adminConnector -> adminConnector.startInstance(canalInstanceConfig.getName()));
+            if (nodeServer.getClusterId() == null) { // 非集群模式
+                return instanceOperation(id, "start");
+                // resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
+                // nodeServer.getAdminPort(),
+                // adminConnector ->
+                // adminConnector.startInstance(canalInstanceConfig.getName()));
+            }
         } else if ("stop".equals(option)) {
-            resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                nodeServer.getAdminPort(),
-                adminConnector -> adminConnector.stopInstance(canalInstanceConfig.getName()));
+            if (nodeServer.getClusterId() != null) {
+                resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
+                    nodeServer.getAdminPort(),
+                    adminConnector -> adminConnector.stopInstance(canalInstanceConfig.getName()));
+
+                NodeServer nodeServerTmp = nodeServer;
+                // 集群模式下停止实例后过五秒钟再次启动进行启动抢占
+                Thread thread = new Thread(() -> {
+                    try {
+                        Thread.sleep(5000);
+                        SimpleAdminConnectors.execute(nodeServerTmp.getIp(),
+                            nodeServerTmp.getAdminPort(),
+                            adminConnector -> adminConnector.startInstance(canalInstanceConfig.getName()));
+                    } catch (Throwable e) {
+                    }
+                });
+                thread.start();
+            } else { // 非集群模式下直接将状态置为0
+                return instanceOperation(id, "stop");
+            }
         } else {
             return false;
         }

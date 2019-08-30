@@ -152,4 +152,16 @@ public class CanalInstanceController {
                                                       @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.remoteInstanceLog(id, nodeId));
     }
+
+    /**
+     * 通过Server id获取所有活动的Instance
+     *
+     * @param serverId 节点id
+     * @param env 环境变量
+     * @return 实例列表
+     */
+    @GetMapping(value = "/active/instances/{serverId}")
+    public BaseModel<List<CanalInstanceConfig>> activeInstances(@PathVariable Long serverId, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.findActiveInstaceByServerId(serverId));
+    }
 }

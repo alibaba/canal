@@ -65,3 +65,10 @@ export function instanceStatus(id, option) {
     method: 'put'
   })
 }
+
+export function getActiveInstances(serverId) {
+  return request({
+    url: '/canal/active/instances/' + serverId,
+    method: 'get'
+  })
+}
