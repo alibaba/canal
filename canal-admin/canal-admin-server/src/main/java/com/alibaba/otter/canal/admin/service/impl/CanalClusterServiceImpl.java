@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.admin.service.impl;
 import java.util.List;
 
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
+import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,12 @@ public class CanalClusterServiceImpl implements CanalClusterServic {
         int serverCnt = NodeServer.find.query().where().eq("clusterId", id).findCount();
         if (serverCnt > 0) {
             throw new ServiceException("Servers exist, delete failed");
+        }
+
+        // 判断集群下是否存在instance信息
+        int instanceCnt = CanalInstanceConfig.find.query().where().eq("clusterId", id).findCount();
+        if (instanceCnt > 0) {
+            throw new ServiceException("Instances exist, delete failed");
         }
 
         CanalCluster canalCluster = CanalCluster.find.byId(id);
