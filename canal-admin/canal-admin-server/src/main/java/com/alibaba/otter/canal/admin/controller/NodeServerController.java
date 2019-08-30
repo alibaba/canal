@@ -2,13 +2,12 @@ package com.alibaba.otter.canal.admin.controller;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.admin.model.CanalConfig;
-import com.alibaba.otter.canal.admin.service.CanalConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.NodeServer;
+import com.alibaba.otter.canal.admin.model.Pager;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
 
 /**
@@ -22,7 +21,7 @@ import com.alibaba.otter.canal.admin.service.NodeServerService;
 public class NodeServerController {
 
     @Autowired
-    NodeServerService  nodeServerService;
+    NodeServerService nodeServerService;
 
     /**
      * 获取所有节点信息列表
@@ -32,8 +31,9 @@ public class NodeServerController {
      * @return 节点信息列表
      */
     @GetMapping(value = "/nodeServers")
-    public BaseModel<List<NodeServer>> nodeServers(NodeServer nodeServer, @PathVariable String env) {
-        return BaseModel.getInstance(nodeServerService.findList(nodeServer));
+    public BaseModel<Pager<NodeServer>> nodeServers(NodeServer nodeServer, Pager<NodeServer> pager,
+                                                    @PathVariable String env) {
+        return BaseModel.getInstance(nodeServerService.findList(nodeServer, pager));
     }
 
     /**

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
+import com.alibaba.otter.canal.admin.model.Pager;
 
 /**
  * Canal实例配置信息业务层接口
@@ -13,7 +14,7 @@ import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
  */
 public interface CanalInstanceService {
 
-    List<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig);
+    Pager<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig, Pager<CanalInstanceConfig> pager);
 
     void save(CanalInstanceConfig canalInstanceConfig);
 

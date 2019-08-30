@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.admin.controller;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.otter.canal.admin.model.Pager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,9 +32,9 @@ public class CanalInstanceController {
      * @return 实例列表
      */
     @GetMapping(value = "/instances")
-    public BaseModel<List<CanalInstanceConfig>> list(CanalInstanceConfig canalInstanceConfig,
-                                                     @PathVariable String env) {
-        return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig));
+    public BaseModel<Pager<CanalInstanceConfig>> list(CanalInstanceConfig canalInstanceConfig,
+                                                      Pager<CanalInstanceConfig> pager, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig, pager));
     }
 
     /**

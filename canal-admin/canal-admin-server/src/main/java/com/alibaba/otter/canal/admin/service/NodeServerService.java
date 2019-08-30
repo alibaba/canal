@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.admin.service;
 
 import com.alibaba.otter.canal.admin.model.NodeServer;
+import com.alibaba.otter.canal.admin.model.Pager;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public interface NodeServerService {
 
     List<NodeServer> findAll(NodeServer nodeServer);
 
-    List<NodeServer> findList(NodeServer nodeServer);
+    Pager<NodeServer> findList(NodeServer nodeServer, Pager<NodeServer> pager);
 
     int remoteNodeStatus(String ip, Integer port);
 

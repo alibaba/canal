@@ -1,27 +1,23 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
-import com.alibaba.otter.canal.admin.common.DaemonThreadFactory;
-import com.alibaba.otter.canal.admin.common.exception.ServiceException;
-import com.alibaba.otter.canal.protocol.SecurityUtil;
-import io.ebean.Query;
-
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
+import com.alibaba.otter.canal.admin.model.Pager;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.otter.canal.admin.common.DaemonThreadFactory;
+import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.connector.AdminConnector;
 import com.alibaba.otter.canal.admin.connector.SimpleAdminConnectors;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.CanalInstanceService;
+import com.alibaba.otter.canal.protocol.SecurityUtil;
 
-import javax.xml.soap.Node;
+import io.ebean.Query;
 
 /**
  * Canal实例配置信息业务层
@@ -32,51 +28,76 @@ import javax.xml.soap.Node;
 @Service
 public class CanalInstanceServiceImpl implements CanalInstanceService {
 
-    public List<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig) {
+    public Pager<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig,
+                                               Pager<CanalInstanceConfig> pager) {
         Query<CanalInstanceConfig> query = CanalInstanceConfig.find.query()
             .setDisableLazyLoading(true)
-            .select("name, modifiedTime")
+            .select("clusterId, serverId, name, modifiedTime")
             .fetch("canalCluster", "name")
-            .fetch("nodeServer", "name");
+            .fetch("nodeServer", "name,ip,adminPort");
         if (canalInstanceConfig != null) {
             if (StringUtils.isNotEmpty(canalInstanceConfig.getName())) {
                 query.where().like("name", "%" + canalInstanceConfig.getName() + "%");
             }
+            if (StringUtils.isNotEmpty(canalInstanceConfig.getClusterServerId())) {
+                if (canalInstanceConfig.getClusterServerId().startsWith("cluster:")) {
+                    query.where()
+                        .eq("clusterId", Long.parseLong(canalInstanceConfig.getClusterServerId().substring(8)));
+                } else if (canalInstanceConfig.getClusterServerId().startsWith("server:")) {
+                    query.where().eq("serverId", Long.parseLong(canalInstanceConfig.getClusterServerId().substring(7)));
+                }
+            }
         }
-        query.order().asc("id");
+
+        Query<CanalInstanceConfig> queryCnt = query.copy();
+        int count = queryCnt.findCount();
+        pager.setCount((long) count);
+
+        query.setFirstRow(pager.getOffset().intValue()).setMaxRows(pager.getSize()).order().asc("id");
         List<CanalInstanceConfig> canalInstanceConfigs = query.findList();
+        pager.setItems(canalInstanceConfigs);
+
+        if (canalInstanceConfigs.isEmpty()) {
+            return pager;
+        }
 
         // check all canal instances running status
-        List<NodeServer> nodeServers = NodeServer.find.query().findList();
-
-        if (nodeServers.isEmpty()) {
-            return canalInstanceConfigs;
-        }
-
-        ExecutorService executorService = Executors.newFixedThreadPool(nodeServers.size(),
+        ExecutorService executorService = Executors.newFixedThreadPool(canalInstanceConfigs.size(),
             DaemonThreadFactory.daemonThreadFactory);
-        List<Future<Void>> futures = new ArrayList<>(nodeServers.size());
+        List<Future<Void>> futures = new ArrayList<>(canalInstanceConfigs.size());
 
-        for (NodeServer nodeServer : nodeServers) {
+        for (CanalInstanceConfig canalInstanceConfig1 : canalInstanceConfigs) {
             futures.add(executorService.submit(() -> {
-                String runningInstances = SimpleAdminConnectors
-                    .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
-                if (runningInstances == null) {
+                List<NodeServer> nodeServers;
+                if (canalInstanceConfig1.getClusterId() != null) { // 集群模式
+                    nodeServers = NodeServer.find.query()
+                        .where()
+                        .eq("clusterId", canalInstanceConfig1.getClusterId())
+                        .findList();
+                } else if (canalInstanceConfig1.getServerId() != null) { // 单机模式
+                    nodeServers = Collections.singletonList(canalInstanceConfig1.getNodeServer());
+                } else {
                     return null;
                 }
-                String[] instances = runningInstances.split(",");
-                for (String instance : instances) {
-                    for (CanalInstanceConfig cig : canalInstanceConfigs) {
-                        if (instance.equals(cig.getName())) {
-                            if (cig.getNodeServer() == null) { // 集群模式下 server 对象为空
-                                cig.setNodeServer(new NodeServer());
-                                cig.getNodeServer().setName(instance);
+
+                for (NodeServer nodeServer : nodeServers) {
+                    String runningInstances = SimpleAdminConnectors
+                        .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
+                    if (runningInstances == null) {
+                        continue;
+                    }
+                    String[] instances = runningInstances.split(",");
+                    for (String instance : instances) {
+                        if (instance.equals(canalInstanceConfig1.getName())) {
+                            if (canalInstanceConfig1.getNodeServer() == null) { // 集群模式下 server 对象为空
+                                canalInstanceConfig1.setNodeServer(nodeServer);
                             }
-                            cig.setRunningStatus("1");
+                            canalInstanceConfig1.setRunningStatus("1");
                             break;
                         }
                     }
                 }
+
                 return null;
             }));
         }
@@ -88,10 +109,9 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
                 // ignore
             }
         });
-
         executorService.shutdownNow();
 
-        return canalInstanceConfigs;
+        return pager;
     }
 
     public void save(CanalInstanceConfig canalInstanceConfig) {

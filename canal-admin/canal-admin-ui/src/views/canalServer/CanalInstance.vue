@@ -2,7 +2,13 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input v-model="listQuery.name" placeholder="Instance 名称" style="width: 200px;" class="filter-item" />
-      <el-button class="filter-item" type="primary" icon="el-icon-search" plain @click="fetchData()">查询</el-button>
+      <el-select v-model="listQuery.clusterServerId" placeholder="所属集群/主机" class="filter-item">
+        <el-option key="" label="所属集群/主机" value="" />
+        <el-option-group v-for="group in options" :key="group.label" :label="group.label">
+          <el-option v-for="item in group.options" :key="item.value" :label="item.label" :value="item.value" />
+        </el-option-group>
+      </el-select>
+      <el-button class="filter-item" type="primary" icon="el-icon-search" plain @click="queryData()">查询</el-button>
       &nbsp;&nbsp;
       <el-button class="filter-item" type="primary" @click="handleCreate()">新建 Instance</el-button>
       <el-button class="filter-item" type="info" @click="fetchData()">刷新列表</el-button>
@@ -63,13 +69,17 @@
         </template>
       </el-table-column>
     </el-table>
+    <pagination v-show="count>0" :total="count" :page.sync="listQuery.page" :limit.sync="listQuery.size" @pagination="fetchData()" />
   </div>
 </template>
 
 <script>
 import { getCanalInstances, deleteCanalInstance, instanceStatus } from '@/api/canalInstance'
+import Pagination from '@/components/Pagination'
+import { getClustersAndServers } from '@/api/canalCluster'
 
 export default {
+  components: { Pagination },
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -92,8 +102,13 @@ export default {
       listLoading: true,
       dialogFormVisible: false,
       nodeServices: [],
+      count: 0,
+      options: [],
       listQuery: {
-        name: ''
+        name: '',
+        clusterServerId: '',
+        page: 1,
+        size: 20
       },
       currentId: null,
       rules: {
@@ -102,13 +117,21 @@ export default {
     }
   },
   created() {
+    getClustersAndServers().then((res) => {
+      this.options = res.data
+    })
     this.fetchData()
   },
   methods: {
+    queryData() {
+      this.listQuery.page = 1
+      this.fetchData()
+    },
     fetchData() {
       this.listLoading = true
       getCanalInstances(this.listQuery).then(res => {
-        this.list = res.data
+        this.list = res.data.items
+        this.count = res.data.count
       }).finally(() => {
         this.listLoading = false
       })

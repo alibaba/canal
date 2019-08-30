@@ -4,11 +4,11 @@
       <!--<el-input v-model="listQuery.name" placeholder="Server 名称" style="width: 200px;" class="filter-item" />-->
       <el-select v-model="listQuery.clusterId" placeholder="所属集群" class="filter-item">
         <el-option key="" label="所属集群" value="" />
-        <el-option key="-1" label="STANDALONE" value="-1" />
+        <el-option key="-1" label="单机" value="-1" />
         <el-option v-for="item in canalClusters" :key="item.id" :label="item.name" :value="item.id" />
       </el-select>
       <el-input v-model="listQuery.ip" placeholder="Server IP" style="width: 200px;" class="filter-item" />
-      <el-button class="filter-item" type="primary" icon="el-icon-search" plain @click="fetchData()">查询</el-button>
+      <el-button class="filter-item" type="primary" icon="el-icon-search" plain @click="queryData()">查询</el-button>
       <el-button class="filter-item" type="primary" @click="handleCreate()">新建Server</el-button>
       <el-button class="filter-item" type="info" @click="fetchData()">刷新列表</el-button>
     </div>
@@ -25,8 +25,8 @@
           <span v-if="scope.row.canalCluster !== null">
             {{ scope.row.canalCluster.name }}
           </span>
-          <span v-else style="color:green">
-            STANDALONE
+          <span v-else>
+            -
           </span>
         </template>
       </el-table-column>
@@ -78,15 +78,16 @@
         </template>
       </el-table-column>
     </el-table>
+    <pagination v-show="count>0" :total="count" :page.sync="listQuery.page" :limit.sync="listQuery.size" @pagination="fetchData()" />
     <el-dialog :visible.sync="dialogFormVisible" :title="textMap[dialogStatus]" width="600px">
       <el-form ref="dataForm" :rules="rules" :model="nodeModel" label-position="left" label-width="120px" style="width: 400px; margin-left:30px;">
         <el-form-item label="所属集群" prop="clusterId">
           <el-select v-if="dialogStatus === 'create'" v-model="nodeModel.clusterId" placeholder="选择所属集群">
-            <el-option key="" label="STANDALONE" value="" />
+            <el-option key="" label="单机" value="" />
             <el-option v-for="item in canalClusters" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
           <el-select v-else v-model="nodeModel.clusterId" placeholder="选择所属集群" disabled="disabled">
-            <el-option key="" label="STANDALONE" value="" />
+            <el-option key="" label="单机" value="" />
             <el-option v-for="item in canalClusters" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
@@ -117,8 +118,10 @@
 <script>
 import { addNodeServer, getNodeServers, updateNodeServer, deleteNodeServer, startNodeServer, stopNodeServer } from '@/api/nodeServer'
 import { getCanalClusters } from '@/api/canalCluster'
+import Pagination from '@/components/Pagination'
 
 export default {
+  components: { Pagination },
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -142,10 +145,13 @@ export default {
       list: null,
       listLoading: true,
       canalClusters: [],
+      count: 0,
       listQuery: {
         name: '',
         ip: '',
-        clusterId: null
+        clusterId: null,
+        page: 1,
+        size: 20
       },
       dialogFormVisible: false,
       textMap: {
@@ -187,10 +193,15 @@ export default {
     fetchData() {
       this.listLoading = true
       getNodeServers(this.listQuery).then(res => {
-        this.list = res.data
+        this.list = res.data.items
+        this.count = res.data.count
       }).finally(() => {
         this.listLoading = false
       })
+    },
+    queryData() {
+      this.listQuery.page = 1
+      this.fetchData()
     },
     resetModel() {
       this.nodeModel = {

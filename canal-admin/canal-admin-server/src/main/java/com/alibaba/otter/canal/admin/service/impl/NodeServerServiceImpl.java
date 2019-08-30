@@ -1,8 +1,7 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
 import com.alibaba.otter.canal.admin.common.DaemonThreadFactory;
-import com.alibaba.otter.canal.admin.model.CanalCluster;
-import com.alibaba.otter.canal.admin.model.CanalConfig;
+import com.alibaba.otter.canal.admin.model.*;
 import io.ebean.Query;
 
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.connector.AdminConnector;
 import com.alibaba.otter.canal.admin.connector.SimpleAdminConnectors;
-import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
 
 /**
@@ -61,7 +59,11 @@ public class NodeServerServiceImpl implements NodeServerService {
     public void delete(Long id) {
         NodeServer nodeServer = NodeServer.find.byId(id);
         if (nodeServer != null) {
-            // TODO 判断是否存在实例
+            // 判断是否存在实例
+            int cnt = CanalInstanceConfig.find.query().where().eq("serverId", nodeServer.getId()).findCount();
+            if (cnt > 0) {
+                throw new ServiceException("当前Server下存在Instance配置, 无法删除");
+            }
 
             // 同时删除配置
             CanalConfig canalConfig = CanalConfig.find.query().where().eq("serverId", id).findOne();
@@ -73,9 +75,8 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
     }
 
-    public List<NodeServer> findAll(NodeServer nodeServer) {
+    private Query<NodeServer> getBaseQuery(NodeServer nodeServer) {
         Query<NodeServer> query = NodeServer.find.query();
-
         query.fetch("canalCluster", "name").setDisableLazyLoading(true);
 
         if (nodeServer != null) {
@@ -93,14 +94,33 @@ public class NodeServerServiceImpl implements NodeServerService {
                 }
             }
         }
+
+        return query;
+    }
+
+    public List<NodeServer> findAll(NodeServer nodeServer) {
+        Query<NodeServer> query = getBaseQuery(nodeServer);
         query.order().asc("id");
         return query.findList();
     }
 
-    public List<NodeServer> findList(NodeServer nodeServer) {
-        List<NodeServer> nodeServers = findAll(nodeServer);
+    public Pager<NodeServer> findList(NodeServer nodeServer, Pager<NodeServer> pager) {
+
+        Query<NodeServer> query = getBaseQuery(nodeServer);
+        Query<NodeServer> queryCnt = query.copy();
+
+        int count = queryCnt.findCount();
+        pager.setCount((long) count);
+
+        List<NodeServer> nodeServers = query.order()
+            .asc("id")
+            .setFirstRow(pager.getOffset().intValue())
+            .setMaxRows(pager.getSize())
+            .findList();
+        pager.setItems(nodeServers);
+
         if (nodeServers.isEmpty()) {
-            return nodeServers;
+            return pager;
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(nodeServers.size(),
@@ -124,7 +144,7 @@ public class NodeServerServiceImpl implements NodeServerService {
 
         executorService.shutdownNow();
 
-        return nodeServers;
+        return pager;
     }
 
     public int remoteNodeStatus(String ip, Integer port) {
