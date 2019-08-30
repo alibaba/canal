@@ -154,86 +154,87 @@ public class CanalController {
 
         final ServerRunningData serverData = new ServerRunningData(cid, registerIp + ":" + port);
         ServerRunningMonitors.setServerData(serverData);
-        ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>() {
+        ServerRunningMonitors
+            .setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>() {
 
-            public ServerRunningMonitor apply(final String destination) {
-                ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
-                runningMonitor.setDestination(destination);
-                runningMonitor.setListener(new ServerRunningListener() {
+                public ServerRunningMonitor apply(final String destination) {
+                    ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
+                    runningMonitor.setDestination(destination);
+                    runningMonitor.setListener(new ServerRunningListener() {
 
-                    public void processActiveEnter() {
-                        try {
-                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            embededCanalServer.start(destination);
-                            if (canalMQStarter != null) {
-                                canalMQStarter.startDestination(destination);
+                        public void processActiveEnter() {
+                            try {
+                                MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                                embededCanalServer.start(destination);
+                                if (canalMQStarter != null) {
+                                    canalMQStarter.startDestination(destination);
+                                }
+                            } finally {
+                                MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
-                    }
 
-                    public void processActiveExit() {
-                        try {
-                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            if (canalMQStarter != null) {
-                                canalMQStarter.stopDestination(destination);
+                        public void processActiveExit() {
+                            try {
+                                MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                                if (canalMQStarter != null) {
+                                    canalMQStarter.stopDestination(destination);
+                                }
+                                embededCanalServer.stop(destination);
+                            } finally {
+                                MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
-                            embededCanalServer.stop(destination);
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
-                    }
 
-                    public void processStart() {
-                        try {
-                            if (zkclientx != null) {
-                                final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
-                                    registerIp + ":" + port);
-                                initCid(path);
-                                zkclientx.subscribeStateChanges(new IZkStateListener() {
+                        public void processStart() {
+                            try {
+                                if (zkclientx != null) {
+                                    final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
+                                        registerIp + ":" + port);
+                                    initCid(path);
+                                    zkclientx.subscribeStateChanges(new IZkStateListener() {
 
-                                    public void handleStateChanged(KeeperState state) throws Exception {
+                                        public void handleStateChanged(KeeperState state) throws Exception {
 
-                                    }
+                                        }
 
-                                    public void handleNewSession() throws Exception {
-                                        initCid(path);
-                                    }
+                                        public void handleNewSession() throws Exception {
+                                            initCid(path);
+                                        }
 
-                                    @Override
-                                    public void handleSessionEstablishmentError(Throwable error) throws Exception {
-                                        logger.error("failed to connect to zookeeper", error);
-                                    }
-                                });
+                                        @Override
+                                        public void handleSessionEstablishmentError(Throwable error) throws Exception {
+                                            logger.error("failed to connect to zookeeper", error);
+                                        }
+                                    });
+                                }
+                            } finally {
+                                MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
-                    }
 
-                    public void processStop() {
-                        try {
-                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            if (zkclientx != null) {
-                                final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
-                                    registerIp + ":" + port);
-                                releaseCid(path);
+                        public void processStop() {
+                            try {
+                                MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                                if (zkclientx != null) {
+                                    final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
+                                        registerIp + ":" + port);
+                                    releaseCid(path);
+                                }
+                            } finally {
+                                MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
                         }
-                    }
 
-                });
-                if (zkclientx != null) {
-                    runningMonitor.setZkClient(zkclientx);
+                    });
+                    if (zkclientx != null) {
+                        runningMonitor.setZkClient(zkclientx);
+                    }
+                    // 触发创建一下cid节点
+                    runningMonitor.init();
+                    return runningMonitor;
                 }
-                // 触发创建一下cid节点
-                runningMonitor.init();
-                return runningMonitor;
-            }
-        }));
+            }));
 
         // 初始化monitor机制
         autoScan = BooleanUtils.toBoolean(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN));
@@ -285,7 +286,8 @@ public class CanalController {
             instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
 
                 public InstanceConfigMonitor apply(InstanceMode mode) {
-                    int scanInterval = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
+                    int scanInterval = Integer
+                        .valueOf(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
 
                     if (mode.isSpring()) {
                         SpringInstanceConfigMonitor monitor = new SpringInstanceConfigMonitor();
@@ -381,7 +383,7 @@ public class CanalController {
     }
 
     private PlainCanalConfigClient getManagerClient(String managerAddress) {
-        return new PlainCanalConfigClient(managerAddress, this.adminUser, this.adminPasswd);
+        return new PlainCanalConfigClient(managerAddress, this.adminUser, this.adminPasswd, null, adminPort);
     }
 
     private void initInstanceConfig(Properties properties) {
@@ -393,7 +395,8 @@ public class CanalController {
             InstanceConfig oldConfig = instanceConfigs.put(destination, config);
 
             if (oldConfig != null) {
-                logger.warn("destination:{} old config:{} has replace by new config:{}", destination, oldConfig, config);
+                logger
+                    .warn("destination:{} old config:{} has replace by new config:{}", destination, oldConfig, config);
             }
         }
     }

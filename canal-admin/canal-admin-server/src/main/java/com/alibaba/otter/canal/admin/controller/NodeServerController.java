@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.NodeServer;
+import com.alibaba.otter.canal.admin.model.Pager;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
 
 /**
@@ -30,8 +31,9 @@ public class NodeServerController {
      * @return 节点信息列表
      */
     @GetMapping(value = "/nodeServers")
-    public BaseModel<List<NodeServer>> nodeServers(NodeServer nodeServer, @PathVariable String env) {
-        return BaseModel.getInstance(nodeServerService.findList(nodeServer));
+    public BaseModel<Pager<NodeServer>> nodeServers(NodeServer nodeServer, Pager<NodeServer> pager,
+                                                    @PathVariable String env) {
+        return BaseModel.getInstance(nodeServerService.findList(nodeServer, pager));
     }
 
     /**

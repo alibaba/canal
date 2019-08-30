@@ -3,15 +3,9 @@ package com.alibaba.otter.canal.admin.controller;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.otter.canal.admin.model.Pager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
@@ -38,8 +32,9 @@ public class CanalInstanceController {
      * @return 实例列表
      */
     @GetMapping(value = "/instances")
-    public BaseModel<List<CanalInstanceConfig>> list(CanalInstanceConfig canalInstanceConfig, @PathVariable String env) {
-        return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig));
+    public BaseModel<Pager<CanalInstanceConfig>> list(CanalInstanceConfig canalInstanceConfig,
+                                                      Pager<CanalInstanceConfig> pager, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.findList(canalInstanceConfig, pager));
     }
 
     /**
@@ -131,6 +126,20 @@ public class CanalInstanceController {
     }
 
     /**
+     * 通过操作instance状态启动/停止远程instance
+     *
+     * @param id 实例配置id
+     * @param option 操作类型: start/stop
+     * @param env 环境变量
+     * @return 是否成功
+     */
+    @PutMapping(value = "/instance/status/{id}")
+    public BaseModel<Boolean> instanceStart(@PathVariable Long id, @RequestParam String option,
+                                            @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.instanceOperation(id, option));
+    }
+
+    /**
      * 获取远程实例运行日志
      *
      * @param id 实例配置id
@@ -142,5 +151,17 @@ public class CanalInstanceController {
     public BaseModel<Map<String, String>> instanceLog(@PathVariable Long id, @PathVariable Long nodeId,
                                                       @PathVariable String env) {
         return BaseModel.getInstance(canalInstanceConfigService.remoteInstanceLog(id, nodeId));
+    }
+
+    /**
+     * 通过Server id获取所有活动的Instance
+     *
+     * @param serverId 节点id
+     * @param env 环境变量
+     * @return 实例列表
+     */
+    @GetMapping(value = "/active/instances/{serverId}")
+    public BaseModel<List<CanalInstanceConfig>> activeInstances(@PathVariable Long serverId, @PathVariable String env) {
+        return BaseModel.getInstance(canalInstanceConfigService.findActiveInstaceByServerId(serverId));
     }
 }

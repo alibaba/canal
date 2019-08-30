@@ -27,7 +27,7 @@ public class CanalLauncher {
     private static final Logger             logger               = LoggerFactory.getLogger(CanalLauncher.class);
     public static final CountDownLatch      runningLatch         = new CountDownLatch(1);
     private static ScheduledExecutorService executor             = Executors.newScheduledThreadPool(1,
-                                                                     new NamedThreadFactory("canal-server-scan"));
+        new NamedThreadFactory("canal-server-scan"));
 
     public static void main(String[] args) {
         try {
@@ -49,11 +49,19 @@ public class CanalLauncher {
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
                 String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
-                final PlainCanalConfigClient configClient = new PlainCanalConfigClient(managerAddress, user, passwd);
+                String adminPort = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT);
+                if (StringUtils.isEmpty(adminPort)) {
+                    adminPort = "11110";
+                }
+                final PlainCanalConfigClient configClient = new PlainCanalConfigClient(managerAddress,
+                    user,
+                    passwd,
+                    "",
+                    Integer.parseInt(adminPort));
                 PlainCanal canalConfig = configClient.findServer(null);
                 properties = canalConfig.getProperties();
-                int scanIntervalInSecond = Integer.valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
-                    "5"));
+                int scanIntervalInSecond = Integer
+                    .valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
                 executor.scheduleWithFixedDelay(new Runnable() {
 
                     private PlainCanal lastCanalConfig;

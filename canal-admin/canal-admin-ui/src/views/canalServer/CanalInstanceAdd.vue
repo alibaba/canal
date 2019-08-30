@@ -3,7 +3,11 @@
     <el-form ref="form" :model="form">
       <div class="filter-container" style="padding-left: 10px;padding-top: 20px;">
         <el-input v-model="form.name" placeholder="Instance名称" style="width: 200px;" class="filter-item" />
-        &nbsp;
+        <el-select v-model="form.clusterServerId" placeholder="所属集群/主机" class="filter-item">
+          <el-option-group v-for="group in options" :key="group.label" :label="group.label">
+            <el-option v-for="item in group.options" :key="item.value" :label="item.label" :value="item.value" />
+          </el-option-group>
+        </el-select>
         <el-button class="filter-item" type="primary" @click="onSubmit">保存</el-button>
         <el-button class="filter-item" type="info" @click="onBack">返回</el-button>
       </div>
@@ -14,6 +18,7 @@
 
 <script>
 import { addCanalInstance } from '@/api/canalInstance'
+import { getClustersAndServers } from '@/api/canalCluster'
 
 export default {
   components: {
@@ -21,13 +26,18 @@ export default {
   },
   data() {
     return {
+      options: [],
       form: {
         name: '',
-        content: ''
+        content: '',
+        clusterServerId: ''
       }
     }
   },
   created() {
+    getClustersAndServers().then((res) => {
+      this.options = res.data
+    })
   },
   methods: {
     editorInit() {
@@ -44,6 +54,20 @@ export default {
       if (this.form.name === '') {
         this.$message({
           message: '请输入Instance名称',
+          type: 'error'
+        })
+        return
+      }
+      if (this.form.clusterServerId === '') {
+        this.$message({
+          message: '请选择所属集群/主机',
+          type: 'error'
+        })
+        return
+      }
+      if (this.form.content === null || this.form.content === '') {
+        this.$message({
+          message: '请输入配置内容',
           type: 'error'
         })
         return
