@@ -111,8 +111,7 @@ public class ServerRunningTest extends AbstractZkTest {
         sleep(30000L);
     }
 
-    private ServerRunningMonitor buildServerRunning(final CountDownLatch countLatch, final final String ip,
-                                                    final int port) {
+    private ServerRunningMonitor buildServerRunning(final CountDownLatch countLatch, final String ip, final int port) {
         ServerRunningData serverData = new ServerRunningData(ip + ":" + port);
         ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
         runningMonitor.setDestination(destination);
