@@ -29,6 +29,8 @@
                 <include>logback.xml</include>
                 <include>public/**</include>
                 <include>canal_manager.sql</include>
+                <include>canal-template.properties</include>
+                <include>instance-template.properties</include>
             </includes>
         </fileSet>
         <fileSet>

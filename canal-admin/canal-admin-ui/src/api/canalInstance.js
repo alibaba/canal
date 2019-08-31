@@ -72,3 +72,10 @@ export function getActiveInstances(serverId) {
     method: 'get'
   })
 }
+
+export function getTemplateInstance() {
+  return request({
+    url: '/canal/instance/template',
+    method: 'get'
+  })
+}

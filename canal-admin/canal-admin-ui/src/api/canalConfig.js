@@ -14,3 +14,10 @@ export function updateCanalConfig(data) {
     data
   })
 }
+
+export function getTemplateConfig() {
+  return request({
+    url: '/canal/config/template',
+    method: 'get'
+  })
+}
