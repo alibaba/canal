@@ -119,13 +119,23 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
      *
      * @param serverId server id
      */
-    public List<CanalInstanceConfig> findActiveInstaceByServerId(Long serverId) {
+    public List<CanalInstanceConfig> findActiveInstanceByServerId(Long serverId) {
         NodeServer nodeServer = NodeServer.find.byId(serverId);
         if (nodeServer == null) {
             return null;
         }
-        String runningInstances = SimpleAdminConnectors
-            .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
+
+      String runningInstances = null;
+        if (nodeServer.getClusterId() != null) {// 集群模式
+            // 只取活动的instances
+            runningInstances = SimpleAdminConnectors
+                .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
+        } else {
+            // 取所属所有instances
+            runningInstances = SimpleAdminConnectors
+                .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getInstances);
+        }
+
         if (runningInstances == null) {
             return null;
         }
@@ -225,16 +235,6 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         if (canalInstanceConfig != null) {
             canalInstanceConfig.delete();
         }
-    }
-
-    @Override
-    public CanalInstanceConfig findOne(String name) {
-        CanalInstanceConfig config = CanalInstanceConfig.find.query()
-            .setDisableLazyLoading(true)
-            .where()
-            .eq("name", name)
-            .findOne();
-        return config;
     }
 
     public Map<String, String> remoteInstanceLog(Long id, Long nodeId) {

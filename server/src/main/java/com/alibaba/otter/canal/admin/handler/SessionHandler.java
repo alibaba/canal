@@ -58,6 +58,9 @@ public class SessionHandler extends SimpleChannelHandler {
                         case "list":
                             message = canalAdmin.getRunningInstances();
                             break;
+                        case "instances":
+                            message = canalAdmin.getInstances();
+                            break;
                         default:
                             byte[] errorBytes = AdminNettyUtils.errorPacket(301,
                                 MessageFormatter.format("ServerAdmin action={} is unknown", action).getMessage());
@@ -129,9 +132,11 @@ public class SessionHandler extends SimpleChannelHandler {
             }
         } catch (Throwable exception) {
             byte[] errorBytes = AdminNettyUtils.errorPacket(400,
-                MessageFormatter.format("something goes wrong with channel:{}, exception={}",
-                    ctx.getChannel(),
-                    ExceptionUtils.getStackTrace(exception)).getMessage());
+                MessageFormatter
+                    .format("something goes wrong with channel:{}, exception={}",
+                        ctx.getChannel(),
+                        ExceptionUtils.getStackTrace(exception))
+                    .getMessage());
             AdminNettyUtils.write(ctx.getChannel(), errorBytes);
         }
     }
