@@ -51,7 +51,7 @@ public class CanalLauncher {
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
                 String passwd = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
-                String adminPort = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT);
+                String adminPort = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT, "11110");
                 boolean autoRegister = BooleanUtils.toBoolean(CanalController.getProperty(properties,
                     CanalConstants.CANAL_ADMIN_AUTO_REGISTER));
                 String autoCluster = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_AUTO_CLUSTER);
@@ -75,8 +75,9 @@ public class CanalLauncher {
                 Properties managerProperties = canalConfig.getProperties();
                 // merge local
                 managerProperties.putAll(properties);
-                int scanIntervalInSecond = Integer.valueOf(CanalController.getProperty(properties,
-                    CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
+                int scanIntervalInSecond = Integer.valueOf(CanalController.getProperty(managerProperties,
+                    CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
+                    "5"));
                 executor.scheduleWithFixedDelay(new Runnable() {
 
                     private PlainCanal lastCanalConfig;

@@ -5,18 +5,51 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
+import com.alibaba.otter.canal.admin.model.CanalCluster;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
-import com.alibaba.otter.canal.admin.service.PollingConfigServer;
+import com.alibaba.otter.canal.admin.service.CanalClusterService;
+import com.alibaba.otter.canal.admin.service.NodeServerService;
+import com.alibaba.otter.canal.admin.service.PollingConfigService;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
 import com.google.common.base.Joiner;
 
 @Service
-public class PollingConfigServiceImpl implements PollingConfigServer {
+public class PollingConfigServiceImpl implements PollingConfigService {
+
+    @Autowired
+    NodeServerService   nodeServerService;
+
+    @Autowired
+    CanalClusterService canalClusterService;
+
+    public boolean autoRegister(String ip, Integer adminPort, String cluster) {
+        NodeServer server = NodeServer.find.query().where().eq("ip", ip).eq("adminPort", adminPort).findOne();
+        if (server == null) {
+            server = new NodeServer();
+            server.setName(ip);
+            server.setIp(ip);
+            server.setAdminPort(adminPort);
+            server.setTcpPort(adminPort + 1);
+            server.setMetricPort(adminPort + 2);
+            if (StringUtils.isNotEmpty(cluster)) {
+                CanalCluster clusterConfig = CanalCluster.find.query().where().eq("name", cluster).findOne();
+                if (clusterConfig == null) {
+                    throw new ServiceException("auto cluster : " + cluster + " is not found.");
+                }
+
+                server.setClusterId(clusterConfig.getId());
+            }
+            nodeServerService.save(server);
+        }
+
+        return true;
+    }
 
     public CanalConfig getChangedConfig(String ip, Integer port, String md5) {
         NodeServer server = NodeServer.find.query().where().eq("ip", ip).eq("adminPort", port).findOne();

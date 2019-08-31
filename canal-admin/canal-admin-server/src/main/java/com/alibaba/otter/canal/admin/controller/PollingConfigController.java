@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
-import com.alibaba.otter.canal.admin.service.PollingConfigServer;
+import com.alibaba.otter.canal.admin.service.PollingConfigService;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
 
 /**
@@ -37,7 +37,7 @@ public class PollingConfigController {
     String                      passwd;
 
     @Autowired
-    PollingConfigServer         pollingConfigServer;
+    PollingConfigService        pollingConfigService;
 
     /**
      * 获取server全局配置
@@ -45,16 +45,18 @@ public class PollingConfigController {
     @GetMapping(value = "/server_polling")
     public BaseModel<CanalConfig> canalConfigPoll(@RequestHeader String user, @RequestHeader String passwd,
                                                   @RequestParam String ip, @RequestParam Integer port,
-                                                  @RequestParam String md5, @PathVariable boolean register,
-                                                  @PathVariable String cluster, @PathVariable String env) {
+                                                  @RequestParam String md5, @RequestParam boolean register,
+                                                  @RequestParam String cluster, @PathVariable String env) {
         if (!auth(user, passwd)) {
             throw new RuntimeException("auth :" + user + " is failed");
         }
 
-        if (register) {
+        if (StringUtils.isEmpty(md5) && register) {
             // do something
+            pollingConfigService.autoRegister(ip, port, cluster);
         }
-        CanalConfig canalConfig = pollingConfigServer.getChangedConfig(ip, port, md5);
+
+        CanalConfig canalConfig = pollingConfigService.getChangedConfig(ip, port, md5);
         return BaseModel.getInstance(canalConfig);
     }
 
@@ -69,7 +71,7 @@ public class PollingConfigController {
             throw new RuntimeException("auth :" + user + " is failed");
         }
 
-        CanalInstanceConfig canalInstanceConfig = pollingConfigServer.getInstanceConfig(destination, md5);
+        CanalInstanceConfig canalInstanceConfig = pollingConfigService.getInstanceConfig(destination, md5);
         return BaseModel.getInstance(canalInstanceConfig);
     }
 
@@ -84,7 +86,7 @@ public class PollingConfigController {
             throw new RuntimeException("auth :" + user + " is failed");
         }
 
-        CanalInstanceConfig canalInstanceConfig = pollingConfigServer.getInstancesConfig(ip, port, md5);
+        CanalInstanceConfig canalInstanceConfig = pollingConfigService.getInstancesConfig(ip, port, md5);
         return BaseModel.getInstance(canalInstanceConfig);
     }
 
