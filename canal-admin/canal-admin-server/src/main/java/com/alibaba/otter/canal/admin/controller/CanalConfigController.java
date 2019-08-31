@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.admin.controller;
 
+import com.alibaba.otter.canal.admin.common.TemplateConfigLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,4 +51,8 @@ public class CanalConfigController {
         return BaseModel.getInstance("success");
     }
 
+    @GetMapping(value = "/config/template")
+    public BaseModel<String> template(@PathVariable String env) {
+        return BaseModel.getInstance(TemplateConfigLoader.loadCanalConfig());
+    }
 }

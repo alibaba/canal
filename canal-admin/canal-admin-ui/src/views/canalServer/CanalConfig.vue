@@ -6,6 +6,7 @@
           {{ form.name }}&nbsp;&nbsp;&nbsp;&nbsp;
           <el-button type="primary" @click="onSubmit">保存</el-button>
           <el-button type="warning" @click="onCancel">重置</el-button>
+          <el-button type="success" @click="onLoadTemplate">载入模板</el-button>
           <el-button type="info" @click="onBack">返回</el-button>
         </el-form-item>
       </div>
@@ -15,7 +16,7 @@
 </template>
 
 <script>
-import { getCanalConfig, updateCanalConfig } from '@/api/canalConfig'
+import { getCanalConfig, updateCanalConfig, getTemplateConfig } from '@/api/canalConfig'
 
 export default {
   components: {
@@ -101,6 +102,11 @@ export default {
     },
     onBack() {
       history.go(-1)
+    },
+    onLoadTemplate() {
+      getTemplateConfig().then(res => {
+        this.form.content = res.data
+      })
     }
   }
 }

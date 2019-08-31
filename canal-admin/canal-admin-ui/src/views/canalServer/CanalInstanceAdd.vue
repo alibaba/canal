@@ -9,6 +9,7 @@
           </el-option-group>
         </el-select>
         <el-button class="filter-item" type="primary" @click="onSubmit">保存</el-button>
+        <el-button class="filter-item" type="success" @click="onLoadTemplate">载入模板</el-button>
         <el-button class="filter-item" type="info" @click="onBack">返回</el-button>
       </div>
       <editor v-model="form.content" lang="properties" theme="chrome" width="100%" :height="800" @init="editorInit" />
@@ -17,7 +18,7 @@
 </template>
 
 <script>
-import { addCanalInstance } from '@/api/canalInstance'
+import { addCanalInstance, getTemplateInstance } from '@/api/canalInstance'
 import { getClustersAndServers } from '@/api/canalCluster'
 
 export default {
@@ -99,6 +100,11 @@ export default {
     },
     onBack() {
       history.go(-1)
+    },
+    onLoadTemplate() {
+      getTemplateInstance().then(res => {
+        this.form.content = res.data
+      })
     }
   }
 }

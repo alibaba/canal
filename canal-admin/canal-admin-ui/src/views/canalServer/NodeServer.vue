@@ -311,8 +311,8 @@ export default {
     },
     handleConfig(row) {
       if (row.canalCluster !== null) {
-         this.$message({ message: '集群模式Server不允许单独变更配置，请在集群配置变更', type: 'error' })
-         return
+        this.$message({ message: '集群模式Server不允许单独变更配置，请在集群配置变更', type: 'error' })
+        return
       }
       this.$router.push('/canalServer/nodeServer/config?serverId=' + row.id)
     },
