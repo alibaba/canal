@@ -42,7 +42,7 @@ public class CanalMQStarter {
         this.canalMQProducer = canalMQProducer;
     }
 
-    public synchronized void start(MQProperties properties) {
+    public synchronized void start(MQProperties properties, String destinations) {
         try {
             if (running) {
                 return;
@@ -60,8 +60,8 @@ public class CanalMQStarter {
             executorService = Executors.newCachedThreadPool();
             logger.info("## start the MQ workers.");
 
-            String[] destinations = StringUtils.split(System.getProperty("canal.destinations"), ",");
-            for (String destination : destinations) {
+            String[] dsts = StringUtils.split(destinations, ",");
+            for (String destination : dsts) {
                 destination = destination.trim();
                 CanalMQRunnable canalMQRunnable = new CanalMQRunnable(destination);
                 canalMQWorks.put(destination, canalMQRunnable);

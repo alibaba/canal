@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanal;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
@@ -49,9 +50,25 @@ public class CanalLauncher {
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
                 String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
-                final PlainCanalConfigClient configClient = new PlainCanalConfigClient(managerAddress, user, passwd);
+                String adminPort = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT, "11110");
+                String registerIp = properties.getProperty(CanalConstants.CANAL_REGISTER_IP);
+                if (StringUtils.isEmpty(registerIp)) {
+                    registerIp = AddressUtils.getHostIp();
+                }
+                final PlainCanalConfigClient configClient = new PlainCanalConfigClient(managerAddress,
+                    user,
+                    passwd,
+                    registerIp,
+                    Integer.parseInt(adminPort));
                 PlainCanal canalConfig = configClient.findServer(null);
-                properties = canalConfig.getProperties();
+                if (canalConfig == null) {
+                    throw new IllegalArgumentException("managerAddress:" + managerAddress
+                                                       + " can't not found config for [" + registerIp + ":" + adminPort
+                                                       + "]");
+                }
+                Properties managerProperties = canalConfig.getProperties();
+                // merge local
+                managerProperties.putAll(properties);
                 int scanIntervalInSecond = Integer.valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
                     "5"));
                 executor.scheduleWithFixedDelay(new Runnable() {
@@ -67,7 +84,10 @@ public class CanalLauncher {
                                 if (newCanalConfig != null) {
                                     // 远程配置canal.properties修改重新加载整个应用
                                     canalStater.stop();
-                                    canalStater.setProperties(newCanalConfig.getProperties());
+                                    Properties managerProperties = newCanalConfig.getProperties();
+                                    // merge local
+                                    managerProperties.putAll(properties);
+                                    canalStater.setProperties(managerProperties);
                                     canalStater.start();
 
                                     lastCanalConfig = newCanalConfig;
@@ -80,9 +100,11 @@ public class CanalLauncher {
                     }
 
                 }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
+                canalStater.setProperties(managerProperties);
+            } else {
+                canalStater.setProperties(properties);
             }
 
-            canalStater.setProperties(properties);
             canalStater.start();
             runningLatch.await();
             executor.shutdownNow();

@@ -152,7 +152,7 @@ public class CanalController {
             zkclientx.createPersistent(ZookeeperPathUtils.CANAL_CLUSTER_ROOT_NODE, true);
         }
 
-        final ServerRunningData serverData = new ServerRunningData(cid, registerIp + ":" + port);
+        final ServerRunningData serverData = new ServerRunningData(registerIp + ":" + port);
         ServerRunningMonitors.setServerData(serverData);
         ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>() {
 
@@ -280,6 +280,20 @@ public class CanalController {
 
                     logger.info("auto notify reload {} successful.", destination);
                 }
+
+                @Override
+                public void release(String destination) {
+                    // 此处的release，代表强制释放，主要针对HA机制释放运行，让给其他机器抢占
+                    InstanceConfig config = instanceConfigs.get(destination);
+                    if (config != null) {
+                        ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
+                        if (runningMonitor.isStart()) {
+                            runningMonitor.release();
+                        }
+                    }
+
+                    logger.info("auto notify release {} successful.", destination);
+                }
             };
 
             instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
@@ -361,7 +375,7 @@ public class CanalController {
                 }
 
                 if (config.getMode().isManager()) {
-                    PlainCanalInstanceGenerator instanceGenerator = new PlainCanalInstanceGenerator();
+                    PlainCanalInstanceGenerator instanceGenerator = new PlainCanalInstanceGenerator(properties);
                     instanceGenerator.setCanalConfigClient(managerClients.get(config.getManagerAddress()));
                     instanceGenerator.setSpringXml(config.getSpringXml());
                     return instanceGenerator.generate(destination);
@@ -381,7 +395,7 @@ public class CanalController {
     }
 
     private PlainCanalConfigClient getManagerClient(String managerAddress) {
-        return new PlainCanalConfigClient(managerAddress, this.adminUser, this.adminPasswd);
+        return new PlainCanalConfigClient(managerAddress, this.adminUser, this.adminPasswd, this.registerIp, adminPort);
     }
 
     private void initInstanceConfig(Properties properties) {

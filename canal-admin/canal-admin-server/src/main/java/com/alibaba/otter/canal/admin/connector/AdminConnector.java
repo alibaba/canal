@@ -4,11 +4,10 @@ import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 
 /**
- * canal数据操作客户端
+ * canal admin操作客户端
  * 
- * @author zebin.xuzb @ 2012-6-19
- * @author jianghang
- * @version 1.0.0
+ * @author agapple 2019年8月31日 下午12:46:29
+ * @since 1.1.4
  */
 public interface AdminConnector {
 
@@ -84,6 +83,14 @@ public interface AdminConnector {
      * @return 是否成功
      */
     boolean stopInstance(String destination);
+
+    /**
+     * 通过实例名释放,主要针对cluster模式有效(通知当前主机释放instance运行交给其他人来抢占)
+     *
+     * @param destination 实例名
+     * @return 是否成功
+     */
+    boolean releaseInstance(String destination);
 
     /**
      * 通过实例名重启实例

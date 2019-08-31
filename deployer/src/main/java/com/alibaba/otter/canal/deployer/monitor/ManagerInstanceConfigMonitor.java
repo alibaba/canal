@@ -22,24 +22,26 @@ import com.google.common.collect.MigrateMap;
 
 /**
  * 基于manager配置的实现
- * 
+ *
  * @author agapple 2019年8月26日 下午10:00:20
  * @since 1.1.4
  */
 public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle implements InstanceConfigMonitor, CanalLifeCycle {
 
-    private static final Logger         logger               = LoggerFactory.getLogger(ManagerInstanceConfigMonitor.class);
+    private static final Logger         logger               = LoggerFactory
+        .getLogger(ManagerInstanceConfigMonitor.class);
     private long                        scanIntervalInSecond = 5;
     private InstanceAction              defaultAction        = null;
     private Map<String, InstanceAction> actions              = new MapMaker().makeMap();
-    private Map<String, PlainCanal>     configs              = MigrateMap.makeComputingMap(new Function<String, PlainCanal>() {
+    private Map<String, PlainCanal>     configs              = MigrateMap
+        .makeComputingMap(new Function<String, PlainCanal>() {
 
-                                                                 public PlainCanal apply(String destination) {
-                                                                     return new PlainCanal();
-                                                                 }
-                                                             });
+                                                                     public PlainCanal apply(String destination) {
+                                                                         return new PlainCanal();
+                                                                     }
+                                                                 });
     private ScheduledExecutorService    executor             = Executors.newScheduledThreadPool(1,
-                                                                 new NamedThreadFactory("canal-instance-scan"));
+        new NamedThreadFactory("canal-instance-scan"));
 
     private volatile boolean            isFirst              = true;
     private PlainCanalConfigClient      configClient;
@@ -84,7 +86,7 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
     }
 
     private void scan() {
-        String instances = configClient.findInstances(ip, String.valueOf(port), lastInstanceMD5);
+        String instances = configClient.findInstances(lastInstanceMD5);
         final List<String> is = Lists.newArrayList(StringUtils.split(instances, ','));
         List<String> start = Lists.newArrayList();
         List<String> stop = Lists.newArrayList();

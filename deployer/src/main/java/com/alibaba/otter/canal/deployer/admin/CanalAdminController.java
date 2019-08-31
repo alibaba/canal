@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.deployer.admin;
 
 import java.io.File;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.admin.CanalAdmin;
 import com.alibaba.otter.canal.common.utils.FileUtils;
-import com.alibaba.otter.canal.deployer.CanalController;
 import com.alibaba.otter.canal.deployer.CanalStater;
 import com.alibaba.otter.canal.deployer.InstanceConfig;
 import com.alibaba.otter.canal.deployer.monitor.InstanceAction;
@@ -105,13 +105,15 @@ public class CanalAdminController implements CanalAdmin {
     @Override
     public String getRunningInstances() {
         try {
-            CanalController controller = canalStater.getController();
-            if (controller != null) {
-                Map<String, InstanceConfig> instanceConfigs = controller.getInstanceConfigs();
-                if (instanceConfigs != null) {
-                    return Joiner.on(",").join(instanceConfigs.keySet());
+            Map<String, CanalInstance> instances = CanalServerWithEmbedded.instance().getCanalInstances();
+            List<String> runningInstances = new ArrayList<String>();
+            instances.forEach((destination, instance) -> {
+                if (instance.isStart()) {
+                    runningInstances.add(destination);
                 }
-            }
+            });
+
+            return Joiner.on(",").join(runningInstances);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }
@@ -149,6 +151,20 @@ public class CanalAdminController implements CanalAdmin {
             InstanceAction instanceAction = getInstanceAction(destination);
             if (instanceAction != null) {
                 instanceAction.stop(destination);
+                return true;
+            }
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean releaseInstance(String destination) {
+        try {
+            InstanceAction instanceAction = getInstanceAction(destination);
+            if (instanceAction != null) {
+                instanceAction.release(destination);
                 return true;
             }
         } catch (Throwable e) {

@@ -4,9 +4,7 @@ import io.ebean.Finder;
 
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 节点信息实体类
@@ -32,14 +30,19 @@ public class NodeServer extends Model {
     }
 
     @Id
-    private Long    id;
-    private String  name;
-    private String  ip;
-    private Integer adminPort;
-    private Integer metricPort;
-    private Integer tcpPort;
-    private String  status;
-    private Date    modifiedTime;
+    private Long         id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cluster_id", updatable = false, insertable = false)
+    private CanalCluster canalCluster;
+    @Column(name = "cluster_id")
+    private Long         clusterId;
+    private String       name;
+    private String       ip;
+    private Integer      adminPort;
+    private Integer      metricPort;
+    private Integer      tcpPort;
+    private String       status;
+    private Date         modifiedTime;
 
     public void init() {
         status = "-1";
@@ -51,6 +54,22 @@ public class NodeServer extends Model {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public CanalCluster getCanalCluster() {
+        return canalCluster;
+    }
+
+    public void setCanalCluster(CanalCluster canalCluster) {
+        this.canalCluster = canalCluster;
+    }
+
+    public Long getClusterId() {
+        return clusterId;
+    }
+
+    public void setClusterId(Long clusterId) {
+        this.clusterId = clusterId;
     }
 
     public String getName() {

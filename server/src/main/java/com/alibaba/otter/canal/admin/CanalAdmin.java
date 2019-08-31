@@ -73,6 +73,14 @@ public interface CanalAdmin {
     boolean stopInstance(String destination);
 
     /**
+     * 通过实例名释放,主要针对cluster模式有效(通知当前主机释放instance运行交给其他人来抢占)
+     *
+     * @param destination 实例名
+     * @return 是否成功
+     */
+    boolean releaseInstance(String destination);
+
+    /**
      * 通过实例名重启实例
      *
      * @param destination 实例名

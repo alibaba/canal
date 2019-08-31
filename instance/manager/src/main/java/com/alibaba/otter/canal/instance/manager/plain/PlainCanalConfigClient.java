@@ -19,7 +19,7 @@ import com.alibaba.otter.canal.protocol.SecurityUtil;
 
 /**
  * 远程配置获取
- * 
+ *
  * @author rewerma 2019-01-25 下午05:20:16
  * @author agapple 2019年8月26日 下午7:52:06
  * @since 1.1.4
@@ -31,8 +31,10 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
     private String               user;
     private String               passwd;
     private HttpHelper           httpHelper;
+    private String               localIp;
+    private int                  adminPort;
 
-    public PlainCanalConfigClient(String configURL, String user, String passwd){
+    public PlainCanalConfigClient(String configURL, String user, String passwd, String localIp, int adminPort){
         this.configURL = configURL;
         if (!StringUtils.startsWithIgnoreCase(configURL, "http")) {
             this.configURL = "http://" + configURL;
@@ -42,6 +44,12 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         this.user = user;
         this.passwd = passwd;
         this.httpHelper = new HttpHelper();
+        if (StringUtils.isEmpty(localIp)) {
+            this.localIp = "127.0.0.1";// 本地测试用
+        } else {
+            this.localIp = localIp;
+        }
+        this.adminPort = adminPort;
     }
 
     /**
@@ -53,7 +61,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/server_polling?md5=" + md5;
+        String url = configURL + "/api/v1/config/server_polling?ip=" + localIp + "&port=" + adminPort + "&md5=" + md5;
         return queryConfig(url);
     }
 
@@ -71,11 +79,12 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
     /**
      * 返回需要运行的instance列表
      */
-    public String findInstances(String ip, String port, String md5) {
+    public String findInstances(String md5) {
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/instances_polling?md5=" + md5 + "&ip=" + ip + "&port=" + port;
+        String url = configURL + "/api/v1/config/instances_polling?md5=" + md5 + "&ip=" + localIp + "&port="
+                     + adminPort;
         ResponseModel<CanalConfig> config = doQuery(url);
         if (config.data != null) {
             return config.data.content;

@@ -31,7 +31,7 @@ import com.google.protobuf.ByteString;
 
 /**
  * 基于netty实现的admin控制
- * 
+ *
  * @author agapple 2019年8月26日 上午10:23:44
  * @since 1.1.4
  */
@@ -174,6 +174,11 @@ public class SimpleAdminConnector implements AdminConnector {
     @Override
     public boolean stopInstance(String destination) {
         return BooleanUtils.toBoolean(Integer.parseInt(doInstanceAdmin(destination, "stop")));
+    }
+
+    @Override
+    public boolean releaseInstance(String destination) {
+        return BooleanUtils.toBoolean(Integer.parseInt(doInstanceAdmin(destination, "release")));
     }
 
     @Override

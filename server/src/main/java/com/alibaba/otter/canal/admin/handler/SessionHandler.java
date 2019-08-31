@@ -80,6 +80,9 @@ public class SessionHandler extends SimpleChannelHandler {
                         case "stop":
                             message = canalAdmin.stopInstance(destination) ? "1" : "0";
                             break;
+                        case "release":
+                            message = canalAdmin.releaseInstance(destination) ? "1" : "0";
+                            break;
                         case "restart":
                             message = canalAdmin.restartInstance(destination) ? "1" : "0";
                             break;
