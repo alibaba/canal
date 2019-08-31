@@ -124,7 +124,8 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         if (nodeServer == null) {
             return null;
         }
-        String runningInstances = null;
+
+      String runningInstances = null;
         if (nodeServer.getClusterId() != null) {// 集群模式
             // 只取活动的instances
             runningInstances = SimpleAdminConnectors

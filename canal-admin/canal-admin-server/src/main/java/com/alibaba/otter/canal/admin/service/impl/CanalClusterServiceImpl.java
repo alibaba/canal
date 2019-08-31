@@ -40,7 +40,7 @@ public class CanalClusterServiceImpl implements CanalClusterServic {
             throw new ServiceException("Instances exist, delete failed");
         }
 
-        CanalCluster canalCluster = CanalCluster.find.byId(id);
+      CanalCluster canalCluster = CanalCluster.find.byId(id);
         if (canalCluster != null) {
             canalCluster.delete();
         }
