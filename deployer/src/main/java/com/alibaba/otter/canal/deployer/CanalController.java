@@ -47,7 +47,6 @@ import com.google.common.collect.MigrateMap;
 public class CanalController {
 
     private static final Logger                      logger   = LoggerFactory.getLogger(CanalController.class);
-    private Long                                     cid;
     private String                                   ip;
     private String                                   registerIp;
     private int                                      port;
@@ -105,7 +104,6 @@ public class CanalController {
         }
 
         // 准备canal server
-        cid = Long.valueOf(getProperty(properties, CanalConstants.CANAL_ID));
         ip = getProperty(properties, CanalConstants.CANAL_IP);
         registerIp = getProperty(properties, CanalConstants.CANAL_REGISTER_IP);
         port = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_PORT));

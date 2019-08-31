@@ -5,7 +5,12 @@ import java.security.NoSuchAlgorithmException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
@@ -40,11 +45,15 @@ public class PollingConfigController {
     @GetMapping(value = "/server_polling")
     public BaseModel<CanalConfig> canalConfigPoll(@RequestHeader String user, @RequestHeader String passwd,
                                                   @RequestParam String ip, @RequestParam Integer port,
-                                                  @RequestParam String md5, @PathVariable String env) {
+                                                  @RequestParam String md5, @PathVariable boolean register,
+                                                  @PathVariable String cluster, @PathVariable String env) {
         if (!auth(user, passwd)) {
             throw new RuntimeException("auth :" + user + " is failed");
         }
 
+        if (register) {
+            // do something
+        }
         CanalConfig canalConfig = pollingConfigServer.getChangedConfig(ip, port, md5);
         return BaseModel.getInstance(canalConfig);
     }
@@ -54,8 +63,8 @@ public class PollingConfigController {
      */
     @GetMapping(value = "/instance_polling/{destination}")
     public BaseModel<CanalInstanceConfig> instanceConfigPoll(@RequestHeader String user, @RequestHeader String passwd,
-                                                             @PathVariable String env, @PathVariable String destination,
-                                                             @RequestParam String md5) {
+                                                             @PathVariable String env,
+                                                             @PathVariable String destination, @RequestParam String md5) {
         if (!auth(user, passwd)) {
             throw new RuntimeException("auth :" + user + " is failed");
         }
