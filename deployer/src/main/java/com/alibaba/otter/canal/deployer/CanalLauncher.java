@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,12 +47,15 @@ public class CanalLauncher {
             }
 
             final CanalStater canalStater = new CanalStater(properties);
-            String managerAddress = properties.getProperty(CanalConstants.CANAL_ADMIN_MANAGER);
+            String managerAddress = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_MANAGER);
             if (StringUtils.isNotEmpty(managerAddress)) {
-                String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
-                String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
-                String adminPort = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT, "11110");
-                String registerIp = properties.getProperty(CanalConstants.CANAL_REGISTER_IP);
+                String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
+                String passwd = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
+                String adminPort = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT);
+                boolean autoRegister = BooleanUtils.toBoolean(CanalController.getProperty(properties,
+                    CanalConstants.CANAL_ADMIN_AUTO_REGISTER));
+                String autoCluster = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_AUTO_CLUSTER);
+                String registerIp = CanalController.getProperty(properties, CanalConstants.CANAL_REGISTER_IP);
                 if (StringUtils.isEmpty(registerIp)) {
                     registerIp = AddressUtils.getHostIp();
                 }
@@ -59,7 +63,9 @@ public class CanalLauncher {
                     user,
                     passwd,
                     registerIp,
-                    Integer.parseInt(adminPort));
+                    Integer.parseInt(adminPort),
+                    autoRegister,
+                    autoCluster);
                 PlainCanal canalConfig = configClient.findServer(null);
                 if (canalConfig == null) {
                     throw new IllegalArgumentException("managerAddress:" + managerAddress
@@ -69,8 +75,8 @@ public class CanalLauncher {
                 Properties managerProperties = canalConfig.getProperties();
                 // merge local
                 managerProperties.putAll(properties);
-                int scanIntervalInSecond = Integer.valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
-                    "5"));
+                int scanIntervalInSecond = Integer.valueOf(CanalController.getProperty(properties,
+                    CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
                 executor.scheduleWithFixedDelay(new Runnable() {
 
                     private PlainCanal lastCanalConfig;

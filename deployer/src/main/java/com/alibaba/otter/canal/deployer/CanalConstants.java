@@ -23,6 +23,8 @@ public class CanalConstants {
     public static final String CANAL_ADMIN_PORT                     = ROOT + "." + "admin.port";
     public static final String CANAL_ADMIN_USER                     = ROOT + "." + "admin.user";
     public static final String CANAL_ADMIN_PASSWD                   = ROOT + "." + "admin.passwd";
+    public static final String CANAL_ADMIN_AUTO_REGISTER            = ROOT + "." + "admin.auto.register";
+    public static final String CANAL_ADMIN_AUTO_CLUSTER             = ROOT + "." + "admin.auto.cluster";
     public static final String CANAL_ZKSERVERS                      = ROOT + "." + "zkServers";
     public static final String CANAL_WITHOUT_NETTY                  = ROOT + "." + "withoutNetty";
 
