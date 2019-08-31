@@ -28,7 +28,7 @@ import com.google.common.base.Joiner;
 
 /**
  * 提供canal admin的管理操作
- * 
+ *
  * @author agapple 2019年8月24日 下午11:39:01
  * @since 1.1.4
  */
@@ -103,11 +103,27 @@ public class CanalAdminController implements CanalAdmin {
     }
 
     @Override
-    public String getRunningInstances() {
+    public String getInstances() {
         try {
             CanalController controller = canalStater.getController();
             if (controller != null) {
                 Map<String, InstanceConfig> instanceConfigs = controller.getInstanceConfigs();
+                if (instanceConfigs != null) {
+                    return Joiner.on(",").join(instanceConfigs.keySet());
+                }
+            }
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
+        return "";
+    }
+
+    @Override
+    public String getRunningInstances() {
+        try {
+            CanalController controller = canalStater.getController();
+            if (controller != null) {
+                Map<String, String> instanceConfigs = controller.getRunningInstances();
                 if (instanceConfigs != null) {
                     return Joiner.on(",").join(instanceConfigs.keySet());
                 }

@@ -157,6 +157,11 @@ public class SimpleAdminConnector implements AdminConnector {
     }
 
     @Override
+    public String getInstances() {
+        return doServerAdmin("instances");
+    }
+
+    @Override
     public String getRunningInstances() {
         return doServerAdmin("list");
     }
@@ -227,11 +232,8 @@ public class SimpleAdminConnector implements AdminConnector {
         try {
             writeWithHeader(Packet.newBuilder()
                 .setType(PacketType.INSTANCE)
-                .setBody(InstanceAdmin.newBuilder()
-                    .setDestination(destination)
-                    .setAction(action)
-                    .build()
-                    .toByteString())
+                .setBody(
+                    InstanceAdmin.newBuilder().setDestination(destination).setAction(action).build().toByteString())
                 .build()
                 .toByteArray());
 

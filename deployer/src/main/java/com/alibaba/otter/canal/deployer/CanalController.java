@@ -46,7 +46,7 @@ import com.google.common.collect.MigrateMap;
  */
 public class CanalController {
 
-    private static final Logger                      logger   = LoggerFactory.getLogger(CanalController.class);
+    private static final Logger                      logger           = LoggerFactory.getLogger(CanalController.class);
     private Long                                     cid;
     private String                                   ip;
     private String                                   registerIp;
@@ -54,10 +54,11 @@ public class CanalController {
     private int                                      adminPort;
     // 默认使用spring的方式载入
     private Map<String, InstanceConfig>              instanceConfigs;
+    private Map<String, String>                      runningInstances = new MapMaker().makeMap();
     private InstanceConfig                           globalInstanceConfig;
     private Map<String, PlainCanalConfigClient>      managerClients;
     // 监听instance config的变化
-    private boolean                                  autoScan = true;
+    private boolean                                  autoScan         = true;
     private InstanceAction                           defaultAction;
     private Map<InstanceMode, InstanceConfigMonitor> instanceConfigMonitors;
     private CanalServerWithEmbedded                  embededCanalServer;
@@ -169,6 +170,7 @@ public class CanalController {
                                 if (canalMQStarter != null) {
                                     canalMQStarter.startDestination(destination);
                                 }
+                                runningInstances.put(destination, destination);
                             } finally {
                                 MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
@@ -181,6 +183,7 @@ public class CanalController {
                                     canalMQStarter.stopDestination(destination);
                                 }
                                 embededCanalServer.stop(destination);
+                                runningInstances.remove(destination);
                             } finally {
                                 MDC.remove(CanalConstants.MDC_DESTINATION);
                             }
@@ -592,4 +595,7 @@ public class CanalController {
         return instanceConfigs;
     }
 
+    public Map<String, String> getRunningInstances() {
+        return runningInstances;
+    }
 }
