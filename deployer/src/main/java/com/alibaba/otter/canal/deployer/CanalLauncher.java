@@ -50,11 +50,8 @@ public class CanalLauncher {
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
                 String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
-                String adminPort = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT);
+                String adminPort = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT, "11110");
                 String registerIp = properties.getProperty(CanalConstants.CANAL_REGISTER_IP);
-                if (StringUtils.isEmpty(adminPort)) {
-                    adminPort = "11110";
-                }
                 if (StringUtils.isEmpty(registerIp)) {
                     registerIp = AddressUtils.getHostIp();
                 }
@@ -69,7 +66,9 @@ public class CanalLauncher {
                                                        + " can't not found config for [" + registerIp + ":" + adminPort
                                                        + "]");
                 }
-                properties = canalConfig.getProperties();
+                Properties managerProperties = canalConfig.getProperties();
+                // merge local
+                managerProperties.putAll(properties);
                 int scanIntervalInSecond = Integer.valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
                     "5"));
                 executor.scheduleWithFixedDelay(new Runnable() {
@@ -85,7 +84,10 @@ public class CanalLauncher {
                                 if (newCanalConfig != null) {
                                     // 远程配置canal.properties修改重新加载整个应用
                                     canalStater.stop();
-                                    canalStater.setProperties(newCanalConfig.getProperties());
+                                    Properties managerProperties = newCanalConfig.getProperties();
+                                    // merge local
+                                    managerProperties.putAll(properties);
+                                    canalStater.setProperties(managerProperties);
                                     canalStater.start();
 
                                     lastCanalConfig = newCanalConfig;
@@ -98,9 +100,11 @@ public class CanalLauncher {
                     }
 
                 }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
+                canalStater.setProperties(managerProperties);
+            } else {
+                canalStater.setProperties(properties);
             }
 
-            canalStater.setProperties(properties);
             canalStater.start();
             runningLatch.await();
             executor.shutdownNow();

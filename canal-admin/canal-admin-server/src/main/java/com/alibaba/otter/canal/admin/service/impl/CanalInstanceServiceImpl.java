@@ -124,7 +124,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
      *
      * @param serverId server id
      */
-    public List<CanalInstanceConfig> findActiveInstaceByServerId(Long serverId) {
+    public List<CanalInstanceConfig> findActiveInstanceByServerId(Long serverId) {
         NodeServer nodeServer = NodeServer.find.byId(serverId);
         if (nodeServer == null) {
             return null;
@@ -231,16 +231,6 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         if (canalInstanceConfig != null) {
             canalInstanceConfig.delete();
         }
-    }
-
-    @Override
-    public CanalInstanceConfig findOne(String name) {
-        CanalInstanceConfig config = CanalInstanceConfig.find.query()
-            .setDisableLazyLoading(true)
-            .where()
-            .eq("name", name)
-            .findOne();
-        return config;
     }
 
     public Map<String, String> remoteInstanceLog(Long id, Long nodeId) {

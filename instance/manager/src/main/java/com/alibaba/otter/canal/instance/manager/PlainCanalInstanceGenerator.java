@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.instance.manager;
 
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -26,6 +28,11 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
     private PlainCanalConfigClient canalConfigClient;
     private String                 defaultName = "instance";
     private BeanFactory            beanFactory;
+    private Properties             canalConfig;
+
+    public PlainCanalInstanceGenerator(Properties canalConfig){
+        this.canalConfig = canalConfig;
+    }
 
     public CanalInstance generate(String destination) {
         synchronized (CanalInstanceGenerator.class) {
@@ -34,8 +41,12 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
                 if (canal == null) {
                     throw new CanalException("instance : " + destination + " config is not found");
                 }
+                Properties properties = canal.getProperties();
+                // merge local
+                properties.putAll(canalConfig);
+
                 // 设置动态properties,替换掉本地properties
-                com.alibaba.otter.canal.instance.spring.support.PropertyPlaceholderConfigurer.propertiesLocal.set(canal.getProperties());
+                com.alibaba.otter.canal.instance.spring.support.PropertyPlaceholderConfigurer.propertiesLocal.set(properties);
                 // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
                 System.setProperty("canal.instance.destination", destination);
                 this.beanFactory = getBeanFactory(springXml);

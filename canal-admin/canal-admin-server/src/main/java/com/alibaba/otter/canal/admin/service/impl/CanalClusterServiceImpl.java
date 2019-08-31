@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.model.CanalCluster;
+import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.CanalClusterServic;
 
@@ -31,6 +32,12 @@ public class CanalClusterServiceImpl implements CanalClusterServic {
         int serverCnt = NodeServer.find.query().where().eq("clusterId", id).findCount();
         if (serverCnt > 0) {
             throw new ServiceException("当前集群下存在Server, 无法删除");
+        }
+
+        // 判断集群下是否存在instance信息
+        int instanceCnt = CanalInstanceConfig.find.query().where().eq("clusterId", id).findCount();
+        if (instanceCnt > 0) {
+            throw new ServiceException("当前集群下存在Instance配置，无法删除");
         }
 
         CanalCluster canalCluster = CanalCluster.find.byId(id);
