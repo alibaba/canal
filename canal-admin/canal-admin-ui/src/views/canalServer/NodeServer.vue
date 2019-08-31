@@ -72,7 +72,7 @@
               <el-dropdown-item @click.native="handleDelete(scope.row)">删除</el-dropdown-item>
               <el-dropdown-item @click.native="handleStart(scope.row)">启动</el-dropdown-item>
               <el-dropdown-item @click.native="handleStop(scope.row)">停止</el-dropdown-item>
-              <el-dropdown-item @click.native="handleInstances(scope.row)">实例</el-dropdown-item>
+              <el-dropdown-item @click.native="handleInstances(scope.row)">详情</el-dropdown-item>
               <el-dropdown-item @click.native="handleLog(scope.row)">日志</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -113,7 +113,7 @@
         <el-button type="primary" @click="dataOperation()">确定</el-button>
       </div>
     </el-dialog>
-    <el-dialog :visible.sync="dialogInstances" title="实例列表" width="800px">
+    <el-dialog :visible.sync="dialogInstances" title="instance 列表" width="800px">
       <div class="filter-container">
         <el-button class="filter-item" type="info" @click="activeInstances()">刷新列表</el-button>
       </div>
@@ -310,6 +310,10 @@ export default {
       }
     },
     handleConfig(row) {
+      if (row.canalCluster !== null) {
+         this.$message({ message: '集群模式Server不允许单独变更配置，请在集群配置变更', type: 'error' })
+         return
+      }
       this.$router.push('/canalServer/nodeServer/config?serverId=' + row.id)
     },
     handleUpdate(row) {
@@ -374,7 +378,7 @@ export default {
         this.$message({ message: '当前Server不是启动状态，无法停止', type: 'error' })
         return
       }
-      this.$confirm('停止 Server 服务', '确定停止Server服务', {
+      this.$confirm('停止Server服务会导致所有Instance都停止服务', '确定停止Server服务', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'

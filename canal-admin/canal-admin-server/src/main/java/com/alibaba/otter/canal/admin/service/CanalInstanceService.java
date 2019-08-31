@@ -20,6 +20,8 @@ public interface CanalInstanceService {
 
     CanalInstanceConfig detail(Long id);
 
+    CanalInstanceConfig findOne(String name);
+
     void updateContent(CanalInstanceConfig canalInstanceConfig);
 
     void delete(Long id);
@@ -30,5 +32,5 @@ public interface CanalInstanceService {
 
     boolean instanceOperation(Long id, String option);
 
-    List<CanalInstanceConfig> findActiveInstanceByServerId(Long serverId);
+    List<CanalInstanceConfig> findActiveInstaceByServerId(Long serverId);
 }

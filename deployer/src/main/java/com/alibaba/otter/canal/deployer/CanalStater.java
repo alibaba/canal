@@ -1,9 +1,5 @@
 package com.alibaba.otter.canal.deployer;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
@@ -17,9 +13,6 @@ import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
 import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.server.CanalMQStarter;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 /**
  * Canal server 启动类
@@ -76,40 +69,8 @@ public class CanalStater {
         if (canalMQProducer != null) {
             // disable netty
             System.setProperty(CanalConstants.CANAL_WITHOUT_NETTY, "true");
-            String autoScan = CanalController.getProperty(properties, CanalConstants.CANAL_AUTO_SCAN);
             // 设置为raw避免ByteString->Entry的二次解析
             System.setProperty("canal.instance.memory.rawEntry", "false");
-            if ("true".equals(autoScan)) {
-                String rootDir = CanalController.getProperty(properties, CanalConstants.CANAL_CONF_DIR);
-                if (StringUtils.isEmpty(rootDir)) {
-                    rootDir = "../conf";
-                }
-                File rootdir = new File(rootDir);
-                if (rootdir.exists()) {
-                    File[] instanceDirs = rootdir.listFiles(new FileFilter() {
-
-                        public boolean accept(File pathname) {
-                            String filename = pathname.getName();
-                            return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename)
-                                   && !"metrics".equalsIgnoreCase(filename);
-                        }
-                    });
-                    if (instanceDirs != null && instanceDirs.length > 0) {
-                        List<String> instances = Lists.transform(Arrays.asList(instanceDirs),
-                            new Function<File, String>() {
-
-                                @Override
-                                public String apply(File instanceDir) {
-                                    return instanceDir.getName();
-                                }
-                            });
-                        System.setProperty(CanalConstants.CANAL_DESTINATIONS, Joiner.on(",").join(instances));
-                    }
-                }
-            } else {
-                String destinations = CanalController.getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
-                System.setProperty(CanalConstants.CANAL_DESTINATIONS, destinations);
-            }
         }
 
         logger.info("## start the canal server.");
@@ -136,7 +97,8 @@ public class CanalStater {
         if (canalMQProducer != null) {
             canalMQStarter = new CanalMQStarter(canalMQProducer);
             MQProperties mqProperties = buildMQProperties(properties);
-            canalMQStarter.start(mqProperties);
+            String destinations = CanalController.getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
+            canalMQStarter.start(mqProperties, destinations);
             controller.setCanalMQStarter(canalMQStarter);
         }
 

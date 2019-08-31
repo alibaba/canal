@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
@@ -28,7 +29,11 @@ public class PollingConfigServiceImpl implements PollingConfigServer {
         } else { // 单机模式
             canalConfig = CanalConfig.find.query().where().eq("serverId", server.getId()).findOne();
         }
-        if (canalConfig != null && !canalConfig.getContentMd5().equals(md5)) { // 内容发生变化
+        if (canalConfig == null) {
+            throw new ServiceException("canal.properties config is empty");
+        }
+
+        if (!canalConfig.getContentMd5().equals(md5)) { // 内容发生变化
             return canalConfig;
         }
         return null;

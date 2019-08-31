@@ -1,23 +1,32 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.concurrent.*;
+import io.ebean.Query;
 
-import com.alibaba.otter.canal.admin.model.Pager;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.otter.canal.admin.common.DaemonThreadFactory;
+import com.alibaba.otter.canal.admin.common.Threads;
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.connector.AdminConnector;
 import com.alibaba.otter.canal.admin.connector.SimpleAdminConnectors;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
+import com.alibaba.otter.canal.admin.model.Pager;
 import com.alibaba.otter.canal.admin.service.CanalInstanceService;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
-
-import io.ebean.Query;
+import com.google.common.collect.Lists;
 
 /**
  * Canal实例配置信息业务层
@@ -28,8 +37,7 @@ import io.ebean.Query;
 @Service
 public class CanalInstanceServiceImpl implements CanalInstanceService {
 
-    public Pager<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig,
-                                               Pager<CanalInstanceConfig> pager) {
+    public Pager<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig, Pager<CanalInstanceConfig> pager) {
         Query<CanalInstanceConfig> query = CanalInstanceConfig.find.query()
             .setDisableLazyLoading(true)
             .select("clusterId, serverId, name, modifiedTime")
@@ -62,12 +70,9 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
 
         // check all canal instances running status
-        ExecutorService executorService = Executors.newFixedThreadPool(canalInstanceConfigs.size(),
-            DaemonThreadFactory.daemonThreadFactory);
         List<Future<Void>> futures = new ArrayList<>(canalInstanceConfigs.size());
-
         for (CanalInstanceConfig canalInstanceConfig1 : canalInstanceConfigs) {
-            futures.add(executorService.submit(() -> {
+            futures.add(Threads.executorService.submit(() -> {
                 List<NodeServer> nodeServers;
                 if (canalInstanceConfig1.getClusterId() != null) { // 集群模式
                     nodeServers = NodeServer.find.query()
@@ -81,15 +86,17 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
                 }
 
                 for (NodeServer nodeServer : nodeServers) {
-                    String runningInstances = SimpleAdminConnectors
-                        .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
+                    String runningInstances = SimpleAdminConnectors.execute(nodeServer.getIp(),
+                        nodeServer.getAdminPort(),
+                        AdminConnector::getRunningInstances);
                     if (runningInstances == null) {
                         continue;
                     }
                     String[] instances = runningInstances.split(",");
                     for (String instance : instances) {
                         if (instance.equals(canalInstanceConfig1.getName())) {
-                            if (canalInstanceConfig1.getNodeServer() == null) { // 集群模式下 server 对象为空
+                            // 集群模式下server对象为空
+                            if (canalInstanceConfig1.getNodeServer() == null) {
                                 canalInstanceConfig1.setNodeServer(nodeServer);
                             }
                             canalInstanceConfig1.setRunningStatus("1");
@@ -109,8 +116,6 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
                 // ignore
             }
         });
-        executorService.shutdownNow();
-
         return pager;
     }
 
@@ -119,29 +124,20 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
      *
      * @param serverId server id
      */
-    public List<CanalInstanceConfig> findActiveInstanceByServerId(Long serverId) {
+    public List<CanalInstanceConfig> findActiveInstaceByServerId(Long serverId) {
         NodeServer nodeServer = NodeServer.find.byId(serverId);
         if (nodeServer == null) {
             return null;
         }
-
-      String runningInstances = null;
-        if (nodeServer.getClusterId() != null) {// 集群模式
-            // 只取活动的instances
-            runningInstances = SimpleAdminConnectors
-                .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getRunningInstances);
-        } else {
-            // 取所属所有instances
-            runningInstances = SimpleAdminConnectors
-                .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::getInstances);
-        }
-
+        String runningInstances = SimpleAdminConnectors.execute(nodeServer.getIp(),
+            nodeServer.getAdminPort(),
+            AdminConnector::getRunningInstances);
         if (runningInstances == null) {
             return null;
         }
 
         String[] instances = runningInstances.split(",");
-
+        Object obj[] = Lists.newArrayList(instances).toArray();
         // 单机模式和集群模式区分处理
         if (nodeServer.getClusterId() != null) { // 集群模式
             List<CanalInstanceConfig> list = CanalInstanceConfig.find.query()
@@ -149,7 +145,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
                 .select("clusterId, serverId, name, modifiedTime")
                 .where()
                 // 暂停的实例也显示 .eq("status", "1")
-                .in("name", instances)
+                .in("name", obj)
                 .findList();
             list.forEach(config -> config.setRunningStatus("1"));
             return list; // 集群模式直接返回当前运行的Instances
@@ -237,6 +233,16 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
     }
 
+    @Override
+    public CanalInstanceConfig findOne(String name) {
+        CanalInstanceConfig config = CanalInstanceConfig.find.query()
+            .setDisableLazyLoading(true)
+            .where()
+            .eq("name", name)
+            .findOne();
+        return config;
+    }
+
     public Map<String, String> remoteInstanceLog(Long id, Long nodeId) {
         Map<String, String> result = new HashMap<>();
 
@@ -279,33 +285,19 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         if (canalInstanceConfig == null) {
             return false;
         }
-        Boolean resutl = null;
+        Boolean result = null;
         if ("start".equals(option)) {
             if (nodeServer.getClusterId() == null) { // 非集群模式
                 return instanceOperation(id, "start");
-                // resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                // nodeServer.getAdminPort(),
-                // adminConnector ->
-                // adminConnector.startInstance(canalInstanceConfig.getName()));
+            } else {
+                throw new ServiceException("集群模式不允许指定server启动");
             }
         } else if ("stop".equals(option)) {
             if (nodeServer.getClusterId() != null) {
-                resutl = SimpleAdminConnectors.execute(nodeServer.getIp(),
+                // 集群模式,通知主动释放
+                result = SimpleAdminConnectors.execute(nodeServer.getIp(),
                     nodeServer.getAdminPort(),
-                    adminConnector -> adminConnector.stopInstance(canalInstanceConfig.getName()));
-
-                NodeServer nodeServerTmp = nodeServer;
-                // 集群模式下停止实例后过五秒钟再次启动进行启动抢占
-                Thread thread = new Thread(() -> {
-                    try {
-                        Thread.sleep(5000);
-                        SimpleAdminConnectors.execute(nodeServerTmp.getIp(),
-                            nodeServerTmp.getAdminPort(),
-                            adminConnector -> adminConnector.startInstance(canalInstanceConfig.getName()));
-                    } catch (Throwable e) {
-                    }
-                });
-                thread.start();
+                    adminConnector -> adminConnector.releaseInstance(canalInstanceConfig.getName()));
             } else { // 非集群模式下直接将状态置为0
                 return instanceOperation(id, "stop");
             }
@@ -313,10 +305,10 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
             return false;
         }
 
-        if (resutl == null) {
-            resutl = false;
+        if (result == null) {
+            result = false;
         }
-        return resutl;
+        return result;
     }
 
     public boolean instanceOperation(Long id, String option) {

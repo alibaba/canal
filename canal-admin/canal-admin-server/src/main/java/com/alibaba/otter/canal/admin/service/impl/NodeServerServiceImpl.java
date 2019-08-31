@@ -1,19 +1,25 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
-import com.alibaba.otter.canal.admin.common.DaemonThreadFactory;
-import com.alibaba.otter.canal.admin.model.*;
 import io.ebean.Query;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.otter.canal.admin.common.Threads;
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.connector.AdminConnector;
 import com.alibaba.otter.canal.admin.connector.SimpleAdminConnectors;
+import com.alibaba.otter.canal.admin.model.CanalConfig;
+import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
+import com.alibaba.otter.canal.admin.model.NodeServer;
+import com.alibaba.otter.canal.admin.model.Pager;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
 
 /**
@@ -123,12 +129,10 @@ public class NodeServerServiceImpl implements NodeServerService {
             return pager;
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(nodeServers.size(),
-            DaemonThreadFactory.daemonThreadFactory);
         List<Future<Boolean>> futures = new ArrayList<>(nodeServers.size());
         // get all nodes status
         for (NodeServer ns : nodeServers) {
-            futures.add(executorService.submit(() -> {
+            futures.add(Threads.executorService.submit(() -> {
                 boolean status = SimpleAdminConnectors.execute(ns.getIp(), ns.getAdminPort(), AdminConnector::check);
                 ns.setStatus(status ? "1" : "0");
                 return !status;
@@ -141,8 +145,6 @@ public class NodeServerServiceImpl implements NodeServerService {
                 // ignore
             }
         });
-
-        executorService.shutdownNow();
 
         return pager;
     }
@@ -157,8 +159,9 @@ public class NodeServerServiceImpl implements NodeServerService {
         if (nodeServer == null) {
             return "";
         }
-        return SimpleAdminConnectors
-            .execute(nodeServer.getIp(), nodeServer.getAdminPort(), adminConnector -> adminConnector.canalLog(100));
+        return SimpleAdminConnectors.execute(nodeServer.getIp(),
+            nodeServer.getAdminPort(),
+            adminConnector -> adminConnector.canalLog(100));
     }
 
     public boolean remoteOperation(Long id, String option) {
@@ -168,8 +171,7 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
         Boolean result = null;
         if ("start".equals(option)) {
-            result = SimpleAdminConnectors
-                .execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::start);
+            result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::start);
         } else if ("stop".equals(option)) {
             result = SimpleAdminConnectors.execute(nodeServer.getIp(), nodeServer.getAdminPort(), AdminConnector::stop);
         } else {

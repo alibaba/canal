@@ -5,19 +5,17 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
-import com.alibaba.otter.canal.admin.common.exception.ServiceException;
-import com.alibaba.otter.canal.admin.model.CanalCluster;
-import com.alibaba.otter.canal.admin.model.NodeServer;
-import com.alibaba.otter.canal.protocol.SecurityUtil;
-import io.ebean.Query;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
+import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.CanalConfigService;
+import com.alibaba.otter.canal.protocol.SecurityUtil;
 
 /**
  * Canal配置信息业务层

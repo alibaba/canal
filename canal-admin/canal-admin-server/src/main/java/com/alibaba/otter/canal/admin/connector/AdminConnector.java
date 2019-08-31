@@ -5,7 +5,7 @@ import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 
 /**
  * canal数据操作客户端
- *
+ * 
  * @author zebin.xuzb @ 2012-6-19
  * @author jianghang
  * @version 1.0.0
@@ -14,14 +14,14 @@ public interface AdminConnector {
 
     /**
      * 链接对应的canal server
-     *
+     * 
      * @throws CanalClientException
      */
     void connect() throws ServiceException;
 
     /**
      * 释放链接
-     *
+     * 
      * @throws CanalClientException
      */
     void disconnect() throws ServiceException;
@@ -55,13 +55,6 @@ public interface AdminConnector {
     boolean restart();
 
     /**
-     * 获取所有当前节点下所有实例
-     *
-     * @return 实例信息
-     */
-    String getInstances();
-
-    /**
      * 获取所有当前节点下运行中的实例
      *
      * @return 实例信息
@@ -70,7 +63,7 @@ public interface AdminConnector {
 
     /**
      * 通过实例名检查
-     *
+     * 
      * @param destination
      * @return
      */
@@ -91,6 +84,14 @@ public interface AdminConnector {
      * @return 是否成功
      */
     boolean stopInstance(String destination);
+
+    /**
+     * 通过实例名释放,主要针对cluster模式有效(通知当前主机释放instance运行交给其他人来抢占)
+     *
+     * @param destination 实例名
+     * @return 是否成功
+     */
+    boolean releaseInstance(String destination);
 
     /**
      * 通过实例名重启实例
@@ -116,7 +117,7 @@ public interface AdminConnector {
 
     /**
      * 获取Instance的机器日志列表
-     *
+     * 
      * @param destination
      */
     String listInstanceLog(String destination);

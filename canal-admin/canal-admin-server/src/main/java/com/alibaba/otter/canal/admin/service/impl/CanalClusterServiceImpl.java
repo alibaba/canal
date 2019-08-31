@@ -1,16 +1,15 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
+import io.ebean.Query;
+
 import java.util.List;
 
-import com.alibaba.otter.canal.admin.common.exception.ServiceException;
-import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
-import com.alibaba.otter.canal.admin.model.NodeServer;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.model.CanalCluster;
+import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.CanalClusterServic;
-
-import io.ebean.Query;
 
 @Service
 public class CanalClusterServiceImpl implements CanalClusterServic {
@@ -31,16 +30,10 @@ public class CanalClusterServiceImpl implements CanalClusterServic {
         // 判断集群下是否存在server信息
         int serverCnt = NodeServer.find.query().where().eq("clusterId", id).findCount();
         if (serverCnt > 0) {
-            throw new ServiceException("Servers exist, delete failed");
+            throw new ServiceException("当前集群下存在Server, 无法删除");
         }
 
-        // 判断集群下是否存在instance信息
-        int instanceCnt = CanalInstanceConfig.find.query().where().eq("clusterId", id).findCount();
-        if (instanceCnt > 0) {
-            throw new ServiceException("Instances exist, delete failed");
-        }
-
-      CanalCluster canalCluster = CanalCluster.find.byId(id);
+        CanalCluster canalCluster = CanalCluster.find.byId(id);
         if (canalCluster != null) {
             canalCluster.delete();
         }

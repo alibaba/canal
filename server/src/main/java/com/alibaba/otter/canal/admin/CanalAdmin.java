@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.admin;
 
 /**
  * Canal Admin动态管理接口
- *
+ * 
  * @author agapple 2019年8月24日 下午9:45:49
  * @since 1.1.4
  */
@@ -42,13 +42,6 @@ public interface CanalAdmin {
     boolean restart();
 
     /**
-     * 获取所有当前节点下所有实例
-     *
-     * @return 实例信息
-     */
-    String getInstances();
-
-    /**
      * 获取所有当前节点下运行中的实例
      *
      * @return 实例信息
@@ -57,7 +50,7 @@ public interface CanalAdmin {
 
     /**
      * 通过实例名检查
-     *
+     * 
      * @param destination
      * @return
      */
@@ -78,6 +71,14 @@ public interface CanalAdmin {
      * @return 是否成功
      */
     boolean stopInstance(String destination);
+
+    /**
+     * 通过实例名释放,主要针对cluster模式有效(通知当前主机释放instance运行交给其他人来抢占)
+     *
+     * @param destination 实例名
+     * @return 是否成功
+     */
+    boolean releaseInstance(String destination);
 
     /**
      * 通过实例名重启实例
@@ -103,7 +104,7 @@ public interface CanalAdmin {
 
     /**
      * 获取Instance的机器日志列表
-     *
+     * 
      * @param destination
      */
     String listInstanceLog(String destination);

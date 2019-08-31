@@ -2,8 +2,6 @@ package com.alibaba.otter.canal.instance.manager.plain;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -46,14 +44,10 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         this.user = user;
         this.passwd = passwd;
         this.httpHelper = new HttpHelper();
-        if (StringUtils.isNotEmpty(localIp)) {
-            this.localIp = localIp;
+        if (StringUtils.isEmpty(localIp)) {
+            this.localIp = "127.0.0.1";// 本地测试用
         } else {
-            try {
-                this.localIp = InetAddress.getLocalHost().getHostAddress();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
+            this.localIp = localIp;
         }
         this.adminPort = adminPort;
     }

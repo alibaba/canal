@@ -162,6 +162,6 @@ public class CanalInstanceController {
      */
     @GetMapping(value = "/active/instances/{serverId}")
     public BaseModel<List<CanalInstanceConfig>> activeInstances(@PathVariable Long serverId, @PathVariable String env) {
-        return BaseModel.getInstance(canalInstanceConfigService.findActiveInstanceByServerId(serverId));
+        return BaseModel.getInstance(canalInstanceConfigService.findActiveInstaceByServerId(serverId));
     }
 }
