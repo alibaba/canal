@@ -363,7 +363,7 @@ public class CanalController {
                 }
 
                 if (config.getMode().isManager()) {
-                    PlainCanalInstanceGenerator instanceGenerator = new PlainCanalInstanceGenerator();
+                    PlainCanalInstanceGenerator instanceGenerator = new PlainCanalInstanceGenerator(properties);
                     instanceGenerator.setCanalConfigClient(managerClients.get(config.getManagerAddress()));
                     instanceGenerator.setSpringXml(config.getSpringXml());
                     return instanceGenerator.generate(destination);

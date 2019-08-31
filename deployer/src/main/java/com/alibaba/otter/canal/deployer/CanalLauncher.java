@@ -49,45 +49,55 @@ public class CanalLauncher {
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
                 String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
-                String adminPort = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT);
-                if (StringUtils.isEmpty(adminPort)) {
-                    adminPort = "11110";
-                }
+                String adminPort = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT, "11110");
                 final PlainCanalConfigClient configClient = new PlainCanalConfigClient(managerAddress,
                     user,
                     passwd,
                     "",
                     Integer.parseInt(adminPort));
                 PlainCanal canalConfig = configClient.findServer(null);
-                properties = canalConfig.getProperties();
-                int scanIntervalInSecond = Integer
-                    .valueOf(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
-                executor.scheduleWithFixedDelay(new Runnable() {
+                if (canalConfig != null) {
+                    properties = canalConfig.getProperties();
+                    // 用本地配置覆盖
+                    properties.put(CanalConstants.CANAL_ADMIN_MANAGER, managerAddress);
+                    properties.put(CanalConstants.CANAL_ADMIN_USER, user);
+                    properties.put(CanalConstants.CANAL_ADMIN_PASSWD, passwd);
+                    properties.put(CanalConstants.CANAL_ADMIN_PORT, adminPort);
+                    int scanIntervalInSecond = Integer
+                        .parseInt(properties.getProperty(CanalConstants.CANAL_AUTO_SCAN_INTERVAL, "5"));
+                    executor.scheduleWithFixedDelay(new Runnable() {
 
-                    private PlainCanal lastCanalConfig;
+                        private PlainCanal lastCanalConfig;
 
-                    public void run() {
-                        try {
-                            if (lastCanalConfig == null) {
-                                lastCanalConfig = configClient.findServer(null);
-                            } else {
-                                PlainCanal newCanalConfig = configClient.findServer(lastCanalConfig.getMd5());
-                                if (newCanalConfig != null) {
-                                    // 远程配置canal.properties修改重新加载整个应用
-                                    canalStater.stop();
-                                    canalStater.setProperties(newCanalConfig.getProperties());
-                                    canalStater.start();
+                        public void run() {
+                            try {
+                                if (lastCanalConfig == null) {
+                                    lastCanalConfig = configClient.findServer(null);
+                                } else {
+                                    PlainCanal newCanalConfig = configClient.findServer(lastCanalConfig.getMd5());
+                                    if (newCanalConfig != null) {
+                                        // 远程配置canal.properties修改重新加载整个应用
+                                        canalStater.stop();
+                                        Properties properties1 = newCanalConfig.getProperties();
+                                        // 用本地配置覆盖
+                                        properties1.put(CanalConstants.CANAL_ADMIN_MANAGER, managerAddress);
+                                        properties1.put(CanalConstants.CANAL_ADMIN_USER, user);
+                                        properties1.put(CanalConstants.CANAL_ADMIN_PASSWD, passwd);
+                                        properties1.put(CanalConstants.CANAL_ADMIN_PORT, adminPort);
+                                        canalStater.setProperties(properties1);
+                                        canalStater.start();
 
-                                    lastCanalConfig = newCanalConfig;
+                                        lastCanalConfig = newCanalConfig;
+                                    }
                                 }
+
+                            } catch (Throwable e) {
+                                logger.error("scan failed", e);
                             }
-
-                        } catch (Throwable e) {
-                            logger.error("scan failed", e);
                         }
-                    }
 
-                }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
+                    }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
+                }
             }
 
             canalStater.setProperties(properties);
@@ -108,5 +118,4 @@ public class CanalLauncher {
             }
         });
     }
-
 }
