@@ -106,17 +106,12 @@ public class CanalController {
         // 准备canal server
         ip = getProperty(properties, CanalConstants.CANAL_IP);
         registerIp = getProperty(properties, CanalConstants.CANAL_REGISTER_IP);
-        port = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_PORT));
-        adminPort = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_ADMIN_PORT));
+        port = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_PORT, "11111"));
+        adminPort = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_ADMIN_PORT, "11110"));
         embededCanalServer = CanalServerWithEmbedded.instance();
         embededCanalServer.setCanalInstanceGenerator(instanceGenerator);// 设置自定义的instanceGenerator
-        try {
-            int metricsPort = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_METRICS_PULL_PORT));
-            embededCanalServer.setMetricsPort(metricsPort);
-        } catch (NumberFormatException e) {
-            logger.info("No valid metrics server port found, use default 11112.");
-            embededCanalServer.setMetricsPort(11112);
-        }
+        int metricsPort = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_METRICS_PULL_PORT, "11112"));
+        embededCanalServer.setMetricsPort(metricsPort);
 
         this.adminUser = getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
         this.adminPasswd = getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
@@ -286,7 +281,21 @@ public class CanalController {
                     if (config != null) {
                         ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(destination);
                         if (runningMonitor.isStart()) {
-                            runningMonitor.release();
+                            boolean release = runningMonitor.release();
+                            if (!release) {
+                                // 如果是单机模式,则直接清除配置
+                                instanceConfigs.remove(destination);
+                                // 停掉服务
+                                runningMonitor.stop();
+                                if (instanceConfigMonitors.containsKey(InstanceConfig.InstanceMode.MANAGER)) {
+                                    ManagerInstanceConfigMonitor monitor = (ManagerInstanceConfigMonitor) instanceConfigMonitors.get(InstanceConfig.InstanceMode.MANAGER);
+                                    Map<String, InstanceAction> instanceActions = monitor.getActions();
+                                    if (instanceActions.containsKey(destination)) {
+                                        // 清除内存中的autoScan cache
+                                        monitor.release(destination);
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -297,7 +306,9 @@ public class CanalController {
             instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
 
                 public InstanceConfigMonitor apply(InstanceMode mode) {
-                    int scanInterval = Integer.valueOf(getProperty(properties, CanalConstants.CANAL_AUTO_SCAN_INTERVAL));
+                    int scanInterval = Integer.valueOf(getProperty(properties,
+                        CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
+                        "5"));
 
                     if (mode.isSpring()) {
                         SpringInstanceConfigMonitor monitor = new SpringInstanceConfigMonitor();
@@ -322,8 +333,6 @@ public class CanalController {
                         monitor.setDefaultAction(defaultAction);
                         String managerAddress = getProperty(properties, CanalConstants.CANAL_ADMIN_MANAGER);
                         monitor.setConfigClient(getManagerClient(managerAddress));
-                        monitor.setIp(registerIp);
-                        monitor.setPort(adminPort);
                         return monitor;
                     } else {
                         throw new UnsupportedOperationException("unknow mode :" + mode + " for monitor");
@@ -442,6 +451,15 @@ public class CanalController {
         }
 
         return config;
+    }
+
+    public static String getProperty(Properties properties, String key, String defaultValue) {
+        String value = getProperty(properties, key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        } else {
+            return value;
+        }
     }
 
     public static String getProperty(Properties properties, String key) {

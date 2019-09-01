@@ -39,6 +39,10 @@ public class CanalConfig extends Model {
     private String status;
     private Date   modifiedTime;
 
+    public void init() {
+        this.name = "canal.properties";
+    }
+
     public Long getId() {
         return id;
     }

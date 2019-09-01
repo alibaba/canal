@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.admin.service.impl;
 
 import io.ebean.Query;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.otter.canal.admin.common.TemplateConfigLoader;
 import com.alibaba.otter.canal.admin.common.Threads;
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.connector.AdminConnector;
@@ -21,6 +23,7 @@ import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.model.Pager;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
+import com.alibaba.otter.canal.protocol.SecurityUtil;
 
 /**
  * 节点信息业务层
@@ -42,6 +45,19 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
 
         nodeServer.save();
+
+        if (nodeServer.getClusterId() == null) { // 单机模式
+            CanalConfig canalConfig = new CanalConfig();
+            canalConfig.setServerId(nodeServer.getId());
+            String configTmp = TemplateConfigLoader.loadCanalConfig();
+            canalConfig.setContent(configTmp);
+            try {
+                String contentMd5 = SecurityUtil.md5String(canalConfig.getContent());
+                canalConfig.setContentMd5(contentMd5);
+            } catch (NoSuchAlgorithmException e) {
+            }
+            canalConfig.save();
+        }
     }
 
     public NodeServer detail(Long id) {

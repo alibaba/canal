@@ -28,26 +28,21 @@ import com.google.common.collect.MigrateMap;
  */
 public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle implements InstanceConfigMonitor, CanalLifeCycle {
 
-    private static final Logger         logger               = LoggerFactory
-        .getLogger(ManagerInstanceConfigMonitor.class);
+    private static final Logger         logger               = LoggerFactory.getLogger(ManagerInstanceConfigMonitor.class);
     private long                        scanIntervalInSecond = 5;
     private InstanceAction              defaultAction        = null;
     private Map<String, InstanceAction> actions              = new MapMaker().makeMap();
-    private Map<String, PlainCanal>     configs              = MigrateMap
-        .makeComputingMap(new Function<String, PlainCanal>() {
+    private Map<String, PlainCanal>     configs              = MigrateMap.makeComputingMap(new Function<String, PlainCanal>() {
 
-                                                                     public PlainCanal apply(String destination) {
-                                                                         return new PlainCanal();
-                                                                     }
-                                                                 });
+                                                                 public PlainCanal apply(String destination) {
+                                                                     return new PlainCanal();
+                                                                 }
+                                                             });
     private ScheduledExecutorService    executor             = Executors.newScheduledThreadPool(1,
-        new NamedThreadFactory("canal-instance-scan"));
+                                                                 new NamedThreadFactory("canal-instance-scan"));
 
     private volatile boolean            isFirst              = true;
     private PlainCanalConfigClient      configClient;
-    private String                      ip;
-    private int                         port;
-    private String                      lastInstanceMD5;
 
     public void start() {
         super.start();
@@ -86,7 +81,7 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
     }
 
     private void scan() {
-        String instances = configClient.findInstances(lastInstanceMD5);
+        String instances = configClient.findInstances(null);
         final List<String> is = Lists.newArrayList(StringUtils.split(instances, ','));
         List<String> start = Lists.newArrayList();
         List<String> stop = Lists.newArrayList();
@@ -117,7 +112,6 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
 
         stop.forEach(instance -> {
             notifyStop(instance);
-            configs.remove(instance);
         });
 
         restart.forEach(instance -> {
@@ -127,6 +121,7 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
         start.forEach(instance -> {
             notifyStart(instance);
         });
+
     }
 
     private void notifyStart(String destination) {
@@ -141,11 +136,14 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
 
     private void notifyStop(String destination) {
         InstanceAction action = actions.remove(destination);
-        try {
-            action.stop(destination);
-        } catch (Throwable e) {
-            logger.error(String.format("scan delete found[%s] but stop failed", destination), e);
-            actions.put(destination, action);// 再重新加回去，下一次scan时再执行删除
+        if (action != null) {
+            try {
+                action.stop(destination);
+                configs.remove(destination);
+            } catch (Throwable e) {
+                logger.error(String.format("scan delete found[%s] but stop failed", destination), e);
+                actions.put(destination, action);// 再重新加回去，下一次scan时再执行删除
+            }
         }
     }
 
@@ -160,6 +158,18 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
         }
     }
 
+    public void release(String destination) {
+        InstanceAction action = actions.remove(destination);
+        if (action != null) {
+            try {
+                configs.remove(destination);
+            } catch (Throwable e) {
+                logger.error(String.format("scan delete found[%s] but stop failed", destination), e);
+                actions.put(destination, action);// 再重新加回去，下一次scan时再执行删除
+            }
+        }
+    }
+
     public void setDefaultAction(InstanceAction defaultAction) {
         this.defaultAction = defaultAction;
     }
@@ -170,14 +180,6 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
 
     public void setConfigClient(PlainCanalConfigClient configClient) {
         this.configClient = configClient;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
     }
 
     public Map<String, InstanceAction> getActions() {

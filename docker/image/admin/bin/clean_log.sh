@@ -26,6 +26,10 @@ baseClean(){
 }
 
 CANAL_DIR="/home/admin/canal-server/logs"
+if [ ! -d "$CANAL_DIR" ]
+  CANAL_DIR="/home/admin/canal-admin/logs"
+fi
+
 if [[ -d $CANAL_DIR ]]; then
   USAGE=$(df -h|awk 'NR>1 {gsub(/%$/,"",$5);print $5 }'|sort -nr|head -1)
   if [[ $USAGE -ge 90 ]]; then
