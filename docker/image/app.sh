@@ -87,7 +87,7 @@ function start_canal() {
         su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh local 1>>/tmp/start.log 2>&1'
         sleep 5
         #check start
-        checkStart "canal" "nc 127.0.0.1 $metricsPort -w 1 -z | wc -l" 30
+        checkStart "canal" "nc 127.0.0.1 $adminPort -w 1 -z | wc -l" 30
     else
         metricsPort=`perl -le 'print $ENV{"canal.metrics.pull.port"}'`
         if [ -z "$metricsPort" ] ; then
