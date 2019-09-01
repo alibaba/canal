@@ -24,8 +24,8 @@ public class SimpleCanalClientTest extends AbstractCanalClientTest {
         String ip = AddressUtils.getHostIp();
         CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
             destination,
-            "",
-            "");
+            "canal",
+            "canal");
 
         final SimpleCanalClientTest clientTest = new SimpleCanalClientTest(destination);
         clientTest.setConnector(connector);
