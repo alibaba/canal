@@ -51,7 +51,7 @@
 - 原生支持aliyun rds的binlog订阅 (解决自动主备切换/oss binlog离线解析) 参考: [Aliyun RDS QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)
 - 原生支持docker镜像 #801 参考: [Docker QuickStart](https://github.com/alibaba/canal/wiki/Docker-QuickStart)
 
-2.  canal 1.1.4版本，迎来最重要的WebUI能力，引入canal-admin工程，支持面向WebUI的canal动态管理能力，支持配置、任务、日志等在线白屏运维能力，具体文档：[Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal Admin Guide)
+2.  canal 1.1.4版本，迎来最重要的WebUI能力，引入canal-admin工程，支持面向WebUI的canal动态管理能力，支持配置、任务、日志等在线白屏运维能力，具体文档：[Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal-Admin-Guide)
 
 ## 文档
 
@@ -63,10 +63,10 @@
   - [Aliyun RDS for MySQL QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)
   - [Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)
 - Canal Admin
-  - [Canal Admin QuickStart](https://github.com/alibaba/canal/wiki/Canal Admin QuickStart)
-  - [Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal Admin Guide)
-  - [Canal Admin ServerGuide](https://github.com/alibaba/canal/wiki/Canal Admin ServerGuide)
-  - [Canal Admin Docker](https://github.com/alibaba/canal/wiki/Canal Admin Docker)
+  - [Canal Admin QuickStart](https://github.com/alibaba/canal/wiki/Canal-Admin-QuickStart)
+  - [Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal-Admin-Guide)
+  - [Canal Admin ServerGuide](https://github.com/alibaba/canal/wiki/Canal-Admin-ServerGuide)
+  - [Canal Admin Docker](https://github.com/alibaba/canal/wiki/Canal-Admin-Docker)
 - [AdminGuide](https://github.com/alibaba/canal/wiki/AdminGuide)
 - [ClientExample](https://github.com/alibaba/canal/wiki/ClientExample)
 - [ClientAPI](https://github.com/alibaba/canal/wiki/ClientAPI)
