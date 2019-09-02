@@ -263,23 +263,20 @@ public class SqlParser {
 
     private static void addCondition(SQLSelectQuery query, String name) {
         if (((MySqlSelectQueryBlock) query).getWhere() == null) {
-            SQLBinaryOpExpr sqlBinaryOpExpr = new SQLBinaryOpExpr();
-            ((MySqlSelectQueryBlock) query).setWhere(sqlBinaryOpExpr);
-            sqlBinaryOpExpr.setParent(query);
-            sqlBinaryOpExpr.setOperator(SQLBinaryOperator.Equality);
-            sqlBinaryOpExpr.setDbType(DbType.mysql);
-
             SQLIdentifierExpr sqlIdentifierExpr = new SQLIdentifierExpr();
             sqlIdentifierExpr.setName(name);
-            sqlIdentifierExpr.setParent(sqlBinaryOpExpr);
-            sqlBinaryOpExpr.setLeft(sqlIdentifierExpr);
             SQLVariantRefExpr sqlVariantRefExpr = new SQLVariantRefExpr();
-            sqlVariantRefExpr.setParent(sqlBinaryOpExpr);
             sqlVariantRefExpr.setName("#{id}");
             sqlVariantRefExpr.setGlobal(false);
             sqlVariantRefExpr.setSession(false);
             sqlVariantRefExpr.setIndex(-1);
-            sqlBinaryOpExpr.setRight(sqlVariantRefExpr);
+            SQLBinaryOpExpr sqlBinaryOpExpr = new SQLBinaryOpExpr(sqlIdentifierExpr,SQLBinaryOperator.Equality,sqlVariantRefExpr);
+            ((MySqlSelectQueryBlock) query).setWhere(sqlBinaryOpExpr);
+            sqlBinaryOpExpr.setParent(query);
+            sqlBinaryOpExpr.setDbType(((MySqlSelectQueryBlock) query).getDbType());
+            sqlIdentifierExpr.setParent(sqlBinaryOpExpr);
+            sqlVariantRefExpr.setParent(sqlBinaryOpExpr);
+
         }
     }
 }
