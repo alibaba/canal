@@ -1,9 +1,10 @@
 package com.alibaba.otter.canal.admin.service;
 
-import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
-
 import java.util.List;
 import java.util.Map;
+
+import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
+import com.alibaba.otter.canal.admin.model.Pager;
 
 /**
  * Canal实例配置信息业务层接口
@@ -13,7 +14,7 @@ import java.util.Map;
  */
 public interface CanalInstanceService {
 
-    List<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig);
+    Pager<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig, Pager<CanalInstanceConfig> pager);
 
     void save(CanalInstanceConfig canalInstanceConfig);
 
@@ -26,4 +27,8 @@ public interface CanalInstanceService {
     Map<String, String> remoteInstanceLog(Long id, Long nodeId);
 
     boolean remoteOperation(Long id, Long nodeId, String option);
+
+    boolean instanceOperation(Long id, String option);
+
+    List<CanalInstanceConfig> findActiveInstanceByServerId(Long serverId);
 }

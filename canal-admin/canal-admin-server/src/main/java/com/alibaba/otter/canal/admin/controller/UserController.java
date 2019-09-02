@@ -27,7 +27,7 @@ public class UserController {
 
     public static final LoadingCache<String, User> loginUsers = Caffeine.newBuilder()
         .maximumSize(10_000)
-        .expireAfterAccess(10, TimeUnit.MINUTES)
+        .expireAfterAccess(30, TimeUnit.MINUTES)
         .build(key -> null);                                                         // 用户登录信息缓存
 
     @Autowired

@@ -630,7 +630,7 @@ public final class CanalPacket {
       if (versionPresentCase_ == 2) {
         return (java.lang.Integer) versionPresent_;
       }
-      return 1;
+      return 0;
     }
 
     public static final int TYPE_FIELD_NUMBER = 3;
@@ -658,7 +658,7 @@ public final class CanalPacket {
       if (compressionPresentCase_ == 4) {
         return (java.lang.Integer) compressionPresent_;
       }
-      return Compression.NONE_VALUE;
+      return 0;
     }
     /**
      * <code>.com.alibaba.otter.canal.protocol.Compression compression = 4;</code>
@@ -1180,7 +1180,7 @@ public final class CanalPacket {
         if (magicNumberPresentCase_ == 1) {
           return (java.lang.Integer) magicNumberPresent_;
         }
-        return 17;
+        return 0;
       }
       /**
        * <code>int32 magic_number = 1;</code>
@@ -7731,7 +7731,7 @@ public final class CanalPacket {
       if (timeoutPresentCase_ == 4) {
         return (java.lang.Long) timeoutPresent_;
       }
-      return -1L;
+      return 0L;
     }
 
     public static final int UNIT_FIELD_NUMBER = 5;
@@ -7746,7 +7746,7 @@ public final class CanalPacket {
       if (unitPresentCase_ == 5) {
         return (java.lang.Integer) unitPresent_;
       }
-      return 2;
+      return 0;
     }
 
     public static final int AUTO_ACK_FIELD_NUMBER = 6;

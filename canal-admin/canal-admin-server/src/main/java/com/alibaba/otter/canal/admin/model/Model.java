@@ -2,12 +2,14 @@ package com.alibaba.otter.canal.admin.model;
 
 import io.ebean.Ebean;
 import io.ebean.EbeanServer;
-import org.apache.commons.beanutils.PropertyUtils;
+
+import java.lang.reflect.Field;
 
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OptimisticLockException;
-import java.lang.reflect.Field;
+
+import org.apache.commons.beanutils.PropertyUtils;
 
 /**
  * EBean Model扩展类

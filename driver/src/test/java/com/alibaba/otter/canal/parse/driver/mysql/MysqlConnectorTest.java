@@ -8,6 +8,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
+
 @Ignore
 public class MysqlConnectorTest {
 

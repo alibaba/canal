@@ -58,3 +58,24 @@ export function instanceLog(id, nodeId) {
     method: 'get'
   })
 }
+
+export function instanceStatus(id, option) {
+  return request({
+    url: '/canal/instance/status/' + id + '?option=' + option,
+    method: 'put'
+  })
+}
+
+export function getActiveInstances(serverId) {
+  return request({
+    url: '/canal/active/instances/' + serverId,
+    method: 'get'
+  })
+}
+
+export function getTemplateInstance() {
+  return request({
+    url: '/canal/instance/template',
+    method: 'get'
+  })
+}

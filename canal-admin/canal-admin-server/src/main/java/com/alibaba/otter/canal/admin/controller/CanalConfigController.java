@@ -1,9 +1,15 @@
 package com.alibaba.otter.canal.admin.controller;
 
-import com.alibaba.otter.canal.admin.model.BaseModel;
+import com.alibaba.otter.canal.admin.common.TemplateConfigLoader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
 import com.alibaba.otter.canal.admin.service.CanalConfigService;
 
@@ -26,9 +32,10 @@ public class CanalConfigController {
      * @param env 环境变量
      * @return 配置信息
      */
-    @GetMapping(value = "/config")
-    public BaseModel<CanalConfig> canalConfig(@PathVariable String env) {
-        return BaseModel.getInstance(canalConfigService.getCanalConfig());
+    @GetMapping(value = "/config/{clusterId}/{serverId}")
+    public BaseModel<CanalConfig> canalConfig(@PathVariable Long clusterId, @PathVariable Long serverId,
+                                              @PathVariable String env) {
+        return BaseModel.getInstance(canalConfigService.getCanalConfig(clusterId, serverId));
     }
 
     /**
@@ -42,5 +49,10 @@ public class CanalConfigController {
     public BaseModel<String> updateConfig(@RequestBody CanalConfig canalConfig, @PathVariable String env) {
         canalConfigService.updateContent(canalConfig);
         return BaseModel.getInstance("success");
+    }
+
+    @GetMapping(value = "/config/template")
+    public BaseModel<String> template(@PathVariable String env) {
+        return BaseModel.getInstance(TemplateConfigLoader.loadCanalConfig());
     }
 }

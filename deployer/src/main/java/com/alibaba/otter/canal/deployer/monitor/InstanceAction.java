@@ -14,6 +14,11 @@ public interface InstanceAction {
     void start(String destination);
 
     /**
+     * 主动释放destination运行
+     */
+    void release(String destination);
+
+    /**
      * 停止destination
      */
     void stop(String destination);

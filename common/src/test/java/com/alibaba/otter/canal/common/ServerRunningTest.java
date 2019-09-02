@@ -16,6 +16,7 @@ import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningData;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningListener;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitor;
+
 @Ignore
 public class ServerRunningTest extends AbstractZkTest {
 
@@ -38,7 +39,7 @@ public class ServerRunningTest extends AbstractZkTest {
     @Test
     public void testOneServer() {
         final CountDownLatch countLatch = new CountDownLatch(2);
-        ServerRunningMonitor runningMonitor = buildServerRunning(countLatch, 1L, "127.0.0.1", 2088);
+        ServerRunningMonitor runningMonitor = buildServerRunning(countLatch, "127.0.0.1", 2088);
         runningMonitor.start();
         sleep(2000L);
         runningMonitor.stop();
@@ -52,9 +53,9 @@ public class ServerRunningTest extends AbstractZkTest {
     @Test
     public void testMultiServer() {
         final CountDownLatch countLatch = new CountDownLatch(30);
-        final ServerRunningMonitor runningMonitor1 = buildServerRunning(countLatch, 1L, "127.0.0.1", 2088);
-        final ServerRunningMonitor runningMonitor2 = buildServerRunning(countLatch, 2L, "127.0.0.1", 2089);
-        final ServerRunningMonitor runningMonitor3 = buildServerRunning(countLatch, 3L, "127.0.0.1", 2090);
+        final ServerRunningMonitor runningMonitor1 = buildServerRunning(countLatch, "127.0.0.1", 2088);
+        final ServerRunningMonitor runningMonitor2 = buildServerRunning(countLatch, "127.0.0.1", 2089);
+        final ServerRunningMonitor runningMonitor3 = buildServerRunning(countLatch, "127.0.0.1", 2090);
         final ExecutorService executor = Executors.newFixedThreadPool(3);
         executor.submit(new Runnable() {
 
@@ -110,29 +111,28 @@ public class ServerRunningTest extends AbstractZkTest {
         sleep(30000L);
     }
 
-    private ServerRunningMonitor buildServerRunning(final CountDownLatch countLatch, final Long cid, final String ip,
-                                                    final int port) {
-        ServerRunningData serverData = new ServerRunningData(cid, ip + ":" + port);
+    private ServerRunningMonitor buildServerRunning(final CountDownLatch countLatch, final String ip, final int port) {
+        ServerRunningData serverData = new ServerRunningData(ip + ":" + port);
         ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
         runningMonitor.setDestination(destination);
         runningMonitor.setListener(new ServerRunningListener() {
 
             public void processActiveEnter() {
-                System.out.println(String.format("cid:%s ip:%s:%s has start", cid, ip, port));
+                System.out.println(String.format("cid:%s ip:%s:%s has start", ip, port));
                 countLatch.countDown();
             }
 
             public void processActiveExit() {
-                System.out.println(String.format("cid:%s ip:%s:%s has stop", cid, ip, port));
+                System.out.println(String.format("cid:%s ip:%s:%s has stop", ip, port));
                 countLatch.countDown();
             }
 
             public void processStart() {
-                System.out.println(String.format("cid:%s ip:%s:%s processStart", cid, ip, port));
+                System.out.println(String.format("cid:%s ip:%s:%s processStart", ip, port));
             }
 
             public void processStop() {
-                System.out.println(String.format("cid:%s ip:%s:%s processStop", cid, ip, port));
+                System.out.println(String.format("cid:%s ip:%s:%s processStop", ip, port));
             }
 
         });

@@ -6,10 +6,16 @@ spring:
     time-zone: GMT+8
 
 spring.datasource:
-    url: jdbc:mysql://127.0.0.1:3306/canal_manager?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-    username: root
-    password: 121212
-    driver-class-name: com.mysql.jdbc.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 1
+  address: 127.0.0.1:3306
+  database: canal_manager
+  username: canal
+  password: canal
+  driver-class-name: com.mysql.jdbc.Driver
+  url: jdbc:mysql://${spring.datasource.address}/${spring.datasource.database}?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+  hikari:
+    maximum-pool-size: 30
+    minimum-idle: 1
+
+canal:
+  adminUser: admin
+  adminPasswd: admin

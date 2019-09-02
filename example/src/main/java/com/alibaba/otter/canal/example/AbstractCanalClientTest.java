@@ -79,6 +79,11 @@ public class AbstractCanalClientTest extends BaseCanalClientTest {
                 }
             } catch (Exception e) {
                 logger.error("process error!", e);
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e1) {
+                    // ignore
+                }
             } finally {
                 connector.disconnect();
                 MDC.remove("destination");
