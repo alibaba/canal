@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal-admin</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5-SNAPSHOT</version>
 
     <packaging>pom</packaging>
     <modules>
