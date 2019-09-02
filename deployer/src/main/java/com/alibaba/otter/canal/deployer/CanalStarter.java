@@ -20,9 +20,9 @@ import com.alibaba.otter.canal.spi.CanalMQProducer;
  * @author rewerma 2018-12-30 下午05:12:16
  * @version 1.0.1
  */
-public class CanalStater {
+public class CanalStarter {
 
-    private static final Logger logger          = LoggerFactory.getLogger(CanalStater.class);
+    private static final Logger logger          = LoggerFactory.getLogger(CanalStarter.class);
 
     private CanalController     controller      = null;
     private CanalMQProducer     canalMQProducer = null;
@@ -33,7 +33,7 @@ public class CanalStater {
 
     private CanalAdminWithNetty canalAdmin;
 
-    public CanalStater(Properties properties){
+    public CanalStarter(Properties properties){
         this.properties = properties;
     }
 

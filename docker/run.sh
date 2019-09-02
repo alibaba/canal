@@ -50,31 +50,6 @@ function getMyIp() {
   echo $myip
 }
 
-NET_MODE=""
-case "`uname`" in
-    Darwin)
-        bin_abs_path=`cd $(dirname $0); pwd`
-        ;;
-    Linux)
-        bin_abs_path=$(readlink -f $(dirname $0))
-        NET_MODE="--net=host"
-        ;;
-    *)
-        NET_MODE="--net=host"
-        bin_abs_path=`cd $(dirname $0); pwd`
-        ;;
-esac
-BASE=${bin_abs_path}
-if [ $# -eq 0 ]; then
-    usage
-elif [ "$1" == "-h" ] ; then
-    usage
-elif [ "$1" == "help" ] ; then
-    usage
-fi
-
-DATA="$BASE/data"
-mkdir -p $DATA
 CONFIG=${@:1}
 #VOLUMNS="-v $DATA:/home/admin/canal-server/logs"
 PORTLIST="11110 11111 11112 9100"
@@ -89,6 +64,36 @@ for PORT in $PORTLIST ; do
         exit 1
     fi
 done
+
+NET_MODE=""
+case "`uname`" in
+    Darwin)
+        bin_abs_path=`cd $(dirname $0); pwd`
+        ;;
+    Linux)
+        bin_abs_path=$(readlink -f $(dirname $0))
+        NET_MODE="--net=host"
+        PORTS=""
+        ;;
+    *)
+        bin_abs_path=`cd $(dirname $0); pwd`
+        NET_MODE="--net=host"
+        PORTS=""
+        ;;
+esac
+BASE=${bin_abs_path}
+DATA="$BASE/data"
+mkdir -p $DATA
+
+if [ $# -eq 0 ]; then
+    usage
+elif [ "$1" == "-h" ] ; then
+    usage
+elif [ "$1" == "help" ] ; then
+    usage
+fi
+
+
 
 MEMORY="-m 4096m"
 LOCALHOST=`getMyIp`
