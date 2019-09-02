@@ -7,14 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastsql.DbType;
 import com.alibaba.fastsql.sql.SQLUtils;
 import com.alibaba.fastsql.sql.ast.SQLExpr;
 import com.alibaba.fastsql.sql.ast.expr.*;
-import com.alibaba.fastsql.sql.ast.statement.SQLExprTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLJoinTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLSelectStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLSubqueryTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLTableSource;
+import com.alibaba.fastsql.sql.ast.statement.*;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
 import com.alibaba.fastsql.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.fastsql.sql.parser.ParserException;
@@ -230,6 +227,59 @@ public class SqlParser {
             tableItem.getRelationFields().add(new RelationFieldsPair(leftFieldItem, rightFieldItem));
         } else {
             throw new UnsupportedOperationException("Unsupported for complex of on-condition");
+        }
+    }
+
+    /**
+     * 解析sql group by 语句 增加占位符以使 自查询group by不需扫描全表
+     * @param source
+     */
+    public static void visitGroupByAddVariantRefExpr(SQLTableSource source){
+        if (source instanceof SQLJoinTableSource) {
+            SQLTableSource left = ((SQLJoinTableSource) source).getLeft();
+            visitGroupByAddVariantRefExpr(left);
+            SQLTableSource right = ((SQLJoinTableSource) source).getRight();
+            visitGroupByAddVariantRefExpr(right);
+        }else if (source instanceof SQLSubqueryTableSource){
+            SQLSelectQuery query = ((SQLSubqueryTableSource) source).getSelect().getQuery();
+            SQLSelectGroupByClause groupBy = ((MySqlSelectQueryBlock) query).getGroupBy();
+            SQLExpr condition = ((SQLJoinTableSource) source.getParent()).getCondition();
+
+            String leftCondition = ((SQLPropertyExpr) ((SQLBinaryOpExpr) condition).getLeft()).getName();
+            String rightCondition = ((SQLPropertyExpr) ((SQLBinaryOpExpr) condition).getRight()).getName();
+
+            for (SQLExpr item : groupBy.getItems()) {
+                String name = ((SQLIdentifierExpr) item).getName();
+                if (name.equals(leftCondition)){
+                    addCondition(query, name);
+                }else if (name.equals(rightCondition)){
+                    addCondition(query, name);
+                }
+            }
+
+        }else {
+        }
+    }
+
+    private static void addCondition(SQLSelectQuery query, String name) {
+        if (((MySqlSelectQueryBlock) query).getWhere() == null) {
+            SQLBinaryOpExpr sqlBinaryOpExpr = new SQLBinaryOpExpr();
+            ((MySqlSelectQueryBlock) query).setWhere(sqlBinaryOpExpr);
+            sqlBinaryOpExpr.setParent(query);
+            sqlBinaryOpExpr.setOperator(SQLBinaryOperator.Equality);
+            sqlBinaryOpExpr.setDbType(DbType.mysql);
+
+            SQLIdentifierExpr sqlIdentifierExpr = new SQLIdentifierExpr();
+            sqlIdentifierExpr.setName(name);
+            sqlIdentifierExpr.setParent(sqlBinaryOpExpr);
+            sqlBinaryOpExpr.setLeft(sqlIdentifierExpr);
+            SQLVariantRefExpr sqlVariantRefExpr = new SQLVariantRefExpr();
+            sqlVariantRefExpr.setParent(sqlBinaryOpExpr);
+            sqlVariantRefExpr.setName("#{id}");
+            sqlVariantRefExpr.setGlobal(false);
+            sqlVariantRefExpr.setSession(false);
+            sqlVariantRefExpr.setIndex(-1);
+            sqlBinaryOpExpr.setRight(sqlVariantRefExpr);
         }
     }
 }

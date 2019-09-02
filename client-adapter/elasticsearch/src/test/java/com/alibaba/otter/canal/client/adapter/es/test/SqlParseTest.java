@@ -3,6 +3,13 @@ package com.alibaba.otter.canal.client.adapter.es.test;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.fastsql.sql.ast.statement.SQLJoinTableSource;
+import com.alibaba.fastsql.sql.ast.statement.SQLSelectQuery;
+import com.alibaba.fastsql.sql.ast.statement.SQLSelectStatement;
+import com.alibaba.fastsql.sql.ast.statement.SQLTableSource;
+import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
+import com.alibaba.fastsql.sql.dialect.mysql.parser.MySqlStatementParser;
+import com.alibaba.fastsql.sql.parser.SQLStatementParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,5 +51,24 @@ public class SqlParseTest {
         // tableItem.getRelationKeyFieldItems();
         // relationSelectFieldItem.forEach(fieldItem -> Assert.assertEquals("c.labels",
         // fieldItem.getOwner() + "." + fieldItem.getColumn().getColumnName()));
+    }
+
+    @Test
+    public void visitGroupByAddVariantRefExprTest(){
+        String sql = "select a.id, CASE WHEN a.id <= 500 THEN '1' else '2' end as id2, "
+                + "concat(a.name,'_test') as name, a.role_id, b.name as role_name, c.labels from user a "
+                + "left join role b on a.role_id=b.id "
+                + "left join (select user_id, group_concat(label,',') as labels from user_label "
+                + "group by user_id) c on c.user_id=a.id";
+
+        SQLStatementParser parser = new MySqlStatementParser(sql);
+        SQLSelectStatement statement = (SQLSelectStatement) parser.parseStatement();
+        MySqlSelectQueryBlock sqlSelectQueryBlock = (MySqlSelectQueryBlock) statement.getSelect().getQuery();
+
+        SQLSelectQuery query = statement.getSelect().getQuery();
+        SQLTableSource from = sqlSelectQueryBlock.getFrom();
+        SQLJoinTableSource sqlJoinTableSource = ((SQLJoinTableSource) from);
+        SqlParser.visitGroupByAddVariantRefExpr(sqlJoinTableSource);
+        System.out.println(query.toString());
     }
 }
