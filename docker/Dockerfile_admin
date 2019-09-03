@@ -26,8 +26,8 @@ RUN \
     yum clean all && \
     true
 
-# 2222 sys , 8000 debug , 8089 web , 11110 admin , 11111 canal , 11112 metrics
-EXPOSE 2222 11110 11111 8000 8089 11112
+# 8089 web
+EXPOSE 8089
 
 WORKDIR /home/admin
 
