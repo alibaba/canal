@@ -28,10 +28,13 @@ public class FileUtils {
                 minIndex = 0;
             }
 
-            String line;
+            if (readIndex < 0) {
+                readIndex = 0;
+            }
             rf.seek(readIndex);
             int k = 0;
             int c = -1;
+            String line = null;
             while (readIndex > start) {
                 if (k == l) {
                     break;
