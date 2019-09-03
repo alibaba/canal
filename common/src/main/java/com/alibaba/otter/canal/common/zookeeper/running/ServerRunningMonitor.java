@@ -111,11 +111,13 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     }
 
-    public void release() {
+    public boolean release() {
         if (zkClient != null) {
             releaseRunning(); // 尝试一下release
+            return true;
         } else {
             processActiveExit(); // 没有zk，直接退出
+            return false;
         }
     }
 

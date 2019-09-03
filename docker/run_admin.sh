@@ -2,20 +2,11 @@
 
 function usage() {
     echo "Usage:"
-    echo "  run.sh [CONFIG]"
-    echo "example 1 :"
-    echo "  run.sh -e canal.instance.master.address=127.0.0.1:3306 \\"
-    echo "         -e canal.instance.dbUsername=canal \\"
-    echo "         -e canal.instance.dbPassword=canal \\"
-    echo "         -e canal.instance.connectionCharset=UTF-8 \\"
-    echo "         -e canal.instance.tsdb.enable=true \\"
-    echo "         -e canal.instance.gtidon=false \\"
-    echo "         -e canal.instance.filter.regex=.*\\\\\\..* "
-    echo "example 2 :"
-    echo "  run.sh -e canal.admin.manager=127.0.0.1:8089 \\"
-    echo "         -e canal.admin.port=11110 \\"
-    echo "         -e canal.admin.user=admin \\"
-    echo "         -e canal.admin.passwd=4ACFE3202A5FF5CF467898FC58AAB1D615029441"
+    echo "  run_admin.sh [CONFIG]"
+    echo "example :"
+    echo "  run_admin.sh -e server.port=8089 \\"
+    echo "         -e canal.adminUser=admin \\"
+    echo "         -e canal.adminPasswd=admin"
     exit
 }
 
@@ -51,8 +42,8 @@ function getMyIp() {
 }
 
 CONFIG=${@:1}
-#VOLUMNS="-v $DATA:/home/admin/canal-server/logs"
-PORTLIST="11110 11111 11112 9100"
+#VOLUMNS="-v $DATA:/home/admin/canal-admin/logs"
+PORTLIST="8089"
 PORTS=""
 for PORT in $PORTLIST ; do
     #exist=`check_port $PORT`
@@ -76,9 +67,9 @@ case "`uname`" in
         PORTS=""
         ;;
     *)
-        bin_abs_path=`cd $(dirname $0); pwd`
         NET_MODE="--net=host"
         PORTS=""
+        bin_abs_path=`cd $(dirname $0); pwd`
         ;;
 esac
 BASE=${bin_abs_path}
@@ -93,10 +84,8 @@ elif [ "$1" == "help" ] ; then
     usage
 fi
 
-
-
-MEMORY="-m 4096m"
+MEMORY="-m 1024m"
 LOCALHOST=`getMyIp`
-cmd="docker run -d -it -h $LOCALHOST $CONFIG --name=canal-server $VOLUMNS $NET_MODE $PORTS $MEMORY canal/canal-server"
+cmd="docker run -d -it -h $LOCALHOST $CONFIG --name=canal-admin $VOLUMNS $NET_MODE $PORTS $MEMORY canal/canal-admin"
 echo $cmd
 eval $cmd

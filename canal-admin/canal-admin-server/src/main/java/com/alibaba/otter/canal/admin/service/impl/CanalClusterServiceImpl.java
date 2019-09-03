@@ -10,10 +10,10 @@ import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.model.CanalCluster;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
-import com.alibaba.otter.canal.admin.service.CanalClusterServic;
+import com.alibaba.otter.canal.admin.service.CanalClusterService;
 
 @Service
-public class CanalClusterServiceImpl implements CanalClusterServic {
+public class CanalClusterServiceImpl implements CanalClusterService {
 
     public void save(CanalCluster canalCluster) {
         canalCluster.save();

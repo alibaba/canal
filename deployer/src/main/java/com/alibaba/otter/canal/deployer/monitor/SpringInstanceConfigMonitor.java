@@ -193,12 +193,14 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
 
     private void notifyStop(String destination) {
         InstanceAction action = actions.remove(destination);
-        try {
-            action.stop(destination);
-            lastFiles.remove(destination);
-        } catch (Throwable e) {
-            logger.error(String.format("scan delete found[%s] but stop failed", destination), e);
-            actions.put(destination, action);// 再重新加回去，下一次scan时再执行删除
+        if (action != null) {
+            try {
+                action.stop(destination);
+                lastFiles.remove(destination);
+            } catch (Throwable e) {
+                logger.error(String.format("scan delete found[%s] but stop failed", destination), e);
+                actions.put(destination, action);// 再重新加回去，下一次scan时再执行删除
+            }
         }
     }
 

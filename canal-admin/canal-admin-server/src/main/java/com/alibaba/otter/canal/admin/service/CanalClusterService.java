@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.alibaba.otter.canal.admin.model.CanalCluster;
 
-public interface CanalClusterServic {
+public interface CanalClusterService {
 
     void save(CanalCluster canalCluster);
 

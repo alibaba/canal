@@ -11,7 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalCluster;
 import com.alibaba.otter.canal.admin.model.NodeServer;
-import com.alibaba.otter.canal.admin.service.CanalClusterServic;
+import com.alibaba.otter.canal.admin.service.CanalClusterService;
 import com.alibaba.otter.canal.admin.service.NodeServerService;
 
 @RestController
@@ -19,7 +19,7 @@ import com.alibaba.otter.canal.admin.service.NodeServerService;
 public class CanalClusterController {
 
     @Autowired
-    CanalClusterServic canalClusterServic;
+    CanalClusterService canalClusterServic;
 
     @Autowired
     NodeServerService  nodeServerService;

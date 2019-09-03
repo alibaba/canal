@@ -74,8 +74,10 @@ public class AbstractCanalClientTest extends BaseCanalClientTest {
                         printEntry(message.getEntries());
                     }
 
-                    connector.ack(batchId); // 提交确认
-                    // connector.rollback(batchId); // 处理失败, 回滚数据
+                    if (batchId != -1) {
+                        connector.ack(batchId); // 提交确认
+                        // connector.rollback(batchId); // 处理失败, 回滚数据
+                    }
                 }
             } catch (Exception e) {
                 logger.error("process error!", e);

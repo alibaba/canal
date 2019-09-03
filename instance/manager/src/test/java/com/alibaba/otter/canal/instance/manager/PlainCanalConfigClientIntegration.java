@@ -1,13 +1,11 @@
 package com.alibaba.otter.canal.instance.manager;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanal;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
 
-@Ignore
 public class PlainCanalConfigClientIntegration {
 
     @Test
@@ -27,8 +25,8 @@ public class PlainCanalConfigClientIntegration {
         String instances = client.findInstances(null);
         Assert.notNull(instances);
 
-         plain = client.findInstance("example", null);
-         Assert.notNull(plain);
+        plain = client.findInstance("example", null);
+        Assert.notNull(plain);
 
         plain = client.findInstance("example", plain.getMd5());
         Assert.isNull(plain);

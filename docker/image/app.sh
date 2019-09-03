@@ -76,26 +76,41 @@ function checkStart() {
 
 function start_canal() {
     echo "start canal ..."
-    metricsPort=`perl -le 'print $ENV{"canal.metrics.pull.port"}'`
-    if [ -z "$metricsPort" ] ; then
-        metricsPort=11112
-    fi
+    managerAddress=`perl -le 'print $ENV{"canal.admin.manager"}'`
+    if [ ! -z "$managerAddress" ] ; then
+        # canal_local.properties mode
+        adminPort=`perl -le 'print $ENV{"canal.admin.port"}'`
+        if [ -z "$adminPort" ] ; then
+            adminPort=11110
+        fi
 
-    destination=`perl -le 'print $ENV{"canal.destinations"}'`
-    if [[ "$destination" =~ ',' ]]; then
-        echo "multi destination:$destination is not support"
-        exit 1;
+        su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh local 1>>/tmp/start.log 2>&1'
+        sleep 5
+        #check start
+        checkStart "canal" "nc 127.0.0.1 $adminPort -w 1 -z | wc -l" 30
     else
-        if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
-            if [ -d /home/admin/canal-server/conf/example ]; then
-                mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
-            fi
-        fi 
-    fi
-    su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh 1>>/tmp/start.log 2>&1'
-    sleep 5
-    #check start
-    checkStart "canal" "nc 127.0.0.1 $metricsPort -w 1 -z | wc -l" 30
+        metricsPort=`perl -le 'print $ENV{"canal.metrics.pull.port"}'`
+        if [ -z "$metricsPort" ] ; then
+            metricsPort=11112
+        fi
+
+        destination=`perl -le 'print $ENV{"canal.destinations"}'`
+        if [[ "$destination" =~ ',' ]]; then
+            echo "multi destination:$destination is not support"
+            exit 1;
+        else
+            if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
+                if [ -d /home/admin/canal-server/conf/example ]; then
+                    mv /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$destination
+                fi
+            fi 
+        fi
+
+        su admin -c 'cd /home/admin/canal-server/bin/ && sh restart.sh 1>>/tmp/start.log 2>&1'
+        sleep 5
+        #check start
+        checkStart "canal" "nc 127.0.0.1 $metricsPort -w 1 -z | wc -l" 30
+    fi  
 }
 
 function stop_canal() {
@@ -104,8 +119,17 @@ function stop_canal() {
     echo "stop canal successful ..."
 }
 
+function start_exporter() {
+    su admin -c 'cd /home/admin/node_exporter && ./node_exporter 1>>/tmp/start.log 2>&1 &'
+}
+
+function stop_exporter() {
+    su admin -c 'killall node_exporter'
+}
+
 echo "==> START ..."
 
+start_exporter
 start_canal
 
 echo "==> START SUCCESSFUL ..."
@@ -117,5 +141,6 @@ waitterm
 echo "==> STOP"
 
 stop_canal
+start_exporter
 
 echo "==> STOP SUCCESSFUL ..."
