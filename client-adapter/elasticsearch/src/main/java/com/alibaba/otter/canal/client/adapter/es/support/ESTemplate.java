@@ -133,16 +133,20 @@ public class ESTemplate {
 
         // 查询sql批量更新
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+
         StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
         List<Object> values = new ArrayList<>();
         paramsTmp.forEach((fieldName, value) -> {
             sql.append("_v.").append(fieldName).append("=? AND ");
             values.add(value);
         });
+        //TODO 多个条件如何判断主键是哪个
+        StringBuilder parseGroupBySql = ESSyncUtil.variantGroupByCondition(sql, values.get(0));
+
         // TODO 直接外部包裹sql会导致全表扫描性能低, 待优化拼接内部where条件
-        int len = sql.length();
-        sql.delete(len - 4, len);
-        Integer syncCount = (Integer) Util.sqlRS(ds, sql.toString(), values, rs -> {
+        int len = parseGroupBySql.length();
+        parseGroupBySql.delete(len - 4, len);
+        Integer syncCount = (Integer) Util.sqlRS(ds, parseGroupBySql.toString(), values, rs -> {
             int count = 0;
             try {
                 while (rs.next()) {

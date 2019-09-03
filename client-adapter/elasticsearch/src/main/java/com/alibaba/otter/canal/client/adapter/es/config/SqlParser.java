@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.client.adapter.es.config;
 
 import static com.alibaba.fastsql.sql.ast.expr.SQLBinaryOperator.BooleanAnd;
 import static com.alibaba.fastsql.sql.ast.expr.SQLBinaryOperator.Equality;
+import static com.alibaba.otter.canal.client.adapter.support.Constant.GROUP_BY_CONDITION_VARIANT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,10 +42,11 @@ public class SqlParser {
             SQLSelectStatement statement = (SQLSelectStatement) parser.parseStatement();
             MySqlSelectQueryBlock sqlSelectQueryBlock = (MySqlSelectQueryBlock) statement.getSelect().getQuery();
 
-            SchemaItem schemaItem = new SchemaItem();
-            schemaItem.setSql(SQLUtils.toMySqlString(sqlSelectQueryBlock));
             SQLTableSource sqlTableSource = sqlSelectQueryBlock.getFrom();
             List<TableItem> tableItems = new ArrayList<>();
+            SqlParser.visitGroupByAddVariantRefExpr(sqlTableSource);
+            SchemaItem schemaItem = new SchemaItem();
+            schemaItem.setSql(SQLUtils.toMySqlString(sqlSelectQueryBlock));
             SqlParser.visitSelectTable(schemaItem, sqlTableSource, tableItems, null);
             tableItems.forEach(tableItem -> schemaItem.getAliasTableItems().put(tableItem.getAlias(), tableItem));
 
@@ -266,7 +268,7 @@ public class SqlParser {
             SQLIdentifierExpr sqlIdentifierExpr = new SQLIdentifierExpr();
             sqlIdentifierExpr.setName(name);
             SQLVariantRefExpr sqlVariantRefExpr = new SQLVariantRefExpr();
-            sqlVariantRefExpr.setName("#{id}");
+            sqlVariantRefExpr.setName(GROUP_BY_CONDITION_VARIANT);
             sqlVariantRefExpr.setGlobal(false);
             sqlVariantRefExpr.setSession(false);
             sqlVariantRefExpr.setIndex(-1);

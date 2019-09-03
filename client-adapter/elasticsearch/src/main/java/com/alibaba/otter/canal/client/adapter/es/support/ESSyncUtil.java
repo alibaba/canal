@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.text.StrBuilder;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,8 @@ import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+
+import static com.alibaba.otter.canal.client.adapter.support.Constant.GROUP_BY_CONDITION_VARIANT;
 
 /**
  * ES 同步工具同类
@@ -44,10 +47,10 @@ public class ESSyncUtil {
             String[] values = val.toString().split(separator);
             return Arrays.asList(values);
         } else if (fieldInfo.startsWith("object")) {
-            if (val instanceof String){
+            if (val instanceof String) {
                 return JSON.parse(val.toString());
             }
-            return JSON.parse(new String((byte[])val));
+            return JSON.parse(new String((byte[]) val));
         }
         return null;
     }
@@ -131,7 +134,7 @@ public class ESSyncUtil {
                     dateTime = new DateTime(((Date) val).getTime());
                 }
                 if (dateTime.getHourOfDay() == 0 && dateTime.getMinuteOfHour() == 0 && dateTime.getSecondOfMinute() == 0
-                    && dateTime.getMillisOfSecond() == 0) {
+                        && dateTime.getMillisOfSecond() == 0) {
                     res = dateTime.toString("yyyy-MM-dd");
                 } else {
                     if (dateTime.getMillisOfSecond() != 0) {
@@ -143,7 +146,7 @@ public class ESSyncUtil {
             } else if (val instanceof Long) {
                 DateTime dateTime = new DateTime(((Long) val).longValue());
                 if (dateTime.getHourOfDay() == 0 && dateTime.getMinuteOfHour() == 0 && dateTime.getSecondOfMinute() == 0
-                    && dateTime.getMillisOfSecond() == 0) {
+                        && dateTime.getMillisOfSecond() == 0) {
                     res = dateTime.toString("yyyy-MM-dd");
                 } else if (dateTime.getMillisOfSecond() != 0) {
                     res = dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS" + Util.timeZone);
@@ -153,7 +156,7 @@ public class ESSyncUtil {
             } else if (val instanceof String) {
                 String v = ((String) val).trim();
                 if (v.length() > 18 && v.charAt(4) == '-' && v.charAt(7) == '-' && v.charAt(10) == ' '
-                    && v.charAt(13) == ':' && v.charAt(16) == ':') {
+                        && v.charAt(13) == ':' && v.charAt(16) == ':') {
                     String dt = v.substring(0, 10) + "T" + v.substring(11);
                     Date date = Util.parseDate(dt);
                     if (date != null) {
@@ -266,7 +269,7 @@ public class ESSyncUtil {
 
         for (ColumnItem idColumnItem : schemaItem.getIdFieldItem(mapping).getColumnItems()) {
             if ((mainTable.getAlias() == null && idColumnItem.getOwner() == null)
-                || (mainTable.getAlias() != null && mainTable.getAlias().equals(idColumnItem.getOwner()))) {
+                    || (mainTable.getAlias() != null && mainTable.getAlias().equals(idColumnItem.getOwner()))) {
                 idColumns.add(idColumnItem);
             }
         }
@@ -299,11 +302,48 @@ public class ESSyncUtil {
         return sql + " WHERE " + condition + " ";
     }
 
+    public static Object pkConditionVal(ESMapping mapping, Map<String, Object> data){
+        Set<ColumnItem> idColumns = new LinkedHashSet<>();
+        SchemaItem schemaItem = mapping.getSchemaItem();
+
+        TableItem mainTable = schemaItem.getMainTable();
+
+        for (ColumnItem idColumnItem : schemaItem.getIdFieldItem(mapping).getColumnItems()) {
+            if ((mainTable.getAlias() == null && idColumnItem.getOwner() == null)
+                    || (mainTable.getAlias() != null && mainTable.getAlias().equals(idColumnItem.getOwner()))) {
+                idColumns.add(idColumnItem);
+            }
+        }
+
+        if (idColumns.isEmpty()) {
+            throw new RuntimeException("Not found primary key field in main table");
+        }
+        if (idColumns.size()> 1) {
+            throw new RuntimeException("found Multiple primary key field in main table");
+        }
+        for (ColumnItem idColumn : idColumns) {
+            Object idVal = data.get(idColumn.getColumnName());
+            return idVal;
+        }
+        return null;
+    }
+
     public static void appendCondition(StringBuilder sql, Object value, String owner, String columnName) {
         if (value instanceof String) {
             sql.append(owner).append(".").append(columnName).append("='").append(value).append("'  AND ");
         } else {
             sql.append(owner).append(".").append(columnName).append("=").append(value).append("  AND ");
         }
+    }
+
+    public static StringBuilder variantGroupByCondition(StringBuilder sql, Object value) {
+        if (value instanceof String) {
+            String condition = "'" + value + "'";
+            sql = new StringBuilder(sql.toString().replace(GROUP_BY_CONDITION_VARIANT, condition));
+        } else {
+            String condition = new StrBuilder("").append(value).append(" ").toString();
+            sql = new StringBuilder(sql.toString().replace(GROUP_BY_CONDITION_VARIANT, condition));
+        }
+        return sql;
     }
 }

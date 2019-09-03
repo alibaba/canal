@@ -86,6 +86,7 @@ public class ESAdapter implements OuterAdapter {
                 ESSyncConfig config = entry.getValue();
                 SchemaItem schemaItem = SqlParser.parse(config.getEsMapping().getSql());
                 config.getEsMapping().setSchemaItem(schemaItem);
+                config.getEsMapping().setSql(schemaItem.getSql());
 
                 DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
                 if (dataSource == null || dataSource.getUrl() == null) {
