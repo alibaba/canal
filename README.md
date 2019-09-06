@@ -7,9 +7,11 @@
 
 ## 简介
 
-早期，阿里巴巴 B2B 公司因为存在杭州和美国双机房部署，存在跨机房同步的业务需求 ，主要是基于trigger的方式获取增量变更。从 2010 年开始，公司开始逐步尝试数据库日志解析，获取增量变更进行同步，由此衍生出了大量的数据库增量订阅和消费业务。
+![](https://github.com/bucketli/simpletools/blob/master/main_func.png?raw=true)
 
 **canal [kə'næl]**，译意为水道/管道/沟渠，主要用途是基于 MySQL 数据库增量日志解析，提供增量数据订阅和消费
+
+早期阿里巴巴因为杭州和美国双机房部署，存在跨机房同步的业务需求，实现方式主要是基于业务 trigger 获取增量变更。从 2010 年开始，业务逐步尝试数据库日志解析获取增量变更进行同步，由此衍生出了大量的数据库增量订阅和消费业务。
 
 基于日志增量订阅和消费的业务包括
 - 数据库镜像
@@ -30,7 +32,6 @@
 - MySQL slave 重放 relay log 中事件，将数据变更反映它自己的数据
 
 #### canal 工作原理
-![](https://github.com/bucketli/simpletools/blob/master/main_func.png?raw=true)
 
 - canal 模拟 MySQL slave 的交互协议，伪装自己为 MySQL slave ，向 MySQL master 发送dump 协议
 - MySQL master 收到 dump 请求，开始推送 binary log 给 slave (即 canal )
