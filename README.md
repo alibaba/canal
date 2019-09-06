@@ -36,6 +36,7 @@
 
 #### canal 工作原理
 ![](http://dl.iteye.com/upload/attachment/0080/3107/c87b67ba-394c-3086-9577-9db05be04c95.jpg)
+![](https://github.com/bucketli/simpletools/blob/master/main_func.png?raw=true)
 
 - canal 模拟 MySQL slave 的交互协议，伪装自己为 MySQL slave ，向 MySQL master 发送dump 协议
 - MySQL master 收到 dump 请求，开始推送 binary log 给 slave (即 canal )
