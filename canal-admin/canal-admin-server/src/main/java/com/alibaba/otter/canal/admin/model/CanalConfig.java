@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.admin.model;
 
 import io.ebean.Finder;
+import io.ebean.annotation.WhenModified;
 
 import java.util.Date;
 
@@ -37,6 +38,7 @@ public class CanalConfig extends Model {
     private String content;
     private String contentMd5;
     private String status;
+    @WhenModified
     private Date   modifiedTime;
 
     public void init() {

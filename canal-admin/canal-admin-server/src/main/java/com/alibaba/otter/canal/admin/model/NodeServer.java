@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.admin.model;
 
 import io.ebean.Finder;
+import io.ebean.annotation.WhenModified;
 
 import java.util.Date;
 
@@ -42,6 +43,7 @@ public class NodeServer extends Model {
     private Integer      metricPort;
     private Integer      tcpPort;
     private String       status;
+    @WhenModified
     private Date         modifiedTime;
 
     public void init() {
