@@ -35,7 +35,6 @@
 - MySQL slave 重放 relay log 中事件，将数据变更反映它自己的数据
 
 #### canal 工作原理
-![](http://dl.iteye.com/upload/attachment/0080/3107/c87b67ba-394c-3086-9577-9db05be04c95.jpg)
 ![](https://github.com/bucketli/simpletools/blob/master/main_func.png?raw=true)
 
 - canal 模拟 MySQL slave 的交互协议，伪装自己为 MySQL slave ，向 MySQL master 发送dump 协议
