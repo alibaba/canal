@@ -5,11 +5,11 @@
 [![average time to resolve an issue](http://isitmaintained.com/badge/resolution/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "average time to resolve an issue")
 [![percentage of issues still open](http://isitmaintained.com/badge/open/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "percentage of issues still open")
 
-## 背景
+## 简介
 
 早期，阿里巴巴 B2B 公司因为存在杭州和美国双机房部署，存在跨机房同步的业务需求 ，主要是基于trigger的方式获取增量变更。从 2010 年开始，公司开始逐步尝试数据库日志解析，获取增量变更进行同步，由此衍生出了增量订阅和消费业务，从此开启一段新纪元。
 
-当前的 canal 支持源端 MySQL 版本包括 5.1.x , 5.5.x , 5.6.x , 5.7.x , 8.0.x
+**canal [kə'næl]**，译意为水道/管道/沟渠，主要用途是基于 MySQL 数据库增量日志解析，提供增量数据订阅和消费
 
 基于日志增量订阅和消费的业务包括
 - 数据库镜像
@@ -18,12 +18,7 @@
 - 业务 cache 刷新
 - 带业务逻辑的增量数据处理
 
-## 项目介绍
-
-#### 名称：canal [kə'næl]
-#### 译意： 水道/管道/沟渠
-#### 产品定位： 基于数据库增量日志解析，提供增量数据订阅和消费
-#### 关键词： MySQL binlog parser / real-time / queue&topic / index build
+当前的 canal 支持源端 MySQL 版本包括 5.1.x , 5.5.x , 5.6.x , 5.7.x , 8.0.x
 
 ## 工作原理
 
