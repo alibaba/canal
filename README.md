@@ -99,9 +99,4 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 - [阿里巴巴去 Oracle 数据迁移同步工具: yugong](http://github.com/alibaba/yugong)
 
 ## 问题反馈
-- 邮件: jianghang115@gmail.com
 - 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
-
-## 其他资料
-
-  - [ ADC 阿里技术嘉年华分享 ppt ( google docs)](https://docs.google.com/presentation/d/1MkszUPYRDkfVPz9IqOT1LLT5d9tuwde_WC8GZvjaDRg/edit?usp=sharing) 
