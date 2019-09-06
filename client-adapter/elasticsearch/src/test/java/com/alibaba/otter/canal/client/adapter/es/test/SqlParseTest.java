@@ -59,6 +59,7 @@ public class SqlParseTest {
                 + "concat(a.name,'_test') as name, a.role_id, b.name as role_name, c.labels from user a "
                 + "left join role b on a.role_id=b.id "
                 + "left join (select user_id, group_concat(label,',') as labels from user_label "
+                + "where a = 1 and c = d and type = 1 "
                 + "group by user_id) c on c.user_id=a.id";
 
         SQLStatementParser parser = new MySqlStatementParser(sql);

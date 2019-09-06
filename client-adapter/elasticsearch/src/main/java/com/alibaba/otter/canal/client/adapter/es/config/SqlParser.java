@@ -253,9 +253,9 @@ public class SqlParser {
             for (SQLExpr item : groupBy.getItems()) {
                 String name = ((SQLIdentifierExpr) item).getName();
                 if (name.equals(leftCondition)){
-                    addCondition(query, name);
+                    addConditionEl(query, name);
                 }else if (name.equals(rightCondition)){
-                    addCondition(query, name);
+                    addConditionEl(query, name);
                 }
             }
 
@@ -263,8 +263,9 @@ public class SqlParser {
         }
     }
 
-    private static void addCondition(SQLSelectQuery query, String name) {
-        if (((MySqlSelectQueryBlock) query).getWhere() == null) {
+    private static void addConditionEl(SQLSelectQuery query, String name) {
+        SQLExpr whereSqlExpr = ((MySqlSelectQueryBlock) query).getWhere();
+        if (whereSqlExpr == null) {
             SQLIdentifierExpr sqlIdentifierExpr = new SQLIdentifierExpr();
             sqlIdentifierExpr.setName(name);
             SQLVariantRefExpr sqlVariantRefExpr = new SQLVariantRefExpr();
@@ -272,13 +273,32 @@ public class SqlParser {
             sqlVariantRefExpr.setGlobal(false);
             sqlVariantRefExpr.setSession(false);
             sqlVariantRefExpr.setIndex(-1);
-            SQLBinaryOpExpr sqlBinaryOpExpr = new SQLBinaryOpExpr(sqlIdentifierExpr,SQLBinaryOperator.Equality,sqlVariantRefExpr);
+            SQLBinaryOpExpr sqlBinaryOpExpr = new SQLBinaryOpExpr(sqlIdentifierExpr, SQLBinaryOperator.Equality,sqlVariantRefExpr);
+            sqlBinaryOpExpr.setDbType(((MySqlSelectQueryBlock) query).getDbType());
             ((MySqlSelectQueryBlock) query).setWhere(sqlBinaryOpExpr);
             sqlBinaryOpExpr.setParent(query);
+        }else if (whereSqlExpr instanceof SQLBinaryOpExpr){
+            SQLBinaryOpExpr sqlBinaryOpExpr = (SQLBinaryOpExpr) whereSqlExpr;
+            SQLExpr rightChild = sqlBinaryOpExpr.getRight();
+            SQLExpr parent = sqlBinaryOpExpr;
+            while (rightChild instanceof SQLBinaryOpExpr){
+                parent = rightChild;
+                rightChild = ((SQLBinaryOpExpr) rightChild).getRight();
+            }
+            SQLIdentifierExpr sqlIdentifierExpr = new SQLIdentifierExpr();
+            sqlIdentifierExpr.setName(name);
+            SQLVariantRefExpr sqlVariantRefExpr = new SQLVariantRefExpr();
+            sqlVariantRefExpr.setName(GROUP_BY_CONDITION_VARIANT);
+            sqlVariantRefExpr.setGlobal(false);
+            sqlVariantRefExpr.setSession(false);
+            sqlVariantRefExpr.setIndex(-1);
+            SQLBinaryOpExpr newCondition = new SQLBinaryOpExpr(sqlIdentifierExpr, SQLBinaryOperator.Equality,sqlVariantRefExpr);
             sqlBinaryOpExpr.setDbType(((MySqlSelectQueryBlock) query).getDbType());
-            sqlIdentifierExpr.setParent(sqlBinaryOpExpr);
-            sqlVariantRefExpr.setParent(sqlBinaryOpExpr);
-
+            SQLBinaryOpExpr sqlBinaryOpExprParent =  (SQLBinaryOpExpr)parent.getParent();
+            SQLBinaryOpExpr newParent = new SQLBinaryOpExpr(parent, BooleanAnd,newCondition);
+            newParent.setDbType(((MySqlSelectQueryBlock) query).getDbType());
+            sqlBinaryOpExprParent.setRight(newParent);
         }
     }
+
 }
