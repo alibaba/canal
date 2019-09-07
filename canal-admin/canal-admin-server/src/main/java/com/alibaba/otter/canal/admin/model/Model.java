@@ -1,15 +1,12 @@
 package com.alibaba.otter.canal.admin.model;
 
-import io.ebean.Ebean;
-import io.ebean.EbeanServer;
-
-import java.lang.reflect.Field;
-
-import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OptimisticLockException;
 
 import org.apache.commons.beanutils.PropertyUtils;
+
+import io.ebean.Ebean;
+import io.ebean.EbeanServer;
 
 /**
  * EBean Model扩展类
@@ -35,21 +32,10 @@ public abstract class Model extends io.ebean.Model {
 
     public void saveOrUpdate() {
         try {
-            Field idField = null;
-            // find id field
-            Field[] fields = this.getClass().getDeclaredFields();
-            for (Field field : fields) {
-                Id idAnn = field.getAnnotation(Id.class);
-                if (idAnn != null) {
-                    idField = field;
-                    break;
-                }
-            }
-            if (idField == null) {
-                return;
-            }
-            Object idVal = PropertyUtils.getProperty(this, idField.getName());
-            if (idVal == null) {
+            EbeanServer ebeanServer = Ebean.getDefaultServer();
+            Object id = ebeanServer.getBeanId(this);
+            if (id == null) {
+                init();
                 this.save();
             } else {
                 this.update();
@@ -63,7 +49,13 @@ public abstract class Model extends io.ebean.Model {
         try {
             EbeanServer ebeanServer = Ebean.getDefaultServer();
             Object id = ebeanServer.getBeanId(this);
+            if (id == null) {
+                return;
+            }
             Object model = ebeanServer.createQuery(this.getClass()).where().idEq(id).findOne();
+            if (model == null) {
+                return;
+            }
             for (String propertyName : propertiesNames) {
                 if (propertyName.startsWith("nn:")) { // not null
                     propertyName = propertyName.substring(3);
