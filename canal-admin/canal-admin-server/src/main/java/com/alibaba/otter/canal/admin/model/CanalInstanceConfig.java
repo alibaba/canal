@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.persistence.*;
 
 import io.ebean.Finder;
+import io.ebean.annotation.WhenModified;
 
 /**
  * Canal实例配置信息实体类
@@ -44,6 +45,7 @@ public class CanalInstanceConfig extends Model {
     private String       content;
     private String       contentMd5;
     private String       status;         // 1: 正常 0: 停止
+    @WhenModified
     private Date         modifiedTime;
 
     @Transient
