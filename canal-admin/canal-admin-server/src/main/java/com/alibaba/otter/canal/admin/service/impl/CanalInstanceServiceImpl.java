@@ -109,13 +109,15 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
             }));
         }
 
-        futures.forEach(f -> {
+        for (Future<Void> f :futures){
             try {
                 f.get(3, TimeUnit.SECONDS);
-            } catch (TimeoutException | InterruptedException | ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 // ignore
+            } catch (TimeoutException e){
+                break;
             }
-        });
+        }
         return pager;
     }
 
