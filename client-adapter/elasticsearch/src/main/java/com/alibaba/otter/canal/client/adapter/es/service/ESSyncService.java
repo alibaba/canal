@@ -203,7 +203,7 @@ public class ESSyncService {
 
             if (schemaItem.getAliasTableItems().size() == 1 && schemaItem.isAllFieldsSimple()) {
                 // ------单表 & 所有字段都为简单字段------
-                singleTableSimpleFiledUpdate(config, dml, data, old);
+                singleTableSimpleFiledUpdate(config, schemaItem.getMainTable().getAlias(), dml, data, old);
             } else {
                 // ------主表 查询sql来更新------
                 if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
@@ -219,10 +219,12 @@ public class ESSyncService {
                     boolean allUpdateFieldSimple = true;
                     out: for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
                         for (ColumnItem columnItem : fieldItem.getColumnItems()) {
-                            if (old.containsKey(columnItem.getColumnName())) {
-                                if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
-                                    allUpdateFieldSimple = false;
-                                    break out;
+                            if (schemaItem.getMainTable().getAlias().equals(columnItem.getOwner())) { // 如果是主表的字段
+                                if (old.containsKey(columnItem.getColumnName())) {
+                                    if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
+                                        allUpdateFieldSimple = false;
+                                        break out;
+                                    }
                                 }
                             }
                         }
@@ -257,7 +259,7 @@ public class ESSyncService {
 
                     // 判断主键和所更新的字段是否全为简单字段
                     if (idFieldSimple && allUpdateFieldSimple && !fkChanged) {
-                        singleTableSimpleFiledUpdate(config, dml, data, old);
+                        singleTableSimpleFiledUpdate(config,schemaItem.getMainTable().getAlias(), dml, data, old);
                     } else {
                         mainTableUpdate(config, dml, data, old);
                     }
@@ -674,14 +676,14 @@ public class ESSyncService {
     private void wholeSqlOperation(ESSyncConfig config, Dml dml, Map<String, Object> data, Map<String, Object> old,
                                    TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
-        //防止最后出现groupby 导致sql解析异常
+        // 防止最后出现groupby 导致sql解析异常
         String[] sqlSplit = mapping.getSql().split("GROUP\\ BY(?!(.*)ON)");
         String sqlNoWhere = sqlSplit[0];
 
         String sqlGroupBy = "";
 
-        if(sqlSplit.length > 1){
-            sqlGroupBy =  "GROUP BY "+ sqlSplit[1];
+        if (sqlSplit.length > 1) {
+            sqlGroupBy = "GROUP BY " + sqlSplit[1];
         }
 
         StringBuilder sql = new StringBuilder(sqlNoWhere + " WHERE ");
@@ -781,16 +783,17 @@ public class ESSyncService {
      * 单表简单字段update
      *
      * @param config es配置
+     * @param owner 所属表
      * @param dml dml信息
      * @param data 单行data数据
      * @param old 单行old数据
      */
-    private void singleTableSimpleFiledUpdate(ESSyncConfig config, Dml dml, Map<String, Object> data,
+    private void singleTableSimpleFiledUpdate(ESSyncConfig config, String owner, Dml dml, Map<String, Object> data,
                                               Map<String, Object> old) {
         ESMapping mapping = config.getEsMapping();
         Map<String, Object> esFieldData = new LinkedHashMap<>();
 
-        Object idVal = esTemplate.getESDataFromDmlData(mapping, data, old, esFieldData);
+        Object idVal = esTemplate.getESDataFromDmlData(mapping, owner, data, old, esFieldData);
 
         if (logger.isTraceEnabled()) {
             logger.trace("Main table update to es index, destination:{}, table: {}, index: {}, id: {}",
