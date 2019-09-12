@@ -53,6 +53,8 @@ public class CanalAdapterService {
             return;
         }
         try {
+            syncSwitch.refresh();
+            logger.info("## syncSwitch refreshed.");
             logger.info("## start the canal client adapters.");
             adapterLoader = new CanalAdapterLoader(adapterCanalConfig);
             adapterLoader.init();
