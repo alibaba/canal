@@ -19,7 +19,6 @@ import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.RelationFieldsPair;
 import com.alibaba.otter.canal.client.adapter.es.config.SchemaItem.TableItem;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * ES同步指定sql格式解析
@@ -230,7 +229,7 @@ public class SqlParser {
         }
     }
 
-    public static MySqlSelectQueryBlock parseSQLSelectQueryBolck(String sql) {
+    public static MySqlSelectQueryBlock parseSQLSelectQueryBlock(String sql) {
         if (sql == null || "".equals(sql)) {
             return null;
         }

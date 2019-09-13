@@ -586,7 +586,7 @@ public class ESSyncService {
                                               Map<String, Object> old, TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
 
-        MySqlSelectQueryBlock queryBlock = SqlParser.parseSQLSelectQueryBolck(tableItem.getSubQuerySql());
+        MySqlSelectQueryBlock queryBlock = SqlParser.parseSQLSelectQueryBlock(tableItem.getSubQuerySql());
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ")
             .append(SqlParser.parse4SQLSelectItem(queryBlock))
