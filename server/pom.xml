@@ -45,6 +45,14 @@
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-acl</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba.mq-amqp</groupId>
+			<artifactId>mq-amqp-client</artifactId>
+		</dependency>
 		<!--kafka_2.11_1.1.1 exclusion掉了netty 的依赖，但CanalServerWithNetty 依赖 netty3,升级kafka至 1.1.1 需要显示加入,否则会启动失败 -->
 		<dependency>
 			<groupId>org.jboss.netty</groupId>

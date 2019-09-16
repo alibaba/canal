@@ -142,6 +142,29 @@ public class CanalAdapterLoader {
                         canalAdapter.getInstance() + "-" + group.getGroupId());
                 }
             }
+        } else if ("rabbitMQ".equalsIgnoreCase(canalClientConfig.getMode())) {
+            // 初始化canal-client-rabbitMQ的适配器
+            for (CanalClientConfig.CanalAdapter canalAdapter : canalClientConfig.getCanalAdapters()) {
+                for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
+                    List<List<OuterAdapter>> canalOuterAdapterGroups = new ArrayList<>();
+                    List<OuterAdapter> canalOuterAdapters = new ArrayList<>();
+                    for (OuterAdapterConfig config : group.getOuterAdapters()) {
+                        loadAdapter(config, canalOuterAdapters);
+                    }
+                    canalOuterAdapterGroups.add(canalOuterAdapters);
+                    CanalAdapterRabbitMQWorker rabbitMQWork = new CanalAdapterRabbitMQWorker(canalClientConfig,
+                        canalOuterAdapterGroups,
+                        canalAdapter.getInstance(),
+                        group.getGroupId(),
+                        canalClientConfig.getFlatMessage());
+                    canalMQWorker.put(canalAdapter.getInstance() + "-rabbitmq-" + group.getGroupId(), rabbitMQWork);
+                    rabbitMQWork.start();
+
+                    logger.info("Start adapter for canal-client mq topic: {} succeed",
+                        canalAdapter.getInstance() + "-" + group.getGroupId());
+                }
+            }
+            // CanalAdapterRabbitMQWork
         }
     }
 
