@@ -4,6 +4,8 @@ import java.util.*;
 
 import javax.sql.DataSource;
 
+import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
+import com.alibaba.otter.canal.client.adapter.es.config.SqlParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -259,7 +261,7 @@ public class ESSyncService {
 
                     // 判断主键和所更新的字段是否全为简单字段
                     if (idFieldSimple && allUpdateFieldSimple && !fkChanged) {
-                        singleTableSimpleFiledUpdate(config,schemaItem.getMainTable().getAlias(), dml, data, old);
+                        singleTableSimpleFiledUpdate(config, schemaItem.getMainTable().getAlias(), dml, data, old);
                     } else {
                         mainTableUpdate(config, dml, data, old);
                     }
@@ -583,16 +585,34 @@ public class ESSyncService {
     private void subTableSimpleFieldOperation(ESSyncConfig config, Dml dml, Map<String, Object> data,
                                               Map<String, Object> old, TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
-        StringBuilder sql = new StringBuilder(
-            "SELECT * FROM (" + tableItem.getSubQuerySql() + ") " + tableItem.getAlias() + " WHERE ");
 
+        MySqlSelectQueryBlock queryBlock = SqlParser.parseSQLSelectQueryBlock(tableItem.getSubQuerySql());
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ")
+            .append(SqlParser.parse4SQLSelectItem(queryBlock))
+            .append(" FROM ")
+            .append(SqlParser.parse4FromTableSource(queryBlock));
+
+        String whereSql = SqlParser.parse4WhereItem(queryBlock);
+        if (whereSql != null) {
+            sql.append(" WHERE ").append(whereSql);
+        } else {
+            sql.append(" WHERE 1=1 ");
+        }
+
+        List<Object> values = new ArrayList<>();
         for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
             String columnName = fkFieldItem.getColumn().getColumnName();
             Object value = esTemplate.getValFromData(mapping, data, fkFieldItem.getFieldName(), columnName);
-            ESSyncUtil.appendCondition(sql, value, tableItem.getAlias(), columnName);
+            sql.append(" AND ").append(columnName).append("=? ");
+            values.add(value);
         }
-        int len = sql.length();
-        sql.delete(len - 5, len);
+
+        String groupSql = SqlParser.parse4GroupBy(queryBlock);
+        if (groupSql != null) {
+            sql.append(groupSql);
+        }
+
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
             logger.trace("Join table update es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
@@ -601,7 +621,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.toString().replace("\n", " "));
         }
-        Util.sqlRS(ds, sql.toString(), rs -> {
+        Util.sqlRS(ds, sql.toString(), values, rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();

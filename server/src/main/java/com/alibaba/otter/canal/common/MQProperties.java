@@ -33,6 +33,11 @@ public class MQProperties {
     private boolean    kerberosEnable         = false;           // kafka集群是否启动Kerberos认证
     private String     kerberosKrb5FilePath   = "";              // 启动Kerberos认证时配置为krb5.conf文件的路径
     private String     kerberosJaasFilePath   = "";              // 启动Kerberos认证时配置为jaas.conf文件的路径
+    private String     username               = "";              // rabbitmq 账号
+    private String     password               = "";              // rabbitmq 密码
+    private String     vhost                  = "";              // rabbitmq 密码
+    private long       aliyunUID              = 0;               // aliyun 用户ID rabbitmq 阿里云需要使用
+    private String     exchange               = "";       // rabbitmq 交换机
 
     public static class CanalDestination {
 
@@ -274,6 +279,46 @@ public class MQProperties {
 
     public void setKerberosJaasFilePath(String kerberosJaasFilePath) {
         this.kerberosJaasFilePath = kerberosJaasFilePath;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setVhost(String vhost) {
+        this.vhost = vhost;
+    }
+
+    public String getVhost() {
+        return vhost;
+    }
+
+    public long getAliyunUID() {
+        return aliyunUID;
+    }
+
+    public void setAliyunUID(long aliyunUID) {
+        this.aliyunUID = aliyunUID;
+    }
+
+    public String getExchange() {
+        return exchange;
+    }
+
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
     }
 
     @Override

@@ -101,6 +101,7 @@
         <javadoc_skip>true</javadoc_skip>
         <spring_version>3.2.18.RELEASE</spring_version>
         <rocketmq_version>4.5.2</rocketmq_version>
+        <rabbitmq_version>5.5.0</rabbitmq_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
         <maven-surefire.version>2.22.1</maven-surefire.version>
         <argline>-server -Xms512m -Xmx1024m -Dfile.encoding=UTF-8
@@ -320,6 +321,16 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-acl</artifactId>
                 <version>${rocketmq_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>${rabbitmq_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.mq-amqp</groupId>
+                <artifactId>mq-amqp-client</artifactId>
+                <version>1.0.3</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>
