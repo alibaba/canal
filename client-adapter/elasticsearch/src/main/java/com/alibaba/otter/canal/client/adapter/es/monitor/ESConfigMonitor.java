@@ -131,9 +131,7 @@ public class ESConfigMonitor {
 
         private void addConfigToCache(File file, ESSyncConfig config) {
             esAdapter.getEsSyncConfig().put(file.getName(), config);
-
-
-
+            esAdapter.addSyncConfigToCache(file.getName(),config);
         }
 
         private void deleteConfigFromCache(File file) {
