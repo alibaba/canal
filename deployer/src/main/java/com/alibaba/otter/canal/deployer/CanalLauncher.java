@@ -46,7 +46,7 @@ public class CanalLauncher {
                 properties.load(new FileInputStream(conf));
             }
 
-            final CanalStater canalStater = new CanalStater(properties);
+            final CanalStarter canalStater = new CanalStarter(properties);
             String managerAddress = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_MANAGER);
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);

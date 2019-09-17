@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.admin.CanalAdmin;
 import com.alibaba.otter.canal.common.utils.FileUtils;
-import com.alibaba.otter.canal.deployer.CanalStater;
+import com.alibaba.otter.canal.deployer.CanalStarter;
 import com.alibaba.otter.canal.deployer.InstanceConfig;
 import com.alibaba.otter.canal.deployer.monitor.InstanceAction;
 import com.alibaba.otter.canal.deployer.monitor.InstanceConfigMonitor;
@@ -37,9 +37,9 @@ public class CanalAdminController implements CanalAdmin {
     private static final Logger logger = LoggerFactory.getLogger(CanalAdminController.class);
     private String              user;
     private String              passwd;
-    private CanalStater         canalStater;
+    private CanalStarter         canalStater;
 
-    public CanalAdminController(CanalStater canalStater){
+    public CanalAdminController(CanalStarter canalStater){
         this.canalStater = canalStater;
     }
 
@@ -249,7 +249,7 @@ public class CanalAdminController implements CanalAdmin {
         this.passwd = passwd;
     }
 
-    public void setCanalStater(CanalStater canalStater) {
+    public void setCanalStater(CanalStarter canalStater) {
         this.canalStater = canalStater;
     }
 

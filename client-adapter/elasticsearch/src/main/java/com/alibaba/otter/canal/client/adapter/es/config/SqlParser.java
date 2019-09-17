@@ -10,11 +10,7 @@ import java.util.stream.Collectors;
 import com.alibaba.fastsql.sql.SQLUtils;
 import com.alibaba.fastsql.sql.ast.SQLExpr;
 import com.alibaba.fastsql.sql.ast.expr.*;
-import com.alibaba.fastsql.sql.ast.statement.SQLExprTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLJoinTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLSelectStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLSubqueryTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLTableSource;
+import com.alibaba.fastsql.sql.ast.statement.*;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
 import com.alibaba.fastsql.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.fastsql.sql.parser.ParserException;
@@ -125,8 +121,8 @@ public class SqlParser {
         } else if (expr instanceof SQLCaseExpr) {
             SQLCaseExpr sqlCaseExpr = (SQLCaseExpr) expr;
             fieldItem.setMethod(true);
-            sqlCaseExpr.getItems().forEach(item-> visitColumn(item.getConditionExpr(), fieldItem));
-        }else if(expr instanceof SQLCharExpr) {
+            sqlCaseExpr.getItems().forEach(item -> visitColumn(item.getConditionExpr(), fieldItem));
+        } else if (expr instanceof SQLCharExpr) {
             SQLCharExpr sqlCharExpr = (SQLCharExpr) expr;
             String owner = null;
             String columnName = null;
@@ -231,5 +227,50 @@ public class SqlParser {
         } else {
             throw new UnsupportedOperationException("Unsupported for complex of on-condition");
         }
+    }
+
+    public static MySqlSelectQueryBlock parseSQLSelectQueryBlock(String sql) {
+        if (sql == null || "".equals(sql)) {
+            return null;
+        }
+        SQLStatementParser parser = new MySqlStatementParser(sql);
+        SQLSelectStatement statement = (SQLSelectStatement) parser.parseStatement();
+        return (MySqlSelectQueryBlock) statement.getSelect().getQuery();
+    }
+
+    public static String parse4SQLSelectItem(MySqlSelectQueryBlock sqlSelectQueryBlock) {
+        List<SQLSelectItem> selectItems = sqlSelectQueryBlock.getSelectList();
+        StringBuilder subSql = new StringBuilder();
+        int i = 0;
+        for (SQLSelectItem sqlSelectItem : selectItems) {
+            if (i != 0) {
+                subSql.append(",");
+            } else {
+                i++;
+            }
+            subSql.append(SQLUtils.toMySqlString(sqlSelectItem));
+        }
+        return subSql.toString();
+    }
+
+    public static String parse4FromTableSource(MySqlSelectQueryBlock sqlSelectQueryBlock) {
+        SQLTableSource sqlTableSource = sqlSelectQueryBlock.getFrom();
+        return SQLUtils.toMySqlString(sqlTableSource);
+    }
+
+    public static String parse4WhereItem(MySqlSelectQueryBlock sqlSelectQueryBlock) {
+        SQLExpr sqlExpr = sqlSelectQueryBlock.getWhere();
+        if (sqlExpr != null) {
+            return SQLUtils.toMySqlString(sqlExpr);
+        }
+        return null;
+    }
+
+    public static String parse4GroupBy(MySqlSelectQueryBlock sqlSelectQueryBlock) {
+        SQLSelectGroupByClause expr = sqlSelectQueryBlock.getGroupBy();
+        if (expr != null) {
+            return SQLUtils.toMySqlString(expr);
+        }
+        return null;
     }
 }

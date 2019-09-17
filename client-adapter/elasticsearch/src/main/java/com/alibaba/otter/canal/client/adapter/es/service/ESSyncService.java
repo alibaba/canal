@@ -4,6 +4,8 @@ import java.util.*;
 
 import javax.sql.DataSource;
 
+import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
+import com.alibaba.otter.canal.client.adapter.es.config.SqlParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,7 +205,7 @@ public class ESSyncService {
 
             if (schemaItem.getAliasTableItems().size() == 1 && schemaItem.isAllFieldsSimple()) {
                 // ------单表 & 所有字段都为简单字段------
-                singleTableSimpleFiledUpdate(config, dml, data, old);
+                singleTableSimpleFiledUpdate(config, schemaItem.getMainTable().getAlias(), dml, data, old);
             } else {
                 // ------主表 查询sql来更新------
                 if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
@@ -219,10 +221,12 @@ public class ESSyncService {
                     boolean allUpdateFieldSimple = true;
                     out: for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
                         for (ColumnItem columnItem : fieldItem.getColumnItems()) {
-                            if (old.containsKey(columnItem.getColumnName())) {
-                                if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
-                                    allUpdateFieldSimple = false;
-                                    break out;
+                            if (schemaItem.getMainTable().getAlias().equals(columnItem.getOwner())) { // 如果是主表的字段
+                                if (old.containsKey(columnItem.getColumnName())) {
+                                    if (fieldItem.isMethod() || fieldItem.isBinaryOp()) {
+                                        allUpdateFieldSimple = false;
+                                        break out;
+                                    }
                                 }
                             }
                         }
@@ -257,7 +261,7 @@ public class ESSyncService {
 
                     // 判断主键和所更新的字段是否全为简单字段
                     if (idFieldSimple && allUpdateFieldSimple && !fkChanged) {
-                        singleTableSimpleFiledUpdate(config, dml, data, old);
+                        singleTableSimpleFiledUpdate(config, schemaItem.getMainTable().getAlias(), dml, data, old);
                     } else {
                         mainTableUpdate(config, dml, data, old);
                     }
@@ -581,16 +585,34 @@ public class ESSyncService {
     private void subTableSimpleFieldOperation(ESSyncConfig config, Dml dml, Map<String, Object> data,
                                               Map<String, Object> old, TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
-        StringBuilder sql = new StringBuilder(
-            "SELECT * FROM (" + tableItem.getSubQuerySql() + ") " + tableItem.getAlias() + " WHERE ");
 
+        MySqlSelectQueryBlock queryBlock = SqlParser.parseSQLSelectQueryBlock(tableItem.getSubQuerySql());
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ")
+            .append(SqlParser.parse4SQLSelectItem(queryBlock))
+            .append(" FROM ")
+            .append(SqlParser.parse4FromTableSource(queryBlock));
+
+        String whereSql = SqlParser.parse4WhereItem(queryBlock);
+        if (whereSql != null) {
+            sql.append(" WHERE ").append(whereSql);
+        } else {
+            sql.append(" WHERE 1=1 ");
+        }
+
+        List<Object> values = new ArrayList<>();
         for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
             String columnName = fkFieldItem.getColumn().getColumnName();
             Object value = esTemplate.getValFromData(mapping, data, fkFieldItem.getFieldName(), columnName);
-            ESSyncUtil.appendCondition(sql, value, tableItem.getAlias(), columnName);
+            sql.append(" AND ").append(columnName).append("=? ");
+            values.add(value);
         }
-        int len = sql.length();
-        sql.delete(len - 5, len);
+
+        String groupSql = SqlParser.parse4GroupBy(queryBlock);
+        if (groupSql != null) {
+            sql.append(groupSql);
+        }
+
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (logger.isTraceEnabled()) {
             logger.trace("Join table update es index by query sql, destination:{}, table: {}, index: {}, sql: {}",
@@ -599,7 +621,7 @@ public class ESSyncService {
                 mapping.get_index(),
                 sql.toString().replace("\n", " "));
         }
-        Util.sqlRS(ds, sql.toString(), rs -> {
+        Util.sqlRS(ds, sql.toString(), values, rs -> {
             try {
                 while (rs.next()) {
                     Map<String, Object> esFieldData = new LinkedHashMap<>();
@@ -674,14 +696,14 @@ public class ESSyncService {
     private void wholeSqlOperation(ESSyncConfig config, Dml dml, Map<String, Object> data, Map<String, Object> old,
                                    TableItem tableItem) {
         ESMapping mapping = config.getEsMapping();
-        //防止最后出现groupby 导致sql解析异常
+        // 防止最后出现groupby 导致sql解析异常
         String[] sqlSplit = mapping.getSql().split("GROUP\\ BY(?!(.*)ON)");
         String sqlNoWhere = sqlSplit[0];
 
         String sqlGroupBy = "";
 
-        if(sqlSplit.length > 1){
-            sqlGroupBy =  "GROUP BY "+ sqlSplit[1];
+        if (sqlSplit.length > 1) {
+            sqlGroupBy = "GROUP BY " + sqlSplit[1];
         }
 
         StringBuilder sql = new StringBuilder(sqlNoWhere + " WHERE ");
@@ -781,16 +803,17 @@ public class ESSyncService {
      * 单表简单字段update
      *
      * @param config es配置
+     * @param owner 所属表
      * @param dml dml信息
      * @param data 单行data数据
      * @param old 单行old数据
      */
-    private void singleTableSimpleFiledUpdate(ESSyncConfig config, Dml dml, Map<String, Object> data,
+    private void singleTableSimpleFiledUpdate(ESSyncConfig config, String owner, Dml dml, Map<String, Object> data,
                                               Map<String, Object> old) {
         ESMapping mapping = config.getEsMapping();
         Map<String, Object> esFieldData = new LinkedHashMap<>();
 
-        Object idVal = esTemplate.getESDataFromDmlData(mapping, data, old, esFieldData);
+        Object idVal = esTemplate.getESDataFromDmlData(mapping, owner, data, old, esFieldData);
 
         if (logger.isTraceEnabled()) {
             logger.trace("Main table update to es index, destination:{}, table: {}, index: {}, id: {}",
