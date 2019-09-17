@@ -406,7 +406,7 @@ public class ESTemplate {
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             ColumnItem columnItem = fieldItem.getColumnItems().iterator().next();
-            if (!columnItem.getOwner().equals(owner)) {
+            if (columnItem.getOwner() == null || !columnItem.getOwner().equals(owner)) {
                 continue;
             }
             String columnName = columnItem.getColumnName();
