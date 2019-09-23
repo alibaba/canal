@@ -106,6 +106,8 @@ public class ESConfigMonitor {
                     addConfigToCache(file, config);
 
                     logger.info("Change a es mapping config: {} of canal adapter", file.getName());
+                }else{
+                    onFileCreate(file);
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -129,27 +131,7 @@ public class ESConfigMonitor {
 
         private void addConfigToCache(File file, ESSyncConfig config) {
             esAdapter.getEsSyncConfig().put(file.getName(), config);
-
-            SchemaItem schemaItem = SqlParser.parse(config.getEsMapping().getSql());
-            config.getEsMapping().setSchemaItem(schemaItem);
-
-            DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-            if (dataSource == null || dataSource.getUrl() == null) {
-                throw new RuntimeException("No data source found: " + config.getDataSourceKey());
-            }
-            Pattern pattern = Pattern.compile(".*:(.*)://.*/(.*)\\?.*$");
-            Matcher matcher = pattern.matcher(dataSource.getUrl());
-            if (!matcher.find()) {
-                throw new RuntimeException("Not found the schema of jdbc-url: " + config.getDataSourceKey());
-            }
-            String schema = matcher.group(2);
-
-            schemaItem.getAliasTableItems().values().forEach(tableItem -> {
-                Map<String, ESSyncConfig> esSyncConfigMap = esAdapter.getDbTableEsSyncConfig()
-                    .computeIfAbsent(schema + "-" + tableItem.getTableName(), k -> new HashMap<>());
-                esSyncConfigMap.put(file.getName(), config);
-            });
-
+            esAdapter.addSyncConfigToCache(file.getName(),config);
         }
 
         private void deleteConfigFromCache(File file) {
