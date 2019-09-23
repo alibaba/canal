@@ -559,13 +559,12 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                 return true;
             } else {
                 return false;
-            }
-        } else {
+            } } else {
             // 处理内存大小判断
             long currentSize = getMemSize.get();
             long maxAbleSize = putMemSize.get();
 
-            if (maxAbleSize - currentSize >= batchSize * bufferMemUnit) {
+            if (maxAbleSize - currentSize >= bufferMemUnit) {
                 return true;
             } else {
                 return false;
