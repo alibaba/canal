@@ -2108,29 +2108,6 @@ public class LogBufferTest {
 
   // Test written by Diffblue Cover.
   @Test
-  public void getFloat32InputZeroOutputZero() throws InvocationTargetException {
-
-    // Arrange
-    final LogBuffer objectUnderTest = new LogBuffer();
-    objectUnderTest.position = 0;
-    objectUnderTest.semival = 0;
-    final byte[] myByteArray = {(byte)1, (byte)1, (byte)1, (byte)1, (byte)1,
-                                (byte)1, (byte)1, (byte)1, (byte)1, (byte)1,
-                                (byte)1, (byte)0, (byte)0, (byte)1, (byte)0};
-    objectUnderTest.buffer = myByteArray;
-    objectUnderTest.limit = 6;
-    objectUnderTest.origin = 11;
-    final int pos = 0;
-
-    // Act
-    final float actual = objectUnderTest.getFloat32(pos);
-
-    // Assert result
-    Assert.assertEquals(0.0f, actual, 0.0f);
-  }
-
-  // Test written by Diffblue Cover.
-  @Test
   public void getFloat32OutputIllegalArgumentException() {
 
     // Arrange

@@ -53,7 +53,7 @@ public class DruidDdlParserTest {
         .withArguments(or(isA(String.class), isNull(String.class)),
                        or(isA(DbType.class), isNull(DbType.class)), anyBoolean());
 
-    // Act
+    // act
     final List<DdlResult> actual = DruidDdlParser.parse(queryString, schmeaName);
 
     // Assert result

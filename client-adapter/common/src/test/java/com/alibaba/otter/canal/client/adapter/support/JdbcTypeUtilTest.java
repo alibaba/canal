@@ -86,25 +86,6 @@ public class JdbcTypeUtilTest {
 
   // Test written by Diffblue Cover.
   @Test
-  public void typeConvertInputNotNullNotNullNotNullNegativeNotNullOutputZero() {
-
-    // Arrange
-    final String tableName = "foo";
-    final String columnName = "foo";
-    final String value = "foo";
-    final int sqlType = -7;
-    final String mysqlType = "foo";
-
-    // Act
-    final Object actual =
-        JdbcTypeUtil.typeConvert(tableName, columnName, value, sqlType, mysqlType);
-
-    // Assert result
-    Assert.assertEquals((byte)0, actual);
-  }
-
-  // Test written by Diffblue Cover.
-  @Test
   public void typeConvertInputNotNullNotNullNotNullPositiveNotNullOutputFalse() {
 
     // Arrange
@@ -177,31 +158,6 @@ public class JdbcTypeUtilTest {
 
     // Assert result
     Assert.assertTrue((boolean)actual);
-  }
-
-  // Test written by Diffblue Cover.
-  @PrepareForTest({JdbcTypeUtil.class, Double.class})
-  @Test
-  public void typeConvertInputNotNullNotNullNotNullPositiveNotNullOutputZero() throws Exception {
-
-    // Setup mocks
-    PowerMockito.mockStatic(Double.class);
-
-    // Arrange
-    final String tableName = "?????????";
-    final String columnName = "?";
-    final String value = "7";
-    final int sqlType = 8;
-    final String mysqlType = "";
-    PowerMockito.when(Double.parseDouble(or(isA(String.class), isNull(String.class))))
-        .thenReturn(0.0);
-
-    // Act
-    final Object actual =
-        JdbcTypeUtil.typeConvert(tableName, columnName, value, sqlType, mysqlType);
-
-    // Assert result
-    Assert.assertEquals(0.0, (double)actual, 0.0);
   }
 
   // Test written by Diffblue Cover.

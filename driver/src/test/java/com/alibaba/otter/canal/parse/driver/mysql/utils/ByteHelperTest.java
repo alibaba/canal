@@ -139,22 +139,6 @@ public class ByteHelperTest {
 
   // Test written by Diffblue Cover.
   @Test
-  public void readLengthCodedBinaryInput9ZeroOutputZero() throws IOException {
-
-    // Arrange
-    final byte[] data = {(byte)-2, (byte)0, (byte)0, (byte)0, (byte)0,
-                         (byte)0,  (byte)0, (byte)0, (byte)1};
-    final int index = 0;
-
-    // Act
-    final long actual = ByteHelper.readLengthCodedBinary(data, index);
-
-    // Assert result
-    Assert.assertEquals(0L, actual);
-  }
-
-  // Test written by Diffblue Cover.
-  @Test
   public void readNullTerminatedBytesInput0ZeroOutput0() {
 
     // Arrange
@@ -208,22 +192,6 @@ public class ByteHelperTest {
 
     // Act
     final long actual = ByteHelper.readUnsignedIntLittleEndian(data, index);
-
-    // Assert result
-    Assert.assertEquals(0L, actual);
-  }
-
-  // Test written by Diffblue Cover.
-  @Test
-  public void readUnsignedLongLittleEndianInput14ZeroOutputZero() {
-
-    // Arrange
-    final byte[] data = {(byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0,
-                         (byte)1, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0};
-    final int index = 0;
-
-    // Act
-    final long actual = ByteHelper.readUnsignedLongLittleEndian(data, index);
 
     // Assert result
     Assert.assertEquals(0L, actual);
