@@ -555,7 +555,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                 next = next + 1;// 少一条数据
             }
 
-            if (current < maxAbleSequence && next + batchSize - 1 <= maxAbleSequence) {
+            if (current < maxAbleSequence) {
                 return true;
             } else {
                 return false;
