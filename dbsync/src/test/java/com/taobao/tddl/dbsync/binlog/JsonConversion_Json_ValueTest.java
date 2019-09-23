@@ -36,22 +36,6 @@ public class JsonConversion_Json_ValueTest {
   }
 
   // Test written by Diffblue Cover.
-
-  @Test
-  public void constructorInputNullNullOutputNullPointerException() {
-
-    // Arrange
-    final Json_enum_type t = null;
-    final Number val = null;
-
-    // Act, creating object to test constructor
-    thrown.expect(NullPointerException.class);
-    final Json_Value objectUnderTest = new Json_Value(t, val);
-
-    // Method is not expected to return due to exception thrown
-  }
-
-  // Test written by Diffblue Cover.
   @Test
   public void parse_valueInputZeroNotNullPositiveNotNullOutputIllegalArgumentException() {
 

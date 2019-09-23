@@ -46,21 +46,6 @@ public class UtilTest {
   }
 
   // Test written by Diffblue Cover.
-
-  @Test
-  public void cleanColumnInputNotNullOutputNotNull2() {
-
-    // Arrange
-    final String column = "a\'b\'c";
-
-    // Act
-    final String actual = Util.cleanColumn(column);
-
-    // Assert result
-    Assert.assertEquals("?", actual);
-  }
-
-  // Test written by Diffblue Cover.
   @Test
   public void cleanColumnInputNullOutputNull() {
 
