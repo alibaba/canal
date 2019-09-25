@@ -221,7 +221,7 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.2.58</version>
+                <version>1.2.58.sec06</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
