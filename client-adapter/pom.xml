@@ -23,6 +23,9 @@
         <module>elasticsearch</module>
         <module>launcher</module>
         <module>rdb</module>
+        <module>es_6.x</module>
+        <module>es_7.x</module>
+        <module>es-core</module>
     </modules>
 
     <licenses>

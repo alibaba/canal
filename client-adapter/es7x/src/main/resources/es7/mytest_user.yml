@@ -1,0 +1,15 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esMapping:
+  _index: mytest_user
+  _id: _id
+#  upsert: true
+#  pk: id
+  sql: "select a.id as _id, a.name, a.role_id, b.role_name,
+        a.c_time from user a
+        left join role b on b.id=a.role_id"
+#  objFields:
+#    _labels: array:;
+  etlCondition: "where a.c_time>={}"
+  commitBatch: 3000
