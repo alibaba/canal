@@ -1,0 +1,47 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esMapping:
+  _index: customer
+  _type: _doc
+  _id: id
+  relations:
+    customer_order:
+      name: customer
+  sql: "select t.id, t.name, t.email from customer t"
+  etlCondition: "where t.c_time>={}"
+  commitBatch: 3000
+
+
+#{
+#  "mappings":{
+#    "_doc":{
+#      "properties":{
+#        "id": {
+#          "type": "long"
+#        },
+#        "name": {
+#          "type": "text"
+#        },
+#        "email": {
+#          "type": "text"
+#        },
+#        "order_id": {
+#          "type": "long"
+#        },
+#        "order_serial": {
+#          "type": "text"
+#        },
+#        "order_time": {
+#          "type": "date"
+#        },
+#        "customer_order":{
+#          "type":"join",
+#          "relations":{
+#            "customer":"order"
+#          }
+#        }
+#      }
+#    }
+#  }
+#}
