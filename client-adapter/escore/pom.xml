@@ -9,9 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
-    <artifactId>client-adapter.es-core</artifactId>
+    <artifactId>client-adapter.escore</artifactId>
     <packaging>jar</packaging>
-    <name>canal client adapter es-core module for otter ${project.version}</name>
+    <name>canal client adapter escore module for otter ${project.version}</name>
 
     <dependencies>
         <dependency>

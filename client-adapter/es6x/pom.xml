@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.alibaba.otter</groupId>
-            <artifactId>client-adapter.es-core</artifactId>
+            <artifactId>client-adapter.escore</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
