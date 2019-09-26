@@ -20,9 +20,11 @@
         <module>common</module>
         <module>logger</module>
         <module>hbase</module>
-        <module>elasticsearch</module>
         <module>launcher</module>
         <module>rdb</module>
+        <module>es6x</module>
+        <module>es7x</module>
+        <module>escore</module>
     </modules>
 
     <licenses>
