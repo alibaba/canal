@@ -565,9 +565,13 @@ public class MQMessageUtils {
                 String topicConfigs = item.substring(i + 1).trim();
                 if (matchDynamicTopic(name, topicConfigs)) {
                     topics.add(topic);
+                    // 匹配了一个就退出
+                    break;
                 }
             } else if (matchDynamicTopic(name, item)) {
+                // 匹配了一个就退出
                 topics.add(name.toLowerCase());
+                break;
             }
         }
         return topics.isEmpty() ? null : topics;
