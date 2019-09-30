@@ -4,6 +4,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
 
 /**
@@ -22,6 +23,7 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
             0,
             TimeUnit.SECONDS,
             new ArrayBlockingQueue<Runnable>(parallelThreadSize * 2),
+            new NamedThreadFactory("MQParallel"),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
     }

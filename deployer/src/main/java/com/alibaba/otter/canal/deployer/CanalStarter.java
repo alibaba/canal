@@ -204,6 +204,10 @@ public class CanalStarter {
         if (!StringUtils.isEmpty(flatMessage)) {
             mqProperties.setFlatMessage(Boolean.valueOf(flatMessage));
         }
+        String parallelThreadSize = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_PARALLELTHREADSIZE);
+        if (!StringUtils.isEmpty(parallelThreadSize)) {
+            mqProperties.setParallelThreadSize(Integer.valueOf(parallelThreadSize));
+        }
         String compressionType = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_COMPRESSION_TYPE);
         if (!StringUtils.isEmpty(compressionType)) {
             mqProperties.setCompressionType(compressionType);

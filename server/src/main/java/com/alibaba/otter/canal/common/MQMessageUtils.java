@@ -136,6 +136,7 @@ public class MQMessageUtils {
         }
         Map<String, Message> messages = new HashMap<>();
         for (CanalEntry.Entry entry : entries) {
+            // 如果有topic路由,则忽略begin/end事件
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
                 || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
                 continue;
@@ -250,6 +251,11 @@ public class MQMessageUtils {
         for (EntryRowData data : datas) {
             CanalEntry.Entry entry = data.entry;
             CanalEntry.RowChange rowChange = data.rowChange;
+            // 如果有分区路由,则忽略begin/end事件
+            if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
+                || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
+                continue;
+            }
 
             if (rowChange.getIsDdl()) {
                 partitionEntries[0].add(entry);
@@ -335,6 +341,12 @@ public class MQMessageUtils {
         for (EntryRowData entryRowData : datas) {
             CanalEntry.Entry entry = entryRowData.entry;
             CanalEntry.RowChange rowChange = entryRowData.rowChange;
+            // 如果有分区路由,则忽略begin/end事件
+            if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
+                || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
+                continue;
+            }
+
             // build flatMessage
             CanalEntry.EventType eventType = rowChange.getEventType();
             FlatMessage flatMessage = new FlatMessage(id);
