@@ -1,19 +1,18 @@
 package com.alibaba.otter.canal.deployer;
 
-import java.util.Properties;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.otter.canal.admin.netty.CanalAdminWithNetty;
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.deployer.admin.CanalAdminController;
 import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
-import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.rabbitmq.CanalRabbitMQProducer;
+import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.server.CanalMQStarter;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
 
 /**
  * Canal server 启动类
@@ -25,10 +24,10 @@ public class CanalStarter {
 
     private static final Logger logger          = LoggerFactory.getLogger(CanalStarter.class);
 
-    private CanalController     controller      = null;
-    private CanalMQProducer     canalMQProducer = null;
+    private CanalController controller      = null;
+    private CanalMQProducer canalMQProducer = null;
     private Thread              shutdownThread  = null;
-    private CanalMQStarter      canalMQStarter  = null;
+    private CanalMQStarter canalMQStarter  = null;
     private volatile Properties properties;
     private volatile boolean    running         = false;
 
@@ -106,15 +105,18 @@ public class CanalStarter {
         }
 
         // start canalAdmin
-        String port = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT);
+        String port = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT);
         if (canalAdmin == null && StringUtils.isNotEmpty(port)) {
-            String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
-            String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
+            String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
+            String passwd = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
             CanalAdminController canalAdmin = new CanalAdminController(this);
             canalAdmin.setUser(user);
             canalAdmin.setPasswd(passwd);
 
-            String ip = properties.getProperty(CanalConstants.CANAL_IP);
+            String ip = CanalController.getProperty(properties, CanalConstants.CANAL_IP);
+
+            logger.debug("canal admin port:{}, canal admin user:{}, canal admin password: {}, canal ip:{}", port, user, passwd, ip);
+
             CanalAdminWithNetty canalAdminWithNetty = CanalAdminWithNetty.instance();
             canalAdminWithNetty.setCanalAdmin(canalAdmin);
             canalAdminWithNetty.setPort(Integer.valueOf(port));
