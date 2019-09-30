@@ -1,11 +1,11 @@
 package com.alibaba.otter.canal.admin.connector;
 
-import java.util.function.Function;
-
 import com.alibaba.otter.canal.admin.config.SpringContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+
+import java.util.function.Function;
 
 public class SimpleAdminConnectors {
 
@@ -25,6 +25,7 @@ public class SimpleAdminConnectors {
             connector.connect();
             return function.apply(connector);
         } catch (Exception e) {
+            logger.error("connect to ip:{},port:{},user:{},password:{}, failed", ip, port, user,passwd);
             logger.error(e.getMessage());
         } finally {
             connector.disconnect();
