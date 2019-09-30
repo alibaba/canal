@@ -30,14 +30,24 @@ public class MQProperties {
     private String     accessChannel          = null;
     private String     customizedTraceTopic   = null;
     private String     namespace              = "";
-    private boolean    kerberosEnable         = false;           // kafka集群是否启动Kerberos认证
-    private String     kerberosKrb5FilePath   = "";              // 启动Kerberos认证时配置为krb5.conf文件的路径
-    private String     kerberosJaasFilePath   = "";              // 启动Kerberos认证时配置为jaas.conf文件的路径
-    private String     username               = "";              // rabbitmq 账号
-    private String     password               = "";              // rabbitmq 密码
-    private String     vhost                  = "";              // rabbitmq 密码
-    private long       aliyunUID              = 0;               // aliyun 用户ID rabbitmq 阿里云需要使用
-    private String     exchange               = "";       // rabbitmq 交换机
+    // kafka集群是否启动Kerberos认证
+    private boolean    kerberosEnable         = false;
+    // 启动Kerberos认证时配置为krb5.conf文件的路径
+    private String     kerberosKrb5FilePath   = "";
+    // 启动Kerberos认证时配置为jaas.conf文件的路径
+    private String     kerberosJaasFilePath   = "";
+    // rabbitmq 账号
+    private String     username               = "";
+    // rabbitmq 密码
+    private String     password               = "";
+    // rabbitmq 密码
+    private String     vhost                  = "";
+    // aliyun 用户ID rabbitmq 阿里云需要使用
+    private long       aliyunUID              = 0;
+    // rabbitmq 交换机
+    private String     exchange               = "";
+    // 消息发送的并行度
+    private int        parallelThreadSize     = 8;
 
     public static class CanalDestination {
 
@@ -321,17 +331,28 @@ public class MQProperties {
         this.exchange = exchange;
     }
 
+    public int getParallelThreadSize() {
+        return parallelThreadSize;
+    }
+
+    public void setParallelThreadSize(int parallelThreadSize) {
+        this.parallelThreadSize = parallelThreadSize;
+    }
+
     @Override
     public String toString() {
-        return "MQProperties{" + "servers='" + servers + '\'' + ", retries=" + retries + ", batchSize=" + batchSize
-               + ", lingerMs=" + lingerMs + ", maxRequestSize=" + maxRequestSize + ", bufferMemory=" + bufferMemory
-               + ", filterTransactionEntry=" + filterTransactionEntry + ", producerGroup='" + producerGroup + '\''
+        return "MQProperties [servers=" + servers + ", retries=" + retries + ", batchSize=" + batchSize + ", lingerMs="
+               + lingerMs + ", maxRequestSize=" + maxRequestSize + ", bufferMemory=" + bufferMemory
+               + ", filterTransactionEntry=" + filterTransactionEntry + ", producerGroup=" + producerGroup
                + ", canalBatchSize=" + canalBatchSize + ", canalGetTimeout=" + canalGetTimeout + ", flatMessage="
-               + flatMessage + ", compressionType='" + compressionType + '\'' + ", acks='" + acks + '\''
-               + ", aliyunAccessKey='" + aliyunAccessKey + '\'' + ", aliyunSecretKey='" + aliyunSecretKey + '\''
-               + ", properties=" + properties + ", enableMessageTrace=" + enableMessageTrace + ", accessChannel='"
-               + accessChannel + '\'' + ", customizedTraceTopic='" + customizedTraceTopic + '\'' + ", namespace='"
-               + namespace + '\'' + ", kerberosEnable='" + kerberosEnable + '\'' + ", kerberosKrb5FilePath='"
-               + kerberosKrb5FilePath + '\'' + ", kerberosJaasFilePath='" + kerberosJaasFilePath + '\'' + '}';
+               + flatMessage + ", compressionType=" + compressionType + ", acks=" + acks + ", aliyunAccessKey="
+               + aliyunAccessKey + ", aliyunSecretKey=" + aliyunSecretKey + ", properties=" + properties
+               + ", enableMessageTrace=" + enableMessageTrace + ", accessChannel=" + accessChannel
+               + ", customizedTraceTopic=" + customizedTraceTopic + ", namespace=" + namespace + ", kerberosEnable="
+               + kerberosEnable + ", kerberosKrb5FilePath=" + kerberosKrb5FilePath + ", kerberosJaasFilePath="
+               + kerberosJaasFilePath + ", username=" + username + ", password=" + password + ", vhost=" + vhost
+               + ", aliyunUID=" + aliyunUID + ", exchange=" + exchange + ", parallelThreadSize=" + parallelThreadSize
+               + "]";
     }
+
 }

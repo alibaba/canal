@@ -1,15 +1,18 @@
 package com.alibaba.otter.canal.common;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
@@ -27,6 +30,10 @@ import com.google.protobuf.InvalidProtocolBufferException;
  * process MQ Message utils
  *
  * @author agapple 2018年12月11日 下午1:28:32
+ */
+/**
+ * @author agapple 2019年9月29日 下午12:36:26
+ * @since 5.0.0
  */
 public class MQMessageUtils {
 
@@ -161,6 +168,67 @@ public class MQMessageUtils {
     }
 
     /**
+     * 多线程构造message的rowChanged对象，比如为partition/flastMessage转化等处理 </br>
+     * 因为protobuf对象的序列化和反序列化是cpu密集型，串行执行会有代价
+     */
+    public static EntryRowData[] buildMessageData(Message message, ThreadPoolExecutor executor) {
+        ExecutorTemplate template = new ExecutorTemplate(executor);
+        if (message.isRaw()) {
+            List<ByteString> rawEntries = message.getRawEntries();
+            final EntryRowData[] datas = new EntryRowData[rawEntries.size()];
+            int i = 0;
+            for (ByteString byteString : rawEntries) {
+                final int index = i;
+                template.submit(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            Entry entry = Entry.parseFrom(byteString);
+                            CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
+                            datas[index] = new EntryRowData();
+                            datas[index].entry = entry;
+                            datas[index].rowChange = rowChange;
+                        } catch (InvalidProtocolBufferException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+
+                i++;
+            }
+
+            template.waitForResult();
+            return datas;
+        } else {
+            final EntryRowData[] datas = new EntryRowData[message.getEntries().size()];
+            int i = 0;
+            for (Entry entry : message.getEntries()) {
+                final int index = i;
+                template.submit(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
+                            datas[index] = new EntryRowData();
+                            datas[index].entry = entry;
+                            datas[index].rowChange = rowChange;
+                        } catch (InvalidProtocolBufferException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+
+                i++;
+            }
+
+            template.waitForResult();
+            return datas;
+        }
+    }
+
+    /**
      * 将 message 分区
      *
      * @param partitionsNum 分区数
@@ -168,40 +236,20 @@ public class MQMessageUtils {
      * @return 分区message数组
      */
     @SuppressWarnings("unchecked")
-    public static Message[] messagePartition(Message message, Integer partitionsNum, String pkHashConfigs) {
+    public static Message[] messagePartition(EntryRowData[] datas, long id, Integer partitionsNum, String pkHashConfigs) {
         if (partitionsNum == null) {
             partitionsNum = 1;
         }
         Message[] partitionMessages = new Message[partitionsNum];
         List<Entry>[] partitionEntries = new List[partitionsNum];
         for (int i = 0; i < partitionsNum; i++) {
-            partitionEntries[i] = new ArrayList<>();
+            // 注意一下并发
+            partitionEntries[i] = Collections.synchronizedList(Lists.newArrayList());
         }
 
-        List<CanalEntry.Entry> entries;
-        if (message.isRaw()) {
-            List<ByteString> rawEntries = message.getRawEntries();
-            entries = new ArrayList<>(rawEntries.size());
-            for (ByteString byteString : rawEntries) {
-                Entry entry;
-                try {
-                    entry = Entry.parseFrom(byteString);
-                } catch (InvalidProtocolBufferException e) {
-                    throw new RuntimeException(e);
-                }
-                entries.add(entry);
-            }
-        } else {
-            entries = message.getEntries();
-        }
-
-        for (Entry entry : entries) {
-            CanalEntry.RowChange rowChange;
-            try {
-                rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
+        for (EntryRowData data : datas) {
+            CanalEntry.Entry entry = data.entry;
+            CanalEntry.RowChange rowChange = data.rowChange;
 
             if (rowChange.getIsDdl()) {
                 partitionEntries[0].add(entry);
@@ -220,6 +268,10 @@ public class MQMessageUtils {
                         // tableHash not need split entry message
                         partitionEntries[pkHash].add(entry);
                     } else {
+                        // build new entry
+                        Entry.Builder builder = Entry.newBuilder(entry);
+                        RowChange.Builder rowChangeBuilder = RowChange.newBuilder(rowChange);
+
                         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
                             int hashCode = database.hashCode();
                             CanalEntry.EventType eventType = rowChange.getEventType();
@@ -247,9 +299,7 @@ public class MQMessageUtils {
 
                             int pkHash = Math.abs(hashCode) % partitionsNum;
                             pkHash = Math.abs(pkHash);
-                            // build new entry
-                            Entry.Builder builder = Entry.newBuilder(entry);
-                            RowChange.Builder rowChangeBuilder = RowChange.newBuilder(rowChange);
+                            // clear rowDatas
                             rowChangeBuilder.clearRowDatas();
                             rowChangeBuilder.addRowDatas(rowData);
                             builder.clearStoreValue();
@@ -267,7 +317,7 @@ public class MQMessageUtils {
         for (int i = 0; i < partitionsNum; i++) {
             List<Entry> entriesTmp = partitionEntries[i];
             if (!entriesTmp.isEmpty()) {
-                partitionMessages[i] = new Message(message.getId(), entriesTmp);
+                partitionMessages[i] = new Message(id, entriesTmp);
             }
         }
 
@@ -280,131 +330,100 @@ public class MQMessageUtils {
      * @param message 原生message
      * @return FlatMessage列表
      */
-    public static List<FlatMessage> messageConverter(Message message) {
-        try {
-            if (message == null) {
-                return null;
-            }
+    public static List<FlatMessage> messageConverter(EntryRowData[] datas, long id) {
+        List<FlatMessage> flatMessages = new ArrayList<>();
+        for (EntryRowData entryRowData : datas) {
+            CanalEntry.Entry entry = entryRowData.entry;
+            CanalEntry.RowChange rowChange = entryRowData.rowChange;
+            // build flatMessage
+            CanalEntry.EventType eventType = rowChange.getEventType();
+            FlatMessage flatMessage = new FlatMessage(id);
+            flatMessages.add(flatMessage);
+            flatMessage.setDatabase(entry.getHeader().getSchemaName());
+            flatMessage.setTable(entry.getHeader().getTableName());
+            flatMessage.setIsDdl(rowChange.getIsDdl());
+            flatMessage.setType(eventType.toString());
+            flatMessage.setEs(entry.getHeader().getExecuteTime());
+            flatMessage.setTs(System.currentTimeMillis());
+            flatMessage.setSql(rowChange.getSql());
 
-            List<FlatMessage> flatMessages = new ArrayList<>();
-            List<CanalEntry.Entry> entrys = null;
-            if (message.isRaw()) {
-                List<ByteString> rawEntries = message.getRawEntries();
-                entrys = new ArrayList<CanalEntry.Entry>(rawEntries.size());
-                for (ByteString byteString : rawEntries) {
-                    CanalEntry.Entry entry = CanalEntry.Entry.parseFrom(byteString);
-                    entrys.add(entry);
-                }
-            } else {
-                entrys = message.getEntries();
-            }
+            if (!rowChange.getIsDdl()) {
+                Map<String, Integer> sqlType = new LinkedHashMap<>();
+                Map<String, String> mysqlType = new LinkedHashMap<>();
+                List<Map<String, String>> data = new ArrayList<>();
+                List<Map<String, String>> old = new ArrayList<>();
 
-            for (CanalEntry.Entry entry : entrys) {
-                if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
-                    || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
-                    continue;
-                }
+                Set<String> updateSet = new HashSet<>();
+                boolean hasInitPkNames = false;
+                for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
+                    if (eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE
+                        && eventType != CanalEntry.EventType.DELETE) {
+                        continue;
+                    }
 
-                CanalEntry.RowChange rowChange;
-                try {
-                    rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                } catch (Exception e) {
-                    throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
-                                               + entry.toString(), e);
-                }
+                    Map<String, String> row = new LinkedHashMap<>();
+                    List<CanalEntry.Column> columns;
 
-                CanalEntry.EventType eventType = rowChange.getEventType();
+                    if (eventType == CanalEntry.EventType.DELETE) {
+                        columns = rowData.getBeforeColumnsList();
+                    } else {
+                        columns = rowData.getAfterColumnsList();
+                    }
 
-                FlatMessage flatMessage = new FlatMessage(message.getId());
-                flatMessages.add(flatMessage);
-                flatMessage.setDatabase(entry.getHeader().getSchemaName());
-                flatMessage.setTable(entry.getHeader().getTableName());
-                flatMessage.setIsDdl(rowChange.getIsDdl());
-                flatMessage.setType(eventType.toString());
-                flatMessage.setEs(entry.getHeader().getExecuteTime());
-                flatMessage.setTs(System.currentTimeMillis());
-                flatMessage.setSql(rowChange.getSql());
-
-                if (!rowChange.getIsDdl()) {
-                    Map<String, Integer> sqlType = new LinkedHashMap<>();
-                    Map<String, String> mysqlType = new LinkedHashMap<>();
-                    List<Map<String, String>> data = new ArrayList<>();
-                    List<Map<String, String>> old = new ArrayList<>();
-
-                    Set<String> updateSet = new HashSet<>();
-                    boolean hasInitPkNames = false;
-                    for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-                        if (eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE
-                            && eventType != CanalEntry.EventType.DELETE) {
-                            continue;
+                    for (CanalEntry.Column column : columns) {
+                        if (!hasInitPkNames && column.getIsKey()) {
+                            flatMessage.addPkName(column.getName());
                         }
-
-                        Map<String, String> row = new LinkedHashMap<>();
-                        List<CanalEntry.Column> columns;
-
-                        if (eventType == CanalEntry.EventType.DELETE) {
-                            columns = rowData.getBeforeColumnsList();
+                        sqlType.put(column.getName(), column.getSqlType());
+                        mysqlType.put(column.getName(), column.getMysqlType());
+                        if (column.getIsNull()) {
+                            row.put(column.getName(), null);
                         } else {
-                            columns = rowData.getAfterColumnsList();
+                            row.put(column.getName(), column.getValue());
                         }
-
-                        for (CanalEntry.Column column : columns) {
-                            if (!hasInitPkNames && column.getIsKey()) {
-                                flatMessage.addPkName(column.getName());
-                            }
-                            sqlType.put(column.getName(), column.getSqlType());
-                            mysqlType.put(column.getName(), column.getMysqlType());
-                            if (column.getIsNull()) {
-                                row.put(column.getName(), null);
-                            } else {
-                                row.put(column.getName(), column.getValue());
-                            }
-                            // 获取update为true的字段
-                            if (column.getUpdated()) {
-                                updateSet.add(column.getName());
-                            }
+                        // 获取update为true的字段
+                        if (column.getUpdated()) {
+                            updateSet.add(column.getName());
                         }
+                    }
 
-                        hasInitPkNames = true;
-                        if (!row.isEmpty()) {
-                            data.add(row);
-                        }
+                    hasInitPkNames = true;
+                    if (!row.isEmpty()) {
+                        data.add(row);
+                    }
 
-                        if (eventType == CanalEntry.EventType.UPDATE) {
-                            Map<String, String> rowOld = new LinkedHashMap<>();
-                            for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
-                                if (updateSet.contains(column.getName())) {
-                                    if (column.getIsNull()) {
-                                        rowOld.put(column.getName(), null);
-                                    } else {
-                                        rowOld.put(column.getName(), column.getValue());
-                                    }
+                    if (eventType == CanalEntry.EventType.UPDATE) {
+                        Map<String, String> rowOld = new LinkedHashMap<>();
+                        for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
+                            if (updateSet.contains(column.getName())) {
+                                if (column.getIsNull()) {
+                                    rowOld.put(column.getName(), null);
+                                } else {
+                                    rowOld.put(column.getName(), column.getValue());
                                 }
                             }
-                            // update操作将记录修改前的值
-                            if (!rowOld.isEmpty()) {
-                                old.add(rowOld);
-                            }
+                        }
+                        // update操作将记录修改前的值
+                        if (!rowOld.isEmpty()) {
+                            old.add(rowOld);
                         }
                     }
-                    if (!sqlType.isEmpty()) {
-                        flatMessage.setSqlType(sqlType);
-                    }
-                    if (!mysqlType.isEmpty()) {
-                        flatMessage.setMysqlType(mysqlType);
-                    }
-                    if (!data.isEmpty()) {
-                        flatMessage.setData(data);
-                    }
-                    if (!old.isEmpty()) {
-                        flatMessage.setOld(old);
-                    }
+                }
+                if (!sqlType.isEmpty()) {
+                    flatMessage.setSqlType(sqlType);
+                }
+                if (!mysqlType.isEmpty()) {
+                    flatMessage.setMysqlType(mysqlType);
+                }
+                if (!data.isEmpty()) {
+                    flatMessage.setData(data);
+                }
+                if (!old.isEmpty()) {
+                    flatMessage.setOld(old);
                 }
             }
-            return flatMessages;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
+        return flatMessages;
     }
 
     /**
@@ -615,5 +634,11 @@ public class MQMessageUtils {
         public String             simpleName;
         public AviaterRegexFilter schemaRegexFilter;
         public AviaterRegexFilter tableRegexFilter;
+    }
+
+    public static class EntryRowData {
+
+        public Entry     entry;
+        public RowChange rowChange;
     }
 }

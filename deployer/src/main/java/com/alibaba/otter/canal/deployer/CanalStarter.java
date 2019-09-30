@@ -10,8 +10,8 @@ import com.alibaba.otter.canal.admin.netty.CanalAdminWithNetty;
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.deployer.admin.CanalAdminController;
 import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
-import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.rabbitmq.CanalRabbitMQProducer;
+import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.server.CanalMQStarter;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
 
@@ -69,11 +69,15 @@ public class CanalStarter {
             canalMQProducer = new CanalRabbitMQProducer();
         }
 
+        MQProperties mqProperties = null;
         if (canalMQProducer != null) {
+            mqProperties = buildMQProperties(properties);
             // disable netty
             System.setProperty(CanalConstants.CANAL_WITHOUT_NETTY, "true");
-            // 设置为raw避免ByteString->Entry的二次解析
-            System.setProperty("canal.instance.memory.rawEntry", "false");
+            if (mqProperties.getFlatMessage()) {
+                // 设置为raw避免ByteString->Entry的二次解析
+                System.setProperty("canal.instance.memory.rawEntry", "false");
+            }
         }
 
         logger.info("## start the canal server.");
@@ -99,7 +103,6 @@ public class CanalStarter {
 
         if (canalMQProducer != null) {
             canalMQStarter = new CanalMQStarter(canalMQProducer);
-            MQProperties mqProperties = buildMQProperties(properties);
             String destinations = CanalController.getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
             canalMQStarter.start(mqProperties, destinations);
             controller.setCanalMQStarter(canalMQStarter);
