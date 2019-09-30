@@ -109,15 +109,18 @@ public class CanalStarter {
         }
 
         // start canalAdmin
-        String port = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT);
+        String port = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT);
         if (canalAdmin == null && StringUtils.isNotEmpty(port)) {
-            String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
-            String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
+            String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
+            String passwd = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
             CanalAdminController canalAdmin = new CanalAdminController(this);
             canalAdmin.setUser(user);
             canalAdmin.setPasswd(passwd);
 
-            String ip = properties.getProperty(CanalConstants.CANAL_IP);
+            String ip = CanalController.getProperty(properties, CanalConstants.CANAL_IP);
+
+            logger.debug("canal admin port:{}, canal admin user:{}, canal admin password: {}, canal ip:{}", port, user, passwd, ip);
+
             CanalAdminWithNetty canalAdminWithNetty = CanalAdminWithNetty.instance();
             canalAdminWithNetty.setCanalAdmin(canalAdmin);
             canalAdminWithNetty.setPort(Integer.valueOf(port));

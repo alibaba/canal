@@ -25,6 +25,7 @@ public class SimpleAdminConnectors {
             connector.connect();
             return function.apply(connector);
         } catch (Exception e) {
+            logger.error("connect to ip:{},port:{},user:{},password:{}, failed", ip, port, user,passwd);
             logger.error(e.getMessage());
         } finally {
             connector.disconnect();
