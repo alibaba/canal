@@ -10,8 +10,8 @@ import com.alibaba.otter.canal.admin.netty.CanalAdminWithNetty;
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.deployer.admin.CanalAdminController;
 import com.alibaba.otter.canal.kafka.CanalKafkaProducer;
-import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.rabbitmq.CanalRabbitMQProducer;
+import com.alibaba.otter.canal.rocketmq.CanalRocketMQProducer;
 import com.alibaba.otter.canal.server.CanalMQStarter;
 import com.alibaba.otter.canal.spi.CanalMQProducer;
 
@@ -69,11 +69,15 @@ public class CanalStarter {
             canalMQProducer = new CanalRabbitMQProducer();
         }
 
+        MQProperties mqProperties = null;
         if (canalMQProducer != null) {
+            mqProperties = buildMQProperties(properties);
             // disable netty
             System.setProperty(CanalConstants.CANAL_WITHOUT_NETTY, "true");
-            // 设置为raw避免ByteString->Entry的二次解析
-            System.setProperty("canal.instance.memory.rawEntry", "false");
+            if (mqProperties.getFlatMessage()) {
+                // 设置为raw避免ByteString->Entry的二次解析
+                System.setProperty("canal.instance.memory.rawEntry", "false");
+            }
         }
 
         logger.info("## start the canal server.");
@@ -99,22 +103,24 @@ public class CanalStarter {
 
         if (canalMQProducer != null) {
             canalMQStarter = new CanalMQStarter(canalMQProducer);
-            MQProperties mqProperties = buildMQProperties(properties);
             String destinations = CanalController.getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
             canalMQStarter.start(mqProperties, destinations);
             controller.setCanalMQStarter(canalMQStarter);
         }
 
         // start canalAdmin
-        String port = properties.getProperty(CanalConstants.CANAL_ADMIN_PORT);
+        String port = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT);
         if (canalAdmin == null && StringUtils.isNotEmpty(port)) {
-            String user = properties.getProperty(CanalConstants.CANAL_ADMIN_USER);
-            String passwd = properties.getProperty(CanalConstants.CANAL_ADMIN_PASSWD);
+            String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
+            String passwd = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
             CanalAdminController canalAdmin = new CanalAdminController(this);
             canalAdmin.setUser(user);
             canalAdmin.setPasswd(passwd);
 
-            String ip = properties.getProperty(CanalConstants.CANAL_IP);
+            String ip = CanalController.getProperty(properties, CanalConstants.CANAL_IP);
+
+            logger.debug("canal admin port:{}, canal admin user:{}, canal admin password: {}, canal ip:{}", port, user, passwd, ip);
+
             CanalAdminWithNetty canalAdminWithNetty = CanalAdminWithNetty.instance();
             canalAdminWithNetty.setCanalAdmin(canalAdmin);
             canalAdminWithNetty.setPort(Integer.valueOf(port));
@@ -200,6 +206,10 @@ public class CanalStarter {
         String flatMessage = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_FLATMESSAGE);
         if (!StringUtils.isEmpty(flatMessage)) {
             mqProperties.setFlatMessage(Boolean.valueOf(flatMessage));
+        }
+        String parallelThreadSize = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_PARALLELTHREADSIZE);
+        if (!StringUtils.isEmpty(parallelThreadSize)) {
+            mqProperties.setParallelThreadSize(Integer.valueOf(parallelThreadSize));
         }
         String compressionType = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_COMPRESSION_TYPE);
         if (!StringUtils.isEmpty(compressionType)) {

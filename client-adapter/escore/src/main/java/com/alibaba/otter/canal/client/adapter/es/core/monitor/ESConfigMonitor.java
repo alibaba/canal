@@ -26,11 +26,11 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
 
 public class ESConfigMonitor {
 
-    private static final Logger   logger      = LoggerFactory.getLogger(ESConfigMonitor.class);
+    private static final Logger   logger = LoggerFactory.getLogger(ESConfigMonitor.class);
 
-    private static final String   adapterName = "es";
+    private String                adapterName;
 
-    private ESAdapter esAdapter;
+    private ESAdapter             esAdapter;
 
     private Properties            envProperties;
 
@@ -39,6 +39,7 @@ public class ESConfigMonitor {
     public void init(ESAdapter esAdapter, Properties envProperties) {
         this.esAdapter = esAdapter;
         this.envProperties = envProperties;
+        this.adapterName = envProperties.getProperty("es.version");
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
@@ -130,7 +131,7 @@ public class ESConfigMonitor {
         private void addConfigToCache(File file, ESSyncConfig config) {
             esAdapter.getEsSyncConfig().put(file.getName(), config);
 
-            esAdapter.addSyncConfigToCache(file.getName(),config);
+            esAdapter.addSyncConfigToCache(file.getName(), config);
         }
 
         private void deleteConfigFromCache(File file) {
