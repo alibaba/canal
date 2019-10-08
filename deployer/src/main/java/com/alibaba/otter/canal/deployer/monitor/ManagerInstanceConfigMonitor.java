@@ -82,6 +82,10 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
 
     private void scan() {
         String instances = configClient.findInstances(null);
+        if (instances == null) {
+            return;
+        }
+
         final List<String> is = Lists.newArrayList(StringUtils.split(instances, ','));
         List<String> start = Lists.newArrayList();
         List<String> stop = Lists.newArrayList();
