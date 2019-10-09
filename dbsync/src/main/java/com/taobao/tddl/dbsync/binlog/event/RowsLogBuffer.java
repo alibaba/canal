@@ -756,7 +756,7 @@ public final class RowsLogBuffer {
                     }
 
                     int d = (int) ((intpart >> 12) % (1 << 10));
-                    if (d > 100) {
+                    if (d >= 100) {
                         builder.append(String.valueOf(d));
                     } else {
                         appendNumber2(builder, d);
