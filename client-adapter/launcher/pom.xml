@@ -4,6 +4,7 @@
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
         <version>1.1.5-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
@@ -37,7 +38,6 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.19</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -51,56 +51,46 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-context</artifactId>
-            <version>2.0.0.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
-            <version>2.10.0</version>
         </dependency>
         <!-- 单独引入rocketmq依赖 -->
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-client</artifactId>
-	    <version>4.5.1</version>
         </dependency>
         <!-- 单独引入kafka依赖 -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>1.1.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>5.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.mq-amqp</groupId>
             <artifactId>mq-amqp-client</artifactId>
-            <version>1.0.3</version>
         </dependency>
         <!-- jdbc -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.40</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.1.4</version>
         </dependency>
         <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.3</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>7.0.0.jre8</version>
         </dependency>
 
         <!-- outer adapter jar with dependencies-->
