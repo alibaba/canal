@@ -127,8 +127,8 @@
         <module>deployer</module>
         <module>example</module>
         <module>prometheus</module>
+        <module>admin</module>
         <module>client-adapter</module>
-        <module>canal-admin</module>
     </modules>
 
     <dependencyManagement>
