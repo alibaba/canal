@@ -42,11 +42,14 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
     private Producer<String, byte[]> producer;
     private MQProperties             kafkaProperties;
 
+    private boolean databaseHash;
+
     @Override
     public void init(MQProperties kafkaProperties) {
         super.init(kafkaProperties);
 
         this.kafkaProperties = kafkaProperties;
+        databaseHash = kafkaProperties.getDatabaseHash();
         Properties properties = new Properties();
         properties.put("bootstrap.servers", kafkaProperties.getServers());
         properties.put("acks", kafkaProperties.getAcks());
@@ -172,7 +175,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                 Message[] messages = MQMessageUtils.messagePartition(datas,
                     message.getId(),
                     canalDestination.getPartitionsNum(),
-                    canalDestination.getPartitionHash());
+                    canalDestination.getPartitionHash(),
+                    databaseHash);
                 int length = messages.length;
                 for (int i = 0; i < length; i++) {
                     Message messagePartition = messages[i];
@@ -201,7 +205,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                 if (canalDestination.getPartitionHash() != null && !canalDestination.getPartitionHash().isEmpty()) {
                     FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
                         canalDestination.getPartitionsNum(),
-                        canalDestination.getPartitionHash());
+                        canalDestination.getPartitionHash(),
+                        databaseHash);
                     int length = partitionFlatMessage.length;
                     for (int i = 0; i < length; i++) {
                         FlatMessage flatMessagePart = partitionFlatMessage[i];

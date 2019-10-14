@@ -298,6 +298,11 @@ public class CanalStarter {
             mqProperties.setExchange(exchange);
         }
 
+        String databaseHash = CanalController.getProperty(properties, CanalConstants.CANAL_MQ_DATABASE_HASH);
+        if (!StringUtils.isEmpty(databaseHash)){
+            mqProperties.setDatabaseHash(Boolean.valueOf(databaseHash));
+        }
+
         for (Object key : properties.keySet()) {
             key = StringUtils.trim(key.toString());
             if (((String) key).startsWith(CanalConstants.CANAL_MQ_PROPERTIES)) {
