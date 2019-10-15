@@ -40,13 +40,10 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
     private MQProperties        mqProperties;
     private static final String CLOUD_ACCESS_CHANNEL = "cloud";
 
-    private boolean             databaseHash;
-
     @Override
     public void init(MQProperties rocketMQProperties) {
         super.init(rocketMQProperties);
         this.mqProperties = rocketMQProperties;
-        this.databaseHash = rocketMQProperties.getDatabaseHash();
         RPCHook rpcHook = null;
         if (rocketMQProperties.getAliyunAccessKey().length() > 0
             && rocketMQProperties.getAliyunSecretKey().length() > 0) {
@@ -129,7 +126,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                     message.getId(),
                     destination.getPartitionsNum(),
                     destination.getPartitionHash(),
-                    databaseHash);
+                    mqProperties.getDatabaseHash());
                 int length = messages.length;
 
                 ExecutorTemplate template = new ExecutorTemplate(executor);
@@ -173,7 +170,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                         FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
                             destination.getPartitionsNum(),
                             destination.getPartitionHash(),
-                            databaseHash);
+                            mqProperties.getDatabaseHash());
                         int length = partitionFlatMessage.length;
                         for (int i = 0; i < length; i++) {
                             partitionFlatMessages.get(i).add(partitionFlatMessage[i]);
