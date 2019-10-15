@@ -42,7 +42,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
     private Producer<String, byte[]> producer;
     private MQProperties             kafkaProperties;
 
-    private boolean databaseHash;
+    private boolean                  databaseHash;
 
     @Override
     public void init(MQProperties kafkaProperties) {

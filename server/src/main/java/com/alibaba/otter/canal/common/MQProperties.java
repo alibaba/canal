@@ -48,9 +48,8 @@ public class MQProperties {
     private String     exchange               = "";
     // 消息发送的并行度
     private int        parallelThreadSize     = 8;
-    //是否取消根据database进行hash
+    // 是否取消根据database进行hash
     private boolean    databaseHash           = true;
-
 
     public static class CanalDestination {
 
@@ -349,6 +348,7 @@ public class MQProperties {
     public void setDatabaseHash(boolean databaseHash) {
         this.databaseHash = databaseHash;
     }
+
     @Override
     public String toString() {
         return "MQProperties [servers=" + servers + ", retries=" + retries + ", batchSize=" + batchSize + ", lingerMs="
@@ -362,9 +362,7 @@ public class MQProperties {
                + kerberosEnable + ", kerberosKrb5FilePath=" + kerberosKrb5FilePath + ", kerberosJaasFilePath="
                + kerberosJaasFilePath + ", username=" + username + ", password=" + password + ", vhost=" + vhost
                + ", aliyunUID=" + aliyunUID + ", exchange=" + exchange + ", parallelThreadSize=" + parallelThreadSize
-               + ",databaseHash=" + databaseHash +"]";
+               + ",databaseHash=" + databaseHash + "]";
     }
-
-
 
 }

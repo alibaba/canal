@@ -234,11 +234,12 @@ public class MQMessageUtils {
      *
      * @param partitionsNum 分区数
      * @param pkHashConfigs 分区库表主键正则表达式
-     * @param databaseHash  是否取消根据database进行hash
+     * @param databaseHash 是否取消根据database进行hash
      * @return 分区message数组
      */
     @SuppressWarnings("unchecked")
-    public static Message[] messagePartition(EntryRowData[] datas, long id, Integer partitionsNum, String pkHashConfigs,boolean databaseHash) {
+    public static Message[] messagePartition(EntryRowData[] datas, long id, Integer partitionsNum,
+                                             String pkHashConfigs, boolean databaseHash) {
         if (partitionsNum == null) {
             partitionsNum = 1;
         }
@@ -281,7 +282,7 @@ public class MQMessageUtils {
 
                         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
                             int hashCode = 0;
-                            if(databaseHash){
+                            if (databaseHash) {
                                 hashCode = database.hashCode();
                             }
                             CanalEntry.EventType eventType = rowChange.getEventType();
@@ -448,10 +449,11 @@ public class MQMessageUtils {
      * @param flatMessage flatMessage
      * @param partitionsNum 分区数量
      * @param pkHashConfigs hash映射
-     * @param databaseHash  是否取消根据database进行hash
+     * @param databaseHash 是否取消根据database进行hash
      * @return 拆分后的flatMessage数组
      */
-    public static FlatMessage[] messagePartition(FlatMessage flatMessage, Integer partitionsNum, String pkHashConfigs,boolean databaseHash) {
+    public static FlatMessage[] messagePartition(FlatMessage flatMessage, Integer partitionsNum, String pkHashConfigs,
+                                                 boolean databaseHash) {
         if (partitionsNum == null) {
             partitionsNum = 1;
         }
@@ -482,7 +484,7 @@ public class MQMessageUtils {
                     int idx = 0;
                     for (Map<String, String> row : flatMessage.getData()) {
                         int hashCode = 0;
-                        if(databaseHash){
+                        if (databaseHash) {
                             hashCode = database.hashCode();
                         }
                         if (pkNames != null) {
