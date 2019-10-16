@@ -10,9 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import com.alibaba.mq.amqp.utils.UserUtils;
 import com.rabbitmq.client.impl.CredentialsProvider;
 
-
 public class AliyunCredentialsProvider implements CredentialsProvider {
-
 
     /**
      * Access Key ID
@@ -27,15 +25,13 @@ public class AliyunCredentialsProvider implements CredentialsProvider {
     /**
      * 资源主账号ID
      */
-    private final long resourceOwnerId;
+    private final long   resourceOwnerId;
 
-
-    public AliyunCredentialsProvider(final String accessKey, final String accessSecret, final long resourceOwnerId) {
+    public AliyunCredentialsProvider(final String accessKey, final String accessSecret, final long resourceOwnerId){
         this.AliyunAccessKey = accessKey;
         this.AliyunAccessSecret = accessSecret;
         this.resourceOwnerId = resourceOwnerId;
     }
-
 
     @Override
     public String getUsername() {
@@ -50,6 +46,5 @@ public class AliyunCredentialsProvider implements CredentialsProvider {
         }
         return null;
     }
-
 
 }

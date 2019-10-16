@@ -125,7 +125,8 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 com.alibaba.otter.canal.protocol.Message[] messages = MQMessageUtils.messagePartition(datas,
                     message.getId(),
                     destination.getPartitionsNum(),
-                    destination.getPartitionHash());
+                    destination.getPartitionHash(),
+                    mqProperties.getDatabaseHash());
                 int length = messages.length;
 
                 ExecutorTemplate template = new ExecutorTemplate(executor);
@@ -168,7 +169,8 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                     for (FlatMessage flatMessage : flatMessages) {
                         FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
                             destination.getPartitionsNum(),
-                            destination.getPartitionHash());
+                            destination.getPartitionHash(),
+                            mqProperties.getDatabaseHash());
                         int length = partitionFlatMessage.length;
                         for (int i = 0; i < length; i++) {
                             partitionFlatMessages.get(i).add(partitionFlatMessage[i]);
@@ -249,20 +251,27 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             // 批量发送
             List<MessageQueue> queues = topicInfo.getMessageQueueList();
             int size = queues.size();
-            MessageQueue queue = null;
-            if (partition > queues.size()) {
-                queue = queues.get(partition % size);
-            } else {
-                queue = queues.get(partition);
-            }
-
-            try {
-                SendResult sendResult = this.defaultMQProducer.send(messages, queue);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Send Message Result: {}", sendResult);
+            if (size <= 0) {
+                // 可能是第一次创建
+                for (Message message : messages) {
+                    sendMessage(message, partition);
                 }
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+            } else {
+                MessageQueue queue = null;
+                if (partition > size) {
+                    queue = queues.get(partition % size);
+                } else {
+                    queue = queues.get(partition);
+                }
+
+                try {
+                    SendResult sendResult = this.defaultMQProducer.send(messages, queue);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Send Message Result: {}", sendResult);
+                    }
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

@@ -75,6 +75,7 @@ public class CanalConstants {
     public static final String CANAL_MQ_VHOST                       = ROOT + "." + "mq.vhost";
     public static final String CANAL_MQ_ALIYUN_UID                  = ROOT + "." + "mq.aliyunuid";
     public static final String CANAL_MQ_EXCHANGE                    = ROOT + "." + "mq.exchange";
+    public static final String CANAL_MQ_DATABASE_HASH               = ROOT + "." + "mq.database.hash";
 
     public static String getInstanceModeKey(String destination) {
         return MessageFormat.format(INSTANCE_MODE_TEMPLATE, destination);
