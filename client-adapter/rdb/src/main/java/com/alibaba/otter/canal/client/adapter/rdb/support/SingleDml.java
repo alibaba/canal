@@ -74,14 +74,14 @@ public class SingleDml {
                 singleDml.setDatabase(dml.getDatabase());
                 singleDml.setTable(dml.getTable());
                 singleDml.setType(dml.getType());
-                Map<String,Object> data = dml.getData().get(i);
-                if(caseInsensitive){
+                Map<String, Object> data = dml.getData().get(i);
+                if (caseInsensitive) {
                     data = toCaseInsensitiveMap(data);
                 }
                 singleDml.setData(data);
                 if (dml.getOld() != null) {
-                    Map<String,Object> oldData = dml.getOld().get(i);
-                    if(caseInsensitive){
+                    Map<String, Object> oldData = dml.getOld().get(i);
+                    if (caseInsensitive) {
                         oldData = toCaseInsensitiveMap(oldData);
                     }
                     singleDml.setOld(oldData);
@@ -100,10 +100,10 @@ public class SingleDml {
     }
 
     public static List<SingleDml> dml2SingleDmls(Dml dml) {
-        return dml2SingleDmls(dml,false);
+        return dml2SingleDmls(dml, false);
     }
 
-    private static <V> LinkedCaseInsensitiveMap<V> toCaseInsensitiveMap(Map<String,V> data) {
+    private static <V> LinkedCaseInsensitiveMap<V> toCaseInsensitiveMap(Map<String, V> data) {
         LinkedCaseInsensitiveMap map = new LinkedCaseInsensitiveMap();
         map.putAll(data);
         return map;

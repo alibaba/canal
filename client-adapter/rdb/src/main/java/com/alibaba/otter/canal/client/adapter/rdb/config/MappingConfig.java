@@ -92,21 +92,21 @@ public class MappingConfig implements AdapterConfig {
 
     public static class DbMapping implements AdapterMapping {
 
-        private boolean             mirrorDb    = false;                 // 是否镜像库
-        private String              database;                            // 数据库名或schema名
-        private String              table;                               // 表名
-        private Map<String, String> targetPk    = new LinkedHashMap<>(); // 目标表主键字段
-        private boolean             mapAll      = false;                 // 映射所有字段
-        private String              targetDb;                            // 目标库名
-        private String              targetTable;                         // 目标表名
-        private Map<String, String> targetColumns;                       // 目标表字段映射
+        private boolean             mirrorDb        = false;                 // 是否镜像库
+        private String              database;                                // 数据库名或schema名
+        private String              table;                                   // 表名
+        private Map<String, String> targetPk        = new LinkedHashMap<>(); // 目标表主键字段
+        private boolean             mapAll          = false;                 // 映射所有字段
+        private String              targetDb;                                // 目标库名
+        private String              targetTable;                             // 目标表名
+        private Map<String, String> targetColumns;                           // 目标表字段映射
 
-        private boolean caseInsensitive = false;             //目标表不区分大小写，默认是否
+        private boolean             caseInsensitive = false;                 // 目标表不区分大小写，默认是否
 
-        private String              etlCondition;                        // etl条件sql
+        private String              etlCondition;                            // etl条件sql
 
-        private int                 readBatch   = 5000;
-        private int                 commitBatch = 5000;                  // etl等批量提交大小
+        private int                 readBatch       = 5000;
+        private int                 commitBatch     = 5000;                  // etl等批量提交大小
 
         private Map<String, String> allMapColumns;
 
