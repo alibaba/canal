@@ -101,6 +101,8 @@ public class MappingConfig implements AdapterConfig {
         private String              targetTable;                         // 目标表名
         private Map<String, String> targetColumns;                       // 目标表字段映射
 
+        private boolean caseInsensitive = false;             //目标表不区分大小写，默认是否
+
         private String              etlCondition;                        // etl条件sql
 
         private int                 readBatch   = 5000;
@@ -177,6 +179,14 @@ public class MappingConfig implements AdapterConfig {
 
         public void setTargetColumns(Map<String, String> targetColumns) {
             this.targetColumns = targetColumns;
+        }
+
+        public boolean isCaseInsensitive() {
+            return caseInsensitive;
+        }
+
+        public void setCaseInsensitive(boolean caseInsensitive) {
+            this.caseInsensitive = caseInsensitive;
         }
 
         public String getEtlCondition() {
