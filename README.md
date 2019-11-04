@@ -7,7 +7,7 @@
 
 ## 简介
 
-![](https://github.com/bucketli/simpletools/blob/master/main_func_v2.png?raw=true)
+![](https://img-blog.csdnimg.cn/20191104101735947.png)
 
 **canal [kə'næl]**，译意为水道/管道/沟渠，主要用途是基于 MySQL 数据库增量日志解析，提供增量数据订阅和消费
 
