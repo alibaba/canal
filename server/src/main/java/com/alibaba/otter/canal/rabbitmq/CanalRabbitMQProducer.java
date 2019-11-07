@@ -28,21 +28,28 @@ import com.rabbitmq.client.ConnectionFactory;
 public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(CanalRabbitMQProducer.class);
-    private MQProperties        mqProperties;
-    private Connection          connect;
-    private Channel             channel;
+    private MQProperties mqProperties;
+    private Connection connect;
+    private Channel channel;
 
     @Override
     public void init(MQProperties mqProperties) {
         super.init(mqProperties);
         this.mqProperties = mqProperties;
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(mqProperties.getServers());
+        String servers = mqProperties.getServers();
+        if (servers.contains(":")) {
+            String[] serverHostAndPort = servers.split(":");
+            factory.setHost(serverHostAndPort[0]);
+            factory.setPort(Integer.parseInt(serverHostAndPort[1]));
+        } else {
+            factory.setHost(servers);
+        }
+
         if (mqProperties.getAliyunAccessKey().length() > 0 && mqProperties.getAliyunSecretKey().length() > 0
-            && mqProperties.getAliyunUID() > 0) {
+                && mqProperties.getAliyunUID() > 0) {
             factory.setCredentialsProvider(new AliyunCredentialsProvider(mqProperties.getAliyunAccessKey(),
-                mqProperties.getAliyunSecretKey(),
-                mqProperties.getAliyunUID()));
+                    mqProperties.getAliyunSecretKey(), mqProperties.getAliyunUID()));
         } else {
             factory.setUsername(mqProperties.getUsername());
             factory.setPassword(mqProperties.getPassword());
@@ -59,14 +66,13 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
 
     @Override
     public void send(final MQProperties.CanalDestination canalDestination, Message message, Callback callback)
-                                                                                                              throws IOException {
+            throws IOException {
         ExecutorTemplate template = new ExecutorTemplate(executor);
         try {
             if (!StringUtils.isEmpty(canalDestination.getDynamicTopic())) {
                 // 动态topic
                 Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils.messageTopics(message,
-                    canalDestination.getTopic(),
-                    canalDestination.getDynamicTopic());
+                        canalDestination.getTopic(), canalDestination.getDynamicTopic());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
                     final String topicName = entry.getKey().replace('.', '_');
@@ -110,9 +116,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
                 for (FlatMessage flatMessage : flatMessages) {
                     byte[] message = JSON.toJSONBytes(flatMessage, SerializerFeature.WriteMapNullValue);
                     if (logger.isDebugEnabled()) {
-                        logger.debug("send message:{} to destination:{}",
-                            message,
-                            canalDestination.getCanalDestination());
+                        logger.debug("send message:{} to destination:{}", message,
+                                canalDestination.getCanalDestination());
                     }
                     sendMessage(topicName, message);
                 }
