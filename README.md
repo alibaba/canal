@@ -55,7 +55,7 @@
 - [Introduction](https://github.com/alibaba/canal/wiki/Introduction)
 - [QuickStart](https://github.com/alibaba/canal/wiki/QuickStart)
   - [Docker QuickStart](https://github.com/alibaba/canal/wiki/Docker-QuickStart)
-  - [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart")
+  - [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
   - [Aliyun RDS for MySQL QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)
   - [Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)
 - Canal Admin
