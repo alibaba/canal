@@ -156,6 +156,7 @@ public class CanalMQStarter {
                 CanalMQConfig mqConfig = canalInstance.getMqConfig();
                 canalDestination.setTopic(mqConfig.getTopic());
                 canalDestination.setPartition(mqConfig.getPartition());
+                canalDestination.setDynamicTopicPrefix(mqConfig.getDynamicTopicPrefix());
                 canalDestination.setDynamicTopic(mqConfig.getDynamicTopic());
                 canalDestination.setPartitionsNum(mqConfig.getPartitionsNum());
                 canalDestination.setPartitionHash(mqConfig.getPartitionHash());

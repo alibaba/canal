@@ -59,6 +59,7 @@ public class MQProperties {
         private Integer partitionsNum;
         private String  partitionHash;
         private String  dynamicTopic;
+        private String  dynamicTopicPrefix;
 
         public String getCanalDestination() {
             return canalDestination;
@@ -107,6 +108,14 @@ public class MQProperties {
         public void setDynamicTopic(String dynamicTopic) {
             this.dynamicTopic = dynamicTopic;
         }
+
+		public String getDynamicTopicPrefix() {
+			return dynamicTopicPrefix;
+		}
+
+		public void setDynamicTopicPrefix(String dynamicTopicPrefix) {
+			this.dynamicTopicPrefix = dynamicTopicPrefix;
+		}
     }
 
     public String getServers() {

@@ -98,6 +98,14 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
 
         super.stop();
     }
+    
+    private String formatDynamicTopic(String defaultTopic, String dynamicTopic, String dynamicTopicPrefix){
+    	if(defaultTopic.equals(dynamicTopicPrefix)) {
+    		return defaultTopic;
+    	}else {
+    		return String.format("%s%s", dynamicTopicPrefix, dynamicTopic.replace('.', '_'));
+    	}
+    }
 
     @Override
     public void send(MQProperties.CanalDestination canalDestination, Message message, Callback callback) {
@@ -107,6 +115,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
         try {
             List result = null;
             if (!StringUtils.isEmpty(canalDestination.getDynamicTopic())) {
+            	String dynamicTopicPrefix = (canalDestination.getDynamicTopicPrefix() == null ? "" : canalDestination.getDynamicTopicPrefix()).trim();
                 // 动态topic路由计算,只是基于schema/table,不涉及proto数据反序列化
                 Map<String, Message> messageMap = MQMessageUtils.messageTopics(message,
                     canalDestination.getTopic(),
@@ -114,7 +123,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
 
                 // 针对不同的topic,引入多线程提升效率
                 for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
-                    final String topicName = entry.getKey().replace('.', '_');
+                    final String topicName = formatDynamicTopic(canalDestination.getTopic(), entry.getKey(), dynamicTopicPrefix);
                     final Message messageSub = entry.getValue();
                     template.submit(new Callable() {
 
