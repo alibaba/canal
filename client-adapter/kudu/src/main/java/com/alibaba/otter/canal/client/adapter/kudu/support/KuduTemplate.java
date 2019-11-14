@@ -465,6 +465,16 @@ public class KuduTemplate {
             }
         });
     }
-
+    
+    /**
+     * 关闭kudu client
+     */
+    public void close() {
+        try {
+            kuduClient.close();
+        } catch (Exception e) {
+            logger.error("Close KuduClient Error!", e);
+        }
+    }
 
 }
