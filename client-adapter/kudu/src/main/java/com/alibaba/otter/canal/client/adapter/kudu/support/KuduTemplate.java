@@ -46,6 +46,8 @@ public class KuduTemplate {
     private KuduClient kuduClient;
     private String masters;
 
+    private final static int OPERATION_BATCH = 1000;
+
     public KuduTemplate(String master_str) {
         this.masters = master_str;
         init();
@@ -84,23 +86,38 @@ public class KuduTemplate {
     public void delete(String tableName, List<Map<String, Object>> dataList, Map<String, Integer> columnTypeMap) throws KuduException {
         KuduTable kuduTable = kuduClient.openTable(tableName);
         KuduSession session = kuduClient.newSession();
-        session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
-        session.setMutationBufferSpace(3000);
-        for (Map<String, Object> data : dataList) {
-            Delete delete = kuduTable.newDelete();
-            PartialRow row = delete.getRow();
-            for (Map.Entry<String, Object> dataLine : data.entrySet()) {
-                String columnName = dataLine.getKey();
-                Object value = dataLine.getValue();
-                Integer columnType = columnTypeMap.get(columnName.toLowerCase());
-                //填充行数据
-                fillRow(row, columnName, value, columnType);
+        try {
+            session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
+            session.setMutationBufferSpace(OPERATION_BATCH);
+            int uncommit = 0;
+            for (Map<String, Object> data : dataList) {
+                Delete delete = kuduTable.newDelete();
+                PartialRow row = delete.getRow();
+                for (Map.Entry<String, Object> dataLine : data.entrySet()) {
+                    String columnName = dataLine.getKey();
+                    Object value = dataLine.getValue();
+                    Integer columnType = columnTypeMap.get(columnName.toLowerCase());
+                    //填充行数据
+                    fillRow(row, columnName, value, columnType);
+                }
+                session.apply(delete);
+                // 对于手工提交, 需要buffer在未满的时候flush,这里采用了buffer一半时即提交
+                uncommit = uncommit + 1;
+                if (uncommit > OPERATION_BATCH / 2) {
+                    session.flush();
+                    uncommit = 0;
+                }
             }
-            session.flush();
-            session.apply(delete);
+            if (uncommit > 0) {
+                session.flush();
+            }
+        } catch (KuduException e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (!session.isClosed()) {
+                session.close();
+            }
         }
-        session.close();
-
     }
 
     /**
@@ -114,22 +131,39 @@ public class KuduTemplate {
     public void update(String tableName, List<Map<String, Object>> dataList, Map<String, Integer> columnTypeMap) throws KuduException {
         KuduTable kuduTable = kuduClient.openTable(tableName);
         KuduSession session = kuduClient.newSession();
-        session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
-        session.setMutationBufferSpace(3000);
-        for (Map<String, Object> data : dataList) {
-            Update update = kuduTable.newUpdate();
-            PartialRow row = update.getRow();
-            for (Map.Entry<String, Object> dataLine : data.entrySet()) {
-                String columnName = dataLine.getKey();
-                Object value = dataLine.getValue();
-                Integer columnType = columnTypeMap.get(columnName.toLowerCase());
-                //填充行数据
-                fillRow(row, columnName, value, columnType);
+        try {
+            session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
+            session.setMutationBufferSpace(OPERATION_BATCH);
+            int uncommit = 0;
+            for (Map<String, Object> data : dataList) {
+                Update update = kuduTable.newUpdate();
+                PartialRow row = update.getRow();
+                for (Map.Entry<String, Object> dataLine : data.entrySet()) {
+                    String columnName = dataLine.getKey();
+                    Object value = dataLine.getValue();
+                    Integer columnType = columnTypeMap.get(columnName.toLowerCase());
+                    //填充行数据
+                    fillRow(row, columnName, value, columnType);
+                }
+                session.apply(update);
+                // 对于手工提交, 需要buffer在未满的时候flush,这里采用了buffer一半时即提交
+                uncommit = uncommit + 1;
+                if (uncommit > OPERATION_BATCH / 2) {
+                    session.flush();
+                    uncommit = 0;
+                }
             }
-            session.flush();
-            session.apply(update);
+            if (uncommit > 0) {
+                session.flush();
+            }
+        } catch (KuduException e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (!session.isClosed()) {
+                session.close();
+            }
         }
-        session.close();
+
 
     }
 
@@ -146,23 +180,40 @@ public class KuduTemplate {
         KuduTable table = kuduClient.openTable(tableName);
         // 创建写session,kudu必须通过session写入
         KuduSession session = kuduClient.newSession();
-        // 采取Flush方式 手动刷新
-        session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
-        session.setMutationBufferSpace(3000);
-        for (Map<String, Object> data : dataList) {
-            Insert insert = table.newInsert();
-            PartialRow row = insert.getRow();
-            for (Map.Entry<String, Object> dataLine : data.entrySet()) {
-                String columnName = dataLine.getKey().toLowerCase();
-                Object value = dataLine.getValue();
-                Integer columnType = columnTypeMap.get(columnName.toLowerCase());
-                //填充行数据
-                fillRow(row, columnName, value, columnType);
+        try {
+            // 采取Flush方式 手动刷新
+            session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
+            session.setMutationBufferSpace(OPERATION_BATCH);
+            int uncommit = 0;
+            for (Map<String, Object> data : dataList) {
+                Insert insert = table.newInsert();
+                PartialRow row = insert.getRow();
+                for (Map.Entry<String, Object> dataLine : data.entrySet()) {
+                    String columnName = dataLine.getKey().toLowerCase();
+                    Object value = dataLine.getValue();
+                    Integer columnType = columnTypeMap.get(columnName.toLowerCase());
+                    //填充行数据
+                    fillRow(row, columnName, value, columnType);
+                }
+                session.apply(insert);
+                // 对于手工提交, 需要buffer在未满的时候flush,这里采用了buffer一半时即提交
+                uncommit = uncommit + 1;
+                if (uncommit > OPERATION_BATCH / 2) {
+                    session.flush();
+                    uncommit = 0;
+                }
             }
-            session.flush();
-            session.apply(insert);
+            if (uncommit > 0) {
+                session.flush();
+            }
+        } catch (KuduException e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (!session.isClosed()) {
+                session.close();
+            }
         }
-        session.close();
+
     }
 
 
@@ -415,16 +466,5 @@ public class KuduTemplate {
         });
     }
 
-    /**
-     * 关闭kudu client
-     */
-    public void close() {
-        if (kuduClient != null) {
-            try {
-                kuduClient.close();
-            } catch (Exception e) {
-                logger.error("Close KuduClient Error!", e);
-            }
-        }
-    }
+
 }
