@@ -302,6 +302,16 @@ public class CanalStarter {
         if (!StringUtils.isEmpty(databaseHash)){
             mqProperties.setDatabaseHash(Boolean.valueOf(databaseHash));
         }
+        
+        // gtid模式下过滤事务消息会导致ack不了消息
+        // 永远获取为null，是否可以将manager获取到的properties进行合并后再传递？
+        String gtidon = CanalController.getProperty(properties,"canal.instance.gtidon");
+        String filterTransactionEntry = CanalController.getProperty(properties,"canal.instance.filter.transaction.entry");
+        if(Boolean.valueOf(gtidon)) {
+            mqProperties.setFilterTransactionEntry(true);
+        }else {
+            mqProperties.setFilterTransactionEntry(Boolean.valueOf(filterTransactionEntry));
+        }
 
         for (Object key : properties.keySet()) {
             key = StringUtils.trim(key.toString());
