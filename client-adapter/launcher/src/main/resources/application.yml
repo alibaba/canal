@@ -66,4 +66,7 @@ canal.conf:
 #          mode: transport # or rest
 #          # security.auth: test:123456 #  only used for rest mode
 #          cluster.name: elasticsearch
-
+#        - name: kudu
+#          key: kudu
+#          properties:
+#            kudu.master.address: 127.0.0.1 # ',' split multi address
