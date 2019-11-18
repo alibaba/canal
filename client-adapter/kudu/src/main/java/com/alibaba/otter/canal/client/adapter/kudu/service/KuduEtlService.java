@@ -62,16 +62,20 @@ public class KuduEtlService extends AbstractEtlService {
             return etlResult;
         }
         logger.info("{} etl is starting!", kuduMapping.getTargetTable());
+        Map<String, String> targetPk = kuduMapping.getTargetPk();
+        //查询排序，解决数据缺失问题
+        String[] pkId = targetPk.keySet().toArray(new String[1]);
         String sql = "SELECT * FROM " + kuduMapping.getDatabase() + "." + kuduMapping.getTable();
+        logger.info("etl select data sql is :{}", sql);
         return importData(sql, params);
     }
+
 
     @Override
     protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values, AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
         KuduMappingConfig.KuduMapping kuduMapping = (KuduMappingConfig.KuduMapping) mapping;
         //获取字段元数据
         Map<String, String> columnsMap = new LinkedHashMap<>();//需要同步的字段
-        Map<String, Integer> columnType = new LinkedHashMap<>();//全量字段类型
 
         try {
             Util.sqlRS(ds, "SELECT * FROM " + SyncUtil.getDbTableName(kuduMapping) + " LIMIT 1", values, rs -> {
@@ -80,7 +84,6 @@ public class KuduEtlService extends AbstractEtlService {
                     int columnCount = rsd.getColumnCount();
                     List<String> columns = new ArrayList<>();
                     for (int i = 1; i <= columnCount; i++) {
-                        columnType.put(rsd.getColumnName(i).toLowerCase(), rsd.getColumnType(i));
                         columns.add(rsd.getColumnName(i).toLowerCase());
                     }
                     columnsMap.putAll(SyncUtil.getColumnsMap(kuduMapping, columns));
@@ -94,7 +97,6 @@ public class KuduEtlService extends AbstractEtlService {
             Util.sqlRS(ds, sql, values, rs -> {
                 int idx = 1;
                 try {
-                    boolean completed = false;
                     List<Map<String, Object>> dataList = new ArrayList<>();
                     while (rs.next()) {
                         Map<String, Object> data = new HashMap<>();
@@ -118,13 +120,12 @@ public class KuduEtlService extends AbstractEtlService {
                             logger.debug("successful import count:" + impCount.get());
                         }
                         if (idx % kuduMapping.getCommitBatch() == 0) {
-                            kuduTemplate.insert(kuduMapping.getTargetTable(), dataList, columnType);
+                            kuduTemplate.insert(kuduMapping.getTargetTable(), dataList);
                             dataList.clear();
-                            completed = true;
                         }
                     }
-                    if (!completed) {
-                        kuduTemplate.insert(kuduMapping.getTargetTable(), dataList, columnType);
+                    if (!dataList.isEmpty()) {
+                        kuduTemplate.insert(kuduMapping.getTargetTable(), dataList);
                     }
                     return true;
 
