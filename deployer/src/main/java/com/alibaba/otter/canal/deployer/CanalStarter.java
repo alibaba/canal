@@ -308,7 +308,7 @@ public class CanalStarter {
         String gtidon = CanalController.getProperty(properties,"canal.instance.gtidon");
         String filterTransactionEntry = CanalController.getProperty(properties,"canal.instance.filter.transaction.entry");
         if(Boolean.valueOf(gtidon)) {
-            mqProperties.setFilterTransactionEntry(true);
+            mqProperties.setFilterTransactionEntry(false);
         }else {
             mqProperties.setFilterTransactionEntry(Boolean.valueOf(filterTransactionEntry));
         }
