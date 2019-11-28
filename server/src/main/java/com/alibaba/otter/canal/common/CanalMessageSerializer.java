@@ -54,8 +54,9 @@ public class CanalMessageSerializer {
                         output.checkNoSpaceLeft();
                         return body;
                     } else if (!CollectionUtils.isEmpty(data.getEntries())) {
-                        // mq模式只会走到非rowEntry模式
+                        // mq模式只会走到非rawEntry模式
                         CanalPacket.Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
+                        messageBuilder.setBatchId(data.getId());
                         for (CanalEntry.Entry entry : data.getEntries()) {
                             if (filterTransactionEntry
                                 && (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND)) {
