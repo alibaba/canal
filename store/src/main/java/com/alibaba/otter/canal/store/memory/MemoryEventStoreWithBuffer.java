@@ -452,7 +452,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
                     if (batchMode.isMemSize()) {
                         ackMemSize.addAndGet(memsize);
                         // 尝试清空buffer中的内存，将ack之前的内存全部释放掉
-                        for (long index = sequence + 1; index < next; index++) {
+                        for (long index = sequence + 1; index <= next; index++) {
                             entries[getIndex(index)] = null;// 设置为null
                         }
 
