@@ -49,7 +49,6 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                 // ignore
             }
         }
-        ExecutorService workerExecutor = Util.newSingleThreadExecutor(5000L);
         int retry = canalClientConfig.getRetries() == null
                     || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
@@ -75,7 +74,7 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
                         if (!running) {
                             break;
                         }
-                        if (mqWriteOutData(retry, timeout, i, flatMessage, connector, workerExecutor)) {
+                        if (mqWriteOutData(retry, timeout, i, flatMessage, connector)) {
                             break;
                         }
                     }
@@ -85,7 +84,6 @@ public class CanalAdapterKafkaWorker extends AbstractCanalAdapterWorker {
             }
         }
 
-        workerExecutor.shutdown();
 
         try {
             connector.unsubscribe();

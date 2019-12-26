@@ -2,9 +2,7 @@ package com.alibaba.otter.canal.adapter.launcher.loader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +136,8 @@ public abstract class AbstractCanalAdapterWorker {
 
     @SuppressWarnings("unchecked")
     protected boolean mqWriteOutData(int retry, long timeout, int i, final boolean flatMessage,
-                                     CanalMQConnector connector, ExecutorService workerExecutor) {
+                                     CanalMQConnector connector) {
+        ExecutorService workerExecutor =  Util.newSingleDaemonThreadExecutor(5000);
         try {
             List<?> messages;
             if (!flatMessage) {
@@ -185,6 +184,8 @@ public abstract class AbstractCanalAdapterWorker {
             } catch (InterruptedException e1) {
                 // ignore
             }
+        } finally {
+            workerExecutor.shutdown();
         }
         return false;
     }
