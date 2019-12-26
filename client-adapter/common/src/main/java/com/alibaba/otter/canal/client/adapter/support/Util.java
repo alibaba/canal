@@ -161,6 +161,43 @@ public class Util {
             });
     }
 
+    public static ThreadPoolExecutor newFixedDaemonThreadPool(int nThreads, long keepAliveTime) {
+        return new ThreadPoolExecutor(nThreads,
+                nThreads,
+                keepAliveTime,
+                TimeUnit.MILLISECONDS,
+                new SynchronousQueue<>(),
+                DaemonThreadFactory.daemonThreadFactory,
+                (r, exe) -> {
+                    if (!exe.isShutdown()) {
+                        try {
+                            exe.getQueue().put(r);
+                        } catch (InterruptedException e) {
+                            // ignore
+                        }
+                    }
+                }
+        );
+    }
+
+    public static ThreadPoolExecutor newSingleDaemonThreadExecutor(long keepAliveTime) {
+        return new ThreadPoolExecutor(1,
+                1,
+                keepAliveTime,
+                TimeUnit.MILLISECONDS,
+                new SynchronousQueue<>(),
+                DaemonThreadFactory.daemonThreadFactory,
+                (r, exe) -> {
+                    if (!exe.isShutdown()) {
+                        try {
+                            exe.getQueue().put(r);
+                        } catch (InterruptedException e) {
+                            // ignore
+                        }
+                    }
+                });
+    }
+
     public final static String  timeZone;    // 当前时区
     private static DateTimeZone dateTimeZone;
 
