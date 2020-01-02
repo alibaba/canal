@@ -174,6 +174,11 @@ public abstract class AbstractCanalAdapterWorker {
             if (i == retry - 1) {
                 connector.ack();
                 logger.error(e.getMessage() + " Error sync but ACK!");
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e1) {
+                    // ignore
+                }
                 return true;
             } else {
                 connector.rollback();
