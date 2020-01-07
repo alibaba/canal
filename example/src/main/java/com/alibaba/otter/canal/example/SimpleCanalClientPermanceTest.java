@@ -24,8 +24,8 @@ public class SimpleCanalClientPermanceTest {
         try {
             final CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
                 destination,
-                "",
-                "");
+                "canal",
+                "canal");
 
             Thread ackThread = new Thread(new Runnable() {
 

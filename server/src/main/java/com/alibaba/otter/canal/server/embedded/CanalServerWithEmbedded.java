@@ -1,12 +1,15 @@
 package com.alibaba.otter.canal.server.embedded;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -18,6 +21,7 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.protocol.SecurityUtil;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
@@ -52,6 +56,8 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
     private CanalInstanceGenerator     canalInstanceGenerator;
     private int                        metricsPort;
     private CanalMetricsService        metrics = NopCanalMetricsService.NOP;
+    private String                     user;
+    private String                     passwd;
 
     private static class SingletonHolder {
 
@@ -104,6 +110,27 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             }
         }
         metrics.terminate();
+    }
+
+    public boolean auth(String user, String passwd, byte[] seed) {
+        // 如果user/passwd密码为空,则任何用户账户都能登录
+        if ((StringUtils.isEmpty(this.user) || StringUtils.equals(this.user, user))) {
+            if (StringUtils.isEmpty(this.passwd)) {
+                return true;
+            } else if (StringUtils.isEmpty(passwd)) {
+                // 如果server密码有配置,客户端密码为空,则拒绝
+                return false;
+            }
+
+            try {
+                byte[] passForClient = SecurityUtil.hexStr2Bytes(passwd);
+                return SecurityUtil.scrambleServerAuth(passForClient, SecurityUtil.hexStr2Bytes(this.passwd), seed);
+            } catch (NoSuchAlgorithmException e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     public void start(final String destination) {
@@ -432,8 +459,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         }
 
         // 可定时清理数据
-        canalInstance.getEventStore().ack(positionRanges.getEnd());
-
+        canalInstance.getEventStore().ack(positionRanges.getEnd(), positionRanges.getEndSeq());
     }
 
     /**
@@ -571,6 +597,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     public void setMetricsPort(int metricsPort) {
         this.metricsPort = metricsPort;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
     }
 
 }

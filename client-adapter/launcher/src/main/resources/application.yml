@@ -18,6 +18,9 @@ canal.conf:
   timeout:
   accessKey:
   secretKey:
+  username:
+  password:
+  vhost:
 #  srcDataSources:
 #    defaultDS:
 #      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
@@ -58,6 +61,9 @@ canal.conf:
 #          hbase.zookeeper.property.clientPort: 2181
 #          zookeeper.znode.parent: /hbase
 #      - name: es
-#        hosts: 127.0.0.1:9300
+#        hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
 #        properties:
+#          mode: transport # or rest
+#          # security.auth: test:123456 #  only used for rest mode
 #          cluster.name: elasticsearch
+

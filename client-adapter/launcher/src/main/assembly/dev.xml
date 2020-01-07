@@ -30,8 +30,15 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>../elasticsearch/src/main/resources/es</directory>
-            <outputDirectory>/conf/es</outputDirectory>
+            <directory>../es6x/src/main/resources/es6</directory>
+            <outputDirectory>/conf/es6</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../es7x/src/main/resources/es7</directory>
+            <outputDirectory>/conf/es7</outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>

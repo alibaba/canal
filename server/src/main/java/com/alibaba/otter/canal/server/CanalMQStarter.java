@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.alibaba.otter.canal.common.MQProperties;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
@@ -41,7 +42,7 @@ public class CanalMQStarter {
         this.canalMQProducer = canalMQProducer;
     }
 
-    public synchronized void start(MQProperties properties) {
+    public synchronized void start(MQProperties properties, String destinations) {
         try {
             if (running) {
                 return;
@@ -59,8 +60,8 @@ public class CanalMQStarter {
             executorService = Executors.newCachedThreadPool();
             logger.info("## start the MQ workers.");
 
-            String[] destinations = StringUtils.split(System.getProperty("canal.destinations"), ",");
-            for (String destination : destinations) {
+            String[] dsts = StringUtils.split(destinations, ",");
+            for (String destination : dsts) {
                 destination = destination.trim();
                 CanalMQRunnable canalMQRunnable = new CanalMQRunnable(destination);
                 canalMQWorks.put(destination, canalMQRunnable);
@@ -137,7 +138,7 @@ public class CanalMQStarter {
         }
 
         logger.info("## start the MQ producer: {}.", destination);
-
+        MDC.put("destination", destination);
         final ClientIdentity clientIdentity = new ClientIdentity(destination, (short) 1001, "");
         while (running && destinationRunning.get()) {
             try {

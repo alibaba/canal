@@ -9,6 +9,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalPacket;
 import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.server.netty.NettyUtils;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.WireFormat;
@@ -66,6 +67,7 @@ public class CanalMessageSerializer {
 
                         CanalPacket.Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
                         packetBuilder.setType(PacketType.MESSAGES);
+                        packetBuilder.setVersion(NettyUtils.VERSION);
                         packetBuilder.setBody(messageBuilder.build().toByteString());
                         return packetBuilder.build().toByteArray();
                     }

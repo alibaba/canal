@@ -77,9 +77,12 @@
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
-
+	<logger name="com.alibaba.otter.canal.rabbitmq" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
 	<root level="WARN">
-		<appender-ref ref="STDOUT"/>
+		<!-- <appender-ref ref="STDOUT"/>  -->
 		<appender-ref ref="CANAL-ROOT" />
 	</root>
 </configuration>

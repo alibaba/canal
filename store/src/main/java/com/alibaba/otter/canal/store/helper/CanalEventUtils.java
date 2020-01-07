@@ -70,6 +70,10 @@ public class CanalEventUtils {
         position.setPosition(event.getPosition());
         position.setTimestamp(event.getExecuteTime());
         position.setIncluded(included);
+        // add serverId at 2016-06-28
+        position.setServerId(event.getServerId());
+        // add gtid
+        position.setGtid(event.getGtid());
 
         LogPosition logPosition = new LogPosition();
         logPosition.setPostion(position);

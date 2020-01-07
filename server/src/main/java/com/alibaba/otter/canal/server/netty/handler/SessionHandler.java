@@ -79,11 +79,21 @@ public class SessionHandler extends SimpleChannelHandler {
                         // ctx.setAttachment(clientIdentity);// 设置状态数据
                         byte[] ackBytes = NettyUtils.ackPacket();
                         NettyUtils.write(ctx.getChannel(), ackBytes, new ChannelFutureAggregator(sub.getDestination(),
-                                sub, packet.getType(), ackBytes.length, System.nanoTime() - start));
+                            sub,
+                            packet.getType(),
+                            ackBytes.length,
+                            System.nanoTime() - start));
                     } else {
-                        byte[] errorBytes = NettyUtils.errorPacket(401, MessageFormatter.format("destination or clientId is null", sub.toString()).getMessage());
-                        NettyUtils.write(ctx.getChannel(), errorBytes ,new ChannelFutureAggregator(sub.getDestination(),
-                                sub, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 401));
+                        byte[] errorBytes = NettyUtils.errorPacket(401,
+                            MessageFormatter.format("destination or clientId is null", sub.toString()).getMessage());
+                        NettyUtils.write(ctx.getChannel(),
+                            errorBytes,
+                            new ChannelFutureAggregator(sub.getDestination(),
+                                sub,
+                                packet.getType(),
+                                errorBytes.length,
+                                System.nanoTime() - start,
+                                (short) 401));
                     }
                     break;
                 case UNSUBSCRIPTION:
@@ -96,12 +106,24 @@ public class SessionHandler extends SimpleChannelHandler {
                         embeddedServer.unsubscribe(clientIdentity);
                         stopCanalInstanceIfNecessary(clientIdentity);// 尝试关闭
                         byte[] ackBytes = NettyUtils.ackPacket();
-                        NettyUtils.write(ctx.getChannel(), ackBytes, new ChannelFutureAggregator(unsub.getDestination(),
-                                unsub, packet.getType(), ackBytes.length, System.nanoTime() - start));
+                        NettyUtils.write(ctx.getChannel(),
+                            ackBytes,
+                            new ChannelFutureAggregator(unsub.getDestination(),
+                                unsub,
+                                packet.getType(),
+                                ackBytes.length,
+                                System.nanoTime() - start));
                     } else {
-                        byte[] errorBytes = NettyUtils.errorPacket(401, MessageFormatter.format("destination or clientId is null", unsub.toString()).getMessage());
-                        NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(unsub.getDestination(),
-                                unsub, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 401));
+                        byte[] errorBytes = NettyUtils.errorPacket(401,
+                            MessageFormatter.format("destination or clientId is null", unsub.toString()).getMessage());
+                        NettyUtils.write(ctx.getChannel(),
+                            errorBytes,
+                            new ChannelFutureAggregator(unsub.getDestination(),
+                                unsub,
+                                packet.getType(),
+                                errorBytes.length,
+                                System.nanoTime() - start,
+                                (short) 401));
                     }
                     break;
                 case GET:
@@ -177,15 +199,19 @@ public class SessionHandler extends SimpleChannelHandler {
                             }
                             output.checkNoSpaceLeft();
                             NettyUtils.write(ctx.getChannel(), body, new ChannelFutureAggregator(get.getDestination(),
-                                    get, packet.getType(), body.length, System.nanoTime() - start, message.getId() == -1));
-                            
+                                get,
+                                packet.getType(),
+                                body.length,
+                                System.nanoTime() - start,
+                                message.getId() == -1));
+
                             // output.flush();
                             // byteBuffer.flip();
                             // NettyUtils.write(ctx.getChannel(), byteBuffer,
                             // null);
                         } else {
                             Packet.Builder packetBuilder = CanalPacket.Packet.newBuilder();
-                            packetBuilder.setType(PacketType.MESSAGES);
+                            packetBuilder.setType(PacketType.MESSAGES).setVersion(NettyUtils.VERSION);
 
                             Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
                             messageBuilder.setBatchId(message.getId());
@@ -198,14 +224,27 @@ public class SessionHandler extends SimpleChannelHandler {
                                     }
                                 }
                             }
-                            byte[] body = packetBuilder.setBody(messageBuilder.build().toByteString()).build().toByteArray();
+                            byte[] body = packetBuilder.setBody(messageBuilder.build().toByteString())
+                                .build()
+                                .toByteArray();
                             NettyUtils.write(ctx.getChannel(), body, new ChannelFutureAggregator(get.getDestination(),
-                                    get, packet.getType(), body.length, System.nanoTime() - start, message.getId() == -1));// 输出数据
+                                get,
+                                packet.getType(),
+                                body.length,
+                                System.nanoTime() - start,
+                                message.getId() == -1));// 输出数据
                         }
                     } else {
-                        byte[] errorBytes = NettyUtils.errorPacket(401, MessageFormatter.format("destination or clientId is null", get.toString()).getMessage());
-                        NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(get.getDestination(),
-                                get, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 401));
+                        byte[] errorBytes = NettyUtils.errorPacket(401,
+                            MessageFormatter.format("destination or clientId is null", get.toString()).getMessage());
+                        NettyUtils.write(ctx.getChannel(),
+                            errorBytes,
+                            new ChannelFutureAggregator(get.getDestination(),
+                                get,
+                                packet.getType(),
+                                errorBytes.length,
+                                System.nanoTime() - start,
+                                (short) 401));
                     }
                     break;
                 case CLIENTACK:
@@ -213,20 +252,38 @@ public class SessionHandler extends SimpleChannelHandler {
                     MDC.put("destination", ack.getDestination());
                     if (StringUtils.isNotEmpty(ack.getDestination()) && StringUtils.isNotEmpty(ack.getClientId())) {
                         if (ack.getBatchId() == 0L) {
-                            byte[] errorBytes = NettyUtils.errorPacket(402, MessageFormatter.format("batchId should assign value", ack.toString()).getMessage());
-                            NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(ack.getDestination(),
-                                    ack, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 402));
+                            byte[] errorBytes = NettyUtils.errorPacket(402,
+                                MessageFormatter.format("batchId should assign value", ack.toString()).getMessage());
+                            NettyUtils.write(ctx.getChannel(),
+                                errorBytes,
+                                new ChannelFutureAggregator(ack.getDestination(),
+                                    ack,
+                                    packet.getType(),
+                                    errorBytes.length,
+                                    System.nanoTime() - start,
+                                    (short) 402));
                         } else if (ack.getBatchId() == -1L) { // -1代表上一次get没有数据，直接忽略之
                             // donothing
                         } else {
                             clientIdentity = new ClientIdentity(ack.getDestination(), Short.valueOf(ack.getClientId()));
                             embeddedServer.ack(clientIdentity, ack.getBatchId());
-                            new ChannelFutureAggregator(ack.getDestination(), ack, packet.getType(), 0, System.nanoTime() - start).operationComplete(null);
+                            new ChannelFutureAggregator(ack.getDestination(),
+                                ack,
+                                packet.getType(),
+                                0,
+                                System.nanoTime() - start).operationComplete(null);
                         }
                     } else {
-                        byte[] errorBytes = NettyUtils.errorPacket(401, MessageFormatter.format("destination or clientId is null", ack.toString()).getMessage());
-                        NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(ack.getDestination(),
-                                ack, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 401));
+                        byte[] errorBytes = NettyUtils.errorPacket(401,
+                            MessageFormatter.format("destination or clientId is null", ack.toString()).getMessage());
+                        NettyUtils.write(ctx.getChannel(),
+                            errorBytes,
+                            new ChannelFutureAggregator(ack.getDestination(),
+                                ack,
+                                packet.getType(),
+                                errorBytes.length,
+                                System.nanoTime() - start,
+                                (short) 401));
                     }
                     break;
                 case CLIENTROLLBACK:
@@ -241,25 +298,41 @@ public class SessionHandler extends SimpleChannelHandler {
                         } else {
                             embeddedServer.rollback(clientIdentity, rollback.getBatchId()); // 只回滚单个批次
                         }
-                        new ChannelFutureAggregator(rollback.getDestination(), rollback, packet.getType(), 0, System.nanoTime() - start).operationComplete(null);
+                        new ChannelFutureAggregator(rollback.getDestination(),
+                            rollback,
+                            packet.getType(),
+                            0,
+                            System.nanoTime() - start).operationComplete(null);
                     } else {
-                        byte[] errorBytes = NettyUtils.errorPacket(401, MessageFormatter.format("destination or clientId is null", rollback.toString()).getMessage());
-                        NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(rollback.getDestination(),
-                                rollback, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 401));
+                        byte[] errorBytes = NettyUtils.errorPacket(401,
+                            MessageFormatter.format("destination or clientId is null", rollback.toString())
+                                .getMessage());
+                        NettyUtils.write(ctx.getChannel(),
+                            errorBytes,
+                            new ChannelFutureAggregator(rollback.getDestination(),
+                                rollback,
+                                packet.getType(),
+                                errorBytes.length,
+                                System.nanoTime() - start,
+                                (short) 401));
                     }
                     break;
                 default:
-                    byte[] errorBytes = NettyUtils.errorPacket(400, MessageFormatter.format("packet type={} is NOT supported!", packet.getType()).getMessage());
-                    NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(ctx.getChannel().getRemoteAddress().toString(),
-                            null, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 400));
+                    byte[] errorBytes = NettyUtils.errorPacket(400,
+                        MessageFormatter.format("packet type={} is NOT supported!", packet.getType()).getMessage());
+                    NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(ctx.getChannel()
+                        .getRemoteAddress()
+                        .toString(), null, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 400));
                     break;
             }
         } catch (Throwable exception) {
-            byte[] errorBytes = NettyUtils.errorPacket(400, MessageFormatter.format("something goes wrong with channel:{}, exception={}",
+            byte[] errorBytes = NettyUtils.errorPacket(400,
+                MessageFormatter.format("something goes wrong with channel:{}, exception={}",
                     ctx.getChannel(),
                     ExceptionUtils.getStackTrace(exception)).getMessage());
-            NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(ctx.getChannel().getRemoteAddress().toString(),
-                    null, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 400));
+            NettyUtils.write(ctx.getChannel(), errorBytes, new ChannelFutureAggregator(ctx.getChannel()
+                .getRemoteAddress()
+                .toString(), null, packet.getType(), errorBytes.length, System.nanoTime() - start, (short) 400));
         } finally {
             MDC.remove("destination");
         }

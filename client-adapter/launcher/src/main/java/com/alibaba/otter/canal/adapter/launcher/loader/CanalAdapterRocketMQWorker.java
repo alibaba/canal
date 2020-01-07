@@ -40,6 +40,30 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
         logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
     }
 
+    public CanalAdapterRocketMQWorker(CanalClientConfig canalClientConfig, String nameServers, String topic,
+        String groupId, List<List<OuterAdapter>> canalOuterAdapters, String accessKey,
+        String secretKey, boolean flatMessage, boolean enableMessageTrace,
+        String customizedTraceTopic, String accessChannel, String namespace) {
+        super(canalOuterAdapters);
+        this.canalClientConfig = canalClientConfig;
+        this.topic = topic;
+        this.flatMessage = flatMessage;
+        super.canalDestination = topic;
+        super.groupId = groupId;
+        this.connector = new RocketMQCanalConnector(nameServers,
+            topic,
+            groupId,
+            accessKey,
+            secretKey,
+            canalClientConfig.getBatchSize(),
+            flatMessage,
+            enableMessageTrace,
+            customizedTraceTopic,
+            accessChannel,
+            namespace);
+        logger.info("RocketMQ consumer config topic:{}, nameServer:{}, groupId:{}", topic, nameServers, groupId);
+    }
+
     @Override
     protected void process() {
         while (!running) {
@@ -49,7 +73,6 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
             }
         }
 
-        ExecutorService workerExecutor = Util.newSingleThreadExecutor(5000L);
         int retry = canalClientConfig.getRetries() == null
                     || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         long timeout = canalClientConfig.getTimeout() == null ? 30000 : canalClientConfig.getTimeout(); // 默认超时30秒
@@ -75,7 +98,7 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                         if (!running) {
                             break;
                         }
-                        if (mqWriteOutData(retry, timeout, i, flatMessage, connector, workerExecutor)) {
+                        if (mqWriteOutData(retry, timeout, i, flatMessage, connector)) {
                             break;
                         }
                     }
@@ -84,8 +107,6 @@ public class CanalAdapterRocketMQWorker extends AbstractCanalAdapterWorker {
                 logger.error(e.getMessage(), e);
             }
         }
-
-        workerExecutor.shutdown();
 
         try {
             connector.unsubscribe();

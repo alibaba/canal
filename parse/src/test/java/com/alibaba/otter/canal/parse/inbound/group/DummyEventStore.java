@@ -23,6 +23,10 @@ public class DummyEventStore implements CanalEventStore<Event> {
 
     }
 
+    public void ack(Position position, Long seqId) throws CanalStoreException {
+
+    }
+
     public Events get(Position start, int batchSize) throws InterruptedException, CanalStoreException {
         return null;
     }

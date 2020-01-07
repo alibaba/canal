@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.1.4-SNAPSHOT</version>
+    <version>1.1.5-SNAPSHOT</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -98,7 +98,10 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
+        <javadoc_skip>true</javadoc_skip>
         <spring_version>3.2.18.RELEASE</spring_version>
+        <rocketmq_version>4.5.2</rocketmq_version>
+        <rabbitmq_version>5.5.0</rabbitmq_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
         <maven-surefire.version>2.22.1</maven-surefire.version>
         <argline>-server -Xms512m -Xmx1024m -Dfile.encoding=UTF-8
@@ -124,6 +127,7 @@
         <module>deployer</module>
         <module>example</module>
         <module>prometheus</module>
+        <module>admin</module>
         <module>client-adapter</module>
     </modules>
 
@@ -217,7 +221,7 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.2.28</version>
+                <version>1.2.58.sec06</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -252,7 +256,7 @@
             <dependency>
                 <groupId>com.alibaba.fastsql</groupId>
                 <artifactId>fastsql</artifactId>
-                <version>2.0.0_preview_855</version>
+                <version>2.0.0_preview_973</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -298,6 +302,30 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>1.6.5</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>1.6.5</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>1.10.19</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.diffblue</groupId>
+                <artifactId>deeptestutils</artifactId>
+                <version>1.9.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>5.1.47</version>
@@ -309,14 +337,24 @@
                 <version>3.0.2</version>
             </dependency>
             <dependency>
-                <groupId>com.aliyun.openservices</groupId>
-                <artifactId>aliware-apache-rocketmq-cloud</artifactId>
-                <version>1.0</version>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq_version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-client</artifactId>
-                <version>4.3.0</version>
+                <artifactId>rocketmq-acl</artifactId>
+                <version>${rocketmq_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>${rabbitmq_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.mq-amqp</groupId>
+                <artifactId>mq-amqp-client</artifactId>
+                <version>1.0.3</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>
@@ -413,6 +451,14 @@
                         </execution>
                     </executions>
                 <configuration>
+                  <skip>${javadoc_skip}</skip>
+                  <!-- workaround for https://bugs.openjdk.java.net/browse/JDK-8212233 -->
+                  <javaApiLinks>
+                     <property>
+                         <name>foo</name>
+                         <value>bar</value>
+                     </property>
+                  </javaApiLinks>
                   <encoding>${file_encoding}</encoding>
                   <charset>${file_encoding}</charset>
                   <additionalparam>-Xdoclint:none</additionalparam>

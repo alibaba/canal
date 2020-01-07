@@ -11,6 +11,7 @@ case "`uname`" in
 esac
 base=${bin_abs_path}/..
 canal_conf=$base/conf/canal.properties
+canal_local_conf=$base/conf/canal_local.properties
 logback_configurationFile=$base/conf/logback.xml
 export LANG=en_US.UTF-8
 export BASE=$base
@@ -48,21 +49,29 @@ in
 	;;
 1 )	
 	var=$*
-	if [ -f $var ] ; then 
-		canal_conf=$var
+	if [ "$var" = "local" ]; then
+		canal_conf=$canal_local_conf
 	else
-		echo "THE PARAMETER IS NOT CORRECT.PLEASE CHECK AGAIN."
-        exit
+		if [ -f $var ] ; then 
+			canal_conf=$var
+		else
+			echo "THE PARAMETER IS NOT CORRECT.PLEASE CHECK AGAIN."
+			exit
+		fi
 	fi;;
 2 )	
 	var=$1
-	if [ -f $var ] ; then
-		canal_conf=$var
-	else 
-		if [ "$1" = "debug" ]; then
-			DEBUG_PORT=$2
-			DEBUG_SUSPEND="n"
-			JAVA_DEBUG_OPT="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=$DEBUG_SUSPEND"
+	if [ "$var" = "local" ]; then
+		canal_conf=$canal_local_conf
+	else
+		if [ -f $var ] ; then
+			canal_conf=$var
+		else 
+			if [ "$1" = "debug" ]; then
+				DEBUG_PORT=$2
+				DEBUG_SUSPEND="n"
+				JAVA_DEBUG_OPT="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=$DEBUG_SUSPEND"
+			fi
 		fi
      fi;;
 * )
@@ -94,7 +103,7 @@ then
 	echo LOG CONFIGURATION : $logback_configurationFile
 	echo canal conf : $canal_conf 
 	echo CLASSPATH :$CLASSPATH
-	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/logs/canal/canal.log 2>&1 &
+	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/logs/canal/canal_stdout.log 2>&1 &
 	echo $! > $base/bin/canal.pid 
 	
 	echo "cd to $current_path for continue"

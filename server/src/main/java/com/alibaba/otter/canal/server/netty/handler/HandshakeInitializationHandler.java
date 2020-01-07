@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.server.netty.handler;
 
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
@@ -11,6 +13,7 @@ import com.alibaba.otter.canal.protocol.CanalPacket;
 import com.alibaba.otter.canal.protocol.CanalPacket.Handshake;
 import com.alibaba.otter.canal.protocol.CanalPacket.Packet;
 import com.alibaba.otter.canal.server.netty.NettyUtils;
+import com.google.protobuf.ByteString;
 
 /**
  * handshake交互
@@ -35,12 +38,24 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
             childGroups.add(ctx.getChannel());
         }
 
+        final byte[] seed = org.apache.commons.lang3.RandomUtils.nextBytes(8);
         byte[] body = Packet.newBuilder()
             .setType(CanalPacket.PacketType.HANDSHAKE)
-            .setBody(Handshake.newBuilder().build().toByteString())
+            .setVersion(NettyUtils.VERSION)
+            .setBody(Handshake.newBuilder().setSeeds(ByteString.copyFrom(seed)).build().toByteString())
             .build()
             .toByteArray();
-        NettyUtils.write(ctx.getChannel(), body, null);
+
+        NettyUtils.write(ctx.getChannel(), body, new ChannelFutureListener() {
+
+            public void operationComplete(ChannelFuture future) throws Exception {
+                ctx.getPipeline().get(HandshakeInitializationHandler.class.getName());
+                ClientAuthenticationHandler handler = (ClientAuthenticationHandler) ctx.getPipeline()
+                    .get(ClientAuthenticationHandler.class.getName());
+                handler.setSeed(seed);
+            }
+
+        });
         logger.info("send handshake initialization packet to : {}", ctx.getChannel());
     }
 }

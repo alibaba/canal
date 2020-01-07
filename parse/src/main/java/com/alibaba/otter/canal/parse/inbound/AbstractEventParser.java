@@ -2,7 +2,9 @@ package com.alibaba.otter.canal.parse.inbound;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,6 +55,12 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected CanalEventFilter                       eventFilter                = null;
     protected CanalEventFilter                       eventBlackFilter           = null;
 
+    // 字段过滤
+    protected String		  			  			fieldFilter;
+    protected Map<String, List<String>> 			fieldFilterMap;
+    protected String		  			  			fieldBlackFilter;
+    protected Map<String, List<String>> 			fieldBlackFilterMap;
+    
     private CanalAlarmHandler                        alarmHandler               = null;
 
     // 统计参数
@@ -242,7 +250,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         if (parallel) {
                             // build stage processor
                             multiStageCoprocessor = buildMultiStageCoprocessor();
-                            if (isGTIDMode()) {
+                            if (isGTIDMode() && StringUtils.isNotEmpty(startPosition.getGtid())) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
                                 GTIDSet gtidSet = MysqlGTIDSet.parse(startPosition.getGtid());
                                 ((MysqlMultiStageCoprocessor) multiStageCoprocessor).setGtidSet(gtidSet);
@@ -260,7 +268,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                                 }
                             }
                         } else {
-                            if (isGTIDMode()) {
+                            if (isGTIDMode() && StringUtils.isNotEmpty(startPosition.getGtid())) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
                                 erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), sinkHandler);
                             } else {
@@ -528,6 +536,31 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         }
         heartBeatTimerTask = null;
     }
+    
+    /**
+     * 解析字段过滤规则
+     */
+    private Map<String, List<String>> parseFieldFilterMap(String config) {
+    	
+    	Map<String, List<String>> map = new HashMap<String, List<String>>();
+		
+		if (StringUtils.isNotBlank(config)) {
+			for (String filter : config.split(",")) {
+				if (StringUtils.isBlank(filter)) {
+					continue;
+				}
+				
+				String[] filterConfig = filter.split(":");
+				if (filterConfig.length != 2) {
+					continue;
+				}
+				
+				map.put(filterConfig[0].trim().toUpperCase(), Arrays.asList(filterConfig[1].trim().toUpperCase().split("/")));
+			}
+		}
+		
+		return map;
+    }
 
     public void setEventFilter(CanalEventFilter eventFilter) {
         this.eventFilter = eventFilter;
@@ -655,4 +688,43 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.serverId = serverId;
     }
 
+    public String getFieldFilter() {
+		return fieldFilter;
+	}
+
+	public void setFieldFilter(String fieldFilter) {
+		this.fieldFilter = fieldFilter.trim();
+		this.fieldFilterMap = parseFieldFilterMap(fieldFilter);
+	}
+	
+	public String getFieldBlackFilter() {
+		return fieldBlackFilter;
+	}
+
+	public void setFieldBlackFilter(String fieldBlackFilter) {
+		this.fieldBlackFilter = fieldBlackFilter;
+		this.fieldBlackFilterMap = parseFieldFilterMap(fieldBlackFilter);
+	}
+
+	/**
+	 * 获取表字段过滤规则
+	 * @return
+	 * 	key:	schema.tableName
+	 * 	value:	字段列表
+	 */
+	public Map<String, List<String>> getFieldFilterMap() {
+		return fieldFilterMap;
+	}
+
+	/**
+	 * 获取表字段过滤规则黑名单
+	 * @return
+	 * 	key:	schema.tableName
+	 * 	value:	字段列表
+	 */
+	public Map<String, List<String>> getFieldBlackFilterMap() {
+		return fieldBlackFilterMap;
+	}
+	
+	
 }
