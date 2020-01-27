@@ -10,6 +10,9 @@ public class MQProperties {
     private Integer batchSize              = 50;
     private String  accessChannel          = "local";
 
+    private String  aliyunAccessKey        = "";
+    private String  aliyunSecretKey        = "";
+
     public boolean isFlatMessage() {
         return flatMessage;
     }
@@ -64,5 +67,21 @@ public class MQProperties {
 
     public void setAccessChannel(String accessChannel) {
         this.accessChannel = accessChannel;
+    }
+
+    public String getAliyunAccessKey() {
+        return aliyunAccessKey;
+    }
+
+    public void setAliyunAccessKey(String aliyunAccessKey) {
+        this.aliyunAccessKey = aliyunAccessKey;
+    }
+
+    public String getAliyunSecretKey() {
+        return aliyunSecretKey;
+    }
+
+    public void setAliyunSecretKey(String aliyunSecretKey) {
+        this.aliyunSecretKey = aliyunSecretKey;
     }
 }

@@ -1,15 +1,16 @@
 package com.alibaba.otter.canal.connector.core.producer;
 
-import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
-import com.alibaba.otter.canal.connector.core.config.CanalConstants;
-import com.alibaba.otter.canal.connector.core.config.MQProperties;
-import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;
-import org.apache.commons.lang.StringUtils;
-
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import com.alibaba.otter.canal.connector.core.config.CanalConstants;
+import org.apache.commons.lang.StringUtils;
+
+import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
+import com.alibaba.otter.canal.connector.core.config.MQProperties;
+import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;
 
 public abstract class AbstractMQProducer implements CanalMQProducer {
 
@@ -87,6 +88,13 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
         if (!StringUtils.isEmpty(accessChannel)) {
             mqProperties.setAccessChannel(accessChannel);
         }
-
+        String aliyunAccessKey = properties.getProperty(CanalConstants.CANAL_ALIYUN_ACCESS_KEY);
+        if (!StringUtils.isEmpty(aliyunAccessKey)) {
+            mqProperties.setAliyunAccessKey(aliyunAccessKey);
+        }
+        String aliyunSecretKey = properties.getProperty(CanalConstants.CANAL_ALIYUN_SECRET_KEY);
+        if (!StringUtils.isEmpty(aliyunSecretKey)) {
+            mqProperties.setAliyunAccessKey(aliyunSecretKey);
+        }
     }
 }

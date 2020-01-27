@@ -100,7 +100,6 @@
         <file_encoding>UTF-8</file_encoding>
         <javadoc_skip>true</javadoc_skip>
         <spring_version>3.2.18.RELEASE</spring_version>
-        <rocketmq_version>4.5.2</rocketmq_version>
         <rabbitmq_version>5.5.0</rabbitmq_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
         <maven-surefire.version>2.22.1</maven-surefire.version>
@@ -336,16 +335,6 @@
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>3.0.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-client</artifactId>
-                <version>${rocketmq_version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-acl</artifactId>
-                <version>${rocketmq_version}</version>
             </dependency>
             <dependency>
                 <groupId>com.rabbitmq</groupId>

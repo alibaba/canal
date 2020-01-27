@@ -71,7 +71,8 @@ public class CanalStarter {
         // }
         if (!"tcp".equalsIgnoreCase(serverMode)) {
             ExtensionLoader<CanalMQProducer> loader = ExtensionLoader.getExtensionLoader(CanalMQProducer.class);
-            canalMQProducer = loader.getExtension(serverMode, CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
+            canalMQProducer = loader
+                .getExtension(serverMode.toLowerCase(), CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
             if (canalMQProducer != null) {
                 ClassLoader cl = Thread.currentThread().getContextClassLoader();
                 Thread.currentThread().setContextClassLoader(canalMQProducer.getClass().getClassLoader());

@@ -96,6 +96,7 @@
     <modules>
         <module>kafka-connector</module>
         <module>core</module>
+        <module>rocketmq-connector</module>
     </modules>
 
     <build>

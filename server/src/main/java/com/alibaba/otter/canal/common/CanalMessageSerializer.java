@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.common;
 
 import java.util.List;
 
-import org.apache.kafka.common.errors.SerializationException;
 import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
@@ -74,7 +73,7 @@ public class CanalMessageSerializer {
                 }
             }
         } catch (Exception e) {
-            throw new SerializationException("Error when serializing message to byte[] ");
+            throw new CanalException("Error when serializing message to byte[] ");
         }
         return null;
     }

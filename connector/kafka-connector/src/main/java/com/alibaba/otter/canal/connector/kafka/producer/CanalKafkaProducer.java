@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import com.alibaba.otter.canal.connector.core.config.CanalConstants;
+import com.alibaba.otter.canal.connector.kafka.config.KafkaConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -42,7 +42,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
 
     private static final Logger      logger              = LoggerFactory.getLogger(CanalKafkaProducer.class);
 
-    private static final String      PREFIC_KAFKA_CONFIG = "kafka.";
+    private static final String      PREFIX_KAFKA_CONFIG = "kafka.";
 
     private Producer<String, byte[]> producer;
 
@@ -83,21 +83,21 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = (String) entry.getKey();
             Object value = entry.getValue();
-            if (key.startsWith(PREFIC_KAFKA_CONFIG) && value != null) {
-                key = key.substring(PREFIC_KAFKA_CONFIG.length());
+            if (key.startsWith(PREFIX_KAFKA_CONFIG) && value != null) {
+                key = key.substring(PREFIX_KAFKA_CONFIG.length());
                 kafkaProperties.put(key, value);
             }
         }
 
-        String kerberosEnabled = properties.getProperty(CanalConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
+        String kerberosEnabled = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
         if (!StringUtils.isEmpty(kerberosEnabled)) {
             kafkaProducerConfig.setKerberosEnabled(Boolean.parseBoolean(kerberosEnabled));
         }
-        String krb5File = properties.getProperty(CanalConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5_FILE);
+        String krb5File = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5_FILE);
         if (!StringUtils.isEmpty(krb5File)) {
             kafkaProducerConfig.setKrb5File(krb5File);
         }
-        String jaasFile = properties.getProperty(CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAAS_FILE);
+        String jaasFile = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_JAAS_FILE);
         if (!StringUtils.isEmpty(jaasFile)) {
             kafkaProducerConfig.setJaasFile(jaasFile);
         }
@@ -186,7 +186,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                 Message[] messages = MQMessageUtils.messagePartition(datas,
                     message.getId(),
                     mqDestination.getPartitionsNum(),
-                    mqDestination.getPartitionHash());
+                    mqDestination.getPartitionHash(),
+                    this.mqProperties.isDatabaseHash());
                 int length = messages.length;
                 for (int i = 0; i < length; i++) {
                     Message messagePartition = messages[i];
@@ -214,7 +215,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                 if (mqDestination.getPartitionHash() != null && !mqDestination.getPartitionHash().isEmpty()) {
                     FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
                         mqDestination.getPartitionsNum(),
-                        mqDestination.getPartitionHash());
+                        mqDestination.getPartitionHash(),
+                        this.mqProperties.isDatabaseHash());
                     int length = partitionFlatMessage.length;
                     for (int i = 0; i < length; i++) {
                         FlatMessage flatMessagePart = partitionFlatMessage[i];
