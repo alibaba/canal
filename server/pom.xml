@@ -25,6 +25,11 @@
 			<artifactId>canal.instance.manager</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.alibaba.otter</groupId>
+			<artifactId>connector.core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!-- kafka -->
 		<dependency>
 			<groupId>org.apache.kafka</groupId>

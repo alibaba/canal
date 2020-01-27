@@ -129,6 +129,7 @@
         <module>prometheus</module>
         <module>admin</module>
         <module>client-adapter</module>
+        <module>connector</module>
     </modules>
 
     <dependencyManagement>
