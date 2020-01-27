@@ -110,6 +110,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
             if (producer != null) {
                 producer.close();
             }
+            super.stop();
         } catch (Throwable e) {
             logger.warn("##something goes wrong when stopping kafka producer:", e);
         } finally {

@@ -35,14 +35,6 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.7</version>
 		</dependency>
-		<dependency>
-			<groupId>com.rabbitmq</groupId>
-			<artifactId>amqp-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.mq-amqp</groupId>
-			<artifactId>mq-amqp-client</artifactId>
-		</dependency>
 		
 		<!-- test dependency -->
 		<dependency>

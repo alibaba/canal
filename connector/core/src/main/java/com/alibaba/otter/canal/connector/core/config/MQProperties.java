@@ -12,6 +12,7 @@ public class MQProperties {
 
     private String  aliyunAccessKey        = "";
     private String  aliyunSecretKey        = "";
+    private int     aliyunUid              = 0;
 
     public boolean isFlatMessage() {
         return flatMessage;
@@ -83,5 +84,13 @@ public class MQProperties {
 
     public void setAliyunSecretKey(String aliyunSecretKey) {
         this.aliyunSecretKey = aliyunSecretKey;
+    }
+
+    public int getAliyunUid() {
+        return aliyunUid;
+    }
+
+    public void setAliyunUid(int aliyunUid) {
+        this.aliyunUid = aliyunUid;
     }
 }

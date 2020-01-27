@@ -21,4 +21,5 @@ public class CanalConstants {
 
     public static final String CANAL_ALIYUN_ACCESS_KEY        = ROOT + "." + "aliyun.accessKey";
     public static final String CANAL_ALIYUN_SECRET_KEY        = ROOT + "." + "aliyun.secretKey";
+    public static final String CANAL_ALIYUN_UID               = ROOT + "." + "aliyun.uid";
 }

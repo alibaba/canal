@@ -2,7 +2,7 @@
  * aliyun amqp协议 账号类
  * 暂不支持STS授权情况
  */
-package com.alibaba.otter.canal.rabbitmq;
+package com.alibaba.otter.canal.connector.rabbitmq.producer;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
