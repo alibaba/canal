@@ -1,9 +1,9 @@
 package com.alibaba.otter.canal.connector.rocketmq.config;
 
 /**
- * 启动常用变量
+ * RocketMQ 配置常量类
  *
- * @author jianghang 2012-11-8 下午03:15:55
+ * @author rewerma 2020-01-27
  * @version 1.0.0
  */
 public class RocketMQConstants {

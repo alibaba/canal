@@ -2,6 +2,12 @@ package com.alibaba.otter.canal.connector.rocketmq.config;
 
 import com.alibaba.otter.canal.connector.core.config.MQProperties;
 
+/**
+ * RocketMQ 配置类
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 public class RocketMQProducerConfig extends MQProperties {
 
     private String  producerGroup;

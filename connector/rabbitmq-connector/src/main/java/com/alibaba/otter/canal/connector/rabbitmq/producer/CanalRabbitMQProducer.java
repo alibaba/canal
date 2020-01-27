@@ -29,6 +29,12 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
+/**
+ * RabbitMQ Producer SPI 实现
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 @SPI("rabbitmq")
 public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQProducer {
 

@@ -1,5 +1,11 @@
 package com.alibaba.otter.canal.connector.core.producer;
 
+/**
+ * MQ producer destination
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 public class MQDestination {
     private String  canalDestination;
     private String  topic;

@@ -1,5 +1,11 @@
 package com.alibaba.otter.canal.connector.rabbitmq.config;
 
+/**
+ * RabbitMQ 配置常量类
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 public class RabbitMQConstants {
 
     public static final String ROOT                  = "rabbitmq";

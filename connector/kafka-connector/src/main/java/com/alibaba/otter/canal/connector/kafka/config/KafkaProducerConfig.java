@@ -5,6 +5,12 @@ import java.util.Map;
 
 import com.alibaba.otter.canal.connector.core.config.MQProperties;
 
+/**
+ * Kafka producer 配置类
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 public class KafkaProducerConfig extends MQProperties {
 
     private Map<String, Object> kafkaProperties = new LinkedHashMap<>();

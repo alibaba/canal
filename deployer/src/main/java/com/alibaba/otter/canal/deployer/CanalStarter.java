@@ -16,8 +16,8 @@ import com.alibaba.otter.canal.server.CanalMQStarter;
 /**
  * Canal server 启动类
  *
- * @author rewerma 2018-12-30 下午05:12:16
- * @version 1.0.1
+ * @author rewerma 2020-01-27
+ * @version 1.0.2
  */
 public class CanalStarter {
 
@@ -62,13 +62,6 @@ public class CanalStarter {
      */
     public synchronized void start() throws Throwable {
         String serverMode = CanalController.getProperty(properties, CanalConstants.CANAL_SERVER_MODE);
-        // if (serverMode.equalsIgnoreCase("kafka")) {
-        // canalMQProducer = new CanalKafkaProducer();
-        // } else if (serverMode.equalsIgnoreCase("rocketmq")) {
-        // canalMQProducer = new CanalRocketMQProducer();
-        // } else if (serverMode.equalsIgnoreCase("rabbitmq")) {
-        // canalMQProducer = new CanalRabbitMQProducer();
-        // }
         if (!"tcp".equalsIgnoreCase(serverMode)) {
             ExtensionLoader<CanalMQProducer> loader = ExtensionLoader.getExtensionLoader(CanalMQProducer.class);
             canalMQProducer = loader
@@ -177,180 +170,4 @@ public class CanalStarter {
         }
         running = false;
     }
-
-    // /**
-    // * 构造MQ对应的配置
-    // *
-    // * @param properties canal.properties 配置
-    // * @return
-    // */
-    // private static MQProperties buildMQProperties(Properties properties) {
-    // MQProperties mqProperties = new MQProperties();
-    // String servers = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_SERVERS);
-    // if (!StringUtils.isEmpty(servers)) {
-    // mqProperties.setServers(servers);
-    // }
-    // String retires = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_RETRIES);
-    // if (!StringUtils.isEmpty(retires)) {
-    // mqProperties.setRetries(Integer.valueOf(retires));
-    // }
-    // String batchSize = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_BATCHSIZE);
-    // if (!StringUtils.isEmpty(batchSize)) {
-    // mqProperties.setBatchSize(Integer.valueOf(batchSize));
-    // }
-    // String lingerMs = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_LINGERMS);
-    // if (!StringUtils.isEmpty(lingerMs)) {
-    // mqProperties.setLingerMs(Integer.valueOf(lingerMs));
-    // }
-    // String maxRequestSize = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_MAXREQUESTSIZE);
-    // if (!StringUtils.isEmpty(maxRequestSize)) {
-    // mqProperties.setMaxRequestSize(Integer.valueOf(maxRequestSize));
-    // }
-    // String bufferMemory = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_BUFFERMEMORY);
-    // if (!StringUtils.isEmpty(bufferMemory)) {
-    // mqProperties.setBufferMemory(Long.valueOf(bufferMemory));
-    // }
-    // String canalBatchSize = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_CANALBATCHSIZE);
-    // if (!StringUtils.isEmpty(canalBatchSize)) {
-    // mqProperties.setCanalBatchSize(Integer.valueOf(canalBatchSize));
-    // }
-    // String canalGetTimeout = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_CANALGETTIMEOUT);
-    // if (!StringUtils.isEmpty(canalGetTimeout)) {
-    // mqProperties.setCanalGetTimeout(Long.valueOf(canalGetTimeout));
-    // }
-    // String flatMessage = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_FLATMESSAGE);
-    // if (!StringUtils.isEmpty(flatMessage)) {
-    // mqProperties.setFlatMessage(Boolean.valueOf(flatMessage));
-    // }
-    // String parallelThreadSize = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_PARALLELTHREADSIZE);
-    // if (!StringUtils.isEmpty(parallelThreadSize)) {
-    // mqProperties.setParallelThreadSize(Integer.valueOf(parallelThreadSize));
-    // }
-    // String compressionType = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_COMPRESSION_TYPE);
-    // if (!StringUtils.isEmpty(compressionType)) {
-    // mqProperties.setCompressionType(compressionType);
-    // }
-    // String acks = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_ACKS);
-    // if (!StringUtils.isEmpty(acks)) {
-    // mqProperties.setAcks(acks);
-    // }
-    // String aliyunAccessKey = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_ALIYUN_ACCESSKEY);
-    // if (!StringUtils.isEmpty(aliyunAccessKey)) {
-    // mqProperties.setAliyunAccessKey(aliyunAccessKey);
-    // }
-    // String aliyunSecretKey = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_ALIYUN_SECRETKEY);
-    // if (!StringUtils.isEmpty(aliyunSecretKey)) {
-    // mqProperties.setAliyunSecretKey(aliyunSecretKey);
-    // }
-    //
-    // String producerGroup = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_PRODUCERGROUP);
-    // if (!StringUtils.isEmpty(producerGroup)) {
-    // mqProperties.setProducerGroup(producerGroup);
-    // }
-    //
-    // String enableMessageTrace = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_ENABLE_MESSAGE_TRACE);
-    // if (!StringUtils.isEmpty(enableMessageTrace)) {
-    // mqProperties.setEnableMessageTrace(Boolean.valueOf(enableMessageTrace));
-    // }
-    //
-    // String accessChannel = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_ACCESS_CHANNEL);
-    // if (!StringUtils.isEmpty(accessChannel)) {
-    // mqProperties.setAccessChannel(accessChannel);
-    // }
-    //
-    // String customizedTraceTopic = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_CUSTOMIZED_TRACE_TOPIC);
-    // if (!StringUtils.isEmpty(customizedTraceTopic)) {
-    // mqProperties.setCustomizedTraceTopic(customizedTraceTopic);
-    // }
-    //
-    // String namespace = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_NAMESPACE);
-    // if (!StringUtils.isEmpty(namespace)) {
-    // mqProperties.setNamespace(namespace);
-    // }
-    //
-    // String kafkaKerberosEnable = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
-    // if (!StringUtils.isEmpty(kafkaKerberosEnable)) {
-    // mqProperties.setKerberosEnable(Boolean.valueOf(kafkaKerberosEnable));
-    // }
-    //
-    // String kafkaKerberosKrb5Filepath = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH);
-    // if (!StringUtils.isEmpty(kafkaKerberosKrb5Filepath)) {
-    // mqProperties.setKerberosKrb5FilePath(kafkaKerberosKrb5Filepath);
-    // }
-    //
-    // String kafkaKerberosJaasFilepath = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH);
-    // if (!StringUtils.isEmpty(kafkaKerberosJaasFilepath)) {
-    // mqProperties.setKerberosJaasFilePath(kafkaKerberosJaasFilepath);
-    // }
-    //
-    // String vhost = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_VHOST);
-    // if (!StringUtils.isEmpty(vhost)) {
-    // mqProperties.setVhost(vhost);
-    // }
-    //
-    // String username = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_USERNAME);
-    // if (!StringUtils.isEmpty(username)) {
-    // mqProperties.setUsername(username);
-    // }
-    //
-    // String password = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_PASSWORD);
-    // if (!StringUtils.isEmpty(password)) {
-    // mqProperties.setPassword(password);
-    // }
-    //
-    // String aliyunUID = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_ALIYUN_UID);
-    // if (!StringUtils.isEmpty(aliyunUID)) {
-    // mqProperties.setAliyunUID(Long.valueOf(aliyunUID));
-    // }
-    //
-    // String exchange = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_EXCHANGE);
-    // if (!StringUtils.isEmpty(exchange)) {
-    // mqProperties.setExchange(exchange);
-    // }
-    //
-    // String databaseHash = CanalController.getProperty(properties,
-    // CanalConstants.CANAL_MQ_DATABASE_HASH);
-    // if (!StringUtils.isEmpty(databaseHash)) {
-    // mqProperties.setDatabaseHash(Boolean.valueOf(databaseHash));
-    // }
-    //
-    // for (Object key : properties.keySet()) {
-    // key = StringUtils.trim(key.toString());
-    // if (((String) key).startsWith(CanalConstants.CANAL_MQ_PROPERTIES)) {
-    // String value = CanalController.getProperty(properties, (String) key);
-    // String subKey = ((String)
-    // key).substring(CanalConstants.CANAL_MQ_PROPERTIES.length() + 1);
-    // mqProperties.getProperties().put(subKey, value);
-    // }
-    // }
-    //
-    // return mqProperties;
-    // }
 }

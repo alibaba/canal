@@ -31,9 +31,9 @@ import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
- * kafka producer 主操作类
+ * kafka producer SPI 实现
  *
- * @author machengyuan 2018-6-11 下午05:30:49
+ * @author rewerma 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })

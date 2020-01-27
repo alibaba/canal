@@ -12,6 +12,12 @@ import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.connector.core.config.MQProperties;
 import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;
 
+/**
+ * MQ producer 抽象类
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 public abstract class AbstractMQProducer implements CanalMQProducer {
 
     protected MQProperties       mqProperties;

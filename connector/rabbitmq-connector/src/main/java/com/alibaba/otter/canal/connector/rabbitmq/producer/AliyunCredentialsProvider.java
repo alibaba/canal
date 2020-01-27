@@ -1,7 +1,3 @@
-/**
- * aliyun amqp协议 账号类
- * 暂不支持STS授权情况
- */
 package com.alibaba.otter.canal.connector.rabbitmq.producer;
 
 import java.security.InvalidKeyException;
@@ -10,6 +6,12 @@ import java.security.NoSuchAlgorithmException;
 import com.alibaba.mq.amqp.utils.UserUtils;
 import com.rabbitmq.client.impl.CredentialsProvider;
 
+/**
+ * aliyun amqp协议 账号类
+ * 暂不支持STS授权情况
+ *
+ * @version 1.0.0
+ */
 public class AliyunCredentialsProvider implements CredentialsProvider {
 
     /**

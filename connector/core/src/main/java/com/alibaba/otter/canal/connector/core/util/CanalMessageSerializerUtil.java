@@ -12,6 +12,12 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.WireFormat;
 
+/**
+ * Canal message 序列化工具类
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 public class CanalMessageSerializerUtil {
 
     @SuppressWarnings("deprecation")

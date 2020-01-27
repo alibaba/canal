@@ -36,6 +36,12 @@ import com.alibaba.otter.canal.connector.rocketmq.config.RocketMQConstants;
 import com.alibaba.otter.canal.connector.rocketmq.config.RocketMQProducerConfig;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 
+/**
+ * RocketMQ Producer SPI 实现
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 @SPI("rocketmq")
 public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQProducer {
 

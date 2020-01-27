@@ -8,6 +8,12 @@ import com.alibaba.otter.canal.connector.core.producer.Callback;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.protocol.Message;
 
+/**
+ * MQ producer SPI 接口
+ *
+ * @author rewerma 2020-01-27
+ * @version 1.0.0
+ */
 @SPI("kafka")
 public interface CanalMQProducer {
 

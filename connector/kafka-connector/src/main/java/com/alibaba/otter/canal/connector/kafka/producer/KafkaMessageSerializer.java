@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Kafka Message类的序列化
  *
- * @author machengyuan 2018-6-11 下午05:30:49
+ * @author rewerma 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
 public class KafkaMessageSerializer implements Serializer<byte[]> {
