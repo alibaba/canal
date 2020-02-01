@@ -1,10 +1,9 @@
 package com.alibaba.otter.canal.connector.core.spi;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import com.alibaba.otter.canal.connector.core.config.MQProperties;
-import com.alibaba.otter.canal.connector.core.producer.Callback;
+import com.alibaba.otter.canal.connector.core.util.Callback;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -35,7 +34,7 @@ public interface CanalMQProducer {
      * @param canalDestination canal mq destination
      * @param message canal message
      */
-    void send(MQDestination canalDestination, Message message, Callback callback) throws IOException;
+    void send(MQDestination canalDestination, Message message, Callback callback);
 
     /**
      * Stop MQ producer service

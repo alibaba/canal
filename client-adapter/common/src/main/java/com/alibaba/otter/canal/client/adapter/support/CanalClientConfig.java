@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.support;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * 配置信息类
@@ -27,7 +28,7 @@ public class CanalClientConfig {
     // 重试次数
     private Integer            retries;
     // 消费超时时间
-    private Long               timeout;
+    private Long               timeout       = 500L;
     // 模式 tcp kafka rocketMQ
     private String             mode          = "tcp";
     // aliyun ak/sk
@@ -38,6 +39,8 @@ public class CanalClientConfig {
     private String             password;
     // rabbitmq vhost
     private String             vhost         = "/";
+
+    private Properties         consumerProperties;
 
     private Long               resourceOwnerId;
     // 是否启用消息轨迹
@@ -161,6 +164,14 @@ public class CanalClientConfig {
 
     public void setVhost(String vhost) {
         this.vhost = vhost;
+    }
+
+    public Properties getConsumerProperties() {
+        return consumerProperties;
+    }
+
+    public void setConsumerProperties(Properties consumerProperties) {
+        this.consumerProperties = consumerProperties;
     }
 
     public Long getResourceOwnerId() {

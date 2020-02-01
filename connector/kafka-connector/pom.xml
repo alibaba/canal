@@ -62,7 +62,9 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -72,6 +74,11 @@
                         <configuration>
                             <tasks>
                                 <copy todir="${project.basedir}/../../deployer/target/canal/plugin" overwrite="true">
+                                    <fileset dir="${project.basedir}/target" erroronmissingdir="true">
+                                        <include name="connector.kafka-${project.version}-jar-with-dependencies.jar" />
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.basedir}/../../client-adapter/launcher/target/canal-adapter/plugin" overwrite="true">
                                     <fileset dir="${project.basedir}/target" erroronmissingdir="true">
                                         <include name="connector.kafka-${project.version}-jar-with-dependencies.jar" />
                                     </fileset>

@@ -15,7 +15,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
-import com.alibaba.otter.canal.connector.core.producer.Callback;
+import com.alibaba.otter.canal.connector.core.util.Callback;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.connector.core.producer.MQMessageUtils;
 import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;
@@ -97,7 +97,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
     }
 
     @Override
-    public void send(final MQDestination destination, Message message, Callback callback) throws IOException {
+    public void send(final MQDestination destination, Message message, Callback callback) {
         ExecutorTemplate template = new ExecutorTemplate(executor);
         try {
             if (!StringUtils.isEmpty(destination.getDynamicTopic())) {

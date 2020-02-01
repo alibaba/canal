@@ -98,6 +98,7 @@
         <module>core</module>
         <module>rocketmq-connector</module>
         <module>rabbitmq-connector</module>
+        <module>tcp-connector</module>
     </modules>
 
     <build>

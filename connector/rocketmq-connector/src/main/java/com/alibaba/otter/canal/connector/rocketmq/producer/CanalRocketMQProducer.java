@@ -26,7 +26,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
-import com.alibaba.otter.canal.connector.core.producer.Callback;
+import com.alibaba.otter.canal.connector.core.util.Callback;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.connector.core.producer.MQMessageUtils;
 import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;

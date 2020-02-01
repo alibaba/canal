@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.connector.core.producer;
+package com.alibaba.otter.canal.connector.core.util;
 
 /**
  * MQ 回调类

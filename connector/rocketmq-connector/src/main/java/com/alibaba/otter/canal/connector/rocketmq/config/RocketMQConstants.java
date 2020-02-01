@@ -18,4 +18,8 @@ public class RocketMQConstants {
     public static final String ROCKETMQ_RETRY_TIMES_WHEN_SEND_FAILED = ROOT + "." + "retry.times.when.send.failed";
     public static final String ROCKETMQ_VIP_CHANNEL_ENABLED          = ROOT + "." + "vip.channel.enabled";
 
+    public static final String ROCKETMQ_ACCESS_CHANNEL               = ROOT + "." + "access.channel";
+    public static final String ROCKETMQ_BATCH_SIZE                   = ROOT + "." + "batch.size";
+    public static final String ROCKETMQ_SUBSCRIBE_FILTER             = ROOT + "." + "subscribe.filter";
+
 }

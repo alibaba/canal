@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.alibaba.otter.canal.connector.core.producer.Callback;
+import com.alibaba.otter.canal.connector.core.util.Callback;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

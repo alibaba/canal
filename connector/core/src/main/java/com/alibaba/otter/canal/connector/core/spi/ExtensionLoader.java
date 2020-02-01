@@ -88,7 +88,12 @@ public class ExtensionLoader<T> {
         return loader;
     }
 
-    private ExtensionLoader(Class<?> type, String classLoaderPolicy){
+    public ExtensionLoader(Class<?> type){
+        this.type = type;
+        this.classLoaderPolicy = DEFAULT_CLASSLOADER_POLICY;
+    }
+
+    public ExtensionLoader(Class<?> type, String classLoaderPolicy){
         this.type = type;
         this.classLoaderPolicy = classLoaderPolicy;
     }
@@ -160,7 +165,7 @@ public class ExtensionLoader<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private T createExtension(String name, String spiDir, String standbyDir) {
+    public T createExtension(String name, String spiDir, String standbyDir) {
         Class<?> clazz = getExtensionClasses(spiDir, standbyDir).get(name);
         if (clazz == null) {
             throw new IllegalStateException("Extension instance(name: " + name + ", class: " + type
@@ -321,7 +326,8 @@ public class ExtensionLoader<T> {
                     try {
                         BufferedReader reader = null;
                         try {
-                            reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
+                            reader = new BufferedReader(
+                                new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
                             String line = null;
                             while ((line = reader.readLine()) != null) {
                                 final int ci = line.indexOf('#');

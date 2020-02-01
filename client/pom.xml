@@ -151,7 +151,7 @@
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<artifactSet>
 						<includes>
-							<include>com.alibaba.otter:*</include>
+							<include>com.alibaba.otter:canal.client</include>
 							<include>com.google.guava:*</include>
 							<include>org.joda:*</include>
 							<include>com.google.common:*</include>

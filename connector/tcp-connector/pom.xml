@@ -11,15 +11,17 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
-    <artifactId>connector.rocketmq</artifactId>
+    <artifactId>connector.tcp</artifactId>
     <packaging>jar</packaging>
-    <name>canal connector rocketMQ module for otter ${project.version}</name>
-
-    <properties>
-        <rocketmq_version>4.5.2</rocketmq_version>
-    </properties>
+    <name>canal connector tcp module for otter ${project.version}</name>
 
     <dependencies>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>connector.core</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.protocol</artifactId>
@@ -28,21 +30,43 @@
         </dependency>
         <dependency>
             <groupId>com.alibaba.otter</groupId>
-            <artifactId>connector.core</artifactId>
+            <artifactId>canal.client</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-orm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-jdbc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.rocketmq</groupId>
+                    <artifactId>rocketmq-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.aliyun.openservices</groupId>
+                    <artifactId>aliware-apache-rocketmq-cloud</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.apache.rocketmq</groupId>
-            <artifactId>rocketmq-client</artifactId>
-            <version>${rocketmq_version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.rocketmq</groupId>
-            <artifactId>rocketmq-acl</artifactId>
-            <version>${rocketmq_version}</version>
-        </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -83,14 +107,10 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${project.basedir}/../../deployer/target/canal/plugin" overwrite="true">
+                                <copy todir="${project.basedir}/../../client-adapter/launcher/target/canal-adapter/plugin"
+                                      overwrite="true">
                                     <fileset dir="${project.basedir}/target" erroronmissingdir="true">
-                                        <include name="connector.rocketmq-${project.version}-jar-with-dependencies.jar"/>
-                                    </fileset>
-                                </copy>
-                                <copy todir="${project.basedir}/../../client-adapter/launcher/target/canal-adapter/plugin" overwrite="true">
-                                    <fileset dir="${project.basedir}/target" erroronmissingdir="true">
-                                        <include name="connector.rocketmq-${project.version}-jar-with-dependencies.jar" />
+                                        <include name="connector.tcp-${project.version}-jar-with-dependencies.jar"/>
                                     </fileset>
                                 </copy>
                             </tasks>
