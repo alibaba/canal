@@ -934,4 +934,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         this.rdsOssMode = rdsOssMode;
     }
 
+    public void setDumpErrorCount(int dumpErrorCount) {
+        this.dumpErrorCount = dumpErrorCount;
+    }
 }
