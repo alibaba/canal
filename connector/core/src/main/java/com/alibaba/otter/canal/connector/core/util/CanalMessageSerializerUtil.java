@@ -2,13 +2,13 @@ package com.alibaba.otter.canal.connector.core.util;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalPacket;
 import com.alibaba.otter.canal.protocol.CanalPacket.PacketType;
 import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.WireFormat;
@@ -59,12 +59,11 @@ public class CanalMessageSerializerUtil {
                         output.checkNoSpaceLeft();
                         return body;
                     } else if (!CollectionUtils.isEmpty(data.getEntries())) {
-                        // mq模式只会走到非rowEntry模式
+                        // mq模式只会走到非rawEntry模式
                         CanalPacket.Messages.Builder messageBuilder = CanalPacket.Messages.newBuilder();
                         for (CanalEntry.Entry entry : data.getEntries()) {
                             if (filterTransactionEntry
-                                && (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
-                                    || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND)) {
+                                && (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND)) {
                                 continue;
                             }
 
@@ -98,7 +97,7 @@ public class CanalMessageSerializerUtil {
                 switch (p.getType()) {
                     case MESSAGES: {
                         if (!p.getCompression().equals(CanalPacket.Compression.NONE)
-                                && !p.getCompression().equals(CanalPacket.Compression.COMPRESSIONCOMPATIBLEPROTO2)) {
+                            && !p.getCompression().equals(CanalPacket.Compression.COMPRESSIONCOMPATIBLEPROTO2)) {
                             throw new CanalClientException("compression is not supported in this connector");
                         }
 

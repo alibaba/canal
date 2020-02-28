@@ -8,7 +8,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.alibaba.otter.canal.connector.core.spi.SPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
+import com.alibaba.otter.canal.connector.core.spi.SPI;
 import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
 import com.alibaba.otter.canal.connector.core.util.MessageUtil;
 import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQConstants;
@@ -23,7 +23,13 @@ import com.alibaba.otter.canal.connector.rabbitmq.producer.AliyunCredentialsProv
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.common.collect.Lists;
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 
 /**
  * RabbitMQ consumer SPI 实现
@@ -34,8 +40,7 @@ import com.rabbitmq.client.*;
 @SPI("rabbitmq")
 public class CanalRabbitMQConsumer implements CanalMsgConsumer {
 
-    private static final Logger                                logger              = LoggerFactory
-        .getLogger(CanalRabbitMQConsumer.class);
+    private static final Logger                                logger              = LoggerFactory.getLogger(CanalRabbitMQConsumer.class);
 
     // 链接地址
     private String                                             nameServer;
@@ -131,7 +136,7 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
             CommonMessage commonMessage = JSON.parseObject(messageData, CommonMessage.class);
             messageList.add(commonMessage);
         }
-        ConsumerBatchMessage<CommonMessage>  batchMessage = new ConsumerBatchMessage<>(messageList);
+        ConsumerBatchMessage<CommonMessage> batchMessage = new ConsumerBatchMessage<>(messageList);
         try {
             messageBlockingQueue.put(batchMessage);
         } catch (InterruptedException e) {

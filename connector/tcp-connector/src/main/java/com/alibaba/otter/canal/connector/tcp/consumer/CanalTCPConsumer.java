@@ -1,5 +1,11 @@
 package com.alibaba.otter.canal.connector.tcp.consumer;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.client.impl.ClusterNodeAccessStrategy;
@@ -11,13 +17,6 @@ import com.alibaba.otter.canal.connector.core.spi.SPI;
 import com.alibaba.otter.canal.connector.core.util.MessageUtil;
 import com.alibaba.otter.canal.connector.tcp.config.TCPConstants;
 import com.alibaba.otter.canal.protocol.Message;
-
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 /**
  * TCP 消费者连接器, 一个destination对应一个SPI实例

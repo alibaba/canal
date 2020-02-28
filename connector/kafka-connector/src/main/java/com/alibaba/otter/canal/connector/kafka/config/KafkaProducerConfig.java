@@ -15,7 +15,7 @@ public class KafkaProducerConfig extends MQProperties {
 
     private Map<String, Object> kafkaProperties = new LinkedHashMap<>();
 
-    private boolean             kerberosEnabled         = false;
+    private boolean             kerberosEnabled = false;
     private String              krb5File;
     private String              jaasFile;
 

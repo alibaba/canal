@@ -1,20 +1,25 @@
 package com.alibaba.otter.canal.connector.kafka.consumer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.otter.canal.connector.core.config.CanalConstants;
-import com.alibaba.otter.canal.connector.core.spi.SPI;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
+import com.alibaba.otter.canal.connector.core.spi.SPI;
 import com.alibaba.otter.canal.connector.core.util.MessageUtil;
 import com.alibaba.otter.canal.protocol.Message;
 
@@ -72,8 +77,7 @@ public class CanalKafkaConsumer implements CanalMsgConsumer {
     @Override
     public List<CommonMessage> getMessage(Long timeout, TimeUnit unit) {
         if (!flatMessage) {
-            ConsumerRecords<String, Message> records = (ConsumerRecords<String, Message>) kafkaConsumer
-                .poll(unit.toMillis(timeout));
+            ConsumerRecords<String, Message> records = (ConsumerRecords<String, Message>) kafkaConsumer.poll(unit.toMillis(timeout));
             if (!records.isEmpty()) {
                 currentOffsets.clear();
                 List<CommonMessage> messages = new ArrayList<>();
@@ -86,8 +90,7 @@ public class CanalKafkaConsumer implements CanalMsgConsumer {
                 return messages;
             }
         } else {
-            ConsumerRecords<String, String> records = (ConsumerRecords<String, String>) kafkaConsumer
-                .poll(unit.toMillis(timeout));
+            ConsumerRecords<String, String> records = (ConsumerRecords<String, String>) kafkaConsumer.poll(unit.toMillis(timeout));
 
             if (!records.isEmpty()) {
                 List<CommonMessage> messages = new ArrayList<>();

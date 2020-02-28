@@ -1,8 +1,8 @@
 package com.alibaba.otter.canal.connector.core.util;
 
-
 public class TimeZone {
-    public final static String LOCATION_TIME_ZONE;    // 当前时区
+
+    public final static String LOCATION_TIME_ZONE; // 当前时区
 
     static {
         java.util.TimeZone localTimeZone = java.util.TimeZone.getDefault();

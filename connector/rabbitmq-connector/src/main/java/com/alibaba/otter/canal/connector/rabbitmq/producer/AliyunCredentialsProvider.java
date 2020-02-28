@@ -7,8 +7,7 @@ import com.alibaba.mq.amqp.utils.UserUtils;
 import com.rabbitmq.client.impl.CredentialsProvider;
 
 /**
- * aliyun amqp协议 账号类
- * 暂不支持STS授权情况
+ * aliyun amqp协议 账号类 暂不支持STS授权情况
  *
  * @version 1.0.0
  */

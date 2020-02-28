@@ -3,10 +3,11 @@ package com.alibaba.otter.canal.admin.model;
 import io.ebean.Finder;
 import io.ebean.annotation.WhenModified;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.Date;
 
 /**
  * Canal集群信息实体类

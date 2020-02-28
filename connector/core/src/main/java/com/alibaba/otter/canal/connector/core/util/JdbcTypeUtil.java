@@ -2,7 +2,12 @@ package com.alibaba.otter.canal.connector.core.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.*;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,8 +77,8 @@ public class JdbcTypeUtil {
     }
 
     public static Object typeConvert(String tableName, String columnName, String value, int sqlType, String mysqlType) {
-        if (value == null || (value.equals("") && !(isText(mysqlType) || sqlType == Types.CHAR
-                                                    || sqlType == Types.VARCHAR || sqlType == Types.LONGVARCHAR))) {
+        if (value == null
+            || (value.equals("") && !(isText(mysqlType) || sqlType == Types.CHAR || sqlType == Types.VARCHAR || sqlType == Types.LONGVARCHAR))) {
             return null;
         }
 

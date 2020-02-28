@@ -1,6 +1,12 @@
 package com.alibaba.otter.canal.connector.core.filter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -14,16 +20,16 @@ import com.googlecode.aviator.Expression;
  */
 public class AviaterRegexFilter {
 
-    private static final String        SPLIT             = ",";
-    private static final String        PATTERN_SPLIT     = "|";
-    private static final String        FILTER_EXPRESSION = "regex(pattern,target)";
-    private static final RegexFunction regexFunction     = new RegexFunction();
-    private final Expression           exp               = AviatorEvaluator.compile(FILTER_EXPRESSION, true);
+    private static final String             SPLIT             = ",";
+    private static final String             PATTERN_SPLIT     = "|";
+    private static final String             FILTER_EXPRESSION = "regex(pattern,target)";
+    private static final RegexFunction      regexFunction     = new RegexFunction();
+    private final Expression                exp               = AviatorEvaluator.compile(FILTER_EXPRESSION, true);
     static {
         AviatorEvaluator.addFunction(regexFunction);
     }
 
-    private static final Comparator<String> COMPARATOR = new StringComparator();
+    private static final Comparator<String> COMPARATOR        = new StringComparator();
 
     final private String                    pattern;
     final private boolean                   defaultEmptyValue;

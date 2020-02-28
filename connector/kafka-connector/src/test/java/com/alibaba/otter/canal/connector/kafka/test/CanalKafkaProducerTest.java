@@ -20,8 +20,9 @@ public class CanalKafkaProducerTest {
         pro.load(in);
 
         ExtensionLoader<CanalMQProducer> loader = ExtensionLoader.getExtensionLoader(CanalMQProducer.class);
-        CanalMQProducer canalMQProducer = loader
-            .getExtension("kafka", "/../../deployer/target/canal/plugin", "/../../deployer/target/canal/plugin");
+        CanalMQProducer canalMQProducer = loader.getExtension("kafka",
+            "/../../deployer/target/canal/plugin",
+            "/../../deployer/target/canal/plugin");
         canalMQProducer.init(pro);
 
         in.close();

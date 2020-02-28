@@ -1,12 +1,13 @@
 package com.alibaba.otter.canal.connector.core.util;
 
+import java.util.Date;
+
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import java.util.Date;
-
 public class DateUtil {
+
     private static DateTimeZone dateTimeZone;
 
     static {

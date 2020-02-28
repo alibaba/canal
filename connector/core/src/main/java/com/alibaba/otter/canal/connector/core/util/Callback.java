@@ -7,6 +7,7 @@ package com.alibaba.otter.canal.connector.core.util;
  * @version 1.0.0
  */
 public interface Callback {
+
     void commit();
 
     void rollback();

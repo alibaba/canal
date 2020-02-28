@@ -2,9 +2,9 @@ package com.alibaba.otter.canal.connector.kafka.consumer;
 
 import java.util.Map;
 
-import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
 import org.apache.kafka.common.serialization.Deserializer;
 
+import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**

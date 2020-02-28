@@ -1,12 +1,14 @@
 package com.alibaba.otter.canal.connector.kafka.producer;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import com.alibaba.otter.canal.connector.kafka.config.KafkaConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -19,13 +21,14 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
-import com.alibaba.otter.canal.connector.core.util.Callback;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.connector.core.producer.MQMessageUtils;
 import com.alibaba.otter.canal.connector.core.producer.MQMessageUtils.EntryRowData;
 import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;
 import com.alibaba.otter.canal.connector.core.spi.SPI;
+import com.alibaba.otter.canal.connector.core.util.Callback;
 import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
+import com.alibaba.otter.canal.connector.kafka.config.KafkaConstants;
 import com.alibaba.otter.canal.connector.kafka.config.KafkaProducerConfig;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
@@ -126,8 +129,9 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
             List result;
             if (!StringUtils.isEmpty(mqDestination.getDynamicTopic())) {
                 // 动态topic路由计算,只是基于schema/table,不涉及proto数据反序列化
-                Map<String, Message> messageMap = MQMessageUtils
-                    .messageTopics(message, mqDestination.getTopic(), mqDestination.getDynamicTopic());
+                Map<String, Message> messageMap = MQMessageUtils.messageTopics(message,
+                    mqDestination.getTopic(),
+                    mqDestination.getDynamicTopic());
 
                 // 针对不同的topic,引入多线程提升效率
                 for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
@@ -222,18 +226,14 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                     for (int i = 0; i < length; i++) {
                         FlatMessage flatMessagePart = partitionFlatMessage[i];
                         if (flatMessagePart != null) {
-                            records.add(new ProducerRecord<>(topicName,
-                                i,
-                                null,
-                                JSON.toJSONBytes(flatMessagePart, SerializerFeature.WriteMapNullValue)));
+                            records.add(new ProducerRecord<>(topicName, i, null, JSON.toJSONBytes(flatMessagePart,
+                                SerializerFeature.WriteMapNullValue)));
                         }
                     }
                 } else {
                     final int partition = mqDestination.getPartition() != null ? mqDestination.getPartition() : 0;
-                    records.add(new ProducerRecord<>(topicName,
-                        partition,
-                        null,
-                        JSON.toJSONBytes(flatMessage, SerializerFeature.WriteMapNullValue)));
+                    records.add(new ProducerRecord<>(topicName, partition, null, JSON.toJSONBytes(flatMessage,
+                        SerializerFeature.WriteMapNullValue)));
                 }
             }
         }

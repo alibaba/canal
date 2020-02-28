@@ -1,8 +1,8 @@
 package com.alibaba.otter.canal.connector.kafka.producer;
 
-import org.apache.kafka.common.serialization.Serializer;
-
 import java.util.Map;
+
+import org.apache.kafka.common.serialization.Serializer;
 
 /**
  * Kafka Message类的序列化

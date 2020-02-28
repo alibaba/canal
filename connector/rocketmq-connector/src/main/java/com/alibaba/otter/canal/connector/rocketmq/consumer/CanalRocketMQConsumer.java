@@ -41,8 +41,7 @@ import com.google.common.collect.Lists;
 @SPI("rocketmq")
 public class CanalRocketMQConsumer implements CanalMsgConsumer {
 
-    private static final Logger                                logger               = LoggerFactory
-        .getLogger(CanalRocketMQConsumer.class);
+    private static final Logger                                logger               = LoggerFactory.getLogger(CanalRocketMQConsumer.class);
     private static final String                                CLOUD_ACCESS_CHANNEL = "cloud";
 
     private String                                             nameServer;
