@@ -1,9 +1,9 @@
 package com.alibaba.otter.canal.adapter.launcher.config;
 
-import com.alibaba.otter.canal.adapter.launcher.monitor.remote.ConfigItem;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.alibaba.otter.canal.adapter.launcher.monitor.remote.ConfigItem;
 
 /**
  * @author L.J.R @ 2019-09-03

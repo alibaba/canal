@@ -27,13 +27,9 @@ import com.alibaba.otter.canal.protocol.Message;
 @SPI("tcp")
 public class CanalTCPConsumer implements CanalMsgConsumer {
 
-    private static final String PREFIX_TCP_CONFIG = "canal.tcp.";
-
-    private Long                currentBatchId    = null;
-
-    private CanalConnector      canalConnector;
-
-    private int                 batchSize         = 500;
+    private Long           currentBatchId = null;
+    private CanalConnector canalConnector;
+    private int            batchSize      = 500;
 
     @Override
     public void init(Properties properties, String destination, String groupId) {

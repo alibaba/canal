@@ -2,7 +2,11 @@ package com.alibaba.otter.canal.client.adapter.es6x.support;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -20,8 +24,8 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
-import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnItem;
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESBulkResponse;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESDeleteRequest;

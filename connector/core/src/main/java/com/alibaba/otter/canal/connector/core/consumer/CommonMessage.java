@@ -12,21 +12,18 @@ public class CommonMessage implements Serializable {
     private String                    table;                                  // 表名
     private List<String>              pkNames;
     private Boolean                   isDdl;
-    private String                    type;                                   // 类型:
-                                                                               // INSERT
-                                                                               // UPDATE
-                                                                               // DELETE
-    // binlog executeTime
-    private Long                      es;                                     // 执行耗时
-    // dml build timeStamp
-    private Long                      ts;                                     // 同步时间
-    private String                    sql;                                    // 执行的sql,
-                                                                               // dml
-                                                                               // sql为空
-    private List<Map<String, Object>> data;                                   // 数据列表
-    private List<Map<String, Object>> old;                                    // 旧数据列表,
-                                                                               // 用于update,
-                                                                               // size和data的size一一对应
+    // 类型:INSERT/UPDATE/DELETE
+    private String                    type;
+    // binlog executeTime, 执行耗时
+    private Long                      es;
+    // dml build timeStamp, 同步时间
+    private Long                      ts;
+    // 执行的sql,dml sql为空
+    private String                    sql;
+    // 数据列表
+    private List<Map<String, Object>> data;
+    // 旧数据列表,用于update,size和data的size一一对应
+    private List<Map<String, Object>> old;
 
     public String getDatabase() {
         return database;

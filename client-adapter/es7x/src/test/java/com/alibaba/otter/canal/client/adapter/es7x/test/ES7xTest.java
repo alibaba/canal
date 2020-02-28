@@ -24,6 +24,7 @@ import org.junit.Test;
 @Ignore
 public class ES7xTest {
 
+    @SuppressWarnings("deprecation")
     private TransportClient transportClient;
 
     @Before
@@ -65,8 +66,9 @@ public class ES7xTest {
         relations.put("parent", "2");
 
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-        bulkRequestBuilder
-            .add(transportClient.prepareIndex("test", "osm", "2_4").setRouting("2").setSource(esFieldData));
+        bulkRequestBuilder.add(transportClient.prepareIndex("test", "osm", "2_4")
+            .setRouting("2")
+            .setSource(esFieldData));
         commit(bulkRequestBuilder);
     }
 

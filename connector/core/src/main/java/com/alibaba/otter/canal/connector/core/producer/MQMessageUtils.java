@@ -20,8 +20,8 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.common.base.Function;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
-import com.google.common.collect.MapMaker;
 import com.google.common.collect.MigrateMap;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -34,8 +34,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class MQMessageUtils {
 
-    @SuppressWarnings("deprecation")
-    private static Map<String, List<PartitionData>>    partitionDatas    = MigrateMap.makeComputingMap(new MapMaker().softValues(),
+    private static Map<String, List<PartitionData>>    partitionDatas    = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
+                                                                             .softValues(),
                                                                              pkHashConfigs -> {
                                                                                  List<PartitionData> datas = Lists.newArrayList();
 
@@ -73,8 +73,8 @@ public class MQMessageUtils {
                                                                                  return datas;
                                                                              });
 
-    @SuppressWarnings("deprecation")
-    private static Map<String, List<DynamicTopicData>> dynamicTopicDatas = MigrateMap.makeComputingMap(new MapMaker().softValues(),
+    private static Map<String, List<DynamicTopicData>> dynamicTopicDatas = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
+                                                                             .softValues(),
                                                                              new Function<String, List<DynamicTopicData>>() {
 
                                                                                  public List<DynamicTopicData> apply(String pkHashConfigs) {
