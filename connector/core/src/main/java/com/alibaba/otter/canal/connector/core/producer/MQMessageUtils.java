@@ -34,7 +34,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class MQMessageUtils {
 
-    @SuppressWarnings("deprecation")
     private static Map<String, List<PartitionData>>    partitionDatas    = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
                                                                              .softValues(),
                                                                              pkHashConfigs -> {
@@ -74,7 +73,6 @@ public class MQMessageUtils {
                                                                                  return datas;
                                                                              });
 
-    @SuppressWarnings("deprecation")
     private static Map<String, List<DynamicTopicData>> dynamicTopicDatas = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
                                                                              .softValues(),
                                                                              new Function<String, List<DynamicTopicData>>() {

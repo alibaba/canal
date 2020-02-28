@@ -3,8 +3,9 @@ package com.alibaba.otter.canal.client.adapter.rdb.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import org.apache.commons.lang.StringUtils;
+
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 
 /**
  * RDB表映射配置

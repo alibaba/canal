@@ -12,7 +12,6 @@ import com.google.common.collect.MigrateMap;
 
 public class PatternUtils {
 
-    @SuppressWarnings("deprecation")
     private static Map<String, Pattern> patterns = MigrateMap.makeComputingMap(CacheBuilder.newBuilder().softValues(),
                                                      pattern -> {
                                                          try {

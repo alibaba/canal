@@ -409,7 +409,6 @@ public class ExtensionLoader<T> {
         }
     }
 
-    @SuppressWarnings("unused")
     private static ClassLoader findClassLoader() {
         return ExtensionLoader.class.getClassLoader();
     }

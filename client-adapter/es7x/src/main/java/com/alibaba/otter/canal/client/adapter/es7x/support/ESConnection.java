@@ -54,11 +54,12 @@ public class ESConnection {
     private static final Logger logger = LoggerFactory.getLogger(ESConnection.class);
 
     public enum ESClientMode {
-                              TRANSPORT, REST
+        TRANSPORT, REST
     }
 
     private ESClientMode        mode;
 
+    @SuppressWarnings("deprecation")
     private TransportClient     transportClient;
 
     private RestHighLevelClient restHighLevelClient;
@@ -89,10 +90,9 @@ public class ESConnection {
             if (StringUtils.isNotEmpty(nameAndPwd) && nameAndPwd.contains(":")) {
                 String[] nameAndPwdArr = nameAndPwd.split(":");
                 final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
-                restClientBuilder.setHttpClientConfigCallback(
-                    httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(nameAndPwdArr[0],
+                    nameAndPwdArr[1]));
+                restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
             }
             restHighLevelClient = new RestHighLevelClient(restClientBuilder);
         }
