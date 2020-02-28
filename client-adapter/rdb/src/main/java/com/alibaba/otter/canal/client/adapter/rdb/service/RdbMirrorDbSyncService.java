@@ -91,9 +91,10 @@ public class RdbMirrorDbSyncService {
                 if (config == null) {
                     return false;
                 }
-
+                // 是否区分大小写
+                boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
                 if (config.getConcurrent()) {
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
                     singleDmls.forEach(singleDml -> {
                         int hash = rdbSyncService.pkHash(config.getDbMapping(), singleDml.getData());
                         RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
@@ -101,7 +102,7 @@ public class RdbMirrorDbSyncService {
                     });
                 } else {
                     int hash = 0;
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
                     singleDmls.forEach(singleDml -> {
                         RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
                         rdbSyncService.getDmlsPartition()[hash].add(syncItem);
