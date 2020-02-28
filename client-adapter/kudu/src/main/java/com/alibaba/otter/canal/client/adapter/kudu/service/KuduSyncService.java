@@ -9,31 +9,11 @@ import org.apache.kudu.client.KuduException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * ━━━━━━神兽出没━━━━━━
- * 　　　┏┓　　　┏┓
- * 　　┏┛┻━━━┛┻┓
- * 　　┃　　　━　　　┃
- * 　　┃　┳┛　┗┳　┃
- * 　　┃　　　┻　　　┃
- * 　　┗━┓　　　┏━┛
- * 　　　　┃　　　┃  神兽保佑
- * 　　　　┃　　　┃  代码无bug
- * 　　　　┃　　　┗━━━┓
- * 　　　　┃　　　　　　　┣┓
- * 　　　　┃　　　　　　　┏┛
- * 　　　　┗┓┓┏━┳┓┏┛
- * 　　　　　┃┫┫　┃┫┫
- * 　　　　　┗┻┛　┗┻┛
- * ━━━━━━感觉萌萌哒━━━━━━
- * Created by Liuyadong on 2019-11-12
- *
+ * @author liuyadong
  * @description kudu实时同步
  */
 public class KuduSyncService {
@@ -42,15 +22,15 @@ public class KuduSyncService {
     private KuduTemplate kuduTemplate;
 
     // 源库表字段类型缓存: instance.schema.table -> <columnName, jdbcType>
-    private Map<String, Map<String, Integer>> columnsTypeCache = new ConcurrentHashMap<>();
+//    private Map<String, Map<String, Integer>> columnsTypeCache = new ConcurrentHashMap<>();
 
     public KuduSyncService(KuduTemplate kuduTemplate) {
         this.kuduTemplate = kuduTemplate;
     }
 
-    public Map<String, Map<String, Integer>> getColumnsTypeCache() {
-        return columnsTypeCache;
-    }
+//    public Map<String, Map<String, Integer>> getColumnsTypeCache() {
+//        return columnsTypeCache;
+//    }
 
     /**
      * 同步事件处理
@@ -64,7 +44,7 @@ public class KuduSyncService {
             if (type != null && type.equalsIgnoreCase("INSERT")) {
                 insert(config, dml);
             } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                update(config, dml);
+                upsert(config, dml);
             } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                 delete(config, dml);
             }
@@ -95,7 +75,7 @@ public class KuduSyncService {
             String pkId = "";
             Map<String, String> targetPk = kuduMapping.getTargetPk();
             for (Map.Entry<String, String> entry : targetPk.entrySet()) {
-                String mysqlID = entry.getKey();
+                String mysqlID = entry.getKey().toLowerCase();
                 String kuduID = entry.getValue();
                 if (kuduID == null) {
                     pkId = mysqlID;
@@ -103,21 +83,23 @@ public class KuduSyncService {
                     pkId = kuduID;
                 }
             }
+            //切割联合主键
+            List<String> pkIds = Arrays.asList(pkId.split(","));
             try {
                 int idx = 1;
                 boolean completed = false;
                 List<Map<String, Object>> dataList = new ArrayList<>();
 
                 for (Map<String, Object> item : data) {
+                    Map<String, Object> primaryKeyMap = new HashMap<>();
                     for (Map.Entry<String, Object> entry : item.entrySet()) {
-                        String columnName = entry.getKey();
+                        String columnName = entry.getKey().toLowerCase();
                         Object value = entry.getValue();
-                        if (columnName.equals(pkId)) {
-                            Map<String, Object> primaryKeyMap = new HashMap<>();
+                        if (pkIds.contains(columnName)) {
                             primaryKeyMap.put(columnName, value);
-                            dataList.add(primaryKeyMap);
                         }
                     }
+                    dataList.add(primaryKeyMap);
                     idx++;
                     if (idx % kuduMapping.getCommitBatch() == 0) {
                         kuduTemplate.delete(kuduMapping.getTargetTable(), dataList);
@@ -129,18 +111,19 @@ public class KuduSyncService {
                     kuduTemplate.delete(kuduMapping.getTargetTable(), dataList);
                 }
             } catch (KuduException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
+                logger.error("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
             }
         }
     }
 
     /**
-     * 更新事件
+     * 更新插入事件
      *
      * @param config
      * @param dml
      */
-    private void update(KuduMappingConfig config, Dml dml) {
+    private void upsert(KuduMappingConfig config, Dml dml) {
         KuduMappingConfig.KuduMapping kuduMapping = config.getKuduMapping();
         String configTable = kuduMapping.getTable();
         String configDatabase = kuduMapping.getDatabase();
@@ -160,16 +143,17 @@ public class KuduSyncService {
                     dataList.add(entry);
                     idx++;
                     if (idx % kuduMapping.getCommitBatch() == 0) {
-                        kuduTemplate.update(kuduMapping.getTargetTable(), dataList);
+                        kuduTemplate.upsert(kuduMapping.getTargetTable(), dataList);
                         dataList.clear();
                         completed = true;
                     }
                 }
                 if (!completed) {
-                    kuduTemplate.update(kuduMapping.getTargetTable(), dataList);
+                    kuduTemplate.upsert(kuduMapping.getTargetTable(), dataList);
                 }
             } catch (KuduException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
+                logger.error("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
             }
         }
 
@@ -212,7 +196,9 @@ public class KuduSyncService {
                 }
             } catch (KuduException e) {
                 logger.error(e.getMessage());
+                logger.error("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
             }
         }
     }
+
 }

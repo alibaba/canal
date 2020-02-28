@@ -10,26 +10,8 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * ━━━━━━神兽出没━━━━━━
- * 　　　┏┓　　　┏┓
- * 　　┏┛┻━━━┛┻┓
- * 　　┃　　　━　　　┃
- * 　　┃　┳┛　┗┳　┃
- * 　　┃　　　┻　　　┃
- * 　　┗━┓　　　┏━┛
- * 　　　　┃　　　┃  神兽保佑
- * 　　　　┃　　　┃  代码无bug
- * 　　　　┃　　　┗━━━┓
- * 　　　　┃　　　　　　　┣┓
- * 　　　　┃　　　　　　　┏┛
- * 　　　　┗┓┓┏━┳┓┏┛
- * 　　　　　┃┫┫　┃┫┫
- * 　　　　　┗┻┛　┗┻┛
- * ━━━━━━感觉萌萌哒━━━━━━
- * Created by Liuyadong on 2019-11-12
- * kudu表信息加载
- *
- * @description
+ * @author liuyadong
+ * @description kudu表信息加载
  */
 public class KuduMappingConfigLoader {
     private static Logger logger = LoggerFactory.getLogger(KuduMappingConfigLoader.class);

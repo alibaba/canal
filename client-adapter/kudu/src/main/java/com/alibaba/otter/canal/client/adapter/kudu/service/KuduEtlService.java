@@ -17,24 +17,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * ━━━━━━神兽出没━━━━━━
- * 　　　┏┓　　　┏┓
- * 　　┏┛┻━━━┛┻┓
- * 　　┃　　　━　　　┃
- * 　　┃　┳┛　┗┳　┃
- * 　　┃　　　┻　　　┃
- * 　　┗━┓　　　┏━┛
- * 　　　　┃　　　┃  神兽保佑
- * 　　　　┃　　　┃  代码无bug
- * 　　　　┃　　　┗━━━┓
- * 　　　　┃　　　　　　　┣┓
- * 　　　　┃　　　　　　　┏┛
- * 　　　　┗┓┓┏━┳┓┏┛
- * 　　　　　┃┫┫　┃┫┫
- * 　　　　　┗┻┛　┗┻┛
- * ━━━━━━感觉萌萌哒━━━━━━
- * Created by Liuyadong on 2019-11-12
- *
+ * @author liuyadong
  * @description kudu 拉取历史数据
  */
 public class KuduEtlService extends AbstractEtlService {
@@ -62,11 +45,7 @@ public class KuduEtlService extends AbstractEtlService {
             return etlResult;
         }
         logger.info("{} etl is starting!", kuduMapping.getTargetTable());
-        Map<String, String> targetPk = kuduMapping.getTargetPk();
-        //查询排序，解决数据缺失问题
-        String[] pkId = targetPk.keySet().toArray(new String[1]);
         String sql = "SELECT * FROM " + kuduMapping.getDatabase() + "." + kuduMapping.getTable();
-        logger.info("etl select data sql is :{}", sql);
         return importData(sql, params);
     }
 
@@ -78,7 +57,7 @@ public class KuduEtlService extends AbstractEtlService {
         Map<String, String> columnsMap = new LinkedHashMap<>();//需要同步的字段
 
         try {
-            Util.sqlRS(ds, "SELECT * FROM " + SyncUtil.getDbTableName(kuduMapping) + " LIMIT 1", values, rs -> {
+            Util.sqlRS(ds, "SELECT * FROM " + SyncUtil.getDbTableName(kuduMapping) + " LIMIT 1", rs -> {
                 try {
                     ResultSetMetaData rsd = rs.getMetaData();
                     int columnCount = rsd.getColumnCount();
@@ -94,6 +73,7 @@ public class KuduEtlService extends AbstractEtlService {
                 }
             });
             //写入数据
+            logger.info("etl select data sql is :{}", sql);
             Util.sqlRS(ds, sql, values, rs -> {
                 int idx = 1;
                 try {
@@ -120,12 +100,12 @@ public class KuduEtlService extends AbstractEtlService {
                             logger.debug("successful import count:" + impCount.get());
                         }
                         if (idx % kuduMapping.getCommitBatch() == 0) {
-                            kuduTemplate.insert(kuduMapping.getTargetTable(), dataList);
+                            kuduTemplate.upsert(kuduMapping.getTargetTable(), dataList);
                             dataList.clear();
                         }
                     }
                     if (!dataList.isEmpty()) {
-                        kuduTemplate.insert(kuduMapping.getTargetTable(), dataList);
+                        kuduTemplate.upsert(kuduMapping.getTargetTable(), dataList);
                     }
                     return true;
 
