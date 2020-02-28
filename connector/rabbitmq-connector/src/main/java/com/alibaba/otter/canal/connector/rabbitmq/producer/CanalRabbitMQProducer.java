@@ -51,7 +51,15 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         loadRabbitMQProperties(properties);
 
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(rabbitMQProperties.getHost());
+        String servers = rabbitMQProperties.getHost();
+        if (servers.contains(":")) {
+            String[] serverHostAndPort = servers.split(":");
+            factory.setHost(serverHostAndPort[0]);
+            factory.setPort(Integer.parseInt(serverHostAndPort[1]));
+        } else {
+            factory.setHost(servers);
+        }
+
         if (mqProperties.getAliyunAccessKey().length() > 0 && mqProperties.getAliyunSecretKey().length() > 0
             && mqProperties.getAliyunUid() > 0) {
             factory.setCredentialsProvider(new AliyunCredentialsProvider(mqProperties.getAliyunAccessKey(),
