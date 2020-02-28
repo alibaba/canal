@@ -7,13 +7,13 @@ import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.PatternCompiler;
 import org.apache.oro.text.regex.Perl5Compiler;
 
-import com.google.common.collect.MapMaker;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.MigrateMap;
 
 public class PatternUtils {
 
     @SuppressWarnings("deprecation")
-    private static Map<String, Pattern> patterns = MigrateMap.makeComputingMap(new MapMaker().softValues(),
+    private static Map<String, Pattern> patterns = MigrateMap.makeComputingMap(CacheBuilder.newBuilder().softValues(),
                                                      pattern -> {
                                                          try {
                                                              PatternCompiler pc = new Perl5Compiler();
