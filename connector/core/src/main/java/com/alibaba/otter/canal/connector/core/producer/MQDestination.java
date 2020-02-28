@@ -7,6 +7,7 @@ package com.alibaba.otter.canal.connector.core.producer;
  * @version 1.0.0
  */
 public class MQDestination {
+
     private String  canalDestination;
     private String  topic;
     private Integer partition;
