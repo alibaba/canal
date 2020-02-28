@@ -25,39 +25,15 @@
 			<artifactId>canal.instance.manager</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- kafka -->
 		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka_2.11</artifactId>
-			<version>1.1.1</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>com.alibaba.otter</groupId>
+			<artifactId>connector.core</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.rocketmq</groupId>
-			<artifactId>rocketmq-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.rocketmq</groupId>
-			<artifactId>rocketmq-acl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.rabbitmq</groupId>
-			<artifactId>amqp-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.alibaba.mq-amqp</groupId>
-			<artifactId>mq-amqp-client</artifactId>
-		</dependency>
-		<!--kafka_2.11_1.1.1 exclusion掉了netty 的依赖，但CanalServerWithNetty 依赖 netty3,升级kafka至 1.1.1 需要显示加入,否则会启动失败 -->
-		<dependency>
-			<groupId>org.jboss.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.2.2.Final</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.7</version>
 		</dependency>
 		
 		<!-- test dependency -->

@@ -15,14 +15,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.common.utils.CommonUtils;
+import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.adapter.launcher.config.AdapterConfigHolder;
-import com.alibaba.otter.canal.common.utils.CommonUtils;
-import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.google.common.base.Joiner;
 
 /**

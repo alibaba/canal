@@ -1,0 +1,1 @@
+tcp=com.alibaba.otter.canal.connector.tcp.consumer.CanalTCPConsumer

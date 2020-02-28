@@ -101,23 +101,31 @@
 			<version>${spring_version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- 客户端要使用请单独引入mq-clients依赖 -->
 		<dependency>
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
+			<version>4.5.2</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-acl</artifactId>
+			<version>4.5.2</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
+			<version>5.5.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.alibaba.mq-amqp</groupId>
 			<artifactId>mq-amqp-client</artifactId>
+			<version>1.0.3</version>
+			<scope>provided</scope>
 		</dependency>
-		<!-- 客户端要使用请单独引入kafka-clients依赖 -->
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
@@ -143,7 +151,7 @@
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<artifactSet>
 						<includes>
-							<include>com.alibaba.otter:*</include>
+							<include>com.alibaba.otter:canal.client</include>
 							<include>com.google.guava:*</include>
 							<include>org.joda:*</include>
 							<include>com.google.common:*</include>
