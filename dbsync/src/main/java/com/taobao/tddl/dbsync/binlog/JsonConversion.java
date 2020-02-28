@@ -167,7 +167,7 @@ public class JsonConversion {
                 int type_byte = buffer.getUint8();
                 int position = buffer.position();
                 // Then there's the length of the value.
-                int q_max_bytes = (int) Math.min(len, 5);
+                int q_max_bytes = (int) Math.min(len - 1, 5);
                 long q_tlen = 0;
                 long q_str_len = 0;
                 long q_n = 0;
