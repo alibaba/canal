@@ -183,6 +183,11 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
 
     private List<Future> send(MQDestination mqDestination, String topicName, Message message, boolean flat) {
         List<ProducerRecord<String, byte[]>> records = new ArrayList<>();
+        // 获取当前topic的分区数
+        Integer partitionNum = MQMessageUtils.parseDynamicTopicPartition(topicName, mqDestination.getDynamicTopicPartitionNum());
+        if (partitionNum == null) {
+            partitionNum = mqDestination.getPartitionsNum();
+        }
         if (!flat) {
             if (mqDestination.getPartitionHash() != null && !mqDestination.getPartitionHash().isEmpty()) {
                 // 并发构造
@@ -190,7 +195,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                 // 串行分区
                 Message[] messages = MQMessageUtils.messagePartition(datas,
                     message.getId(),
-                    mqDestination.getPartitionsNum(),
+                    partitionNum,
                     mqDestination.getPartitionHash(),
                     this.mqProperties.isDatabaseHash());
                 int length = messages.length;
@@ -219,7 +224,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
             for (FlatMessage flatMessage : flatMessages) {
                 if (mqDestination.getPartitionHash() != null && !mqDestination.getPartitionHash().isEmpty()) {
                     FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
-                        mqDestination.getPartitionsNum(),
+                        partitionNum,
                         mqDestination.getPartitionHash(),
                         this.mqProperties.isDatabaseHash());
                     int length = partitionFlatMessage.length;

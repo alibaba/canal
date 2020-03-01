@@ -156,6 +156,11 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
     }
 
     public void send(final MQDestination destination, String topicName, com.alibaba.otter.canal.protocol.Message message) {
+        // 获取当前topic的分区数
+        Integer partitionNum = MQMessageUtils.parseDynamicTopicPartition(topicName, destination.getDynamicTopicPartitionNum());
+        if (partitionNum == null) {
+            partitionNum = destination.getPartitionsNum();
+        }
         if (!mqProperties.isFlatMessage()) {
             if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
                 // 并发构造
@@ -163,7 +168,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 // 串行分区
                 com.alibaba.otter.canal.protocol.Message[] messages = MQMessageUtils.messagePartition(datas,
                     message.getId(),
-                    destination.getPartitionsNum(),
+                    partitionNum,
                     destination.getPartitionHash(),
                     mqProperties.isDatabaseHash());
                 int length = messages.length;
@@ -202,7 +207,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
 
                 for (FlatMessage flatMessage : flatMessages) {
                     FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
-                        destination.getPartitionsNum(),
+                        partitionNum,
                         destination.getPartitionHash(),
                         mqProperties.isDatabaseHash());
                     int length = partitionFlatMessage.length;
