@@ -1,31 +1,19 @@
 package com.alibaba.otter.canal.client.adapter.kudu.test.sync;
 
-import com.alibaba.otter.canal.client.adapter.kudu.KuduAdapter;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import com.alibaba.otter.canal.client.adapter.kudu.KuduAdapter;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 /**
- * ━━━━━━神兽出没━━━━━━
- * 　　　┏┓　　　┏┓
- * 　　┏┛┻━━━┛┻┓
- * 　　┃　　　━　　　┃
- * 　　┃　┳┛　┗┳　┃
- * 　　┃　　　┻　　　┃
- * 　　┗━┓　　　┏━┛
- * 　　　　┃　　　┃  神兽保佑
- * 　　　　┃　　　┃  代码无bug
- * 　　　　┃　　　┗━━━┓
- * 　　　　┃　　　　　　　┣┓
- * 　　　　┃　　　　　　　┏┛
- * 　　　　┗┓┓┏━┳┓┏┛
- * 　　　　　┃┫┫　┃┫┫
- * 　　　　　┗┻┛　┗┻┛
- * ━━━━━━感觉萌萌哒━━━━━━
- * Created by Liuyadong on 2019-11-13
- *
  * @description
  */
 public class TestSyncKudu {
@@ -44,7 +32,7 @@ public class TestSyncKudu {
     }
 
     @Test
-    public void testCount(){
+    public void testCount() {
         kuduAdapter.count("kudutest_user.yml");
     }
 

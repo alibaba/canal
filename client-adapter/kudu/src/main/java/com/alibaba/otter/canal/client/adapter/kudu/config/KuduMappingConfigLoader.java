@@ -1,19 +1,21 @@
 package com.alibaba.otter.canal.client.adapter.kudu.config;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
-import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
+import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
  * @author liuyadong
  * @description kudu表信息加载
  */
 public class KuduMappingConfigLoader {
+
     private static Logger logger = LoggerFactory.getLogger(KuduMappingConfigLoader.class);
 
     /**
@@ -28,8 +30,11 @@ public class KuduMappingConfigLoader {
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("kudu");
         configContentMap.forEach((fileName, content) -> {
-            KuduMappingConfig config = YmlConfigBinder
-                    .bindYmlToObj(null, content, KuduMappingConfig.class, null, envProperties);
+            KuduMappingConfig config = YmlConfigBinder.bindYmlToObj(null,
+                content,
+                KuduMappingConfig.class,
+                null,
+                envProperties);
             if (config == null) {
                 return;
             }
