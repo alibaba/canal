@@ -31,6 +31,7 @@
         <module>es6x</module>
         <module>es7x</module>
         <module>escore</module>
+        <module>kudu</module>
     </modules>
 
     <licenses>
