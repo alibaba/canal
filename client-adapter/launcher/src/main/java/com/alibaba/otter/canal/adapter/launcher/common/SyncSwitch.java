@@ -64,6 +64,27 @@ public class SyncSwitch {
         }
     }
 
+    public synchronized void refresh() {
+        for (String destination : adapterCanalConfig.DESTINATIONS) {
+            BooleanMutex booleanMutex;
+            if (mode == Mode.DISTRIBUTED) {
+                CuratorFramework curator = curatorClient.getCurator();
+                booleanMutex = DISTRIBUTED_LOCK.get(destination);
+                if (booleanMutex == null) {
+                    BooleanMutex mutex = new BooleanMutex(true);
+                    initMutex(curator, destination, mutex);
+                    DISTRIBUTED_LOCK.put(destination, mutex);
+                    startListen(destination, mutex);
+                }
+            } else {
+                booleanMutex = LOCAL_LOCK.get(destination);
+                if (booleanMutex == null) {
+                    LOCAL_LOCK.put(destination, new BooleanMutex(true));
+                }
+            }
+        }
+    }
+
     @SuppressWarnings("resource")
     private synchronized void startListen(String destination, BooleanMutex mutex) {
         try {

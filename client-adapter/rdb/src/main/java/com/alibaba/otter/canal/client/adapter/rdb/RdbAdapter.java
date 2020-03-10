@@ -23,7 +23,11 @@ import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbMirrorDbSyncService;
 import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
-import com.alibaba.otter.canal.client.adapter.support.*;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.SPI;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 
 /**
  * RDB适配器实现类
@@ -73,8 +77,8 @@ public class RdbAdapter implements OuterAdapter {
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
             if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null
-                    && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
+                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
+                    .equalsIgnoreCase(configuration.getKey()))) {
                 rdbMapping.put(key, mappingConfig);
             }
         });
@@ -134,8 +138,8 @@ public class RdbAdapter implements OuterAdapter {
         String threads = properties.get("threads");
         // String commitSize = properties.get("commitSize");
 
-        boolean skipDupException = BooleanUtils
-            .toBoolean(configuration.getProperties().getOrDefault("skipDupException", "true"));
+        boolean skipDupException = BooleanUtils.toBoolean(configuration.getProperties()
+            .getOrDefault("skipDupException", "true"));
         rdbSyncService = new RdbSyncService(dataSource,
             threads != null ? Integer.valueOf(threads) : null,
             skipDupException);
@@ -181,7 +185,7 @@ public class RdbAdapter implements OuterAdapter {
         MappingConfig config = rdbMapping.get(task);
         RdbEtlService rdbEtlService = new RdbEtlService(dataSource, config);
         if (config != null) {
-                return rdbEtlService.importData(params);
+            return rdbEtlService.importData(params);
         } else {
             StringBuilder resultMsg = new StringBuilder();
             boolean resSucc = true;

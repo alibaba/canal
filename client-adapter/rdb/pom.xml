@@ -3,7 +3,8 @@
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.4-SNAPSHOT</version>
+        <version>1.1.5-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
@@ -21,25 +22,21 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.47</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.1.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>7.0.0.jre8</version>
             <scope>test</scope>
         </dependency>
         <dependency>

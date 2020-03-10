@@ -30,8 +30,15 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>../elasticsearch/src/main/resources/es</directory>
-            <outputDirectory>/conf/es</outputDirectory>
+            <directory>../es6x/src/main/resources/es6</directory>
+            <outputDirectory>/conf/es6</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../es7x/src/main/resources/es7</directory>
+            <outputDirectory>/conf/es7</outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>
@@ -39,6 +46,13 @@
         <fileSet>
             <directory>../hbase/src/main/resources/hbase</directory>
             <outputDirectory>/conf/hbase</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../kudu/src/main/resources/kudu</directory>
+            <outputDirectory>/conf/kudu</outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>

@@ -1,24 +1,26 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.google.common.base.Joiner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.druid.pool.DruidDataSource;
+import com.google.common.base.Joiner;
+
 public abstract class AbstractEtlService {
 
-    protected Logger      logger = LoggerFactory.getLogger(this.getClass());
+    protected Logger      logger       = LoggerFactory.getLogger(this.getClass());
 
     private String        type;
     private AdapterConfig config;
-    private final long CNT_PER_TASK = 10000L;
+    private final long    CNT_PER_TASK = 10000L;
 
     public AbstractEtlService(String type, AdapterConfig config){
         this.type = type;
@@ -43,7 +45,6 @@ public abstract class AbstractEtlService {
             // 拼接条件
             if (config.getMapping().getEtlCondition() != null && params != null) {
                 String etlCondition = config.getMapping().getEtlCondition();
-                int size = params.size();
                 for (String param : params) {
                     etlCondition = etlCondition.replace("{}", "?");
                     values.add(param);
@@ -87,8 +88,12 @@ public abstract class AbstractEtlService {
                 for (long i = 0; i < workerCnt; i++) {
                     offset = size * i;
                     String sqlFinal = sql + " LIMIT " + offset + "," + size;
-                    Future<Boolean> future = executor.submit(
-                        () -> executeSqlImport(dataSource, sqlFinal, values, config.getMapping(), impCount, errMsg));
+                    Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource,
+                        sqlFinal,
+                        values,
+                        config.getMapping(),
+                        impCount,
+                        errMsg));
                     futures.add(future);
                 }
 

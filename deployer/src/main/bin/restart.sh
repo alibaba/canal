@@ -1,5 +1,6 @@
 #!/bin/bash
 
-sh stop.sh
+args=$@
 
-sh startup.sh
+sh stop.sh $args
+sh startup.sh $args

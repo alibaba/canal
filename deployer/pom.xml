@@ -1,127 +1,184 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>com.alibaba.otter</groupId>
-		<artifactId>canal</artifactId>
-		<version>1.1.4-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
-	<groupId>com.alibaba.otter</groupId>
-	<artifactId>canal.deployer</artifactId>
-	<packaging>jar</packaging>
-	<name>canal deployer module for otter ${project.version}</name>
-	<dependencies>
-		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.server</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.alibaba.otter</groupId>
+        <artifactId>canal</artifactId>
+        <version>1.1.5-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <groupId>com.alibaba.otter</groupId>
+    <artifactId>canal.deployer</artifactId>
+    <packaging>jar</packaging>
+    <name>canal deployer module for otter ${project.version}</name>
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.server</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-		<!-- 这里指定runtime的metrics provider-->
-		<dependency>
-			<groupId>com.alibaba.otter</groupId>
-			<artifactId>canal.prometheus</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-	</dependencies>
-	
-	<build>
-		<plugins>
-			<!-- deploy模块的packaging通常是jar，如果项目中没有java 源代码或资源文件，加上这一段配置使项目能通过构建 -->
+        <!-- 这里指定runtime的metrics provider-->
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.prometheus</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>connector.kafka</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>connector.rocketmq</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>connector.rabbitmq</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>true</addMavenDescriptor>
+                    </archive>
+                    <excludes>
+                        <exclude>**/logback.xml</exclude>
+                        <exclude>**/canal.properties</exclude>
+                        <exclude>**/spring/**</exclude>
+                        <exclude>**/example/**</exclude>
+                        <exclude>**/mq.yml</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<addMavenDescriptor>true</addMavenDescriptor>
-					</archive>
-					<excludes>
-						<exclude>**/logback.xml</exclude>
-						<exclude>**/canal.properties</exclude>
-						<exclude>**/spring/**</exclude>
-						<exclude>**/example/**</exclude>
-						<exclude>**/mq.yml</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies-to-canal-deployer</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeClassifiers>jar-with-dependencies</includeClassifiers>
+                            <outputDirectory>${project.basedir}/target/canal/plugin</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <!-- 这是最新版本，推荐使用这个版本 -->
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>assemble</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <attach>false</attach>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<!-- 这是最新版本，推荐使用这个版本 -->
-				<version>2.2.1</version>
-				<executions>
-					<execution>
-						<id>assemble</id>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<phase>package</phase>
-					</execution>
-				</executions>
-				<configuration>
-					<appendAssemblyId>false</appendAssemblyId>
-					<attach>false</attach>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>env</name>
+                    <value>!release</value>
+                </property>
+            </activation>
 
-	<profiles>
-		<profile>
-			<id>dev</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<property>
-					<name>env</name>
-					<value>!release</value>
-				</property>
-			</activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <!-- maven assembly插件需要一个描述文件 来告诉插件包的结构以及打包所需的文件来自哪里 -->
+                            <descriptors>
+                                <descriptor>${basedir}/src/main/assembly/dev.xml</descriptor>
+                            </descriptors>
+                            <finalName>canal</finalName>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
 
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<configuration>
-							<!-- maven assembly插件需要一个描述文件 来告诉插件包的结构以及打包所需的文件来自哪里 -->
-							<descriptors>
-								<descriptor>${basedir}/src/main/assembly/dev.xml</descriptor>
-							</descriptors>
-							<finalName>canal</finalName>
-							<outputDirectory>${project.build.directory}</outputDirectory>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
+        </profile>
 
-		</profile>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>release</value>
+                </property>
+            </activation>
 
-		<profile>
-			<id>release</id>
-			<activation>
-				<property>
-					<name>env</name>
-					<value>release</value>
-				</property>
-			</activation>
-
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<configuration>
-							<!-- 发布模式使用的maven assembly插件描述文件 -->
-							<descriptors>
-								<descriptor>${basedir}/src/main/assembly/release.xml</descriptor>
-							</descriptors>
-							<!-- 如果一个应用的包含多个deploy模块，如果使用同样的包名， 如果把它们复制的一个目录中可能会失败，所以包名加了 artifactId以示区分 -->
-							<finalName>${project.artifactId}-${project.version}</finalName>
-							<!-- scm 要求 release 模式打出的包放到顶级目录下的target子目录中 -->
-							<outputDirectory>${project.parent.build.directory}</outputDirectory>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <!-- 发布模式使用的maven assembly插件描述文件 -->
+                            <descriptors>
+                                <descriptor>${basedir}/src/main/assembly/release.xml</descriptor>
+                            </descriptors>
+                            <!-- 如果一个应用的包含多个deploy模块，如果使用同样的包名， 如果把它们复制的一个目录中可能会失败，所以包名加了 artifactId以示区分 -->
+                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <!-- scm 要求 release 模式打出的包放到顶级目录下的target子目录中 -->
+                            <outputDirectory>${project.parent.build.directory}</outputDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

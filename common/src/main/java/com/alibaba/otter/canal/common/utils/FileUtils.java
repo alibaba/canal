@@ -12,22 +12,29 @@ public class FileUtils {
     private static final Logger logger = LoggerFactory.getLogger(FileUtils.class);
 
     public static String readFileFromOffset(String filename, int l, String charset) {
+        return readFileFromOffset(filename, l, charset, 4 * 1024 * 1024);
+    }
+
+    public static String readFileFromOffset(String filename, int l, String charset, int maxSize) {
         RandomAccessFile rf = null;
         StringBuilder res = new StringBuilder();
         try {
             rf = new RandomAccessFile(filename, "r");
-
             long fileLength = rf.length();
-
             long start = rf.getFilePointer();
-
             long readIndex = start + fileLength - 1;
+            long minIndex = readIndex - maxSize;
+            if (minIndex < 0) {
+                minIndex = 0;
+            }
 
-            String line;
+            if (readIndex < 0) {
+                readIndex = 0;
+            }
             rf.seek(readIndex);
-
             int k = 0;
             int c = -1;
+            String line = null;
             while (readIndex > start) {
                 if (k == l) {
                     break;
@@ -48,7 +55,12 @@ public class FileUtils {
                     readIndex--;
                 }
                 readIndex--;
-                rf.seek(readIndex);
+                if (readIndex < minIndex) {
+                    break;
+                } else {
+                    rf.seek(readIndex);
+                }
+
                 if (readIndex == 0) {
                     readText = rf.readLine();
                 }

@@ -109,6 +109,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         super.start();
     }
 
+    @SuppressWarnings("resource")
     protected void initAlarmHandler() {
         logger.info("init alarmHandler begin...");
         String alarmHandlerClass = parameters.getAlarmHandlerClass();

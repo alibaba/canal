@@ -10,6 +10,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.protocol.SecurityUtil;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.protobuf.ByteString;
 
@@ -160,9 +162,16 @@ public class SimpleCanalConnector implements CanalConnector {
             Handshake handshake = Handshake.parseFrom(p.getBody());
             supportedCompressions.add(handshake.getSupportedCompressions());
             //
+            ByteString seed = handshake.getSeeds(); // seed for auth
+            String newPasswd = password;
+            if (password != null) {
+                // encode passwd
+                newPasswd = SecurityUtil.byte2HexStr(SecurityUtil.scramble411(password.getBytes(), seed.toByteArray()));
+            }
+
             ClientAuth ca = ClientAuth.newBuilder()
                 .setUsername(username != null ? username : "")
-                .setPassword(ByteString.copyFromUtf8(password != null ? password : ""))
+                .setPassword(ByteString.copyFromUtf8(newPasswd != null ? newPasswd : ""))
                 .setNetReadTimeout(idleTimeout)
                 .setNetWriteTimeout(idleTimeout)
                 .build();
@@ -185,7 +194,7 @@ public class SimpleCanalConnector implements CanalConnector {
 
             connected = true;
             return new InetSocketAddress(channel.socket().getLocalAddress(), channel.socket().getLocalPort());
-        } catch (IOException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             throw new CanalClientException(e);
         }
     }

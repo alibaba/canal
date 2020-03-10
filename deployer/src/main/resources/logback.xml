@@ -73,13 +73,20 @@
 		<level value="INFO" />
 		<appender-ref ref="CANAL-META" />
 	</logger>
-	<logger name="com.alibaba.otter.canal.kafka" additivity="false">
+	<logger name="com.alibaba.otter.canal.connector.kafka" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
-
+	<logger name="com.alibaba.otter.canal.connector.rocketmq" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+	<logger name="com.alibaba.otter.canal.connector.rabbitmq" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
 	<root level="WARN">
-		<appender-ref ref="STDOUT"/>
+		<!-- <appender-ref ref="STDOUT"/>  -->
 		<appender-ref ref="CANAL-ROOT" />
 	</root>
 </configuration>

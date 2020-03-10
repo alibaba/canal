@@ -15,6 +15,7 @@ import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.slf4j.helpers.MessageFormatter;
 
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitor;
 import com.alibaba.otter.canal.common.zookeeper.running.ServerRunningMonitors;
@@ -36,6 +37,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
     private final int               SUPPORTED_VERSION                       = 3;
     private final int               defaultSubscriptorDisconnectIdleTimeout = 60 * 60 * 1000;
     private CanalServerWithEmbedded embeddedServer;
+    private byte[]                  seed;
 
     public ClientAuthenticationHandler(){
 
@@ -52,6 +54,18 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
             case SUPPORTED_VERSION:
             default:
                 final ClientAuth clientAuth = ClientAuth.parseFrom(packet.getBody());
+                if (seed == null) {
+                    byte[] errorBytes = NettyUtils.errorPacket(400,
+                        MessageFormatter.format("auth failed for seed is null", clientAuth.getUsername()).getMessage());
+                    NettyUtils.write(ctx.getChannel(), errorBytes, null);
+                }
+
+                if (!embeddedServer.auth(clientAuth.getUsername(), clientAuth.getPassword().toStringUtf8(), seed)) {
+                    byte[] errorBytes = NettyUtils.errorPacket(400,
+                        MessageFormatter.format("auth failed for user:{}", clientAuth.getUsername()).getMessage());
+                    NettyUtils.write(ctx.getChannel(), errorBytes, null);
+                }
+
                 // 如果存在订阅信息
                 if (StringUtils.isNotEmpty(clientAuth.getDestination())
                     && StringUtils.isNotEmpty(clientAuth.getClientId())) {
@@ -61,7 +75,6 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                     try {
                         MDC.put("destination", clientIdentity.getDestination());
                         embeddedServer.subscribe(clientIdentity);
-                        ctx.setAttachment(clientIdentity);// 设置状态数据
                         // 尝试启动，如果已经启动，忽略
                         if (!embeddedServer.isStart(clientIdentity.getDestination())) {
                             ServerRunningMonitor runningMonitor = ServerRunningMonitors.getRunningMonitor(clientIdentity.getDestination());
@@ -121,6 +134,10 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
 
     public void setEmbeddedServer(CanalServerWithEmbedded embeddedServer) {
         this.embeddedServer = embeddedServer;
+    }
+
+    public void setSeed(byte[] seed) {
+        this.seed = seed;
     }
 
 }

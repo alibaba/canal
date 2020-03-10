@@ -275,7 +275,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuider = RowChange.newBuilder();
-            if (type != EventType.QUERY && !isDml) {
+            if (type == EventType.QUERY && !isDml) {
                 rowChangeBuider.setIsDdl(true);
             }
             rowChangeBuider.setSql(queryString);
@@ -718,8 +718,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     isBinary = true;
                 } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "BINARY")) {
                     isBinary = true;
-                } else if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "TINYINT(1)")) {
-                    isSingleBit = true;
                 }
             }
 
@@ -773,10 +771,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                         } else {
                             // 对象为number类型，直接valueof即可
                             columnBuilder.setValue(String.valueOf(value));
-                        }
-
-                        if (isSingleBit && javaType == Types.TINYINT) {
-                            javaType = Types.BIT;
                         }
                         break;
                     case Types.REAL: // float
