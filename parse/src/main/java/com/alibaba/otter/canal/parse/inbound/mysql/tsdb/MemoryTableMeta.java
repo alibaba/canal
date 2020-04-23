@@ -116,8 +116,9 @@ public class MemoryTableMeta implements TableMetaTSDB {
             } else if (psql.trim().length() == 0) {
                 sb.append("\n");
             }
-            if (!isCommentBlock && !psql.contains("/*") && !psql.contains("*/")) {
+            if (!isCommentBlock && !psql.trim().startsWith("/*") && !psql.trim().endsWith("*/")) {
                 sb.append(psql).append("\n");
+                continue;
             }
             if (!isCommentBlock && psql.trim().startsWith("/*")) {
                 isCommentBlock = true;
