@@ -14,3 +14,4 @@ esMapping:
 #    _labels: array:;
   etlCondition: "where a.c_time>={}"
   commitBatch: 3000
+  commitBatchSize: 1048576

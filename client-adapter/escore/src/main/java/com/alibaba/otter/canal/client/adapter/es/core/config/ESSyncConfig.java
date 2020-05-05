@@ -1,11 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.es.core.config;
 
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 
 /**
  * ES 映射配置
@@ -108,6 +108,7 @@ public class ESSyncConfig implements AdapterConfig {
         private Map<String, String>          objFields       = new LinkedHashMap<>();
         private List<String>                 skips           = new ArrayList<>();
         private int                          commitBatch     = 1000;
+        private int                          commitBatchSize = 1048576;              // 批次提交大小（单位为字节）
         private String                       etlCondition;
         private boolean                      syncByTimestamp = false;                // 是否按时间戳定时同步
         private Long                         syncInterval;                           // 同步时间间隔
@@ -224,6 +225,14 @@ public class ESSyncConfig implements AdapterConfig {
 
         public void setSchemaItem(SchemaItem schemaItem) {
             this.schemaItem = schemaItem;
+        }
+
+        public int getCommitBatchSize() {
+            return commitBatchSize;
+        }
+
+        public void setCommitBatchSize(int commitBatchSize) {
+            this.commitBatchSize = commitBatchSize;
         }
     }
 

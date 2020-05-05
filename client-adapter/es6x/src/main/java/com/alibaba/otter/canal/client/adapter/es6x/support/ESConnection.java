@@ -1,10 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.es6x.support;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Map;
-
+import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -26,13 +22,10 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.RestHighLevelClientExt;
+import org.elasticsearch.client.*;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
@@ -43,7 +36,11 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * ES 连接器, Transport Rest 两种方式
@@ -206,7 +203,44 @@ public class ESConnection {
         public void setIndexRequest(IndexRequest indexRequest) {
             this.indexRequest = indexRequest;
         }
-    }
+
+		@Override
+		public ESBulkRequest add(ESBulkRequest esBulkRequest) {
+			ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
+			if (mode == ESClientMode.TRANSPORT) {
+				es6xBulkRequest.getBulkRequestBuilder().add(indexRequestBuilder);
+			} else {
+				es6xBulkRequest.getBulkRequest().add(indexRequest);
+			}
+			return esBulkRequest;
+		}
+
+		@Override
+		public boolean add(ESBulkRequest esBulkRequest, int commitBatchSize, Function<Long, Boolean> ifGtCommitBatchSize) {
+            ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
+            BytesReference source;
+            BulkRequest bulkRequest;
+            if (mode == ESClientMode.TRANSPORT) {
+                source = indexRequestBuilder.request().source();
+                bulkRequest = es6xBulkRequest.getBulkRequestBuilder().request();
+            } else {
+                source = indexRequest.source();
+                bulkRequest = es6xBulkRequest.getBulkRequest();
+            }
+
+			long addSize = (source != null ? source.length() : 0) + ES6xBulkRequest.REQUEST_OVERHEAD;
+
+            //超出 批次提交大小 限制（单位为字节）, 且回调函数返回true就可以继续添加, 否则就抛弃这一条
+            if ((addSize + bulkRequest.estimatedSizeInBytes()) > commitBatchSize
+                    && ! ifGtCommitBatchSize.apply(addSize)) {
+                return false;
+			}
+
+			add(esBulkRequest);
+
+			return true;
+		}
+	}
 
     public class ES6xUpdateRequest implements ESBulkRequest.ESUpdateRequest {
 
@@ -264,6 +298,53 @@ public class ESConnection {
         public void setUpdateRequest(UpdateRequest updateRequest) {
             this.updateRequest = updateRequest;
         }
+
+        @Override
+        public ESBulkRequest add(ESBulkRequest esBulkRequest) {
+            ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
+            if (mode == ESClientMode.TRANSPORT) {
+                es6xBulkRequest.getBulkRequestBuilder().add(updateRequestBuilder);
+            } else {
+                es6xBulkRequest.getBulkRequest().add(updateRequest);
+            }
+            return esBulkRequest;
+        }
+
+        @Override
+        public boolean add(ESBulkRequest esBulkRequest, int commitBatchSize, Function<Long, Boolean> ifGtCommitBatchSize) {
+            ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
+            UpdateRequest request;
+            BulkRequest bulkRequest;
+            if (mode == ESClientMode.TRANSPORT) {
+                request = updateRequestBuilder.request();
+                bulkRequest = es6xBulkRequest.getBulkRequestBuilder().request();
+            } else {
+                request = updateRequest;
+                bulkRequest = es6xBulkRequest.getBulkRequest();
+            }
+
+            long addSize = ES6xBulkRequest.REQUEST_OVERHEAD;
+
+            if (request.doc() != null) {
+                addSize += request.doc().source().length();
+            }
+            if (request.upsertRequest() != null) {
+                addSize += request.upsertRequest().source().length();
+            }
+            if (request.script() != null) {
+                addSize += request.script().getIdOrCode().length() * 2;
+            }
+
+            //超出 批次提交大小 限制（单位为字节）, 且回调函数返回true就可以继续添加, 否则就抛弃这一条
+            if ((addSize + bulkRequest.estimatedSizeInBytes()) > commitBatchSize
+                    && ! ifGtCommitBatchSize.apply(addSize)) {
+                return false;
+            }
+
+            add(esBulkRequest);
+
+            return true;
+        }
     }
 
     public class ES6xDeleteRequest implements ESBulkRequest.ESDeleteRequest {
@@ -294,6 +375,40 @@ public class ESConnection {
 
         public void setDeleteRequest(DeleteRequest deleteRequest) {
             this.deleteRequest = deleteRequest;
+        }
+
+        @Override
+        public ESBulkRequest add(ESBulkRequest esBulkRequest) {
+            ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
+            if (mode == ESClientMode.TRANSPORT) {
+                es6xBulkRequest.getBulkRequestBuilder().add(deleteRequestBuilder);
+            } else {
+                es6xBulkRequest.getBulkRequest().add(deleteRequest);
+            }
+            return esBulkRequest;
+        }
+
+        @Override
+        public boolean add(ESBulkRequest esBulkRequest, int commitBatchSize, Function<Long, Boolean> ifGtCommitBatchSize) {
+            ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
+            BulkRequest bulkRequest;
+            if (mode == ESClientMode.TRANSPORT) {
+                bulkRequest = es6xBulkRequest.getBulkRequestBuilder().request();
+            } else {
+                bulkRequest = es6xBulkRequest.getBulkRequest();
+            }
+
+            long addSize = ES6xBulkRequest.REQUEST_OVERHEAD;
+
+            //超出 批次提交大小 限制（单位为字节）, 且回调函数返回true就可以继续添加, 否则就抛弃这一条
+            if ((addSize + bulkRequest.estimatedSizeInBytes()) > commitBatchSize
+                    && ! ifGtCommitBatchSize.apply(addSize)) {
+                return false;
+            }
+
+            add(esBulkRequest);
+
+            return true;
         }
     }
 
@@ -364,6 +479,8 @@ public class ESConnection {
 
     public class ES6xBulkRequest implements ESBulkRequest {
 
+        private static final int REQUEST_OVERHEAD = 50;
+
         private BulkRequestBuilder bulkRequestBuilder;
 
         private BulkRequest        bulkRequest;
@@ -384,41 +501,20 @@ public class ESConnection {
             }
         }
 
-        public ES6xBulkRequest add(ESIndexRequest esIndexRequest) {
-            ES6xIndexRequest eir = (ES6xIndexRequest) esIndexRequest;
-            if (mode == ESClientMode.TRANSPORT) {
-                bulkRequestBuilder.add(eir.indexRequestBuilder);
-            } else {
-                bulkRequest.add(eir.indexRequest);
-            }
-            return this;
-        }
-
-        public ES6xBulkRequest add(ESUpdateRequest esUpdateRequest) {
-            ES6xUpdateRequest eur = (ES6xUpdateRequest) esUpdateRequest;
-            if (mode == ESClientMode.TRANSPORT) {
-                bulkRequestBuilder.add(eur.updateRequestBuilder);
-            } else {
-                bulkRequest.add(eur.updateRequest);
-            }
-            return this;
-        }
-
-        public ES6xBulkRequest add(ESDeleteRequest esDeleteRequest) {
-            ES6xDeleteRequest edr = (ES6xDeleteRequest) esDeleteRequest;
-            if (mode == ESClientMode.TRANSPORT) {
-                bulkRequestBuilder.add(edr.deleteRequestBuilder);
-            } else {
-                bulkRequest.add(edr.deleteRequest);
-            }
-            return this;
-        }
-
         public int numberOfActions() {
             if (mode == ESClientMode.TRANSPORT) {
                 return bulkRequestBuilder.numberOfActions();
             } else {
                 return bulkRequest.numberOfActions();
+            }
+        }
+
+        @Override
+        public long estimatedSizeInBytes() {
+            if (mode == ESClientMode.TRANSPORT) {
+                return bulkRequestBuilder.request().estimatedSizeInBytes();
+            } else {
+                return bulkRequest.estimatedSizeInBytes();
             }
         }
 

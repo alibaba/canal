@@ -1,17 +1,18 @@
 package com.alibaba.otter.canal.client.adapter.es6x.support;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import javax.sql.DataSource;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnItem;
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
+import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
+import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.*;
+import com.alibaba.otter.canal.client.adapter.es.core.support.ESSyncUtil;
+import com.alibaba.otter.canal.client.adapter.es.core.support.ESTemplate;
+import com.alibaba.otter.canal.client.adapter.es6x.support.ESConnection.ESSearchRequest;
+import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -21,21 +22,12 @@ import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
-import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
-import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
-import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnItem;
-import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESBulkResponse;
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESDeleteRequest;
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESIndexRequest;
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESUpdateRequest;
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESSyncUtil;
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESTemplate;
-import com.alibaba.otter.canal.client.adapter.es6x.support.ESConnection.ESSearchRequest;
-import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class ES6xTemplate implements ESTemplate {
 
@@ -64,6 +56,27 @@ public class ES6xTemplate implements ESTemplate {
         this.esBulkRequest.resetBulk();
     }
 
+    /**
+     * 加入批
+     */
+    private void addToBulk(IESRequest esRequest, ESMapping mapping, Map<String, Object> esFieldData) {
+        getBulk().add(esRequest, mapping.getCommitBatchSize(), bytesSizeToAdd -> {
+            if (getBulk().numberOfActions() <= 0) {
+                try {
+                    getBulk().add(esRequest);
+                    commit();
+                } catch (Exception e) {
+                    logger.error("批次中单条数据已达上限, 尝试单独推送失败！" + JSON.toJSONString(esFieldData), e);
+                }
+                return false;
+            }
+
+            //提交后可添加新的进去
+            commit();
+            return true;
+        });
+    }
+
     @Override
     public void insert(ESSyncConfig.ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.get_id() != null) {
@@ -75,7 +88,7 @@ public class ES6xTemplate implements ESTemplate {
                 if (StringUtils.isNotEmpty(parentVal)) {
                     updateRequest.setRouting(parentVal);
                 }
-                getBulk().add(updateRequest);
+                addToBulk(updateRequest, mapping, esFieldData);
             } else {
                 ESIndexRequest indexRequest = esConnection.new ES6xIndexRequest(mapping.get_index(),
                     mapping.get_type(),
@@ -83,7 +96,7 @@ public class ES6xTemplate implements ESTemplate {
                 if (StringUtils.isNotEmpty(parentVal)) {
                     indexRequest.setRouting(parentVal);
                 }
-                getBulk().add(indexRequest);
+                addToBulk(indexRequest, mapping, esFieldData);
             }
             commitBulk();
         } else {
@@ -95,7 +108,7 @@ public class ES6xTemplate implements ESTemplate {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES6xUpdateRequest(mapping.get_index(),
                     mapping.get_type(),
                     hit.getId()).setDoc(esFieldData);
-                getBulk().add(esUpdateRequest);
+                addToBulk(esUpdateRequest, mapping, esFieldData);
                 commitBulk();
             }
         }
@@ -154,7 +167,7 @@ public class ES6xTemplate implements ESTemplate {
             ESDeleteRequest esDeleteRequest = this.esConnection.new ES6xDeleteRequest(mapping.get_index(),
                 mapping.get_type(),
                 pkVal.toString());
-            getBulk().add(esDeleteRequest);
+            addToBulk(esDeleteRequest, mapping, esFieldData);
             commitBulk();
         } else {
             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index(),
@@ -164,7 +177,7 @@ public class ES6xTemplate implements ESTemplate {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES6xUpdateRequest(mapping.get_index(),
                     mapping.get_type(),
                     hit.getId()).setDoc(esFieldData);
-                getBulk().add(esUpdateRequest);
+                addToBulk(esUpdateRequest, mapping, esFieldData);
                 commitBulk();
             }
         }
@@ -358,7 +371,7 @@ public class ES6xTemplate implements ESTemplate {
                 if (StringUtils.isNotEmpty(parentVal)) {
                     esUpdateRequest.setRouting(parentVal);
                 }
-                getBulk().add(esUpdateRequest);
+                addToBulk(esUpdateRequest, mapping, esFieldData);
             } else {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES6xUpdateRequest(mapping.get_index(),
                     mapping.get_type(),
@@ -366,7 +379,7 @@ public class ES6xTemplate implements ESTemplate {
                 if (StringUtils.isNotEmpty(parentVal)) {
                     esUpdateRequest.setRouting(parentVal);
                 }
-                getBulk().add(esUpdateRequest);
+                addToBulk(esUpdateRequest, mapping, esFieldData);
             }
         } else {
             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index(),
@@ -376,7 +389,7 @@ public class ES6xTemplate implements ESTemplate {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES6xUpdateRequest(mapping.get_index(),
                     mapping.get_type(),
                     hit.getId()).setDoc(esFieldData);
-                getBulk().add(esUpdateRequest);
+                addToBulk(esUpdateRequest, mapping, esFieldData);
             }
         }
     }
