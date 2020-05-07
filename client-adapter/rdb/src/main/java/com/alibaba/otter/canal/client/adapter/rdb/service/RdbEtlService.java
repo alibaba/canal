@@ -93,7 +93,8 @@ public class RdbEtlService extends AbstractEtlService {
                     insertSql.delete(len - 1, len).append(")");
                     try (Connection connTarget = targetDS.getConnection();
                             PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
-                        connTarget.setAutoCommit(false);
+						connTarget.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+						connTarget.setAutoCommit(false);
 
                         while (rs.next()) {
                             completed = false;
