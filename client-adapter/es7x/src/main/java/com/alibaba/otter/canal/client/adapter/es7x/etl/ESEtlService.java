@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
+import com.alibaba.otter.canal.client.adapter.es.core.service.ESSyncService;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESBulkResponse;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESIndexRequest;
@@ -40,12 +41,14 @@ public class ESEtlService extends AbstractEtlService {
     private ESConnection esConnection;
     private ESTemplate   esTemplate;
     private ESSyncConfig config;
+    private ESSyncService esSyncService;
 
-    public ESEtlService(ESConnection esConnection, ESSyncConfig config){
+    public ESEtlService(ESConnection esConnection, ESSyncConfig config, ESSyncService esSyncService){
         super("ES", config);
         this.esConnection = esConnection;
         this.esTemplate = new ES7xTemplate(esConnection);
         this.config = config;
+        this.esSyncService = esSyncService;
     }
 
     public EtlResult importData(List<String> params) {
@@ -112,6 +115,9 @@ public class ESEtlService extends AbstractEtlService {
                                 esFieldData.put(Util.cleanColumn(relationField), relations);
                             });
                         }
+
+                        //填充对象字段值
+                        esFieldData.putAll(esSyncService.getObjectFieldDatasForMainTableInsert(config, esFieldData));
 
                         if (idVal != null) {
                             String parentVal = (String) esFieldData.remove("$parent_routing");

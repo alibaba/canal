@@ -1,11 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.es.core.support;
 
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-
-import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
-import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
 
 public interface ESTemplate {
 
@@ -66,4 +66,23 @@ public interface ESTemplate {
 
     Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> dmlOld,
                                 Map<String, Object> esFieldData);
+
+    /**
+     * 获取es mapping中的属性类型
+     *
+     * @param mapping   mapping配置
+     * @param fieldName 属性名
+     * @return 类型
+     */
+    String getEsType(ESMapping mapping, String fieldName);
+
+    /**
+     * 获取es mapping中的子属性类型
+     *
+     * @param mapping           mapping配置
+     * @param fieldName         属性名
+     * @param childFieldName    子属性名
+     * @return 类型
+     */
+    String getEsType(ESMapping mapping, String fieldName, String childFieldName);
 }

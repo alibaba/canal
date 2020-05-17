@@ -21,6 +21,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -41,7 +42,7 @@ public class ES6xTemplate implements ESTemplate {
     private ESBulkRequest                                     esBulkRequest;
 
     // es 字段类型本地缓存
-    private static ConcurrentMap<String, Map<String, String>> esFieldTypes   = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, Map<String, Object>> esFieldTypes   = new ConcurrentHashMap<>();
 
     public ES6xTemplate(ESConnection esConnection){
         this.esConnection = esConnection;
@@ -208,12 +209,31 @@ public class ES6xTemplate implements ESTemplate {
             }
         }
 
+        return convertEsObj(mapping, fieldName, esType, value);
+    }
+
+    private Object convertEsObj(ESMapping mapping, String fieldName, String esType, Object value) {
+        Map<String, ESSyncConfig.ObjField> objFields = mapping.getObjFields().getFields();
+
         // 如果是对象类型
-        if (mapping.getObjFields().containsKey(fieldName)) {
-            return ESSyncUtil.convertToEsObj(value, mapping.getObjFields().get(fieldName));
-        } else {
-            return ESSyncUtil.typeConvert(value, esType);
+        if ((!CollectionUtils.isEmpty(objFields)) && objFields.containsKey(fieldName)) {
+            ESSyncConfig.ObjField objField = objFields.get(fieldName);
+
+            if (StringUtils.isBlank(objField.getSql())) {
+
+                String separator = objField.getSeparator();
+                ESSyncConfig.ObjFieldType type = objField.getType();
+                String expr = StringUtils.isNotEmpty(separator) ? type.name() + ":" + separator : type.name();
+
+                return ESSyncUtil.convertToEsObj(value, expr);
+
+            } else {
+                //有子表sql的对象字段不在这里获取值
+                return null;
+            }
         }
+
+        return ESSyncUtil.typeConvert(value, esType);
     }
 
     @Override
@@ -295,12 +315,7 @@ public class ES6xTemplate implements ESTemplate {
             }
         }
 
-        // 如果是对象类型
-        if (mapping.getObjFields().containsKey(fieldName)) {
-            return ESSyncUtil.convertToEsObj(value, mapping.getObjFields().get(fieldName));
-        } else {
-            return ESSyncUtil.typeConvert(value, esType);
-        }
+        return convertEsObj(mapping, fieldName, esType, value);
     }
 
     @Override
@@ -397,17 +412,41 @@ public class ES6xTemplate implements ESTemplate {
     /**
      * 获取es mapping中的属性类型
      *
-     * @param mapping mapping配置
+     * @param mapping   mapping配置
      * @param fieldName 属性名
      * @return 类型
      */
+    public String getEsType(ESMapping mapping, String fieldName) {
+        Object esType = getEsMapping(mapping).get(fieldName);
+        return esType instanceof Map ? "object" : Objects.toString(esType, null);
+    }
+
+    /**
+     * 获取es mapping中的子属性类型
+     *
+     * @param mapping           mapping配置
+     * @param fieldName         属性名
+     * @param childFieldName    子属性名
+     * @return 类型
+     */
+    public String getEsType(ESMapping mapping, String fieldName, String childFieldName) {
+        Object esType = getEsMapping(mapping).get(fieldName);
+        if (esType instanceof Map) {
+            return Objects.toString(((Map) esType).get(childFieldName), null);
+        }
+        return Objects.toString(esType, null);
+    }
+
+    /**
+     * 获取es mapping信息
+     * @param mapping es配置信息
+     * @return
+     */
     @SuppressWarnings("unchecked")
-    private String getEsType(ESMapping mapping, String fieldName) {
+    private Map<String, Object> getEsMapping(ESMapping mapping) {
         String key = mapping.get_index() + "-" + mapping.get_type();
-        Map<String, String> fieldType = esFieldTypes.get(key);
-        if (fieldType != null) {
-            return fieldType.get(fieldName);
-        } else {
+        Map<String, Object> fieldType = esFieldTypes.get(key);
+        if (fieldType == null) {
             MappingMetaData mappingMetaData = esConnection.getMapping(mapping.get_index(), mapping.get_type());
 
             if (mappingMetaData == null) {
@@ -421,15 +460,19 @@ public class ES6xTemplate implements ESTemplate {
             for (Map.Entry<String, Object> entry : esMapping.entrySet()) {
                 Map<String, Object> value = (Map<String, Object>) entry.getValue();
                 if (value.containsKey("properties")) {
-                    fieldType.put(entry.getKey(), "object");
+                    Map<String, Object> childFieldType = new LinkedHashMap<>();
+                    ((Map<String, Map<String, Object>>)value.get("properties"))
+                            .forEach((propKey, propValue) -> childFieldType.put(propKey, propValue.get("type")));
+
+                    fieldType.put(entry.getKey(), childFieldType);
                 } else {
-                    fieldType.put(entry.getKey(), (String) value.get("type"));
+                    fieldType.put(entry.getKey(), value.get("type"));
                 }
             }
             esFieldTypes.put(key, fieldType);
 
-            return fieldType.get(fieldName);
         }
+        return fieldType;
     }
 
     private void putRelationDataFromRS(ESMapping mapping, SchemaItem schemaItem, ResultSet resultSet,

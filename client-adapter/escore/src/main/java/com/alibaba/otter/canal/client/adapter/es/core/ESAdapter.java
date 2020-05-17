@@ -1,17 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.es.core;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ObjField;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfigLoader;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SqlParser;
@@ -22,6 +15,13 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * ES外部适配器
@@ -139,9 +139,30 @@ public abstract class ESAdapter implements OuterAdapter {
     }
 
     public void addSyncConfigToCache(String configName, ESSyncConfig config) {
-        Properties envProperties = this.envProperties;
-        SchemaItem schemaItem = SqlParser.parse(config.getEsMapping().getSql());
-        config.getEsMapping().setSchemaItem(schemaItem);
+    	Properties envProperties = this.envProperties;
+        ESMapping esMapping = config.getEsMapping();
+
+        List<SchemaItem> schemaItemList = new ArrayList<>();
+
+        SchemaItem schemaItem = SqlParser.parse(esMapping.getSql());
+        esMapping.setSchemaItem(schemaItem);
+        schemaItemList.add(schemaItem);
+
+        //对象字段列表
+        Map<String, ObjField> objFields = esMapping.getObjFields().getFields();
+        if (! CollectionUtils.isEmpty(objFields)) {
+            objFields.forEach((objFieldName, objField) -> {
+                if (StringUtils.isBlank(objField.getSql())) {
+                    //没有sql的无需解析
+                    return;
+                }
+                //解析子表sql
+                SchemaItem objFieldSchemaItem = SqlParser.parseObjField(objFieldName, objField.getSql(), schemaItem);
+                objField.setSchemaItem(objFieldSchemaItem);
+                objField.setSql(objFieldSchemaItem.getSql());
+                schemaItemList.add(objFieldSchemaItem);
+            });
+        }
 
         DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         if (dataSource == null || dataSource.getUrl() == null) {
@@ -154,29 +175,31 @@ public abstract class ESAdapter implements OuterAdapter {
         }
         String schema = matcher.group(2);
 
-        schemaItem.getAliasTableItems()
-            .values()
-            .forEach(tableItem -> {
-                Map<String, ESSyncConfig> esSyncConfigMap;
-                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                    esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
-                                                                          + "-"
-                                                                          + StringUtils.trimToEmpty(config.getGroupId())
-                                                                          + "_"
-                                                                          + schema
-                                                                          + "-"
-                                                                          + tableItem.getTableName(),
-                        k -> new ConcurrentHashMap<>());
-                } else {
-                    esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
-                                                                          + "_"
-                                                                          + schema
-                                                                          + "-"
-                                                                          + tableItem.getTableName(),
-                        k -> new ConcurrentHashMap<>());
-                }
+        schemaItemList.stream()
+                .map(SchemaItem::getAliasTableItems)
+                .map(Map::values)
+                .flatMap(Collection::stream)
+                .forEach(tableItem -> {
+                    Map<String, ESSyncConfig> esSyncConfigMap;
+                    if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                        esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
+                                        + "-"
+                                        + StringUtils.trimToEmpty(config.getGroupId())
+                                        + "_"
+                                        + schema
+                                        + "-"
+                                        + tableItem.getTableName(),
+                                k -> new ConcurrentHashMap<>());
+                    } else {
+                        esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
+                                        + "_"
+                                        + schema
+                                        + "-"
+                                        + tableItem.getTableName(),
+                                k -> new ConcurrentHashMap<>());
+                    }
 
-                esSyncConfigMap.put(configName, config);
-            });
+                    esSyncConfigMap.put(configName, config);
+                });
     }
 }
