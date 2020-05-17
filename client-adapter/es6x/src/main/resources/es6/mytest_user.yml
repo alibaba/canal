@@ -10,8 +10,13 @@ esMapping:
   sql: "select a.id as _id, a.name as _name, a.role_id as _role_id, b.role_name as _role_name,
         a.c_time as _c_time from user a
         left join role b on b.id=a.role_id"
+
 #  objFields:
-#    _labels: array:;
+#    fields:
+#      _labels:
+#        type: array
+#        separator: ;
+
   etlCondition: "where a.c_time>={}"
   commitBatch: 3000
   commitBatchSize: 1048576
