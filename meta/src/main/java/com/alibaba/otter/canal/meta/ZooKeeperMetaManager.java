@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.meta;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +47,7 @@ import com.google.common.collect.Maps;
  */
 public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements CanalMetaManager {
 
-    private static final String ENCODE = "UTF-8";
+    private static final Charset ENCODE = StandardCharsets.UTF_8;
     private ZkClientx           zkClientx;
 
     public void start() {
@@ -73,12 +74,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
             String filterPath = ZookeeperPathUtils.getFilterPath(clientIdentity.getDestination(),
                 clientIdentity.getClientId());
 
-            byte[] bytes = null;
-            try {
-                bytes = clientIdentity.getFilter().getBytes(ENCODE);
-            } catch (UnsupportedEncodingException e) {
-                throw new CanalMetaManagerException(e);
-            }
+            byte[] bytes = clientIdentity.getFilter().getBytes(ENCODE);
 
             try {
                 zkClientx.createPersistent(filterPath, bytes);
@@ -130,11 +126,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
             byte[] bytes = zkClientx.readData(path, true);
             String filter = null;
             if (bytes != null) {
-                try {
-                    filter = new String(bytes, ENCODE);
-                } catch (UnsupportedEncodingException e) {
-                    throw new CanalMetaManagerException(e);
-                }
+                filter = new String(bytes, ENCODE);
             }
             clientIdentities.add(new ClientIdentity(destination, clientId, filter));
         }

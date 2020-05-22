@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.meta;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -43,7 +44,7 @@ import com.google.common.collect.MigrateMap;
 public class FileMixedMetaManager extends MemoryMetaManager implements CanalMetaManager {
 
     private static final Logger      logger       = LoggerFactory.getLogger(FileMixedMetaManager.class);
-    private static final Charset     charset      = Charset.forName("UTF-8");
+    private static final Charset     charset      = StandardCharsets.UTF_8;
     private File                     dataDir;
     private String                   dataFileName = "meta.dat";
     private Map<String, File>        dataFileCaches;
@@ -197,7 +198,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                 return null;
             }
 
-            String json = FileUtils.readFileToString(dataFile, charset.name());
+            String json = FileUtils.readFileToString(dataFile, charset);
             return JsonUtils.unmarshalFromString(json, FileMetaInstanceData.class);
         } catch (IOException e) {
             throw new CanalMetaManagerException(e);

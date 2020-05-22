@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.common.utils;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
@@ -11,15 +12,13 @@ public class FileUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(FileUtils.class);
 
-    public static String readFileFromOffset(String filename, int l, String charset) {
+    public static String readFileFromOffset(String filename, int l, Charset charset) {
         return readFileFromOffset(filename, l, charset, 4 * 1024 * 1024);
     }
 
-    public static String readFileFromOffset(String filename, int l, String charset, int maxSize) {
-        RandomAccessFile rf = null;
+    public static String readFileFromOffset(String filename, int l, Charset charset, int maxSize) {
         StringBuilder res = new StringBuilder();
-        try {
-            rf = new RandomAccessFile(filename, "r");
+        try (RandomAccessFile rf = new RandomAccessFile(filename, "r")){
             long fileLength = rf.length();
             long start = rf.getFilePointer();
             long readIndex = start + fileLength - 1;
@@ -74,22 +73,13 @@ public class FileUtils {
             }
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-        } finally {
-            if (rf != null) {
-                try {
-                    rf.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-                rf = null;
-            }
         }
 
         return res.toString();
     }
 
     public static void main(String[] args) {
-        String res = readFileFromOffset("test2.txt", 2, "UTF-8");
+        String res = readFileFromOffset("test2.txt", 2, StandardCharsets.UTF_8);
         System.out.println(res);
     }
 }

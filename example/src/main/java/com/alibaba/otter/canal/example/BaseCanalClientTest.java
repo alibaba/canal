@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.example;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -174,16 +175,13 @@ public class BaseCanalClientTest {
     protected void printColumn(List<Column> columns) {
         for (Column column : columns) {
             StringBuilder builder = new StringBuilder();
-            try {
-                if (StringUtils.containsIgnoreCase(column.getMysqlType(), "BLOB")
-                    || StringUtils.containsIgnoreCase(column.getMysqlType(), "BINARY")) {
-                    // get value bytes
-                    builder.append(column.getName() + " : "
-                                   + new String(column.getValue().getBytes("ISO-8859-1"), "UTF-8"));
-                } else {
-                    builder.append(column.getName() + " : " + column.getValue());
-                }
-            } catch (UnsupportedEncodingException e) {
+            if (StringUtils.containsIgnoreCase(column.getMysqlType(), "BLOB")
+                || StringUtils.containsIgnoreCase(column.getMysqlType(), "BINARY")) {
+                // get value bytes
+                builder.append(column.getName() + " : "
+                               + new String(column.getValue().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
+            } else {
+                builder.append(column.getName() + " : " + column.getValue());
             }
             builder.append("    type=" + column.getMysqlType());
             if (column.getUpdated()) {

@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.common.zookeeper;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
@@ -14,19 +14,11 @@ import org.I0Itec.zkclient.serialize.ZkSerializer;
 public class StringSerializer implements ZkSerializer {
 
     public Object deserialize(final byte[] bytes) throws ZkMarshallingError {
-        try {
-            return new String(bytes, "utf-8");
-        } catch (final UnsupportedEncodingException e) {
-            throw new ZkMarshallingError(e);
-        }
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public byte[] serialize(final Object data) throws ZkMarshallingError {
-        try {
-            return ((String) data).getBytes("utf-8");
-        } catch (final UnsupportedEncodingException e) {
-            throw new ZkMarshallingError(e);
-        }
+        return ((String) data).getBytes(StandardCharsets.UTF_8);
     }
 
 }

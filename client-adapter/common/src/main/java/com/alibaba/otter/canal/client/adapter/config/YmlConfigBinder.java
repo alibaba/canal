@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.config;
 
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -84,7 +85,7 @@ public class YmlConfigBinder {
         try {
             byte[] contentBytes;
             if (charset == null) {
-                contentBytes = content.getBytes("UTF-8");
+                contentBytes = content.getBytes(StandardCharsets.UTF_8);
             } else {
                 contentBytes = content.getBytes(charset);
             }

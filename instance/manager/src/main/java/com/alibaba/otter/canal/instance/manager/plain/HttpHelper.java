@@ -4,6 +4,7 @@ import static org.apache.http.client.config.RequestConfig.custom;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
@@ -136,7 +137,7 @@ public class HttpHelper {
                 .setSocketTimeout(timeout)
                 .build();
             httpPost = new HttpPost(uri);
-            StringEntity entity = new StringEntity(requestBody, "UTF-8");
+            StringEntity entity = new StringEntity(requestBody, StandardCharsets.UTF_8);
             httpPost.setEntity(entity);
             httpPost.setHeader("Content-Type", "application/json;charset=utf8");
             if (heads != null) {

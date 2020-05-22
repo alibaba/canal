@@ -145,7 +145,7 @@ public abstract class AbstractRequest<T> {
     }
 
     private String encode(String value) throws UnsupportedEncodingException {
-        return URLEncoder.encode(value, "UTF-8");
+        return URLEncoder.encode(value, ENCODING);
     }
 
     private String makeSignature(TreeMap<String, String> paramMap) throws Exception {

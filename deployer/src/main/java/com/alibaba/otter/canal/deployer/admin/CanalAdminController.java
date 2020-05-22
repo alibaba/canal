@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.deployer.admin;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -198,7 +199,7 @@ public class CanalAdminController implements CanalAdmin {
 
     @Override
     public String canalLog(int lines) {
-        return FileUtils.readFileFromOffset("../logs/canal/canal.log", lines, "UTF-8");
+        return FileUtils.readFileFromOffset("../logs/canal/canal.log", lines, StandardCharsets.UTF_8);
     }
 
     @Override
@@ -215,7 +216,7 @@ public class CanalAdminController implements CanalAdmin {
         if (StringUtils.isEmpty(fileName)) {
             fileName = destination + ".log";
         }
-        return FileUtils.readFileFromOffset("../logs/" + destination + "/" + fileName, lines, "UTF-8");
+        return FileUtils.readFileFromOffset("../logs/" + destination + "/" + fileName, lines, StandardCharsets.UTF_8);
     }
 
     private InstanceAction getInstanceAction(String destination) {

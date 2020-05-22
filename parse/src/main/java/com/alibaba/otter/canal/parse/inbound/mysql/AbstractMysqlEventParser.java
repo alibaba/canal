@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.otter.canal.filter.CanalEventFilter;
@@ -30,7 +31,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     // 编码信息
     protected byte                 connectionCharsetNumber   = (byte) 33;
-    protected Charset              connectionCharset         = Charset.forName("UTF-8");
+    protected Charset              connectionCharset         = StandardCharsets.UTF_8;
     protected boolean              filterQueryDcl            = false;
     protected boolean              filterQueryDml            = false;
     protected boolean              filterQueryDdl            = false;
