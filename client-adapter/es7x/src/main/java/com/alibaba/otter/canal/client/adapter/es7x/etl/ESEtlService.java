@@ -190,6 +190,7 @@ public class ESEtlService extends AbstractEtlService {
                             bulk(mapping, esBulkRequest, batchBegin, false);
                         } catch (Exception e) {
                             logger.error("全量数据批量导入批次中单条数据已达上限, 尝试单独推送失败！" + JSON.toJSONString(esFieldData), e);
+                            throw e;
                         }
                     } else {
                         //若批次数据大小已达上限，不继续添加，先提交再手动添加

@@ -71,6 +71,7 @@ public class ES7xTemplate implements ESTemplate {
                     commit();
                 } catch (Exception e) {
                     logger.error("批次中单条数据已达上限, 尝试单独推送失败！" + JSON.toJSONString(esFieldData), e);
+                    throw e;
                 }
                 return false;
             }
