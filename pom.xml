@@ -99,7 +99,7 @@
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
         <javadoc_skip>true</javadoc_skip>
-        <spring_version>3.2.18.RELEASE</spring_version>
+        <spring_version>5.2.6.RELEASE</spring_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
         <maven-surefire.version>2.22.1</maven-surefire.version>
         <argline>-server -Xms512m -Xmx1024m -Dfile.encoding=UTF-8
@@ -133,29 +133,29 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                    <version>${spring_version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring_version}</version>
             </dependency>
             <dependency>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                    <version>${spring_version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${spring_version}</version>
             </dependency>
             <dependency>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                    <version>${spring_version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring_version}</version>
             </dependency>
             <dependency>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-jdbc</artifactId>
-                    <version>${spring_version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${spring_version}</version>
             </dependency>
             <dependency>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-orm</artifactId>
-                    <version>${spring_version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-orm</artifactId>
+                <version>${spring_version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -248,9 +248,14 @@
                 <version>3.6.1</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.ibatis</groupId>
-                <artifactId>ibatis-sqlmap</artifactId>
-                <version>2.3.4.726</version>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>2.0.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>3.5.4</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba.fastsql</groupId>
