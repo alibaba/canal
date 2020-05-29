@@ -242,6 +242,10 @@ public class TableMetaCache {
         }
     }
 
+    public synchronized TableMeta find(String schema, String table) {
+        return tableMetaTSDB.find(schema, table);
+    }
+
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder();
         return builder.append('`')

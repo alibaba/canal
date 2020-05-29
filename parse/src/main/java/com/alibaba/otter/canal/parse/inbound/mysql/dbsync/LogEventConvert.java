@@ -268,9 +268,17 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             boolean isDml = (type == EventType.INSERT || type == EventType.UPDATE || type == EventType.DELETE);
 
             if (!isSeek && !isDml) {
-                // 使用新的表结构元数据管理方式
-                EntryPosition position = createPosition(event.getHeader());
-                tableMetaCache.apply(position, event.getDbName(), queryString, null);
+                TableMeta tableMeta = tableMetaCache.find(event.getDbName(), tableName);
+                String tmpDdl = queryString;
+
+                if (tableMeta != null && StringUtils.contains(StringUtils.upperCase(tmpDdl), "CREATE TABLE IF NOT EXISTS")) {
+                    logger.info("ignore schema: {}, table: {}, ddl: {}", event.getDbName(), tableName, queryString);
+                } else {
+                    logger.info("apply schema: {}, table: {}, ddl: {}", event.getDbName(), tableName, queryString);
+                    // 使用新的表结构元数据管理方式
+                    EntryPosition position = createPosition(event.getHeader());
+                    tableMetaCache.apply(position, event.getDbName(), queryString, null);
+                }
             }
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
