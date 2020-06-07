@@ -117,7 +117,7 @@ public class CanalKafkaClientFlatMessageExample {
                         }
                         for (FlatMessage message : messages) {
                             long batchId = message.getId();
-                            int size = message.getData().size();
+                            int size = message.getData() == null ? 0 : message.getData().size();
                             if (batchId == -1 || size == 0) {
                                 // try {
                                 // Thread.sleep(1000);
