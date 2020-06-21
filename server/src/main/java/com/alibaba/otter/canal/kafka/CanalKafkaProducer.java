@@ -207,7 +207,7 @@ public class CanalKafkaProducer implements CanalMQProducer {
             // 批量刷出
             producerTmp.flush();
 
-            // flush操作也有可能是发送失败,这里需要异步关注一下发送结果,针对有异常的直接出发rollback
+            // flush操作也有可能是发送失败,这里需要异步关注一下发送结果,针对有异常的直接触发rollback
             for (Future future : futures) {
                 try {
                     future.get();
