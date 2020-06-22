@@ -347,7 +347,8 @@ public class MQMessageUtils {
                 continue;
             }
             // 过滤掉空数据
-            if (entry.getEntryType() == CanalEntry.EntryType.ROWDATA && rowChange.getRowDatasCount() == 0) {
+            if (entry.getEntryType() == CanalEntry.EntryType.ROWDATA &&
+                    (rowChange.getRowDatasList() == null || rowChange.getRowDatasList().isEmpty())) {
                 continue;
             }
 
