@@ -6,12 +6,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.sql.Types;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -62,7 +60,7 @@ import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 
 /**
  * 基于{@linkplain LogEvent}转化为Entry对象的处理
- * 
+ *
  * @author jianghang 2013-1-17 下午02:41:14
  * @version 1.0.0
  */
@@ -90,6 +88,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private volatile AviaterRegexFilter nameBlackFilter;
     private Map<String, List<String>> 	fieldFilterMap 		= new HashMap<String, List<String>>();
     private Map<String, List<String>> 	fieldBlackFilterMap = new HashMap<String, List<String>>();
+    // 必须字段（忽略fieldFilter）
+    private Map<String, List<String>> 	fieldNecessaryMap 		= new HashMap<String, List<String>>();
+    // 控制是否只关心filter字段发生变化，默认向前兼容-否
+    private boolean needOnlyChangedField;
 
     private TableMetaCache              tableMetaCache;
     private Charset                     charset             = Charset.defaultCharset();
@@ -540,13 +542,20 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                     tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
                 } else {
                     // update需要处理before/after
+                    // after可以理解成老数据，before是新数据
                     tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
                     if (!buffer.nextOneRow(changeColumns, true)) {
                         rowChangeBuider.addRowDatas(rowDataBuilder.build());
                         break;
                     }
-
+                    // 解析发生变化的字段
                     tableError |= parseOneRow(rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
+                    if (needOnlyChangedField) {
+                        boolean reallyChange = doFilterReallyChangeField(tableMeta, rowDataBuilder);
+                        if (!reallyChange) {
+                            continue;
+                        }
+                    }
                 }
 
                 rowsCount++;
@@ -573,6 +582,30 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
     }
 
+    private boolean doFilterReallyChangeField(TableMeta tableMeta, RowData.Builder rowDataBuilder) {
+        String schemaKey = tableMeta.getFullName().toUpperCase();
+        List<String> fieldNecessaryList = fieldNecessaryMap.containsKey(schemaKey) ?
+                fieldNecessaryMap.get(schemaKey) : Collections.emptyList();
+        List<Column> newAfterColumns = rowDataBuilder.getAfterColumnsList().stream()
+                //把必要字段也塞进来
+                .filter(item -> item.getUpdated() || fieldNecessaryList.contains(item.getName().toUpperCase()))
+                .collect(Collectors.toList());
+        Map<String, Column> beforeMap = rowDataBuilder.getBeforeColumnsList().stream()
+                .collect(Collectors.toMap(item -> item.getName(), item -> item));
+        List<Column> newBeforeColumns = newAfterColumns.stream()
+                .map(item-> beforeMap.get(item.getName()))
+                .collect(Collectors.toList());
+        rowDataBuilder.clearAfterColumns();
+        rowDataBuilder.clearBeforeColumns();
+        if (!newAfterColumns.isEmpty() && newAfterColumns.size() > fieldNecessaryList.size()) {
+            //如果仅仅只有必要字段，说明filterField中都没变
+            rowDataBuilder.addAllAfterColumns(newAfterColumns);
+            rowDataBuilder.addAllBeforeColumns(newBeforeColumns);
+            return true;
+        }
+        return false;
+    }
+
     private EntryPosition createPosition(LogHeader logHeader) {
         return new EntryPosition(logHeader.getLogFileName(), logHeader.getLogPos() - logHeader.getEventLen(), // startPos
             logHeader.getWhen() * 1000L,
@@ -591,12 +624,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         //获取字段过滤条件
         List<String> fieldList = null;
         List<String> blackFieldList = null;
-        
+        List<String> fieldNecessaryList = null;
+
         if (tableMeta != null) {
         	fieldList = fieldFilterMap.get(tableMeta.getFullName().toUpperCase());
         	blackFieldList = fieldBlackFilterMap.get(tableMeta.getFullName().toUpperCase());
+            fieldNecessaryList = fieldNecessaryMap.get(tableMeta.getFullName().toUpperCase());
         }
-        
+
         if (tableMeta != null && columnInfo.length > tableMeta.getFields().size()) {
             if (tableMetaCache.isOnRDS()) {
                 // 特殊处理下RDS的场景
@@ -663,7 +698,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 columnBuilder.setSqlType(Types.BIGINT);
                 columnBuilder.setUpdated(false);
 
-                if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
+                if (needField(fieldNecessaryList, fieldList, blackFieldList, columnBuilder.getName())) {
                 	if (isAfter) {
                         rowDataBuilder.addAfterColumns(columnBuilder.build());
                     } else {
@@ -831,11 +866,13 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             columnBuilder.setSqlType(javaType);
             // 设置是否update的标记位
-            columnBuilder.setUpdated(isAfter
-                                     && isUpdate(rowDataBuilder.getBeforeColumnsList(),
-                                         columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
-                                         i));
-            if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
+            boolean isUpdated = isAfter
+                    && isUpdate(rowDataBuilder.getBeforeColumnsList(),
+                    columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
+                    i);
+            columnBuilder.setUpdated(isUpdated);
+
+            if (needField(fieldNecessaryList, fieldList, blackFieldList, columnBuilder.getName())) {
             	if (isAfter) {
                     rowDataBuilder.addAfterColumns(columnBuilder.build());
                 } else {
@@ -975,11 +1012,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private boolean isRDSHeartBeat(String schema, String table) {
         return "mysql".equalsIgnoreCase(schema) && "ha_health_check".equalsIgnoreCase(table);
     }
-    
+
     /**
      * 字段过滤判断
      */
-    private boolean needField(List<String> fieldList, List<String> blackFieldList, String columnName) {
+    private boolean needField(List<String> fieldNecessaryList, List<String> fieldList, List<String> blackFieldList, String columnName) {
+        if (fieldNecessaryList != null && fieldNecessaryList.contains(columnName.toUpperCase())) {
+            return true;
+        }
     	if (fieldList == null || fieldList.isEmpty()) {
     		return blackFieldList == null || blackFieldList.isEmpty() || !blackFieldList.contains(columnName.toUpperCase());
     	} else {
@@ -1027,31 +1067,46 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         this.nameBlackFilter = nameBlackFilter;
         logger.warn("--> init table black filter : " + nameBlackFilter.toString());
     }
-    
+
+    public void setNeedOnlyChangedField(boolean needOnlyChangedField) {
+        this.needOnlyChangedField = needOnlyChangedField;
+        logger.warn("--> init table field filter switch : " + needOnlyChangedField);
+    }
+
     public void setFieldFilterMap(Map<String, List<String>> fieldFilterMap) {
     	if (fieldFilterMap != null) {
     		this.fieldFilterMap = fieldFilterMap;
     	} else {
     		this.fieldFilterMap = new HashMap<String, List<String>>();
     	}
-		
-		
+
 		for (Map.Entry<String, List<String>> entry : this.fieldFilterMap.entrySet()) {
 			logger.warn("--> init field filter : " + entry.getKey() + "->" + entry.getValue());
 		}
 	}
-    
+
     public void setFieldBlackFilterMap(Map<String, List<String>> fieldBlackFilterMap) {
 		if (fieldBlackFilterMap != null) {
     		this.fieldBlackFilterMap = fieldBlackFilterMap;
     	} else {
     		this.fieldBlackFilterMap = new HashMap<String, List<String>>();
     	}
-		
+
 		for (Map.Entry<String, List<String>> entry : this.fieldBlackFilterMap.entrySet()) {
 			logger.warn("--> init field black filter : " + entry.getKey() + "->" + entry.getValue());
 		}
 	}
+
+    public void setFieldNecessaryMap(Map<String, List<String>> fieldNecessaryMap) {
+        if (fieldNecessaryMap != null) {
+            this.fieldNecessaryMap = fieldNecessaryMap;
+        }else {
+            this.fieldNecessaryMap = new HashMap<String, List<String>>();;
+        }
+        for (Map.Entry<String, List<String>> entry : this.fieldNecessaryMap.entrySet()) {
+            logger.warn("--> init field necessary : " + entry.getKey() + "->" + entry.getValue());
+        }
+    }
 
     public void setTableMetaCache(TableMetaCache tableMetaCache) {
         this.tableMetaCache = tableMetaCache;
