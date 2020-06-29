@@ -6,10 +6,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.sql.Types;
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -86,7 +90,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
-    private Map<String, List<String>> 	fieldFilterMap 		= new HashMap<String, List<String>>();
+    private Map<String, List<String>> fieldFilterMap 		= new HashMap<String, List<String>>();
     private Map<String, List<String>> 	fieldBlackFilterMap = new HashMap<String, List<String>>();
     // 必须字段（忽略fieldFilter）
     private Map<String, List<String>> 	fieldNecessaryMap 		= new HashMap<String, List<String>>();
