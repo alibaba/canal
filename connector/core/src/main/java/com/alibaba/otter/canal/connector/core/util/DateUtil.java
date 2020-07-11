@@ -5,6 +5,9 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.chrono.GJChronology;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class DateUtil {
 
@@ -39,9 +42,13 @@ public class DateUtil {
                 datetimeStr = year + "-" + month + "-" + day;
             }
         }
-
         DateTime dateTime = new DateTime(datetimeStr, dateTimeZone);
+        DateTimeFormatter formatter = ISODateTimeFormat
+                .dateTimeParser()
+                .withOffsetParsed()
+                .withChronology(GJChronology.getInstance());
 
-        return dateTime.toDate();
+        DateTime parsedDate = DateTime.parse(dateTime.toString(), formatter);
+        return parsedDate.toDate();
     }
 }
