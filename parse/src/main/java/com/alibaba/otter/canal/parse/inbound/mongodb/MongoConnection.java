@@ -80,15 +80,14 @@ public class MongoConnection {
                                  builder.connectTimeout(connTimeout, TimeUnit.MILLISECONDS)
                                         .readTimeout(soTimeout, TimeUnit.MILLISECONDS);
                             }
-                        })
-                        .build();
+                        }).build();
 
                 this.mongoClient = MongoClients.create(settings);
 
                 ClusterType clusterType;
                 boolean detected = false;
                 for (int retryTimes = 0; retryTimes < detectingRetryTimes; retryTimes++) {
-                  clusterType = this.mongoClient.getClusterDescription().getType();
+                    clusterType = this.mongoClient.getClusterDescription().getType();
                     switch (clusterType) {
                         case UNKNOWN:
                             //返回unknown表示集群正在连接中，过1s后重试
@@ -127,7 +126,6 @@ public class MongoConnection {
 
     public void disconnect() throws IOException {
         if (connected.compareAndSet(true, false)) {
-
             try {
                 // 等待订阅结束
                 subscribingLock.tryLock(3000, TimeUnit.MILLISECONDS);

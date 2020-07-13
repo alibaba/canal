@@ -71,6 +71,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
     private BatchMode         batchMode     = BatchMode.ITEMSIZE;                        // 默认为内存大小模式
     private boolean           ddlIsolation  = false;
     private boolean           raw           = true;                                      // 针对entry是否开启raw模式
+    private boolean           ignoredTxn    = false;                                     // 忽略事务
 
     public MemoryEventStoreWithBuffer(){
 
@@ -335,16 +336,20 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         range.setStart(CanalEventUtils.createPosition(entrys.get(0)));
         range.setEnd(CanalEventUtils.createPosition(entrys.get(result.getEvents().size() - 1)));
         range.setEndSeq(end);
-        // 记录一下是否存在可以被ack的点
 
-        for (int i = entrys.size() - 1; i >= 0; i--) {
-            Event event = entrys.get(i);
-            // GTID模式,ack的位点必须是事务结尾,因为下一次订阅的时候mysql会发送这个gtid之后的next,如果在事务头就记录了会丢这最后一个事务
-            if ((CanalEntry.EntryType.TRANSACTIONBEGIN == event.getEntryType() && StringUtils.isEmpty(event.getGtid()))
-                || CanalEntry.EntryType.TRANSACTIONEND == event.getEntryType() || isDdl(event.getEventType())) {
-                // 将事务头/尾设置可被为ack的点
-                range.setAck(CanalEventUtils.createPosition(event));
-                break;
+        // 记录一下是否存在可以被ack的点
+        if (ignoredTxn) {
+            range.setAck(range.getEnd());
+        } else {
+            for (int i = entrys.size() - 1; i >= 0; i--) {
+                Event event = entrys.get(i);
+                // GTID模式,ack的位点必须是事务结尾,因为下一次订阅的时候mysql会发送这个gtid之后的next,如果在事务头就记录了会丢这最后一个事务
+                if ((CanalEntry.EntryType.TRANSACTIONBEGIN == event.getEntryType() && StringUtils.isEmpty(event.getGtid()))
+                        || CanalEntry.EntryType.TRANSACTIONEND == event.getEntryType() || isDdl(event.getEventType())) {
+                    // 将事务头/尾设置可被为ack的点
+                    range.setAck(CanalEventUtils.createPosition(event));
+                    break;
+                }
             }
         }
 
@@ -654,6 +659,14 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
     public void setRaw(boolean raw) {
         this.raw = raw;
+    }
+
+    public boolean isIgnoredTxn() {
+        return ignoredTxn;
+    }
+
+    public void setIgnoredTxn(boolean ignoredTxn) {
+        this.ignoredTxn = ignoredTxn;
     }
 
     public AtomicLong getPutSequence() {
