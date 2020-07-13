@@ -16,6 +16,7 @@ import com.alibaba.otter.canal.parse.ha.HeartBeatHAController;
 import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
 import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
+import com.alibaba.otter.canal.parse.inbound.mongodb.MongoEventParser;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
@@ -55,11 +56,15 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
                 for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
                     if(singleEventParser instanceof AbstractEventParser) {
                         ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
+                    } else if (singleEventParser instanceof MongoEventParser) {
+                        ((MongoEventParser) singleEventParser).setEventFilter(aviaterFilter);
                     }
                 }
             } else {
                 if(eventParser instanceof AbstractEventParser) {
                     ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+                } else if (eventParser instanceof MongoEventParser) {
+                    ((MongoEventParser) eventParser).setEventFilter(aviaterFilter);
                 }
             }
 
@@ -195,7 +200,14 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
             if (!haController.isStart()) {
                 haController.start();
             }
+        }
 
+        if (eventParser instanceof MongoEventParser) {
+            MongoEventParser mongoEventParser = (MongoEventParser) eventParser;
+            CanalLogPositionManager logPositionManager = mongoEventParser.getLogPositionManager();
+            if (!logPositionManager.isStart()) {
+                logPositionManager.start();
+            }
         }
     }
 
@@ -214,6 +226,14 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
             CanalHAController haController = mysqlEventParser.getHaController();
             if (haController.isStart()) {
                 haController.stop();
+            }
+        }
+
+        if (eventParser instanceof MongoEventParser) {
+            MongoEventParser mongoEventParser = (MongoEventParser) eventParser;
+            CanalLogPositionManager logPositionManager = mongoEventParser.getLogPositionManager();
+            if (logPositionManager.isStart()) {
+                logPositionManager.stop();
             }
         }
     }

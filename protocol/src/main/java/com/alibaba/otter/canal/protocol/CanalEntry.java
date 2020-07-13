@@ -377,6 +377,10 @@ public final class CanalEntry {
      * <code>PGSQL = 3;</code>
      */
     PGSQL(2, 3),
+    /**
+     * <code>MONGODB = 4;</code>
+     */
+    MONGODB(3, 4)
     ;
 
     /**
@@ -391,7 +395,10 @@ public final class CanalEntry {
      * <code>PGSQL = 3;</code>
      */
     public static final int PGSQL_VALUE = 3;
-
+    /**
+     * <code>MONGODB = 4;</code>
+     */
+    public static final int MONGODB_VALUE = 4;
 
     public final int getNumber() { return value; }
 
@@ -400,6 +407,7 @@ public final class CanalEntry {
         case 1: return ORACLE;
         case 2: return MYSQL;
         case 3: return PGSQL;
+        case 4: return MONGODB;
         default: return null;
       }
     }
