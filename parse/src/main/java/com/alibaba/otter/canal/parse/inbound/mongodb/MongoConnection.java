@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -52,7 +50,7 @@ public class MongoConnection {
     private                 AtomicBoolean                connected     = new AtomicBoolean(false);
 
     private   final         MongoAuthenticationInfo      authenticationInfo;
-    private   volatile      MongoClient                  mongoClient;
+    private                 MongoClient                  mongoClient;
 
     protected               int                          connTimeout   = 5 * 1000;           // 5秒
     protected               int                          soTimeout     = 60 * 60 * 1000;     // 1小时
@@ -61,8 +59,6 @@ public class MongoConnection {
     private                 String                       eventBlackRegex;
 
     private                 AtomicLong                   receivedEventCount;
-
-    private                 Lock                         subscribingLock = new ReentrantLock();
 
     public MongoConnection(MongoAuthenticationInfo authenticationInfo){
         Assert.notNull(authenticationInfo, "authentication info can not be null;");
@@ -127,19 +123,11 @@ public class MongoConnection {
     public void disconnect() throws IOException {
         if (connected.compareAndSet(true, false)) {
             try {
-                // 等待订阅结束
-                subscribingLock.tryLock(3000, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                logger.error("waiting for change stream closed failed", e);
-            } finally {
-                subscribingLock.unlock();
-            }
-
-            try {
                 if (mongoClient != null) {
                     mongoClient.close();
                     mongoClient = null;
                 }
+
                 logger.info("disConnect mongo client of {}...", authenticationInfo.getHosts());
             } catch (Exception e) {
                 throw new IOException("disconnect mongo client failure", e);
@@ -172,23 +160,19 @@ public class MongoConnection {
     private void doDump(BsonTimestamp bsonTimestamp, SinkFunction<ChangeStreamEvent> func) {
         checkConnected();
 
-        if(subscribingLock.tryLock()) {
-            try (MongoChangeStreamCursor<ChangeStreamDocument<Document>> changeCursor = openChangeStream(bsonTimestamp)) {
-                while (changeCursor.hasNext() && connected.get()) {
-                    if (!func.sink(ChangeStreamEvent.from(changeCursor.next()))) {
-                        logger.warn("sink failed, close change stream");
-                        break;
-                    }
-                    accumulateReceivedCount();
+        try (MongoChangeStreamCursor<ChangeStreamDocument<Document>> changeCursor = openChangeStream(bsonTimestamp)) {
+            while (changeCursor.hasNext()) {
+                //sink 失败，或者running状态变更退出dump
+                if (!func.sink(ChangeStreamEvent.from(changeCursor.next()))) {
+                    logger.warn("sink failed, close change stream");
+                    break;
                 }
-            } catch (Throwable e) {
-                throw new CanalException("watch change stream failed", e);
-            } finally {
-                subscribingLock.unlock();
+                accumulateReceivedCount();
             }
-        } else {
-            logger.error("the change stream can not opening twice.", authenticationInfo.getHosts());
+        } catch (Throwable e) {
+            throw new CanalException("watch change stream failed", e);
         }
+
     }
 
     private MongoChangeStreamCursor<ChangeStreamDocument<Document>> openChangeStream(BsonTimestamp startAtOperationTime) {
