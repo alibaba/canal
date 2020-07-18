@@ -26,6 +26,7 @@ public class ErrorPacket extends PacketWithHeaderPacket {
      * 
      * </pre>
      */
+    @Override
     public void fromBytes(byte[] data) {
         int index = 0;
         // 1. read field count
@@ -45,6 +46,7 @@ public class ErrorPacket extends PacketWithHeaderPacket {
         // end read
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         return null;
     }

@@ -65,6 +65,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
         tableMetas.clear();
     }
 
+    @Override
     public boolean apply(EntryPosition position, String schema, String ddl, String extra) {
         tableMetas.clear();
         synchronized (this) {
@@ -142,6 +143,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
         throw new RuntimeException("not support for memory");
     }
 
+    @Override
     public Map<String, String> snapshot() {
         Map<String, String> schemaDdls = new HashMap<String, String>();
         for (Schema schema : repository.getSchemas()) {

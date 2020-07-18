@@ -16,6 +16,7 @@ public class GroupEventParser extends AbstractCanalLifeCycle implements CanalEve
 
     private List<CanalEventParser> eventParsers = new ArrayList<CanalEventParser>();
 
+    @Override
     public void start() {
         super.start();
         // 统一启动
@@ -26,6 +27,7 @@ public class GroupEventParser extends AbstractCanalLifeCycle implements CanalEve
         }
     }
 
+    @Override
     public void stop() {
         super.stop();
         // 统一关闭

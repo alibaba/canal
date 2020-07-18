@@ -14,6 +14,7 @@ public class ManagerCanalInstanceGenerator implements CanalInstanceGenerator {
 
     private CanalConfigClient canalConfigClient;
 
+    @Override
     public CanalInstance generate(String destination) {
         Canal canal = canalConfigClient.findCanal(destination);
         String filter = canalConfigClient.findFilter(destination);

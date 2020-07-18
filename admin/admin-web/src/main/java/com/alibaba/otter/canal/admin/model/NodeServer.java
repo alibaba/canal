@@ -52,6 +52,7 @@ public class NodeServer extends Model {
     @WhenModified
     private Date         modifiedTime;
 
+    @Override
     public void init() {
         status = "-1";
     }

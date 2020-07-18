@@ -52,6 +52,7 @@ public class BinLogFileQueue {
 
         timer.scheduleAtFixedRate(new TimerTask() {
 
+            @Override
             public void run() {
                 try {
                     // File errorFile = new File(BinLogFileQueue.this.directory,
@@ -219,12 +220,14 @@ public class BinLogFileQueue {
         List<File> files = new ArrayList<File>();
         files.addAll(FileUtils.listFiles(directory, new IOFileFilter() {
 
+            @Override
             public boolean accept(File file) {
                 Pattern pattern = Pattern.compile("\\d+$");
                 Matcher matcher = pattern.matcher(file.getName());
                 return file.getName().startsWith(baseName) && matcher.find();
             }
 
+            @Override
             public boolean accept(File dir, String name) {
                 return true;
             }
@@ -232,6 +235,7 @@ public class BinLogFileQueue {
         // 排一下序列
         Collections.sort(files, new Comparator<File>() {
 
+            @Override
             public int compare(File o1, File o2) {
                 return o1.getName().compareTo(o2.getName());
             }

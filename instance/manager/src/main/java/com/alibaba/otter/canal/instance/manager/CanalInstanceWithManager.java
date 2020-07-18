@@ -103,6 +103,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         logger.info("init successful....");
     }
 
+    @Override
     public void start() {
         // 初始化metaManager
         logger.info("start CannalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
@@ -474,6 +475,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         return logPositionManager;
     }
 
+    @Override
     protected void startEventParserInternal(CanalEventParser eventParser, boolean isGroup) {
         if (eventParser instanceof AbstractEventParser) {
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;

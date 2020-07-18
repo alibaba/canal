@@ -42,6 +42,7 @@ public class ESSyncConfig implements AdapterConfig {
         }
     }
 
+    @Override
     public String getDataSourceKey() {
         return dataSourceKey;
     }
@@ -82,6 +83,7 @@ public class ESSyncConfig implements AdapterConfig {
         this.esMapping = esMapping;
     }
 
+    @Override
     public ESMapping getMapping() {
         return esMapping;
     }
@@ -194,6 +196,7 @@ public class ESSyncConfig implements AdapterConfig {
             this.commitBatch = commitBatch;
         }
 
+        @Override
         public String getEtlCondition() {
             return etlCondition;
         }

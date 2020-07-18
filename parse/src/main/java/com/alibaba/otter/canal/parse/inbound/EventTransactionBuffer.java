@@ -37,6 +37,7 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
         this.flushCallback = flushCallback;
     }
 
+    @Override
     public void start() throws CanalStoreException {
         super.start();
         if (Integer.bitCount(bufferSize) != 1) {
@@ -48,6 +49,7 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
         entries = new CanalEntry.Entry[bufferSize];
     }
 
+    @Override
     public void stop() throws CanalStoreException {
         putSequence.set(INIT_SQEUENCE);
         flushSequence.set(INIT_SQEUENCE);

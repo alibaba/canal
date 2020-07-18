@@ -34,6 +34,7 @@ public class GroupEventSink extends EntryEventSink {
         this.groupSize = groupSize;
     }
 
+    @Override
     public void start() {
         super.start();
 
@@ -44,6 +45,7 @@ public class GroupEventSink extends EntryEventSink {
         }
     }
 
+    @Override
     protected boolean doSink(List<Event> events) {
         int size = events.size();
         for (int i = 0; i < events.size(); i++) {
@@ -67,6 +69,7 @@ public class GroupEventSink extends EntryEventSink {
         return false;
     }
 
+    @Override
     public void interrupt() {
         super.interrupt();
         barrier.interrupt();

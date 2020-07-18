@@ -87,5 +87,6 @@ public interface CanalMQConnector extends CanalConnector {
      * 
      * @throws CanalClientException
      */
+    @Override
     void rollback() throws CanalClientException;
 }

@@ -9,10 +9,12 @@ import org.springframework.beans.PropertyEditorRegistry;
 
 public class SocketAddressEditor extends PropertyEditorSupport implements PropertyEditorRegistrar {
 
+    @Override
     public void registerCustomEditors(PropertyEditorRegistry registry) {
         registry.registerCustomEditor(InetSocketAddress.class, this);
     }
 
+    @Override
     public void setAsText(String text) throws IllegalArgumentException {
         String[] addresses = StringUtils.split(text, ":");
         if (addresses.length > 0) {

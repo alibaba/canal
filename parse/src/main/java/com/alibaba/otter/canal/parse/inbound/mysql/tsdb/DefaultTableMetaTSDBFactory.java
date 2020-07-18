@@ -9,10 +9,12 @@ public class DefaultTableMetaTSDBFactory implements TableMetaTSDBFactory {
     /**
      * 代理一下tableMetaTSDB的获取,使用隔离的spring定义
      */
+    @Override
     public TableMetaTSDB build(String destination, String springXml) {
         return TableMetaTSDBBuilder.build(destination, springXml);
     }
 
+    @Override
     public void destory(String destination) {
         TableMetaTSDBBuilder.destory(destination);
     }

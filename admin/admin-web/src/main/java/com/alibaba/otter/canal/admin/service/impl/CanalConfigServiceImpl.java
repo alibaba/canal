@@ -31,6 +31,7 @@ public class CanalConfigServiceImpl implements CanalConfigService {
     private static final String CANAL_GLOBAL_CONFIG  = "canal.properties";
     private static final String CANAL_ADAPTER_CONFIG = "application.yml";
 
+    @Override
     public CanalConfig getCanalConfig(Long clusterId, Long serverId) {
         CanalConfig config = null;
         if (clusterId != null && clusterId != 0) {
@@ -58,6 +59,7 @@ public class CanalConfigServiceImpl implements CanalConfigService {
         return config;
     }
 
+    @Override
     public CanalConfig getCanalConfigSummary() {
         return CanalConfig.find.query()
             .setDisableLazyLoading(true)
@@ -67,6 +69,7 @@ public class CanalConfigServiceImpl implements CanalConfigService {
             .findOne();
     }
 
+    @Override
     public CanalConfig getAdapterConfig() {
         long id = 2L;
         CanalConfig config = CanalConfig.find.byId(id);
@@ -87,6 +90,7 @@ public class CanalConfigServiceImpl implements CanalConfigService {
         return config;
     }
 
+    @Override
     public void updateContent(CanalConfig canalConfig) {
         try {
             String contentMd5 = SecurityUtil.md5String(canalConfig.getContent());

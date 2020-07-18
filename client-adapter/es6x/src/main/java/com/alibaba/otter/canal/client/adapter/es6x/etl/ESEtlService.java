@@ -56,6 +56,7 @@ public class ESEtlService extends AbstractEtlService {
         return importData(sql, params);
     }
 
+    @Override
     protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
                                        AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount,
                                        List<String> errMsg) {

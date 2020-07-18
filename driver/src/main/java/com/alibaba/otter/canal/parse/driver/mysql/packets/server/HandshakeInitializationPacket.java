@@ -49,6 +49,7 @@ public class HandshakeInitializationPacket extends PacketWithHeaderPacket {
      *  13                           rest of scramble_buff (4.1)
      * </pre>
      */
+    @Override
     public void fromBytes(byte[] data) {
         int index = 0;
         // 1. read protocol_version
@@ -107,6 +108,7 @@ public class HandshakeInitializationPacket extends PacketWithHeaderPacket {
     /**
      * Bypass implementing it, 'cause nowhere to use it.
      */
+    @Override
     public byte[] toBytes() throws IOException {
         return null;
     }

@@ -22,6 +22,7 @@ public class MappingConfig implements AdapterConfig {
 
     private HbaseMapping hbaseMapping;    // hbase映射配置
 
+    @Override
     public String getDataSourceKey() {
         return dataSourceKey;
     }
@@ -62,6 +63,7 @@ public class MappingConfig implements AdapterConfig {
         this.hbaseMapping = hbaseMapping;
     }
 
+    @Override
     public AdapterMapping getMapping() {
         return hbaseMapping;
     }
@@ -273,6 +275,7 @@ public class MappingConfig implements AdapterConfig {
             this.rowKey = rowKey;
         }
 
+        @Override
         public String getEtlCondition() {
             return etlCondition;
         }

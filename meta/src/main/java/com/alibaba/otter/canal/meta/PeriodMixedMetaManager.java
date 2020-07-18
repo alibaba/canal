@@ -44,6 +44,7 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
     private long                     period     = 1000;                                                 // 单位ms
     private Set<ClientIdentity>      updateCursorTasks;
 
+    @Override
     public void start() {
         super.start();
         Assert.notNull(zooKeeperMetaManager);
@@ -54,6 +55,7 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
         executor = Executors.newScheduledThreadPool(1);
         destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
 
+            @Override
             public List<ClientIdentity> apply(String destination) {
                 return zooKeeperMetaManager.listAllSubscribeInfo(destination);
             }
@@ -61,6 +63,7 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
 
         cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>() {
 
+            @Override
             public Position apply(ClientIdentity clientIdentity) {
                 Position position = zooKeeperMetaManager.getCursor(clientIdentity);
                 if (position == null) {
@@ -73,6 +76,7 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
 
         batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
 
+            @Override
             public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
                 // 读取一下zookeeper信息，初始化一次
                 MemoryClientIdentityBatch batches = MemoryClientIdentityBatch.create(clientIdentity);
@@ -89,6 +93,7 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
         // 启动定时工作任务
         executor.scheduleAtFixedRate(new Runnable() {
 
+            @Override
             public void run() {
                 List<ClientIdentity> tasks = new ArrayList<ClientIdentity>(updateCursorTasks);
                 for (ClientIdentity clientIdentity : tasks) {
@@ -105,6 +110,7 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
         }, period, period, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public void stop() {
         super.stop();
 
@@ -117,35 +123,41 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
         batches.clear();
     }
 
+    @Override
     public void subscribe(final ClientIdentity clientIdentity) throws CanalMetaManagerException {
         super.subscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
         executor.submit(new Runnable() {
 
+            @Override
             public void run() {
                 zooKeeperMetaManager.subscribe(clientIdentity);
             }
         });
     }
 
+    @Override
     public void unsubscribe(final ClientIdentity clientIdentity) throws CanalMetaManagerException {
         super.unsubscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
         executor.submit(new Runnable() {
 
+            @Override
             public void run() {
                 zooKeeperMetaManager.unsubscribe(clientIdentity);
             }
         });
     }
 
+    @Override
     public void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException {
         super.updateCursor(clientIdentity, position);
         updateCursorTasks.add(clientIdentity);// 添加到任务队列中进行触发
     }
 
+    @Override
     public Position getCursor(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         Position position = super.getCursor(clientIdentity);
         if (position == nullCursor) {

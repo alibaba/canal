@@ -11,7 +11,9 @@ import com.alibaba.otter.canal.parse.exception.CanalHAException;
  */
 public interface CanalHAController extends CanalLifeCycle {
 
+    @Override
     public void start() throws CanalHAException;
 
+    @Override
     public void stop() throws CanalHAException;
 }

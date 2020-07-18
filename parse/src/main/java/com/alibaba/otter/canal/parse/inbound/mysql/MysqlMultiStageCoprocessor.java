@@ -171,6 +171,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         super.stop();
     }
 
+    @Override
     public boolean publish(LogBuffer buffer) {
         return this.publish(buffer, null);
     }
@@ -178,6 +179,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     /**
      * 网络数据投递
      */
+    @Override
     public boolean publish(LogEvent event) {
         return this.publish(null, event);
     }
@@ -256,6 +258,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             }
         }
 
+        @Override
         public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
             try {
                 LogEvent logEvent = event.getEvent();
@@ -351,6 +354,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     private class SinkStoreStage implements EventHandler<MessageEvent>, LifecycleAware {
 
+        @Override
         public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
             try {
                 if (event.getEntry() != null) {
@@ -456,6 +460,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     class MessageEventFactory implements EventFactory<MessageEvent> {
 
+        @Override
         public MessageEvent newInstance() {
             return new MessageEvent();
         }

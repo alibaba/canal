@@ -20,11 +20,13 @@ public abstract class Model extends io.ebean.Model {
     public void init() {
     }
 
+    @Override
     public void save() {
         init();
         super.save();
     }
 
+    @Override
     public void insert() {
         init();
         super.insert();

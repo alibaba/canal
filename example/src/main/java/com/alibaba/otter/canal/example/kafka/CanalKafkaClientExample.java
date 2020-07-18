@@ -28,6 +28,7 @@ public class CanalKafkaClientExample {
 
     private Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
 
+                                                        @Override
                                                         public void uncaughtException(Thread t, Throwable e) {
                                                             logger.error("parse events has an error", e);
                                                         }
@@ -49,6 +50,7 @@ public class CanalKafkaClientExample {
             logger.info("## the canal kafka consumer is running now ......");
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
+                @Override
                 public void run() {
                     try {
                         logger.info("## stop the kafka consumer");
@@ -73,6 +75,7 @@ public class CanalKafkaClientExample {
         Assert.notNull(connector, "connector is null");
         thread = new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 process();
             }

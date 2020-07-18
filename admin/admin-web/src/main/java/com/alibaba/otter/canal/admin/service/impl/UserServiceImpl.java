@@ -21,6 +21,7 @@ public class UserServiceImpl implements UserService {
 
     private static byte[] seeds = "canal is best!".getBytes();
 
+    @Override
     public User find4Login(String username, String password) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return null;
@@ -42,6 +43,7 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
     public void update(User user) {
         User userTmp = User.find.query().where().eq("username", user.getUsername()).findOne();
         if (userTmp == null) {

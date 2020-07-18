@@ -69,6 +69,7 @@ public final class CanalEntry {
     public static final int GTIDLOG_VALUE = 5;
 
 
+    @Override
     public final int getNumber() { return value; }
 
     public static EntryType valueOf(int value) {
@@ -89,15 +90,18 @@ public final class CanalEntry {
     private static com.google.protobuf.Internal.EnumLiteMap<EntryType>
         internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<EntryType>() {
+            @Override
             public EntryType findValueByNumber(int number) {
               return EntryType.valueOf(number);
             }
           };
 
+    @Override
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
+    @Override
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
@@ -286,6 +290,7 @@ public final class CanalEntry {
     public static final int MHEARTBEAT_VALUE = 15;
 
 
+    @Override
     public final int getNumber() { return value; }
 
     public static EventType valueOf(int value) {
@@ -316,15 +321,18 @@ public final class CanalEntry {
     private static com.google.protobuf.Internal.EnumLiteMap<EventType>
         internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<EventType>() {
+            @Override
             public EventType findValueByNumber(int number) {
               return EventType.valueOf(number);
             }
           };
 
+    @Override
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
+    @Override
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
@@ -393,6 +401,7 @@ public final class CanalEntry {
     public static final int PGSQL_VALUE = 3;
 
 
+    @Override
     public final int getNumber() { return value; }
 
     public static Type valueOf(int value) {
@@ -411,15 +420,18 @@ public final class CanalEntry {
     private static com.google.protobuf.Internal.EnumLiteMap<Type>
         internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<Type>() {
+            @Override
             public Type findValueByNumber(int number) {
               return Type.valueOf(number);
             }
           };
 
+    @Override
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
+    @Override
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
@@ -540,6 +552,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public Entry getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -619,6 +632,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Entry_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Entry_fieldAccessorTable
@@ -628,6 +642,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<Entry> PARSER =
         new com.google.protobuf.AbstractParser<Entry>() {
+      @Override
       public Entry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -651,6 +666,7 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      */
+    @Override
     public boolean hasHeader() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
@@ -661,6 +677,7 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      */
+    @Override
     public Header getHeader() {
       return header_;
     }
@@ -671,6 +688,7 @@ public final class CanalEntry {
      **协议头部信息*
      * </pre>
      */
+    @Override
     public HeaderOrBuilder getHeaderOrBuilder() {
       return header_;
     }
@@ -684,6 +702,7 @@ public final class CanalEntry {
      **打散后的事件类型*
      * </pre>
      */
+    @Override
     public boolean hasEntryType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
@@ -694,6 +713,7 @@ public final class CanalEntry {
      **打散后的事件类型*
      * </pre>
      */
+    @Override
     public EntryType getEntryType() {
       return entryType_;
     }
@@ -707,6 +727,7 @@ public final class CanalEntry {
      **传输的二进制数组*
      * </pre>
      */
+    @Override
     public boolean hasStoreValue() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
@@ -717,6 +738,7 @@ public final class CanalEntry {
      **传输的二进制数组*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString getStoreValue() {
       return storeValue_;
     }
@@ -727,6 +749,7 @@ public final class CanalEntry {
       storeValue_ = com.google.protobuf.ByteString.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -736,6 +759,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -752,6 +776,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -835,10 +860,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(Entry prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -866,6 +893,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Entry_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Entry_fieldAccessorTable
@@ -892,6 +920,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         if (headerBuilder_ == null) {
@@ -907,19 +936,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Entry_descriptor;
       }
 
+      @Override
       public Entry getDefaultInstanceForType() {
         return Entry.getDefaultInstance();
       }
 
+      @Override
       public Entry build() {
         Entry result = buildPartial();
         if (!result.isInitialized()) {
@@ -928,6 +961,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Entry buildPartial() {
         Entry result = new Entry(this);
         int from_bitField0_ = bitField0_;
@@ -953,6 +987,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof Entry) {
           return mergeFrom((Entry)other);
@@ -977,10 +1012,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1010,6 +1047,7 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        */
+      @Override
       public boolean hasHeader() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
@@ -1020,6 +1058,7 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        */
+      @Override
       public Header getHeader() {
         if (headerBuilder_ == null) {
           return header_;
@@ -1124,6 +1163,7 @@ public final class CanalEntry {
        **协议头部信息*
        * </pre>
        */
+      @Override
       public HeaderOrBuilder getHeaderOrBuilder() {
         if (headerBuilder_ != null) {
           return headerBuilder_.getMessageOrBuilder();
@@ -1160,6 +1200,7 @@ public final class CanalEntry {
        **打散后的事件类型*
        * </pre>
        */
+      @Override
       public boolean hasEntryType() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
@@ -1170,6 +1211,7 @@ public final class CanalEntry {
        **打散后的事件类型*
        * </pre>
        */
+      @Override
       public EntryType getEntryType() {
         return entryType_;
       }
@@ -1211,6 +1253,7 @@ public final class CanalEntry {
        **传输的二进制数组*
        * </pre>
        */
+      @Override
       public boolean hasStoreValue() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
@@ -1221,6 +1264,7 @@ public final class CanalEntry {
        **传输的二进制数组*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString getStoreValue() {
         return storeValue_;
       }
@@ -1584,6 +1628,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public Header getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -1722,6 +1767,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Header_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Header_fieldAccessorTable
@@ -1731,6 +1777,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<Header> PARSER =
         new com.google.protobuf.AbstractParser<Header>() {
+      @Override
       public Header parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1754,6 +1801,7 @@ public final class CanalEntry {
      **协议的版本号*
      * </pre>
      */
+    @Override
     public boolean hasVersion() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
@@ -1764,6 +1812,7 @@ public final class CanalEntry {
      **协议的版本号*
      * </pre>
      */
+    @Override
     public int getVersion() {
       return version_;
     }
@@ -1777,6 +1826,7 @@ public final class CanalEntry {
      **binlog/redolog 文件名*
      * </pre>
      */
+    @Override
     public boolean hasLogfileName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
@@ -1787,6 +1837,7 @@ public final class CanalEntry {
      **binlog/redolog 文件名*
      * </pre>
      */
+    @Override
     public String getLogfileName() {
       Object ref = logfileName_;
       if (ref instanceof String) {
@@ -1808,6 +1859,7 @@ public final class CanalEntry {
      **binlog/redolog 文件名*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getLogfileNameBytes() {
       Object ref = logfileName_;
@@ -1831,6 +1883,7 @@ public final class CanalEntry {
      **binlog/redolog 文件的偏移位置*
      * </pre>
      */
+    @Override
     public boolean hasLogfileOffset() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
@@ -1841,6 +1894,7 @@ public final class CanalEntry {
      **binlog/redolog 文件的偏移位置*
      * </pre>
      */
+    @Override
     public long getLogfileOffset() {
       return logfileOffset_;
     }
@@ -1854,6 +1908,7 @@ public final class CanalEntry {
      **服务端serverId*
      * </pre>
      */
+    @Override
     public boolean hasServerId() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
@@ -1864,6 +1919,7 @@ public final class CanalEntry {
      **服务端serverId*
      * </pre>
      */
+    @Override
     public long getServerId() {
       return serverId_;
     }
@@ -1877,6 +1933,7 @@ public final class CanalEntry {
      ** 变更数据的编码 *
      * </pre>
      */
+    @Override
     public boolean hasServerenCode() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
@@ -1887,6 +1944,7 @@ public final class CanalEntry {
      ** 变更数据的编码 *
      * </pre>
      */
+    @Override
     public String getServerenCode() {
       Object ref = serverenCode_;
       if (ref instanceof String) {
@@ -1908,6 +1966,7 @@ public final class CanalEntry {
      ** 变更数据的编码 *
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getServerenCodeBytes() {
       Object ref = serverenCode_;
@@ -1931,6 +1990,7 @@ public final class CanalEntry {
      **变更数据的执行时间 *
      * </pre>
      */
+    @Override
     public boolean hasExecuteTime() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
@@ -1941,6 +2001,7 @@ public final class CanalEntry {
      **变更数据的执行时间 *
      * </pre>
      */
+    @Override
     public long getExecuteTime() {
       return executeTime_;
     }
@@ -1954,6 +2015,7 @@ public final class CanalEntry {
      ** 变更数据的来源*
      * </pre>
      */
+    @Override
     public boolean hasSourceType() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
@@ -1964,6 +2026,7 @@ public final class CanalEntry {
      ** 变更数据的来源*
      * </pre>
      */
+    @Override
     public Type getSourceType() {
       return sourceType_;
     }
@@ -1977,6 +2040,7 @@ public final class CanalEntry {
      ** 变更数据的schemaname*
      * </pre>
      */
+    @Override
     public boolean hasSchemaName() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
@@ -1987,6 +2051,7 @@ public final class CanalEntry {
      ** 变更数据的schemaname*
      * </pre>
      */
+    @Override
     public String getSchemaName() {
       Object ref = schemaName_;
       if (ref instanceof String) {
@@ -2008,6 +2073,7 @@ public final class CanalEntry {
      ** 变更数据的schemaname*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getSchemaNameBytes() {
       Object ref = schemaName_;
@@ -2031,6 +2097,7 @@ public final class CanalEntry {
      **变更数据的tablename*
      * </pre>
      */
+    @Override
     public boolean hasTableName() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
@@ -2041,6 +2108,7 @@ public final class CanalEntry {
      **变更数据的tablename*
      * </pre>
      */
+    @Override
     public String getTableName() {
       Object ref = tableName_;
       if (ref instanceof String) {
@@ -2062,6 +2130,7 @@ public final class CanalEntry {
      **变更数据的tablename*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getTableNameBytes() {
       Object ref = tableName_;
@@ -2085,6 +2154,7 @@ public final class CanalEntry {
      **每个event的长度*
      * </pre>
      */
+    @Override
     public boolean hasEventLength() {
       return ((bitField0_ & 0x00000200) == 0x00000200);
     }
@@ -2095,6 +2165,7 @@ public final class CanalEntry {
      **每个event的长度*
      * </pre>
      */
+    @Override
     public long getEventLength() {
       return eventLength_;
     }
@@ -2108,6 +2179,7 @@ public final class CanalEntry {
      **数据变更类型*
      * </pre>
      */
+    @Override
     public boolean hasEventType() {
       return ((bitField0_ & 0x00000400) == 0x00000400);
     }
@@ -2118,6 +2190,7 @@ public final class CanalEntry {
      **数据变更类型*
      * </pre>
      */
+    @Override
     public EventType getEventType() {
       return eventType_;
     }
@@ -2131,6 +2204,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<Pair> getPropsList() {
       return props_;
     }
@@ -2141,6 +2215,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<? extends PairOrBuilder>
         getPropsOrBuilderList() {
       return props_;
@@ -2152,6 +2227,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public int getPropsCount() {
       return props_.size();
     }
@@ -2162,6 +2238,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public Pair getProps(int index) {
       return props_.get(index);
     }
@@ -2172,6 +2249,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -2186,6 +2264,7 @@ public final class CanalEntry {
      **当前事务的gitd*
      * </pre>
      */
+    @Override
     public boolean hasGtid() {
       return ((bitField0_ & 0x00000800) == 0x00000800);
     }
@@ -2196,6 +2275,7 @@ public final class CanalEntry {
      **当前事务的gitd*
      * </pre>
      */
+    @Override
     public String getGtid() {
       Object ref = gtid_;
       if (ref instanceof String) {
@@ -2217,6 +2297,7 @@ public final class CanalEntry {
      **当前事务的gitd*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getGtidBytes() {
       Object ref = gtid_;
@@ -2247,6 +2328,7 @@ public final class CanalEntry {
       gtid_ = "";
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -2256,6 +2338,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -2302,6 +2385,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -2425,10 +2509,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(Header prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -2453,6 +2539,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Header_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Header_fieldAccessorTable
@@ -2479,6 +2566,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         version_ = 1;
@@ -2514,19 +2602,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Header_descriptor;
       }
 
+      @Override
       public Header getDefaultInstanceForType() {
         return Header.getDefaultInstance();
       }
 
+      @Override
       public Header build() {
         Header result = buildPartial();
         if (!result.isInitialized()) {
@@ -2535,6 +2627,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Header buildPartial() {
         Header result = new Header(this);
         int from_bitField0_ = bitField0_;
@@ -2601,6 +2694,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof Header) {
           return mergeFrom((Header)other);
@@ -2688,10 +2782,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2719,6 +2815,7 @@ public final class CanalEntry {
        **协议的版本号*
        * </pre>
        */
+      @Override
       public boolean hasVersion() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
@@ -2729,6 +2826,7 @@ public final class CanalEntry {
        **协议的版本号*
        * </pre>
        */
+      @Override
       public int getVersion() {
         return version_;
       }
@@ -2767,6 +2865,7 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        */
+      @Override
       public boolean hasLogfileName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
@@ -2777,6 +2876,7 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        */
+      @Override
       public String getLogfileName() {
         Object ref = logfileName_;
         if (!(ref instanceof String)) {
@@ -2798,6 +2898,7 @@ public final class CanalEntry {
        **binlog/redolog 文件名*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getLogfileNameBytes() {
         Object ref = logfileName_;
@@ -2867,6 +2968,7 @@ public final class CanalEntry {
        **binlog/redolog 文件的偏移位置*
        * </pre>
        */
+      @Override
       public boolean hasLogfileOffset() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
@@ -2877,6 +2979,7 @@ public final class CanalEntry {
        **binlog/redolog 文件的偏移位置*
        * </pre>
        */
+      @Override
       public long getLogfileOffset() {
         return logfileOffset_;
       }
@@ -2915,6 +3018,7 @@ public final class CanalEntry {
        **服务端serverId*
        * </pre>
        */
+      @Override
       public boolean hasServerId() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
@@ -2925,6 +3029,7 @@ public final class CanalEntry {
        **服务端serverId*
        * </pre>
        */
+      @Override
       public long getServerId() {
         return serverId_;
       }
@@ -2963,6 +3068,7 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        */
+      @Override
       public boolean hasServerenCode() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
@@ -2973,6 +3079,7 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        */
+      @Override
       public String getServerenCode() {
         Object ref = serverenCode_;
         if (!(ref instanceof String)) {
@@ -2994,6 +3101,7 @@ public final class CanalEntry {
        ** 变更数据的编码 *
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getServerenCodeBytes() {
         Object ref = serverenCode_;
@@ -3063,6 +3171,7 @@ public final class CanalEntry {
        **变更数据的执行时间 *
        * </pre>
        */
+      @Override
       public boolean hasExecuteTime() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
@@ -3073,6 +3182,7 @@ public final class CanalEntry {
        **变更数据的执行时间 *
        * </pre>
        */
+      @Override
       public long getExecuteTime() {
         return executeTime_;
       }
@@ -3111,6 +3221,7 @@ public final class CanalEntry {
        ** 变更数据的来源*
        * </pre>
        */
+      @Override
       public boolean hasSourceType() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
@@ -3121,6 +3232,7 @@ public final class CanalEntry {
        ** 变更数据的来源*
        * </pre>
        */
+      @Override
       public Type getSourceType() {
         return sourceType_;
       }
@@ -3162,6 +3274,7 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        */
+      @Override
       public boolean hasSchemaName() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
@@ -3172,6 +3285,7 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        */
+      @Override
       public String getSchemaName() {
         Object ref = schemaName_;
         if (!(ref instanceof String)) {
@@ -3193,6 +3307,7 @@ public final class CanalEntry {
        ** 变更数据的schemaname*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getSchemaNameBytes() {
         Object ref = schemaName_;
@@ -3262,6 +3377,7 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        */
+      @Override
       public boolean hasTableName() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
@@ -3272,6 +3388,7 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        */
+      @Override
       public String getTableName() {
         Object ref = tableName_;
         if (!(ref instanceof String)) {
@@ -3293,6 +3410,7 @@ public final class CanalEntry {
        **变更数据的tablename*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getTableNameBytes() {
         Object ref = tableName_;
@@ -3362,6 +3480,7 @@ public final class CanalEntry {
        **每个event的长度*
        * </pre>
        */
+      @Override
       public boolean hasEventLength() {
         return ((bitField0_ & 0x00000200) == 0x00000200);
       }
@@ -3372,6 +3491,7 @@ public final class CanalEntry {
        **每个event的长度*
        * </pre>
        */
+      @Override
       public long getEventLength() {
         return eventLength_;
       }
@@ -3410,6 +3530,7 @@ public final class CanalEntry {
        **数据变更类型*
        * </pre>
        */
+      @Override
       public boolean hasEventType() {
         return ((bitField0_ & 0x00000400) == 0x00000400);
       }
@@ -3420,6 +3541,7 @@ public final class CanalEntry {
        **数据变更类型*
        * </pre>
        */
+      @Override
       public EventType getEventType() {
         return eventType_;
       }
@@ -3472,6 +3594,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -3486,6 +3609,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -3500,6 +3624,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -3694,6 +3819,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -3708,6 +3834,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<? extends PairOrBuilder>
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -3773,6 +3900,7 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        */
+      @Override
       public boolean hasGtid() {
         return ((bitField0_ & 0x00001000) == 0x00001000);
       }
@@ -3783,6 +3911,7 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        */
+      @Override
       public String getGtid() {
         Object ref = gtid_;
         if (!(ref instanceof String)) {
@@ -3804,6 +3933,7 @@ public final class CanalEntry {
        **当前事务的gitd*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getGtidBytes() {
         Object ref = gtid_;
@@ -4126,6 +4256,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public Column getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -4235,6 +4366,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Column_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Column_fieldAccessorTable
@@ -4244,6 +4376,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<Column> PARSER =
         new com.google.protobuf.AbstractParser<Column>() {
+      @Override
       public Column parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4267,6 +4400,7 @@ public final class CanalEntry {
      **字段下标*
      * </pre>
      */
+    @Override
     public boolean hasIndex() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
@@ -4277,6 +4411,7 @@ public final class CanalEntry {
      **字段下标*
      * </pre>
      */
+    @Override
     public int getIndex() {
       return index_;
     }
@@ -4290,6 +4425,7 @@ public final class CanalEntry {
      **字段java中类型*
      * </pre>
      */
+    @Override
     public boolean hasSqlType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
@@ -4300,6 +4436,7 @@ public final class CanalEntry {
      **字段java中类型*
      * </pre>
      */
+    @Override
     public int getSqlType() {
       return sqlType_;
     }
@@ -4313,6 +4450,7 @@ public final class CanalEntry {
      **字段名称(忽略大小写)，在mysql中是没有的*
      * </pre>
      */
+    @Override
     public boolean hasName() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
@@ -4323,6 +4461,7 @@ public final class CanalEntry {
      **字段名称(忽略大小写)，在mysql中是没有的*
      * </pre>
      */
+    @Override
     public String getName() {
       Object ref = name_;
       if (ref instanceof String) {
@@ -4344,6 +4483,7 @@ public final class CanalEntry {
      **字段名称(忽略大小写)，在mysql中是没有的*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getNameBytes() {
       Object ref = name_;
@@ -4367,6 +4507,7 @@ public final class CanalEntry {
      **是否是主键*
      * </pre>
      */
+    @Override
     public boolean hasIsKey() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
@@ -4377,6 +4518,7 @@ public final class CanalEntry {
      **是否是主键*
      * </pre>
      */
+    @Override
     public boolean getIsKey() {
       return isKey_;
     }
@@ -4390,6 +4532,7 @@ public final class CanalEntry {
      **如果EventType=UPDATE,用于标识这个字段值是否有修改*
      * </pre>
      */
+    @Override
     public boolean hasUpdated() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
@@ -4400,6 +4543,7 @@ public final class CanalEntry {
      **如果EventType=UPDATE,用于标识这个字段值是否有修改*
      * </pre>
      */
+    @Override
     public boolean getUpdated() {
       return updated_;
     }
@@ -4413,6 +4557,7 @@ public final class CanalEntry {
      ** 标识是否为空  *
      * </pre>
      */
+    @Override
     public boolean hasIsNull() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
@@ -4423,6 +4568,7 @@ public final class CanalEntry {
      ** 标识是否为空  *
      * </pre>
      */
+    @Override
     public boolean getIsNull() {
       return isNull_;
     }
@@ -4436,6 +4582,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<Pair> getPropsList() {
       return props_;
     }
@@ -4446,6 +4593,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<? extends PairOrBuilder>
         getPropsOrBuilderList() {
       return props_;
@@ -4457,6 +4605,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public int getPropsCount() {
       return props_.size();
     }
@@ -4467,6 +4616,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public Pair getProps(int index) {
       return props_.get(index);
     }
@@ -4477,6 +4627,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -4491,6 +4642,7 @@ public final class CanalEntry {
      ** 字段值,timestamp,Datetime是一个时间格式的文本 *
      * </pre>
      */
+    @Override
     public boolean hasValue() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
@@ -4501,6 +4653,7 @@ public final class CanalEntry {
      ** 字段值,timestamp,Datetime是一个时间格式的文本 *
      * </pre>
      */
+    @Override
     public String getValue() {
       Object ref = value_;
       if (ref instanceof String) {
@@ -4522,6 +4675,7 @@ public final class CanalEntry {
      ** 字段值,timestamp,Datetime是一个时间格式的文本 *
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getValueBytes() {
       Object ref = value_;
@@ -4545,6 +4699,7 @@ public final class CanalEntry {
      ** 对应数据对象原始长度 *
      * </pre>
      */
+    @Override
     public boolean hasLength() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
@@ -4555,6 +4710,7 @@ public final class CanalEntry {
      ** 对应数据对象原始长度 *
      * </pre>
      */
+    @Override
     public int getLength() {
       return length_;
     }
@@ -4568,6 +4724,7 @@ public final class CanalEntry {
      **字段mysql类型*
      * </pre>
      */
+    @Override
     public boolean hasMysqlType() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
@@ -4578,6 +4735,7 @@ public final class CanalEntry {
      **字段mysql类型*
      * </pre>
      */
+    @Override
     public String getMysqlType() {
       Object ref = mysqlType_;
       if (ref instanceof String) {
@@ -4599,6 +4757,7 @@ public final class CanalEntry {
      **字段mysql类型*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getMysqlTypeBytes() {
       Object ref = mysqlType_;
@@ -4626,6 +4785,7 @@ public final class CanalEntry {
       mysqlType_ = "";
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -4635,6 +4795,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -4672,6 +4833,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -4783,10 +4945,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(Column prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -4811,6 +4975,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Column_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Column_fieldAccessorTable
@@ -4837,6 +5002,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         index_ = 0;
@@ -4866,19 +5032,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Column_descriptor;
       }
 
+      @Override
       public Column getDefaultInstanceForType() {
         return Column.getDefaultInstance();
       }
 
+      @Override
       public Column build() {
         Column result = buildPartial();
         if (!result.isInitialized()) {
@@ -4887,6 +5057,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Column buildPartial() {
         Column result = new Column(this);
         int from_bitField0_ = bitField0_;
@@ -4941,6 +5112,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof Column) {
           return mergeFrom((Column)other);
@@ -5015,10 +5187,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -5046,6 +5220,7 @@ public final class CanalEntry {
        **字段下标*
        * </pre>
        */
+      @Override
       public boolean hasIndex() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
@@ -5056,6 +5231,7 @@ public final class CanalEntry {
        **字段下标*
        * </pre>
        */
+      @Override
       public int getIndex() {
         return index_;
       }
@@ -5094,6 +5270,7 @@ public final class CanalEntry {
        **字段java中类型*
        * </pre>
        */
+      @Override
       public boolean hasSqlType() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
@@ -5104,6 +5281,7 @@ public final class CanalEntry {
        **字段java中类型*
        * </pre>
        */
+      @Override
       public int getSqlType() {
         return sqlType_;
       }
@@ -5142,6 +5320,7 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        */
+      @Override
       public boolean hasName() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
@@ -5152,6 +5331,7 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        */
+      @Override
       public String getName() {
         Object ref = name_;
         if (!(ref instanceof String)) {
@@ -5173,6 +5353,7 @@ public final class CanalEntry {
        **字段名称(忽略大小写)，在mysql中是没有的*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getNameBytes() {
         Object ref = name_;
@@ -5242,6 +5423,7 @@ public final class CanalEntry {
        **是否是主键*
        * </pre>
        */
+      @Override
       public boolean hasIsKey() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
@@ -5252,6 +5434,7 @@ public final class CanalEntry {
        **是否是主键*
        * </pre>
        */
+      @Override
       public boolean getIsKey() {
         return isKey_;
       }
@@ -5290,6 +5473,7 @@ public final class CanalEntry {
        **如果EventType=UPDATE,用于标识这个字段值是否有修改*
        * </pre>
        */
+      @Override
       public boolean hasUpdated() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
@@ -5300,6 +5484,7 @@ public final class CanalEntry {
        **如果EventType=UPDATE,用于标识这个字段值是否有修改*
        * </pre>
        */
+      @Override
       public boolean getUpdated() {
         return updated_;
       }
@@ -5338,6 +5523,7 @@ public final class CanalEntry {
        ** 标识是否为空  *
        * </pre>
        */
+      @Override
       public boolean hasIsNull() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
@@ -5348,6 +5534,7 @@ public final class CanalEntry {
        ** 标识是否为空  *
        * </pre>
        */
+      @Override
       public boolean getIsNull() {
         return isNull_;
       }
@@ -5397,6 +5584,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -5411,6 +5599,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -5425,6 +5614,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -5619,6 +5809,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -5633,6 +5824,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<? extends PairOrBuilder>
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -5698,6 +5890,7 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        */
+      @Override
       public boolean hasValue() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
@@ -5708,6 +5901,7 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        */
+      @Override
       public String getValue() {
         Object ref = value_;
         if (!(ref instanceof String)) {
@@ -5729,6 +5923,7 @@ public final class CanalEntry {
        ** 字段值,timestamp,Datetime是一个时间格式的文本 *
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getValueBytes() {
         Object ref = value_;
@@ -5798,6 +5993,7 @@ public final class CanalEntry {
        ** 对应数据对象原始长度 *
        * </pre>
        */
+      @Override
       public boolean hasLength() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
@@ -5808,6 +6004,7 @@ public final class CanalEntry {
        ** 对应数据对象原始长度 *
        * </pre>
        */
+      @Override
       public int getLength() {
         return length_;
       }
@@ -5846,6 +6043,7 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        */
+      @Override
       public boolean hasMysqlType() {
         return ((bitField0_ & 0x00000200) == 0x00000200);
       }
@@ -5856,6 +6054,7 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        */
+      @Override
       public String getMysqlType() {
         Object ref = mysqlType_;
         if (!(ref instanceof String)) {
@@ -5877,6 +6076,7 @@ public final class CanalEntry {
        **字段mysql类型*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getMysqlTypeBytes() {
         Object ref = mysqlType_;
@@ -6101,6 +6301,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public RowData getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -6184,6 +6385,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowData_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowData_fieldAccessorTable
@@ -6193,6 +6395,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<RowData> PARSER =
         new com.google.protobuf.AbstractParser<RowData>() {
+      @Override
       public RowData parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6215,6 +6418,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改前,删除前) *
      * </pre>
      */
+    @Override
     public java.util.List<Column> getBeforeColumnsList() {
       return beforeColumns_;
     }
@@ -6225,6 +6429,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改前,删除前) *
      * </pre>
      */
+    @Override
     public java.util.List<? extends ColumnOrBuilder>
         getBeforeColumnsOrBuilderList() {
       return beforeColumns_;
@@ -6236,6 +6441,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改前,删除前) *
      * </pre>
      */
+    @Override
     public int getBeforeColumnsCount() {
       return beforeColumns_.size();
     }
@@ -6246,6 +6452,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改前,删除前) *
      * </pre>
      */
+    @Override
     public Column getBeforeColumns(int index) {
       return beforeColumns_.get(index);
     }
@@ -6256,6 +6463,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改前,删除前) *
      * </pre>
      */
+    @Override
     public ColumnOrBuilder getBeforeColumnsOrBuilder(
         int index) {
       return beforeColumns_.get(index);
@@ -6270,6 +6478,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改后,新增后)  *
      * </pre>
      */
+    @Override
     public java.util.List<Column> getAfterColumnsList() {
       return afterColumns_;
     }
@@ -6280,6 +6489,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改后,新增后)  *
      * </pre>
      */
+    @Override
     public java.util.List<? extends ColumnOrBuilder>
         getAfterColumnsOrBuilderList() {
       return afterColumns_;
@@ -6291,6 +6501,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改后,新增后)  *
      * </pre>
      */
+    @Override
     public int getAfterColumnsCount() {
       return afterColumns_.size();
     }
@@ -6301,6 +6512,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改后,新增后)  *
      * </pre>
      */
+    @Override
     public Column getAfterColumns(int index) {
       return afterColumns_.get(index);
     }
@@ -6311,6 +6523,7 @@ public final class CanalEntry {
      ** 字段信息，增量数据(修改后,新增后)  *
      * </pre>
      */
+    @Override
     public ColumnOrBuilder getAfterColumnsOrBuilder(
         int index) {
       return afterColumns_.get(index);
@@ -6325,6 +6538,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<Pair> getPropsList() {
       return props_;
     }
@@ -6335,6 +6549,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<? extends PairOrBuilder>
         getPropsOrBuilderList() {
       return props_;
@@ -6346,6 +6561,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public int getPropsCount() {
       return props_.size();
     }
@@ -6356,6 +6572,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public Pair getProps(int index) {
       return props_.get(index);
     }
@@ -6366,6 +6583,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -6377,6 +6595,7 @@ public final class CanalEntry {
       props_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -6386,6 +6605,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -6402,6 +6622,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -6485,10 +6706,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(RowData prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -6509,6 +6732,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowData_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowData_fieldAccessorTable
@@ -6537,6 +6761,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         if (beforeColumnsBuilder_ == null) {
@@ -6560,19 +6785,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowData_descriptor;
       }
 
+      @Override
       public RowData getDefaultInstanceForType() {
         return RowData.getDefaultInstance();
       }
 
+      @Override
       public RowData build() {
         RowData result = buildPartial();
         if (!result.isInitialized()) {
@@ -6581,6 +6810,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public RowData buildPartial() {
         RowData result = new RowData(this);
         int from_bitField0_ = bitField0_;
@@ -6615,6 +6845,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof RowData) {
           return mergeFrom((RowData)other);
@@ -6708,10 +6939,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6750,6 +6983,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改前,删除前) *
        * </pre>
        */
+      @Override
       public java.util.List<Column> getBeforeColumnsList() {
         if (beforeColumnsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(beforeColumns_);
@@ -6764,6 +6998,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改前,删除前) *
        * </pre>
        */
+      @Override
       public int getBeforeColumnsCount() {
         if (beforeColumnsBuilder_ == null) {
           return beforeColumns_.size();
@@ -6778,6 +7013,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改前,删除前) *
        * </pre>
        */
+      @Override
       public Column getBeforeColumns(int index) {
         if (beforeColumnsBuilder_ == null) {
           return beforeColumns_.get(index);
@@ -6972,6 +7208,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改前,删除前) *
        * </pre>
        */
+      @Override
       public ColumnOrBuilder getBeforeColumnsOrBuilder(
           int index) {
         if (beforeColumnsBuilder_ == null) {
@@ -6986,6 +7223,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改前,删除前) *
        * </pre>
        */
+      @Override
       public java.util.List<? extends ColumnOrBuilder>
            getBeforeColumnsOrBuilderList() {
         if (beforeColumnsBuilder_ != null) {
@@ -7062,6 +7300,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改后,新增后)  *
        * </pre>
        */
+      @Override
       public java.util.List<Column> getAfterColumnsList() {
         if (afterColumnsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(afterColumns_);
@@ -7076,6 +7315,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改后,新增后)  *
        * </pre>
        */
+      @Override
       public int getAfterColumnsCount() {
         if (afterColumnsBuilder_ == null) {
           return afterColumns_.size();
@@ -7090,6 +7330,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改后,新增后)  *
        * </pre>
        */
+      @Override
       public Column getAfterColumns(int index) {
         if (afterColumnsBuilder_ == null) {
           return afterColumns_.get(index);
@@ -7284,6 +7525,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改后,新增后)  *
        * </pre>
        */
+      @Override
       public ColumnOrBuilder getAfterColumnsOrBuilder(
           int index) {
         if (afterColumnsBuilder_ == null) {
@@ -7298,6 +7540,7 @@ public final class CanalEntry {
        ** 字段信息，增量数据(修改后,新增后)  *
        * </pre>
        */
+      @Override
       public java.util.List<? extends ColumnOrBuilder>
            getAfterColumnsOrBuilderList() {
         if (afterColumnsBuilder_ != null) {
@@ -7374,6 +7617,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -7388,6 +7632,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -7402,6 +7647,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -7596,6 +7842,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -7610,6 +7857,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<? extends PairOrBuilder>
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -7894,6 +8142,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public RowChange getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -7999,6 +8248,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowChange_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowChange_fieldAccessorTable
@@ -8008,6 +8258,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<RowChange> PARSER =
         new com.google.protobuf.AbstractParser<RowChange>() {
+      @Override
       public RowChange parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -8031,6 +8282,7 @@ public final class CanalEntry {
      **tableId,由数据库产生*
      * </pre>
      */
+    @Override
     public boolean hasTableId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
@@ -8041,6 +8293,7 @@ public final class CanalEntry {
      **tableId,由数据库产生*
      * </pre>
      */
+    @Override
     public long getTableId() {
       return tableId_;
     }
@@ -8054,6 +8307,7 @@ public final class CanalEntry {
      **数据变更类型*
      * </pre>
      */
+    @Override
     public boolean hasEventType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
@@ -8064,6 +8318,7 @@ public final class CanalEntry {
      **数据变更类型*
      * </pre>
      */
+    @Override
     public EventType getEventType() {
       return eventType_;
     }
@@ -8077,6 +8332,7 @@ public final class CanalEntry {
      ** 标识是否是ddl语句  *
      * </pre>
      */
+    @Override
     public boolean hasIsDdl() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
@@ -8087,6 +8343,7 @@ public final class CanalEntry {
      ** 标识是否是ddl语句  *
      * </pre>
      */
+    @Override
     public boolean getIsDdl() {
       return isDdl_;
     }
@@ -8100,6 +8357,7 @@ public final class CanalEntry {
      ** ddl/query的sql语句  *
      * </pre>
      */
+    @Override
     public boolean hasSql() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
@@ -8110,6 +8368,7 @@ public final class CanalEntry {
      ** ddl/query的sql语句  *
      * </pre>
      */
+    @Override
     public String getSql() {
       Object ref = sql_;
       if (ref instanceof String) {
@@ -8131,6 +8390,7 @@ public final class CanalEntry {
      ** ddl/query的sql语句  *
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getSqlBytes() {
       Object ref = sql_;
@@ -8154,6 +8414,7 @@ public final class CanalEntry {
      ** 一次数据库变更可能存在多行  *
      * </pre>
      */
+    @Override
     public java.util.List<RowData> getRowDatasList() {
       return rowDatas_;
     }
@@ -8164,6 +8425,7 @@ public final class CanalEntry {
      ** 一次数据库变更可能存在多行  *
      * </pre>
      */
+    @Override
     public java.util.List<? extends RowDataOrBuilder>
         getRowDatasOrBuilderList() {
       return rowDatas_;
@@ -8175,6 +8437,7 @@ public final class CanalEntry {
      ** 一次数据库变更可能存在多行  *
      * </pre>
      */
+    @Override
     public int getRowDatasCount() {
       return rowDatas_.size();
     }
@@ -8185,6 +8448,7 @@ public final class CanalEntry {
      ** 一次数据库变更可能存在多行  *
      * </pre>
      */
+    @Override
     public RowData getRowDatas(int index) {
       return rowDatas_.get(index);
     }
@@ -8195,6 +8459,7 @@ public final class CanalEntry {
      ** 一次数据库变更可能存在多行  *
      * </pre>
      */
+    @Override
     public RowDataOrBuilder getRowDatasOrBuilder(
         int index) {
       return rowDatas_.get(index);
@@ -8209,6 +8474,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<Pair> getPropsList() {
       return props_;
     }
@@ -8219,6 +8485,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<? extends PairOrBuilder>
         getPropsOrBuilderList() {
       return props_;
@@ -8230,6 +8497,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public int getPropsCount() {
       return props_.size();
     }
@@ -8240,6 +8508,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public Pair getProps(int index) {
       return props_.get(index);
     }
@@ -8250,6 +8519,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -8264,6 +8534,7 @@ public final class CanalEntry {
      ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
      * </pre>
      */
+    @Override
     public boolean hasDdlSchemaName() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
@@ -8274,6 +8545,7 @@ public final class CanalEntry {
      ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
      * </pre>
      */
+    @Override
     public String getDdlSchemaName() {
       Object ref = ddlSchemaName_;
       if (ref instanceof String) {
@@ -8295,6 +8567,7 @@ public final class CanalEntry {
      ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getDdlSchemaNameBytes() {
       Object ref = ddlSchemaName_;
@@ -8319,6 +8592,7 @@ public final class CanalEntry {
       ddlSchemaName_ = "";
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -8328,6 +8602,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -8356,6 +8631,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -8455,10 +8731,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(RowChange prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -8483,6 +8761,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowChange_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowChange_fieldAccessorTable
@@ -8510,6 +8789,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         tableId_ = 0L;
@@ -8537,19 +8817,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_RowChange_descriptor;
       }
 
+      @Override
       public RowChange getDefaultInstanceForType() {
         return RowChange.getDefaultInstance();
       }
 
+      @Override
       public RowChange build() {
         RowChange result = buildPartial();
         if (!result.isInitialized()) {
@@ -8558,6 +8842,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public RowChange buildPartial() {
         RowChange result = new RowChange(this);
         int from_bitField0_ = bitField0_;
@@ -8605,6 +8890,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof RowChange) {
           return mergeFrom((RowChange)other);
@@ -8691,10 +8977,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -8722,6 +9010,7 @@ public final class CanalEntry {
        **tableId,由数据库产生*
        * </pre>
        */
+      @Override
       public boolean hasTableId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
@@ -8732,6 +9021,7 @@ public final class CanalEntry {
        **tableId,由数据库产生*
        * </pre>
        */
+      @Override
       public long getTableId() {
         return tableId_;
       }
@@ -8770,6 +9060,7 @@ public final class CanalEntry {
        **数据变更类型*
        * </pre>
        */
+      @Override
       public boolean hasEventType() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
@@ -8780,6 +9071,7 @@ public final class CanalEntry {
        **数据变更类型*
        * </pre>
        */
+      @Override
       public EventType getEventType() {
         return eventType_;
       }
@@ -8821,6 +9113,7 @@ public final class CanalEntry {
        ** 标识是否是ddl语句  *
        * </pre>
        */
+      @Override
       public boolean hasIsDdl() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
@@ -8831,6 +9124,7 @@ public final class CanalEntry {
        ** 标识是否是ddl语句  *
        * </pre>
        */
+      @Override
       public boolean getIsDdl() {
         return isDdl_;
       }
@@ -8869,6 +9163,7 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        */
+      @Override
       public boolean hasSql() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
@@ -8879,6 +9174,7 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        */
+      @Override
       public String getSql() {
         Object ref = sql_;
         if (!(ref instanceof String)) {
@@ -8900,6 +9196,7 @@ public final class CanalEntry {
        ** ddl/query的sql语句  *
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getSqlBytes() {
         Object ref = sql_;
@@ -8980,6 +9277,7 @@ public final class CanalEntry {
        ** 一次数据库变更可能存在多行  *
        * </pre>
        */
+      @Override
       public java.util.List<RowData> getRowDatasList() {
         if (rowDatasBuilder_ == null) {
           return java.util.Collections.unmodifiableList(rowDatas_);
@@ -8994,6 +9292,7 @@ public final class CanalEntry {
        ** 一次数据库变更可能存在多行  *
        * </pre>
        */
+      @Override
       public int getRowDatasCount() {
         if (rowDatasBuilder_ == null) {
           return rowDatas_.size();
@@ -9008,6 +9307,7 @@ public final class CanalEntry {
        ** 一次数据库变更可能存在多行  *
        * </pre>
        */
+      @Override
       public RowData getRowDatas(int index) {
         if (rowDatasBuilder_ == null) {
           return rowDatas_.get(index);
@@ -9202,6 +9502,7 @@ public final class CanalEntry {
        ** 一次数据库变更可能存在多行  *
        * </pre>
        */
+      @Override
       public RowDataOrBuilder getRowDatasOrBuilder(
           int index) {
         if (rowDatasBuilder_ == null) {
@@ -9216,6 +9517,7 @@ public final class CanalEntry {
        ** 一次数据库变更可能存在多行  *
        * </pre>
        */
+      @Override
       public java.util.List<? extends RowDataOrBuilder>
            getRowDatasOrBuilderList() {
         if (rowDatasBuilder_ != null) {
@@ -9292,6 +9594,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -9306,6 +9609,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -9320,6 +9624,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -9514,6 +9819,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -9528,6 +9834,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<? extends PairOrBuilder>
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -9593,6 +9900,7 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        */
+      @Override
       public boolean hasDdlSchemaName() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
@@ -9603,6 +9911,7 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        */
+      @Override
       public String getDdlSchemaName() {
         Object ref = ddlSchemaName_;
         if (!(ref instanceof String)) {
@@ -9624,6 +9933,7 @@ public final class CanalEntry {
        ** ddl/query的schemaName，会存在跨库ddl，需要保留执行ddl的当前schemaName  *
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDdlSchemaNameBytes() {
         Object ref = ddlSchemaName_;
@@ -9826,6 +10136,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public TransactionBegin getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -9903,6 +10214,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_fieldAccessorTable
@@ -9912,6 +10224,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<TransactionBegin> PARSER =
         new com.google.protobuf.AbstractParser<TransactionBegin>() {
+      @Override
       public TransactionBegin parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -9935,6 +10248,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      */
+    @Override
     public boolean hasExecuteTime() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
@@ -9945,6 +10259,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      */
+    @Override
     public long getExecuteTime() {
       return executeTime_;
     }
@@ -9958,6 +10273,7 @@ public final class CanalEntry {
      **已废弃，Begin里不提供事务id*
      * </pre>
      */
+    @Override
     public boolean hasTransactionId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
@@ -9968,6 +10284,7 @@ public final class CanalEntry {
      **已废弃，Begin里不提供事务id*
      * </pre>
      */
+    @Override
     public String getTransactionId() {
       Object ref = transactionId_;
       if (ref instanceof String) {
@@ -9989,6 +10306,7 @@ public final class CanalEntry {
      **已废弃，Begin里不提供事务id*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getTransactionIdBytes() {
       Object ref = transactionId_;
@@ -10012,6 +10330,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<Pair> getPropsList() {
       return props_;
     }
@@ -10022,6 +10341,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<? extends PairOrBuilder>
         getPropsOrBuilderList() {
       return props_;
@@ -10033,6 +10353,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public int getPropsCount() {
       return props_.size();
     }
@@ -10043,6 +10364,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public Pair getProps(int index) {
       return props_.get(index);
     }
@@ -10053,6 +10375,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -10067,6 +10390,7 @@ public final class CanalEntry {
      **执行的thread Id*
      * </pre>
      */
+    @Override
     public boolean hasThreadId() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
@@ -10077,6 +10401,7 @@ public final class CanalEntry {
      **执行的thread Id*
      * </pre>
      */
+    @Override
     public long getThreadId() {
       return threadId_;
     }
@@ -10088,6 +10413,7 @@ public final class CanalEntry {
       threadId_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -10097,6 +10423,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -10116,6 +10443,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -10203,10 +10531,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(TransactionBegin prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -10231,6 +10561,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_fieldAccessorTable
@@ -10257,6 +10588,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         executeTime_ = 0L;
@@ -10274,19 +10606,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionBegin_descriptor;
       }
 
+      @Override
       public TransactionBegin getDefaultInstanceForType() {
         return TransactionBegin.getDefaultInstance();
       }
 
+      @Override
       public TransactionBegin build() {
         TransactionBegin result = buildPartial();
         if (!result.isInitialized()) {
@@ -10295,6 +10631,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public TransactionBegin buildPartial() {
         TransactionBegin result = new TransactionBegin(this);
         int from_bitField0_ = bitField0_;
@@ -10325,6 +10662,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof TransactionBegin) {
           return mergeFrom((TransactionBegin)other);
@@ -10377,10 +10715,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -10408,6 +10748,7 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        */
+      @Override
       public boolean hasExecuteTime() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
@@ -10418,6 +10759,7 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        */
+      @Override
       public long getExecuteTime() {
         return executeTime_;
       }
@@ -10456,6 +10798,7 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        */
+      @Override
       public boolean hasTransactionId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
@@ -10466,6 +10809,7 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        */
+      @Override
       public String getTransactionId() {
         Object ref = transactionId_;
         if (!(ref instanceof String)) {
@@ -10487,6 +10831,7 @@ public final class CanalEntry {
        **已废弃，Begin里不提供事务id*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getTransactionIdBytes() {
         Object ref = transactionId_;
@@ -10567,6 +10912,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -10581,6 +10927,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -10595,6 +10942,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -10789,6 +11137,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -10803,6 +11152,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<? extends PairOrBuilder>
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -10868,6 +11218,7 @@ public final class CanalEntry {
        **执行的thread Id*
        * </pre>
        */
+      @Override
       public boolean hasThreadId() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
@@ -10878,6 +11229,7 @@ public final class CanalEntry {
        **执行的thread Id*
        * </pre>
        */
+      @Override
       public long getThreadId() {
         return threadId_;
       }
@@ -11032,6 +11384,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public TransactionEnd getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -11104,6 +11457,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionEnd_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionEnd_fieldAccessorTable
@@ -11113,6 +11467,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<TransactionEnd> PARSER =
         new com.google.protobuf.AbstractParser<TransactionEnd>() {
+      @Override
       public TransactionEnd parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -11136,6 +11491,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      */
+    @Override
     public boolean hasExecuteTime() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
@@ -11146,6 +11502,7 @@ public final class CanalEntry {
      **已废弃，请使用header里的executeTime*
      * </pre>
      */
+    @Override
     public long getExecuteTime() {
       return executeTime_;
     }
@@ -11159,6 +11516,7 @@ public final class CanalEntry {
      **事务号*
      * </pre>
      */
+    @Override
     public boolean hasTransactionId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
@@ -11169,6 +11527,7 @@ public final class CanalEntry {
      **事务号*
      * </pre>
      */
+    @Override
     public String getTransactionId() {
       Object ref = transactionId_;
       if (ref instanceof String) {
@@ -11190,6 +11549,7 @@ public final class CanalEntry {
      **事务号*
      * </pre>
      */
+    @Override
     public com.google.protobuf.ByteString
         getTransactionIdBytes() {
       Object ref = transactionId_;
@@ -11213,6 +11573,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<Pair> getPropsList() {
       return props_;
     }
@@ -11223,6 +11584,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public java.util.List<? extends PairOrBuilder>
         getPropsOrBuilderList() {
       return props_;
@@ -11234,6 +11596,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public int getPropsCount() {
       return props_.size();
     }
@@ -11244,6 +11607,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public Pair getProps(int index) {
       return props_.get(index);
     }
@@ -11254,6 +11618,7 @@ public final class CanalEntry {
      **预留扩展*
      * </pre>
      */
+    @Override
     public PairOrBuilder getPropsOrBuilder(
         int index) {
       return props_.get(index);
@@ -11265,6 +11630,7 @@ public final class CanalEntry {
       props_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -11274,6 +11640,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -11290,6 +11657,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -11373,10 +11741,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(TransactionEnd prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -11401,6 +11771,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionEnd_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionEnd_fieldAccessorTable
@@ -11427,6 +11798,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         executeTime_ = 0L;
@@ -11442,19 +11814,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_TransactionEnd_descriptor;
       }
 
+      @Override
       public TransactionEnd getDefaultInstanceForType() {
         return TransactionEnd.getDefaultInstance();
       }
 
+      @Override
       public TransactionEnd build() {
         TransactionEnd result = buildPartial();
         if (!result.isInitialized()) {
@@ -11463,6 +11839,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public TransactionEnd buildPartial() {
         TransactionEnd result = new TransactionEnd(this);
         int from_bitField0_ = bitField0_;
@@ -11489,6 +11866,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof TransactionEnd) {
           return mergeFrom((TransactionEnd)other);
@@ -11538,10 +11916,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -11569,6 +11949,7 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        */
+      @Override
       public boolean hasExecuteTime() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
@@ -11579,6 +11960,7 @@ public final class CanalEntry {
        **已废弃，请使用header里的executeTime*
        * </pre>
        */
+      @Override
       public long getExecuteTime() {
         return executeTime_;
       }
@@ -11617,6 +11999,7 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        */
+      @Override
       public boolean hasTransactionId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
@@ -11627,6 +12010,7 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        */
+      @Override
       public String getTransactionId() {
         Object ref = transactionId_;
         if (!(ref instanceof String)) {
@@ -11648,6 +12032,7 @@ public final class CanalEntry {
        **事务号*
        * </pre>
        */
+      @Override
       public com.google.protobuf.ByteString
           getTransactionIdBytes() {
         Object ref = transactionId_;
@@ -11728,6 +12113,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<Pair> getPropsList() {
         if (propsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(props_);
@@ -11742,6 +12128,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public int getPropsCount() {
         if (propsBuilder_ == null) {
           return props_.size();
@@ -11756,6 +12143,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public Pair getProps(int index) {
         if (propsBuilder_ == null) {
           return props_.get(index);
@@ -11950,6 +12338,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public PairOrBuilder getPropsOrBuilder(
           int index) {
         if (propsBuilder_ == null) {
@@ -11964,6 +12353,7 @@ public final class CanalEntry {
        **预留扩展*
        * </pre>
        */
+      @Override
       public java.util.List<? extends PairOrBuilder>
            getPropsOrBuilderList() {
         if (propsBuilder_ != null) {
@@ -12087,6 +12477,7 @@ public final class CanalEntry {
       return defaultInstance;
     }
 
+    @Override
     public Pair getDefaultInstanceForType() {
       return defaultInstance;
     }
@@ -12149,6 +12540,7 @@ public final class CanalEntry {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Pair_descriptor;
     }
 
+    @Override
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Pair_fieldAccessorTable
@@ -12158,6 +12550,7 @@ public final class CanalEntry {
 
     public static com.google.protobuf.Parser<Pair> PARSER =
         new com.google.protobuf.AbstractParser<Pair>() {
+      @Override
       public Pair parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -12177,12 +12570,14 @@ public final class CanalEntry {
     /**
      * <code>optional string key = 1;</code>
      */
+    @Override
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
      * <code>optional string key = 1;</code>
      */
+    @Override
     public String getKey() {
       Object ref = key_;
       if (ref instanceof String) {
@@ -12200,6 +12595,7 @@ public final class CanalEntry {
     /**
      * <code>optional string key = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getKeyBytes() {
       Object ref = key_;
@@ -12219,12 +12615,14 @@ public final class CanalEntry {
     /**
      * <code>optional string value = 2;</code>
      */
+    @Override
     public boolean hasValue() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional string value = 2;</code>
      */
+    @Override
     public String getValue() {
       Object ref = value_;
       if (ref instanceof String) {
@@ -12242,6 +12640,7 @@ public final class CanalEntry {
     /**
      * <code>optional string value = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getValueBytes() {
       Object ref = value_;
@@ -12261,6 +12660,7 @@ public final class CanalEntry {
       value_ = "";
     }
     private byte memoizedIsInitialized = -1;
+    @Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -12270,6 +12670,7 @@ public final class CanalEntry {
       return true;
     }
 
+    @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -12283,6 +12684,7 @@ public final class CanalEntry {
     }
 
     private int memoizedSerializedSize = -1;
+    @Override
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
       if (size != -1) return size;
@@ -12362,10 +12764,12 @@ public final class CanalEntry {
     }
 
     public static Builder newBuilder() { return Builder.create(); }
+    @Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(Pair prototype) {
       return newBuilder().mergeFrom(prototype);
     }
+    @Override
     public Builder toBuilder() { return newBuilder(this); }
 
     @Override
@@ -12390,6 +12794,7 @@ public final class CanalEntry {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Pair_descriptor;
       }
 
+      @Override
       protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Pair_fieldAccessorTable
@@ -12415,6 +12820,7 @@ public final class CanalEntry {
         return new Builder();
       }
 
+      @Override
       public Builder clear() {
         super.clear();
         key_ = "";
@@ -12424,19 +12830,23 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public Builder clone() {
         return create().mergeFrom(buildPartial());
       }
 
+      @Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return CanalEntry.internal_static_com_alibaba_otter_canal_protocol_Pair_descriptor;
       }
 
+      @Override
       public Pair getDefaultInstanceForType() {
         return Pair.getDefaultInstance();
       }
 
+      @Override
       public Pair build() {
         Pair result = buildPartial();
         if (!result.isInitialized()) {
@@ -12445,6 +12855,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Pair buildPartial() {
         Pair result = new Pair(this);
         int from_bitField0_ = bitField0_;
@@ -12462,6 +12873,7 @@ public final class CanalEntry {
         return result;
       }
 
+      @Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof Pair) {
           return mergeFrom((Pair)other);
@@ -12487,10 +12899,12 @@ public final class CanalEntry {
         return this;
       }
 
+      @Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -12514,12 +12928,14 @@ public final class CanalEntry {
       /**
        * <code>optional string key = 1;</code>
        */
+      @Override
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
        * <code>optional string key = 1;</code>
        */
+      @Override
       public String getKey() {
         Object ref = key_;
         if (!(ref instanceof String)) {
@@ -12537,6 +12953,7 @@ public final class CanalEntry {
       /**
        * <code>optional string key = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getKeyBytes() {
         Object ref = key_;
@@ -12590,12 +13007,14 @@ public final class CanalEntry {
       /**
        * <code>optional string value = 2;</code>
        */
+      @Override
       public boolean hasValue() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional string value = 2;</code>
        */
+      @Override
       public String getValue() {
         Object ref = value_;
         if (!(ref instanceof String)) {
@@ -12613,6 +13032,7 @@ public final class CanalEntry {
       /**
        * <code>optional string value = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getValueBytes() {
         Object ref = value_;
@@ -12775,6 +13195,7 @@ public final class CanalEntry {
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          @Override
           public com.google.protobuf.ExtensionRegistry assignDescriptors(
               com.google.protobuf.Descriptors.FileDescriptor root) {
             descriptor = root;

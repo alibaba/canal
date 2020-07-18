@@ -53,6 +53,7 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
         return SingletonHolder.CANAL_SERVER_WITH_NETTY;
     }
 
+    @Override
     public void start() {
         super.start();
 
@@ -77,6 +78,7 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
         // 构造对应的pipeline
         bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
+            @Override
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipelines = Channels.pipeline();
                 pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
@@ -100,6 +102,7 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
         }
     }
 
+    @Override
     public void stop() {
         super.stop();
 

@@ -59,6 +59,7 @@ public class CanalInstanceConfig extends Model {
     @Transient
     private String       runningStatus = "0"; // 1: 运行中 0: 停止
 
+    @Override
     public void init() {
         status = "1";
     }

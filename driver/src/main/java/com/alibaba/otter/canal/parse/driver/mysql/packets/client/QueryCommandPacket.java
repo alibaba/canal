@@ -13,9 +13,11 @@ public class QueryCommandPacket extends CommandPacket {
         setCommand((byte) 0x03);
     }
 
+    @Override
     public void fromBytes(byte[] data) throws IOException {
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(getCommand());

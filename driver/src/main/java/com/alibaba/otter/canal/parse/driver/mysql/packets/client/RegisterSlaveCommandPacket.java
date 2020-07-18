@@ -24,6 +24,7 @@ public class RegisterSlaveCommandPacket extends CommandPacket {
         setCommand((byte) 0x15);
     }
 
+    @Override
     public void fromBytes(byte[] data) {
         // bypass
     }
@@ -37,6 +38,7 @@ public class RegisterSlaveCommandPacket extends CommandPacket {
         return b;
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(getCommand());

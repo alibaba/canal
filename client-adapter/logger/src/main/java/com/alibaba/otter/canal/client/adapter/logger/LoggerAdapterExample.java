@@ -29,6 +29,7 @@ public class LoggerAdapterExample implements OuterAdapter {
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
     }
 
+    @Override
     public void sync(List<Dml> dmls) {
         for (Dml dml : dmls) {
             sync(dml);

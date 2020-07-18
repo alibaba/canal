@@ -22,6 +22,7 @@ public class EOFPacket extends PacketWithHeaderPacket {
      *  2                     Status Flags
      * </pre>
      */
+    @Override
     public void fromBytes(byte[] data) {
         int index = 0;
         // 1. read field count
@@ -35,6 +36,7 @@ public class EOFPacket extends PacketWithHeaderPacket {
         // end read
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream(5);
         out.write(this.fieldCount);

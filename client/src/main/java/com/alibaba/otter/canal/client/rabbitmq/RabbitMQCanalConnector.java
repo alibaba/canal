@@ -63,6 +63,7 @@ public class RabbitMQCanalConnector implements CanalMQConnector {
         this.messageBlockingQueue = new LinkedBlockingQueue<>(1024);
     }
 
+    @Override
     public void connect() throws CanalClientException {
         ConnectionFactory factory = new ConnectionFactory();
         if (accessKey.length() > 0 && secretKey.length() > 0) {

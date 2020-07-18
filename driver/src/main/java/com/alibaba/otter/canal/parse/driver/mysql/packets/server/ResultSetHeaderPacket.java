@@ -30,6 +30,7 @@ public class ResultSetHeaderPacket extends PacketWithHeaderPacket {
     private long columnCount;
     private long extra;
 
+    @Override
     public void fromBytes(byte[] data) throws IOException {
         int index = 0;
         byte[] colCountBytes = ByteHelper.readBinaryCodedLengthBytes(data, index);
@@ -40,6 +41,7 @@ public class ResultSetHeaderPacket extends PacketWithHeaderPacket {
         }
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         return null;
     }
@@ -60,6 +62,7 @@ public class ResultSetHeaderPacket extends PacketWithHeaderPacket {
         this.extra = extra;
     }
 
+    @Override
     public String toString() {
         return "ResultSetHeaderPacket [columnCount=" + columnCount + ", extra=" + extra + "]";
     }

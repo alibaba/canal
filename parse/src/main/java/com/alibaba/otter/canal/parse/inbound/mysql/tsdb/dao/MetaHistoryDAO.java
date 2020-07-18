@@ -43,6 +43,7 @@ public class MetaHistoryDAO extends MetaBaseDAO {
         return getSqlMapClientTemplate().delete("meta_history.deleteByTimestamp", params);
     }
 
+    @Override
     protected void initDao() throws Exception {
         initTable("meta_history");
     }

@@ -17,6 +17,7 @@ import com.googlecode.aviator.runtime.type.AviatorObject;
  */
 public class RegexFunction extends AbstractFunction {
 
+    @Override
     public AviatorObject call(Map<String, Object> env, AviatorObject arg1, AviatorObject arg2) {
         String pattern = FunctionUtils.getStringValue(arg1, env);
         String text = FunctionUtils.getStringValue(arg2, env);
@@ -25,6 +26,7 @@ public class RegexFunction extends AbstractFunction {
         return AviatorBoolean.valueOf(isMatch);
     }
 
+    @Override
     public String getName() {
         return "regex";
     }

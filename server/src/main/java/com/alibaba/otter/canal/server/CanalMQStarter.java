@@ -75,6 +75,7 @@ public class CanalMQStarter {
 
             shutdownThread = new Thread() {
 
+                @Override
                 public void run() {
                     try {
                         logger.info("## stop the MQ workers");

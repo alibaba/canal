@@ -37,6 +37,7 @@ public class AviaterSimpleFilter implements CanalEventFilter<String> {
         }
     }
 
+    @Override
     public boolean filter(String filtered) throws CanalFilterException {
         if (list.isEmpty()) {
             return true;

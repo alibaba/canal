@@ -75,6 +75,7 @@ public class MixedLogPositionManager extends AbstractLogPositionManager {
         memoryLogPositionManager.persistLogPosition(destination, logPosition);
         executor.submit(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     zooKeeperLogPositionManager.persistLogPosition(destination, logPosition);

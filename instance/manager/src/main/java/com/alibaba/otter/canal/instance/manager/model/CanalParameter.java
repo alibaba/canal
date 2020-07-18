@@ -1012,6 +1012,7 @@ public class CanalParameter implements Serializable {
         this.alarmHandlerPluginDir = alarmHandlerPluginDir;
     }
 
+    @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this, CanalToStringStyle.DEFAULT_STYLE);
     }

@@ -71,10 +71,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
     private boolean              rdsOssMode                        = false;
 
+    @Override
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
     }
 
+    @Override
     protected void preDump(ErosaConnection connection) {
         if (!(connection instanceof MysqlConnection)) {
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
@@ -132,6 +134,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
+    @Override
     protected void afterDump(ErosaConnection connection) {
         super.afterDump(connection);
 
@@ -153,6 +156,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
+    @Override
     public void start() throws CanalParseException {
         if (runningInfo == null) { // 第一次链接主库
             runningInfo = masterInfo;
@@ -161,6 +165,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         super.start();
     }
 
+    @Override
     public void stop() throws CanalParseException {
         if (metaConnection != null) {
             try {
@@ -178,6 +183,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         super.stop();
     }
 
+    @Override
     protected TimerTask buildHeartBeatTimeTask(ErosaConnection connection) {
         if (!(connection instanceof MysqlConnection)) {
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
@@ -192,6 +198,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     }
 
+    @Override
     protected void stopHeartBeat() {
         TimerTask heartBeatTimerTask = this.heartBeatTimerTask;
         super.stopHeartBeat();
@@ -221,6 +228,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             this.mysqlConnection = mysqlConnection;
         }
 
+        @Override
         public void run() {
             try {
                 if (reconnect) {
@@ -273,11 +281,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     // 处理主备切换的逻辑
+    @Override
     public void doSwitch() {
         AuthenticationInfo newRunningInfo = (runningInfo.equals(masterInfo) ? standbyInfo : masterInfo);
         this.doSwitch(newRunningInfo);
     }
 
+    @Override
     public void doSwitch(AuthenticationInfo newRunningInfo) {
         // 1. 需要停止当前正在复制的过程
         // 2. 找到新的position点
@@ -350,6 +360,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
+    @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) throws IOException {
         if (isGTIDMode()) {
             // GTID模式下，CanalLogPositionManager里取最后的gtid，没有则取instanc配置中的
@@ -548,6 +559,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
             private LogPosition lastPosition;
 
+            @Override
             public boolean sink(LogEvent event) {
                 try {
                     CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, true);
@@ -761,6 +773,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
                 private LogPosition lastPosition;
 
+                @Override
                 public boolean sink(LogEvent event) {
                     EntryPosition entryPosition = null;
                     try {
@@ -916,10 +929,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         this.detectingSQL = detectingSQL;
     }
 
+    @Override
     public void setDetectingIntervalInSeconds(Integer detectingIntervalInSeconds) {
         this.detectingIntervalInSeconds = detectingIntervalInSeconds;
     }
 
+    @Override
     public void setDetectingEnable(boolean detectingEnable) {
         this.detectingEnable = detectingEnable;
     }

@@ -35,6 +35,7 @@ public class OKPacket extends PacketWithHeaderPacket {
      * 
      * @throws IOException
      */
+    @Override
     public void fromBytes(byte[] data) throws IOException {
         int index = 0;
         // 1. read field count
@@ -57,6 +58,7 @@ public class OKPacket extends PacketWithHeaderPacket {
         // end read
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         return null;
     }
@@ -109,6 +111,7 @@ public class OKPacket extends PacketWithHeaderPacket {
         this.message = message;
     }
 
+    @Override
     public String toString() {
         return "OKPacket [affectedRows=" + Arrays.toString(affectedRows) + ", fieldCount=" + fieldCount + ", insertId="
                + Arrays.toString(insertId) + ", message=" + message + ", serverStatus=" + serverStatus

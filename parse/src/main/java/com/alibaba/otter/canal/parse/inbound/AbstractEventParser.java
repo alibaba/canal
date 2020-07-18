@@ -82,6 +82,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     protected Thread.UncaughtExceptionHandler        handler                    = new Thread.UncaughtExceptionHandler() {
 
+                                                                                    @Override
                                                                                     public void uncaughtException(Thread t,
                                                                                                                   Throwable e) {
                                                                                         logger.error("parse events has an error",
@@ -136,6 +137,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         // 初始化一下
         transactionBuffer = new EventTransactionBuffer(new TransactionFlushCallback() {
 
+            @Override
             public void flush(List<CanalEntry.Entry> transaction) throws InterruptedException {
                 boolean successed = consumeTheEventAndProfilingIfNecessary(transaction);
                 if (!running) {
@@ -154,6 +156,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         });
     }
 
+    @Override
     public void start() {
         super.start();
         MDC.put("destination", destination);
@@ -167,6 +170,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         // 启动工作线程
         parseThread = new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 MDC.put("destination", String.valueOf(destination));
                 ErosaConnection erosaConnection = null;
@@ -212,6 +216,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
                             private LogPosition lastPosition;
 
+                            @Override
                             public boolean sink(EVENT event) {
                                 try {
                                     CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, false);
@@ -358,6 +363,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         parseThread.start();
     }
 
+    @Override
     public void stop() {
         super.stop();
 
@@ -502,6 +508,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected TimerTask buildHeartBeatTimeTask(ErosaConnection connection) {
         return new TimerTask() {
 
+            @Override
             public void run() {
                 try {
                     if (exception == null || lastEntryTime > 0) {

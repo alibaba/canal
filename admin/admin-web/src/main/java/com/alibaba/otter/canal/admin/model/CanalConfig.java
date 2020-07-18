@@ -41,6 +41,7 @@ public class CanalConfig extends Model {
     @WhenModified
     private Date   modifiedTime;
 
+    @Override
     public void init() {
         this.name = "canal.properties";
     }

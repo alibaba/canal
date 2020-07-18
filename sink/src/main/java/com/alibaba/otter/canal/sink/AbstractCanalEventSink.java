@@ -46,6 +46,7 @@ public abstract class AbstractCanalEventSink<T> extends AbstractCanalLifeCycle i
         return handlers;
     }
 
+    @Override
     public void interrupt() {
         // do nothing
     }

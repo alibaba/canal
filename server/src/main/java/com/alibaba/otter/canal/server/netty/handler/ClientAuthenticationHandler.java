@@ -47,6 +47,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
         this.embeddedServer = embeddedServer;
     }
 
+    @Override
     public void messageReceived(final ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         ChannelBuffer buffer = (ChannelBuffer) e.getMessage();
         final Packet packet = Packet.parseFrom(buffer.readBytes(buffer.readableBytes()).array());
@@ -89,6 +90,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                 // 鉴权一次性，暂不统计
                 NettyUtils.ack(ctx.getChannel(), new ChannelFutureListener() {
 
+                    @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
                         logger.info("remove unused channel handlers after authentication is done successfully.");
                         ctx.getPipeline().remove(HandshakeInitializationHandler.class.getName());
@@ -115,6 +117,7 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
 
                         IdleStateAwareChannelHandler idleStateAwareChannelHandler = new IdleStateAwareChannelHandler() {
 
+                            @Override
                             public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) throws Exception {
                                 logger.warn("channel:{} idle timeout exceeds, close channel to save server resources...",
                                     ctx.getChannel());

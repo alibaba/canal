@@ -84,6 +84,7 @@ public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
         // 启动定时工作任务
         executorService.scheduleAtFixedRate(new Runnable() {
 
+            @Override
             public void run() {
                 List<String> tasks = new ArrayList<String>(persistTasks);
                 for (String destination : tasks) {

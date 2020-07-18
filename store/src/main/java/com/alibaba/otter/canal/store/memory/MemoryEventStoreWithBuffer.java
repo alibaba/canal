@@ -80,6 +80,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         this.batchMode = batchMode;
     }
 
+    @Override
     public void start() throws CanalStoreException {
         super.start();
         if (Integer.bitCount(bufferSize) != 1) {
@@ -90,12 +91,14 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         entries = new Event[bufferSize];
     }
 
+    @Override
     public void stop() throws CanalStoreException {
         super.stop();
 
         cleanAll();
     }
 
+    @Override
     public void put(List<Event> data) throws InterruptedException, CanalStoreException {
         if (data == null || data.isEmpty()) {
             return;
@@ -121,6 +124,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public boolean put(List<Event> data, long timeout, TimeUnit unit) throws InterruptedException, CanalStoreException {
         if (data == null || data.isEmpty()) {
             return true;
@@ -151,6 +155,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public boolean tryPut(List<Event> data) throws CanalStoreException {
         if (data == null || data.isEmpty()) {
             return true;
@@ -170,14 +175,17 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public void put(Event data) throws InterruptedException, CanalStoreException {
         put(Arrays.asList(data));
     }
 
+    @Override
     public boolean put(Event data, long timeout, TimeUnit unit) throws InterruptedException, CanalStoreException {
         return put(Arrays.asList(data), timeout, unit);
     }
 
+    @Override
     public boolean tryPut(Event data) throws CanalStoreException {
         return tryPut(Arrays.asList(data));
     }
@@ -210,6 +218,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         notEmpty.signal();
     }
 
+    @Override
     public Events<Event> get(Position start, int batchSize) throws InterruptedException, CanalStoreException {
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
@@ -228,8 +237,9 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public Events<Event> get(Position start, int batchSize, long timeout, TimeUnit unit) throws InterruptedException,
-                                                                                        CanalStoreException {
+                                                                                                CanalStoreException {
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
@@ -257,6 +267,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public Events<Event> tryGet(Position start, int batchSize) throws CanalStoreException {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -358,6 +369,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public LogPosition getFirstPosition() throws CanalStoreException {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -387,6 +399,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public LogPosition getLatestPosition() throws CanalStoreException {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -410,10 +423,12 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public void ack(Position position) throws CanalStoreException {
         cleanUntil(position, -1L);
     }
 
+    @Override
     public void ack(Position position, Long seqId) throws CanalStoreException {
         cleanUntil(position, seqId);
     }
@@ -481,6 +496,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public void rollback() throws CanalStoreException {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -492,6 +508,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
     }
 
+    @Override
     public void cleanAll() throws CanalStoreException {
         final ReentrantLock lock = this.lock;
         lock.lock();

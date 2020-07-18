@@ -27,6 +27,7 @@ public class BinlogDumpCommandPacket extends CommandPacket {
         setCommand((byte) 0x12);
     }
 
+    @Override
     public void fromBytes(byte[] data) {
         // bypass
     }
@@ -47,6 +48,7 @@ public class BinlogDumpCommandPacket extends CommandPacket {
      * 
      * </pre>
      */
+    @Override
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // 0. write command number

@@ -73,10 +73,12 @@ public class URLClassExtensionLoader extends URLClassLoader {
             return false;
         }
 
+        @Override
         public boolean hasMoreElements() {
             return this.next();
         }
 
+        @Override
         public E nextElement() {
             if (!this.next()) {
                 throw new NoSuchElementException();
