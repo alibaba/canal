@@ -830,6 +830,7 @@ public final class AdminPacket {
       }
       private int magicNumberPresentCase_ = 0;
       private java.lang.Object magicNumberPresent_;
+      @Override
       public MagicNumberPresentCase
           getMagicNumberPresentCase() {
         return MagicNumberPresentCase.forNumber(
@@ -845,6 +846,7 @@ public final class AdminPacket {
 
       private int versionPresentCase_ = 0;
       private java.lang.Object versionPresent_;
+      @Override
       public VersionPresentCase
           getVersionPresentCase() {
         return VersionPresentCase.forNumber(
@@ -862,6 +864,7 @@ public final class AdminPacket {
       /**
        * <code>int32 magic_number = 1;</code>
        */
+      @Override
       public int getMagicNumber() {
         if (magicNumberPresentCase_ == 1) {
           return (java.lang.Integer) magicNumberPresent_;
@@ -892,6 +895,7 @@ public final class AdminPacket {
       /**
        * <code>int32 version = 2;</code>
        */
+      @Override
       public int getVersion() {
         if (versionPresentCase_ == 2) {
           return (java.lang.Integer) versionPresent_;
@@ -923,6 +927,7 @@ public final class AdminPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.PacketType type = 3;</code>
        */
+      @Override
       public int getTypeValue() {
         return type_;
       }
@@ -937,6 +942,7 @@ public final class AdminPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.PacketType type = 3;</code>
        */
+      @Override
       public com.alibaba.otter.canal.protocol.AdminPacket.PacketType getType() {
         @SuppressWarnings("deprecation")
         com.alibaba.otter.canal.protocol.AdminPacket.PacketType result = com.alibaba.otter.canal.protocol.AdminPacket.PacketType.valueOf(type_);
@@ -968,6 +974,7 @@ public final class AdminPacket {
       /**
        * <code>bytes body = 4;</code>
        */
+      @Override
       public com.google.protobuf.ByteString getBody() {
         return body_;
       }
@@ -1598,6 +1605,7 @@ public final class AdminPacket {
       }
       private int errorCodePresentCase_ = 0;
       private java.lang.Object errorCodePresent_;
+      @Override
       public ErrorCodePresentCase
           getErrorCodePresentCase() {
         return ErrorCodePresentCase.forNumber(
@@ -1615,6 +1623,7 @@ public final class AdminPacket {
       /**
        * <code>int32 code = 1;</code>
        */
+      @Override
       public int getCode() {
         if (errorCodePresentCase_ == 1) {
           return (java.lang.Integer) errorCodePresent_;
@@ -1650,6 +1659,7 @@ public final class AdminPacket {
        *
        * <code>string message = 2;</code>
        */
+      @Override
       public java.lang.String getMessage() {
         java.lang.Object ref = message_;
         if (!(ref instanceof java.lang.String)) {
@@ -1669,6 +1679,7 @@ public final class AdminPacket {
        *
        * <code>string message = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getMessageBytes() {
         java.lang.Object ref = message_;
@@ -2326,6 +2337,7 @@ public final class AdminPacket {
       }
       private int communicationEncodingPresentCase_ = 0;
       private java.lang.Object communicationEncodingPresent_;
+      @Override
       public CommunicationEncodingPresentCase
           getCommunicationEncodingPresentCase() {
         return CommunicationEncodingPresentCase.forNumber(
@@ -2343,6 +2355,7 @@ public final class AdminPacket {
       /**
        * <code>string communication_encoding = 1;</code>
        */
+      @Override
       public java.lang.String getCommunicationEncoding() {
         java.lang.Object ref = "";
         if (communicationEncodingPresentCase_ == 1) {
@@ -2363,6 +2376,7 @@ public final class AdminPacket {
       /**
        * <code>string communication_encoding = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getCommunicationEncodingBytes() {
         java.lang.Object ref = "";
@@ -2424,6 +2438,7 @@ public final class AdminPacket {
       /**
        * <code>bytes seeds = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString getSeeds() {
         return seeds_;
       }
@@ -3213,6 +3228,7 @@ public final class AdminPacket {
       }
       private int netReadTimeoutPresentCase_ = 0;
       private java.lang.Object netReadTimeoutPresent_;
+      @Override
       public NetReadTimeoutPresentCase
           getNetReadTimeoutPresentCase() {
         return NetReadTimeoutPresentCase.forNumber(
@@ -3228,6 +3244,7 @@ public final class AdminPacket {
 
       private int netWriteTimeoutPresentCase_ = 0;
       private java.lang.Object netWriteTimeoutPresent_;
+      @Override
       public NetWriteTimeoutPresentCase
           getNetWriteTimeoutPresentCase() {
         return NetWriteTimeoutPresentCase.forNumber(
@@ -3246,6 +3263,7 @@ public final class AdminPacket {
       /**
        * <code>string username = 1;</code>
        */
+      @Override
       public java.lang.String getUsername() {
         java.lang.Object ref = username_;
         if (!(ref instanceof java.lang.String)) {
@@ -3261,6 +3279,7 @@ public final class AdminPacket {
       /**
        * <code>string username = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getUsernameBytes() {
         java.lang.Object ref = username_;
@@ -3319,6 +3338,7 @@ public final class AdminPacket {
        *
        * <code>bytes password = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString getPassword() {
         return password_;
       }
@@ -3359,6 +3379,7 @@ public final class AdminPacket {
        *
        * <code>int32 net_read_timeout = 3;</code>
        */
+      @Override
       public int getNetReadTimeout() {
         if (netReadTimeoutPresentCase_ == 3) {
           return (java.lang.Integer) netReadTimeoutPresent_;
@@ -3401,6 +3422,7 @@ public final class AdminPacket {
        *
        * <code>int32 net_write_timeout = 4;</code>
        */
+      @Override
       public int getNetWriteTimeout() {
         if (netWriteTimeoutPresentCase_ == 4) {
           return (java.lang.Integer) netWriteTimeoutPresent_;
@@ -3943,6 +3965,7 @@ public final class AdminPacket {
        *
        * <code>string action = 1;</code>
        */
+      @Override
       public java.lang.String getAction() {
         java.lang.Object ref = action_;
         if (!(ref instanceof java.lang.String)) {
@@ -3962,6 +3985,7 @@ public final class AdminPacket {
        *
        * <code>string action = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getActionBytes() {
         java.lang.Object ref = action_;
@@ -4597,6 +4621,7 @@ public final class AdminPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = destination_;
         if (!(ref instanceof java.lang.String)) {
@@ -4612,6 +4637,7 @@ public final class AdminPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = destination_;
@@ -4670,6 +4696,7 @@ public final class AdminPacket {
        *
        * <code>string action = 2;</code>
        */
+      @Override
       public java.lang.String getAction() {
         java.lang.Object ref = action_;
         if (!(ref instanceof java.lang.String)) {
@@ -4689,6 +4716,7 @@ public final class AdminPacket {
        *
        * <code>string action = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getActionBytes() {
         java.lang.Object ref = action_;
@@ -5720,6 +5748,7 @@ public final class AdminPacket {
       }
       private int destinationPresentCase_ = 0;
       private java.lang.Object destinationPresent_;
+      @Override
       public DestinationPresentCase
           getDestinationPresentCase() {
         return DestinationPresentCase.forNumber(
@@ -5735,6 +5764,7 @@ public final class AdminPacket {
 
       private int filePresentCase_ = 0;
       private java.lang.Object filePresent_;
+      @Override
       public FilePresentCase
           getFilePresentCase() {
         return FilePresentCase.forNumber(
@@ -5750,6 +5780,7 @@ public final class AdminPacket {
 
       private int countPresentCase_ = 0;
       private java.lang.Object countPresent_;
+      @Override
       public CountPresentCase
           getCountPresentCase() {
         return CountPresentCase.forNumber(
@@ -5772,6 +5803,7 @@ public final class AdminPacket {
        *
        * <code>string type = 1;</code>
        */
+      @Override
       public java.lang.String getType() {
         java.lang.Object ref = type_;
         if (!(ref instanceof java.lang.String)) {
@@ -5791,6 +5823,7 @@ public final class AdminPacket {
        *
        * <code>string type = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getTypeBytes() {
         java.lang.Object ref = type_;
@@ -5857,6 +5890,7 @@ public final class AdminPacket {
       /**
        * <code>string action = 2;</code>
        */
+      @Override
       public java.lang.String getAction() {
         java.lang.Object ref = action_;
         if (!(ref instanceof java.lang.String)) {
@@ -5872,6 +5906,7 @@ public final class AdminPacket {
       /**
        * <code>string action = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getActionBytes() {
         java.lang.Object ref = action_;
@@ -5925,6 +5960,7 @@ public final class AdminPacket {
       /**
        * <code>string destination = 3;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = "";
         if (destinationPresentCase_ == 3) {
@@ -5945,6 +5981,7 @@ public final class AdminPacket {
       /**
        * <code>string destination = 3;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = "";
@@ -6005,6 +6042,7 @@ public final class AdminPacket {
       /**
        * <code>string file = 4;</code>
        */
+      @Override
       public java.lang.String getFile() {
         java.lang.Object ref = "";
         if (filePresentCase_ == 4) {
@@ -6025,6 +6063,7 @@ public final class AdminPacket {
       /**
        * <code>string file = 4;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getFileBytes() {
         java.lang.Object ref = "";
@@ -6089,6 +6128,7 @@ public final class AdminPacket {
        *
        * <code>int32 count = 5;</code>
        */
+      @Override
       public int getCount() {
         if (countPresentCase_ == 5) {
           return (java.lang.Integer) countPresent_;
