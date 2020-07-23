@@ -51,6 +51,13 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>../kudu/src/main/resources/kudu</directory>
+            <outputDirectory>/conf/kudu</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>../rdb/src/main/resources/</directory>
             <outputDirectory>/conf</outputDirectory>
             <excludes>

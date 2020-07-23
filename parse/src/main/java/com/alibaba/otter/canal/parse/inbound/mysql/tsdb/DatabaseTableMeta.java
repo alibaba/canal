@@ -665,6 +665,14 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         this.fieldBlackFilterMap = fieldBlackFilterMap;
     }
 
+    public Map<String, List<String>> getFieldFilterMap() {
+        return fieldFilterMap;
+    }
+
+    public Map<String, List<String>> getFieldBlackFilterMap() {
+        return fieldBlackFilterMap;
+    }
+
     public int getSnapshotInterval() {
         return snapshotInterval;
     }
@@ -693,8 +701,4 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         return false;
     }
 
-    public static void main(String[] args) {
-        String str = StringUtils.substringBefore("int(11)", "(");
-        System.out.println(str);
-    }
 }

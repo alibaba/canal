@@ -7,18 +7,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.alibaba.otter.canal.connector.core.util.Callback;
+import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.alibaba.otter.canal.common.MQProperties;
+import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalMQConfig;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
-import com.alibaba.otter.canal.spi.CanalMQProducer;
+
+import com.alibaba.otter.canal.connector.core.config.MQProperties;
 
 public class CanalMQStarter {
 
@@ -30,7 +33,7 @@ public class CanalMQStarter {
 
     private CanalMQProducer              canalMQProducer;
 
-    private MQProperties                 properties;
+    private MQProperties                 mqProperties;
 
     private CanalServerWithEmbedded      canalServer;
 
@@ -42,15 +45,14 @@ public class CanalMQStarter {
         this.canalMQProducer = canalMQProducer;
     }
 
-    public synchronized void start(MQProperties properties, String destinations) {
+    public synchronized void start(String destinations) {
         try {
             if (running) {
                 return;
             }
-            this.properties = properties;
-            canalMQProducer.init(properties);
+            mqProperties = canalMQProducer.getMqProperties();
             // set filterTransactionEntry
-            if (properties.isFilterTransactionEntry()) {
+            if (mqProperties.isFilterTransactionEntry()) {
                 System.setProperty("canal.instance.filter.transaction.entry", "true");
             }
 
@@ -151,7 +153,7 @@ public class CanalMQStarter {
                     }
                     continue;
                 }
-                MQProperties.CanalDestination canalDestination = new MQProperties.CanalDestination();
+                MQDestination canalDestination = new MQDestination();
                 canalDestination.setCanalDestination(destination);
                 CanalMQConfig mqConfig = canalInstance.getMqConfig();
                 canalDestination.setTopic(mqConfig.getTopic());
@@ -163,15 +165,13 @@ public class CanalMQStarter {
                 canalServer.subscribe(clientIdentity);
                 logger.info("## the MQ producer: {} is running now ......", destination);
 
-                Long getTimeout = properties.getCanalGetTimeout();
-                int getBatchSize = properties.getCanalBatchSize();
+                Integer getTimeout = mqProperties.getFetchTimeout();
+                Integer getBatchSize = mqProperties.getBatchSize();
                 while (running && destinationRunning.get()) {
                     Message message;
                     if (getTimeout != null && getTimeout > 0) {
-                        message = canalServer.getWithoutAck(clientIdentity,
-                            getBatchSize,
-                            getTimeout,
-                            TimeUnit.MILLISECONDS);
+                        message = canalServer
+                            .getWithoutAck(clientIdentity, getBatchSize, getTimeout.longValue(), TimeUnit.MILLISECONDS);
                     } else {
                         message = canalServer.getWithoutAck(clientIdentity, getBatchSize);
                     }
@@ -180,7 +180,7 @@ public class CanalMQStarter {
                     try {
                         int size = message.isRaw() ? message.getRawEntries().size() : message.getEntries().size();
                         if (batchId != -1 && size != 0) {
-                            canalMQProducer.send(canalDestination, message, new CanalMQProducer.Callback() {
+                            canalMQProducer.send(canalDestination, message, new Callback() {
 
                                 @Override
                                 public void commit() {

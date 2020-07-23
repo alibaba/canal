@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.example.kafka.AbstractKafkaTest;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 
 /**

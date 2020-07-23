@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es.core;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -8,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESTemplate;
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.druid.pool.DruidDataSource;
@@ -19,6 +17,7 @@ import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SqlParser;
 import com.alibaba.otter.canal.client.adapter.es.core.monitor.ESConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.es.core.service.ESSyncService;
+import com.alibaba.otter.canal.client.adapter.es.core.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
@@ -63,8 +62,8 @@ public abstract class ESAdapter implements OuterAdapter {
             // 过滤不匹配的key的配置
             esSyncConfigTmp.forEach((key, config) -> {
                 if ((config.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (config.getOuterAdapterKey() != null
-                        && config.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
+                    || (config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                        .equalsIgnoreCase(configuration.getKey()))) {
                     esSyncConfig.put(key, config);
                 }
             });
@@ -104,12 +103,12 @@ public abstract class ESAdapter implements OuterAdapter {
         String table = dml.getTable();
         Map<String, ESSyncConfig> configMap;
         if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-            configMap = dbTableEsSyncConfig
-                .get(StringUtils.trimToEmpty(dml.getDestination()) + "-" + StringUtils.trimToEmpty(dml.getGroupId())
-                     + "_" + database + "-" + table);
+            configMap = dbTableEsSyncConfig.get(StringUtils.trimToEmpty(dml.getDestination()) + "-"
+                                                + StringUtils.trimToEmpty(dml.getGroupId()) + "_" + database + "-"
+                                                + table);
         } else {
-            configMap = dbTableEsSyncConfig
-                .get(StringUtils.trimToEmpty(dml.getDestination()) + "_" + database + "-" + table);
+            configMap = dbTableEsSyncConfig.get(StringUtils.trimToEmpty(dml.getDestination()) + "_" + database + "-"
+                                                + table);
         }
 
         if (configMap != null && !configMap.values().isEmpty()) {
@@ -155,23 +154,29 @@ public abstract class ESAdapter implements OuterAdapter {
         }
         String schema = matcher.group(2);
 
-        schemaItem.getAliasTableItems().values().forEach(tableItem -> {
-            Map<String, ESSyncConfig> esSyncConfigMap;
-            if (envProperties != null
-                    && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                esSyncConfigMap = dbTableEsSyncConfig
-                        .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "-"
-                                        + StringUtils.trimToEmpty(config.getGroupId()) + "_" + schema + "-"
-                                        + tableItem.getTableName(),
-                                k -> new ConcurrentHashMap<>());
-            } else {
-                esSyncConfigMap = dbTableEsSyncConfig
-                        .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "_" + schema + "-"
-                                        + tableItem.getTableName(),
-                                k -> new ConcurrentHashMap<>());
-            }
+        schemaItem.getAliasTableItems()
+            .values()
+            .forEach(tableItem -> {
+                Map<String, ESSyncConfig> esSyncConfigMap;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
+                                                                          + "-"
+                                                                          + StringUtils.trimToEmpty(config.getGroupId())
+                                                                          + "_"
+                                                                          + schema
+                                                                          + "-"
+                                                                          + tableItem.getTableName(),
+                        k -> new ConcurrentHashMap<>());
+                } else {
+                    esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
+                                                                          + "_"
+                                                                          + schema
+                                                                          + "-"
+                                                                          + tableItem.getTableName(),
+                        k -> new ConcurrentHashMap<>());
+                }
 
-            esSyncConfigMap.put(configName, config);
-        });
+                esSyncConfigMap.put(configName, config);
+            });
     }
 }

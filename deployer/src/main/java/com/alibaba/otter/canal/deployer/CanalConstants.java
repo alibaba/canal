@@ -46,36 +46,37 @@ public class CanalConstants {
 
     public static final String CANAL_SOCKETCHANNEL                  = ROOT + "." + "socketChannel";
 
-    public static final String CANAL_MQ_SERVERS                     = ROOT + "." + "mq.servers";
-    public static final String CANAL_MQ_RETRIES                     = ROOT + "." + "mq.retries";
-    public static final String CANAL_MQ_BATCHSIZE                   = ROOT + "." + "mq.batchSize";
-    public static final String CANAL_MQ_LINGERMS                    = ROOT + "." + "mq.lingerMs";
-    public static final String CANAL_MQ_MAXREQUESTSIZE              = ROOT + "." + "mq.maxRequestSize";
-    public static final String CANAL_MQ_BUFFERMEMORY                = ROOT + "." + "mq.bufferMemory";
-    public static final String CANAL_MQ_CANALBATCHSIZE              = ROOT + "." + "mq.canalBatchSize";
-    public static final String CANAL_MQ_CANALGETTIMEOUT             = ROOT + "." + "mq.canalGetTimeout";
-    public static final String CANAL_MQ_FLATMESSAGE                 = ROOT + "." + "mq.flatMessage";
-    public static final String CANAL_MQ_PARALLELTHREADSIZE          = ROOT + "." + "mq.parallelThreadSize";
-    public static final String CANAL_MQ_COMPRESSION_TYPE            = ROOT + "." + "mq.compressionType";
-    public static final String CANAL_MQ_ACKS                        = ROOT + "." + "mq.acks";
-    public static final String CANAL_MQ_TRANSACTION                 = ROOT + "." + "mq.transaction";
-    public static final String CANAL_MQ_PRODUCERGROUP               = ROOT + "." + "mq.producerGroup";
     public static final String CANAL_ALIYUN_ACCESSKEY               = ROOT + "." + "aliyun.accessKey";
     public static final String CANAL_ALIYUN_SECRETKEY               = ROOT + "." + "aliyun.secretKey";
-    public static final String CANAL_MQ_PROPERTIES                  = ROOT + "." + "mq.properties";
-    public static final String CANAL_MQ_ENABLE_MESSAGE_TRACE        = ROOT + "." + "mq.enableMessageTrace";
-    public static final String CANAL_MQ_ACCESS_CHANNEL              = ROOT + "." + "mq.accessChannel";
-    public static final String CANAL_MQ_CUSTOMIZED_TRACE_TOPIC      = ROOT + "." + "mq.customizedTraceTopic";
-    public static final String CANAL_MQ_NAMESPACE                   = ROOT + "." + "mq.namespace";
-    public static final String CANAL_MQ_KAFKA_KERBEROS_ENABLE       = ROOT + "." + "mq.kafka.kerberos.enable";
-    public static final String CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH = ROOT + "." + "mq.kafka.kerberos.krb5FilePath";
-    public static final String CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH = ROOT + "." + "mq.kafka.kerberos.jaasFilePath";
-    public static final String CANAL_MQ_USERNAME                    = ROOT + "." + "mq.username";
-    public static final String CANAL_MQ_PASSWORD                    = ROOT + "." + "mq.password";
-    public static final String CANAL_MQ_VHOST                       = ROOT + "." + "mq.vhost";
-    public static final String CANAL_MQ_ALIYUN_UID                  = ROOT + "." + "mq.aliyunuid";
-    public static final String CANAL_MQ_EXCHANGE                    = ROOT + "." + "mq.exchange";
-    public static final String CANAL_MQ_DATABASE_HASH               = ROOT + "." + "mq.database.hash";
+
+//    public static final String CANAL_MQ_SERVERS                     = ROOT + "." + "mq.servers";
+//    public static final String CANAL_MQ_RETRIES                     = ROOT + "." + "mq.retries";
+//    public static final String CANAL_MQ_BATCHSIZE                   = ROOT + "." + "mq.batchSize";
+//    public static final String CANAL_MQ_LINGERMS                    = ROOT + "." + "mq.lingerMs";
+//    public static final String CANAL_MQ_MAXREQUESTSIZE              = ROOT + "." + "mq.maxRequestSize";
+//    public static final String CANAL_MQ_BUFFERMEMORY                = ROOT + "." + "mq.bufferMemory";
+//    public static final String CANAL_MQ_CANALBATCHSIZE              = ROOT + "." + "mq.canalBatchSize";
+//    public static final String CANAL_MQ_CANALGETTIMEOUT             = ROOT + "." + "mq.canalGetTimeout";
+//    public static final String CANAL_MQ_FLATMESSAGE                 = ROOT + "." + "mq.flatMessage";
+//    public static final String CANAL_MQ_PARALLELTHREADSIZE          = ROOT + "." + "mq.parallelThreadSize";
+//    public static final String CANAL_MQ_COMPRESSION_TYPE            = ROOT + "." + "mq.compressionType";
+//    public static final String CANAL_MQ_ACKS                        = ROOT + "." + "mq.acks";
+//    public static final String CANAL_MQ_TRANSACTION                 = ROOT + "." + "mq.transaction";
+//    public static final String CANAL_MQ_PRODUCERGROUP               = ROOT + "." + "mq.producerGroup";
+//    public static final String CANAL_MQ_PROPERTIES                  = ROOT + "." + "mq.properties";
+//    public static final String CANAL_MQ_ENABLE_MESSAGE_TRACE        = ROOT + "." + "mq.enableMessageTrace";
+//    public static final String CANAL_MQ_ACCESS_CHANNEL              = ROOT + "." + "mq.accessChannel";
+//    public static final String CANAL_MQ_CUSTOMIZED_TRACE_TOPIC      = ROOT + "." + "mq.customizedTraceTopic";
+//    public static final String CANAL_MQ_NAMESPACE                   = ROOT + "." + "mq.namespace";
+//    public static final String CANAL_MQ_KAFKA_KERBEROS_ENABLE       = ROOT + "." + "mq.kafka.kerberos.enable";
+//    public static final String CANAL_MQ_KAFKA_KERBEROS_KRB5FILEPATH = ROOT + "." + "mq.kafka.kerberos.krb5FilePath";
+//    public static final String CANAL_MQ_KAFKA_KERBEROS_JAASFILEPATH = ROOT + "." + "mq.kafka.kerberos.jaasFilePath";
+//    public static final String CANAL_MQ_USERNAME                    = ROOT + "." + "mq.username";
+//    public static final String CANAL_MQ_PASSWORD                    = ROOT + "." + "mq.password";
+//    public static final String CANAL_MQ_VHOST                       = ROOT + "." + "mq.vhost";
+//    public static final String CANAL_MQ_ALIYUN_UID                  = ROOT + "." + "mq.aliyunuid";
+//    public static final String CANAL_MQ_EXCHANGE                    = ROOT + "." + "mq.exchange";
+//    public static final String CANAL_MQ_DATABASE_HASH               = ROOT + "." + "mq.database.hash";
 
     public static String getInstanceModeKey(String destination) {
         return MessageFormat.format(INSTANCE_MODE_TEMPLATE, destination);

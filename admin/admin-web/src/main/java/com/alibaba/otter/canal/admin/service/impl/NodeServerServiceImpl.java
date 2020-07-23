@@ -154,12 +154,12 @@ public class NodeServerServiceImpl implements NodeServerService {
                 return !status;
             }));
         }
-        for (Future<Boolean> f :futures){
+        for (Future<Boolean> f : futures) {
             try {
                 f.get(3, TimeUnit.SECONDS);
             } catch (InterruptedException | ExecutionException e) {
                 // ignore
-            } catch (TimeoutException e){
+            } catch (TimeoutException e) {
                 break;
             }
         }

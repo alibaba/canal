@@ -1,5 +1,10 @@
 package com.alibaba.otter.canal.admin.config;
 
+import io.ebean.EbeanServer;
+import io.ebean.EbeanServerFactory;
+import io.ebean.config.ServerConfig;
+import io.ebean.config.UnderscoreNamingConvention;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,11 +12,6 @@ import javax.sql.DataSource;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import io.ebean.EbeanServer;
-import io.ebean.EbeanServerFactory;
-import io.ebean.config.ServerConfig;
-import io.ebean.config.UnderscoreNamingConvention;
 
 /**
  * Ebean 配置

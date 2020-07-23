@@ -1,19 +1,27 @@
 package com.alibaba.otter.canal.admin.controller;
 
-import com.alibaba.otter.canal.admin.service.UserService;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import com.alibaba.otter.canal.admin.model.BaseModel;
-import com.alibaba.otter.canal.admin.model.User;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.alibaba.otter.canal.admin.model.BaseModel;
+import com.alibaba.otter.canal.admin.model.User;
+import com.alibaba.otter.canal.admin.service.UserService;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 
 /**
  * 用户管理控制层
@@ -26,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 public class UserController {
 
     public static final LoadingCache<String, User> loginUsers = Caffeine.newBuilder()
-        .maximumSize(10_000)
-        .expireAfterAccess(30, TimeUnit.MINUTES)
-        .build(key -> null);                                                         // 用户登录信息缓存
+                                                                  .maximumSize(10_000)
+                                                                  .expireAfterAccess(30, TimeUnit.MINUTES)
+                                                                  .build(key -> null); // 用户登录信息缓存
 
     @Autowired
     UserService                                    userService;

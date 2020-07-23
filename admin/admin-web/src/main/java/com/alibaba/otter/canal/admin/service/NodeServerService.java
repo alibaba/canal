@@ -1,9 +1,9 @@
 package com.alibaba.otter.canal.admin.service;
 
+import java.util.List;
+
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.model.Pager;
-
-import java.util.List;
 
 public interface NodeServerService {
 
