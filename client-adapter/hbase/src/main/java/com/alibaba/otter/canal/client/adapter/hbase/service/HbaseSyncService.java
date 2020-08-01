@@ -31,11 +31,11 @@ public class HbaseSyncService {
     public void sync(MappingConfig config, Dml dml) {
         if (config != null) {
             String type = dml.getType();
-            if (type != null && type.equalsIgnoreCase("INSERT")) {
+            if (type != null && "INSERT".equalsIgnoreCase(type)) {
                 insert(config, dml);
-            } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
+            } else if (type != null && "UPDATE".equalsIgnoreCase(type)) {
                 update(config, dml);
-            } else if (type != null && type.equalsIgnoreCase("DELETE")) {
+            } else if (type != null && "DELETE".equalsIgnoreCase(type)) {
                 delete(config, dml);
             }
             if (logger.isDebugEnabled()) {

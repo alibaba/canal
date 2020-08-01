@@ -208,13 +208,13 @@ public class RdbSyncService {
         if (config != null) {
             try {
                 String type = dml.getType();
-                if (type != null && type.equalsIgnoreCase("INSERT")) {
+                if (type != null && "INSERT".equalsIgnoreCase(type)) {
                     insert(batchExecutor, config, dml);
-                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
+                } else if (type != null && "UPDATE".equalsIgnoreCase(type)) {
                     update(batchExecutor, config, dml);
-                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
+                } else if (type != null && "DELETE".equalsIgnoreCase(type)) {
                     delete(batchExecutor, config, dml);
-                } else if (type != null && type.equalsIgnoreCase("TRUNCATE")) {
+                } else if (type != null && "TRUNCATE".equalsIgnoreCase(type)) {
                     truncate(batchExecutor, config);
                 }
                 if (logger.isDebugEnabled()) {
