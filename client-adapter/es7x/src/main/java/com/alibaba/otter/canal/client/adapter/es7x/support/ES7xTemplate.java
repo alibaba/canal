@@ -293,16 +293,19 @@ public class ES7xTemplate implements ESTemplate {
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
-            String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
-            Object value = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
+            Iterator<ColumnItem> columnItemIterator = fieldItem.getColumnItems().iterator();
+            if (columnItemIterator.hasNext()) {
+                String columnName = columnItemIterator.next().getColumnName();
+                Object value = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
 
-            if (fieldItem.getFieldName().equals(idFieldName)) {
-                resultIdVal = value;
-            }
+                if (fieldItem.getFieldName().equals(idFieldName)) {
+                    resultIdVal = value;
+                }
 
-            if (!fieldItem.getFieldName().equals(mapping.get_id())
-                && !mapping.getSkips().contains(fieldItem.getFieldName())) {
-                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
+                if (!fieldItem.getFieldName().equals(mapping.get_id())
+                        && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                    esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
+                }
             }
         }
 
@@ -318,15 +321,18 @@ public class ES7xTemplate implements ESTemplate {
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
-            String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
+            Iterator<ColumnItem> columnItemIterator = fieldItem.getColumnItems().iterator();
+            if (columnItemIterator.hasNext()) {
+                String columnName = columnItemIterator.next().getColumnName();
 
-            if (fieldItem.getFieldName().equals(idFieldName)) {
-                resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
-            }
+                if (fieldItem.getFieldName().equals(idFieldName)) {
+                    resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
+                }
 
-            if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
-                esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
-                        getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
+                if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                    esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
+                            getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
+                }
             }
         }
 
