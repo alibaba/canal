@@ -40,11 +40,17 @@ public class MysqlGTIDSet implements GTIDSet {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null) return false;
-        if (this == o) return true;
+        if (o == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
 
         MysqlGTIDSet gs = (MysqlGTIDSet) o;
-        if (gs.sets == null) return false;
+        if (gs.sets == null) {
+            return false;
+        }
 
         for (Map.Entry<String, UUIDSet> entry : sets.entrySet()) {
             if (!entry.getValue().equals(gs.sets.get(entry.getKey()))) {

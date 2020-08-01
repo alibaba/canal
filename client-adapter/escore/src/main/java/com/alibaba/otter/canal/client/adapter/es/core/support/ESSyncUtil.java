@@ -279,7 +279,9 @@ public class ESSyncUtil {
         StringBuilder condition = new StringBuilder(" ");
         for (ColumnItem idColumn : idColumns) {
             Object idVal = data.get(idColumn.getColumnName());
-            if (mainTable.getAlias() != null) condition.append(mainTable.getAlias()).append(".");
+            if (mainTable.getAlias() != null) {
+                condition.append(mainTable.getAlias()).append(".");
+            }
             condition.append(idColumn.getColumnName()).append("=");
             if (idVal instanceof String) {
                 condition.append("'").append(idVal).append("' AND ");

@@ -25,7 +25,9 @@ public class URLClassExtensionLoader extends URLClassLoader {
             // {
             c = super.loadClass(name);
         }
-        if (c != null) return c;
+        if (c != null) {
+            return c;
+        }
 
         try {
             // 先加载jar内的class，可避免jar冲突

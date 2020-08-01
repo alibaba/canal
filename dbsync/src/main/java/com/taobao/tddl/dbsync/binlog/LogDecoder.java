@@ -225,8 +225,10 @@ public final class LogDecoder {
             }
             case LogEvent.SLAVE_EVENT: /* can never happen (unused event) */
             {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported SLAVE_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported SLAVE_EVENT from: "
+                                                            + context.getLogPosition());
+                }
                 break;
             }
             case LogEvent.CREATE_FILE_EVENT: {
@@ -292,22 +294,28 @@ public final class LogDecoder {
                 return descriptionEvent;
             }
             case LogEvent.PRE_GA_WRITE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: "
+                                                            + context.getLogPosition());
+                }
                 // ev = new Write_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_UPDATE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: "
+                                                            + context.getLogPosition());
+                }
                 // ev = new Update_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_DELETE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: "
+                                                            + context.getLogPosition());
+                }
                 // ev = new Delete_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;

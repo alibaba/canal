@@ -70,7 +70,9 @@ public class ExtensionLoader<T> {
 
     @SuppressWarnings("unchecked")
     public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> type, String classLoaderPolicy) {
-        if (type == null) throw new IllegalArgumentException("Extension type == null");
+        if (type == null) {
+            throw new IllegalArgumentException("Extension type == null");
+        }
         if (!type.isInterface()) {
             throw new IllegalArgumentException("Extension type(" + type + ") is not interface!");
         }
@@ -100,7 +102,9 @@ public class ExtensionLoader<T> {
      */
     @SuppressWarnings("unchecked")
     public T getExtension(String name) {
-        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
+        if (name == null || name.length() == 0) {
+            throw new IllegalArgumentException("Extension name == null");
+        }
         if ("true".equals(name)) {
             return getDefaultExtension();
         }
@@ -124,7 +128,9 @@ public class ExtensionLoader<T> {
 
     @SuppressWarnings("unchecked")
     public T getExtension(String name, String key) {
-        if (name == null || name.length() == 0) throw new IllegalArgumentException("Extension name == null");
+        if (name == null || name.length() == 0) {
+            throw new IllegalArgumentException("Extension name == null");
+        }
         if ("true".equals(name)) {
             return getDefaultExtension();
         }
@@ -255,7 +261,9 @@ public class ExtensionLoader<T> {
                     throw new IllegalStateException("more than 1 default extension name on extension " + type.getName()
                                                     + ": " + Arrays.toString(names));
                 }
-                if (names.length == 1) cachedDefaultName = names[0];
+                if (names.length == 1) {
+                    cachedDefaultName = names[0];
+                }
             }
         }
 
@@ -323,7 +331,9 @@ public class ExtensionLoader<T> {
                             String line = null;
                             while ((line = reader.readLine()) != null) {
                                 final int ci = line.indexOf('#');
-                                if (ci >= 0) line = line.substring(0, ci);
+                                if (ci >= 0) {
+                                    line = line.substring(0, ci);
+                                }
                                 line = line.trim();
                                 if (line.length() > 0) {
                                     try {

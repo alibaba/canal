@@ -39,8 +39,12 @@ public class UUIDSet {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null) return false;
-        if (this == o) return true;
+        if (o == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
 
         UUIDSet us = (UUIDSet) o;
         Collections.sort(intervals);
@@ -59,12 +63,18 @@ public class UUIDSet {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             Interval interval = (Interval) o;
 
-            if (start != interval.start) return false;
+            if (start != interval.start) {
+                return false;
+            }
             return stop == interval.stop;
         }
 

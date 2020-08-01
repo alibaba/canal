@@ -22,21 +22,29 @@ public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDow
         if (events != null && !events.isEmpty()) {
             for (Event e : events) {
                 EntryType type = e.getEntryType();
-                if (type == null) continue;
+                if (type == null) {
+                    continue;
+                }
                 switch (type) {
                     case TRANSACTIONBEGIN: {
                         long exec = e.getExecuteTime();
-                        if (exec > 0) localExecTime = exec;
+                        if (exec > 0) {
+                            localExecTime = exec;
+                        }
                         break;
                     }
                     case ROWDATA: {
                         long exec = e.getExecuteTime();
-                        if (exec > 0) localExecTime = exec;
+                        if (exec > 0) {
+                            localExecTime = exec;
+                        }
                         break;
                     }
                     case TRANSACTIONEND: {
                         long exec = e.getExecuteTime();
-                        if (exec > 0) localExecTime = exec;
+                        if (exec > 0) {
+                            localExecTime = exec;
+                        }
                         transactionCounter.incrementAndGet();
                         break;
                     }

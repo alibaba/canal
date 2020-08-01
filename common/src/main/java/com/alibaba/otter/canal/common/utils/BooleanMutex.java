@@ -124,7 +124,9 @@ public class BooleanMutex {
         }
 
         void innerGet(long nanosTimeout) throws InterruptedException, TimeoutException {
-            if (!tryAcquireSharedNanos(0, nanosTimeout)) throw new TimeoutException();
+            if (!tryAcquireSharedNanos(0, nanosTimeout)) {
+                throw new TimeoutException();
+            }
         }
 
         void innerSetTrue() {

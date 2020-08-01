@@ -415,8 +415,12 @@ public final class AdminPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -445,7 +449,9 @@ public final class AdminPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (magicNumberPresentCase_ == 1) {
@@ -487,7 +493,9 @@ public final class AdminPacket {
           .equals(other.getBody());
       result = result && getMagicNumberPresentCase().equals(
           other.getMagicNumberPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (magicNumberPresentCase_) {
         case 1:
           result = result && (getMagicNumber()
@@ -498,7 +506,9 @@ public final class AdminPacket {
       }
       result = result && getVersionPresentCase().equals(
           other.getVersionPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (versionPresentCase_) {
         case 2:
           result = result && (getVersion()
@@ -762,7 +772,9 @@ public final class AdminPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.AdminPacket.Packet other) {
-        if (other == com.alibaba.otter.canal.protocol.AdminPacket.Packet.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.AdminPacket.Packet.getDefaultInstance()) {
+            return this;
+        }
         if (other.type_ != 0) {
           setTypeValue(other.getTypeValue());
         }
@@ -1237,8 +1249,12 @@ public final class AdminPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -1260,7 +1276,9 @@ public final class AdminPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (errorCodePresentCase_ == 1) {
@@ -1291,7 +1309,9 @@ public final class AdminPacket {
           .equals(other.getMessage());
       result = result && getErrorCodePresentCase().equals(
           other.getErrorCodePresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (errorCodePresentCase_) {
         case 1:
           result = result && (getCode()
@@ -1536,7 +1556,9 @@ public final class AdminPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.AdminPacket.Ack other) {
-        if (other == com.alibaba.otter.canal.protocol.AdminPacket.Ack.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.AdminPacket.Ack.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getMessage().isEmpty()) {
           message_ = other.message_;
           onChanged();
@@ -1961,8 +1983,12 @@ public final class AdminPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -1983,7 +2009,9 @@ public final class AdminPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (communicationEncodingPresentCase_ == 1) {
@@ -2013,7 +2041,9 @@ public final class AdminPacket {
           .equals(other.getSeeds());
       result = result && getCommunicationEncodingPresentCase().equals(
           other.getCommunicationEncodingPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (communicationEncodingPresentCase_) {
         case 1:
           result = result && getCommunicationEncoding()
@@ -2258,7 +2288,9 @@ public final class AdminPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.AdminPacket.Handshake other) {
-        if (other == com.alibaba.otter.canal.protocol.AdminPacket.Handshake.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.AdminPacket.Handshake.getDefaultInstance()) {
+            return this;
+        }
         if (other.getSeeds() != com.google.protobuf.ByteString.EMPTY) {
           setSeeds(other.getSeeds());
         }
@@ -2774,8 +2806,12 @@ public final class AdminPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -2804,7 +2840,9 @@ public final class AdminPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getUsernameBytes().isEmpty()) {
@@ -2846,7 +2884,9 @@ public final class AdminPacket {
           .equals(other.getPassword());
       result = result && getNetReadTimeoutPresentCase().equals(
           other.getNetReadTimeoutPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (netReadTimeoutPresentCase_) {
         case 3:
           result = result && (getNetReadTimeout()
@@ -2857,7 +2897,9 @@ public final class AdminPacket {
       }
       result = result && getNetWriteTimeoutPresentCase().equals(
           other.getNetWriteTimeoutPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (netWriteTimeoutPresentCase_) {
         case 4:
           result = result && (getNetWriteTimeout()
@@ -3125,7 +3167,9 @@ public final class AdminPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.AdminPacket.ClientAuth other) {
-        if (other == com.alibaba.otter.canal.protocol.AdminPacket.ClientAuth.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.AdminPacket.ClientAuth.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getUsername().isEmpty()) {
           username_ = other.username_;
           onChanged();
@@ -3602,8 +3646,12 @@ public final class AdminPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -3621,7 +3669,9 @@ public final class AdminPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getActionBytes().isEmpty()) {
@@ -3867,7 +3917,9 @@ public final class AdminPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.AdminPacket.ServerAdmin other) {
-        if (other == com.alibaba.otter.canal.protocol.AdminPacket.ServerAdmin.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.AdminPacket.ServerAdmin.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getAction().isEmpty()) {
           action_ = other.action_;
           onChanged();
@@ -4239,8 +4291,12 @@ public final class AdminPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -4261,7 +4317,9 @@ public final class AdminPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getDestinationBytes().isEmpty()) {
@@ -4517,7 +4575,9 @@ public final class AdminPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.AdminPacket.InstanceAdmin other) {
-        if (other == com.alibaba.otter.canal.protocol.AdminPacket.InstanceAdmin.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.AdminPacket.InstanceAdmin.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getDestination().isEmpty()) {
           destination_ = other.destination_;
           onChanged();
@@ -5223,8 +5283,12 @@ public final class AdminPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -5255,7 +5319,9 @@ public final class AdminPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getTypeBytes().isEmpty()) {
@@ -5297,7 +5363,9 @@ public final class AdminPacket {
           .equals(other.getAction());
       result = result && getDestinationPresentCase().equals(
           other.getDestinationPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (destinationPresentCase_) {
         case 3:
           result = result && getDestination()
@@ -5308,7 +5376,9 @@ public final class AdminPacket {
       }
       result = result && getFilePresentCase().equals(
           other.getFilePresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (filePresentCase_) {
         case 4:
           result = result && getFile()
@@ -5319,7 +5389,9 @@ public final class AdminPacket {
       }
       result = result && getCountPresentCase().equals(
           other.getCountPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (countPresentCase_) {
         case 5:
           result = result && (getCount()
@@ -5597,7 +5669,9 @@ public final class AdminPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.AdminPacket.LogAdmin other) {
-        if (other == com.alibaba.otter.canal.protocol.AdminPacket.LogAdmin.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.AdminPacket.LogAdmin.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getType().isEmpty()) {
           type_ = other.type_;
           onChanged();

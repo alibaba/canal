@@ -729,8 +729,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -754,7 +758,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -963,7 +969,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(Entry other) {
-        if (other == Entry.getDefaultInstance()) return this;
+        if (other == Entry.getDefaultInstance()) {
+            return this;
+        }
         if (other.hasHeader()) {
           mergeHeader(other.getHeader());
         }
@@ -2249,8 +2257,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -2304,7 +2316,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -2611,7 +2625,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(Header other) {
-        if (other == Header.getDefaultInstance()) return this;
+        if (other == Header.getDefaultInstance()) {
+            return this;
+        }
         if (other.hasVersion()) {
           setVersion(other.getVersion());
         }
@@ -4628,8 +4644,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -4674,7 +4694,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -4951,7 +4973,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(Column other) {
-        if (other == Column.getDefaultInstance()) return this;
+        if (other == Column.getDefaultInstance()) {
+            return this;
+        }
         if (other.hasIndex()) {
           setIndex(other.getIndex());
         }
@@ -6379,8 +6403,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -6404,7 +6432,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       for (int i = 0; i < beforeColumns_.size(); i++) {
@@ -6625,7 +6655,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(RowData other) {
-        if (other == RowData.getDefaultInstance()) return this;
+        if (other == RowData.getDefaultInstance()) {
+            return this;
+        }
         if (beforeColumnsBuilder_ == null) {
           if (!other.beforeColumns_.isEmpty()) {
             if (beforeColumns_.isEmpty()) {
@@ -8321,8 +8353,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -8358,7 +8394,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -8615,7 +8653,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(RowChange other) {
-        if (other == RowChange.getDefaultInstance()) return this;
+        if (other == RowChange.getDefaultInstance()) {
+            return this;
+        }
         if (other.hasTableId()) {
           setTableId(other.getTableId());
         }
@@ -10090,8 +10130,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -10118,7 +10162,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -10335,7 +10381,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(TransactionBegin other) {
-        if (other == TransactionBegin.getDefaultInstance()) return this;
+        if (other == TransactionBegin.getDefaultInstance()) {
+            return this;
+        }
         if (other.hasExecuteTime()) {
           setExecuteTime(other.getExecuteTime());
         }
@@ -11267,8 +11315,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -11292,7 +11344,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -11499,7 +11553,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(TransactionEnd other) {
-        if (other == TransactionEnd.getDefaultInstance()) return this;
+        if (other == TransactionEnd.getDefaultInstance()) {
+            return this;
+        }
         if (other.hasExecuteTime()) {
           setExecuteTime(other.getExecuteTime());
         }
@@ -12263,8 +12319,12 @@ public final class CanalEntry {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -12285,7 +12345,9 @@ public final class CanalEntry {
     private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
       int size = memoizedSerializedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -12472,7 +12534,9 @@ public final class CanalEntry {
       }
 
       public Builder mergeFrom(Pair other) {
-        if (other == Pair.getDefaultInstance()) return this;
+        if (other == Pair.getDefaultInstance()) {
+            return this;
+        }
         if (other.hasKey()) {
           bitField0_ |= 0x00000001;
           key_ = other.key_;

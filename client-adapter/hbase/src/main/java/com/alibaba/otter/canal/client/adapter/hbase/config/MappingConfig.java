@@ -86,8 +86,12 @@ public class MappingConfig implements AdapterConfig {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         MappingConfig config = (MappingConfig) o;
 
@@ -158,8 +162,12 @@ public class MappingConfig implements AdapterConfig {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             ColumnItem that = (ColumnItem) o;
             return Objects.equals(column, that.column);
         }
@@ -391,12 +399,18 @@ public class MappingConfig implements AdapterConfig {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             HbaseMapping hbaseMapping = (HbaseMapping) o;
 
-            if (table != null ? !table.equals(hbaseMapping.table) : hbaseMapping.table != null) return false;
+            if (table != null ? !table.equals(hbaseMapping.table) : hbaseMapping.table != null) {
+                return false;
+            }
             return hbaseTable != null ? hbaseTable.equals(hbaseMapping.hbaseTable) : hbaseMapping.hbaseTable == null;
         }
 

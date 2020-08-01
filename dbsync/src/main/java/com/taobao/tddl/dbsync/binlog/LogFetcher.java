@@ -67,7 +67,9 @@ public abstract class LogFetcher extends LogBuffer implements Closeable {
 
         if (minCapacity > oldCapacity) {
             int newCapacity = (int) (oldCapacity * factor);
-            if (newCapacity < minCapacity) newCapacity = minCapacity;
+            if (newCapacity < minCapacity) {
+                newCapacity = minCapacity;
+            }
 
             buffer = Arrays.copyOf(buffer, newCapacity);
         }

@@ -90,9 +90,13 @@ public final class UserVarLogEvent extends LogEvent {
                     value = Double.valueOf(buffer.getDouble64()); // float8get
                     break;
                 case INT_RESULT:
-                    if (valueLen == 8) value = Long.valueOf(buffer.getLong64()); // !uint8korr
-                    else if (valueLen == 4) value = Long.valueOf(buffer.getUint32());
-                    else throw new IOException("Error INT_RESULT length: " + valueLen);
+                    if (valueLen == 8) {
+                        value = Long.valueOf(buffer.getLong64()); // !uint8korr
+                    } else if (valueLen == 4) {
+                        value = Long.valueOf(buffer.getUint32());
+                    } else {
+                        throw new IOException("Error INT_RESULT length: " + valueLen);
+                    }
                     break;
                 case DECIMAL_RESULT:
                     final int precision = buffer.getInt8();

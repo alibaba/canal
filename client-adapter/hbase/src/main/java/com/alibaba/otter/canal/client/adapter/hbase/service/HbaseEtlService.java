@@ -239,7 +239,9 @@ public class HbaseEtlService extends AbstractEtlService {
                 }
             }
 
-            if (row.getRowKey() == null) throw new RuntimeException("RowKey 值为空");
+            if (row.getRowKey() == null) {
+                throw new RuntimeException("RowKey 值为空");
+            }
 
             rows.add(row);
             complete = false;

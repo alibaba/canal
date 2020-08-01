@@ -79,7 +79,9 @@ public final class ExecuteLoadQueryLogEvent extends QueryLogEvent {
     }
 
     public final String getFilename() {
-        if (query != null) return query.substring(fnPosStart, fnPosEnd).trim();
+        if (query != null) {
+            return query.substring(fnPosStart, fnPosEnd).trim();
+        }
 
         return null;
     }

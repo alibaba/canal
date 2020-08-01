@@ -73,10 +73,11 @@ public final class RowsLogBuffer {
         if (hasOneRow) {
             int column = 0;
 
-            for (int i = 0; i < columnLen; i++)
+            for (int i = 0; i < columnLen; i++) {
                 if (columns.get(i)) {
                     column++;
                 }
+            }
 
             if (after && partial) {
                 partialBits.clear();
