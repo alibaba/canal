@@ -236,6 +236,8 @@ public class CanalParameter implements Serializable {
         LOCALBINLOG,
         /** oracle DB */
         ORACLE,
+        /** mongo DB */
+        MONGODB,
         /** 多库合并模式 */
         GROUP;
 
@@ -249,6 +251,10 @@ public class CanalParameter implements Serializable {
 
         public boolean isOracle() {
             return this.equals(SourcingType.ORACLE);
+        }
+
+        public boolean isMongoDB() {
+            return this.equals(SourcingType.MONGODB);
         }
 
         public boolean isGroup() {

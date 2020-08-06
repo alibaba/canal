@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+	default-autowire="byName">
+
+	<import resource="classpath:spring/base-instance.xml" />
+
+	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
+		<property name="destination" value="${canal.instance.destination}" />
+		<property name="eventParser">
+			<ref local="eventParser" />
+		</property>
+		<property name="eventSink">
+			<ref local="eventSink" />
+		</property>
+		<property name="eventStore">
+			<ref local="eventStore" />
+		</property>
+		<property name="metaManager">
+			<ref local="metaManager" />
+		</property>
+		<property name="alarmHandler">
+			<ref local="alarmHandler" />
+		</property>
+        <property name="mqConfig">
+            <ref local="mqConfig" />
+        </property>
+	</bean>
+
+	<!-- 报警处理类 -->
+	<bean id="alarmHandler" class="com.alibaba.otter.canal.common.alarm.LogAlarmHandler" />
+
+	<bean id="metaManager" class="com.alibaba.otter.canal.meta.MemoryMetaManager" />
+
+	<bean id="eventStore" class="com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer">
+		<property name="bufferSize" value="${canal.instance.memory.buffer.size:16384}" />
+		<property name="bufferMemUnit" value="${canal.instance.memory.buffer.memunit:1024}" />
+		<property name="batchMode" value="${canal.instance.memory.batch.mode:MEMSIZE}" />
+		<property name="ddlIsolation" value="${canal.instance.get.ddl.isolation:false}" />
+		<property name="raw" value="${canal.instance.memory.rawEntry:true}" />
+		<property name="ignoredTxn" value="true" />
+	</bean>
+
+	<bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
+		<property name="eventStore" ref="eventStore" />
+		<property name="filterTransactionEntry" value="${canal.instance.filter.transaction.entry:false}"/>
+	</bean>
+
+	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mongodb.MongoEventParser" >
+		<property name="destination" value="${canal.instance.destination}" />
+
+		<property name="alarmHandler" ref="alarmHandler" />
+
+		<!-- 解析过滤处理 -->
+		<property name="eventFilter">
+			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
+				<constructor-arg index="0" value="${canal.instance.filter.regex:.*\..*}" />
+			</bean>
+		</property>
+
+		<property name="eventBlackFilter">
+			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
+				<constructor-arg index="0" value="${canal.instance.filter.black.regex:}" />
+				<constructor-arg index="1" value="false" />
+			</bean>
+		</property>
+
+		<property name="fieldFilter" value="${canal.instance.filter.field}" />
+		<property name="fieldBlackFilter" value="${canal.instance.filter.black.field}" />
+
+		<!-- 解析位点记录 -->
+		<property name="logPositionManager">
+			<bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
+		</property>
+
+		<!-- 解析数据库信息 -->
+		<property name="authenticationInfo">
+			<bean class="com.alibaba.otter.canal.parse.inbound.mongodb.MongoAuthenticationInfo">
+				<constructor-arg index="0" value="${canal.instance.mongodb.hosts}" />
+				<constructor-arg index="1" value="${canal.instance.dbUsername:retl}" />
+				<constructor-arg index="2" value="${canal.instance.dbPassword:retl}" />
+				<constructor-arg index="3" value="${canal.instance.defaultDatabaseName:admin}" />
+			</bean>
+		</property>
+
+		<!-- 解析起始位点 -->
+		<property name="specifiedPosition">
+			<bean class="com.alibaba.otter.canal.protocol.position.EntryPosition">
+				<property name="journalName" value="oplog.rs" />
+				<property name="position" value="${canal.instance.mongodb.position}" />
+				<property name="timestamp" value="${canal.instance.mongodb.timestamp}" />
+			</bean>
+		</property>
+
+		<!-- parallel parser -->
+		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
+		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
+		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
+	</bean>
+
+	<bean id="mqConfig" class="com.alibaba.otter.canal.instance.core.CanalMQConfig">
+		<property name="topic" value="${canal.mq.topic}" />
+		<property name="dynamicTopic" value="${canal.mq.dynamicTopic}" />
+		<property name="partition" value="${canal.mq.partition}" />
+		<property name="partitionsNum" value="${canal.mq.partitionsNum}" />
+		<property name="partitionHash" value="${canal.mq.partitionHash}" />
+	</bean>
+</beans>

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -48,6 +49,8 @@ import com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsBinlogEventParserProxy
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFactory;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBBuilder;
+import com.alibaba.otter.canal.parse.inbound.mongodb.MongoAuthenticationInfo;
+import com.alibaba.otter.canal.parse.inbound.mongodb.MongoEventParser;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.index.FailbackLogPositionManager;
 import com.alibaba.otter.canal.parse.index.MemoryLogPositionManager;
@@ -394,6 +397,47 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             eventParser = localBinlogEventParser;
         } else if (type.isOracle()) {
             throw new CanalException("unsupport SourcingType for " + type);
+        } else if (type.isMongoDB()) {
+            MongoEventParser mongoEventParser = new MongoEventParser();
+
+            // 数据库信息参数
+            if (!CollectionUtils.isEmpty(dbAddresses)) {
+                List<String> hosts = new ArrayList<>();
+                for (InetSocketAddress address : dbAddresses) {
+                    hosts.add(String.format("%s:%d", address.getHostName(), address.getPort()));
+                }
+                mongoEventParser.setAuthenticationInfo(new MongoAuthenticationInfo(Joiner.on(",").join(hosts),
+                        parameters.getDbUsername(),
+                        parameters.getDbPassword(),
+                        parameters.getDefaultDatabaseName()));
+            }
+
+            if (!CollectionUtils.isEmpty(parameters.getPositions())) {
+                EntryPosition masterPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
+                        EntryPosition.class);
+                // binlog位置参数
+                mongoEventParser.setSpecifiedPosition(masterPosition);
+            }
+            mongoEventParser.setProfilingEnabled(false);
+            mongoEventParser.setParallel(parameters.getParallel());
+
+            mongoEventParser.setLogPositionManager(initLogPositionManager());
+            mongoEventParser.setAlarmHandler(getAlarmHandler());
+            mongoEventParser.setEventSink(getEventSink());
+
+            if (StringUtils.isNotEmpty(filter)) {
+                AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(filter);
+                mongoEventParser.setEventFilter(aviaterFilter);
+            }
+
+            // 设置黑名单
+            if (StringUtils.isNotEmpty(parameters.getBlackFilter())) {
+                AviaterRegexFilter aviaterFilter = new AviaterRegexFilter(parameters.getBlackFilter());
+                mongoEventParser.setEventBlackFilter(aviaterFilter);
+            }
+
+            eventParser = mongoEventParser;
+
         } else {
             throw new CanalException("unsupport SourcingType for " + type);
         }
