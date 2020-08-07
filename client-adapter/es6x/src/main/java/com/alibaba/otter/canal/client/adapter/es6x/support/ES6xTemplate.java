@@ -123,7 +123,7 @@ public class ES6xTemplate implements ESTemplate {
         StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
         List<Object> values = new ArrayList<>();
         paramsTmp.forEach((fieldItem, value) -> {
-            sql.append(fieldItem.getOwner()).append(".").append(fieldItem.getFieldName()).append("=? AND ");
+            sql.append(fieldItem.getOwner()).append(".").append(fieldItem.getColumn().getColumnName()).append("=? AND ");
             values.add(value);
         });
         int len = sql.length();
