@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.sql.DataSource;
 
+import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -110,7 +111,7 @@ public class ES6xTemplate implements ESTemplate {
     }
 
     @Override
-    public void updateByQuery(ESSyncConfig config, Map<String, Object> paramsTmp, Map<String, Object> esFieldData) {
+    public void updateByQuery(ESSyncConfig config, Map<String, Pair<FieldItem, Object>> paramsTmp, Map<String, Object> esFieldData) {
         if (paramsTmp.isEmpty()) {
             return;
         }
@@ -120,13 +121,16 @@ public class ES6xTemplate implements ESTemplate {
 
         // 查询sql批量更新
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
+        StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
         List<Object> values = new ArrayList<>();
         paramsTmp.forEach((fieldName, value) -> {
-            sql.append("_v.").append(fieldName).append("=? AND ");
-            values.add(value);
+            if (value.getKey().getOwner() == null && !value.getKey().getOwner().isEmpty()) {
+                sql.append(fieldName).append("=? AND ");
+            } else {
+                sql.append(value.getKey().getOwner()).append(".").append(value.getKey().getColumn().getColumnName()).append("=? AND ");
+            }
+            values.add(value.getValue());
         });
-        // TODO 直接外部包裹sql会导致全表扫描性能低, 待优化拼接内部where条件
         int len = sql.length();
         sql.delete(len - 4, len);
         Integer syncCount = (Integer) Util.sqlRS(ds, sql.toString(), values, rs -> {

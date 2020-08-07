@@ -8,6 +8,8 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -547,7 +549,7 @@ public class ESSyncService {
                                                TableItem tableItem, Map<String, Object> esFieldData) {
         ESMapping mapping = config.getEsMapping();
 
-        Map<String, Object> paramsTmp = new LinkedHashMap<>();
+        Map<String, Pair<FieldItem, Object>> paramsTmp = new LinkedHashMap<>();
         for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
             for (FieldItem fieldItem : entry.getValue()) {
                 if (fieldItem.getColumnItems().size() == 1) {
@@ -561,7 +563,7 @@ public class ESSyncService {
                     if (fieldName.equals(mapping.get_id())) {
                         fieldName = "_id";
                     }
-                    paramsTmp.put(fieldName, value);
+                    paramsTmp.put(fieldName, new Pair<>(fieldItem, value));
                 }
             }
         }
@@ -655,7 +657,7 @@ public class ESSyncService {
                         }
                     }
 
-                    Map<String, Object> paramsTmp = new LinkedHashMap<>();
+                    Map<String, Pair<FieldItem, Object>> paramsTmp = new LinkedHashMap<>();
                     for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
                         for (FieldItem fieldItem : entry.getValue()) {
                             if (fieldItem.getColumnItems().size() == 1) {
@@ -668,7 +670,7 @@ public class ESSyncService {
                                 if (fieldName.equals(mapping.get_id())) {
                                     fieldName = "_id";
                                 }
-                                paramsTmp.put(fieldName, value);
+                                paramsTmp.put(fieldName, new Pair<>(fieldItem, value));
                             }
                         }
                     }
@@ -772,7 +774,7 @@ public class ESSyncService {
                         }
                     }
 
-                    Map<String, Object> paramsTmp = new LinkedHashMap<>();
+                    Map<String, Pair<FieldItem, Object>> paramsTmp = new LinkedHashMap<>();
                     for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
                         for (FieldItem fieldItem : entry.getValue()) {
                             Object value = esTemplate
@@ -782,7 +784,7 @@ public class ESSyncService {
                             if (fieldName.equals(mapping.get_id())) {
                                 fieldName = "_id";
                             }
-                            paramsTmp.put(fieldName, value);
+                            paramsTmp.put(fieldName, new Pair<>(fieldItem, value));
                         }
                     }
 
