@@ -7,7 +7,6 @@ import java.util.Map;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
-import javafx.util.Pair;
 
 public interface ESTemplate {
 
