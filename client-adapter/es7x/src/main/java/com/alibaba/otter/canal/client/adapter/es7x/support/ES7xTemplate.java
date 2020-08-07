@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.sql.DataSource;
 
-import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -109,25 +108,21 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     @Override
-    public void updateByQuery(ESSyncConfig config, Map<String, Pair<FieldItem, Object>> paramsTmp, Map<String, Object> esFieldData) {
+    public void updateByQuery(ESSyncConfig config, Map<FieldItem, Object> paramsTmp, Map<String, Object> esFieldData) {
         if (paramsTmp.isEmpty()) {
             return;
         }
         ESMapping mapping = config.getEsMapping();
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        paramsTmp.forEach((fieldName, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
+        paramsTmp.forEach((fieldItem, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldItem.getFieldName().equals(mapping.get_id()) ? "_id" : fieldItem.getFieldName(), value)));
 
         // 查询sql批量更新
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
         StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
         List<Object> values = new ArrayList<>();
-        paramsTmp.forEach((fieldName, value) -> {
-            if (value.getKey().getOwner() == null && !value.getKey().getOwner().isEmpty()) {
-                sql.append(fieldName).append("=? AND ");
-            } else {
-                sql.append(value.getKey().getOwner()).append(".").append(value.getKey().getColumn().getColumnName()).append("=? AND ");
-            }
-            values.add(value.getValue());
+        paramsTmp.forEach((fieldItem, value) -> {
+            sql.append(fieldItem.getOwner()).append(".").append(fieldItem.getFieldName()).append("=? AND ");
+            values.add(value);
         });
         int len = sql.length();
         sql.delete(len - 4, len);

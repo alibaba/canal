@@ -36,7 +36,7 @@ public interface ESTemplate {
      * @param paramsTmp sql查询条件
      * @param esFieldData 数据Map
      */
-    void updateByQuery(ESSyncConfig config, Map<String, Pair<SchemaItem.FieldItem, Object>> paramsTmp, Map<String, Object> esFieldData);
+    void updateByQuery(ESSyncConfig config, Map<SchemaItem.FieldItem, Object> paramsTmp, Map<String, Object> esFieldData);
 
     /**
      * 通过主键删除数据

@@ -1,18 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es.core.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
@@ -28,6 +15,12 @@ import com.alibaba.otter.canal.client.adapter.es.core.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.util.*;
 
 /**
  * ES 同步 Service
@@ -549,7 +542,7 @@ public class ESSyncService {
                                                TableItem tableItem, Map<String, Object> esFieldData) {
         ESMapping mapping = config.getEsMapping();
 
-        Map<String, Pair<FieldItem, Object>> paramsTmp = new LinkedHashMap<>();
+        Map<FieldItem, Object> paramsTmp = new LinkedHashMap<>();
         for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
             for (FieldItem fieldItem : entry.getValue()) {
                 if (fieldItem.getColumnItems().size() == 1) {
@@ -557,13 +550,7 @@ public class ESSyncService {
                         data,
                         fieldItem.getFieldName(),
                         entry.getKey().getColumn().getColumnName());
-
-                    String fieldName = fieldItem.getFieldName();
-                    // 判断是否是主键
-                    if (fieldName.equals(mapping.get_id())) {
-                        fieldName = "_id";
-                    }
-                    paramsTmp.put(fieldName, new Pair<>(fieldItem, value));
+                    paramsTmp.put(fieldItem, value);
                 }
             }
         }
@@ -657,7 +644,7 @@ public class ESSyncService {
                         }
                     }
 
-                    Map<String, Pair<FieldItem, Object>> paramsTmp = new LinkedHashMap<>();
+                    Map<FieldItem, Object> paramsTmp = new LinkedHashMap<>();
                     for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
                         for (FieldItem fieldItem : entry.getValue()) {
                             if (fieldItem.getColumnItems().size() == 1) {
@@ -665,12 +652,7 @@ public class ESSyncService {
                                     rs,
                                     fieldItem.getFieldName(),
                                     entry.getKey().getColumn().getColumnName());
-                                String fieldName = fieldItem.getFieldName();
-                                // 判断是否是主键
-                                if (fieldName.equals(mapping.get_id())) {
-                                    fieldName = "_id";
-                                }
-                                paramsTmp.put(fieldName, new Pair<>(fieldItem, value));
+                                paramsTmp.put(fieldItem, value);
                             }
                         }
                     }
@@ -774,17 +756,11 @@ public class ESSyncService {
                         }
                     }
 
-                    Map<String, Pair<FieldItem, Object>> paramsTmp = new LinkedHashMap<>();
+                    Map<FieldItem, Object> paramsTmp = new LinkedHashMap<>();
                     for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
                         for (FieldItem fieldItem : entry.getValue()) {
-                            Object value = esTemplate
-                                .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
-                            String fieldName = fieldItem.getFieldName();
-                            // 判断是否是主键
-                            if (fieldName.equals(mapping.get_id())) {
-                                fieldName = "_id";
-                            }
-                            paramsTmp.put(fieldName, new Pair<>(fieldItem, value));
+                            Object value = esTemplate.getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
+                            paramsTmp.put(fieldItem, value);
                         }
                     }
 
