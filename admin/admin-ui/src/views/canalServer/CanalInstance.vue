@@ -64,6 +64,7 @@
               <el-dropdown-item @click.native="handleStart(scope.row)">启动</el-dropdown-item>
               <el-dropdown-item @click.native="handleStop(scope.row)">停止</el-dropdown-item>
               <el-dropdown-item @click.native="handleLog(scope.row)">日志</el-dropdown-item>
+              <el-dropdown-item @click.native="handleMeta(scope.row)">meta</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -117,6 +118,7 @@ export default {
     }
   },
   created() {
+    this.listQuery.name = this.$route.query.name
     getClustersAndServers().then((res) => {
       this.options = res.data
     })
@@ -222,6 +224,13 @@ export default {
         return
       }
       this.$router.push('canalInstance/log?id=' + row.id + '&nodeId=' + row.nodeServer.id)
+    },
+    handleMeta(row) {
+      if (row.nodeId === null) {
+        this.$message({ message: '当前Instance不是启动状态，无法查看meta', type: 'warning' })
+        return
+      }
+      this.$router.push('canalInstance/meta?id=' + row.id + '&nodeId=' + row.nodeServer.id)
     }
   }
 }
