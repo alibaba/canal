@@ -312,7 +312,7 @@ public class MappingConfig implements AdapterConfig {
                         columnItem.setRowKey(true);
                         rowKeyColumn = columnItem;
                     } else {
-                        if (field == null || field.equals("")) {
+                        if (field == null || "".equals(field)) {
                             columnItem.setFamily(family);
                             columnItem.setQualifier(columnField.getKey());
                         } else {

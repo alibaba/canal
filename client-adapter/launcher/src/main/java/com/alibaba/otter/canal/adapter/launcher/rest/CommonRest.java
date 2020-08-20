@@ -181,11 +181,11 @@ public class CommonRest {
      */
     @PutMapping("/syncSwitch/{destination}/{status}")
     public Result etl(@PathVariable String destination, @PathVariable String status) {
-        if (status.equals("on")) {
+        if ("on".equals(status)) {
             syncSwitch.on(destination);
             logger.info("#Destination: {} sync on", destination);
             return Result.createSuccess("实例: " + destination + " 开启同步成功");
-        } else if (status.equals("off")) {
+        } else if ("off".equals(status)) {
             syncSwitch.off(destination);
             logger.info("#Destination: {} sync off", destination);
             return Result.createSuccess("实例: " + destination + " 关闭同步成功");
