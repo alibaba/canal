@@ -2,5 +2,5 @@
 
 args=$@
 
-sh stop.sh $args
-sh startup.sh $args
+bash stop.sh $args
+bash startup.sh $args
