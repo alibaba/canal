@@ -12,9 +12,13 @@ import org.joda.time.format.ISODateTimeFormat;
 public class DateUtil {
 
     private static DateTimeZone dateTimeZone;
+    private static DateTime invalidTimeStart;
+    private static DateTime   invalidTimeEnd;
 
     static {
         dateTimeZone = DateTimeZone.forID(TimeZone.LOCATION_TIME_ZONE);
+        invalidTimeStart = new DateTime("1582-10-5T0:0",dateTimeZone);
+        invalidTimeEnd = new DateTime("1582-10-15T0:0", dateTimeZone);
     }
 
     /**
@@ -43,6 +47,11 @@ public class DateUtil {
             }
         }
         DateTime dateTime = new DateTime(datetimeStr, dateTimeZone);
+        // https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-usagenotes-known-issues-limitations.html
+        if (dateTime.getMillis() >= invalidTimeStart.getMillis() && dateTime.getMillis() < invalidTimeEnd.getMillis()){
+            // https://www.ibm.com/support/knowledgecenter/en/SSEPGG_10.1.0/com.ibm.db2.luw.apdv.java.doc/src/tpc/imjcc_r0053436.html
+            dateTime = dateTime.plusDays(10);
+        }
         DateTimeFormatter formatter = ISODateTimeFormat
                 .dateTimeParser()
                 .withOffsetParsed()
