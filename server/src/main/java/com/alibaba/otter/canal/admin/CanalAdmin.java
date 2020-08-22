@@ -115,11 +115,4 @@ public interface CanalAdmin {
      * @return 日志信息
      */
     String instanceLog(String destination, String fileName, int lines);
-
-    /**
-     * 获取meta
-     * @param destination
-     * @return
-     */
-    String instanceMeta(String destination,String fileName);
 }

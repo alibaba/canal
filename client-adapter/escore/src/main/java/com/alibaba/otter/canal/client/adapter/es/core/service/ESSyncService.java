@@ -95,11 +95,11 @@ public class ESSyncService {
             long begin = System.currentTimeMillis();
 
             String type = dml.getType();
-            if (type != null && "INSERT".equalsIgnoreCase(type)) {
+            if (type != null && type.equalsIgnoreCase("INSERT")) {
                 insert(config, dml);
-            } else if (type != null && "UPDATE".equalsIgnoreCase(type)) {
+            } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
                 update(config, dml);
-            } else if (type != null && "DELETE".equalsIgnoreCase(type)) {
+            } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                 delete(config, dml);
             } else {
                 return;

@@ -218,11 +218,6 @@ public class CanalAdminController implements CanalAdmin {
         return FileUtils.readFileFromOffset("../logs/" + destination + "/" + fileName, lines, "UTF-8");
     }
 
-    @Override
-    public String instanceMeta(String destination, String fileName) {
-        return FileUtils.readFileFromOffset("../conf/" + destination + "/" + fileName, 100, "UTF-8");
-    }
-
     private InstanceAction getInstanceAction(String destination) {
         Map<InstanceConfig.InstanceMode, InstanceConfigMonitor> monitors = canalStater.getController()
             .getInstanceConfigMonitors();

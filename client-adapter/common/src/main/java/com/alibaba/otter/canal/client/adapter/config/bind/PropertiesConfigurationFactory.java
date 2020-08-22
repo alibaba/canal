@@ -282,7 +282,7 @@ public class PropertiesConfigurationFactory<T> implements FactoryBean<T>, Applic
             PropertyDescriptor[] descriptors = BeanUtils.getPropertyDescriptors(this.target.getClass());
             for (PropertyDescriptor descriptor : descriptors) {
                 String name = descriptor.getName();
-                if (!"class".equals(name)) {
+                if (!name.equals("class")) {
                     RelaxedNames relaxedNames = RelaxedNames.forCamelCase(name);
                     if (prefixes == null) {
                         for (String relaxedName : relaxedNames) {

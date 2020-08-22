@@ -26,8 +26,6 @@ public interface CanalInstanceService {
 
     Map<String, String> remoteInstanceLog(Long id, Long nodeId);
 
-    Map<String, String> remoteInstanceMeta(Long id, Long nodeId);
-
     boolean remoteOperation(Long id, Long nodeId, String option);
 
     boolean instanceOperation(Long id, String option);

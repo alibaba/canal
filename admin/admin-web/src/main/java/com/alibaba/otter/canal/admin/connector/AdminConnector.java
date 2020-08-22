@@ -128,12 +128,4 @@ public interface AdminConnector {
      */
     String instanceLog(String destination, String fileName, int lines);
 
-    /**
-     * meta
-     * @param destination
-     * @param fileName
-     * @return
-     */
-    String instanceMeta(String destination, String fileName);
-
 }

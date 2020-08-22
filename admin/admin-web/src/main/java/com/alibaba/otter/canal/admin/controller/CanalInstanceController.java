@@ -162,20 +162,6 @@ public class CanalInstanceController {
     }
 
     /**
-     * 获取实例meta信息
-     *
-     * @param id
-     * @param nodeId
-     * @param env
-     * @return
-     */
-    @GetMapping(value = "/instance/meta/{id}/{nodeId}")
-    public BaseModel<Map<String, String>> meta(@PathVariable Long id, @PathVariable Long nodeId,
-                                               @PathVariable String env) {
-        return BaseModel.getInstance(canalInstanceConfigService.remoteInstanceMeta(id, nodeId));
-    }
-
-    /**
      * 通过Server id获取所有活动的Instance
      *
      * @param serverId 节点id

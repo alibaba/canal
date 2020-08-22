@@ -38,6 +38,7 @@ public class MessageUtil {
             CanalEntry.EventType eventType = rowChange.getEventType();
 
             final Dml dml = new Dml();
+            dml.setIsDdl(rowChange.getIsDdl());
             dml.setDestination(destination);
             dml.setGroupId(groupId);
             dml.setDatabase(entry.getHeader().getSchemaName());

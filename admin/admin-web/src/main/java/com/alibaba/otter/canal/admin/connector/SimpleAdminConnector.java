@@ -206,11 +206,6 @@ public class SimpleAdminConnector implements AdminConnector {
         return doLogAdmin("instance", "file", destination, fileName, lines);
     }
 
-    @Override
-    public String instanceMeta(final String destination, final String fileName) {
-        return doLogAdmin("meta", "file", destination, fileName,100);
-    }
-
     // ==================== helper method ====================
 
     private String doServerAdmin(String action) {

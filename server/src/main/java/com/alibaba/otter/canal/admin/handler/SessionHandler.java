@@ -116,9 +116,6 @@ public class SessionHandler extends SimpleChannelHandler {
                                 message = canalAdmin.instanceLog(destination, file, count);
                             }
                             break;
-                        case "meta":
-                            message = canalAdmin.instanceMeta(destination, file);
-                            break;
                         default:
                             byte[] errorBytes = AdminNettyUtils.errorPacket(301,
                                 MessageFormatter.format("LogAdmin type={} is unknown", type).getMessage());

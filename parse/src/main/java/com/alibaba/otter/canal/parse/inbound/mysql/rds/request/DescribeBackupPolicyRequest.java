@@ -31,7 +31,7 @@ public class DescribeBackupPolicyRequest extends AbstractRequest<RdsBackupPolicy
         JSONObject jsonObj = JSON.parseObject(result);
         RdsBackupPolicy policy = new RdsBackupPolicy();
         policy.setBackupRetentionPeriod(jsonObj.getString("BackupRetentionPeriod"));
-        policy.setBackupLog("Enable".equalsIgnoreCase(jsonObj.getString("BackupLog")));
+        policy.setBackupLog(jsonObj.getString("BackupLog").equalsIgnoreCase("Enable"));
         policy.setLogBackupRetentionPeriod(jsonObj.getIntValue("LogBackupRetentionPeriod"));
         policy.setPreferredBackupPeriod(jsonObj.getString("PreferredBackupPeriod"));
         policy.setPreferredBackupTime(jsonObj.getString("PreferredBackupTime"));

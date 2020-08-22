@@ -45,6 +45,7 @@ import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
+
 @Ignore
 public class DirectLogFetcherTest {
 
@@ -84,6 +85,9 @@ public class DirectLogFetcherTest {
                         // binlogFileName = ((RotateLogEvent)
                         // event).getFilename();
                         System.out.println(((RotateLogEvent) event).getFilename());
+                        break;
+                    case LogEvent.TABLE_MAP_EVENT:
+                        parseTableMapEvent((TableMapLogEvent) event);
                         break;
                     case LogEvent.WRITE_ROWS_EVENT_V1:
                     case LogEvent.WRITE_ROWS_EVENT:
@@ -173,13 +177,13 @@ public class DirectLogFetcherTest {
             logger.warn("update wait_timeout failed", e);
         }
         try {
-            update("set net_write_timeout=1800", connector);
+            update("set net_write_timeout=7200", connector);
         } catch (Exception e) {
             logger.warn("update net_write_timeout failed", e);
         }
 
         try {
-            update("set net_read_timeout=1800", connector);
+            update("set net_read_timeout=7200", connector);
         } catch (Exception e) {
             logger.warn("update net_read_timeout failed", e);
         }
@@ -270,6 +274,18 @@ public class DirectLogFetcherTest {
         System.out.println(String.format("================> binlog[%s:%s]", binlogFileName, event.getHeader()
             .getLogPos() - event.getHeader().getEventLen()));
         System.out.println("sql : " + new String(event.getRowsQuery().getBytes("ISO-8859-1"), charset.name()));
+    }
+
+    public void parseTableMapEvent(TableMapLogEvent event) {
+        try {
+            String charsetDbName = new String(event.getDbName().getBytes("ISO-8859-1"), charset.name());
+            event.setDbname(charsetDbName);
+
+            String charsetTbName = new String(event.getTableName().getBytes("ISO-8859-1"), charset.name());
+            event.setTblname(charsetTbName);
+        } catch (UnsupportedEncodingException e) {
+            throw new CanalParseException(e);
+        }
     }
 
     protected void parseXidEvent(XidLogEvent event) throws Exception {

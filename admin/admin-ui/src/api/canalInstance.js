@@ -59,13 +59,6 @@ export function instanceLog(id, nodeId) {
   })
 }
 
-export function instanceMeta(id, nodeId) {
-  return request({
-    url: '/canal/instance/meta/' + id + '/' + nodeId,
-    method: 'get'
-  })
-}
-
 export function instanceStatus(id, option) {
   return request({
     url: '/canal/instance/status/' + id + '?option=' + option,

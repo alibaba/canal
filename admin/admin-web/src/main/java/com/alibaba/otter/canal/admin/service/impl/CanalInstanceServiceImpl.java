@@ -1,10 +1,8 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
-import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import io.ebean.Query;
 
 import java.security.NoSuchAlgorithmException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -255,33 +253,6 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
 
         result.put("instance", canalInstanceConfig.getName());
         result.put("log", log);
-        return result;
-    }
-
-    @Override
-    public Map<String, String> remoteInstanceMeta(final Long id, final Long nodeId) {
-        Map<String, String> result = new HashMap<>();
-
-        NodeServer nodeServer = NodeServer.find.byId(nodeId);
-        if (nodeServer == null) {
-            return result;
-        }
-        CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
-        if (canalInstanceConfig == null) {
-            return result;
-        }
-        String meta;
-        if (nodeServer.getCanalCluster() != null) {
-            ZkClientx zkClientx = ZkClientx.getZkClient(nodeServer.getCanalCluster().getZkHosts());
-            String zkPath = MessageFormat.format("/{0}/{1}/{2}/{3}/{4}/{5}", "otter", "canal", "destinations", canalInstanceConfig.getName(), "1001", "cursor");
-            meta = new String((byte[]) zkClientx.readData(zkPath));
-        } else {
-            meta = SimpleAdminConnectors.execute(nodeServer.getIp(),
-                    nodeServer.getAdminPort(),
-                    adminConnector -> adminConnector.instanceMeta(canalInstanceConfig.getName(), "meta.dat"));
-        }
-        result.put("instance", canalInstanceConfig.getName());
-        result.put("meta", meta);
         return result;
     }
 

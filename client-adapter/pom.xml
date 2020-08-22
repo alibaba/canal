@@ -50,7 +50,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
+            <url>http://repo1.maven.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -143,7 +143,7 @@
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>1.4.196</version>
+                <version>1.4.192</version>
             </dependency>
             <!-- 单独引入rocketmq依赖 -->
             <dependency>
@@ -172,7 +172,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.47</version>
+                <version>5.1.48</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>

@@ -112,12 +112,14 @@ public class RdbSyncService {
 
                     futures.add(executorThreads[i].submit(() -> {
                         try {
-                            dmlsPartition[j]
-                                .forEach(syncItem -> sync(batchExecutors[j], syncItem.config, syncItem.singleDml));
+                            dmlsPartition[j].forEach(syncItem -> sync(batchExecutors[j],
+                                syncItem.config,
+                                syncItem.singleDml));
                             dmlsPartition[j].clear();
                             batchExecutors[j].commit();
                             return true;
                         } catch (Throwable e) {
+                            dmlsPartition[j].clear();
                             batchExecutors[j].rollback();
                             throw new RuntimeException(e);
                         }
@@ -151,50 +153,50 @@ public class RdbSyncService {
         sync(dmls, dml -> {
             if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                 // DDL
-                columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
-                return false;
+            columnsTypeCache.remove(dml.getDestination() + "." + dml.getDatabase() + "." + dml.getTable());
+            return false;
+        } else {
+            // DML
+            String destination = StringUtils.trimToEmpty(dml.getDestination());
+            String groupId = StringUtils.trimToEmpty(dml.getGroupId());
+            String database = dml.getDatabase();
+            String table = dml.getTable();
+            Map<String, MappingConfig> configMap;
+            if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                configMap = mappingConfig.get(destination + "-" + groupId + "_" + database + "-" + table);
             } else {
-                // DML
-                String destination = StringUtils.trimToEmpty(dml.getDestination());
-                String groupId = StringUtils.trimToEmpty(dml.getGroupId());
-                String database = dml.getDatabase();
-                String table = dml.getTable();
-                Map<String, MappingConfig> configMap;
-                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                    configMap = mappingConfig.get(destination + "-" + groupId + "_" + database + "-" + table);
-                } else {
-                    configMap = mappingConfig.get(destination + "_" + database + "-" + table);
-                }
-
-                if (configMap == null) {
-                    return false;
-                }
-
-                if (configMap.values().isEmpty()) {
-                    return false;
-                }
-
-                for (MappingConfig config : configMap.values()) {
-                    boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
-                    if (config.getConcurrent()) {
-                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
-                        singleDmls.forEach(singleDml -> {
-                            int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                            SyncItem syncItem = new SyncItem(config, singleDml);
-                            dmlsPartition[hash].add(syncItem);
-                        });
-                    } else {
-                        int hash = 0;
-                        List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
-                        singleDmls.forEach(singleDml -> {
-                            SyncItem syncItem = new SyncItem(config, singleDml);
-                            dmlsPartition[hash].add(syncItem);
-                        });
-                    }
-                }
-                return true;
+                configMap = mappingConfig.get(destination + "_" + database + "-" + table);
             }
-        });
+
+            if (configMap == null) {
+                return false;
+            }
+
+            if (configMap.values().isEmpty()) {
+                return false;
+            }
+
+            for (MappingConfig config : configMap.values()) {
+                boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
+                if (config.getConcurrent()) {
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+                    singleDmls.forEach(singleDml -> {
+                        int hash = pkHash(config.getDbMapping(), singleDml.getData());
+                        SyncItem syncItem = new SyncItem(config, singleDml);
+                        dmlsPartition[hash].add(syncItem);
+                    });
+                } else {
+                    int hash = 0;
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+                    singleDmls.forEach(singleDml -> {
+                        SyncItem syncItem = new SyncItem(config, singleDml);
+                        dmlsPartition[hash].add(syncItem);
+                    });
+                }
+            }
+            return true;
+        }
+    }   );
     }
 
     /**
@@ -208,13 +210,13 @@ public class RdbSyncService {
         if (config != null) {
             try {
                 String type = dml.getType();
-                if (type != null && "INSERT".equalsIgnoreCase(type)) {
+                if (type != null && type.equalsIgnoreCase("INSERT")) {
                     insert(batchExecutor, config, dml);
-                } else if (type != null && "UPDATE".equalsIgnoreCase(type)) {
+                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
                     update(batchExecutor, config, dml);
-                } else if (type != null && "DELETE".equalsIgnoreCase(type)) {
+                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                     delete(batchExecutor, config, dml);
-                } else if (type != null && "TRUNCATE".equalsIgnoreCase(type)) {
+                } else if (type != null && type.equalsIgnoreCase("TRUNCATE")) {
                     truncate(batchExecutor, config);
                 }
                 if (logger.isDebugEnabled()) {
@@ -245,7 +247,10 @@ public class RdbSyncService {
         StringBuilder insertSql = new StringBuilder();
         insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
 
-        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append("`").append(targetColumnName).append("`").append(","));
+        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append("`")
+            .append(targetColumnName)
+            .append("`")
+            .append(","));
         int len = insertSql.length();
         insertSql.delete(len - 1, len).append(") VALUES (");
         int mapLen = columnsMap.size();

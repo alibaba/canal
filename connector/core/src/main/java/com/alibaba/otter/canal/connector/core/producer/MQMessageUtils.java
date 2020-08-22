@@ -49,7 +49,7 @@ public class MQMessageUtils {
                                                                                      int i = pkHashConfig.lastIndexOf(":");
                                                                                      if (i > 0) {
                                                                                          String pkStr = pkHashConfig.substring(i + 1);
-                                                                                         if ("$pk$".equalsIgnoreCase(pkStr)) {
+                                                                                         if (pkStr.equalsIgnoreCase("$pk$")) {
                                                                                              data.hashMode.autoPkHash = true;
                                                                                          } else {
                                                                                              data.hashMode.pkNames = Lists.newArrayList(StringUtils.split(pkStr,

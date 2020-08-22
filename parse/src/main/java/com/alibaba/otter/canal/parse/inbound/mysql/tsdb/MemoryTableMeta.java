@@ -81,8 +81,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "alter user")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "drop user")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create database")) {
-                    String sql = trimSimpleComment(ddl);
-                    repository.console(sql);
+                    repository.console(ddl);
                 }
             } catch (Throwable e) {
                 logger.warn("parse faield : " + ddl, e);
@@ -96,38 +95,6 @@ public class MemoryTableMeta implements TableMetaTSDB {
         // System.out.println(repository.console("show columns from tddl5_00.ab"));
         // }
         return true;
-    }
-
-    /**
-     * 过滤简单的行与块注释（--或# 开始的行 /*开始与*\/结束的块）
-     *
-     * @param sql
-     * @return
-     */
-    private String trimSimpleComment(String sql) {
-        String[] sqls = sql.split("\n");
-        if (sqls.length == 1) return sql;
-
-        boolean isCommentBlock = false;
-        StringBuilder sb = new StringBuilder(sql.length());
-        for (String psql : sqls) {
-            if (psql.startsWith("--") || psql.startsWith("#")) {
-                continue;
-            } else if (psql.trim().length() == 0) {
-                sb.append("\n");
-            }
-            if (!isCommentBlock && !psql.trim().startsWith("/*") && !psql.trim().endsWith("*/")) {
-                sb.append(psql).append("\n");
-                continue;
-            }
-            if (!isCommentBlock && psql.trim().startsWith("/*")) {
-                isCommentBlock = true;
-            }
-            if (isCommentBlock && psql.trim().endsWith("*/")) {
-                isCommentBlock = false;
-            }
-        }
-        return sb.toString();
     }
 
     @Override

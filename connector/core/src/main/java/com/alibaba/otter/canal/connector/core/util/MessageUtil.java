@@ -42,6 +42,7 @@ public class MessageUtil {
             CanalEntry.EventType eventType = rowChange.getEventType();
 
             final CommonMessage msg = new CommonMessage();
+            msg.setIsDdl(rowChange.getIsDdl());
             msg.setDatabase(entry.getHeader().getSchemaName());
             msg.setTable(entry.getHeader().getTableName());
             msg.setType(eventType.toString());

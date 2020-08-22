@@ -71,7 +71,7 @@ public class SyncUtil {
                 if (value instanceof Boolean) {
                     pstmt.setBoolean(i, (Boolean) value);
                 } else if (value instanceof String) {
-                    boolean v = !"0".equals(value);
+                    boolean v = !value.equals("0");
                     pstmt.setBoolean(i, v);
                 } else if (value instanceof Number) {
                     boolean v = ((Number) value).intValue() != 0;

@@ -47,11 +47,11 @@ public class KuduSyncService {
     public void sync(KuduMappingConfig config, Dml dml) {
         if (config != null) {
             String type = dml.getType();
-            if (type != null && "INSERT".equalsIgnoreCase(type)) {
+            if (type != null && type.equalsIgnoreCase("INSERT")) {
                 insert(config, dml);
-            } else if (type != null && "UPDATE".equalsIgnoreCase(type)) {
+            } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
                 upsert(config, dml);
-            } else if (type != null && "DELETE".equalsIgnoreCase(type)) {
+            } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                 delete(config, dml);
             }
             if (logger.isDebugEnabled()) {

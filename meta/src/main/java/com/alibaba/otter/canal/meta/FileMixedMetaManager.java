@@ -130,9 +130,9 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
     }
 
     public void stop() {
-        super.stop();
-
         flushDataToFile();// 刷新数据
+
+        super.stop();
         executor.shutdownNow();
         destinations.clear();
         batches.clear();

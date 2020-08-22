@@ -393,13 +393,13 @@ public class MysqlConnection implements ErosaConnection {
             logger.warn("update wait_timeout failed", e);
         }
         try {
-            update("set net_write_timeout=1800");
+            update("set net_write_timeout=7200");
         } catch (Exception e) {
             logger.warn("update net_write_timeout failed", e);
         }
 
         try {
-            update("set net_read_timeout=1800");
+            update("set net_read_timeout=7200");
         } catch (Exception e) {
             logger.warn("update net_read_timeout failed", e);
         }
@@ -522,7 +522,7 @@ public class MysqlConnection implements ErosaConnection {
             rs = query("select @@global.binlog_checksum");
             List<String> columnValues = rs.getFieldValues();
             if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0) != null
-                && "CRC32".equals(columnValues.get(0).toUpperCase())) {
+                && columnValues.get(0).toUpperCase().equals("CRC32")) {
                 binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
             } else {
                 binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;

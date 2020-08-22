@@ -128,13 +128,6 @@ export const constantRoutes = [
         component: () => import('@/views/canalServer/CanalInstanceLogDetail'),
         meta: { title: 'Instance 日志' },
         hidden: true
-      },
-      {
-        path: 'canalInstance/meta',
-        name: 'Instance meta',
-        component: () => import('@/views/canalServer/CanalInstanceMetaDetail'),
-        meta: { title: 'Instance Meta' },
-        hidden: true
       }
     ]
   },
