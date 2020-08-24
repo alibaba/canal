@@ -108,7 +108,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
 
     @Override
     public void send(final MQDestination destination, Message message, Callback callback) {
-        ExecutorTemplate template = new ExecutorTemplate(sendExecutor);
+        ExecutorTemplate template = executorTemplatePool.getExecutorTemplate("send", mqProperties.getParallelSendThreadSize());
         try {
             if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
                 // 动态topic
@@ -151,7 +151,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
             sendMessage(topicName, message);
         } else {
             // 并发构造
-            MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(messageSub, buildExecutor);
+            ExecutorTemplate buildTemplate = executorTemplatePool.getExecutorTemplate("build", mqProperties.getParallelBuildThreadSize());
+            MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(messageSub, buildTemplate);
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, messageSub.getId());
             for (FlatMessage flatMessage : flatMessages) {

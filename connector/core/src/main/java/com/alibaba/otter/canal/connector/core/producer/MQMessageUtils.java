@@ -198,8 +198,7 @@ public class MQMessageUtils {
      * 多线程构造message的rowChanged对象，比如为partition/flastMessage转化等处理 </br>
      * 因为protobuf对象的序列化和反序列化是cpu密集型，串行执行会有代价
      */
-    public static EntryRowData[] buildMessageData(Message message, ThreadPoolExecutor executor) {
-        ExecutorTemplate template = new ExecutorTemplate(executor);
+    public static EntryRowData[] buildMessageData(Message message, ExecutorTemplate template) {
         if (message.isRaw()) {
             List<ByteString> rawEntries = message.getRawEntries();
             final EntryRowData[] datas = new EntryRowData[rawEntries.size()];

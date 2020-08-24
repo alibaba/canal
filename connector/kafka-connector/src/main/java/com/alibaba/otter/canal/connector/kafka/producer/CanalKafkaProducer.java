@@ -136,7 +136,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
 
     @Override
     public void send(MQDestination mqDestination, Message message, Callback callback) {
-        ExecutorTemplate template = new ExecutorTemplate(sendExecutor);
+        ExecutorTemplate template = executorTemplatePool.getExecutorTemplate("send", mqProperties.getParallelSendThreadSize());
 
         try {
             List result;
@@ -204,7 +204,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
         if (!flat) {
             if (mqDestination.getPartitionHash() != null && !mqDestination.getPartitionHash().isEmpty()) {
                 // 并发构造
-                EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
+                ExecutorTemplate buildTemplate = executorTemplatePool.getExecutorTemplate("build", mqProperties.getParallelBuildThreadSize());
+                EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildTemplate);
                 // 串行分区
                 Message[] messages = MQMessageUtils.messagePartition(datas,
                     message.getId(),
@@ -232,7 +233,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
         } else {
             // 发送扁平数据json
             // 并发构造
-            EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
+            ExecutorTemplate buildTemplate = executorTemplatePool.getExecutorTemplate("build", mqProperties.getParallelBuildThreadSize());
+            EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildTemplate);
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, message.getId());
             for (FlatMessage flatMessage : flatMessages) {

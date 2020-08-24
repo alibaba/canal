@@ -1,16 +1,12 @@
 package com.alibaba.otter.canal.connector.core.producer;
 
-import java.util.Properties;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
+import com.alibaba.otter.canal.common.utils.ExecutorTemplatePool;
 import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.config.MQProperties;
 import com.alibaba.otter.canal.connector.core.spi.CanalMQProducer;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Properties;
 
 /**
  * MQ producer 抽象类
@@ -22,31 +18,15 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
 
     protected MQProperties       mqProperties;
 
-    protected ThreadPoolExecutor sendExecutor;
-    protected ThreadPoolExecutor buildExecutor;
+    /**
+     * 线程模板池，为子类提供并行处理能力
+     */
+    protected ExecutorTemplatePool executorTemplatePool = new ExecutorTemplatePool();
 
     @Override
     public void init(Properties properties) {
         // parse canal mq properties
         loadCanalMqProperties(properties);
-
-        int parallelBuildThreadSize = mqProperties.getParallelBuildThreadSize();
-        buildExecutor = new ThreadPoolExecutor(parallelBuildThreadSize,
-            parallelBuildThreadSize,
-            0,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(parallelBuildThreadSize * 2),
-            new NamedThreadFactory("MQ-Parallel-Builder"),
-            new ThreadPoolExecutor.CallerRunsPolicy());
-
-        int parallelSendThreadSize = mqProperties.getParallelSendThreadSize();
-        sendExecutor = new ThreadPoolExecutor(parallelSendThreadSize,
-            parallelSendThreadSize,
-            0,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(parallelSendThreadSize * 2),
-            new NamedThreadFactory("MQ-Parallel-Sender"),
-            new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     @Override
@@ -56,12 +36,8 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
 
     @Override
     public void stop() {
-        if (buildExecutor != null) {
-            buildExecutor.shutdownNow();
-        }
-
-        if (sendExecutor != null) {
-            sendExecutor.shutdownNow();
+        if (executorTemplatePool != null){
+            executorTemplatePool.close();
         }
     }
 
