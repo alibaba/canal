@@ -1,32 +1,35 @@
 package com.alibaba.otter.canal.admin.service.impl;
 
-import io.ebean.Query;
-
 import java.util.List;
-
-import org.springframework.stereotype.Service;
 
 import com.alibaba.otter.canal.admin.common.exception.ServiceException;
 import com.alibaba.otter.canal.admin.model.CanalCluster;
 import com.alibaba.otter.canal.admin.model.CanalInstanceConfig;
 import com.alibaba.otter.canal.admin.model.NodeServer;
 import com.alibaba.otter.canal.admin.service.CanalClusterService;
+import io.ebean.Query;
+
+import org.springframework.stereotype.Service;
 
 @Service
 public class CanalClusterServiceImpl implements CanalClusterService {
 
+    @Override
     public void save(CanalCluster canalCluster) {
         canalCluster.save();
     }
 
+    @Override
     public CanalCluster detail(Long id) {
         return CanalCluster.find.byId(id);
     }
 
+    @Override
     public void update(CanalCluster canalCluster) {
         canalCluster.update("name", "zkHosts");
     }
 
+    @Override
     public void delete(Long id) {
         // 判断集群下是否存在server信息
         int serverCnt = NodeServer.find.query().where().eq("clusterId", id).findCount();
@@ -46,6 +49,7 @@ public class CanalClusterServiceImpl implements CanalClusterService {
         }
     }
 
+    @Override
     public List<CanalCluster> findList(CanalCluster canalCluster) {
         Query<CanalCluster> query = CanalCluster.find.query();
         query.order().asc("id");

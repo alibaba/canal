@@ -37,6 +37,7 @@ import com.google.common.collect.Lists;
 @Service
 public class CanalInstanceServiceImpl implements CanalInstanceService {
 
+    @Override
     public Pager<CanalInstanceConfig> findList(CanalInstanceConfig canalInstanceConfig, Pager<CanalInstanceConfig> pager) {
         Query<CanalInstanceConfig> query = CanalInstanceConfig.find.query()
             .setDisableLazyLoading(true)
@@ -126,6 +127,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
      *
      * @param serverId server id
      */
+    @Override
     public List<CanalInstanceConfig> findActiveInstanceByServerId(Long serverId) {
         NodeServer nodeServer = NodeServer.find.byId(serverId);
         if (nodeServer == null) {
@@ -170,6 +172,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
     }
 
+    @Override
     public void save(CanalInstanceConfig canalInstanceConfig) {
         if (StringUtils.isEmpty(canalInstanceConfig.getClusterServerId())) {
             throw new ServiceException("empty cluster or server id");
@@ -192,6 +195,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         canalInstanceConfig.insert();
     }
 
+    @Override
     public CanalInstanceConfig detail(Long id) {
         CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
         if (canalInstanceConfig != null) {
@@ -204,6 +208,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         return canalInstanceConfig;
     }
 
+    @Override
     public void updateContent(CanalInstanceConfig canalInstanceConfig) {
         if (StringUtils.isEmpty(canalInstanceConfig.getClusterServerId())) {
             throw new ServiceException("empty cluster or server id");
@@ -228,6 +233,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         canalInstanceConfig.update("content", "contentMd5", "clusterId", "serverId");
     }
 
+    @Override
     public void delete(Long id) {
         CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
         if (canalInstanceConfig != null) {
@@ -235,6 +241,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         }
     }
 
+    @Override
     public Map<String, String> remoteInstanceLog(Long id, Long nodeId) {
         Map<String, String> result = new HashMap<>();
 
@@ -256,6 +263,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         return result;
     }
 
+    @Override
     public boolean remoteOperation(Long id, Long nodeId, String option) {
         NodeServer nodeServer = null;
         if ("start".equals(option)) {
@@ -303,6 +311,7 @@ public class CanalInstanceServiceImpl implements CanalInstanceService {
         return result;
     }
 
+    @Override
     public boolean instanceOperation(Long id, String option) {
         CanalInstanceConfig canalInstanceConfig = CanalInstanceConfig.find.byId(id);
         if (canalInstanceConfig == null) {

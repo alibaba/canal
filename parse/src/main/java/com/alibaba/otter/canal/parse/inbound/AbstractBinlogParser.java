@@ -6,6 +6,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 
 public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle implements BinlogParser<T> {
 
+    @Override
     public void reset() {
     }
 
@@ -17,6 +18,7 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
         return null;
     }
 
+    @Override
     public void stop() {
         reset();
         super.stop();

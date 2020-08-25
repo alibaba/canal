@@ -81,6 +81,7 @@ public class Canal implements Serializable {
         this.gmtModified = gmtModified;
     }
 
+    @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this, CanalToStringStyle.DEFAULT_STYLE);
     }

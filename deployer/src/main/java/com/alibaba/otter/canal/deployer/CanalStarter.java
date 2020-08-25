@@ -90,6 +90,7 @@ public class CanalStarter {
         logger.info("## the canal server is running now ......");
         shutdownThread = new Thread() {
 
+            @Override
             public void run() {
                 try {
                     logger.info("## stop the canal server");

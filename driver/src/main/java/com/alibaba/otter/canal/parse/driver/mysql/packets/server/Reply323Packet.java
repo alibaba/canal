@@ -10,10 +10,12 @@ public class Reply323Packet extends PacketWithHeaderPacket {
 
     public byte[] seed;
 
+    @Override
     public void fromBytes(byte[] data) throws IOException {
 
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         if (seed == null) {
             return new byte[] { (byte) 0 };

@@ -50,7 +50,8 @@ public class SessionHandler extends SimpleChannelHandler {
         this.embeddedServer = embeddedServer;
     }
 
-    @SuppressWarnings({ "deprecation" })
+    @Override
+    @SuppressWarnings({"deprecation" })
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         logger.info("message receives in session handler...");
         long start = System.nanoTime();
@@ -338,6 +339,7 @@ public class SessionHandler extends SimpleChannelHandler {
         }
     }
 
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
         logger.error("something goes wrong with channel:{}, exception={}",
             ctx.getChannel(),
@@ -346,6 +348,7 @@ public class SessionHandler extends SimpleChannelHandler {
         ctx.getChannel().close();
     }
 
+    @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         // logger.info("remove binding subscription value object if any...");
         // ClientIdentity clientIdentity = (ClientIdentity) ctx.getAttachment();

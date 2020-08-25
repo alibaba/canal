@@ -107,6 +107,7 @@ public final class FileLogFetcher extends LogFetcher {
      * 
      * @see com.taobao.tddl.dbsync.binlog.LogFetcher#fetch()
      */
+    @Override
     public boolean fetch() throws IOException {
         if (limit == 0) {
             final int len = fin.read(buffer, 0, buffer.length);
@@ -167,6 +168,7 @@ public final class FileLogFetcher extends LogFetcher {
      * 
      * @see com.taobao.tddl.dbsync.binlog.LogFetcher#close()
      */
+    @Override
     public void close() throws IOException {
         if (fin != null) {
             fin.close();

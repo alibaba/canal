@@ -164,6 +164,7 @@ public class ESConnection {
             }
         }
 
+        @Override
         public ES7xIndexRequest setSource(Map<String, ?> source) {
             if (mode == ESClientMode.TRANSPORT) {
                 indexRequestBuilder.setSource(source);
@@ -173,6 +174,7 @@ public class ESConnection {
             return this;
         }
 
+        @Override
         public ES7xIndexRequest setRouting(String routing) {
             if (mode == ESClientMode.TRANSPORT) {
                 indexRequestBuilder.setRouting(routing);
@@ -215,6 +217,7 @@ public class ESConnection {
             }
         }
 
+        @Override
         public ES7xUpdateRequest setDoc(Map source) {
             if (mode == ESClientMode.TRANSPORT) {
                 updateRequestBuilder.setDoc(source);
@@ -224,6 +227,7 @@ public class ESConnection {
             return this;
         }
 
+        @Override
         public ES7xUpdateRequest setDocAsUpsert(boolean shouldUpsertDoc) {
             if (mode == ESClientMode.TRANSPORT) {
                 updateRequestBuilder.setDocAsUpsert(shouldUpsertDoc);
@@ -233,6 +237,7 @@ public class ESConnection {
             return this;
         }
 
+        @Override
         public ES7xUpdateRequest setRouting(String routing) {
             if (mode == ESClientMode.TRANSPORT) {
                 updateRequestBuilder.setRouting(routing);
@@ -371,6 +376,7 @@ public class ESConnection {
             }
         }
 
+        @Override
         public void resetBulk() {
             if (mode == ESClientMode.TRANSPORT) {
                 bulkRequestBuilder = transportClient.prepareBulk();
@@ -379,6 +385,7 @@ public class ESConnection {
             }
         }
 
+        @Override
         public ES7xBulkRequest add(ESIndexRequest esIndexRequest) {
             ES7xIndexRequest eir = (ES7xIndexRequest) esIndexRequest;
             if (mode == ESClientMode.TRANSPORT) {
@@ -389,6 +396,7 @@ public class ESConnection {
             return this;
         }
 
+        @Override
         public ES7xBulkRequest add(ESUpdateRequest esUpdateRequest) {
             ES7xUpdateRequest eur = (ES7xUpdateRequest) esUpdateRequest;
             if (mode == ESClientMode.TRANSPORT) {
@@ -399,6 +407,7 @@ public class ESConnection {
             return this;
         }
 
+        @Override
         public ES7xBulkRequest add(ESDeleteRequest esDeleteRequest) {
             ES7xDeleteRequest edr = (ES7xDeleteRequest) esDeleteRequest;
             if (mode == ESClientMode.TRANSPORT) {
@@ -409,6 +418,7 @@ public class ESConnection {
             return this;
         }
 
+        @Override
         public int numberOfActions() {
             if (mode == ESClientMode.TRANSPORT) {
                 return bulkRequestBuilder.numberOfActions();
@@ -417,6 +427,7 @@ public class ESConnection {
             }
         }
 
+        @Override
         public ESBulkResponse bulk() {
             if (mode == ESClientMode.TRANSPORT) {
                 BulkResponse responses = bulkRequestBuilder.execute().actionGet();

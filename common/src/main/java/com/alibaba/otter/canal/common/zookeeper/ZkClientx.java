@@ -25,6 +25,7 @@ public class ZkClientx extends ZkClient {
     // 对于zkclient进行一次缓存，避免一个jvm内部使用多个zk connection
     private static Map<String, ZkClientx> clients = MigrateMap.makeComputingMap(new Function<String, ZkClientx>() {
 
+                                                      @Override
                                                       public ZkClientx apply(String servers) {
                                                           return new ZkClientx(servers);
                                                       }

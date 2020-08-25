@@ -51,6 +51,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         // 创建父节点
         dataListener = new IZkDataListener() {
 
+            @Override
             public void handleDataChange(String dataPath, Object data) throws Exception {
                 MDC.put("destination", destination);
                 ServerRunningData runningData = JsonUtils.unmarshalFromByte((byte[]) data, ServerRunningData.class);
@@ -65,6 +66,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
                 activeData = (ServerRunningData) runningData;
             }
 
+            @Override
             public void handleDataDeleted(String dataPath) throws Exception {
                 MDC.put("destination", destination);
                 mutex.set(false);
@@ -75,6 +77,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
                     // 否则就是等待delayTime，避免因网络瞬端或者zk异常，导致出现频繁的切换操作
                     delayExector.schedule(new Runnable() {
 
+                        @Override
                         public void run() {
                             initRunning();
                         }
@@ -90,6 +93,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         processStart();
     }
 
+    @Override
     public synchronized void start() {
         super.start();
         try {
@@ -121,6 +125,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
         }
     }
 
+    @Override
     public synchronized void stop() {
         super.stop();
 

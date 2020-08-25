@@ -99,6 +99,7 @@ public class HbaseEtlService extends AbstractEtlService {
     /**
      * 执行导入
      */
+    @Override
     protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
                                        AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
         MappingConfig.HbaseMapping hbaseMapping = (MappingConfig.HbaseMapping) mapping;

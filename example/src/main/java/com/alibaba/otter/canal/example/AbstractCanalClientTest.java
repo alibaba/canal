@@ -27,6 +27,7 @@ public class AbstractCanalClientTest extends BaseCanalClientTest {
         Assert.notNull(connector, "connector is null");
         thread = new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 process();
             }

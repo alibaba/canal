@@ -34,6 +34,7 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
     private Map<String, InstanceAction> actions              = new MapMaker().makeMap();
     private Map<String, PlainCanal>     configs              = MigrateMap.makeComputingMap(new Function<String, PlainCanal>() {
 
+                                                                 @Override
                                                                  public PlainCanal apply(String destination) {
                                                                      return new PlainCanal();
                                                                  }
@@ -44,10 +45,12 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
     private volatile boolean            isFirst              = true;
     private PlainCanalConfigClient      configClient;
 
+    @Override
     public void start() {
         super.start();
         executor.scheduleWithFixedDelay(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     scan();
@@ -62,12 +65,14 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
         }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
     }
 
+    @Override
     public void stop() {
         super.stop();
         executor.shutdownNow();
         actions.clear();
     }
 
+    @Override
     public void register(String destination, InstanceAction action) {
         if (action != null) {
             actions.put(destination, action);
@@ -76,6 +81,7 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
         }
     }
 
+    @Override
     public void unregister(String destination) {
         actions.remove(destination);
     }

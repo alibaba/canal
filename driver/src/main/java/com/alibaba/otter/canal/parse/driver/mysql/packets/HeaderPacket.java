@@ -32,6 +32,7 @@ public class HeaderPacket implements IPacket {
     /**
      * little-endian byte order
      */
+    @Override
     public byte[] toBytes() {
         byte[] data = new byte[4];
         data[0] = (byte) (packetBodyLength & 0xFF);
@@ -44,6 +45,7 @@ public class HeaderPacket implements IPacket {
     /**
      * little-endian byte order
      */
+    @Override
     public void fromBytes(byte[] data) {
         if (data == null || data.length != 4) {
             throw new IllegalArgumentException("invalid header data. It can't be null and the length must be 4 byte.");
@@ -68,6 +70,7 @@ public class HeaderPacket implements IPacket {
         return packetSequenceNumber;
     }
 
+    @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this, CanalToStringStyle.DEFAULT_STYLE);
     }

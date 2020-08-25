@@ -71,6 +71,7 @@ public class DirectLogFetcher extends LogFetcher {
      * 
      * @see com.taobao.tddl.dbsync.binlog.LogFetcher#fetch()
      */
+    @Override
     public boolean fetch() throws IOException {
         try {
             // Fetching packet header from input.
@@ -183,6 +184,7 @@ public class DirectLogFetcher extends LogFetcher {
      * 
      * @see com.taobao.tddl.dbsync.binlog.LogFetcher#close()
      */
+    @Override
     public void close() throws IOException {
         // do nothing
     }

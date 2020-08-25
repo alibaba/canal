@@ -77,6 +77,7 @@ public class MQMessageUtils {
                                                                              .softValues(),
                                                                              new Function<String, List<DynamicTopicData>>() {
 
+                                                                                 @Override
                                                                                  public List<DynamicTopicData> apply(String pkHashConfigs) {
                                                                                      List<DynamicTopicData> datas = Lists.newArrayList();
                                                                                      String[] dynamicTopicArray = StringUtils.split(StringUtils.replace(pkHashConfigs,

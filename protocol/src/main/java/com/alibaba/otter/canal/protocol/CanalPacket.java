@@ -64,6 +64,7 @@ public final class CanalPacket {
     public static final int LZF_VALUE = 4;
 
 
+    @Override
     public final int getNumber() {
       if (this == UNRECOGNIZED) {
         throw new java.lang.IllegalArgumentException(
@@ -98,15 +99,18 @@ public final class CanalPacket {
     private static final com.google.protobuf.Internal.EnumLiteMap<
         Compression> internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<Compression>() {
+            @Override
             public Compression findValueByNumber(int number) {
               return Compression.forNumber(number);
             }
           };
 
+    @Override
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(ordinal());
     }
+    @Override
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
@@ -277,6 +281,7 @@ public final class CanalPacket {
     public static final int CLIENTROLLBACK_VALUE = 12;
 
 
+    @Override
     public final int getNumber() {
       if (this == UNRECOGNIZED) {
         throw new java.lang.IllegalArgumentException(
@@ -319,15 +324,18 @@ public final class CanalPacket {
     private static final com.google.protobuf.Internal.EnumLiteMap<
         PacketType> internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<PacketType>() {
+            @Override
             public PacketType findValueByNumber(int number) {
               return PacketType.forNumber(number);
             }
           };
 
+    @Override
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(ordinal());
     }
+    @Override
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
@@ -528,11 +536,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public MagicNumberPresentCase
     getMagicNumberPresentCase() {
       return MagicNumberPresentCase.forNumber(
@@ -564,11 +574,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public VersionPresentCase
     getVersionPresentCase() {
       return VersionPresentCase.forNumber(
@@ -600,11 +612,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public CompressionPresentCase
     getCompressionPresentCase() {
       return CompressionPresentCase.forNumber(
@@ -615,6 +629,7 @@ public final class CanalPacket {
     /**
      * <code>int32 magic_number = 1;</code>
      */
+    @Override
     public int getMagicNumber() {
       if (magicNumberPresentCase_ == 1) {
         return (java.lang.Integer) magicNumberPresent_;
@@ -626,6 +641,7 @@ public final class CanalPacket {
     /**
      * <code>int32 version = 2;</code>
      */
+    @Override
     public int getVersion() {
       if (versionPresentCase_ == 2) {
         return (java.lang.Integer) versionPresent_;
@@ -638,12 +654,14 @@ public final class CanalPacket {
     /**
      * <code>.com.alibaba.otter.canal.protocol.PacketType type = 3;</code>
      */
+    @Override
     public int getTypeValue() {
       return type_;
     }
     /**
      * <code>.com.alibaba.otter.canal.protocol.PacketType type = 3;</code>
      */
+    @Override
     public com.alibaba.otter.canal.protocol.CanalPacket.PacketType getType() {
       @SuppressWarnings("deprecation")
       com.alibaba.otter.canal.protocol.CanalPacket.PacketType result = com.alibaba.otter.canal.protocol.CanalPacket.PacketType.valueOf(type_);
@@ -654,6 +672,7 @@ public final class CanalPacket {
     /**
      * <code>.com.alibaba.otter.canal.protocol.Compression compression = 4;</code>
      */
+    @Override
     public int getCompressionValue() {
       if (compressionPresentCase_ == 4) {
         return (java.lang.Integer) compressionPresent_;
@@ -663,6 +682,7 @@ public final class CanalPacket {
     /**
      * <code>.com.alibaba.otter.canal.protocol.Compression compression = 4;</code>
      */
+    @Override
     public com.alibaba.otter.canal.protocol.CanalPacket.Compression getCompression() {
       if (compressionPresentCase_ == 4) {
         @SuppressWarnings("deprecation")
@@ -678,6 +698,7 @@ public final class CanalPacket {
     /**
      * <code>bytes body = 5;</code>
      */
+    @Override
     public com.google.protobuf.ByteString getBody() {
       return body_;
     }
@@ -1129,6 +1150,7 @@ public final class CanalPacket {
       }
       private int magicNumberPresentCase_ = 0;
       private java.lang.Object magicNumberPresent_;
+      @Override
       public MagicNumberPresentCase
           getMagicNumberPresentCase() {
         return MagicNumberPresentCase.forNumber(
@@ -1144,6 +1166,7 @@ public final class CanalPacket {
 
       private int versionPresentCase_ = 0;
       private java.lang.Object versionPresent_;
+      @Override
       public VersionPresentCase
           getVersionPresentCase() {
         return VersionPresentCase.forNumber(
@@ -1159,6 +1182,7 @@ public final class CanalPacket {
 
       private int compressionPresentCase_ = 0;
       private java.lang.Object compressionPresent_;
+      @Override
       public CompressionPresentCase
           getCompressionPresentCase() {
         return CompressionPresentCase.forNumber(
@@ -1176,6 +1200,7 @@ public final class CanalPacket {
       /**
        * <code>int32 magic_number = 1;</code>
        */
+      @Override
       public int getMagicNumber() {
         if (magicNumberPresentCase_ == 1) {
           return (java.lang.Integer) magicNumberPresent_;
@@ -1206,6 +1231,7 @@ public final class CanalPacket {
       /**
        * <code>int32 version = 2;</code>
        */
+      @Override
       public int getVersion() {
         if (versionPresentCase_ == 2) {
           return (java.lang.Integer) versionPresent_;
@@ -1237,6 +1263,7 @@ public final class CanalPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.PacketType type = 3;</code>
        */
+      @Override
       public int getTypeValue() {
         return type_;
       }
@@ -1251,6 +1278,7 @@ public final class CanalPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.PacketType type = 3;</code>
        */
+      @Override
       public com.alibaba.otter.canal.protocol.CanalPacket.PacketType getType() {
         @SuppressWarnings("deprecation")
         com.alibaba.otter.canal.protocol.CanalPacket.PacketType result = com.alibaba.otter.canal.protocol.CanalPacket.PacketType.valueOf(type_);
@@ -1281,6 +1309,7 @@ public final class CanalPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.Compression compression = 4;</code>
        */
+      @Override
       public int getCompressionValue() {
         if (compressionPresentCase_ == 4) {
           return ((java.lang.Integer) compressionPresent_).intValue();
@@ -1299,6 +1328,7 @@ public final class CanalPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.Compression compression = 4;</code>
        */
+      @Override
       public com.alibaba.otter.canal.protocol.CanalPacket.Compression getCompression() {
         if (compressionPresentCase_ == 4) {
           @SuppressWarnings("deprecation")
@@ -1336,6 +1366,7 @@ public final class CanalPacket {
       /**
        * <code>bytes body = 5;</code>
        */
+      @Override
       public com.google.protobuf.ByteString getBody() {
         return body_;
       }
@@ -1515,6 +1546,7 @@ public final class CanalPacket {
     /**
      * <code>int64 send_timestamp = 1;</code>
      */
+    @Override
     public long getSendTimestamp() {
       return sendTimestamp_;
     }
@@ -1524,6 +1556,7 @@ public final class CanalPacket {
     /**
      * <code>int64 start_timestamp = 2;</code>
      */
+    @Override
     public long getStartTimestamp() {
       return startTimestamp_;
     }
@@ -1854,6 +1887,7 @@ public final class CanalPacket {
       /**
        * <code>int64 send_timestamp = 1;</code>
        */
+      @Override
       public long getSendTimestamp() {
         return sendTimestamp_;
       }
@@ -1880,6 +1914,7 @@ public final class CanalPacket {
       /**
        * <code>int64 start_timestamp = 2;</code>
        */
+      @Override
       public long getStartTimestamp() {
         return startTimestamp_;
       }
@@ -2099,11 +2134,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public CommunicationEncodingPresentCase
     getCommunicationEncodingPresentCase() {
       return CommunicationEncodingPresentCase.forNumber(
@@ -2114,6 +2151,7 @@ public final class CanalPacket {
     /**
      * <code>string communication_encoding = 1;</code>
      */
+    @Override
     public java.lang.String getCommunicationEncoding() {
       java.lang.Object ref = "";
       if (communicationEncodingPresentCase_ == 1) {
@@ -2134,6 +2172,7 @@ public final class CanalPacket {
     /**
      * <code>string communication_encoding = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getCommunicationEncodingBytes() {
       java.lang.Object ref = "";
@@ -2158,6 +2197,7 @@ public final class CanalPacket {
     /**
      * <code>bytes seeds = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString getSeeds() {
       return seeds_;
     }
@@ -2167,12 +2207,14 @@ public final class CanalPacket {
     /**
      * <code>.com.alibaba.otter.canal.protocol.Compression supported_compressions = 3;</code>
      */
+    @Override
     public int getSupportedCompressionsValue() {
       return supportedCompressions_;
     }
     /**
      * <code>.com.alibaba.otter.canal.protocol.Compression supported_compressions = 3;</code>
      */
+    @Override
     public com.alibaba.otter.canal.protocol.CanalPacket.Compression getSupportedCompressions() {
       @SuppressWarnings("deprecation")
       com.alibaba.otter.canal.protocol.CanalPacket.Compression result = com.alibaba.otter.canal.protocol.CanalPacket.Compression.valueOf(supportedCompressions_);
@@ -2541,6 +2583,7 @@ public final class CanalPacket {
       }
       private int communicationEncodingPresentCase_ = 0;
       private java.lang.Object communicationEncodingPresent_;
+      @Override
       public CommunicationEncodingPresentCase
           getCommunicationEncodingPresentCase() {
         return CommunicationEncodingPresentCase.forNumber(
@@ -2558,6 +2601,7 @@ public final class CanalPacket {
       /**
        * <code>string communication_encoding = 1;</code>
        */
+      @Override
       public java.lang.String getCommunicationEncoding() {
         java.lang.Object ref = "";
         if (communicationEncodingPresentCase_ == 1) {
@@ -2578,6 +2622,7 @@ public final class CanalPacket {
       /**
        * <code>string communication_encoding = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getCommunicationEncodingBytes() {
         java.lang.Object ref = "";
@@ -2639,6 +2684,7 @@ public final class CanalPacket {
       /**
        * <code>bytes seeds = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString getSeeds() {
         return seeds_;
       }
@@ -2668,6 +2714,7 @@ public final class CanalPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.Compression supported_compressions = 3;</code>
        */
+      @Override
       public int getSupportedCompressionsValue() {
         return supportedCompressions_;
       }
@@ -2682,6 +2729,7 @@ public final class CanalPacket {
       /**
        * <code>.com.alibaba.otter.canal.protocol.Compression supported_compressions = 3;</code>
        */
+      @Override
       public com.alibaba.otter.canal.protocol.CanalPacket.Compression getSupportedCompressions() {
         @SuppressWarnings("deprecation")
         com.alibaba.otter.canal.protocol.CanalPacket.Compression result = com.alibaba.otter.canal.protocol.CanalPacket.Compression.valueOf(supportedCompressions_);
@@ -2991,11 +3039,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public NetReadTimeoutPresentCase
     getNetReadTimeoutPresentCase() {
       return NetReadTimeoutPresentCase.forNumber(
@@ -3027,11 +3077,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public NetWriteTimeoutPresentCase
     getNetWriteTimeoutPresentCase() {
       return NetWriteTimeoutPresentCase.forNumber(
@@ -3043,6 +3095,7 @@ public final class CanalPacket {
     /**
      * <code>string username = 1;</code>
      */
+    @Override
     public java.lang.String getUsername() {
       java.lang.Object ref = username_;
       if (ref instanceof java.lang.String) {
@@ -3058,6 +3111,7 @@ public final class CanalPacket {
     /**
      * <code>string username = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getUsernameBytes() {
       java.lang.Object ref = username_;
@@ -3081,6 +3135,7 @@ public final class CanalPacket {
      *
      * <code>bytes password = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString getPassword() {
       return password_;
     }
@@ -3093,6 +3148,7 @@ public final class CanalPacket {
      *
      * <code>int32 net_read_timeout = 3;</code>
      */
+    @Override
     public int getNetReadTimeout() {
       if (netReadTimeoutPresentCase_ == 3) {
         return (java.lang.Integer) netReadTimeoutPresent_;
@@ -3108,6 +3164,7 @@ public final class CanalPacket {
      *
      * <code>int32 net_write_timeout = 4;</code>
      */
+    @Override
     public int getNetWriteTimeout() {
       if (netWriteTimeoutPresentCase_ == 4) {
         return (java.lang.Integer) netWriteTimeoutPresent_;
@@ -3120,6 +3177,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 5;</code>
      */
+    @Override
     public java.lang.String getDestination() {
       java.lang.Object ref = destination_;
       if (ref instanceof java.lang.String) {
@@ -3135,6 +3193,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 5;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getDestinationBytes() {
       java.lang.Object ref = destination_;
@@ -3154,6 +3213,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 6;</code>
      */
+    @Override
     public java.lang.String getClientId() {
       java.lang.Object ref = clientId_;
       if (ref instanceof java.lang.String) {
@@ -3169,6 +3229,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 6;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getClientIdBytes() {
       java.lang.Object ref = clientId_;
@@ -3188,6 +3249,7 @@ public final class CanalPacket {
     /**
      * <code>string filter = 7;</code>
      */
+    @Override
     public java.lang.String getFilter() {
       java.lang.Object ref = filter_;
       if (ref instanceof java.lang.String) {
@@ -3203,6 +3265,7 @@ public final class CanalPacket {
     /**
      * <code>string filter = 7;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getFilterBytes() {
       java.lang.Object ref = filter_;
@@ -3222,6 +3285,7 @@ public final class CanalPacket {
     /**
      * <code>int64 start_timestamp = 8;</code>
      */
+    @Override
     public long getStartTimestamp() {
       return startTimestamp_;
     }
@@ -3706,6 +3770,7 @@ public final class CanalPacket {
       }
       private int netReadTimeoutPresentCase_ = 0;
       private java.lang.Object netReadTimeoutPresent_;
+      @Override
       public NetReadTimeoutPresentCase
           getNetReadTimeoutPresentCase() {
         return NetReadTimeoutPresentCase.forNumber(
@@ -3721,6 +3786,7 @@ public final class CanalPacket {
 
       private int netWriteTimeoutPresentCase_ = 0;
       private java.lang.Object netWriteTimeoutPresent_;
+      @Override
       public NetWriteTimeoutPresentCase
           getNetWriteTimeoutPresentCase() {
         return NetWriteTimeoutPresentCase.forNumber(
@@ -3739,6 +3805,7 @@ public final class CanalPacket {
       /**
        * <code>string username = 1;</code>
        */
+      @Override
       public java.lang.String getUsername() {
         java.lang.Object ref = username_;
         if (!(ref instanceof java.lang.String)) {
@@ -3754,6 +3821,7 @@ public final class CanalPacket {
       /**
        * <code>string username = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getUsernameBytes() {
         java.lang.Object ref = username_;
@@ -3812,6 +3880,7 @@ public final class CanalPacket {
        *
        * <code>bytes password = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString getPassword() {
         return password_;
       }
@@ -3852,6 +3921,7 @@ public final class CanalPacket {
        *
        * <code>int32 net_read_timeout = 3;</code>
        */
+      @Override
       public int getNetReadTimeout() {
         if (netReadTimeoutPresentCase_ == 3) {
           return (java.lang.Integer) netReadTimeoutPresent_;
@@ -3894,6 +3964,7 @@ public final class CanalPacket {
        *
        * <code>int32 net_write_timeout = 4;</code>
        */
+      @Override
       public int getNetWriteTimeout() {
         if (netWriteTimeoutPresentCase_ == 4) {
           return (java.lang.Integer) netWriteTimeoutPresent_;
@@ -3933,6 +4004,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 5;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = destination_;
         if (!(ref instanceof java.lang.String)) {
@@ -3948,6 +4020,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 5;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = destination_;
@@ -4002,6 +4075,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 6;</code>
        */
+      @Override
       public java.lang.String getClientId() {
         java.lang.Object ref = clientId_;
         if (!(ref instanceof java.lang.String)) {
@@ -4017,6 +4091,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 6;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getClientIdBytes() {
         java.lang.Object ref = clientId_;
@@ -4071,6 +4146,7 @@ public final class CanalPacket {
       /**
        * <code>string filter = 7;</code>
        */
+      @Override
       public java.lang.String getFilter() {
         java.lang.Object ref = filter_;
         if (!(ref instanceof java.lang.String)) {
@@ -4086,6 +4162,7 @@ public final class CanalPacket {
       /**
        * <code>string filter = 7;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getFilterBytes() {
         java.lang.Object ref = filter_;
@@ -4140,6 +4217,7 @@ public final class CanalPacket {
       /**
        * <code>int64 start_timestamp = 8;</code>
        */
+      @Override
       public long getStartTimestamp() {
         return startTimestamp_;
       }
@@ -4351,11 +4429,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public ErrorCodePresentCase
     getErrorCodePresentCase() {
       return ErrorCodePresentCase.forNumber(
@@ -4366,6 +4446,7 @@ public final class CanalPacket {
     /**
      * <code>int32 error_code = 1;</code>
      */
+    @Override
     public int getErrorCode() {
       if (errorCodePresentCase_ == 1) {
         return (java.lang.Integer) errorCodePresent_;
@@ -4382,6 +4463,7 @@ public final class CanalPacket {
      *
      * <code>string error_message = 2;</code>
      */
+    @Override
     public java.lang.String getErrorMessage() {
       java.lang.Object ref = errorMessage_;
       if (ref instanceof java.lang.String) {
@@ -4401,6 +4483,7 @@ public final class CanalPacket {
      *
      * <code>string error_message = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getErrorMessageBytes() {
       java.lang.Object ref = errorMessage_;
@@ -4762,6 +4845,7 @@ public final class CanalPacket {
       }
       private int errorCodePresentCase_ = 0;
       private java.lang.Object errorCodePresent_;
+      @Override
       public ErrorCodePresentCase
           getErrorCodePresentCase() {
         return ErrorCodePresentCase.forNumber(
@@ -4779,6 +4863,7 @@ public final class CanalPacket {
       /**
        * <code>int32 error_code = 1;</code>
        */
+      @Override
       public int getErrorCode() {
         if (errorCodePresentCase_ == 1) {
           return (java.lang.Integer) errorCodePresent_;
@@ -4814,6 +4899,7 @@ public final class CanalPacket {
        *
        * <code>string error_message = 2;</code>
        */
+      @Override
       public java.lang.String getErrorMessage() {
         java.lang.Object ref = errorMessage_;
         if (!(ref instanceof java.lang.String)) {
@@ -4833,6 +4919,7 @@ public final class CanalPacket {
        *
        * <code>string error_message = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getErrorMessageBytes() {
         java.lang.Object ref = errorMessage_;
@@ -5072,6 +5159,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public java.lang.String getDestination() {
       java.lang.Object ref = destination_;
       if (ref instanceof java.lang.String) {
@@ -5087,6 +5175,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getDestinationBytes() {
       java.lang.Object ref = destination_;
@@ -5106,6 +5195,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public java.lang.String getClientId() {
       java.lang.Object ref = clientId_;
       if (ref instanceof java.lang.String) {
@@ -5121,6 +5211,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getClientIdBytes() {
       java.lang.Object ref = clientId_;
@@ -5140,6 +5231,7 @@ public final class CanalPacket {
     /**
      * <code>int64 batch_id = 3;</code>
      */
+    @Override
     public long getBatchId() {
       return batchId_;
     }
@@ -5486,6 +5578,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = destination_;
         if (!(ref instanceof java.lang.String)) {
@@ -5501,6 +5594,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = destination_;
@@ -5555,6 +5649,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public java.lang.String getClientId() {
         java.lang.Object ref = clientId_;
         if (!(ref instanceof java.lang.String)) {
@@ -5570,6 +5665,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getClientIdBytes() {
         java.lang.Object ref = clientId_;
@@ -5624,6 +5720,7 @@ public final class CanalPacket {
       /**
        * <code>int64 batch_id = 3;</code>
        */
+      @Override
       public long getBatchId() {
         return batchId_;
       }
@@ -5833,6 +5930,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public java.lang.String getDestination() {
       java.lang.Object ref = destination_;
       if (ref instanceof java.lang.String) {
@@ -5848,6 +5946,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getDestinationBytes() {
       java.lang.Object ref = destination_;
@@ -5867,6 +5966,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public java.lang.String getClientId() {
       java.lang.Object ref = clientId_;
       if (ref instanceof java.lang.String) {
@@ -5882,6 +5982,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getClientIdBytes() {
       java.lang.Object ref = clientId_;
@@ -5901,6 +6002,7 @@ public final class CanalPacket {
     /**
      * <code>string filter = 7;</code>
      */
+    @Override
     public java.lang.String getFilter() {
       java.lang.Object ref = filter_;
       if (ref instanceof java.lang.String) {
@@ -5916,6 +6018,7 @@ public final class CanalPacket {
     /**
      * <code>string filter = 7;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getFilterBytes() {
       java.lang.Object ref = filter_;
@@ -6275,6 +6378,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = destination_;
         if (!(ref instanceof java.lang.String)) {
@@ -6290,6 +6394,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = destination_;
@@ -6344,6 +6449,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public java.lang.String getClientId() {
         java.lang.Object ref = clientId_;
         if (!(ref instanceof java.lang.String)) {
@@ -6359,6 +6465,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getClientIdBytes() {
         java.lang.Object ref = clientId_;
@@ -6413,6 +6520,7 @@ public final class CanalPacket {
       /**
        * <code>string filter = 7;</code>
        */
+      @Override
       public java.lang.String getFilter() {
         java.lang.Object ref = filter_;
         if (!(ref instanceof java.lang.String)) {
@@ -6428,6 +6536,7 @@ public final class CanalPacket {
       /**
        * <code>string filter = 7;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getFilterBytes() {
         java.lang.Object ref = filter_;
@@ -6665,6 +6774,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public java.lang.String getDestination() {
       java.lang.Object ref = destination_;
       if (ref instanceof java.lang.String) {
@@ -6680,6 +6790,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getDestinationBytes() {
       java.lang.Object ref = destination_;
@@ -6699,6 +6810,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public java.lang.String getClientId() {
       java.lang.Object ref = clientId_;
       if (ref instanceof java.lang.String) {
@@ -6714,6 +6826,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getClientIdBytes() {
       java.lang.Object ref = clientId_;
@@ -6733,6 +6846,7 @@ public final class CanalPacket {
     /**
      * <code>string filter = 7;</code>
      */
+    @Override
     public java.lang.String getFilter() {
       java.lang.Object ref = filter_;
       if (ref instanceof java.lang.String) {
@@ -6748,6 +6862,7 @@ public final class CanalPacket {
     /**
      * <code>string filter = 7;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getFilterBytes() {
       java.lang.Object ref = filter_;
@@ -7107,6 +7222,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = destination_;
         if (!(ref instanceof java.lang.String)) {
@@ -7122,6 +7238,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = destination_;
@@ -7176,6 +7293,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public java.lang.String getClientId() {
         java.lang.Object ref = clientId_;
         if (!(ref instanceof java.lang.String)) {
@@ -7191,6 +7309,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getClientIdBytes() {
         java.lang.Object ref = clientId_;
@@ -7245,6 +7364,7 @@ public final class CanalPacket {
       /**
        * <code>string filter = 7;</code>
        */
+      @Override
       public java.lang.String getFilter() {
         java.lang.Object ref = filter_;
         if (!(ref instanceof java.lang.String)) {
@@ -7260,6 +7380,7 @@ public final class CanalPacket {
       /**
        * <code>string filter = 7;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getFilterBytes() {
         java.lang.Object ref = filter_;
@@ -7559,11 +7680,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public TimeoutPresentCase
     getTimeoutPresentCase() {
       return TimeoutPresentCase.forNumber(
@@ -7595,11 +7718,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public UnitPresentCase
     getUnitPresentCase() {
       return UnitPresentCase.forNumber(
@@ -7631,11 +7756,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public AutoAckPresentCase
     getAutoAckPresentCase() {
       return AutoAckPresentCase.forNumber(
@@ -7647,6 +7774,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public java.lang.String getDestination() {
       java.lang.Object ref = destination_;
       if (ref instanceof java.lang.String) {
@@ -7662,6 +7790,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getDestinationBytes() {
       java.lang.Object ref = destination_;
@@ -7681,6 +7810,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public java.lang.String getClientId() {
       java.lang.Object ref = clientId_;
       if (ref instanceof java.lang.String) {
@@ -7696,6 +7826,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getClientIdBytes() {
       java.lang.Object ref = clientId_;
@@ -7715,6 +7846,7 @@ public final class CanalPacket {
     /**
      * <code>int32 fetch_size = 3;</code>
      */
+    @Override
     public int getFetchSize() {
       return fetchSize_;
     }
@@ -7727,6 +7859,7 @@ public final class CanalPacket {
      *
      * <code>int64 timeout = 4;</code>
      */
+    @Override
     public long getTimeout() {
       if (timeoutPresentCase_ == 4) {
         return (java.lang.Long) timeoutPresent_;
@@ -7742,6 +7875,7 @@ public final class CanalPacket {
      *
      * <code>int32 unit = 5;</code>
      */
+    @Override
     public int getUnit() {
       if (unitPresentCase_ == 5) {
         return (java.lang.Integer) unitPresent_;
@@ -7757,6 +7891,7 @@ public final class CanalPacket {
      *
      * <code>bool auto_ack = 6;</code>
      */
+    @Override
     public boolean getAutoAck() {
       if (autoAckPresentCase_ == 6) {
         return (java.lang.Boolean) autoAckPresent_;
@@ -8237,6 +8372,7 @@ public final class CanalPacket {
       }
       private int timeoutPresentCase_ = 0;
       private java.lang.Object timeoutPresent_;
+      @Override
       public TimeoutPresentCase
           getTimeoutPresentCase() {
         return TimeoutPresentCase.forNumber(
@@ -8252,6 +8388,7 @@ public final class CanalPacket {
 
       private int unitPresentCase_ = 0;
       private java.lang.Object unitPresent_;
+      @Override
       public UnitPresentCase
           getUnitPresentCase() {
         return UnitPresentCase.forNumber(
@@ -8267,6 +8404,7 @@ public final class CanalPacket {
 
       private int autoAckPresentCase_ = 0;
       private java.lang.Object autoAckPresent_;
+      @Override
       public AutoAckPresentCase
           getAutoAckPresentCase() {
         return AutoAckPresentCase.forNumber(
@@ -8285,6 +8423,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = destination_;
         if (!(ref instanceof java.lang.String)) {
@@ -8300,6 +8439,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = destination_;
@@ -8354,6 +8494,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public java.lang.String getClientId() {
         java.lang.Object ref = clientId_;
         if (!(ref instanceof java.lang.String)) {
@@ -8369,6 +8510,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getClientIdBytes() {
         java.lang.Object ref = clientId_;
@@ -8423,6 +8565,7 @@ public final class CanalPacket {
       /**
        * <code>int32 fetch_size = 3;</code>
        */
+      @Override
       public int getFetchSize() {
         return fetchSize_;
       }
@@ -8452,6 +8595,7 @@ public final class CanalPacket {
        *
        * <code>int64 timeout = 4;</code>
        */
+      @Override
       public long getTimeout() {
         if (timeoutPresentCase_ == 4) {
           return (java.lang.Long) timeoutPresent_;
@@ -8494,6 +8638,7 @@ public final class CanalPacket {
        *
        * <code>int32 unit = 5;</code>
        */
+      @Override
       public int getUnit() {
         if (unitPresentCase_ == 5) {
           return (java.lang.Integer) unitPresent_;
@@ -8536,6 +8681,7 @@ public final class CanalPacket {
        *
        * <code>bool auto_ack = 6;</code>
        */
+      @Override
       public boolean getAutoAck() {
         if (autoAckPresentCase_ == 6) {
           return (java.lang.Boolean) autoAckPresent_;
@@ -8743,6 +8889,7 @@ public final class CanalPacket {
     /**
      * <code>int64 batch_id = 1;</code>
      */
+    @Override
     public long getBatchId() {
       return batchId_;
     }
@@ -8752,6 +8899,7 @@ public final class CanalPacket {
     /**
      * <code>repeated bytes messages = 2;</code>
      */
+    @Override
     public java.util.List<com.google.protobuf.ByteString>
         getMessagesList() {
       return messages_;
@@ -8759,12 +8907,14 @@ public final class CanalPacket {
     /**
      * <code>repeated bytes messages = 2;</code>
      */
+    @Override
     public int getMessagesCount() {
       return messages_.size();
     }
     /**
      * <code>repeated bytes messages = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString getMessages(int index) {
       return messages_.get(index);
     }
@@ -9119,6 +9269,7 @@ public final class CanalPacket {
       /**
        * <code>int64 batch_id = 1;</code>
        */
+      @Override
       public long getBatchId() {
         return batchId_;
       }
@@ -9151,6 +9302,7 @@ public final class CanalPacket {
       /**
        * <code>repeated bytes messages = 2;</code>
        */
+      @Override
       public java.util.List<com.google.protobuf.ByteString>
           getMessagesList() {
         return java.util.Collections.unmodifiableList(messages_);
@@ -9158,12 +9310,14 @@ public final class CanalPacket {
       /**
        * <code>repeated bytes messages = 2;</code>
        */
+      @Override
       public int getMessagesCount() {
         return messages_.size();
       }
       /**
        * <code>repeated bytes messages = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString getMessages(int index) {
         return messages_.get(index);
       }
@@ -9409,11 +9563,13 @@ public final class CanalPacket {
           default: return null;
         }
       }
+      @Override
       public int getNumber() {
         return this.value;
       }
     };
 
+    @Override
     public TimestampPresentCase
     getTimestampPresentCase() {
       return TimestampPresentCase.forNumber(
@@ -9425,6 +9581,7 @@ public final class CanalPacket {
     /**
      * <code>string journal = 1;</code>
      */
+    @Override
     public java.lang.String getJournal() {
       java.lang.Object ref = journal_;
       if (ref instanceof java.lang.String) {
@@ -9440,6 +9597,7 @@ public final class CanalPacket {
     /**
      * <code>string journal = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getJournalBytes() {
       java.lang.Object ref = journal_;
@@ -9459,6 +9617,7 @@ public final class CanalPacket {
     /**
      * <code>int64 position = 2;</code>
      */
+    @Override
     public long getPosition() {
       return position_;
     }
@@ -9467,6 +9626,7 @@ public final class CanalPacket {
     /**
      * <code>int64 timestamp = 3;</code>
      */
+    @Override
     public long getTimestamp() {
       if (timestampPresentCase_ == 3) {
         return (java.lang.Long) timestampPresent_;
@@ -9844,6 +10004,7 @@ public final class CanalPacket {
       }
       private int timestampPresentCase_ = 0;
       private java.lang.Object timestampPresent_;
+      @Override
       public TimestampPresentCase
           getTimestampPresentCase() {
         return TimestampPresentCase.forNumber(
@@ -9862,6 +10023,7 @@ public final class CanalPacket {
       /**
        * <code>string journal = 1;</code>
        */
+      @Override
       public java.lang.String getJournal() {
         java.lang.Object ref = journal_;
         if (!(ref instanceof java.lang.String)) {
@@ -9877,6 +10039,7 @@ public final class CanalPacket {
       /**
        * <code>string journal = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getJournalBytes() {
         java.lang.Object ref = journal_;
@@ -9931,6 +10094,7 @@ public final class CanalPacket {
       /**
        * <code>int64 position = 2;</code>
        */
+      @Override
       public long getPosition() {
         return position_;
       }
@@ -9956,6 +10120,7 @@ public final class CanalPacket {
       /**
        * <code>int64 timestamp = 3;</code>
        */
+      @Override
       public long getTimestamp() {
         if (timestampPresentCase_ == 3) {
           return (java.lang.Long) timestampPresent_;
@@ -10160,6 +10325,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public java.lang.String getDestination() {
       java.lang.Object ref = destination_;
       if (ref instanceof java.lang.String) {
@@ -10175,6 +10341,7 @@ public final class CanalPacket {
     /**
      * <code>string destination = 1;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getDestinationBytes() {
       java.lang.Object ref = destination_;
@@ -10194,6 +10361,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public java.lang.String getClientId() {
       java.lang.Object ref = clientId_;
       if (ref instanceof java.lang.String) {
@@ -10209,6 +10377,7 @@ public final class CanalPacket {
     /**
      * <code>string client_id = 2;</code>
      */
+    @Override
     public com.google.protobuf.ByteString
         getClientIdBytes() {
       java.lang.Object ref = clientId_;
@@ -10228,6 +10397,7 @@ public final class CanalPacket {
     /**
      * <code>int64 batch_id = 3;</code>
      */
+    @Override
     public long getBatchId() {
       return batchId_;
     }
@@ -10574,6 +10744,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public java.lang.String getDestination() {
         java.lang.Object ref = destination_;
         if (!(ref instanceof java.lang.String)) {
@@ -10589,6 +10760,7 @@ public final class CanalPacket {
       /**
        * <code>string destination = 1;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getDestinationBytes() {
         java.lang.Object ref = destination_;
@@ -10643,6 +10815,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public java.lang.String getClientId() {
         java.lang.Object ref = clientId_;
         if (!(ref instanceof java.lang.String)) {
@@ -10658,6 +10831,7 @@ public final class CanalPacket {
       /**
        * <code>string client_id = 2;</code>
        */
+      @Override
       public com.google.protobuf.ByteString
           getClientIdBytes() {
         java.lang.Object ref = clientId_;
@@ -10712,6 +10886,7 @@ public final class CanalPacket {
       /**
        * <code>int64 batch_id = 3;</code>
        */
+      @Override
       public long getBatchId() {
         return batchId_;
       }
@@ -10905,6 +11080,7 @@ public final class CanalPacket {
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          @Override
           public com.google.protobuf.ExtensionRegistry assignDescriptors(
               com.google.protobuf.Descriptors.FileDescriptor root) {
             descriptor = root;

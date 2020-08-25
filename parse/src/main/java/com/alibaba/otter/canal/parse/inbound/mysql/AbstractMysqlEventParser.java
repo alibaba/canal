@@ -41,6 +41,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected final AtomicLong     receivedBinlogBytes       = new AtomicLong(0L);
     private final AtomicLong       eventsPublishBlockingTime = new AtomicLong(0L);
 
+    @Override
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
         if (eventFilter != null && eventFilter instanceof AviaterRegexFilter) {
@@ -64,6 +65,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         return convert;
     }
 
+    @Override
     public void setEventFilter(CanalEventFilter eventFilter) {
         super.setEventFilter(eventFilter);
 
@@ -79,6 +81,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         }
     }
 
+    @Override
     public void setEventBlackFilter(CanalEventFilter eventBlackFilter) {
         super.setEventBlackFilter(eventBlackFilter);
 
@@ -128,6 +131,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
      * @param position
      * @return
      */
+    @Override
     protected boolean processTableMeta(EntryPosition position) {
         if (tableMetaTSDB != null) {
             if (position.getTimestamp() == null || position.getTimestamp() <= 0) {
@@ -140,6 +144,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         return true;
     }
 
+    @Override
     public void start() throws CanalParseException {
         if (enableTsdb) {
             if (tableMetaTSDB == null) {
@@ -159,6 +164,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         super.start();
     }
 
+    @Override
     public void stop() throws CanalParseException {
         if (enableTsdb) {
             tableMetaTSDBFactory.destory(destination);
@@ -168,6 +174,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         super.stop();
     }
 
+    @Override
     protected MultiStageCoprocessor buildMultiStageCoprocessor() {
         MysqlMultiStageCoprocessor mysqlMultiStageCoprocessor = new MysqlMultiStageCoprocessor(parallelBufferSize,
             parallelThreadSize,

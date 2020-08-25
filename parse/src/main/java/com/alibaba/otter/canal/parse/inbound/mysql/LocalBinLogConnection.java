@@ -75,9 +75,11 @@ public class LocalBinLogConnection implements ErosaConnection {
         return running;
     }
 
+    @Override
     public void seek(String binlogfilename, Long binlogPosition, String gtid, SinkFunction func) throws IOException {
     }
 
+    @Override
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         File current = new File(directory, binlogfilename);
 
@@ -136,6 +138,7 @@ public class LocalBinLogConnection implements ErosaConnection {
         }
     }
 
+    @Override
     public void dump(long timestampMills, SinkFunction func) throws IOException {
         List<File> currentBinlogs = binlogs.currentBinlogs();
         File current = currentBinlogs.get(currentBinlogs.size() - 1);
@@ -370,6 +373,7 @@ public class LocalBinLogConnection implements ErosaConnection {
         throw new NotImplementedException();
     }
 
+    @Override
     public ErosaConnection fork() {
         LocalBinLogConnection connection = new LocalBinLogConnection();
 

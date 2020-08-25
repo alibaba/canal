@@ -51,6 +51,7 @@ public class CanalAdminWithNetty extends AbstractCanalLifeCycle {
         return SingletonHolder.CANAL_ADMIN_WITH_NETTY;
     }
 
+    @Override
     public void start() {
         super.start();
 
@@ -71,6 +72,7 @@ public class CanalAdminWithNetty extends AbstractCanalLifeCycle {
         // 构造对应的pipeline
         bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
+            @Override
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipelines = Channels.pipeline();
                 pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
@@ -94,6 +96,7 @@ public class CanalAdminWithNetty extends AbstractCanalLifeCycle {
         }
     }
 
+    @Override
     public void stop() {
         super.stop();
 

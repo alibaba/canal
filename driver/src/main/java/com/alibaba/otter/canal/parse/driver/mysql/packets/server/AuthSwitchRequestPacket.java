@@ -11,6 +11,7 @@ public class AuthSwitchRequestPacket extends CommandPacket {
     public String authName;
     public byte[] authData;
 
+    @Override
     public void fromBytes(byte[] data) {
         int index = 0;
         // 1. read status
@@ -22,6 +23,7 @@ public class AuthSwitchRequestPacket extends CommandPacket {
         authData = ByteHelper.readNullTerminatedBytes(data, index);
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         return null;
     }

@@ -38,6 +38,7 @@ public class Events<EVENT> implements Serializable {
         this.positionRange = positionRange;
     }
 
+    @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this, CanalToStringStyle.DEFAULT_STYLE);
     }

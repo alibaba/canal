@@ -32,6 +32,7 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(HandshakeInitializationHandler.class);
 
+    @Override
     public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         // add new socket channel in channel container, used to manage sockets.
         if (childGroups != null) {
@@ -48,6 +49,7 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
 
         NettyUtils.write(ctx.getChannel(), body, new ChannelFutureListener() {
 
+            @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 ctx.getPipeline().get(HandshakeInitializationHandler.class.getName());
                 ClientAuthenticationHandler handler = (ClientAuthenticationHandler) ctx.getPipeline()

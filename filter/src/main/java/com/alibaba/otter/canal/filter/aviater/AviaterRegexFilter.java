@@ -59,6 +59,7 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
         this.pattern = StringUtils.join(list, PATTERN_SPLIT);
     }
 
+    @Override
     public boolean filter(String filtered) throws CanalFilterException {
         if (StringUtils.isEmpty(pattern)) {
             return defaultEmptyValue;

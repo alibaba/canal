@@ -54,6 +54,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
     private long                     period       = 1000;                                               // 单位ms
     private Set<ClientIdentity>      updateCursorTasks;
 
+    @Override
     public void start() {
         super.start();
         Assert.notNull(dataDir);
@@ -71,6 +72,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
 
         dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
 
+            @Override
             public File apply(String destination) {
                 return getDataFile(destination);
             }
@@ -79,6 +81,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         executor = Executors.newScheduledThreadPool(1);
         destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
 
+            @Override
             public List<ClientIdentity> apply(String destination) {
                 return loadClientIdentity(destination);
             }
@@ -86,6 +89,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
 
         cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>() {
 
+            @Override
             public Position apply(ClientIdentity clientIdentity) {
                 Position position = loadCursor(clientIdentity.getDestination(), clientIdentity);
                 if (position == null) {
@@ -101,6 +105,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         // 启动定时工作任务
         executor.scheduleAtFixedRate(new Runnable() {
 
+            @Override
             public void run() {
                 List<ClientIdentity> tasks = new ArrayList<ClientIdentity>(updateCursorTasks);
                 for (ClientIdentity clientIdentity : tasks) {
@@ -129,6 +134,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public void stop() {
         flushDataToFile();// 刷新数据
 
@@ -138,35 +144,41 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         batches.clear();
     }
 
+    @Override
     public void subscribe(final ClientIdentity clientIdentity) throws CanalMetaManagerException {
         super.subscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
         executor.submit(new Runnable() {
 
+            @Override
             public void run() {
                 flushDataToFile(clientIdentity.getDestination());
             }
         });
     }
 
+    @Override
     public void unsubscribe(final ClientIdentity clientIdentity) throws CanalMetaManagerException {
         super.unsubscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
         executor.submit(new Runnable() {
 
+            @Override
             public void run() {
                 flushDataToFile(clientIdentity.getDestination());
             }
         });
     }
 
+    @Override
     public void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException {
         updateCursorTasks.add(clientIdentity);// 添加到任务队列中进行触发
         super.updateCursor(clientIdentity, position);
     }
 
+    @Override
     public Position getCursor(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         Position position = super.getCursor(clientIdentity);
         if (position == nullCursor) {

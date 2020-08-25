@@ -21,6 +21,7 @@ public class NamedThreadFactory implements ThreadFactory {
     final private AtomicInteger           threadNumber             = new AtomicInteger(0);
     final static UncaughtExceptionHandler uncaughtExceptionHandler = new UncaughtExceptionHandler() {
 
+                                                                       @Override
                                                                        public void uncaughtException(Thread t,
                                                                                                      Throwable e) {
                                                                            if (e instanceof InterruptedException
@@ -47,6 +48,7 @@ public class NamedThreadFactory implements ThreadFactory {
         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
     }
 
+    @Override
     public Thread newThread(Runnable r) {
         Thread t = new Thread(group, r, name + "-" + threadNumber.getAndIncrement(), 0);
         t.setDaemon(daemon);

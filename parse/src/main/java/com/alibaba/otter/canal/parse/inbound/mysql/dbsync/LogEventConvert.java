@@ -153,6 +153,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return null;
     }
 
+    @Override
     public void reset() {
         // do nothing
         if (tableMetaCache != null) {

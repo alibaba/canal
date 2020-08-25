@@ -9,9 +9,11 @@ public class AuthSwitchResponsePacket extends CommandPacket {
 
     public byte[] authData;
 
+    @Override
     public void fromBytes(byte[] data) {
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(authData);

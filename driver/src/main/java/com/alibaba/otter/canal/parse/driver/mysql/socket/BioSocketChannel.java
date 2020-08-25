@@ -29,6 +29,7 @@ public class BioSocketChannel implements SocketChannel {
         this.output = socket.getOutputStream();
     }
 
+    @Override
     public void write(byte[]... buf) throws IOException {
         OutputStream output = this.output;
         if (output != null) {
@@ -40,6 +41,7 @@ public class BioSocketChannel implements SocketChannel {
         }
     }
 
+    @Override
     public byte[] read(int readSize) throws IOException {
         InputStream input = this.input;
         byte[] data = new byte[readSize];
@@ -64,6 +66,7 @@ public class BioSocketChannel implements SocketChannel {
         return data;
     }
 
+    @Override
     public byte[] read(int readSize, int timeout) throws IOException {
         InputStream input = this.input;
         byte[] data = new byte[readSize];
@@ -126,6 +129,7 @@ public class BioSocketChannel implements SocketChannel {
         }
     }
 
+    @Override
     public boolean isConnected() {
         Socket socket = this.socket;
         if (socket != null) {
@@ -134,6 +138,7 @@ public class BioSocketChannel implements SocketChannel {
         return false;
     }
 
+    @Override
     public SocketAddress getRemoteSocketAddress() {
         Socket socket = this.socket;
         if (socket != null) {
@@ -143,6 +148,7 @@ public class BioSocketChannel implements SocketChannel {
         return null;
     }
 
+    @Override
     public SocketAddress getLocalSocketAddress() {
         Socket socket = this.socket;
         if (socket != null) {
@@ -152,6 +158,7 @@ public class BioSocketChannel implements SocketChannel {
         return null;
     }
 
+    @Override
     public void close() {
         Socket socket = this.socket;
         if (socket != null) {

@@ -24,6 +24,7 @@ public class AviaterELFilter implements CanalEventFilter<CanalEntry.Entry> {
         this.expression = expression;
     }
 
+    @Override
     public boolean filter(CanalEntry.Entry entry) throws CanalFilterException {
         if (StringUtils.isEmpty(expression)) {
             return true;

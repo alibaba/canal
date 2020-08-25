@@ -34,6 +34,7 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
         this.canalConfig = canalConfig;
     }
 
+    @Override
     public CanalInstance generate(String destination) {
         synchronized (CanalInstanceGenerator.class) {
             try {

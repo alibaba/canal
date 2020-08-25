@@ -33,6 +33,7 @@ public class BaseCanalClientTest {
     protected volatile boolean                running            = false;
     protected Thread.UncaughtExceptionHandler handler            = new Thread.UncaughtExceptionHandler() {
 
+                                                                     @Override
                                                                      public void uncaughtException(Thread t, Throwable e) {
                                                                          logger.error("parse events has an error", e);
                                                                      }

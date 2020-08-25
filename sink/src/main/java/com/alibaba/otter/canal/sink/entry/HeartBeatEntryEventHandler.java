@@ -15,6 +15,7 @@ import com.alibaba.otter.canal.store.model.Event;
  */
 public class HeartBeatEntryEventHandler extends AbstractCanalEventDownStreamHandler<List<Event>> {
 
+    @Override
     public List<Event> before(List<Event> events) {
         boolean existHeartBeat = false;
         for (Event event : events) {

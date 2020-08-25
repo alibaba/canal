@@ -26,6 +26,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
 
     private Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
 
+                                                        @Override
                                                         public void uncaughtException(Thread t, Throwable e) {
                                                             logger.error("parse events has an error", e);
                                                         }
@@ -57,6 +58,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
             logger.info("## The canal rocketmq consumer is running now ......");
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
+                @Override
                 public void run() {
                     try {
                         logger.info("## Stop the rocketmq consumer");
@@ -81,6 +83,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
         Assert.notNull(connector, "connector is null");
         thread = new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 process();
             }

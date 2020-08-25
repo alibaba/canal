@@ -72,6 +72,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         return SingletonHolder.CANAL_SERVER_WITH_EMBEDDED;
     }
 
+    @Override
     public void start() {
         if (!isStart()) {
             super.start();
@@ -81,6 +82,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             metrics.initialize();
             canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
 
+                @Override
                 public CanalInstance apply(String destination) {
                     return canalInstanceGenerator.generate(destination);
                 }
@@ -90,6 +92,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         }
     }
 
+    @Override
     public void stop() {
         super.stop();
         for (Map.Entry<String, CanalInstance> entry : canalInstances.entrySet()) {
@@ -277,6 +280,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 if (raw) {
                     entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
 
+                        @Override
                         public ByteString apply(Event input) {
                             return input.getRawEntry();
                         }
@@ -284,6 +288,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 } else {
                     entrys = Lists.transform(events.getEvents(), new Function<Event, CanalEntry.Entry>() {
 
+                        @Override
                         public CanalEntry.Entry apply(Event input) {
                             return input.getEntry();
                         }
@@ -369,6 +374,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 if (raw) {
                     entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
 
+                        @Override
                         public ByteString apply(Event input) {
                             return input.getRawEntry();
                         }
@@ -376,6 +382,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 } else {
                     entrys = Lists.transform(events.getEvents(), new Function<Event, CanalEntry.Entry>() {
 
+                        @Override
                         public CanalEntry.Entry apply(Event input) {
                             return input.getEntry();
                         }

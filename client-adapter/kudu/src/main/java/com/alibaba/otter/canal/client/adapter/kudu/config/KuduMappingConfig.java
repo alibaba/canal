@@ -165,6 +165,7 @@ public class KuduMappingConfig implements AdapterConfig {
             this.targetColumns = targetColumns;
         }
 
+        @Override
         public String getEtlCondition() {
             return etlCondition;
         }

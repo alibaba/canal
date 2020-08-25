@@ -30,6 +30,7 @@ public class CanalException extends NestableRuntimeException {
         super(cause);
     }
 
+    @Override
     public Throwable fillInStackTrace() {
         return this;
     }

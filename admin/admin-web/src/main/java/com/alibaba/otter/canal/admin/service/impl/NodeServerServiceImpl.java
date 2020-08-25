@@ -34,6 +34,7 @@ import com.alibaba.otter.canal.protocol.SecurityUtil;
 @Service
 public class NodeServerServiceImpl implements NodeServerService {
 
+    @Override
     public void save(NodeServer nodeServer) {
         int cnt = NodeServer.find.query()
             .where()
@@ -60,10 +61,12 @@ public class NodeServerServiceImpl implements NodeServerService {
         }
     }
 
+    @Override
     public NodeServer detail(Long id) {
         return NodeServer.find.byId(id);
     }
 
+    @Override
     public void update(NodeServer nodeServer) {
         int cnt = NodeServer.find.query()
             .where()
@@ -78,6 +81,7 @@ public class NodeServerServiceImpl implements NodeServerService {
         nodeServer.update("name", "ip", "adminPort", "tcpPort", "metricPort", "clusterId");
     }
 
+    @Override
     public void delete(Long id) {
         NodeServer nodeServer = NodeServer.find.byId(id);
         if (nodeServer != null) {
@@ -120,12 +124,14 @@ public class NodeServerServiceImpl implements NodeServerService {
         return query;
     }
 
+    @Override
     public List<NodeServer> findAll(NodeServer nodeServer) {
         Query<NodeServer> query = getBaseQuery(nodeServer);
         query.order().asc("id");
         return query.findList();
     }
 
+    @Override
     public Pager<NodeServer> findList(NodeServer nodeServer, Pager<NodeServer> pager) {
 
         Query<NodeServer> query = getBaseQuery(nodeServer);
@@ -167,11 +173,13 @@ public class NodeServerServiceImpl implements NodeServerService {
         return pager;
     }
 
+    @Override
     public int remoteNodeStatus(String ip, Integer port) {
         boolean result = SimpleAdminConnectors.execute(ip, port, AdminConnector::check);
         return result ? 1 : 0;
     }
 
+    @Override
     public String remoteCanalLog(Long id) {
         NodeServer nodeServer = NodeServer.find.byId(id);
         if (nodeServer == null) {
@@ -182,6 +190,7 @@ public class NodeServerServiceImpl implements NodeServerService {
             adminConnector -> adminConnector.canalLog(100));
     }
 
+    @Override
     public boolean remoteOperation(Long id, String option) {
         NodeServer nodeServer = NodeServer.find.byId(id);
         if (nodeServer == null) {

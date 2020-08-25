@@ -95,6 +95,7 @@ public class RocketMQCanalConnector implements CanalMQConnector {
         this.secretKey = secretKey;
     }
 
+    @Override
     public void connect() throws CanalClientException {
         RPCHook rpcHook = null;
         if (null != accessKey && accessKey.length() > 0 && null != secretKey && secretKey.length() > 0) {
@@ -122,15 +123,18 @@ public class RocketMQCanalConnector implements CanalMQConnector {
         }
     }
 
+    @Override
     public void disconnect() throws CanalClientException {
         rocketMQConsumer.shutdown();
         connected = false;
     }
 
+    @Override
     public boolean checkValid() throws CanalClientException {
         return connected;
     }
 
+    @Override
     public synchronized void subscribe(String filter) throws CanalClientException {
         if (connected) {
             return;
@@ -208,10 +212,12 @@ public class RocketMQCanalConnector implements CanalMQConnector {
         return isCompleted && isSuccess;
     }
 
+    @Override
     public void subscribe() throws CanalClientException {
         this.subscribe(null);
     }
 
+    @Override
     public void unsubscribe() throws CanalClientException {
         this.rocketMQConsumer.unsubscribe(this.topic);
     }
@@ -298,6 +304,7 @@ public class RocketMQCanalConnector implements CanalMQConnector {
         }
     }
 
+    @Override
     public Message get(int batchSize) throws CanalClientException {
         throw new CanalClientException("mq not support this method");
     }

@@ -44,6 +44,7 @@ public class TimelineBarrier implements GroupBarrier<Event> {
      * 
      * @throws InterruptedException
      */
+    @Override
     public void await(Event event) throws InterruptedException {
         long timestamp = getTimestamp(event);
         try {
@@ -63,6 +64,7 @@ public class TimelineBarrier implements GroupBarrier<Event> {
      * @throws InterruptedException
      * @throws TimeoutException
      */
+    @Override
     public void await(Event event, long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
         long timestamp = getTimestamp(event);
         try {
@@ -76,6 +78,7 @@ public class TimelineBarrier implements GroupBarrier<Event> {
         }
     }
 
+    @Override
     public void clear(Event event) {
         // 出现中断有两种可能：
         // 1.出现主备切换，需要剔除到Timeline中的时间占位(这样合并时就会小于groupSize，不满足调度条件，直到主备切换完成后才能重新开启合并处理)
@@ -83,6 +86,7 @@ public class TimelineBarrier implements GroupBarrier<Event> {
         lastTimestamps.remove(getTimestamp(event));
     }
 
+    @Override
     public void interrupt() {
         // do nothing，没有需要清理的上下文状态
     }

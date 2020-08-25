@@ -50,6 +50,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
         addHandler(new HeartBeatEntryEventHandler());
     }
 
+    @Override
     public void start() {
         super.start();
         Assert.notNull(eventStore);
@@ -65,6 +66,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
         }
     }
 
+    @Override
     public void stop() {
         super.stop();
 
@@ -80,6 +82,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
         return false;
     }
 
+    @Override
     public boolean sink(List<CanalEntry.Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                            throws CanalSinkException,
                                                                                                            InterruptedException {

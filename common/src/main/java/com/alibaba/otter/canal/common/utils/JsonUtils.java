@@ -77,6 +77,7 @@ public class JsonUtils {
             JSONSerializer serializer = new JSONSerializer(out);
             serializer.getPropertyFilters().add(new PropertyFilter() {
 
+                @Override
                 public boolean apply(Object source, String name, Object value) {
                     return !propertyFliters.contains(name);
                 }

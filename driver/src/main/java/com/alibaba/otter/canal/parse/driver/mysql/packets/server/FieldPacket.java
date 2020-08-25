@@ -43,6 +43,7 @@ public class FieldPacket extends PacketWithHeaderPacket {
      * 
      * </pre>
      */
+    @Override
     public void fromBytes(byte[] data) throws IOException {
 
         int index = 0;
@@ -82,6 +83,7 @@ public class FieldPacket extends PacketWithHeaderPacket {
         }
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         return null;
     }
@@ -182,6 +184,7 @@ public class FieldPacket extends PacketWithHeaderPacket {
         this.definition = definition;
     }
 
+    @Override
     public String toString() {
         return "FieldPacket [catalog=" + catalog + ", character=" + character + ", db=" + db + ", decimals=" + decimals
                + ", definition=" + definition + ", flags=" + flags + ", length=" + length + ", name=" + name

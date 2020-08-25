@@ -150,6 +150,7 @@ public class NettySocketChannel implements SocketChannel {
         }
     }
 
+    @Override
     public void write(byte[]... buf) throws IOException {
         if (channel != null && channel.isWritable()) {
             channel.writeAndFlush(Unpooled.copiedBuffer(buf));
@@ -158,10 +159,12 @@ public class NettySocketChannel implements SocketChannel {
         }
     }
 
+    @Override
     public byte[] read(int readSize) throws IOException {
         return read(readSize, 0);
     }
 
+    @Override
     public byte[] read(int readSize, int timeout) throws IOException {
         int accumulatedWaitTime = 0;
 
@@ -208,18 +211,22 @@ public class NettySocketChannel implements SocketChannel {
         throw new NotImplementedException();
     }
 
+    @Override
     public boolean isConnected() {
         return channel != null ? true : false;
     }
 
+    @Override
     public SocketAddress getRemoteSocketAddress() {
         return channel != null ? channel.remoteAddress() : null;
     }
 
+    @Override
     public SocketAddress getLocalSocketAddress() {
         return channel != null ? channel.localAddress() : null;
     }
 
+    @Override
     public void close() {
         if (channel != null) {
             channel.close();

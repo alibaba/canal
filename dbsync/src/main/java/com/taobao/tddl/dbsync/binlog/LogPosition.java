@@ -51,6 +51,7 @@ public class LogPosition implements Cloneable, Comparable<LogPosition> {
     }
 
     /* Clone binlog position without CloneNotSupportedException */
+    @Override
     public LogPosition clone() {
         try {
             return (LogPosition) super.clone();
@@ -77,6 +78,7 @@ public class LogPosition implements Cloneable, Comparable<LogPosition> {
      * 
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
+    @Override
     public int compareTo(LogPosition o) {
         final int val = fileName.compareTo(o.fileName);
 
@@ -91,6 +93,7 @@ public class LogPosition implements Cloneable, Comparable<LogPosition> {
      * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
+    @Override
     public boolean equals(Object obj) {
         if (obj instanceof LogPosition) {
             LogPosition pos = ((LogPosition) obj);
@@ -104,6 +107,7 @@ public class LogPosition implements Cloneable, Comparable<LogPosition> {
      * 
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
         return fileName + ':' + position;
     }

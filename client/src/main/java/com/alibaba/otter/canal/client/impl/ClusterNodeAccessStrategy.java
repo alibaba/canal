@@ -36,6 +36,7 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
         this.zkClient = zkClient;
         childListener = new IZkChildListener() {
 
+            @Override
             public void handleChildChange(String parentPath, List<String> currentChilds) throws Exception {
                 initClusters(currentChilds);
             }
@@ -44,10 +45,12 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
 
         dataListener = new IZkDataListener() {
 
+            @Override
             public void handleDataDeleted(String dataPath) throws Exception {
                 runningAddress = null;
             }
 
+            @Override
             public void handleDataChange(String dataPath, Object data) throws Exception {
                 initRunning(data);
             }
@@ -68,6 +71,7 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
         return nextNode();
     }
 
+    @Override
     public SocketAddress nextNode() {
         if (runningAddress != null) {// 如果服务已经启动，直接选择当前正在工作的节点
             return runningAddress;

@@ -101,6 +101,7 @@ public class BooleanMutex {
         /**
          * 实现AQS的接口，获取共享锁的判断
          */
+        @Override
         protected int tryAcquireShared(int state) {
             // 如果为true，直接允许获取锁对象
             // 如果为false，进入阻塞队列，等待被唤醒
@@ -110,6 +111,7 @@ public class BooleanMutex {
         /**
          * 实现AQS的接口，释放共享锁的判断
          */
+        @Override
         protected boolean tryReleaseShared(int ignore) {
             // 始终返回true，代表可以release
             return true;

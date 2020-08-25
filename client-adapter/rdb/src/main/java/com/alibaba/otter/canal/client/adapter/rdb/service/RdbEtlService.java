@@ -50,6 +50,7 @@ public class RdbEtlService extends AbstractEtlService {
     /**
      * 执行导入
      */
+    @Override
     protected boolean executeSqlImport(DataSource srcDS, String sql, List<Object> values,
                                        AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
         try {

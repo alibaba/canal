@@ -83,5 +83,6 @@ public abstract class LogFetcher extends LogBuffer implements Closeable {
      * 
      * @see java.io.Closeable#close()
      */
+    @Override
     public abstract void close() throws IOException;
 }

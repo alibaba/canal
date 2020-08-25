@@ -29,11 +29,13 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
     protected Map<ClientIdentity, MemoryClientIdentityBatch> batches;
     protected Map<ClientIdentity, Position>                  cursors;
 
+    @Override
     public void start() {
         super.start();
 
         batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
 
+            @Override
             public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
                 return MemoryClientIdentityBatch.create(clientIdentity);
             }
@@ -44,12 +46,14 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
 
         destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
 
+            @Override
             public List<ClientIdentity> apply(String destination) {
                 return Lists.newArrayList();
             }
         });
     }
 
+    @Override
     public void stop() {
         super.stop();
 
@@ -60,6 +64,7 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
         }
     }
 
+    @Override
     public synchronized void subscribe(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         List<ClientIdentity> clientIdentitys = destinations.get(clientIdentity.getDestination());
 
@@ -70,11 +75,13 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
         clientIdentitys.add(clientIdentity);
     }
 
+    @Override
     public synchronized boolean hasSubscribe(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         List<ClientIdentity> clientIdentitys = destinations.get(clientIdentity.getDestination());
         return clientIdentitys != null && clientIdentitys.contains(clientIdentity);
     }
 
+    @Override
     public synchronized void unsubscribe(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         List<ClientIdentity> clientIdentitys = destinations.get(clientIdentity.getDestination());
         if (clientIdentitys != null && clientIdentitys.contains(clientIdentity)) {
@@ -82,48 +89,59 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
         }
     }
 
+    @Override
     public synchronized List<ClientIdentity> listAllSubscribeInfo(String destination) throws CanalMetaManagerException {
         // fixed issue #657, fixed ConcurrentModificationException
         return Lists.newArrayList(destinations.get(destination));
     }
 
+    @Override
     public Position getCursor(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         return cursors.get(clientIdentity);
     }
 
+    @Override
     public void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException {
         cursors.put(clientIdentity, position);
     }
 
+    @Override
     public Long addBatch(ClientIdentity clientIdentity, PositionRange positionRange) throws CanalMetaManagerException {
         return batches.get(clientIdentity).addPositionRange(positionRange);
     }
 
+    @Override
     public void addBatch(ClientIdentity clientIdentity, PositionRange positionRange, Long batchId)
                                                                                                   throws CanalMetaManagerException {
         batches.get(clientIdentity).addPositionRange(positionRange, batchId);// 添加记录到指定batchId
     }
 
+    @Override
     public PositionRange removeBatch(ClientIdentity clientIdentity, Long batchId) throws CanalMetaManagerException {
         return batches.get(clientIdentity).removePositionRange(batchId);
     }
 
+    @Override
     public PositionRange getBatch(ClientIdentity clientIdentity, Long batchId) throws CanalMetaManagerException {
         return batches.get(clientIdentity).getPositionRange(batchId);
     }
 
+    @Override
     public PositionRange getLastestBatch(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         return batches.get(clientIdentity).getLastestPositionRange();
     }
 
+    @Override
     public PositionRange getFirstBatch(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         return batches.get(clientIdentity).getFirstPositionRange();
     }
 
+    @Override
     public Map<Long, PositionRange> listAllBatchs(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         return batches.get(clientIdentity).listAllPositionRange();
     }
 
+    @Override
     public void clearAllBatchs(ClientIdentity clientIdentity) throws CanalMetaManagerException {
         batches.get(clientIdentity).clearPositionRanges();
     }

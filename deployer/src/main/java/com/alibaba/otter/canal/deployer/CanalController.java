@@ -76,6 +76,7 @@ public class CanalController {
     public CanalController(final Properties properties){
         managerClients = MigrateMap.makeComputingMap(new Function<String, PlainCanalConfigClient>() {
 
+            @Override
             public PlainCanalConfigClient apply(String managerAddress) {
                 return getManagerClient(managerAddress);
             }
@@ -149,11 +150,13 @@ public class CanalController {
         ServerRunningMonitors.setServerData(serverData);
         ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>() {
 
+            @Override
             public ServerRunningMonitor apply(final String destination) {
                 ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
                 runningMonitor.setDestination(destination);
                 runningMonitor.setListener(new ServerRunningListener() {
 
+                    @Override
                     public void processActiveEnter() {
                         try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
@@ -166,6 +169,7 @@ public class CanalController {
                         }
                     }
 
+                    @Override
                     public void processActiveExit() {
                         try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
@@ -178,6 +182,7 @@ public class CanalController {
                         }
                     }
 
+                    @Override
                     public void processStart() {
                         try {
                             if (zkclientx != null) {
@@ -186,10 +191,12 @@ public class CanalController {
                                 initCid(path);
                                 zkclientx.subscribeStateChanges(new IZkStateListener() {
 
+                                    @Override
                                     public void handleStateChanged(KeeperState state) throws Exception {
 
                                     }
 
+                                    @Override
                                     public void handleNewSession() throws Exception {
                                         initCid(path);
                                     }
@@ -205,6 +212,7 @@ public class CanalController {
                         }
                     }
 
+                    @Override
                     public void processStop() {
                         try {
                             MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
@@ -233,6 +241,7 @@ public class CanalController {
         if (autoScan) {
             defaultAction = new InstanceAction() {
 
+                @Override
                 public void start(String destination) {
                     InstanceConfig config = instanceConfigs.get(destination);
                     if (config == null) {
@@ -252,6 +261,7 @@ public class CanalController {
                     logger.info("auto notify start {} successful.", destination);
                 }
 
+                @Override
                 public void stop(String destination) {
                     // 此处的stop，代表强制退出，非HA机制，所以需要退出HA的monitor和配置信息
                     InstanceConfig config = instanceConfigs.remove(destination);
@@ -266,6 +276,7 @@ public class CanalController {
                     logger.info("auto notify stop {} successful.", destination);
                 }
 
+                @Override
                 public void reload(String destination) {
                     // 目前任何配置变化，直接重启，简单处理
                     stop(destination);
@@ -305,6 +316,7 @@ public class CanalController {
 
             instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
 
+                @Override
                 public InstanceConfigMonitor apply(InstanceMode mode) {
                     int scanInterval = Integer.valueOf(getProperty(properties,
                         CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
@@ -375,6 +387,7 @@ public class CanalController {
 
         instanceGenerator = new CanalInstanceGenerator() {
 
+            @Override
             public CanalInstance generate(String destination) {
                 InstanceConfig config = instanceConfigs.get(destination);
                 if (config == null) {
@@ -485,10 +498,12 @@ public class CanalController {
         if (zkclientx != null) {
             this.zkclientx.subscribeStateChanges(new IZkStateListener() {
 
+                @Override
                 public void handleStateChanged(KeeperState state) throws Exception {
 
                 }
 
+                @Override
                 public void handleNewSession() throws Exception {
                     initCid(path);
                 }

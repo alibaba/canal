@@ -85,14 +85,17 @@ public class MysqlConnection implements ErosaConnection {
         connector.setConnTimeout(connTimeout);
     }
 
+    @Override
     public void connect() throws IOException {
         connector.connect();
     }
 
+    @Override
     public void reconnect() throws IOException {
         connector.reconnect();
     }
 
+    @Override
     public void disconnect() throws IOException {
         connector.disconnect();
     }
@@ -119,6 +122,7 @@ public class MysqlConnection implements ErosaConnection {
     /**
      * 加速主备切换时的查找速度，做一些特殊优化，比如只解析事务头或者尾
      */
+    @Override
     public void seek(String binlogfilename, Long binlogPosition, String gtid, SinkFunction func) throws IOException {
         updateSettings();
         loadBinlogChecksum();
@@ -156,6 +160,7 @@ public class MysqlConnection implements ErosaConnection {
         }
     }
 
+    @Override
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         updateSettings();
         loadBinlogChecksum();
@@ -217,6 +222,7 @@ public class MysqlConnection implements ErosaConnection {
         }
     }
 
+    @Override
     public void dump(long timestamp, SinkFunction func) throws IOException {
         throw new NullPointerException("Not implement yet");
     }
@@ -354,6 +360,7 @@ public class MysqlConnection implements ErosaConnection {
         connector.setDumping(true);
     }
 
+    @Override
     public MysqlConnection fork() {
         MysqlConnection connection = new MysqlConnection();
         connection.setCharset(getCharset());

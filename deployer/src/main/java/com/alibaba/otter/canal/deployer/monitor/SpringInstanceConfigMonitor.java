@@ -41,6 +41,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
     private Map<String, InstanceAction>      actions              = new MapMaker().makeMap();
     private Map<String, InstanceConfigFiles> lastFiles            = MigrateMap.makeComputingMap(new Function<String, InstanceConfigFiles>() {
 
+                                                                      @Override
                                                                       public InstanceConfigFiles apply(String destination) {
                                                                           return new InstanceConfigFiles(destination);
                                                                       }
@@ -54,12 +55,14 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         return actions;
     }
 
+    @Override
     public void start() {
         super.start();
         Assert.notNull(rootConf, "root conf dir is null!");
 
         executor.scheduleWithFixedDelay(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     scan();
@@ -74,6 +77,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
     }
 
+    @Override
     public void stop() {
         super.stop();
         executor.shutdownNow();
@@ -81,6 +85,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         lastFiles.clear();
     }
 
+    @Override
     public void register(String destination, InstanceAction action) {
         if (action != null) {
             actions.put(destination, action);
@@ -89,6 +94,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
         }
     }
 
+    @Override
     public void unregister(String destination) {
         actions.remove(destination);
     }
@@ -105,6 +111,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
 
         File[] instanceDirs = rootdir.listFiles(new FileFilter() {
 
+            @Override
             public boolean accept(File pathname) {
                 String filename = pathname.getName();
                 return pathname.isDirectory() && !"spring".equalsIgnoreCase(filename);
@@ -120,6 +127,7 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
             currentInstanceNames.add(destination);
             File[] instanceConfigs = instanceDir.listFiles(new FilenameFilter() {
 
+                @Override
                 public boolean accept(File dir, String name) {
                     // return !StringUtils.endsWithIgnoreCase(name, ".dat");
                     // 限制一下，只针对instance.properties文件,避免因为.svn或者其他生成的临时文件导致出现reload

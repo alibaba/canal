@@ -11,6 +11,7 @@ public class RowDataPacket extends PacketWithHeaderPacket {
 
     private List<String> columns = new ArrayList<String>();
 
+    @Override
     public void fromBytes(byte[] data) throws IOException {
         int index = 0;
         LengthCodedStringReader reader = new LengthCodedStringReader(null, index);
@@ -19,6 +20,7 @@ public class RowDataPacket extends PacketWithHeaderPacket {
         } while (reader.getIndex() < data.length);
     }
 
+    @Override
     public byte[] toBytes() throws IOException {
         return null;
     }
@@ -31,6 +33,7 @@ public class RowDataPacket extends PacketWithHeaderPacket {
         return columns;
     }
 
+    @Override
     public String toString() {
         return "RowDataPacket [columns=" + columns + "]";
     }

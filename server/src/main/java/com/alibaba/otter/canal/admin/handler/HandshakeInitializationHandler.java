@@ -32,6 +32,7 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(HandshakeInitializationHandler.class);
 
+    @Override
     public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         // add new socket channel in channel container, used to manage sockets.
         if (childGroups != null) {
@@ -48,6 +49,7 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
 
         AdminNettyUtils.write(ctx.getChannel(), body, new ChannelFutureListener() {
 
+            @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 logger.info("remove unused channel handlers after authentication is done successfully.");
                 ctx.getPipeline().get(HandshakeInitializationHandler.class.getName());
