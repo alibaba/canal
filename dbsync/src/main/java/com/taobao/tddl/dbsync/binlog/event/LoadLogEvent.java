@@ -256,11 +256,21 @@ public class LoadLogEvent extends LogEvent {
             optFlags = buffer.getUint8();
             emptyFlags = buffer.getUint8();
 
-            if ((emptyFlags & FIELD_TERM_EMPTY) != 0) fieldTerm = null;
-            if ((emptyFlags & ENCLOSED_EMPTY) != 0) enclosed = null;
-            if ((emptyFlags & LINE_TERM_EMPTY) != 0) lineTerm = null;
-            if ((emptyFlags & LINE_START_EMPTY) != 0) lineStart = null;
-            if ((emptyFlags & ESCAPED_EMPTY) != 0) escaped = null;
+            if ((emptyFlags & FIELD_TERM_EMPTY) != 0) {
+                fieldTerm = null;
+            }
+            if ((emptyFlags & ENCLOSED_EMPTY) != 0) {
+                enclosed = null;
+            }
+            if ((emptyFlags & LINE_TERM_EMPTY) != 0) {
+                lineTerm = null;
+            }
+            if ((emptyFlags & LINE_START_EMPTY) != 0) {
+                lineStart = null;
+            }
+            if ((emptyFlags & ESCAPED_EMPTY) != 0) {
+                escaped = null;
+            }
         }
 
         final int fieldLenPos = buffer.position();
@@ -279,7 +289,9 @@ public class LoadLogEvent extends LogEvent {
         final int end = from + buffer.limit();
         int found = from;
         for (; (found < end) && buffer.getInt8(found) != '\0'; found++)
-            /* empty loop */;
+            /* empty loop */ {
+            ;
+        }
         fname = buffer.getString(found);
         buffer.forward(1); // The + 1 is for \0 terminating fname
     }

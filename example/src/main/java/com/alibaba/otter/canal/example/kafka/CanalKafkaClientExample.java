@@ -61,8 +61,9 @@ public class CanalKafkaClientExample {
                 }
 
             });
-            while (running)
+            while (running) {
                 ;
+            }
         } catch (Throwable e) {
             logger.error("## Something goes wrong when starting up the kafka consumer:", e);
             System.exit(0);

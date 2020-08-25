@@ -119,8 +119,10 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
             numberOfEventTypes -= BINLOG_CHECKSUM_ALG_DESC_LEN;
         }
 
-        if (logger.isInfoEnabled()) logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= "
-                                                + numberOfEventTypes);
+        if (logger.isInfoEnabled()) {
+            logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= "
+                                                    + numberOfEventTypes);
+        }
     }
 
     /** MySQL 5.0 format descriptions. */

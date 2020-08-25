@@ -69,8 +69,9 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 }
 
             });
-            while (running)
+            while (running) {
                 ;
+            }
         } catch (Throwable e) {
             logger.error("## Something going wrong when starting up the rocketmq consumer:", e);
             System.exit(0);

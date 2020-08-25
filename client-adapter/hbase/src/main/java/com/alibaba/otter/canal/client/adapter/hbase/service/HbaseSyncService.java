@@ -204,7 +204,9 @@ public class HbaseSyncService {
             } else {
                 rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }
-            if (rowKeyBytes == null) throw new RuntimeException("rowKey值为空");
+            if (rowKeyBytes == null) {
+                throw new RuntimeException("rowKey值为空");
+            }
 
             Map<String, MappingConfig.ColumnItem> columnItems = hbaseMapping.getColumnItems();
             HRow hRow = new HRow(rowKeyBytes);
@@ -230,7 +232,9 @@ public class HbaseSyncService {
                     }
                 } else {
                     // 排除修改id的情况
-                    if (columnItem.isRowKey()) continue;
+                    if (columnItem.isRowKey()) {
+                        continue;
+                    }
 
                     Object newVal = r.get(updateColumn);
                     if (newVal == null) {
@@ -288,7 +292,9 @@ public class HbaseSyncService {
             } else {
                 rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }
-            if (rowKeyBytes == null) throw new RuntimeException("rowKey值为空");
+            if (rowKeyBytes == null) {
+                throw new RuntimeException("rowKey值为空");
+            }
             rowKeys.add(rowKeyBytes);
             complete = false;
             if (i % config.getHbaseMapping().getCommitBatch() == 0 && !rowKeys.isEmpty()) {

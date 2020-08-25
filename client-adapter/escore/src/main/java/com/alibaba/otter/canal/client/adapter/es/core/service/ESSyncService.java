@@ -633,7 +633,7 @@ public class ESSyncService {
                         if (old != null) {
                             out: for (FieldItem fieldItem1 : tableItem.getSubQueryFields()) {
                                 for (ColumnItem columnItem0 : fieldItem.getColumnItems()) {
-                                    if (fieldItem1.getFieldName().equals(columnItem0.getColumnName()))
+                                    if (fieldItem1.getFieldName().equals(columnItem0.getColumnName())) {
                                         for (ColumnItem columnItem : fieldItem1.getColumnItems()) {
                                             if (old.containsKey(columnItem.getColumnName())) {
                                                 Object val = esTemplate.getValFromRS(mapping,
@@ -644,6 +644,7 @@ public class ESSyncService {
                                                 break out;
                                             }
                                         }
+                                    }
                                 }
                             }
                         } else {
@@ -737,7 +738,7 @@ public class ESSyncService {
                             // 从表子查询
                             out: for (FieldItem fieldItem1 : tableItem.getSubQueryFields()) {
                                 for (ColumnItem columnItem0 : fieldItem.getColumnItems()) {
-                                    if (fieldItem1.getFieldName().equals(columnItem0.getColumnName()))
+                                    if (fieldItem1.getFieldName().equals(columnItem0.getColumnName())) {
                                         for (ColumnItem columnItem : fieldItem1.getColumnItems()) {
                                             if (old.containsKey(columnItem.getColumnName())) {
                                                 Object val = esTemplate.getValFromRS(mapping,
@@ -748,6 +749,7 @@ public class ESSyncService {
                                                 break out;
                                             }
                                         }
+                                    }
                                 }
                             }
                             // 从表非子查询

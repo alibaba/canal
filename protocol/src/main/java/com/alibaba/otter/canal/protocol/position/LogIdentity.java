@@ -56,16 +56,30 @@ public class LogIdentity extends Position {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
         LogIdentity other = (LogIdentity) obj;
         if (slaveId == null) {
-            if (other.slaveId != null) return false;
-        } else if (slaveId.longValue() != (other.slaveId.longValue())) return false;
+            if (other.slaveId != null) {
+                return false;
+            }
+        } else if (slaveId.longValue() != (other.slaveId.longValue())) {
+            return false;
+        }
         if (sourceAddress == null) {
-            if (other.sourceAddress != null) return false;
-        } else if (!sourceAddress.equals(other.sourceAddress)) return false;
+            if (other.sourceAddress != null) {
+                return false;
+            }
+        } else if (!sourceAddress.equals(other.sourceAddress)) {
+            return false;
+        }
         return true;
     }
 

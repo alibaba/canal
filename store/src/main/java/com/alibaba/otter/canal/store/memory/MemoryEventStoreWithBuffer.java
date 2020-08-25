@@ -215,8 +215,9 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         lock.lockInterruptibly();
         try {
             try {
-                while (!checkUnGetSlotAt((LogPosition) start, batchSize))
+                while (!checkUnGetSlotAt((LogPosition) start, batchSize)) {
                     notEmpty.await();
+                }
             } catch (InterruptedException ie) {
                 notEmpty.signal(); // propagate to non-interrupted thread
                 throw ie;

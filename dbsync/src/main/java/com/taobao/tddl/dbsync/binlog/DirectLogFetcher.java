@@ -184,7 +184,9 @@ public final class DirectLogFetcher extends LogFetcher {
             mysqlOutput = (OutputStream) getDeclaredField(connIo, connIo.getClass(), "mysqlOutput");
             mysqlInput = (InputStream) getDeclaredField(connIo, connIo.getClass(), "mysqlInput");
 
-            if (filePosition == 0) filePosition = BIN_LOG_HEADER_SIZE;
+            if (filePosition == 0) {
+                filePosition = BIN_LOG_HEADER_SIZE;
+            }
             sendBinlogDump(fileName, filePosition, serverId, nonBlocking);
             position = 0;
         } catch (IOException e) {
@@ -363,7 +365,9 @@ public final class DirectLogFetcher extends LogFetcher {
             }
         }
 
-        if (limit < off + len) limit = off + len;
+        if (limit < off + len) {
+            limit = off + len;
+        }
         return true;
     }
 
@@ -374,7 +378,9 @@ public final class DirectLogFetcher extends LogFetcher {
      */
     public void close() throws IOException {
         try {
-            if (conn != null) conn.close();
+            if (conn != null) {
+                conn.close();
+            }
 
             conn = null;
             mysqlInput = null;

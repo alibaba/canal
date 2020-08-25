@@ -23,7 +23,9 @@ public enum PhType {
     private static Logger logger = LoggerFactory.getLogger(PhType.class);
 
     public static PhType getType(Class<?> javaType) {
-        if (javaType == null) return DEFAULT;
+        if (javaType == null) {
+            return DEFAULT;
+        }
         PhType phType;
         if (Integer.class == javaType || int.class == javaType) {
             phType = INTEGER;
@@ -62,7 +64,9 @@ public enum PhType {
     }
 
     public static PhType getType(String type) {
-        if (type == null) return DEFAULT;
+        if (type == null) {
+            return DEFAULT;
+        }
         try {
             return PhType.valueOf(type.toUpperCase());
         } catch (Exception e) {

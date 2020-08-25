@@ -21,7 +21,9 @@ import com.google.common.math.LongMath;
 public class PhTypeUtil {
 
     public static byte[] toBytes(Object v, PhType phType) {
-        if (v == null) return null;
+        if (v == null) {
+            return null;
+        }
         byte[] b = null;
         if (phType == PhType.DEFAULT) {
             PhType phType1 = PhType.getType(v.getClass());
@@ -97,7 +99,9 @@ public class PhTypeUtil {
     }
 
     public static Object toObject(byte[] b, PhType phType) {
-        if (b == null) return null;
+        if (b == null) {
+            return null;
+        }
         Object v = null;
         if (phType == PhType.INTEGER) {
             v = decodeInt(b, 0);

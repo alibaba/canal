@@ -686,8 +686,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -719,7 +723,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (magicNumberPresentCase_ == 1) {
@@ -765,7 +771,9 @@ public final class CanalPacket {
           .equals(other.getBody());
       result = result && getMagicNumberPresentCase().equals(
           other.getMagicNumberPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (magicNumberPresentCase_) {
         case 1:
           result = result && (getMagicNumber()
@@ -776,7 +784,9 @@ public final class CanalPacket {
       }
       result = result && getVersionPresentCase().equals(
           other.getVersionPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (versionPresentCase_) {
         case 2:
           result = result && (getVersion()
@@ -787,7 +797,9 @@ public final class CanalPacket {
       }
       result = result && getCompressionPresentCase().equals(
           other.getCompressionPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (compressionPresentCase_) {
         case 4:
           result = result && getCompressionValue()
@@ -1065,7 +1077,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Packet other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Packet.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Packet.getDefaultInstance()) {
+            return this;
+        }
         if (other.type_ != 0) {
           setTypeValue(other.getTypeValue());
         }
@@ -1532,8 +1546,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -1554,7 +1572,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (sendTimestamp_ != 0L) {
@@ -1814,7 +1834,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.HeartBeat other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.HeartBeat.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.HeartBeat.getDefaultInstance()) {
+            return this;
+        }
         if (other.getSendTimestamp() != 0L) {
           setSendTimestamp(other.getSendTimestamp());
         }
@@ -2183,8 +2205,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -2208,7 +2234,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (communicationEncodingPresentCase_ == 1) {
@@ -2243,7 +2271,9 @@ public final class CanalPacket {
       result = result && supportedCompressions_ == other.supportedCompressions_;
       result = result && getCommunicationEncodingPresentCase().equals(
           other.getCommunicationEncodingPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (communicationEncodingPresentCase_) {
         case 1:
           result = result && getCommunicationEncoding()
@@ -2493,7 +2523,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Handshake other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Handshake.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Handshake.getDefaultInstance()) {
+            return this;
+        }
         if (other.getSeeds() != com.google.protobuf.ByteString.EMPTY) {
           setSeeds(other.getSeeds());
         }
@@ -3230,8 +3262,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -3272,7 +3308,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getUsernameBytes().isEmpty()) {
@@ -3335,7 +3373,9 @@ public final class CanalPacket {
           == other.getStartTimestamp());
       result = result && getNetReadTimeoutPresentCase().equals(
           other.getNetReadTimeoutPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (netReadTimeoutPresentCase_) {
         case 3:
           result = result && (getNetReadTimeout()
@@ -3346,7 +3386,9 @@ public final class CanalPacket {
       }
       result = result && getNetWriteTimeoutPresentCase().equals(
           other.getNetWriteTimeoutPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (netWriteTimeoutPresentCase_) {
         case 4:
           result = result && (getNetWriteTimeout()
@@ -3635,7 +3677,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.ClientAuth.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getUsername().isEmpty()) {
           username_ = other.username_;
           onChanged();
@@ -4419,8 +4463,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -4442,7 +4490,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (errorCodePresentCase_ == 1) {
@@ -4473,7 +4523,9 @@ public final class CanalPacket {
           .equals(other.getErrorMessage());
       result = result && getErrorCodePresentCase().equals(
           other.getErrorCodePresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (errorCodePresentCase_) {
         case 1:
           result = result && (getErrorCode()
@@ -4718,7 +4770,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Ack other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Ack.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Ack.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getErrorMessage().isEmpty()) {
           errorMessage_ = other.errorMessage_;
           onChanged();
@@ -5148,8 +5202,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -5173,7 +5231,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getDestinationBytes().isEmpty()) {
@@ -5441,7 +5501,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.ClientAck other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.ClientAck.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.ClientAck.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getDestination().isEmpty()) {
           destination_ = other.destination_;
           onChanged();
@@ -5934,8 +5996,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -5959,7 +6025,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getDestinationBytes().isEmpty()) {
@@ -6229,7 +6297,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Sub other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Sub.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Sub.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getDestination().isEmpty()) {
           destination_ = other.destination_;
           onChanged();
@@ -6766,8 +6836,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -6791,7 +6865,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getDestinationBytes().isEmpty()) {
@@ -7061,7 +7137,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Unsub other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Unsub.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Unsub.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getDestination().isEmpty()) {
           destination_ = other.destination_;
           onChanged();
@@ -7768,8 +7846,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -7805,7 +7887,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getDestinationBytes().isEmpty()) {
@@ -7857,7 +7941,9 @@ public final class CanalPacket {
           == other.getFetchSize());
       result = result && getTimeoutPresentCase().equals(
           other.getTimeoutPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (timeoutPresentCase_) {
         case 4:
           result = result && (getTimeout()
@@ -7868,7 +7954,9 @@ public final class CanalPacket {
       }
       result = result && getUnitPresentCase().equals(
           other.getUnitPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (unitPresentCase_) {
         case 5:
           result = result && (getUnit()
@@ -7879,7 +7967,9 @@ public final class CanalPacket {
       }
       result = result && getAutoAckPresentCase().equals(
           other.getAutoAckPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (autoAckPresentCase_) {
         case 6:
           result = result && (getAutoAck()
@@ -8168,7 +8258,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Get other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Get.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Get.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getDestination().isEmpty()) {
           destination_ = other.destination_;
           onChanged();
@@ -8773,8 +8865,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -8795,7 +8891,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (batchId_ != 0L) {
@@ -9071,7 +9169,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Messages other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Messages.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Messages.getDefaultInstance()) {
+            return this;
+        }
         if (other.getBatchId() != 0L) {
           setBatchId(other.getBatchId());
         }
@@ -9478,8 +9578,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -9504,7 +9608,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getJournalBytes().isEmpty()) {
@@ -9541,7 +9647,9 @@ public final class CanalPacket {
           == other.getPosition());
       result = result && getTimestampPresentCase().equals(
           other.getTimestampPresentCase());
-      if (!result) return false;
+      if (!result) {
+          return false;
+      }
       switch (timestampPresentCase_) {
         case 3:
           result = result && (getTimestamp()
@@ -9797,7 +9905,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.Dump other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Dump.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.Dump.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getJournal().isEmpty()) {
           journal_ = other.journal_;
           onChanged();
@@ -10236,8 +10346,12 @@ public final class CanalPacket {
     @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized == 1) {
+          return true;
+      }
+      if (isInitialized == 0) {
+          return false;
+      }
 
       memoizedIsInitialized = 1;
       return true;
@@ -10261,7 +10375,9 @@ public final class CanalPacket {
     @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
-      if (size != -1) return size;
+      if (size != -1) {
+          return size;
+      }
 
       size = 0;
       if (!getDestinationBytes().isEmpty()) {
@@ -10529,7 +10645,9 @@ public final class CanalPacket {
       }
 
       public Builder mergeFrom(com.alibaba.otter.canal.protocol.CanalPacket.ClientRollback other) {
-        if (other == com.alibaba.otter.canal.protocol.CanalPacket.ClientRollback.getDefaultInstance()) return this;
+        if (other == com.alibaba.otter.canal.protocol.CanalPacket.ClientRollback.getDefaultInstance()) {
+            return this;
+        }
         if (!other.getDestination().isEmpty()) {
           destination_ = other.destination_;
           onChanged();
