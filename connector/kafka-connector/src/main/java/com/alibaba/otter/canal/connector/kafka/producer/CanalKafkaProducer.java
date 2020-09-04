@@ -245,14 +245,34 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                     for (int i = 0; i < length; i++) {
                         FlatMessage flatMessagePart = partitionFlatMessage[i];
                         if (flatMessagePart != null) {
-                            records.add(new ProducerRecord<>(topicName, i, null, JSON.toJSONBytes(flatMessagePart,
-                                SerializerFeature.WriteMapNullValue)));
+                            if (!this.mqProperties.isFlatMessageOnlyData()) {
+                                records.add(new ProducerRecord<>(topicName, i, null, JSON.toJSONBytes(flatMessagePart,
+                                        SerializerFeature.WriteMapNullValue)));
+                            } else {
+                                List<Map<String, String>> flatMessagePartData = flatMessagePart.getData();
+                                if (flatMessagePartData != null && flatMessagePart.getType().toUpperCase().equals(this.mqProperties.getFlatMessageSqlType())) {
+                                    for (Map<String, String> partData : flatMessagePartData) {
+                                        records.add(new ProducerRecord<>(topicName, i, null, JSON.toJSONBytes(partData,
+                                                SerializerFeature.WriteMapNullValue)));
+                                    }
+                                }
+                            }
                         }
                     }
                 } else {
                     final int partition = mqDestination.getPartition() != null ? mqDestination.getPartition() : 0;
-                    records.add(new ProducerRecord<>(topicName, partition, null, JSON.toJSONBytes(flatMessage,
-                        SerializerFeature.WriteMapNullValue)));
+                    if (!this.mqProperties.isFlatMessageOnlyData()) {
+                        records.add(new ProducerRecord<>(topicName, partition, null, JSON.toJSONBytes(flatMessage,
+                                SerializerFeature.WriteMapNullValue)));
+                    } else {
+                        List<Map<String, String>> flatMessagePartData = flatMessage.getData();
+                        if (flatMessagePartData != null && flatMessage.getType().toUpperCase().equals(this.mqProperties.getFlatMessageSqlType())) {
+                            for (Map<String, String> partData : flatMessagePartData) {
+                                records.add(new ProducerRecord<>(topicName, partition, null, JSON.toJSONBytes(partData,
+                                        SerializerFeature.WriteMapNullValue)));
+                            }
+                        }
+                    }
                 }
             }
         }

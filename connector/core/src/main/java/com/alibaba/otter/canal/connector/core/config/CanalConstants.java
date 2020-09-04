@@ -16,6 +16,8 @@ public class CanalConstants {
     public static final String CANAL_MQ_CANAL_BATCH_SIZE      = ROOT + "." + "mq.canalBatchSize";
     public static final String CANAL_MQ_CANAL_GET_TIMEOUT     = ROOT + "." + "mq.canalGetTimeout";
     public static final String CANAL_MQ_FLAT_MESSAGE          = ROOT + "." + "mq.flatMessage";
+    public static final String CANAL_MQ_FLAT_MESSAGE_ONLYDATA = ROOT + "." + "mq.flatMessage.onlyData";
+    public static final String CANAL_MQ_FLAT_MESSAGE_SQLTYPE  = ROOT + "." + "mq.flatMessage.onlyData.sqlType";
 
     public static final String CANAL_MQ_DATABASE_HASH         = ROOT + "." + "mq.database.hash";
     public static final String CANAL_MQ_BUILD_THREAD_SIZE     = ROOT + "." + "mq.build.thread.size";
