@@ -233,6 +233,11 @@
                 <version>2.2.1</version>
             </dependency>
             <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.58.sec06</version>
+            </dependency>
+            <dependency>
                 <groupId>oro</groupId>
                 <artifactId>oro</artifactId>
                 <version>2.0.8</version>
@@ -327,7 +332,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.47</version>
+                <version>5.1.48</version>
                 <!--<scope>test</scope>-->
             </dependency>
             <dependency>

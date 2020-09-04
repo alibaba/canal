@@ -326,8 +326,8 @@ public final class TableMapLogEvent extends LogEvent {
      * </ul>
      * Source : http://forge.mysql.com/wiki/MySQL_Internals_Binary_Log
      */
-    protected final String dbname;
-    protected final String tblname;
+    protected String dbname;
+    protected String tblname;
 
     /**
      * Holding mysql column information.
@@ -418,6 +418,7 @@ public final class TableMapLogEvent extends LogEvent {
         buffer.position(commonHeaderLen + postHeaderLen);
         dbname = buffer.getString();
         buffer.forward(1); /* termination null */
+        // fixed issue #2714
         tblname = buffer.getString();
         buffer.forward(1); /* termination null */
 
@@ -790,6 +791,22 @@ public final class TableMapLogEvent extends LogEvent {
 
     public final String getTableName() {
         return tblname;
+    }
+
+    public String getDbname() {
+        return dbname;
+    }
+
+    public void setDbname(String dbname) {
+        this.dbname = dbname;
+    }
+
+    public String getTblname() {
+        return tblname;
+    }
+
+    public void setTblname(String tblname) {
+        this.tblname = tblname;
     }
 
     public final int getColumnCnt() {
