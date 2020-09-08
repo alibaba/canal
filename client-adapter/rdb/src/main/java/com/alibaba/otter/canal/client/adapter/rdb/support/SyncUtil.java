@@ -1,5 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.rdb.support;
 
+import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -15,11 +20,6 @@ import java.sql.Types;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.support.Util;
 
 public class SyncUtil {
 
@@ -262,9 +262,9 @@ public class SyncUtil {
     public static String getDbTableName(MappingConfig.DbMapping dbMapping) {
         String result = "";
         if (StringUtils.isNotEmpty(dbMapping.getTargetDb())) {
-            result += dbMapping.getTargetDb() + ".";
+            result += "`" + dbMapping.getTargetDb() + "`.";
         }
-        result += dbMapping.getTargetTable();
+        result += "`" + dbMapping.getTargetTable() + "`";
         return result;
     }
 }
