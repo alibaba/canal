@@ -70,6 +70,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private int                  dumpErrorCount                    = 0;        // binlogDump失败异常计数
     private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
     private boolean              rdsOssMode                        = false;
+    private boolean              autoResetLatestPosMode            = false;    // true: binlog被删除之后，自动按最新的数据订阅
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -497,7 +498,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         dumpErrorCount = 0;
                         return findPosition;
                     }
-
+                    // 处理 binlog 位点被删除的情况，提供自动重置到当前位点的功能
+                    // 应用场景: 测试环境不稳定，位点经常被删。强烈不建议在正式环境中开启此控制参数，因为binlog 丢失调到最新位点也即意味着数据丢失
+                    if (isAutoResetLatestPosMode()) {
+                        dumpErrorCount = 0;
+                        return findEndPosition(mysqlConnection);
+                    }
                     Long timestamp = logPosition.getPostion().getTimestamp();
                     if (isRdsOssMode() && (timestamp != null && timestamp > 0)) {
                         // 如果binlog位点不存在，并且属于timestamp不为空,可以返回null走到oss binlog处理
@@ -950,5 +956,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDumpErrorCount(int dumpErrorCount) {
         this.dumpErrorCount = dumpErrorCount;
+    }
+
+    public boolean isAutoResetLatestPosMode() {
+        return autoResetLatestPosMode;
+    }
+
+    public void setAutoResetLatestPosMode(boolean autoResetLatestPosMode) {
+        this.autoResetLatestPosMode = autoResetLatestPosMode;
     }
 }
