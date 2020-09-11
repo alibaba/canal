@@ -1,5 +1,20 @@
 package com.alibaba.otter.canal.client.adapter.rdb.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig.DbMapping;
+import com.alibaba.otter.canal.client.adapter.rdb.config.RDBConstants;
+import com.alibaba.otter.canal.client.adapter.rdb.support.BatchExecutor;
+import com.alibaba.otter.canal.client.adapter.rdb.support.SingleDml;
+import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.client.adapter.support.Util;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -16,20 +31,6 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig.DbMapping;
-import com.alibaba.otter.canal.client.adapter.rdb.support.BatchExecutor;
-import com.alibaba.otter.canal.client.adapter.rdb.support.SingleDml;
-import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.Util;
 
 /**
  * RDB同步操作业务
@@ -242,14 +243,15 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
+        Map<String, String> keywordsIdentifier = dbMapping.getKeywordsIdentifier();
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         StringBuilder insertSql = new StringBuilder();
         insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
 
-        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append("`")
+        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(keywordsIdentifier.get(RDBConstants.KEYWORDS_IDENTIFIER_PREFIX))
             .append(targetColumnName)
-            .append("`")
+            .append(keywordsIdentifier.get(RDBConstants.KEYWORDS_IDENTIFIER_SUFFIX))
             .append(","));
         int len = insertSql.length();
         insertSql.delete(len - 1, len).append(") VALUES (");
@@ -314,6 +316,7 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
+        Map<String, String> keywordsIdentifier = dbMapping.getKeywordsIdentifier();
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
@@ -332,7 +335,10 @@ public class RdbSyncService {
             if (!targetColumnNames.isEmpty()) {
                 hasMatched = true;
                 for (String targetColumnName : targetColumnNames) {
-                    updateSql.append("`").append(targetColumnName).append("`").append("=?, ");
+                    updateSql.append(keywordsIdentifier.get(RDBConstants.KEYWORDS_IDENTIFIER_PREFIX))
+                            .append(targetColumnName)
+                            .append(keywordsIdentifier.get(RDBConstants.KEYWORDS_IDENTIFIER_SUFFIX))
+                            .append("=?, ");
                     Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
                     if (type == null) {
                         throw new RuntimeException("Target column: " + targetColumnName + " not matched");
@@ -445,6 +451,8 @@ public class RdbSyncService {
 
     private void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
                                  List<Map<String, ?>> values, Map<String, Object> d, Map<String, Object> o) {
+        Map<String, String> keywordsIdentifier = dbMapping.getKeywordsIdentifier();
+
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();
@@ -452,7 +460,10 @@ public class RdbSyncService {
             if (srcColumnName == null) {
                 srcColumnName = Util.cleanColumn(targetColumnName);
             }
-            sql.append("`").append(targetColumnName).append("`").append("=? AND ");
+            sql.append(keywordsIdentifier.get(RDBConstants.KEYWORDS_IDENTIFIER_PREFIX))
+                    .append(targetColumnName)
+                    .append(keywordsIdentifier.get(RDBConstants.KEYWORDS_IDENTIFIER_SUFFIX))
+                    .append("=? AND ");
             Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
             if (type == null) {
                 throw new RuntimeException("Target column: " + targetColumnName + " not matched");

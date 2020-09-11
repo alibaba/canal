@@ -1,11 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.rdb.config;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * RDB表映射配置
@@ -93,23 +93,31 @@ public class MappingConfig implements AdapterConfig {
 
     public static class DbMapping implements AdapterMapping {
 
-        private boolean             mirrorDb        = false;                 // 是否镜像库
-        private String              database;                                // 数据库名或schema名
-        private String              table;                                   // 表名
-        private Map<String, String> targetPk        = new LinkedHashMap<>(); // 目标表主键字段
-        private boolean             mapAll          = false;                 // 映射所有字段
-        private String              targetDb;                                // 目标库名
-        private String              targetTable;                             // 目标表名
-        private Map<String, String> targetColumns;                           // 目标表字段映射
+        private boolean             mirrorDb            = false;                            // 是否镜像库
+        private String              database;                                               // 数据库名或schema名
+        private String              table;                                                  // 表名
+        private Map<String, String> targetPk            = new LinkedHashMap<>();            // 目标表主键字段
+        private boolean             mapAll              = false;                            // 映射所有字段
+        private String              targetDb;                                               // 目标库名
+        private String              targetTable;                                            // 目标表名
+        private Map<String, String> targetColumns;                                          // 目标表字段映射
 
-        private boolean             caseInsensitive = false;                 // 目标表不区分大小写，默认是否
+        private boolean             caseInsensitive     = false;                            // 目标表不区分大小写，默认是否
 
-        private String              etlCondition;                            // etl条件sql
+        private String              etlCondition;                                           // etl条件sql
 
-        private int                 readBatch       = 5000;
-        private int                 commitBatch     = 5000;                  // etl等批量提交大小
+        private int                 readBatch           = 5000;
+        private int                 commitBatch         = 5000;                             // etl等批量提交大小
+
+        private Map<String, String> keywordsIdentifier  = new LinkedHashMap<>(2);  // 保留字标识符前缀
 
         private Map<String, String> allMapColumns;
+
+        public DbMapping() {
+            // 默认值为"`", 兼容老代码
+            this.keywordsIdentifier.put(RDBConstants.KEYWORDS_IDENTIFIER_PREFIX, "`");
+            this.keywordsIdentifier.put(RDBConstants.KEYWORDS_IDENTIFIER_SUFFIX, "`");
+        }
 
         public boolean getMirrorDb() {
             return mirrorDb;
@@ -212,6 +220,21 @@ public class MappingConfig implements AdapterConfig {
 
         public void setCommitBatch(int commitBatch) {
             this.commitBatch = commitBatch;
+        }
+
+        /**
+         * 保留字标识符前缀 [prefix]:前缀 [suffix]:后缀<br>
+         * mysql: <code>select `name`,`date` from user</code><br>
+         * postgresql: <code>select "name","date" from user</code><br>
+         * mssql: <code>select [name],[date] from user</code><br>
+         * @return 标识符
+         */
+        public Map<String, String> getKeywordsIdentifier() {
+            return keywordsIdentifier;
+        }
+
+        public void setKeywordsIdentifier(Map<String, String> keywordsIdentifier) {
+            this.keywordsIdentifier = keywordsIdentifier;
         }
 
         public Map<String, String> getAllMapColumns() {
