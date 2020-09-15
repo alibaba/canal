@@ -1,10 +1,7 @@
 package com.alibaba.otter.canal.connector.kafka.producer;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -144,7 +141,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                 // 动态topic路由计算,只是基于schema/table,不涉及proto数据反序列化
                 Map<String, Message> messageMap = MQMessageUtils.messageTopics(message,
                     mqDestination.getTopic(),
-                    mqDestination.getDynamicTopic());
+                    mqDestination.getDynamicTopic(),
+                        Objects.toString(mqDestination.getDynamicTopicPrefix(),"").trim());
 
                 // 针对不同的topic,引入多线程提升效率
                 for (Map.Entry<String, Message> entry : messageMap.entrySet()) {

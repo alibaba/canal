@@ -141,9 +141,10 @@ public class MQMessageUtils {
      * @param message 原message
      * @param defaultTopic 默认topic
      * @param dynamicTopicConfigs 动态topic规则
+     * @param dynamicTopicPrefix 动态topic前缀
      * @return 分隔后的message map
      */
-    public static Map<String, Message> messageTopics(Message message, String defaultTopic, String dynamicTopicConfigs) {
+    public static Map<String, Message> messageTopics(Message message, String defaultTopic, String dynamicTopicConfigs, String dynamicTopicPrefix) {
         List<CanalEntry.Entry> entries;
         if (message.isRaw()) {
             List<ByteString> rawEntries = message.getRawEntries();
@@ -177,13 +178,13 @@ public class MQMessageUtils {
                 Set<String> topics = matchTopics(schemaName + "." + tableName, dynamicTopicConfigs);
                 if (topics != null) {
                     for (String topic : topics) {
-                        put2MapMessage(messages, message.getId(), topic, entry);
+                        put2MapMessage(messages, message.getId(), dynamicTopicPrefix + topic, entry);
                     }
                 } else {
                     topics = matchTopics(schemaName, dynamicTopicConfigs);
                     if (topics != null) {
                         for (String topic : topics) {
-                            put2MapMessage(messages, message.getId(), topic, entry);
+                            put2MapMessage(messages, message.getId(), dynamicTopicPrefix + topic, entry);
                         }
                     } else {
                         put2MapMessage(messages, message.getId(), defaultTopic, entry);
