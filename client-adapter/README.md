@@ -292,7 +292,7 @@ adapter将会自动加载 conf/rdb 下的所有.yml结尾的表映射配置文�
 
 ### 4.2 适配器表映射文件
 修改 conf/rdb/mytest_user.yml文件:
-```
+``` yml
 dataSourceKey: defaultDS        # 源数据源的key, 对应上面配置的srcDataSources中的值
 destination: example            # cannal的instance或者MQ的topic
 outerAdapterKey: oracle1        # adapter key, 对应上面配置outAdapters中的key
@@ -309,7 +309,10 @@ dbMapping:
     name:
     role_id:
     c_time:
-    test1: 
+    test1:
+  keywordsIdentifier:           # 关键字、保留字标识符
+    prefix: '`'                 # 前缀，默认值为 `
+    suffix: '`'                 # 后缀，默认值为 `
 ```
 导入的类型以目标表的元类型为准, 将自动转换
 
