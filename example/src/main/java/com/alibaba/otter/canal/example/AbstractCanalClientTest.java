@@ -76,16 +76,17 @@ public class AbstractCanalClientTest extends BaseCanalClientTest {
 
                     if (batchId != -1) {
                         connector.ack(batchId); // 提交确认
-                        // connector.rollback(batchId); // 处理失败, 回滚数据
                     }
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.error("process error!", e);
                 try {
                     Thread.sleep(1000L);
                 } catch (InterruptedException e1) {
                     // ignore
                 }
+
+                connector.rollback(); // 处理失败, 回滚数据
             } finally {
                 connector.disconnect();
                 MDC.remove("destination");

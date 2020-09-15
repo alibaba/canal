@@ -443,11 +443,11 @@ public class CanalController {
                 }
                 config.setManagerAddress(managerAddress);
             }
-        } else if (config.getMode().isSpring()) {
-            String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(destination));
-            if (StringUtils.isNotEmpty(springXml)) {
-                config.setSpringXml(springXml);
-            }
+        }
+
+        String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(destination));
+        if (StringUtils.isNotEmpty(springXml)) {
+            config.setSpringXml(springXml);
         }
 
         return config;

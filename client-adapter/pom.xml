@@ -31,6 +31,7 @@
         <module>es6x</module>
         <module>es7x</module>
         <module>escore</module>
+        <module>kudu</module>
     </modules>
 
     <licenses>
@@ -171,7 +172,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.47</version>
+                <version>5.1.48</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>

@@ -1,0 +1,1 @@
+kafka=com.alibaba.otter.canal.connector.kafka.producer.CanalKafkaProducer

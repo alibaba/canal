@@ -8,9 +8,9 @@ import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.util.Assert;
 
 import com.alibaba.otter.canal.client.adapter.es7x.support.ESConnection;
-import org.springframework.util.Assert;
 
 @Ignore
 public class ESConnectionTest {

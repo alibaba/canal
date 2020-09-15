@@ -1,11 +1,17 @@
 package com.alibaba.otter.canal.admin.model;
 
-import java.util.Date;
-
-import javax.persistence.*;
-
 import io.ebean.Finder;
 import io.ebean.annotation.WhenModified;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 /**
  * Canal实例配置信息实体类
@@ -44,14 +50,14 @@ public class CanalInstanceConfig extends Model {
     private String       name;
     private String       content;
     private String       contentMd5;
-    private String       status;         // 1: 正常 0: 停止
+    private String       status;             // 1: 正常 0: 停止
     @WhenModified
     private Date         modifiedTime;
 
     @Transient
     private String       clusterServerId;
     @Transient
-    private String       runningStatus = "0";  // 1: 运行中 0: 停止
+    private String       runningStatus = "0"; // 1: 运行中 0: 停止
 
     public void init() {
         status = "1";

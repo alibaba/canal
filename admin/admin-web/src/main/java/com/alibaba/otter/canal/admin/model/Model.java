@@ -1,12 +1,12 @@
 package com.alibaba.otter.canal.admin.model;
 
+import io.ebean.Ebean;
+import io.ebean.EbeanServer;
+
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OptimisticLockException;
 
 import org.apache.commons.beanutils.PropertyUtils;
-
-import io.ebean.Ebean;
-import io.ebean.EbeanServer;
 
 /**
  * EBean Model扩展类

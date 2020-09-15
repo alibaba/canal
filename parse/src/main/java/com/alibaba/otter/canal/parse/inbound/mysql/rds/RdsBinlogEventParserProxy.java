@@ -12,11 +12,11 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 
 /**
  * aliyun rds的binlog parser支持
- * 
+ *
  * <pre>
  * 注意点：aliyun的binlog会有定期清理并备份到oss上, 这里实现了一份自动下载oss+rds binlog的机制
  * </pre>
- * 
+ *
  * @author chengjin.lyf on 2018/7/20 上午10:52
  * @since 1.0.25
  */
@@ -55,7 +55,7 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
             rdsLocalBinlogEventParser.setLogPositionManager(this.getLogPositionManager());
             rdsLocalBinlogEventParser.setDestination(destination);
             rdsLocalBinlogEventParser.setAlarmHandler(this.getAlarmHandler());
-            rdsLocalBinlogEventParser.setConnectionCharset(this.connectionCharset);
+            rdsLocalBinlogEventParser.setConnectionCharsetStd(this.connectionCharset);
             rdsLocalBinlogEventParser.setConnectionCharsetNumber(this.connectionCharsetNumber);
             rdsLocalBinlogEventParser.setEnableTsdb(this.enableTsdb);
             rdsLocalBinlogEventParser.setEventBlackFilter(this.eventBlackFilter);
@@ -88,6 +88,9 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
                         @Override
                         public void run() {
                             rdsLocalBinlogEventParser.stop();
+                            // empty the dump error count,or will go into local binlog mode again,with error
+                            // position,never get out,fixed by bucketli
+                            RdsBinlogEventParserProxy.this.setDumpErrorCount(0);
                             RdsBinlogEventParserProxy.this.start();
                         }
                     });

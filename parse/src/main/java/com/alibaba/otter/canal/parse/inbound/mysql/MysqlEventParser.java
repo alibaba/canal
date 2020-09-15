@@ -493,12 +493,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                                     && logPosition.getPostion().getServerId() != null
                                     && !logPosition.getPostion().getServerId().equals(findServerId(mysqlConnection));
                     if (case2) {
-                        long timestamp = logPosition.getPostion().getTimestamp();
-                        long newStartTimestamp = timestamp - fallbackIntervalInSeconds * 1000;
-                        logger.warn("prepare to find start position by last position {}:{}:{}", new Object[] { "", "",
-                                logPosition.getPostion().getTimestamp() });
-                        EntryPosition findPosition = findByStartTimeStamp(mysqlConnection, newStartTimestamp);
-                        // 重新置为一下
+                        EntryPosition findPosition = fallbackFindByStartTimestamp(logPosition, mysqlConnection);
                         dumpErrorCount = 0;
                         return findPosition;
                     }
@@ -508,6 +503,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         // 如果binlog位点不存在，并且属于timestamp不为空,可以返回null走到oss binlog处理
                         return null;
                     }
+                } else if (StringUtils.isBlank(logPosition.getPostion().getJournalName())
+                        && logPosition.getPostion().getPosition() <= 0
+                        && logPosition.getPostion().getTimestamp() > 0) {
+                    return fallbackFindByStartTimestamp(logPosition,mysqlConnection);
                 }
                 // 其余情况
                 logger.warn("prepare to find start position just last position\n {}",
@@ -521,6 +520,21 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 return findByStartTimeStamp(mysqlConnection, newStartTimestamp);
             }
         }
+    }
+
+    /**
+     * find position by timestamp with a fallback interval seconds.
+     *
+     * @param logPosition
+     * @param mysqlConnection
+     * @return
+     */
+    protected EntryPosition fallbackFindByStartTimestamp(LogPosition logPosition,MysqlConnection mysqlConnection){
+        long timestamp = logPosition.getPostion().getTimestamp();
+        long newStartTimestamp = timestamp - fallbackIntervalInSeconds * 1000;
+        logger.warn("prepare to find start position by last position {}:{}:{}", new Object[] { "", "",
+                logPosition.getPostion().getTimestamp() });
+        return findByStartTimeStamp(mysqlConnection, newStartTimestamp);
     }
 
     // 根据想要的position，可能这个position对应的记录为rowdata，需要找到事务头，避免丢数据
@@ -934,4 +948,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         this.rdsOssMode = rdsOssMode;
     }
 
+    public void setDumpErrorCount(int dumpErrorCount) {
+        this.dumpErrorCount = dumpErrorCount;
+    }
 }

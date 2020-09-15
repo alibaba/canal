@@ -5,7 +5,6 @@ import java.io.FilenameFilter;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -109,6 +108,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         super.start();
     }
 
+    @SuppressWarnings("resource")
     protected void initAlarmHandler() {
         logger.info("init alarmHandler begin...");
         String alarmHandlerClass = parameters.getAlarmHandlerClass();
@@ -293,7 +293,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             }
             mysqlEventParser.setDestination(destination);
             // 编码参数
-            mysqlEventParser.setConnectionCharset(Charset.forName(parameters.getConnectionCharset()));
+            mysqlEventParser.setConnectionCharset(parameters.getConnectionCharset());
             mysqlEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
             // 网络相关参数
             mysqlEventParser.setDefaultConnectionTimeoutInSeconds(parameters.getDefaultConnectionTimeoutInSeconds());
@@ -374,7 +374,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             LocalBinlogEventParser localBinlogEventParser = new LocalBinlogEventParser();
             localBinlogEventParser.setDestination(destination);
             localBinlogEventParser.setBufferSize(parameters.getReceiveBufferSize());
-            localBinlogEventParser.setConnectionCharset(Charset.forName(parameters.getConnectionCharset()));
+            localBinlogEventParser.setConnectionCharset(parameters.getConnectionCharset());
             localBinlogEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
             localBinlogEventParser.setDirectory(parameters.getLocalBinlogDirectory());
             localBinlogEventParser.setProfilingEnabled(false);

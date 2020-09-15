@@ -1,8 +1,5 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +30,13 @@ import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
  */
 public class CanalAdapterLoader {
 
-    private static final Logger                     logger        = LoggerFactory.getLogger(CanalAdapterLoader.class);
+    private static final Logger           logger                 = LoggerFactory.getLogger(CanalAdapterLoader.class);
 
-    private CanalClientConfig                       canalClientConfig;
+    private CanalClientConfig             canalClientConfig;
 
-    private Map<String, CanalAdapterWorker>         canalWorkers  = new HashMap<>();
+    private Map<String, AdapterProcessor> canalAdapterProcessors = new HashMap<>();
 
-    private Map<String, AbstractCanalAdapterWorker> canalMQWorker = new HashMap<>();
-
-    private ExtensionLoader<OuterAdapter>           loader;
+    private ExtensionLoader<OuterAdapter> loader;
 
     public CanalAdapterLoader(CanalClientConfig canalClientConfig){
         this.canalClientConfig = canalClientConfig;
@@ -53,120 +48,154 @@ public class CanalAdapterLoader {
     public void init() {
         loader = ExtensionLoader.getExtensionLoader(OuterAdapter.class);
 
-        String canalServerHost = this.canalClientConfig.getCanalServerHost();
-        SocketAddress sa = null;
-        if (canalServerHost != null) {
-            String[] ipPort = canalServerHost.split(":");
-            sa = new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1]));
-        }
-        String zkHosts = this.canalClientConfig.getZookeeperHosts();
-
-        if ("tcp".equalsIgnoreCase(canalClientConfig.getMode())) {
-            // 初始化canal-client的适配器
-            for (CanalClientConfig.CanalAdapter canalAdapter : canalClientConfig.getCanalAdapters()) {
+        for (CanalClientConfig.CanalAdapter canalAdapter : canalClientConfig.getCanalAdapters()) {
+            for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
                 List<List<OuterAdapter>> canalOuterAdapterGroups = new CopyOnWriteArrayList<>();
-
-                for (CanalClientConfig.Group connectorGroup : canalAdapter.getGroups()) {
-                    List<OuterAdapter> canalOutConnectors = new CopyOnWriteArrayList<>();
-                    for (OuterAdapterConfig c : connectorGroup.getOuterAdapters()) {
-                        loadAdapter(c, canalOutConnectors);
-                    }
-                    canalOuterAdapterGroups.add(canalOutConnectors);
+                List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
+                for (OuterAdapterConfig config : group.getOuterAdapters()) {
+                    loadAdapter(config, canalOuterAdapters);
                 }
-                CanalAdapterWorker worker;
-                if (sa != null) {
-                    worker = new CanalAdapterWorker(canalClientConfig,
-                        canalAdapter.getInstance(),
-                        sa,
-                        canalOuterAdapterGroups);
-                } else if (zkHosts != null) {
-                    worker = new CanalAdapterWorker(canalClientConfig,
-                        canalAdapter.getInstance(),
-                        zkHosts,
-                        canalOuterAdapterGroups);
-                } else {
-                    throw new RuntimeException("No canal server connector found");
-                }
-                canalWorkers.put(canalAdapter.getInstance(), worker);
-                worker.start();
-                logger.info("Start adapter for canal instance: {} succeed", canalAdapter.getInstance());
-            }
-        } else if ("kafka".equalsIgnoreCase(canalClientConfig.getMode())) {
-            // 初始化canal-client-kafka的适配器
-            for (CanalClientConfig.CanalAdapter canalAdapter : canalClientConfig.getCanalAdapters()) {
-                for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
-                    List<List<OuterAdapter>> canalOuterAdapterGroups = new CopyOnWriteArrayList<>();
-                    List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
-                    for (OuterAdapterConfig config : group.getOuterAdapters()) {
-                        loadAdapter(config, canalOuterAdapters);
-                    }
-                    canalOuterAdapterGroups.add(canalOuterAdapters);
+                canalOuterAdapterGroups.add(canalOuterAdapters);
 
-                    CanalAdapterKafkaWorker canalKafkaWorker = new CanalAdapterKafkaWorker(canalClientConfig,
-                        canalClientConfig.getMqServers(),
+                AdapterProcessor adapterProcessor = canalAdapterProcessors.computeIfAbsent(canalAdapter.getInstance()
+                                                                                           + "|"
+                                                                                           + StringUtils.trimToEmpty(group.getGroupId()),
+                    f -> new AdapterProcessor(canalClientConfig,
                         canalAdapter.getInstance(),
                         group.getGroupId(),
-                        canalOuterAdapterGroups,
-                        canalClientConfig.getFlatMessage());
-                    canalMQWorker.put(canalAdapter.getInstance() + "-kafka-" + group.getGroupId(), canalKafkaWorker);
-                    canalKafkaWorker.start();
-                    logger.info("Start adapter for canal-client mq topic: {} succeed",
-                        canalAdapter.getInstance() + "-" + group.getGroupId());
-                }
-            }
-        } else if ("rocketMQ".equalsIgnoreCase(canalClientConfig.getMode())) {
-            // 初始化canal-client-rocketMQ的适配器
-            for (CanalClientConfig.CanalAdapter canalAdapter : canalClientConfig.getCanalAdapters()) {
-                for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
-                    List<List<OuterAdapter>> canalOuterAdapterGroups = new CopyOnWriteArrayList<>();
-                    List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
-                    for (OuterAdapterConfig config : group.getOuterAdapters()) {
-                        loadAdapter(config, canalOuterAdapters);
-                    }
-                    canalOuterAdapterGroups.add(canalOuterAdapters);
-                    CanalAdapterRocketMQWorker rocketMQWorker = new CanalAdapterRocketMQWorker(canalClientConfig,
-                        canalClientConfig.getMqServers(),
-                        canalAdapter.getInstance(),
-                        group.getGroupId(),
-                        canalOuterAdapterGroups,
-                        canalClientConfig.getAccessKey(),
-                        canalClientConfig.getSecretKey(),
-                        canalClientConfig.getFlatMessage(),
-                        canalClientConfig.isEnableMessageTrace(),
-                        canalClientConfig.getCustomizedTraceTopic(),
-                        canalClientConfig.getAccessChannel(),
-                        canalClientConfig.getNamespace());
-                    canalMQWorker.put(canalAdapter.getInstance() + "-rocketmq-" + group.getGroupId(), rocketMQWorker);
-                    rocketMQWorker.start();
+                        canalOuterAdapterGroups));
+                adapterProcessor.start();
 
-                    logger.info("Start adapter for canal-client mq topic: {} succeed",
-                        canalAdapter.getInstance() + "-" + group.getGroupId());
-                }
+                logger.info("Start adapter for canal-client mq topic: {} succeed", canalAdapter.getInstance() + "-"
+                                                                                   + group.getGroupId());
             }
-        } else if ("rabbitMQ".equalsIgnoreCase(canalClientConfig.getMode())) {
-            // 初始化canal-client-rabbitMQ的适配器
-            for (CanalClientConfig.CanalAdapter canalAdapter : canalClientConfig.getCanalAdapters()) {
-                for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
-                    List<List<OuterAdapter>> canalOuterAdapterGroups = new CopyOnWriteArrayList<>();
-                    List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
-                    for (OuterAdapterConfig config : group.getOuterAdapters()) {
-                        loadAdapter(config, canalOuterAdapters);
-                    }
-                    canalOuterAdapterGroups.add(canalOuterAdapters);
-                    CanalAdapterRabbitMQWorker rabbitMQWork = new CanalAdapterRabbitMQWorker(canalClientConfig,
-                        canalOuterAdapterGroups,
-                        canalAdapter.getInstance(),
-                        group.getGroupId(),
-                        canalClientConfig.getFlatMessage());
-                    canalMQWorker.put(canalAdapter.getInstance() + "-rabbitmq-" + group.getGroupId(), rabbitMQWork);
-                    rabbitMQWork.start();
-
-                    logger.info("Start adapter for canal-client mq topic: {} succeed",
-                        canalAdapter.getInstance() + "-" + group.getGroupId());
-                }
-            }
-            // CanalAdapterRabbitMQWork
         }
+
+        // if ("tcp".equalsIgnoreCase(canalClientConfig.getMode())) {
+        // // 初始化canal-client的适配器
+        // for (CanalClientConfig.CanalAdapter canalAdapter :
+        // canalClientConfig.getCanalAdapters()) {
+        // List<List<OuterAdapter>> canalOuterAdapterGroups = new
+        // CopyOnWriteArrayList<>();
+        //
+        // for (CanalClientConfig.Group connectorGroup :
+        // canalAdapter.getGroups()) {
+        // List<OuterAdapter> canalOutConnectors = new CopyOnWriteArrayList<>();
+        // for (OuterAdapterConfig c : connectorGroup.getOuterAdapters()) {
+        // loadAdapter(c, canalOutConnectors);
+        // }
+        // canalOuterAdapterGroups.add(canalOutConnectors);
+        // }
+        // CanalAdapterWorker worker;
+        // if (StringUtils.isNotEmpty(canalServerHost)) {
+        // worker = new CanalAdapterWorker(canalClientConfig,
+        // canalAdapter.getInstance(),
+        // canalServerHost,
+        // zkHosts,
+        // canalOuterAdapterGroups);
+        // } else if (zkHosts != null) {
+        // worker = new CanalAdapterWorker(canalClientConfig,
+        // canalAdapter.getInstance(),
+        // zkHosts,
+        // canalOuterAdapterGroups);
+        // } else {
+        // throw new RuntimeException("No canal server connector found");
+        // }
+        // canalWorkers.put(canalAdapter.getInstance(), worker);
+        // worker.start();
+        // logger.info("Start adapter for canal instance: {} succeed",
+        // canalAdapter.getInstance());
+        // }
+        // } else if ("kafka".equalsIgnoreCase(canalClientConfig.getMode())) {
+        // // 初始化canal-client-kafka的适配器
+        // for (CanalClientConfig.CanalAdapter canalAdapter :
+        // canalClientConfig.getCanalAdapters()) {
+        // for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
+        // List<List<OuterAdapter>> canalOuterAdapterGroups = new
+        // CopyOnWriteArrayList<>();
+        // List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
+        // for (OuterAdapterConfig config : group.getOuterAdapters()) {
+        // loadAdapter(config, canalOuterAdapters);
+        // }
+        // canalOuterAdapterGroups.add(canalOuterAdapters);
+        //
+        // CanalAdapterKafkaWorker canalKafkaWorker = new
+        // CanalAdapterKafkaWorker(canalClientConfig,
+        // canalClientConfig.getMqServers(),
+        // canalAdapter.getInstance(),
+        // group.getGroupId(),
+        // canalOuterAdapterGroups,
+        // canalClientConfig.getFlatMessage());
+        // canalMQWorker.put(canalAdapter.getInstance() + "-kafka-" +
+        // group.getGroupId(), canalKafkaWorker);
+        // canalKafkaWorker.start();
+        // logger.info("Start adapter for canal-client mq topic: {} succeed",
+        // canalAdapter.getInstance() + "-" + group.getGroupId());
+        // }
+        // }
+        // } else if ("rocketMQ".equalsIgnoreCase(canalClientConfig.getMode()))
+        // {
+        // // 初始化canal-client-rocketMQ的适配器
+        // for (CanalClientConfig.CanalAdapter canalAdapter :
+        // canalClientConfig.getCanalAdapters()) {
+        // for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
+        // List<List<OuterAdapter>> canalOuterAdapterGroups = new
+        // CopyOnWriteArrayList<>();
+        // List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
+        // for (OuterAdapterConfig config : group.getOuterAdapters()) {
+        // loadAdapter(config, canalOuterAdapters);
+        // }
+        // canalOuterAdapterGroups.add(canalOuterAdapters);
+        // CanalAdapterRocketMQWorker rocketMQWorker = new
+        // CanalAdapterRocketMQWorker(canalClientConfig,
+        // canalClientConfig.getMqServers(),
+        // canalAdapter.getInstance(),
+        // group.getGroupId(),
+        // canalOuterAdapterGroups,
+        // canalClientConfig.getAccessKey(),
+        // canalClientConfig.getSecretKey(),
+        // canalClientConfig.getFlatMessage(),
+        // canalClientConfig.isEnableMessageTrace(),
+        // canalClientConfig.getCustomizedTraceTopic(),
+        // canalClientConfig.getAccessChannel(),
+        // canalClientConfig.getNamespace());
+        // canalMQWorker.put(canalAdapter.getInstance() + "-rocketmq-" +
+        // group.getGroupId(), rocketMQWorker);
+        // rocketMQWorker.start();
+        //
+        // logger.info("Start adapter for canal-client mq topic: {} succeed",
+        // canalAdapter.getInstance() + "-" + group.getGroupId());
+        // }
+        // }
+        // } else if ("rabbitMQ".equalsIgnoreCase(canalClientConfig.getMode()))
+        // {
+        // // 初始化canal-client-rabbitMQ的适配器
+        // for (CanalClientConfig.CanalAdapter canalAdapter :
+        // canalClientConfig.getCanalAdapters()) {
+        // for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
+        // List<List<OuterAdapter>> canalOuterAdapterGroups = new
+        // CopyOnWriteArrayList<>();
+        // List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
+        // for (OuterAdapterConfig config : group.getOuterAdapters()) {
+        // loadAdapter(config, canalOuterAdapters);
+        // }
+        // canalOuterAdapterGroups.add(canalOuterAdapters);
+        // CanalAdapterRabbitMQWorker rabbitMQWork = new
+        // CanalAdapterRabbitMQWorker(canalClientConfig,
+        // canalOuterAdapterGroups,
+        // canalAdapter.getInstance(),
+        // group.getGroupId(),
+        // canalClientConfig.getFlatMessage());
+        // canalMQWorker.put(canalAdapter.getInstance() + "-rabbitmq-" +
+        // group.getGroupId(), rabbitMQWork);
+        // rabbitMQWork.start();
+        //
+        // logger.info("Start adapter for canal-client mq topic: {} succeed",
+        // canalAdapter.getInstance() + "-" + group.getGroupId());
+        // }
+        // }
+        // // CanalAdapterRabbitMQWork
+        // }
     }
 
     private void loadAdapter(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
@@ -206,29 +235,14 @@ public class CanalAdapterLoader {
      * 销毁所有适配器 为防止canal实例太多造成销毁阻塞, 并行销毁
      */
     public void destroy() {
-        if (!canalWorkers.isEmpty()) {
-            ExecutorService stopExecutorService = Executors.newFixedThreadPool(canalWorkers.size());
-            for (CanalAdapterWorker canalAdapterWorker : canalWorkers.values()) {
-                stopExecutorService.execute(canalAdapterWorker::stop);
+        if (!canalAdapterProcessors.isEmpty()) {
+            ExecutorService stopExecutorService = Executors.newFixedThreadPool(canalAdapterProcessors.size());
+            for (AdapterProcessor adapterProcessor : canalAdapterProcessors.values()) {
+                stopExecutorService.execute(adapterProcessor::stop);
             }
             stopExecutorService.shutdown();
             try {
                 while (!stopExecutorService.awaitTermination(1, TimeUnit.SECONDS)) {
-                    // ignore
-                }
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        }
-
-        if (!canalMQWorker.isEmpty()) {
-            ExecutorService stopMQWorkerService = Executors.newFixedThreadPool(canalMQWorker.size());
-            for (AbstractCanalAdapterWorker canalAdapterMQWorker : canalMQWorker.values()) {
-                stopMQWorkerService.execute(canalAdapterMQWorker::stop);
-            }
-            stopMQWorkerService.shutdown();
-            try {
-                while (!stopMQWorkerService.awaitTermination(1, TimeUnit.SECONDS)) {
                     // ignore
                 }
             } catch (InterruptedException e) {
