@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.server.embedded;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -566,19 +565,22 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         for (CanalMetricsProvider provider : providers) {
             list.add(provider);
         }
-        if (!list.isEmpty()) {
-            // 发现provider, 进行初始化
-            if (list.size() > 1) {
-                logger.warn("Found more than one CanalMetricsProvider, use the first one.");
-                // 报告冲突
-                for (CanalMetricsProvider p : list) {
-                    logger.warn("Found CanalMetricsProvider: {}.", p.getClass().getName());
-                }
-            }
-            // 默认使用第一个
-            CanalMetricsProvider provider = list.get(0);
-            this.metrics = provider.getService();
+
+        if (list.isEmpty()) {
+            return;
         }
+
+        // only allow ONE provider
+        if (list.size() > 1) {
+            logger.warn("Found more than one CanalMetricsProvider, use the first one.");
+            // 报告冲突
+            for (CanalMetricsProvider p : list) {
+                logger.warn("Found CanalMetricsProvider: {}.", p.getClass().getName());
+            }
+        }
+
+        CanalMetricsProvider provider = list.get(0);
+        this.metrics = provider.getService();
     }
 
     private boolean isRaw(CanalEventStore eventStore) {
