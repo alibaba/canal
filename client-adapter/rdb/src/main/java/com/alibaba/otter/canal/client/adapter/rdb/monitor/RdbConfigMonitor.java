@@ -1,10 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.rdb.monitor;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
+import com.alibaba.otter.canal.client.adapter.rdb.RdbAdapter;
+import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
+import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
@@ -13,12 +14,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
-import com.alibaba.otter.canal.client.adapter.rdb.RdbAdapter;
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
-import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class RdbConfigMonitor {
 
@@ -142,11 +141,17 @@ public class RdbConfigMonitor {
             }
             rdbAdapter.getRdbMapping().put(file.getName(), mappingConfig);
             if (!mappingConfig.getDbMapping().getMirrorDb()) {
+                String key;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                            + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                            + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                } else {
+                    key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                            + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                }
                 Map<String, MappingConfig> configMap = rdbAdapter.getMappingConfigCache()
-                    .computeIfAbsent(StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                                     + mappingConfig.getDbMapping().getDatabase() + "-"
-                                     + mappingConfig.getDbMapping().getTable(),
-                        k1 -> new HashMap<>());
+                        .computeIfAbsent(key, k1 -> new HashMap<>());
                 configMap.put(file.getName(), mappingConfig);
             } else {
                 Map<String, MirrorDbConfig> mirrorDbConfigCache = rdbAdapter.getMirrorDbConfigCache();
