@@ -125,7 +125,7 @@ public class EntryCollector extends Collector implements InstanceRegistry {
         }
     }
 
-    private class EntryMetricsHolder {
+    private static class EntryMetricsHolder {
         private AtomicLong   latestExecTime;
         private AtomicLong   transactionCounter;
         private List<String> destLabelValues;

@@ -81,7 +81,7 @@ public class MetaCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
-    private class MetaMetricsHolder {
+    private static class MetaMetricsHolder {
         private List<String>     infoLabelValues;
         private List<String>     destLabelValues;
         private CanalMetaManager metaManager;

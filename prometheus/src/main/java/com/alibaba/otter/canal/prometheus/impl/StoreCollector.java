@@ -174,7 +174,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
-    private class StoreMetricsHolder {
+    private static class StoreMetricsHolder {
         private AtomicLong   putSeq;
         private AtomicLong   ackSeq;
         private BatchMode    batchMode;

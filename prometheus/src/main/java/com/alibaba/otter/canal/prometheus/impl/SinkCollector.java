@@ -80,7 +80,7 @@ public class SinkCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
-    private class SinkMetricsHolder {
+    private static class SinkMetricsHolder {
 
         private AtomicLong   eventsSinkBlockingTime;
         private List<String> destLabelValues;

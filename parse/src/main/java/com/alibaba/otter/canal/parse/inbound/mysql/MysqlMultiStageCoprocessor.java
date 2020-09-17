@@ -387,7 +387,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         }
     }
 
-    class MessageEvent {
+    static class MessageEvent {
 
         private LogBuffer        buffer;
         private CanalEntry.Entry entry;
@@ -437,7 +437,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     }
 
-    class SimpleFatalExceptionHandler implements ExceptionHandler {
+    static class SimpleFatalExceptionHandler implements ExceptionHandler {
 
         @Override
         public void handleEventException(final Throwable ex, final long sequence, final Object event) {
