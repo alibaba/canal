@@ -20,6 +20,7 @@ public class HeartBeatEntryEventHandler extends AbstractCanalEventDownStreamHand
         for (Event event : events) {
             if (event.getEntryType() == EntryType.HEARTBEAT) {
                 existHeartBeat = true;
+                break;
             }
         }
 

@@ -191,9 +191,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         try {
             ResultSetPacket packet = connection.query("show databases");
             List<String> schemas = new ArrayList<>();
-            for (String schema : packet.getFieldValues()) {
-                schemas.add(schema);
-            }
+            schemas.addAll(packet.getFieldValues());
 
             for (String schema : schemas) {
                 // filter views
