@@ -12,8 +12,7 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 public class FetcherPerformanceTest {
 
     public static void main(String args[]) {
-        DirectLogFetcher fetcher = new DirectLogFetcher();
-        try {
+        try (DirectLogFetcher fetcher = new DirectLogFetcher()) {
             Class.forName("com.mysql.jdbc.Driver");
             Connection connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306", "root", "hello");
             Statement statement = connection.createStatement();
@@ -40,11 +39,6 @@ public class FetcherPerformanceTest {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                fetcher.close();
-            } catch (IOException e) {
-            }
         }
     }
 }

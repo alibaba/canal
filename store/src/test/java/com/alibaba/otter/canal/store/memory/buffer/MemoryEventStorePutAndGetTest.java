@@ -64,9 +64,7 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
 
         try {
             result = eventStore.put(buildEvent("1", 1L, 1L + bufferSize), 1000L, TimeUnit.MILLISECONDS);
-        } catch (CanalStoreException e) {
-            Assert.fail(e.getMessage());
-        } catch (InterruptedException e) {
+        } catch (CanalStoreException | InterruptedException e) {
             Assert.fail(e.getMessage());
         }
 
@@ -140,8 +138,7 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
             Assert.assertTrue(entrys.getEvents().size() == batchSize);
             Assert.assertEquals(position, entrys.getPositionRange().getStart());
             Assert.assertEquals(position, entrys.getPositionRange().getEnd());
-        } catch (CanalStoreException e) {
-        } catch (InterruptedException e) {
+        } catch (CanalStoreException | InterruptedException e) {
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(1);

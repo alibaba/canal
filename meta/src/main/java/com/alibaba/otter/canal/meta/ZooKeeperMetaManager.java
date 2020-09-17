@@ -191,7 +191,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
         }
 
         // 找到最小的Id
-        ArrayList<Long> batchIds = new ArrayList<Long>(nodes.size());
+        ArrayList<Long> batchIds = new ArrayList<>(nodes.size());
         for (String batchIdString : nodes) {
             batchIds.add(Long.valueOf(batchIdString));
         }

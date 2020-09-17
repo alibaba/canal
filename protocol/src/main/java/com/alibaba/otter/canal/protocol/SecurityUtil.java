@@ -84,8 +84,8 @@ public class SecurityUtil {
      */
     public static String byte2HexStr(byte[] b) {
         StringBuilder hs = new StringBuilder();
-        for (int n = 0; n < b.length; n++) {
-            String hex = (Integer.toHexString(b[n] & 0XFF));
+        for (byte value : b) {
+            String hex = (Integer.toHexString(value & 0XFF));
             if (hex.length() == 1) {
                 hs.append("0" + hex);
             } else {

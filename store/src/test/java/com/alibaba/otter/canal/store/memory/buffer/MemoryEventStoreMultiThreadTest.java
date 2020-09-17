@@ -109,8 +109,7 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
                 }
                 try {
                     eventStore.put(event);
-                } catch (CanalStoreException e) {
-                } catch (InterruptedException e) {
+                } catch (CanalStoreException | InterruptedException e) {
                 }
             }
         }

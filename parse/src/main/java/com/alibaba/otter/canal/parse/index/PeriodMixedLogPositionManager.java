@@ -83,7 +83,7 @@ public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
 
         // 启动定时工作任务
         executorService.scheduleAtFixedRate(() -> {
-            List<String> tasks = new ArrayList<String>(persistTasks);
+            List<String> tasks = new ArrayList<>(persistTasks);
             for (String destination : tasks) {
                 try {
                     // 定时将内存中的最新值刷到zookeeper中，多次变更只刷一次

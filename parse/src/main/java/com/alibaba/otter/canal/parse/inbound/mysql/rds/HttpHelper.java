@@ -56,8 +56,7 @@ public class HttpHelper {
         HttpGet httpGet = new HttpGet(uri);
         HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(config);
-        CloseableHttpResponse response = httpclient.execute(httpGet, context);
-        try {
+        try (CloseableHttpResponse response = httpclient.execute(httpGet, context)) {
             int statusCode = response.getStatusLine().getStatusCode();
             long end = System.currentTimeMillis();
             long cost = end - start;
@@ -69,10 +68,9 @@ public class HttpHelper {
             } else {
                 String errorMsg = EntityUtils.toString(response.getEntity());
                 throw new RuntimeException("requestGet remote error, url=" + uri.toString() + ", code=" + statusCode
-                                           + ", error msg=" + errorMsg);
+                        + ", error msg=" + errorMsg);
             }
         } finally {
-            response.close();
             httpGet.releaseConnection();
         }
     }

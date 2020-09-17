@@ -108,9 +108,7 @@ public class SimpleAdminConnector implements AdminConnector {
             }
 
             connected = true;
-        } catch (IOException e) {
-            throw new ServiceException(e);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             throw new ServiceException(e);
         }
     }

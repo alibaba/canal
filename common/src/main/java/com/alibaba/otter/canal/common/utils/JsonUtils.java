@@ -71,14 +71,11 @@ public class JsonUtils {
      */
     public static String marshalToString(Object obj, String... fliterFields) {
         final List<String> propertyFliters = Arrays.asList(fliterFields);
-        SerializeWriter out = new SerializeWriter();
-        try {
+        try (SerializeWriter out = new SerializeWriter()) {
             JSONSerializer serializer = new JSONSerializer(out);
             serializer.getPropertyFilters().add((source, name, value) -> !propertyFliters.contains(name));
             serializer.write(obj);
             return out.toString();
-        } finally {
-            out.close();
         }
     }
 

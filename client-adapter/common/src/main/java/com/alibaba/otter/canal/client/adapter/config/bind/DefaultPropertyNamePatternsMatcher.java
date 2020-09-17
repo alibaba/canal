@@ -70,8 +70,8 @@ class DefaultPropertyNamePatternsMatcher implements PropertyNamePatternsMatcher 
                 return false;
             }
         }
-        for (int i = 0; i < match.length; i++) {
-            if (match[i]) {
+        for (boolean b : match) {
+            if (b) {
                 return true;
             }
         }

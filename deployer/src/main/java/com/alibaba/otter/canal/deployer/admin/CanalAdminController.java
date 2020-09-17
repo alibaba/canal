@@ -192,7 +192,7 @@ public class CanalAdminController implements CanalAdmin {
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(new File("../logs/canal/"),
             TrueFileFilter.TRUE,
             TrueFileFilter.TRUE);
-        List<String> names = files.stream().map(f -> f.getName()).collect(Collectors.toList());
+        List<String> names = files.stream().map(File::getName).collect(Collectors.toList());
         return Joiner.on(",").join(names);
     }
 
@@ -206,7 +206,7 @@ public class CanalAdminController implements CanalAdmin {
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(new File("../logs/" + destination + "/"),
             TrueFileFilter.TRUE,
             TrueFileFilter.TRUE);
-        List<String> names = files.stream().map(f -> f.getName()).collect(Collectors.toList());
+        List<String> names = files.stream().map(File::getName).collect(Collectors.toList());
         return Joiner.on(",").join(names);
     }
 

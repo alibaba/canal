@@ -230,7 +230,7 @@ public class BinLogFileQueue {
             }
         }, null));
         // 排一下序列
-        Collections.sort(files, Comparator.comparing(File::getName));
+        files.sort(Comparator.comparing(File::getName));
         return files;
     }
 

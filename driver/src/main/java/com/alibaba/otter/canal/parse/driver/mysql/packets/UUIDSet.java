@@ -80,7 +80,7 @@ public class UUIDSet {
             if (equals(o)) {
                 return 1;
             }
-            return start > o.start ? 1 : (start == o.start ? 0 : -1);
+            return Long.compare(start, o.start);
         }
     }
 

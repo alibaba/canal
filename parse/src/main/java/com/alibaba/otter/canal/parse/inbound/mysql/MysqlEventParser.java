@@ -245,18 +245,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onSuccess(costTime);
                 }
-            } catch (SocketTimeoutException e) {
-                if (haController != null && haController instanceof HeartBeatCallback) {
-                    ((HeartBeatCallback) haController).onFailed(e);
-                }
-                reconnect = true;
-                logger.warn("connect failed by ", e);
-            } catch (IOException e) {
-                if (haController != null && haController instanceof HeartBeatCallback) {
-                    ((HeartBeatCallback) haController).onFailed(e);
-                }
-                reconnect = true;
-                logger.warn("connect failed by ", e);
             } catch (Throwable e) {
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onFailed(e);

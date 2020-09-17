@@ -34,8 +34,7 @@ public class MysqlBinlogParsePerformanceTest {
     protected static Charset charset = Charset.forName("utf-8");
 
     public static void main(String args[]) {
-        DirectLogFetcher fetcher = new DirectLogFetcher();
-        try {
+        try (DirectLogFetcher fetcher = new DirectLogFetcher()) {
             MysqlConnector connector = new MysqlConnector(new InetSocketAddress("127.0.0.1", 3306), "root", "hello");
             connector.connect();
             updateSettings(connector);
@@ -45,9 +44,7 @@ public class MysqlBinlogParsePerformanceTest {
             Thread thread = new Thread(() -> {
                 try {
                     consumer(buffer);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
             });
@@ -59,11 +56,6 @@ public class MysqlBinlogParsePerformanceTest {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                fetcher.close();
-            } catch (IOException e) {
-            }
         }
     }
 

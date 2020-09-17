@@ -130,8 +130,7 @@ public abstract class YamlProcessor {
             if (logger.isDebugEnabled()) {
                 logger.debug("Loading from YAML: " + resource);
             }
-            Reader reader = new UnicodeReader(resource.getInputStream());
-            try {
+            try (Reader reader = new UnicodeReader(resource.getInputStream())) {
                 for (Object object : yaml.loadAll(reader)) {
                     if (object != null && process(asMap(object), callback)) {
                         count++;
@@ -142,10 +141,8 @@ public abstract class YamlProcessor {
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug(
-                        "Loaded " + count + " document" + (count > 1 ? "s" : "") + " from YAML resource: " + resource);
+                            "Loaded " + count + " document" + (count > 1 ? "s" : "") + " from YAML resource: " + resource);
                 }
-            } finally {
-                reader.close();
             }
         } catch (IOException ex) {
             handleProcessError(resource, ex);
