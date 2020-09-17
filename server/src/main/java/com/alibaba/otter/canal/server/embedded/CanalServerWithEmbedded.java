@@ -184,7 +184,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             }
             logger.info("subscribe successfully, {} with first position:{} ", clientIdentity, position);
         } else {
-            logger.info("subscribe successfully, use last cursor position:{} ", clientIdentity, position);
+            logger.info("subscribe successfully, {} use last cursor position:{} ", clientIdentity, position);
         }
 
         // 通知下订阅关系变化
