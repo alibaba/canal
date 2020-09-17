@@ -229,7 +229,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 } else if (!mysqlConnection.isConnected()) {
                     mysqlConnection.connect();
                 }
-                Long startTime = System.currentTimeMillis();
+                long startTime = System.currentTimeMillis();
 
                 // 可能心跳sql为select 1
                 if (StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "select")
@@ -241,7 +241,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     mysqlConnection.update(detectingSQL);
                 }
 
-                Long costTime = System.currentTimeMillis() - startTime;
+                long costTime = System.currentTimeMillis() - startTime;
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onSuccess(costTime);
                 }
