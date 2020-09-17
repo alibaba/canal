@@ -1,30 +1,16 @@
 package com.alibaba.otter.canal.client.adapter.kudu.support;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Schema;
 import org.apache.kudu.Type;
-import org.apache.kudu.client.Delete;
-import org.apache.kudu.client.Insert;
-import org.apache.kudu.client.KuduClient;
-import org.apache.kudu.client.KuduException;
-import org.apache.kudu.client.KuduScanner;
-import org.apache.kudu.client.KuduSession;
-import org.apache.kudu.client.KuduTable;
-import org.apache.kudu.client.OperationResponse;
-import org.apache.kudu.client.PartialRow;
-import org.apache.kudu.client.SessionConfiguration;
-import org.apache.kudu.client.Upsert;
+import org.apache.kudu.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author liuyadong
@@ -32,16 +18,16 @@ import org.slf4j.LoggerFactory;
  */
 public class KuduTemplate {
 
-    private Logger           logger          = LoggerFactory.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private KuduClient       kuduClient;
-    private String           masters;
+    private KuduClient kuduClient;
+    private String masters;
 
     private final static int OPERATION_BATCH = 500;
 
-    private SimpleDateFormat sdf             = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    public KuduTemplate(String master_str){
+    public KuduTemplate(String master_str) {
         this.masters = master_str;
         checkClient();
     }
@@ -51,12 +37,12 @@ public class KuduTemplate {
      */
     private void checkClient() {
         if (kuduClient == null) {
-            // kudu master 以逗号分隔
+            //kudu master 以逗号分隔
             List<String> masterList = Arrays.asList(masters.split(","));
-            kuduClient = new KuduClient.KuduClientBuilder(masterList).defaultOperationTimeoutMs(60000)
-                .defaultSocketReadTimeoutMs(60000)
-                .defaultAdminOperationTimeoutMs(60000)
-                .build();
+            kuduClient = new KuduClient.KuduClientBuilder(masterList)
+                    .defaultOperationTimeoutMs(60000)
+                    .defaultSocketReadTimeoutMs(60000)
+                    .defaultAdminOperationTimeoutMs(60000).build();
         }
     }
 
@@ -90,7 +76,7 @@ public class KuduTemplate {
         try {
             session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
             session.setMutationBufferSpace(OPERATION_BATCH);
-            // 获取元数据结构
+            //获取元数据结构
             Map<String, Type> metaMap = new HashMap<>();
             Schema schema = kuduTable.getSchema();
             for (ColumnSchema columnSchema : schema.getColumns()) {
@@ -106,7 +92,7 @@ public class KuduTemplate {
                     String name = entry.getKey().toLowerCase();
                     Type type = metaMap.get(name);
                     Object value = entry.getValue();
-                    fillRow(row, name, value, type); // 填充行数据
+                    fillRow(row, name, value, type); //填充行数据
                 }
                 session.apply(delete);
                 // 对于手工提交, 需要buffer在未满的时候flush,这里采用了buffer一半时即提交
@@ -156,7 +142,7 @@ public class KuduTemplate {
         try {
             session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
             session.setMutationBufferSpace(OPERATION_BATCH);
-            // 获取元数据结构
+            //获取元数据结构
             Map<String, Type> metaMap = new HashMap<>();
             Schema schema = kuduTable.getSchema();
             for (ColumnSchema columnSchema : schema.getColumns()) {
@@ -172,7 +158,7 @@ public class KuduTemplate {
                     String name = entry.getKey().toLowerCase();
                     Type type = metaMap.get(name);
                     Object value = entry.getValue();
-                    fillRow(row, name, value, type); // 填充行数据
+                    fillRow(row, name, value, type); //填充行数据
                 }
                 session.apply(upsert);
                 // 对于手工提交, 需要buffer在未满的时候flush,这里采用了buffer一半时即提交
@@ -206,6 +192,7 @@ public class KuduTemplate {
             }
         }
 
+
     }
 
     /**
@@ -218,12 +205,11 @@ public class KuduTemplate {
     public void insert(String tableName, List<Map<String, Object>> dataList) throws KuduException {
         this.checkClient();
         KuduTable kuduTable = kuduClient.openTable(tableName);// 打开表
-        KuduSession session = kuduClient.newSession(); // 创建写session,kudu必须通过session写入
+        KuduSession session = kuduClient.newSession();  // 创建写session,kudu必须通过session写入
         try {
-            session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH); // 采取Flush方式
-                                                                               // 手动刷新
+            session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH); // 采取Flush方式 手动刷新
             session.setMutationBufferSpace(OPERATION_BATCH);
-            // 获取元数据结构
+            //获取元数据结构
             Map<String, Type> metaMap = new HashMap<>();
             Schema schema = kuduTable.getSchema();
             for (ColumnSchema columnSchema : schema.getColumns()) {
@@ -239,7 +225,7 @@ public class KuduTemplate {
                     String name = entry.getKey().toLowerCase();
                     Type type = metaMap.get(name);
                     Object value = entry.getValue();
-                    fillRow(row, name, value, type); // 填充行数据
+                    fillRow(row, name, value, type); //填充行数据
                 }
                 session.apply(insert);
                 // 对于手工提交, 需要buffer在未满的时候flush,这里采用了buffer一半时即提交
@@ -286,9 +272,9 @@ public class KuduTemplate {
         long rowCount = 0L;
         try {
             KuduTable kuduTable = kuduClient.openTable(tableName);
-            // 创建scanner扫描
+            //创建scanner扫描
             KuduScanner scanner = kuduClient.newScannerBuilder(kuduTable).build();
-            // 遍历数据
+            //遍历数据
             while (scanner.hasMoreRows()) {
                 while (scanner.nextRows().hasNext()) {
                     rowCount++;

@@ -1,42 +1,36 @@
 package com.alibaba.otter.canal.client.adapter.kudu.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.kudu.client.KuduException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 import com.alibaba.otter.canal.client.adapter.kudu.support.KuduTemplate;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
+import org.apache.kudu.client.KuduException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liuyadong
  * @description kudu实时同步
  */
 public class KuduSyncService {
-
     private static Logger logger = LoggerFactory.getLogger(KuduSyncService.class);
 
-    private KuduTemplate  kuduTemplate;
+    private KuduTemplate kuduTemplate;
 
     // 源库表字段类型缓存: instance.schema.table -> <columnName, jdbcType>
-    // private Map<String, Map<String, Integer>> columnsTypeCache = new
-    // ConcurrentHashMap<>();
+//    private Map<String, Map<String, Integer>> columnsTypeCache = new ConcurrentHashMap<>();
 
-    public KuduSyncService(KuduTemplate kuduTemplate){
+    public KuduSyncService(KuduTemplate kuduTemplate) {
         this.kuduTemplate = kuduTemplate;
     }
 
-    // public Map<String, Map<String, Integer>> getColumnsTypeCache() {
-    // return columnsTypeCache;
-    // }
+//    public Map<String, Map<String, Integer>> getColumnsTypeCache() {
+//        return columnsTypeCache;
+//    }
 
     /**
      * 同步事件处理
@@ -77,7 +71,7 @@ public class KuduSyncService {
             if (data == null || data.isEmpty()) {
                 return;
             }
-            // 判定主键映射
+            //判定主键映射
             String pkId = "";
             Map<String, String> targetPk = kuduMapping.getTargetPk();
             for (Map.Entry<String, String> entry : targetPk.entrySet()) {
@@ -89,7 +83,7 @@ public class KuduSyncService {
                     pkId = kuduID;
                 }
             }
-            // 切割联合主键
+            //切割联合主键
             List<String> pkIds = Arrays.asList(pkId.split(","));
             try {
                 int idx = 1;
@@ -162,6 +156,7 @@ public class KuduSyncService {
                 logger.error("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
             }
         }
+
 
     }
 

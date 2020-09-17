@@ -1,12 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.kudu.support;
 
+import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
+import org.apache.commons.lang.StringUtils;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 
 /**
  * @author liuyadong

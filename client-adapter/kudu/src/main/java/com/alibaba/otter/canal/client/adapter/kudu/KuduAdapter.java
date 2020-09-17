@@ -1,16 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.kudu;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfigLoader;
@@ -22,6 +11,12 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liuyadong
@@ -29,21 +24,20 @@ import com.alibaba.otter.canal.client.adapter.support.SPI;
  */
 @SPI("kudu")
 public class KuduAdapter implements OuterAdapter {
+    private static Logger logger = LoggerFactory.getLogger(KuduAdapter.class);
 
-    private static Logger                               logger             = LoggerFactory.getLogger(KuduAdapter.class);
+    private Map<String, KuduMappingConfig> kuduMapping = new ConcurrentHashMap<>();                                    // 文件名对应配置
+    private Map<String, Map<String, KuduMappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                // 库名-表名对应配置
 
-    private Map<String, KuduMappingConfig>              kuduMapping        = new ConcurrentHashMap<>();                 // 文件名对应配置
-    private Map<String, Map<String, KuduMappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                 // 库名-表名对应配置
+    private String dataSourceKey;
 
-    private String                                      dataSourceKey;
+    private KuduTemplate kuduTemplate;
 
-    private KuduTemplate                                kuduTemplate;
+    private KuduSyncService kuduSyncService;
 
-    private KuduSyncService                             kuduSyncService;
+    private KuduConfigMonitor kuduConfigMonitor;
 
-    private KuduConfigMonitor                           kuduConfigMonitor;
-
-    private Properties                                  envProperties;
+    private Properties envProperties;
 
     public Map<String, KuduMappingConfig> getKuduMapping() {
         return kuduMapping;
@@ -53,6 +47,7 @@ public class KuduAdapter implements OuterAdapter {
         return mappingConfigCache;
     }
 
+
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         this.envProperties = envProperties;
@@ -60,13 +55,13 @@ public class KuduAdapter implements OuterAdapter {
         // 过滤不匹配的key的配置,获取连接key，key为配置文件名称
         kuduMappingTmp.forEach((key, mappingConfig) -> {
             if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
+                    || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
                     .equalsIgnoreCase(configuration.getKey()))) {
                 kuduMapping.put(key, mappingConfig);
                 dataSourceKey = mappingConfig.getDataSourceKey();
             }
         });
-        // 判断目标字段是否为空
+        //判断目标字段是否为空
         if (kuduMapping.isEmpty()) {
             throw new RuntimeException("No kudu adapter found for config key: " + configuration.getKey());
         }
@@ -76,14 +71,16 @@ public class KuduAdapter implements OuterAdapter {
             String k;
             if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
                 k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                    + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                    + mappingConfig.getKuduMapping().getDatabase() + "-" + mappingConfig.getKuduMapping().getTable();
+                        + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                        + mappingConfig.getKuduMapping().getDatabase() + "-"
+                        + mappingConfig.getKuduMapping().getTable();
             } else {
                 k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                    + mappingConfig.getKuduMapping().getDatabase() + "-" + mappingConfig.getKuduMapping().getTable();
+                        + mappingConfig.getKuduMapping().getDatabase() + "-"
+                        + mappingConfig.getKuduMapping().getTable();
             }
             Map<String, KuduMappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
-                k1 -> new ConcurrentHashMap<>());
+                    k1 -> new ConcurrentHashMap<>());
             configMap.put(configName, mappingConfig);
         }
         Map<String, String> properties = configuration.getProperties();
@@ -111,7 +108,9 @@ public class KuduAdapter implements OuterAdapter {
             String table = dml.getTable();
             Map<String, KuduMappingConfig> configMap;
             if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                configMap = mappingConfigCache.get(destination + "-" + groupId + "_" + database + "-" + table);
+                configMap = mappingConfigCache.get(destination + "-"
+                        + groupId + "_"
+                        + database + "-" + table);
             } else {
                 configMap = mappingConfigCache.get(destination + "_" + database + "-" + table);
             }
@@ -132,8 +131,7 @@ public class KuduAdapter implements OuterAdapter {
                     logger.error("groupID didn't mach,please check your gruopId ");
                 }
             } else {
-                logger.error("{} config didn't get,please check your map key ", destination + "_" + database + "-"
-                                                                                + table);
+                logger.error("{} config didn't get,please check your map key ", destination + "_" + database + "-" + table);
             }
         }
     }
@@ -143,7 +141,7 @@ public class KuduAdapter implements OuterAdapter {
         if (kuduConfigMonitor != null) {
             kuduConfigMonitor.destroy();
         }
-        // 加入kudu client 关闭钩子
+        //加入kudu client 关闭钩子
         kuduTemplate.closeKuduClient();
     }
 
