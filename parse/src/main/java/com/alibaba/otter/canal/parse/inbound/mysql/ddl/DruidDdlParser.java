@@ -56,7 +56,7 @@ public class DruidDdlParser {
             return Arrays.asList(ddlResult);
         }
 
-        List<DdlResult> ddlResults = new ArrayList<DdlResult>();
+        List<DdlResult> ddlResults = new ArrayList<>();
         for (SQLStatement statement : stmtList) {
             if (statement instanceof SQLCreateTableStatement) {
                 DdlResult ddlResult = new DdlResult();

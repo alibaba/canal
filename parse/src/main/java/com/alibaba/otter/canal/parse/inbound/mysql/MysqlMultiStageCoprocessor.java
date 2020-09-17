@@ -98,9 +98,9 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         ExceptionHandler exceptionHandler = new SimpleFatalExceptionHandler();
         // stage 2
         this.logContext = new LogContext();
-        simpleParserStage = new BatchEventProcessor<MessageEvent>(disruptorMsgBuffer,
-            sequenceBarrier,
-            new SimpleParserStage(logContext));
+        simpleParserStage = new BatchEventProcessor<>(disruptorMsgBuffer,
+                sequenceBarrier,
+                new SimpleParserStage(logContext));
         simpleParserStage.setExceptionHandler(exceptionHandler);
         disruptorMsgBuffer.addGatingSequences(simpleParserStage.getSequence());
 
@@ -119,9 +119,9 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         // stage 4
         SequenceBarrier sinkSequenceBarrier = disruptorMsgBuffer.newBarrier(sequence);
-        sinkStoreStage = new BatchEventProcessor<MessageEvent>(disruptorMsgBuffer,
-            sinkSequenceBarrier,
-            new SinkStoreStage());
+        sinkStoreStage = new BatchEventProcessor<>(disruptorMsgBuffer,
+                sinkSequenceBarrier,
+                new SinkStoreStage());
         sinkStoreStage.setExceptionHandler(exceptionHandler);
         disruptorMsgBuffer.addGatingSequences(sinkStoreStage.getSequence());
 

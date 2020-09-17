@@ -57,13 +57,7 @@ public class HttpHelper {
 
         // 创建支持忽略证书的https
         try {
-            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, (x509Certificates, s) -> true).build();
 
             httpclient = HttpClientBuilder.create()
                 .setSSLContext(sslContext)

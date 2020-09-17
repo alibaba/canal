@@ -177,7 +177,7 @@ public abstract class AbstractRequest<T> {
 
     private String makeRequestString(Map<String, String> param) throws Exception {
         fillCommonParam(param);
-        String sign = makeSignature(new TreeMap<String, String>(param));
+        String sign = makeSignature(new TreeMap<>(param));
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, String> entry : param.entrySet()) {
             builder.append(encode(entry.getKey())).append("=").append(encode(entry.getValue())).append("&");
@@ -195,13 +195,7 @@ public abstract class AbstractRequest<T> {
      */
     @SuppressWarnings("deprecation")
     private final HttpResponse executeHttpRequest(HttpGet getMethod, String host) throws Exception {
-        SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, new TrustStrategy() {
-
-            @Override
-            public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-                return true;
-            }
-        }).build();
+        SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (TrustStrategy) (arg0, arg1) -> true).build();
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
             new String[] { "TLSv1" },
             null,

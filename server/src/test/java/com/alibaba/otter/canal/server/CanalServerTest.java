@@ -53,12 +53,9 @@ public class CanalServerTest {
     @Before
     public void setUp() {
         CanalServerWithEmbedded embeddedServer = new CanalServerWithEmbedded();
-        embeddedServer.setCanalInstanceGenerator(new CanalInstanceGenerator() {
-
-            public CanalInstance generate(String destination) {
-                Canal canal = buildCanal();
-                return new CanalInstanceWithManager(canal, FILTER);
-            }
+        embeddedServer.setCanalInstanceGenerator(destination -> {
+            Canal canal = buildCanal();
+            return new CanalInstanceWithManager(canal, FILTER);
         });
 
         nettyServer = CanalServerWithNetty.instance();

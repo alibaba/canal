@@ -14,20 +14,17 @@ import com.google.common.collect.MigrateMap;
 public class PatternUtils {
 
     private static Map<String, Pattern> patterns = MigrateMap.makeComputingMap(CacheBuilder.newBuilder().softValues(),
-                                                     new Function<String, Pattern>() {
-
-                                                         public Pattern apply(String pattern) {
-                                                             try {
-                                                                 PatternCompiler pc = new Perl5Compiler();
-                                                                 return pc.compile(pattern,
-                                                                     Perl5Compiler.CASE_INSENSITIVE_MASK
-                                                                             | Perl5Compiler.READ_ONLY_MASK
-                                                                             | Perl5Compiler.SINGLELINE_MASK);
-                                                             } catch (MalformedPatternException e) {
-                                                                 throw new RuntimeException(e);
-                                                             }
-                                                         }
-                                                     });
+            pattern -> {
+                try {
+                    PatternCompiler pc = new Perl5Compiler();
+                    return pc.compile(pattern,
+                        Perl5Compiler.CASE_INSENSITIVE_MASK
+                                | Perl5Compiler.READ_ONLY_MASK
+                                | Perl5Compiler.SINGLELINE_MASK);
+                } catch (MalformedPatternException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
     public static Pattern getPattern(String pattern) {
         return patterns.get(pattern);

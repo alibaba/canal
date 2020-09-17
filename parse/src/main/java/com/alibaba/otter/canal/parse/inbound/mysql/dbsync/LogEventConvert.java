@@ -88,8 +88,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
-    private Map<String, List<String>>   fieldFilterMap      = new HashMap<String, List<String>>();
-    private Map<String, List<String>>   fieldBlackFilterMap = new HashMap<String, List<String>>();
+    private Map<String, List<String>>   fieldFilterMap      = new HashMap<>();
+    private Map<String, List<String>>   fieldBlackFilterMap = new HashMap<>();
 
     private TableMetaCache              tableMetaCache;
     private Charset                     charset             = Charset.defaultCharset();
@@ -1040,7 +1040,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (fieldFilterMap != null) {
             this.fieldFilterMap = fieldFilterMap;
         } else {
-            this.fieldFilterMap = new HashMap<String, List<String>>();
+            this.fieldFilterMap = new HashMap<>();
         }
 
         for (Map.Entry<String, List<String>> entry : this.fieldFilterMap.entrySet()) {
@@ -1052,7 +1052,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (fieldBlackFilterMap != null) {
             this.fieldBlackFilterMap = fieldBlackFilterMap;
         } else {
-            this.fieldBlackFilterMap = new HashMap<String, List<String>>();
+            this.fieldBlackFilterMap = new HashMap<>();
         }
 
         for (Map.Entry<String, List<String>> entry : this.fieldBlackFilterMap.entrySet()) {

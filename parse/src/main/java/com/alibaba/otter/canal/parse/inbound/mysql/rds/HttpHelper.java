@@ -140,13 +140,9 @@ public class HttpHelper {
         CloseableHttpResponse response = null;
         try {
             // 创建支持忽略证书的https
-            final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            final SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (x509Certificates, s) -> true)
+                    .build();
 
             CloseableHttpClient httpClient = HttpClientBuilder.create()
                 .setSSLContext(sslContext)
@@ -205,13 +201,9 @@ public class HttpHelper {
         CloseableHttpResponse response = null;
         try {
             // 创建支持忽略证书的https
-            final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            final SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (x509Certificates, s) -> true)
+                    .build();
 
             CloseableHttpClient httpClient = HttpClientBuilder.create()
                 .setSSLContext(sslContext)

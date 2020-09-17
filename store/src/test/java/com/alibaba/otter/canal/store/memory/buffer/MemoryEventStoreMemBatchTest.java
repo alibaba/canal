@@ -167,19 +167,16 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        executor.submit(new Runnable() {
-
-            public void run() {
-                boolean result = false;
-                try {
-                    eventStore.get(position, batchSize);
-                } catch (CanalStoreException e) {
-                } catch (InterruptedException e) {
-                    System.out.println("interrupt occured.");
-                    result = true;
-                }
-                Assert.assertTrue(result);
+        executor.submit(() -> {
+            boolean result = false;
+            try {
+                eventStore.get(position, batchSize);
+            } catch (CanalStoreException e) {
+            } catch (InterruptedException e) {
+                System.out.println("interrupt occured.");
+                result = true;
             }
+            Assert.assertTrue(result);
         });
 
         try {
@@ -245,7 +242,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
 
         first = eventStore.getFirstPosition();
         lastest = eventStore.getLatestPosition();
-        List<Event> entrys = new ArrayList<Event>(entrys2.getEvents());
+        List<Event> entrys = new ArrayList<>(entrys2.getEvents());
         Assert.assertTrue(entrys.size() == bufferSize);
         Assert.assertEquals(first, entrys2.getPositionRange().getStart());
         Assert.assertEquals(lastest, entrys2.getPositionRange().getEnd());
@@ -299,7 +296,7 @@ public class MemoryEventStoreMemBatchTest extends MemoryEventStoreBase {
 
         first = eventStore.getFirstPosition();
         lastest = eventStore.getLatestPosition();
-        List<Event> entrys = new ArrayList<Event>(entrys2.getEvents());
+        List<Event> entrys = new ArrayList<>(entrys2.getEvents());
         // Assert.assertEquals(first, entrys2.getPositionRange().getStart());
         Assert.assertEquals(lastest, entrys2.getPositionRange().getEnd());
 

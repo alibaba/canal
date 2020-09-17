@@ -259,7 +259,7 @@ public class ExtensionLoader<T> {
             }
         }
 
-        Map<String, Class<?>> extensionClasses = new HashMap<String, Class<?>>();
+        Map<String, Class<?>> extensionClasses = new HashMap<>();
 
         // 1. plugin folder，customized extension classLoader （jar_dir/plugin）
         String dir = File.separator + this.getJarDirectoryPath() + File.separator + "plugin";

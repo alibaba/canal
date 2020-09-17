@@ -80,14 +80,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     protected Thread                                 parseThread                = null;
 
-    protected Thread.UncaughtExceptionHandler        handler                    = new Thread.UncaughtExceptionHandler() {
-
-                                                                                    public void uncaughtException(Thread t,
-                                                                                                                  Throwable e) {
-                                                                                        logger.error("parse events has an error",
-                                                                                            e);
-                                                                                    }
-                                                                                };
+    protected Thread.UncaughtExceptionHandler        handler                    = (t, e) -> logger.error("parse events has an error",
+        e);
 
     protected EventTransactionBuffer                 transactionBuffer;
     protected int                                    transactionSize            = 1024;
@@ -134,22 +128,19 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     public AbstractEventParser(){
         // 初始化一下
-        transactionBuffer = new EventTransactionBuffer(new TransactionFlushCallback() {
+        transactionBuffer = new EventTransactionBuffer(transaction -> {
+            boolean successed = consumeTheEventAndProfilingIfNecessary(transaction);
+            if (!running) {
+                return;
+            }
 
-            public void flush(List<CanalEntry.Entry> transaction) throws InterruptedException {
-                boolean successed = consumeTheEventAndProfilingIfNecessary(transaction);
-                if (!running) {
-                    return;
-                }
+            if (!successed) {
+                throw new CanalParseException("consume failed!");
+            }
 
-                if (!successed) {
-                    throw new CanalParseException("consume failed!");
-                }
-
-                LogPosition position = buildLastTransactionPosition(transaction);
-                if (position != null) { // 可能position为空
-                    logPositionManager.persistLogPosition(AbstractEventParser.this.destination, position);
-                }
+            LogPosition position = buildLastTransactionPosition(transaction);
+            if (position != null) { // 可能position为空
+                logPositionManager.persistLogPosition(AbstractEventParser.this.destination, position);
             }
         });
     }
@@ -542,7 +533,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
      */
     private Map<String, List<String>> parseFieldFilterMap(String config) {
     	
-    	Map<String, List<String>> map = new HashMap<String, List<String>>();
+    	Map<String, List<String>> map = new HashMap<>();
 		
 		if (StringUtils.isNotBlank(config)) {
 			for (String filter : config.split(",")) {

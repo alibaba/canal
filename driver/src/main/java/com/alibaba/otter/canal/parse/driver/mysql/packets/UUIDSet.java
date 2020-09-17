@@ -105,7 +105,7 @@ public class UUIDSet {
             throw new RuntimeException(String.format("parseUUIDSet failed due to wrong format: %s", str));
         }
 
-        List<Interval> intervals = new ArrayList<Interval>();
+        List<Interval> intervals = new ArrayList<>();
         for (int i = 1; i < ss.length; i++) {
             intervals.add(parseInterval(ss[i]));
         }
@@ -172,7 +172,7 @@ public class UUIDSet {
      * @return
      */
     public static List<Interval> combine(List<Interval> intervals) {
-        List<Interval> combined = new ArrayList<Interval>();
+        List<Interval> combined = new ArrayList<>();
         Collections.sort(intervals);
         int len = intervals.size();
         for (int i = 0; i < len; i++) {

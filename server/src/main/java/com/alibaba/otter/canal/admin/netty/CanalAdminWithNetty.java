@@ -69,21 +69,18 @@ public class CanalAdminWithNetty extends AbstractCanalLifeCycle {
         bootstrap.setOption("child.tcpNoDelay", true);
 
         // 构造对应的pipeline
-        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+        bootstrap.setPipelineFactory(() -> {
+            ChannelPipeline pipelines = Channels.pipeline();
+            pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
+            // support to maintain child socket channel.
+            pipelines.addLast(HandshakeInitializationHandler.class.getName(),
+                new HandshakeInitializationHandler(childGroups));
+            pipelines.addLast(ClientAuthenticationHandler.class.getName(),
+                new ClientAuthenticationHandler(canalAdmin));
 
-            public ChannelPipeline getPipeline() throws Exception {
-                ChannelPipeline pipelines = Channels.pipeline();
-                pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
-                // support to maintain child socket channel.
-                pipelines.addLast(HandshakeInitializationHandler.class.getName(),
-                    new HandshakeInitializationHandler(childGroups));
-                pipelines.addLast(ClientAuthenticationHandler.class.getName(),
-                    new ClientAuthenticationHandler(canalAdmin));
-
-                SessionHandler sessionHandler = new SessionHandler(canalAdmin);
-                pipelines.addLast(SessionHandler.class.getName(), sessionHandler);
-                return pipelines;
-            }
+            SessionHandler sessionHandler = new SessionHandler(canalAdmin);
+            pipelines.addLast(SessionHandler.class.getName(), sessionHandler);
+            return pipelines;
         });
 
         // 启动

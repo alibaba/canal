@@ -82,6 +82,6 @@ public class MetaLogPositionManagerTest extends AbstractLogPositionManagerTest {
         LogPosition end = new LogPosition();
         end.setIdentity(new LogIdentity(new InetSocketAddress(MYSQL_ADDRESS, 3306), 1234L));
         end.setPostion(new EntryPosition("mysql-bin.000000" + (number + 1), 106L, (new Date().getTime()) + 1000 * 1000L));
-        return new PositionRange<LogPosition>(start, end);
+        return new PositionRange<>(start, end);
     }
 }

@@ -23,7 +23,7 @@ public class TableMeta {
 
     private String          schema;
     private String          table;
-    private List<FieldMeta> fields = new ArrayList<TableMeta.FieldMeta>();
+    private List<FieldMeta> fields = new ArrayList<>();
     private String          ddl;                                          // 表结构的DDL语句
 
     public TableMeta(){
@@ -75,7 +75,7 @@ public class TableMeta {
     }
 
     public List<FieldMeta> getPrimaryFields() {
-        List<FieldMeta> primarys = new ArrayList<TableMeta.FieldMeta>();
+        List<FieldMeta> primarys = new ArrayList<>();
         for (FieldMeta meta : fields) {
             if (meta.isKey()) {
                 primarys.add(meta);

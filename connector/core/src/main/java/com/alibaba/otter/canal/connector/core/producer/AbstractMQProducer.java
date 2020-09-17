@@ -35,7 +35,7 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
             parallelBuildThreadSize,
             0,
             TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(parallelBuildThreadSize * 2),
+            new ArrayBlockingQueue<>(parallelBuildThreadSize * 2),
             new NamedThreadFactory("MQ-Parallel-Builder"),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
@@ -44,7 +44,7 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
             parallelSendThreadSize,
             0,
             TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(parallelSendThreadSize * 2),
+            new ArrayBlockingQueue<>(parallelSendThreadSize * 2),
             new NamedThreadFactory("MQ-Parallel-Sender"),
             new ThreadPoolExecutor.CallerRunsPolicy());
     }

@@ -1,23 +1,12 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
-import static org.mockito.AdditionalMatchers.or;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Matchers.isNull;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import com.alibaba.otter.canal.client.adapter.support.JdbcTypeUtil;
-import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.lang.reflect.Array;
 
 @RunWith(PowerMockRunner.class)
 public class JdbcTypeUtilTest {

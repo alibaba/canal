@@ -25,29 +25,26 @@ public class EventTransactionBufferTest {
         final int transactionSize = 5;
         EventTransactionBuffer buffer = new EventTransactionBuffer();
         buffer.setBufferSize(bufferSize);
-        buffer.setFlushCallback(new TransactionFlushCallback() {
+        buffer.setFlushCallback(transaction -> {
+            Assert.assertEquals(transactionSize, transaction.size());
+            System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            for (Entry data : transaction) {
 
-            public void flush(List<Entry> transaction) throws InterruptedException {
-                Assert.assertEquals(transactionSize, transaction.size());
-                System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                for (Entry data : transaction) {
+                Header header = data.getHeader();
+                Date date = new Date(header.getExecuteTime());
+                SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+                if (data.getEntryType() == EntryType.TRANSACTIONBEGIN
+                    || data.getEntryType() == EntryType.TRANSACTIONEND) {
+                    System.out.println(data.getEntryType());
 
-                    CanalEntry.Header header = data.getHeader();
-                    Date date = new Date(header.getExecuteTime());
-                    SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
-                    if (data.getEntryType() == EntryType.TRANSACTIONBEGIN
-                        || data.getEntryType() == EntryType.TRANSACTIONEND) {
-                        System.out.println(data.getEntryType());
-
-                    } else {
-                        System.out.println(MessageFormat.format(messgae, new Object[] {
-                                Thread.currentThread().getName(), header.getLogfileName(), header.getLogfileOffset(),
-                                format.format(date), header.getSchemaName(), header.getTableName() }));
-                    }
-
+                } else {
+                    System.out.println(MessageFormat.format(messgae, new Object[] {
+                            Thread.currentThread().getName(), header.getLogfileName(), header.getLogfileOffset(),
+                            format.format(date), header.getSchemaName(), header.getTableName() }));
                 }
-                System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+
             }
+            System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
         });
         buffer.start();
 
@@ -73,35 +70,32 @@ public class EventTransactionBufferTest {
         final int bufferSize = 64;
         EventTransactionBuffer buffer = new EventTransactionBuffer();
         buffer.setBufferSize(bufferSize);
-        buffer.setFlushCallback(new TransactionFlushCallback() {
+        buffer.setFlushCallback(transaction -> {
+            Assert.assertEquals(bufferSize, transaction.size());
+            System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            for (Entry data : transaction) {
 
-            public void flush(List<Entry> transaction) throws InterruptedException {
-                Assert.assertEquals(bufferSize, transaction.size());
-                System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                for (Entry data : transaction) {
+                Header header = data.getHeader();
+                Date date = new Date(header.getExecuteTime());
+                SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+                if (data.getEntryType() == EntryType.TRANSACTIONBEGIN
+                    || data.getEntryType() == EntryType.TRANSACTIONEND) {
+                    // System.out.println(MessageFormat.format(messgae, new
+                    // Object[] {
+                    // Thread.currentThread().getName(),
+                    // header.getLogfilename(), header.getLogfileoffset(),
+                    // format.format(date),
+                    // data.getEntry().getEntryType(), "" }));
+                    System.out.println(data.getEntryType());
 
-                    CanalEntry.Header header = data.getHeader();
-                    Date date = new Date(header.getExecuteTime());
-                    SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
-                    if (data.getEntryType() == EntryType.TRANSACTIONBEGIN
-                        || data.getEntryType() == EntryType.TRANSACTIONEND) {
-                        // System.out.println(MessageFormat.format(messgae, new
-                        // Object[] {
-                        // Thread.currentThread().getName(),
-                        // header.getLogfilename(), header.getLogfileoffset(),
-                        // format.format(date),
-                        // data.getEntry().getEntryType(), "" }));
-                        System.out.println(data.getEntryType());
-
-                    } else {
-                        System.out.println(MessageFormat.format(messgae, new Object[] {
-                                Thread.currentThread().getName(), header.getLogfileName(), header.getLogfileOffset(),
-                                format.format(date), header.getSchemaName(), header.getTableName() }));
-                    }
-
+                } else {
+                    System.out.println(MessageFormat.format(messgae, new Object[] {
+                            Thread.currentThread().getName(), header.getLogfileName(), header.getLogfileOffset(),
+                            format.format(date), header.getSchemaName(), header.getTableName() }));
                 }
-                System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+
             }
+            System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
         });
         buffer.start();
 

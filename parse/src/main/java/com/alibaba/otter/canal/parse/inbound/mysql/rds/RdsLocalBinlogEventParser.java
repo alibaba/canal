@@ -82,13 +82,7 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             logger.error("download binlog failed", e);
             throw new CanalParseException(e);
         }
-        setParserExceptionHandler(new ParserExceptionHandler() {
-
-            @Override
-            public void handle(Throwable e) {
-                handleMysqlParserException(e);
-            }
-        });
+        setParserExceptionHandler(this::handleMysqlParserException);
         super.start();
     }
 
@@ -105,13 +99,9 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             }
 
             try {
-                binlogDownloadQueue.execute(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        RdsLocalBinlogEventParser.super.stop();
-                        RdsLocalBinlogEventParser.super.start();
-                    }
+                binlogDownloadQueue.execute(() -> {
+                    RdsLocalBinlogEventParser.super.stop();
+                    RdsLocalBinlogEventParser.super.start();
                 });
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

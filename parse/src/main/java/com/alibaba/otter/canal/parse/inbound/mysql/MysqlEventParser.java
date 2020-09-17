@@ -714,7 +714,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             }
 
             int i = 0;
-            Map<String, String> maps = new HashMap<String, String>(names.size(), 1f);
+            Map<String, String> maps = new HashMap<>(names.size(), 1f);
             for (FieldPacket name : names) {
                 maps.put(name.getName(), fields.get(i));
                 i++;

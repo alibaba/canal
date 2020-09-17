@@ -145,19 +145,16 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        executor.submit(new Runnable() {
-
-            public void run() {
-                boolean result = false;
-                try {
-                    eventStore.get(position, batchSize);
-                } catch (CanalStoreException e) {
-                } catch (InterruptedException e) {
-                    System.out.println("interrupt occured.");
-                    result = true;
-                }
-                Assert.assertTrue(result);
+        executor.submit(() -> {
+            boolean result = false;
+            try {
+                eventStore.get(position, batchSize);
+            } catch (CanalStoreException e) {
+            } catch (InterruptedException e) {
+                System.out.println("interrupt occured.");
+                result = true;
             }
+            Assert.assertTrue(result);
         });
 
         try {

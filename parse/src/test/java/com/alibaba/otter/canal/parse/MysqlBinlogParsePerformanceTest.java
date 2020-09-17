@@ -41,18 +41,14 @@ public class MysqlBinlogParsePerformanceTest {
             updateSettings(connector);
             sendBinlogDump(connector, "mysql-bin.000006", 120L, 3);
             fetcher.start(connector.getChannel());
-            final BlockingQueue<LogBuffer> buffer = new ArrayBlockingQueue<LogBuffer>(1024);
-            Thread thread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        consumer(buffer);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            final BlockingQueue<LogBuffer> buffer = new ArrayBlockingQueue<>(1024);
+            Thread thread = new Thread(() -> {
+                try {
+                    consumer(buffer);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             });
             thread.start();

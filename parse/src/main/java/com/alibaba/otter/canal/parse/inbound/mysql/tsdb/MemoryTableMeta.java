@@ -49,7 +49,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 public class MemoryTableMeta implements TableMetaTSDB {
 
     private Logger                       logger     = LoggerFactory.getLogger(MemoryTableMeta.class);
-    private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<List<String>, TableMeta>();
+    private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<>();
     private SchemaRepository             repository = new SchemaRepository(JdbcConstants.MYSQL);
 
     public MemoryTableMeta(){
@@ -143,7 +143,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
     }
 
     public Map<String, String> snapshot() {
-        Map<String, String> schemaDdls = new HashMap<String, String>();
+        Map<String, String> schemaDdls = new HashMap<>();
         for (Schema schema : repository.getSchemas()) {
             StringBuffer data = new StringBuffer(4 * 1024);
             for (String table : schema.showTables()) {

@@ -42,7 +42,7 @@ public class AviaterRegexFilter {
         this.defaultEmptyValue = defaultEmptyValue;
         List<String> list = null;
         if (StringUtils.isEmpty(pattern)) {
-            list = new ArrayList<String>();
+            list = new ArrayList<>();
         } else {
             String[] ss = StringUtils.split(pattern, SPLIT);
             list = Arrays.asList(ss);
@@ -66,7 +66,7 @@ public class AviaterRegexFilter {
             return defaultEmptyValue;
         }
 
-        Map<String, Object> env = new HashMap<String, Object>();
+        Map<String, Object> env = new HashMap<>();
         env.put("pattern", pattern);
         env.put("target", filtered.toLowerCase());
         return (Boolean) exp.execute(env);
@@ -112,7 +112,7 @@ public class AviaterRegexFilter {
      */
 
     private List<String> completionPattern(List<String> patterns) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (String pattern : patterns) {
             StringBuffer stringBuffer = new StringBuffer();
             stringBuffer.append("^");

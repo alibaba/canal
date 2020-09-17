@@ -75,13 +75,7 @@ public class JsonUtils {
         SerializeWriter out = new SerializeWriter();
         try {
             JSONSerializer serializer = new JSONSerializer(out);
-            serializer.getPropertyFilters().add(new PropertyFilter() {
-
-                public boolean apply(Object source, String name, Object value) {
-                    return !propertyFliters.contains(name);
-                }
-
-            });
+            serializer.getPropertyFilters().add((source, name, value) -> !propertyFliters.contains(name));
             serializer.write(obj);
             return out.toString();
         } finally {
