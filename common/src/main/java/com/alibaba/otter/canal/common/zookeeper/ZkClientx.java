@@ -11,7 +11,6 @@ import org.I0Itec.zkclient.exception.ZkNodeExistsException;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
 import org.apache.zookeeper.CreateMode;
 
-import com.google.common.base.Function;
 import com.google.common.collect.MigrateMap;
 
 /**

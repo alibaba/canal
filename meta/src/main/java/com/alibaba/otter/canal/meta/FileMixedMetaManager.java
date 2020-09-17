@@ -25,7 +25,6 @@ import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MigrateMap;
 

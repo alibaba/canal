@@ -15,7 +15,6 @@ import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanal;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.MigrateMap;

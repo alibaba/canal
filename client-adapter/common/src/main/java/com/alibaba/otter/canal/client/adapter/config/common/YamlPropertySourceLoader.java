@@ -3,7 +3,6 @@ package com.alibaba.otter.canal.client.adapter.config.common;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.springframework.util.ClassUtils;

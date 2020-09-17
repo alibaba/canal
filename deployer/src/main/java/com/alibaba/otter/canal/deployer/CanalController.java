@@ -25,7 +25,6 @@ import com.alibaba.otter.canal.deployer.monitor.InstanceAction;
 import com.alibaba.otter.canal.deployer.monitor.InstanceConfigMonitor;
 import com.alibaba.otter.canal.deployer.monitor.ManagerInstanceConfigMonitor;
 import com.alibaba.otter.canal.deployer.monitor.SpringInstanceConfigMonitor;
-import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.PlainCanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;

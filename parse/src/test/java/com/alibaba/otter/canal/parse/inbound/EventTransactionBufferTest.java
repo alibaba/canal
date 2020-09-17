@@ -3,13 +3,10 @@ package com.alibaba.otter.canal.parse.inbound;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.CanalEntry.Header;

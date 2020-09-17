@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.instance.manager;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLClassLoader;

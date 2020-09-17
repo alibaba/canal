@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.parse.inbound.mysql.rds;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.lang.StringUtils;
 

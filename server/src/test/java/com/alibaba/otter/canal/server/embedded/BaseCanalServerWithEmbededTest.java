@@ -7,8 +7,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.otter.canal.instance.core.CanalInstance;
-import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalInstanceWithManager;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.parse.CanalEventParser;
