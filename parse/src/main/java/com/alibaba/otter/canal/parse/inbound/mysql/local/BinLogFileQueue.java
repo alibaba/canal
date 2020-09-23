@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.parse.inbound.mysql.local;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Timer;

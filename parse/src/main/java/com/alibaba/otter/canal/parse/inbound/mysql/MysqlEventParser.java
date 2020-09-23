@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
