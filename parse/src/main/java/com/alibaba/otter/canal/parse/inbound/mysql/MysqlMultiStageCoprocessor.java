@@ -454,7 +454,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         }
     }
 
-    class MessageEventFactory implements EventFactory<MessageEvent> {
+    static class MessageEventFactory implements EventFactory<MessageEvent> {
 
         public MessageEvent newInstance() {
             return new MessageEvent();
