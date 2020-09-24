@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
@@ -230,7 +229,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 } else if (!mysqlConnection.isConnected()) {
                     mysqlConnection.connect();
                 }
-                Long startTime = System.currentTimeMillis();
+                long startTime = System.currentTimeMillis();
 
                 // 可能心跳sql为select 1
                 if (StringUtils.startsWithIgnoreCase(detectingSQL.trim(), "select")
@@ -242,22 +241,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     mysqlConnection.update(detectingSQL);
                 }
 
-                Long costTime = System.currentTimeMillis() - startTime;
+                long costTime = System.currentTimeMillis() - startTime;
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onSuccess(costTime);
                 }
-            } catch (SocketTimeoutException e) {
-                if (haController != null && haController instanceof HeartBeatCallback) {
-                    ((HeartBeatCallback) haController).onFailed(e);
-                }
-                reconnect = true;
-                logger.warn("connect failed by ", e);
-            } catch (IOException e) {
-                if (haController != null && haController instanceof HeartBeatCallback) {
-                    ((HeartBeatCallback) haController).onFailed(e);
-                }
-                reconnect = true;
-                logger.warn("connect failed by ", e);
             } catch (Throwable e) {
                 if (haController != null && haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onFailed(e);
@@ -728,7 +715,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             }
 
             int i = 0;
-            Map<String, String> maps = new HashMap<String, String>(names.size(), 1f);
+            Map<String, String> maps = new HashMap<>(names.size(), 1f);
             for (FieldPacket name : names) {
                 maps.put(name.getName(), fields.get(i));
                 i++;

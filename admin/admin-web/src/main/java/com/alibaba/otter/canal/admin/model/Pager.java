@@ -9,7 +9,7 @@ public class Pager<T> implements Serializable {
     private static final long serialVersionUID = -986577815091763517L;
 
     private Long              count            = 0L;
-    private List<T>           items            = new ArrayList<T>();
+    private List<T>           items            = new ArrayList<>();
     private Integer           page             = 1;
     private Integer           size             = 20;
     private Long              offset           = 0L;

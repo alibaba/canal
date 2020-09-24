@@ -115,7 +115,7 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
         long end = this.putSequence.get();
 
         if (start <= end) {
-            List<CanalEntry.Entry> transaction = new ArrayList<CanalEntry.Entry>();
+            List<CanalEntry.Entry> transaction = new ArrayList<>();
             for (long next = start; next <= end; next++) {
                 transaction.add(this.entries[getIndex(next)]);
             }

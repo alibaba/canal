@@ -7,9 +7,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -37,7 +34,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +49,8 @@ public class BinlogDownloadQueue {
     private static final Logger             logger        = LoggerFactory.getLogger(BinlogDownloadQueue.class);
     private static final int                TIMEOUT       = 10000;
 
-    private LinkedBlockingQueue<BinlogFile> downloadQueue = new LinkedBlockingQueue<BinlogFile>();
-    private LinkedBlockingQueue<Runnable>   taskQueue     = new LinkedBlockingQueue<Runnable>();
+    private LinkedBlockingQueue<BinlogFile> downloadQueue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<Runnable>   taskQueue     = new LinkedBlockingQueue<>();
     private LinkedList<BinlogFile>          binlogList;
     private final int                       batchFileSize;
     private Thread                          downloadThread;
@@ -78,13 +74,7 @@ public class BinlogDownloadQueue {
             String fileName = StringUtils.substringBetween(binlog.getDownloadLink(), "mysql-bin.", "?");
             binlog.setFileName(fileName);
         }
-        Collections.sort(this.binlogList, new Comparator<BinlogFile>() {
-
-            @Override
-            public int compare(BinlogFile o1, BinlogFile o2) {
-                return o1.getFileName().compareTo(o2.getFileName());
-            }
-        });
+        this.binlogList.sort(Comparator.comparing(BinlogFile::getFileName));
     }
 
     public void cleanDir() throws IOException {
@@ -187,13 +177,9 @@ public class BinlogDownloadQueue {
             builder.setMaxConnPerRoute(50);
             builder.setMaxConnTotal(100);
             // 创建支持忽略证书的https
-            final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            final SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (x509Certificates, s) -> true)
+                    .build();
 
             httpClient = HttpClientBuilder.create()
                 .setSSLContext(sslContext)

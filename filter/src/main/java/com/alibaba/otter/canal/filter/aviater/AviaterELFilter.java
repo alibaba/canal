@@ -29,7 +29,7 @@ public class AviaterELFilter implements CanalEventFilter<CanalEntry.Entry> {
             return true;
         }
 
-        Map<String, Object> env = new HashMap<String, Object>();
+        Map<String, Object> env = new HashMap<>();
         env.put(ROOT_KEY, entry);
         return (Boolean) AviatorEvaluator.execute(expression, env);
     }

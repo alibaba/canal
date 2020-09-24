@@ -18,7 +18,6 @@ import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
-import com.google.common.base.Function;
 import com.google.common.collect.MigrateMap;
 
 /**
@@ -52,54 +51,40 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
         }
 
         executor = Executors.newScheduledThreadPool(1);
-        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
+        destinations = MigrateMap.makeComputingMap(destination -> zooKeeperMetaManager.listAllSubscribeInfo(destination));
 
-            public List<ClientIdentity> apply(String destination) {
-                return zooKeeperMetaManager.listAllSubscribeInfo(destination);
+        cursors = MigrateMap.makeComputingMap(clientIdentity -> {
+            Position position = zooKeeperMetaManager.getCursor(clientIdentity);
+            if (position == null) {
+                return nullCursor; // 返回一个空对象标识，避免出现异常
+            } else {
+                return position;
             }
         });
 
-        cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>() {
-
-            public Position apply(ClientIdentity clientIdentity) {
-                Position position = zooKeeperMetaManager.getCursor(clientIdentity);
-                if (position == null) {
-                    return nullCursor; // 返回一个空对象标识，避免出现异常
-                } else {
-                    return position;
-                }
+        batches = MigrateMap.makeComputingMap(clientIdentity -> {
+            // 读取一下zookeeper信息，初始化一次
+            MemoryClientIdentityBatch batches = MemoryClientIdentityBatch.create(clientIdentity);
+            Map<Long, PositionRange> positionRanges = zooKeeperMetaManager.listAllBatchs(clientIdentity);
+            for (Map.Entry<Long, PositionRange> entry : positionRanges.entrySet()) {
+                batches.addPositionRange(entry.getValue(), entry.getKey()); // 添加记录到指定batchId
             }
+            return batches;
         });
 
-        batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
-
-            public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
-                // 读取一下zookeeper信息，初始化一次
-                MemoryClientIdentityBatch batches = MemoryClientIdentityBatch.create(clientIdentity);
-                Map<Long, PositionRange> positionRanges = zooKeeperMetaManager.listAllBatchs(clientIdentity);
-                for (Map.Entry<Long, PositionRange> entry : positionRanges.entrySet()) {
-                    batches.addPositionRange(entry.getValue(), entry.getKey()); // 添加记录到指定batchId
-                }
-                return batches;
-            }
-        });
-
-        updateCursorTasks = Collections.synchronizedSet(new HashSet<ClientIdentity>());
+        updateCursorTasks = Collections.synchronizedSet(new HashSet<>());
 
         // 启动定时工作任务
-        executor.scheduleAtFixedRate(new Runnable() {
-
-            public void run() {
-                List<ClientIdentity> tasks = new ArrayList<ClientIdentity>(updateCursorTasks);
-                for (ClientIdentity clientIdentity : tasks) {
-                    try {
-                        // 定时将内存中的最新值刷到zookeeper中，多次变更只刷一次
-                        zooKeeperMetaManager.updateCursor(clientIdentity, getCursor(clientIdentity));
-                        updateCursorTasks.remove(clientIdentity);
-                    } catch (Throwable e) {
-                        // ignore
-                        logger.error("period update" + clientIdentity.toString() + " curosr failed!", e);
-                    }
+        executor.scheduleAtFixedRate(() -> {
+            List<ClientIdentity> tasks = new ArrayList<>(updateCursorTasks);
+            for (ClientIdentity clientIdentity : tasks) {
+                try {
+                    // 定时将内存中的最新值刷到zookeeper中，多次变更只刷一次
+                    zooKeeperMetaManager.updateCursor(clientIdentity, getCursor(clientIdentity));
+                    updateCursorTasks.remove(clientIdentity);
+                } catch (Throwable e) {
+                    // ignore
+                    logger.error("period update" + clientIdentity.toString() + " curosr failed!", e);
                 }
             }
         }, period, period, TimeUnit.MILLISECONDS);
@@ -121,24 +106,14 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
         super.subscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
-        executor.submit(new Runnable() {
-
-            public void run() {
-                zooKeeperMetaManager.subscribe(clientIdentity);
-            }
-        });
+        executor.submit(() -> zooKeeperMetaManager.subscribe(clientIdentity));
     }
 
     public void unsubscribe(final ClientIdentity clientIdentity) throws CanalMetaManagerException {
         super.unsubscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
-        executor.submit(new Runnable() {
-
-            public void run() {
-                zooKeeperMetaManager.unsubscribe(clientIdentity);
-            }
-        });
+        executor.submit(() -> zooKeeperMetaManager.unsubscribe(clientIdentity));
     }
 
     public void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException {

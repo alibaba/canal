@@ -19,7 +19,6 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
-import com.google.common.base.Function;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MigrateMap;
@@ -75,64 +74,58 @@ public class MQMessageUtils {
 
     private static Map<String, List<DynamicTopicData>> dynamicTopicDatas = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
                                                                              .softValues(),
-                                                                             new Function<String, List<DynamicTopicData>>() {
+                                                                              pkHashConfigs -> {
+                                                                                List<DynamicTopicData> datas = Lists.newArrayList();
+                                                                                String[] dynamicTopicArray = StringUtils.split(StringUtils.replace(pkHashConfigs,
+                                                                                    ",",
+                                                                                    ";"),
+                                                                                    ";");
+                                                                                // schema.table
+                                                                                for (String dynamicTopic : dynamicTopicArray) {
+                                                                                    DynamicTopicData data = new DynamicTopicData();
 
-                                                                                 public List<DynamicTopicData> apply(String pkHashConfigs) {
-                                                                                     List<DynamicTopicData> datas = Lists.newArrayList();
-                                                                                     String[] dynamicTopicArray = StringUtils.split(StringUtils.replace(pkHashConfigs,
-                                                                                         ",",
-                                                                                         ";"),
-                                                                                         ";");
-                                                                                     // schema.table
-                                                                                     for (String dynamicTopic : dynamicTopicArray) {
-                                                                                         DynamicTopicData data = new DynamicTopicData();
+                                                                                    if (!isWildCard(dynamicTopic)) {
+                                                                                        data.simpleName = dynamicTopic;
+                                                                                    } else {
+                                                                                        if (dynamicTopic.contains("\\.")) {
+                                                                                            data.tableRegexFilter = new AviaterRegexFilter(dynamicTopic);
+                                                                                        } else {
+                                                                                            data.schemaRegexFilter = new AviaterRegexFilter(dynamicTopic);
+                                                                                        }
+                                                                                    }
+                                                                                    datas.add(data);
+                                                                                }
 
-                                                                                         if (!isWildCard(dynamicTopic)) {
-                                                                                             data.simpleName = dynamicTopic;
-                                                                                         } else {
-                                                                                             if (dynamicTopic.contains("\\.")) {
-                                                                                                 data.tableRegexFilter = new AviaterRegexFilter(dynamicTopic);
-                                                                                             } else {
-                                                                                                 data.schemaRegexFilter = new AviaterRegexFilter(dynamicTopic);
-                                                                                             }
-                                                                                         }
-                                                                                         datas.add(data);
-                                                                                     }
-
-                                                                                     return datas;
-                                                                                 }
-                                                                             });
+                                                                                return datas;
+                                                                            });
 
     private static Map<String, List<TopicPartitionData>> topicPartitionDatas = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
                                                                                 .softValues(),
-                                                                                new Function<String, List<TopicPartitionData>>() {
-
-                                                                                    public List<TopicPartitionData> apply(String tPConfigs) {
-                                                                                        List<TopicPartitionData> datas = Lists.newArrayList();
-                                                                                        String[] tPArray = StringUtils.split(StringUtils.replace(tPConfigs,
-                                                                                                ",",
-                                                                                                ";"),
-                                                                                                ";");
-                                                                                        for (String tPConfig : tPArray) {
-                                                                                            TopicPartitionData data = new TopicPartitionData();
-                                                                                            int i = tPConfig.lastIndexOf(":");
-                                                                                            if (i > 0) {
-                                                                                                String tStr = tPConfig.substring(0, i);
-                                                                                                String pStr = tPConfig.substring(i + 1);
-                                                                                                if (!isWildCard(tStr)) {
-                                                                                                    data.simpleName = tStr;
-                                                                                                } else {
-                                                                                                    data.regexFilter = new AviaterRegexFilter(tStr);
-                                                                                                }
-                                                                                                if (!StringUtils.isEmpty(pStr) && StringUtils.isNumeric(pStr)) {
-                                                                                                    data.partitionNum = Integer.valueOf(pStr);
-                                                                                                }
-                                                                                                datas.add(data);
+                                                                                tPConfigs -> {
+                                                                                    List<TopicPartitionData> datas = Lists.newArrayList();
+                                                                                    String[] tPArray = StringUtils.split(StringUtils.replace(tPConfigs,
+                                                                                            ",",
+                                                                                            ";"),
+                                                                                            ";");
+                                                                                    for (String tPConfig : tPArray) {
+                                                                                        TopicPartitionData data = new TopicPartitionData();
+                                                                                        int i = tPConfig.lastIndexOf(":");
+                                                                                        if (i > 0) {
+                                                                                            String tStr = tPConfig.substring(0, i);
+                                                                                            String pStr = tPConfig.substring(i + 1);
+                                                                                            if (!isWildCard(tStr)) {
+                                                                                                data.simpleName = tStr;
+                                                                                            } else {
+                                                                                                data.regexFilter = new AviaterRegexFilter(tStr);
                                                                                             }
+                                                                                            if (!StringUtils.isEmpty(pStr) && StringUtils.isNumeric(pStr)) {
+                                                                                                data.partitionNum = Integer.valueOf(pStr);
+                                                                                            }
+                                                                                            datas.add(data);
                                                                                         }
-
-                                                                                        return datas;
                                                                                     }
+
+                                                                                    return datas;
                                                                                 });
 
     /**
@@ -206,19 +199,15 @@ public class MQMessageUtils {
             int i = 0;
             for (ByteString byteString : rawEntries) {
                 final int index = i;
-                template.submit(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            Entry entry = Entry.parseFrom(byteString);
-                            CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                            datas[index] = new EntryRowData();
-                            datas[index].entry = entry;
-                            datas[index].rowChange = rowChange;
-                        } catch (InvalidProtocolBufferException e) {
-                            throw new RuntimeException(e);
-                        }
+                template.submit(() -> {
+                    try {
+                        Entry entry = Entry.parseFrom(byteString);
+                        RowChange rowChange = RowChange.parseFrom(entry.getStoreValue());
+                        datas[index] = new EntryRowData();
+                        datas[index].entry = entry;
+                        datas[index].rowChange = rowChange;
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new RuntimeException(e);
                     }
                 });
 
@@ -232,18 +221,14 @@ public class MQMessageUtils {
             int i = 0;
             for (Entry entry : message.getEntries()) {
                 final int index = i;
-                template.submit(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                            datas[index] = new EntryRowData();
-                            datas[index].entry = entry;
-                            datas[index].rowChange = rowChange;
-                        } catch (InvalidProtocolBufferException e) {
-                            throw new RuntimeException(e);
-                        }
+                template.submit(() -> {
+                    try {
+                        RowChange rowChange = RowChange.parseFrom(entry.getStoreValue());
+                        datas[index] = new EntryRowData();
+                        datas[index].entry = entry;
+                        datas[index].rowChange = rowChange;
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new RuntimeException(e);
                     }
                 });
 
@@ -679,7 +664,7 @@ public class MQMessageUtils {
                                        CanalEntry.Entry entry) {
         Message message = messageMap.get(topicName);
         if (message == null) {
-            message = new Message(messageId, new ArrayList<CanalEntry.Entry>());
+            message = new Message(messageId, new ArrayList<>());
             messageMap.put(topicName, message);
         }
         message.getEntries().add(entry);

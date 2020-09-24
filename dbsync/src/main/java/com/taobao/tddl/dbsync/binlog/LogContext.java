@@ -16,7 +16,7 @@ import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
  */
 public final class LogContext {
 
-    private final Map<Long, TableMapLogEvent> mapOfTable = new HashMap<Long, TableMapLogEvent>();
+    private final Map<Long, TableMapLogEvent> mapOfTable = new HashMap<>();
 
     private FormatDescriptionLogEvent         formatDescription;
 

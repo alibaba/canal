@@ -120,13 +120,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
                     final String topicName = entry.getKey().replace('.', '_');
                     final com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
 
-                    template.submit(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            send(destination, topicName, messageSub);
-                        }
-                    });
+                    template.submit(() -> send(destination, topicName, messageSub));
                 }
 
                 template.waitForResult();

@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.server.embedded;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,6 @@ import org.springframework.util.CollectionUtils;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
@@ -35,11 +33,9 @@ import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
 import com.alibaba.otter.canal.store.model.Event;
 import com.alibaba.otter.canal.store.model.Events;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MigrateMap;
-import com.google.protobuf.ByteString;
 
 /**
  * 嵌入式版本实现
@@ -79,12 +75,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             loadCanalMetrics();
             metrics.setServerPort(metricsPort);
             metrics.initialize();
-            canalInstances = MigrateMap.makeComputingMap(new Function<String, CanalInstance>() {
-
-                public CanalInstance apply(String destination) {
-                    return canalInstanceGenerator.generate(destination);
-                }
-            });
+            canalInstances = MigrateMap.makeComputingMap(destination -> canalInstanceGenerator.generate(destination));
 
             // lastRollbackPostions = new MapMaker().makeMap();
         }
@@ -193,7 +184,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
             }
             logger.info("subscribe successfully, {} with first position:{} ", clientIdentity, position);
         } else {
-            logger.info("subscribe successfully, use last cursor position:{} ", clientIdentity, position);
+            logger.info("subscribe successfully, {} use last cursor position:{} ", clientIdentity, position);
         }
 
         // 通知下订阅关系变化
@@ -275,19 +266,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 boolean raw = isRaw(canalInstance.getEventStore());
                 List entrys = null;
                 if (raw) {
-                    entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
-
-                        public ByteString apply(Event input) {
-                            return input.getRawEntry();
-                        }
-                    });
+                    entrys = Lists.transform(events.getEvents(), Event::getRawEntry);
                 } else {
-                    entrys = Lists.transform(events.getEvents(), new Function<Event, CanalEntry.Entry>() {
-
-                        public CanalEntry.Entry apply(Event input) {
-                            return input.getEntry();
-                        }
-                    });
+                    entrys = Lists.transform(events.getEvents(), Event::getEntry);
                 }
                 if (logger.isInfoEnabled()) {
                     logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
@@ -367,19 +348,9 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 boolean raw = isRaw(canalInstance.getEventStore());
                 List entrys = null;
                 if (raw) {
-                    entrys = Lists.transform(events.getEvents(), new Function<Event, ByteString>() {
-
-                        public ByteString apply(Event input) {
-                            return input.getRawEntry();
-                        }
-                    });
+                    entrys = Lists.transform(events.getEvents(), Event::getRawEntry);
                 } else {
-                    entrys = Lists.transform(events.getEvents(), new Function<Event, CanalEntry.Entry>() {
-
-                        public CanalEntry.Entry apply(Event input) {
-                            return input.getEntry();
-                        }
-                    });
+                    entrys = Lists.transform(events.getEvents(), Event::getEntry);
                 }
                 if (logger.isInfoEnabled()) {
                     logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
@@ -404,7 +375,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
         CanalInstance canalInstance = canalInstances.get(clientIdentity.getDestination());
         Map<Long, PositionRange> batchs = canalInstance.getMetaManager().listAllBatchs(clientIdentity);
-        List<Long> result = new ArrayList<Long>(batchs.keySet());
+        List<Long> result = new ArrayList<>(batchs.keySet());
         Collections.sort(result);
         return result;
     }
@@ -562,23 +533,26 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
 
     private void loadCanalMetrics() {
         ServiceLoader<CanalMetricsProvider> providers = ServiceLoader.load(CanalMetricsProvider.class);
-        List<CanalMetricsProvider> list = new ArrayList<CanalMetricsProvider>();
+        List<CanalMetricsProvider> list = new ArrayList<>();
         for (CanalMetricsProvider provider : providers) {
             list.add(provider);
         }
-        if (!list.isEmpty()) {
-            // 发现provider, 进行初始化
-            if (list.size() > 1) {
-                logger.warn("Found more than one CanalMetricsProvider, use the first one.");
-                // 报告冲突
-                for (CanalMetricsProvider p : list) {
-                    logger.warn("Found CanalMetricsProvider: {}.", p.getClass().getName());
-                }
-            }
-            // 默认使用第一个
-            CanalMetricsProvider provider = list.get(0);
-            this.metrics = provider.getService();
+
+        if (list.isEmpty()) {
+            return;
         }
+
+        // only allow ONE provider
+        if (list.size() > 1) {
+            logger.warn("Found more than one CanalMetricsProvider, use the first one.");
+            // 报告冲突
+            for (CanalMetricsProvider p : list) {
+                logger.warn("Found CanalMetricsProvider: {}.", p.getClass().getName());
+            }
+        }
+
+        CanalMetricsProvider provider = list.get(0);
+        this.metrics = provider.getService();
     }
 
     private boolean isRaw(CanalEventStore eventStore) {

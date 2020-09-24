@@ -29,7 +29,7 @@ public class SinkCollector extends Collector implements InstanceRegistry {
     private static final long                              NANO_PER_MILLI       = 1000 * 1000L;
     private static final String                            SINK_BLOCKING_TIME   = "canal_instance_sink_blocking_time";
     private static final String                            SINK_BLOCK_TIME_HELP = "Total sink blocking time in milliseconds";
-    private final ConcurrentMap<String, SinkMetricsHolder> instances            = new ConcurrentHashMap<String, SinkMetricsHolder>();
+    private final ConcurrentMap<String, SinkMetricsHolder> instances            = new ConcurrentHashMap<>();
 
     private SinkCollector(){
     }
@@ -45,7 +45,7 @@ public class SinkCollector extends Collector implements InstanceRegistry {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
+        List<MetricFamilySamples> mfs = new ArrayList<>();
         CounterMetricFamily blockingCounter = new CounterMetricFamily(SINK_BLOCKING_TIME,
             SINK_BLOCK_TIME_HELP,
             DEST_LABELS_LIST);
@@ -80,7 +80,7 @@ public class SinkCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
-    private class SinkMetricsHolder {
+    private static class SinkMetricsHolder {
 
         private AtomicLong   eventsSinkBlockingTime;
         private List<String> destLabelValues;
