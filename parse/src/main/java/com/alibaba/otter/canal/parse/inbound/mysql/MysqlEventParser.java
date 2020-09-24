@@ -682,6 +682,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             if (isGTIDMode() && fields.size() > 4) {
                 endPosition.setGtid(fields.get(4));
             }
+            // MariaDB 无法通过`show master status`获取 gtid
+            if (mysqlConnection.isMariaDB() && isGTIDMode()) {
+                ResultSetPacket gtidPacket = mysqlConnection.query("SELECT @@global.gtid_binlog_pos");
+                List<String> gtidFields = gtidPacket.getFieldValues();
+                if (!CollectionUtils.isEmpty(gtidFields) && gtidFields.size() > 0) {
+                    endPosition.setGtid(gtidFields.get(0));
+                }
+            }
             return endPosition;
         } catch (IOException e) {
             throw new CanalParseException("command : 'show master status' has an error!", e);
