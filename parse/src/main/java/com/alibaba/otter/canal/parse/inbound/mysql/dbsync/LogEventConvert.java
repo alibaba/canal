@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -145,7 +147,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return parseGTIDLogEvent((GtidLogEvent) logEvent);
             case LogEvent.HEARTBEAT_LOG_EVENT:
                 return parseHeartbeatLogEvent((HeartbeatLogEvent) logEvent);
-
+            case LogEvent.GTID_EVENT:
+            case LogEvent.GTID_LIST_EVENT:
+                return parseMariaGTIDLogEvent(logEvent);
             default:
                 break;
         }
@@ -182,6 +186,19 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             builder.setValue(String.valueOf(logEvent.getSequenceNumber()));
         }
 
+        Header header = createHeader(logHeader, "", "", EventType.GTID);
+        return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
+    }
+
+    private Entry parseMariaGTIDLogEvent(LogEvent logEvent) {
+        LogHeader logHeader = logEvent.getHeader();
+        Pair.Builder builder = Pair.newBuilder();
+        builder.setKey("gtid");
+        if (logEvent instanceof MariaGtidLogEvent) {
+            builder.setValue(((MariaGtidLogEvent)logEvent).getGtidStr());
+        } else if (logEvent instanceof MariaGtidListLogEvent) {
+            builder.setValue(((MariaGtidListLogEvent)logEvent).getGtidStr());
+        }
         Header header = createHeader(logHeader, "", "", EventType.GTID);
         return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
     }
@@ -276,16 +293,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
-            RowChange.Builder rowChangeBuider = RowChange.newBuilder();
-            if (type == EventType.QUERY && !isDml) {
-                rowChangeBuider.setIsDdl(true);
-            }
-            rowChangeBuider.setSql(queryString);
+            RowChange.Builder rowChangeBuilder = RowChange.newBuilder();
+
+            rowChangeBuilder.setIsDdl(!isDml);
+            rowChangeBuilder.setSql(queryString);
             if (StringUtils.isNotEmpty(event.getDbName())) {// 可能为空
-                rowChangeBuider.setDdlSchemaName(event.getDbName());
+                rowChangeBuilder.setDdlSchemaName(event.getDbName());
             }
-            rowChangeBuider.setEventType(type);
-            return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+            rowChangeBuilder.setEventType(type);
+            return createEntry(header, EntryType.ROWDATA, rowChangeBuilder.build().toByteString());
         }
     }
 
