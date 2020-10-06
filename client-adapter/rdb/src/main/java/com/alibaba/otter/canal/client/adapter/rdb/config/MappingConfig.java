@@ -93,30 +93,29 @@ public class MappingConfig implements AdapterConfig {
 
     public static class DbMapping implements AdapterMapping {
 
-        private boolean             mirrorDb            = false;                            // 是否镜像库
-        private String              database;                                               // 数据库名或schema名
-        private String              table;                                                  // 表名
-        private Map<String, String> targetPk            = new LinkedHashMap<>();            // 目标表主键字段
-        private boolean             mapAll              = false;                            // 映射所有字段
-        private String              targetDb;                                               // 目标库名
-        private String              targetTable;                                            // 目标表名
-        private Map<String, String> targetColumns;                                          // 目标表字段映射
+        private boolean             mirrorDb                 = false;                  // 是否镜像库
+        private String              database;                                          // 数据库名或schema名
+        private String              table;                                             // 表名
+        private Map<String, String> targetPk                 = new LinkedHashMap<>();  // 目标表主键字段
+        private boolean             mapAll                   = false;                  // 映射所有字段
+        private String              targetDb;                                          // 目标库名
+        private String              targetTable;                                       // 目标表名
+        private Map<String, String> targetColumns;                                     // 目标表字段映射
+        private Map<String, String> targetKeywordsIdentifier = new LinkedHashMap<>(2); // 目标库保留字标识符
 
-        private boolean             caseInsensitive     = false;                            // 目标表不区分大小写，默认是否
+        private boolean             caseInsensitive          = false;                  // 目标表不区分大小写，默认是否
 
-        private String              etlCondition;                                           // etl条件sql
+        private String              etlCondition;                                      // etl条件sql
 
-        private int                 readBatch           = 5000;
-        private int                 commitBatch         = 5000;                             // etl等批量提交大小
-
-        private Map<String, String> keywordsIdentifier  = new LinkedHashMap<>(2);  // 保留字标识符前缀
+        private int                 readBatch                = 5000;
+        private int                 commitBatch              = 5000;                   // etl等批量提交大小
 
         private Map<String, String> allMapColumns;
 
-        public DbMapping() {
+        public DbMapping(){
             // 默认值为"`", 兼容老代码
-            this.keywordsIdentifier.put(RDBConstants.KEYWORDS_IDENTIFIER_PREFIX, "`");
-            this.keywordsIdentifier.put(RDBConstants.KEYWORDS_IDENTIFIER_SUFFIX, "`");
+            this.targetKeywordsIdentifier.put(RDBConstants.KEYWORDS_IDENTIFIER_PREFIX, "`");
+            this.targetKeywordsIdentifier.put(RDBConstants.KEYWORDS_IDENTIFIER_SUFFIX, "`");
         }
 
         public boolean getMirrorDb() {
@@ -227,14 +226,15 @@ public class MappingConfig implements AdapterConfig {
          * mysql: <code>select `name`,`date` from user</code><br>
          * postgresql: <code>select "name","date" from user</code><br>
          * mssql: <code>select [name],[date] from user</code><br>
+         * 
          * @return 标识符
          */
-        public Map<String, String> getKeywordsIdentifier() {
-            return keywordsIdentifier;
+        public Map<String, String> getTargetKeywordsIdentifier() {
+            return targetKeywordsIdentifier;
         }
 
-        public void setKeywordsIdentifier(Map<String, String> keywordsIdentifier) {
-            this.keywordsIdentifier = keywordsIdentifier;
+        public void setTargetKeywordsIdentifier(Map<String, String> targetKeywordsIdentifier) {
+            this.targetKeywordsIdentifier = targetKeywordsIdentifier;
         }
 
         public Map<String, String> getAllMapColumns() {

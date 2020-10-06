@@ -310,7 +310,7 @@ dbMapping:
     role_id:
     c_time:
     test1:
-  keywordsIdentifier:           # 关键字、保留字标识符
+  targetKeywordsIdentifier:     # 关键字、保留字标识符
     prefix: '`'                 # 前缀，默认值为 `
     suffix: '`'                 # 后缀，默认值为 `
 ```

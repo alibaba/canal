@@ -243,7 +243,7 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
-        Map<String, String> keywordsIdentifier = dbMapping.getKeywordsIdentifier();
+        Map<String, String> keywordsIdentifier = dbMapping.getTargetKeywordsIdentifier();
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         StringBuilder insertSql = new StringBuilder();
@@ -316,7 +316,7 @@ public class RdbSyncService {
 
         DbMapping dbMapping = config.getDbMapping();
 
-        Map<String, String> keywordsIdentifier = dbMapping.getKeywordsIdentifier();
+        Map<String, String> keywordsIdentifier = dbMapping.getTargetKeywordsIdentifier();
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
@@ -451,7 +451,7 @@ public class RdbSyncService {
 
     private void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
                                  List<Map<String, ?>> values, Map<String, Object> d, Map<String, Object> o) {
-        Map<String, String> keywordsIdentifier = dbMapping.getKeywordsIdentifier();
+        Map<String, String> keywordsIdentifier = dbMapping.getTargetKeywordsIdentifier();
 
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
