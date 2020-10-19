@@ -107,7 +107,7 @@ public class CanalAdminController implements CanalAdmin {
     public String getRunningInstances() {
         try {
             Map<String, CanalInstance> instances = CanalServerWithEmbedded.instance().getCanalInstances();
-            List<String> runningInstances = new ArrayList<String>();
+            List<String> runningInstances = new ArrayList<>();
             instances.forEach((destination, instance) -> {
                 if (instance.isStart()) {
                     runningInstances.add(destination);
@@ -193,7 +193,7 @@ public class CanalAdminController implements CanalAdmin {
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(new File("../logs/canal/"),
             TrueFileFilter.TRUE,
             TrueFileFilter.TRUE);
-        List<String> names = files.stream().map(f -> f.getName()).collect(Collectors.toList());
+        List<String> names = files.stream().map(File::getName).collect(Collectors.toList());
         return Joiner.on(",").join(names);
     }
 
@@ -207,7 +207,7 @@ public class CanalAdminController implements CanalAdmin {
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(new File("../logs/" + destination + "/"),
             TrueFileFilter.TRUE,
             TrueFileFilter.TRUE);
-        List<String> names = files.stream().map(f -> f.getName()).collect(Collectors.toList());
+        List<String> names = files.stream().map(File::getName).collect(Collectors.toList());
         return Joiner.on(",").join(names);
     }
 

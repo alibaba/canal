@@ -4,9 +4,6 @@ import static org.apache.http.client.config.RequestConfig.custom;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
@@ -28,7 +25,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,21 +54,15 @@ public class HttpHelper {
 
         // 创建支持忽略证书的https
         try {
-            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, (x509Certificates, s) -> true).build();
 
             httpclient = HttpClientBuilder.create()
-                .setSSLContext(sslContext)
-                .setConnectionManager(new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory> create()
-                    .register("http", PlainConnectionSocketFactory.INSTANCE)
-                    .register("https", new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE))
-                    .build()))
-                .build();
+                    .setSSLContext(sslContext)
+                    .setConnectionManager(new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory> create()
+                            .register("http", PlainConnectionSocketFactory.INSTANCE)
+                            .register("https", new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE))
+                            .build()))
+                    .build();
         } catch (Throwable e) {
             // ignore
         }
@@ -85,9 +75,9 @@ public class HttpHelper {
         try {
             URI uri = new URIBuilder(url).build();
             RequestConfig config = custom().setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
+                    .setConnectionRequestTimeout(timeout)
+                    .setSocketTimeout(timeout)
+                    .build();
             httpGet = new HttpGet(uri);
             if (heads != null) {
                 for (Map.Entry<String, String> entry : heads.entrySet()) {
@@ -104,7 +94,7 @@ public class HttpHelper {
             } else {
                 String errorMsg = EntityUtils.toString(response.getEntity());
                 throw new RuntimeException("requestGet remote error, url=" + uri.toString() + ", code=" + statusCode
-                                           + ", error msg=" + errorMsg);
+                        + ", error msg=" + errorMsg);
             }
         } catch (Throwable t) {
             throw new RuntimeException("requestGet remote error, request : " + url, t);
@@ -133,11 +123,11 @@ public class HttpHelper {
         try {
             URI uri = new URIBuilder(url).build();
             RequestConfig config = custom().setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
+                    .setConnectionRequestTimeout(timeout)
+                    .setSocketTimeout(timeout)
+                    .build();
             httpPost = new HttpPost(uri);
-            StringEntity entity = new StringEntity(requestBody, StandardCharsets.UTF_8);
+            StringEntity entity = new StringEntity(requestBody, "UTF-8");
             httpPost.setEntity(entity);
             httpPost.setHeader("Content-Type", "application/json;charset=utf8");
             if (heads != null) {
@@ -155,7 +145,7 @@ public class HttpHelper {
                 return EntityUtils.toString(response.getEntity());
             } else {
                 throw new RuntimeException("requestPost remote error, request : " + url + ", statusCode=" + statusCode
-                                           + ";" + EntityUtils.toString(response.getEntity()));
+                        + ";" + EntityUtils.toString(response.getEntity()));
             }
         } catch (Throwable t) {
             throw new RuntimeException("requestPost remote error, request : " + url, t);

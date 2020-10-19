@@ -23,7 +23,7 @@ public class AdminNettyUtils {
 
     public static void write(Channel channel, ByteBuffer body) {
         byte[] header = ByteBuffer.allocate(HEADER_LENGTH).order(ByteOrder.BIG_ENDIAN).putInt(body.limit()).array();
-        List<ChannelBuffer> components = new ArrayList<ChannelBuffer>(2);
+        List<ChannelBuffer> components = new ArrayList<>(2);
         components.add(ChannelBuffers.wrappedBuffer(ByteOrder.BIG_ENDIAN, header));
         components.add(ChannelBuffers.wrappedBuffer(body));
         Channels.write(channel, new CompositeChannelBuffer(ByteOrder.BIG_ENDIAN, components));

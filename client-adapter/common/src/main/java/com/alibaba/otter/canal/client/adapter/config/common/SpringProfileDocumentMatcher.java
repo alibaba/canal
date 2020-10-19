@@ -31,7 +31,7 @@ public class SpringProfileDocumentMatcher implements YamlProcessor.DocumentMatch
     }
 
     public void addActiveProfiles(String... profiles) {
-        LinkedHashSet<String> set = new LinkedHashSet<String>(Arrays.asList(this.activeProfiles));
+        LinkedHashSet<String> set = new LinkedHashSet<>(Arrays.asList(this.activeProfiles));
         Collections.addAll(set, profiles);
         this.activeProfiles = set.toArray(new String[set.size()]);
     }
@@ -67,14 +67,14 @@ public class SpringProfileDocumentMatcher implements YamlProcessor.DocumentMatch
 
     private ProfilesMatcher getProfilesMatcher() {
         return (this.activeProfiles.length != 0 ? new ActiveProfilesMatcher(
-            new HashSet<String>(Arrays.asList(this.activeProfiles))) : new EmptyProfilesMatcher());
+                new HashSet<>(Arrays.asList(this.activeProfiles))) : new EmptyProfilesMatcher());
     }
 
     private Set<String> extractProfiles(List<String> profiles, ProfileType type) {
         if (CollectionUtils.isEmpty(profiles)) {
             return null;
         }
-        Set<String> extractedProfiles = new HashSet<String>();
+        Set<String> extractedProfiles = new HashSet<>();
         for (String candidate : profiles) {
             ProfileType candidateType = ProfileType.POSITIVE;
             if (candidate.startsWith("!")) {
@@ -167,7 +167,7 @@ public class SpringProfileDocumentMatcher implements YamlProcessor.DocumentMatch
      */
     static class SpringProperties {
 
-        private List<String> profiles = new ArrayList<String>();
+        private List<String> profiles = new ArrayList<>();
 
         public List<String> getProfiles() {
             return this.profiles;

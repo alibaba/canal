@@ -51,7 +51,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         if (eventBlackFilter != null && eventBlackFilter instanceof AviaterRegexFilter) {
             convert.setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
-        
+
         convert.setFieldFilterMap(getFieldFilterMap());
         convert.setFieldBlackFilterMap(getFieldBlackFilterMap());
 
@@ -94,13 +94,13 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             }
         }
     }
-    
+
     @Override
     public void setFieldFilter(String fieldFilter) {
-    	super.setFieldFilter(fieldFilter);
-    	
-    	// 触发一下filter变更
-    	if (binlogParser instanceof LogEventConvert) {
+        super.setFieldFilter(fieldFilter);
+
+        // 触发一下filter变更
+        if (binlogParser instanceof LogEventConvert) {
             ((LogEventConvert) binlogParser).setFieldFilterMap(getFieldFilterMap());
         }
 
@@ -108,13 +108,13 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             ((DatabaseTableMeta) tableMetaTSDB).setFieldFilterMap(getFieldFilterMap());
         }
     }
-    
+
     @Override
     public void setFieldBlackFilter(String fieldBlackFilter) {
-    	super.setFieldBlackFilter(fieldBlackFilter);
-    	
-    	// 触发一下filter变更
-    	if (binlogParser instanceof LogEventConvert) {
+        super.setFieldBlackFilter(fieldBlackFilter);
+
+        // 触发一下filter变更
+        if (binlogParser instanceof LogEventConvert) {
             ((LogEventConvert) binlogParser).setFieldBlackFilterMap(getFieldBlackFilterMap());
         }
 
@@ -185,11 +185,15 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         this.connectionCharsetNumber = connectionCharsetNumber;
     }
 
-    public void setConnectionCharset(Charset connectionCharset) {
+    public void setConnectionCharsetStd(Charset connectionCharset) {
         this.connectionCharset = connectionCharset;
     }
 
     public void setConnectionCharset(String connectionCharset) {
+        if ("UTF8MB4".equalsIgnoreCase(connectionCharset)) {
+            connectionCharset = "UTF-8";
+        }
+
         this.connectionCharset = Charset.forName(connectionCharset);
     }
 

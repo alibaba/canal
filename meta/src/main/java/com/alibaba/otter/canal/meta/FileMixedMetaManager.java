@@ -25,7 +25,6 @@ import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.protocol.position.Position;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MigrateMap;
 
@@ -70,58 +69,41 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             throw new CanalMetaManagerException("dir[" + dataDir.getPath() + "] can not read/write");
         }
 
-        dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
-
-            public File apply(String destination) {
-                return getDataFile(destination);
-            }
-        });
+        dataFileCaches = MigrateMap.makeComputingMap(this::getDataFile);
 
         executor = Executors.newScheduledThreadPool(1);
-        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
+        destinations = MigrateMap.makeComputingMap(this::loadClientIdentity);
 
-            public List<ClientIdentity> apply(String destination) {
-                return loadClientIdentity(destination);
+        cursors = MigrateMap.makeComputingMap(clientIdentity -> {
+            Position position = loadCursor(clientIdentity.getDestination(), clientIdentity);
+            if (position == null) {
+                return nullCursor; // 返回一个空对象标识，避免出现异常
+            } else {
+                return position;
             }
         });
 
-        cursors = MigrateMap.makeComputingMap(new Function<ClientIdentity, Position>() {
-
-            public Position apply(ClientIdentity clientIdentity) {
-                Position position = loadCursor(clientIdentity.getDestination(), clientIdentity);
-                if (position == null) {
-                    return nullCursor; // 返回一个空对象标识，避免出现异常
-                } else {
-                    return position;
-                }
-            }
-        });
-
-        updateCursorTasks = Collections.synchronizedSet(new HashSet<ClientIdentity>());
+        updateCursorTasks = Collections.synchronizedSet(new HashSet<>());
 
         // 启动定时工作任务
-        executor.scheduleAtFixedRate(new Runnable() {
-
-            public void run() {
-                List<ClientIdentity> tasks = new ArrayList<ClientIdentity>(updateCursorTasks);
-                for (ClientIdentity clientIdentity : tasks) {
-                    MDC.put("destination", String.valueOf(clientIdentity.getDestination()));
-                    try {
-                        // 定时将内存中的最新值刷到file中，多次变更只刷一次
-                        if (logger.isInfoEnabled()) {
-                            LogPosition cursor = (LogPosition) getCursor(clientIdentity);
-                            logger.info("clientId:{} cursor:[{},{},{},{},{}] address[{}]", new Object[] {
-                                    clientIdentity.getClientId(), cursor.getPostion().getJournalName(),
-                                    cursor.getPostion().getPosition(), cursor.getPostion().getTimestamp(),
-                                    cursor.getPostion().getServerId(), cursor.getPostion().getGtid(),
-                                    cursor.getIdentity().getSourceAddress().toString() });
-                        }
-                        flushDataToFile(clientIdentity.getDestination());
-                        updateCursorTasks.remove(clientIdentity);
-                    } catch (Throwable e) {
-                        // ignore
-                        logger.error("period update" + clientIdentity.toString() + " curosr failed!", e);
+        executor.scheduleAtFixedRate(() -> {
+            List<ClientIdentity> tasks = new ArrayList<>(updateCursorTasks);
+            for (ClientIdentity clientIdentity : tasks) {
+                MDC.put("destination", String.valueOf(clientIdentity.getDestination()));
+                try {
+                    // 定时将内存中的最新值刷到file中，多次变更只刷一次
+                    if (logger.isInfoEnabled()) {
+                        LogPosition cursor = (LogPosition) getCursor(clientIdentity);
+                        logger.info("clientId:{} cursor:[{},{},{},{},{}] address[{}]", clientIdentity.getClientId(), cursor.getPostion().getJournalName(),
+                                cursor.getPostion().getPosition(), cursor.getPostion().getTimestamp(),
+                                cursor.getPostion().getServerId(), cursor.getPostion().getGtid(),
+                                cursor.getIdentity().getSourceAddress().toString());
                     }
+                    flushDataToFile(clientIdentity.getDestination());
+                    updateCursorTasks.remove(clientIdentity);
+                } catch (Throwable e) {
+                    // ignore
+                    logger.error("period update" + clientIdentity.toString() + " curosr failed!", e);
                 }
             }
         },
@@ -131,9 +113,9 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
     }
 
     public void stop() {
-        super.stop();
-
         flushDataToFile();// 刷新数据
+
+        super.stop();
         executor.shutdownNow();
         destinations.clear();
         batches.clear();
@@ -143,24 +125,14 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
         super.subscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
-        executor.submit(new Runnable() {
-
-            public void run() {
-                flushDataToFile(clientIdentity.getDestination());
-            }
-        });
+        executor.submit(() -> flushDataToFile(clientIdentity.getDestination()));
     }
 
     public void unsubscribe(final ClientIdentity clientIdentity) throws CanalMetaManagerException {
         super.unsubscribe(clientIdentity);
 
         // 订阅信息频率发生比较低，不需要做定时merge处理
-        executor.submit(new Runnable() {
-
-            public void run() {
-                flushDataToFile(clientIdentity.getDestination());
-            }
-        });
+        executor.submit(() -> flushDataToFile(clientIdentity.getDestination()));
     }
 
     public void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException {

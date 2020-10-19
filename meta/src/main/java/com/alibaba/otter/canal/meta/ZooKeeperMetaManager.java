@@ -99,7 +99,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
 
     public List<ClientIdentity> listAllSubscribeInfo(String destination) throws CanalMetaManagerException {
         if (zkClientx == null) { //重新加载时可能为空
-            return new ArrayList<ClientIdentity>();
+            return new ArrayList<>();
         }
         String path = ZookeeperPathUtils.getDestinationPath(destination);
         List<String> childs = null;
@@ -110,9 +110,9 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
         }
 
         if (CollectionUtils.isEmpty(childs)) {
-            return new ArrayList<ClientIdentity>();
+            return new ArrayList<>();
         }
-        List<Short> clientIds = new ArrayList<Short>();
+        List<Short> clientIds = new ArrayList<>();
         for (String child : childs) {
             if (StringUtils.isNumeric(child)) {
                 clientIds.add(ZookeeperPathUtils.getClientId(child));
@@ -183,7 +183,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
         }
 
         // 找到最小的Id
-        ArrayList<Long> batchIds = new ArrayList<Long>(nodes.size());
+        ArrayList<Long> batchIds = new ArrayList<>(nodes.size());
         for (String batchIdString : nodes) {
             batchIds.add(Long.valueOf(batchIdString));
         }
@@ -244,7 +244,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
             return null;
         }
         // 找到最大的Id
-        ArrayList<Long> batchIds = new ArrayList<Long>(nodes.size());
+        ArrayList<Long> batchIds = new ArrayList<>(nodes.size());
         for (String batchIdString : nodes) {
             batchIds.add(Long.valueOf(batchIdString));
         }
@@ -271,7 +271,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
             return null;
         }
         // 找到最小的Id
-        ArrayList<Long> batchIds = new ArrayList<Long>(nodes.size());
+        ArrayList<Long> batchIds = new ArrayList<>(nodes.size());
         for (String batchIdString : nodes) {
             batchIds.add(Long.valueOf(batchIdString));
         }
@@ -298,7 +298,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
             return Maps.newHashMap();
         }
         // 找到最大的Id
-        ArrayList<Long> batchIds = new ArrayList<Long>(nodes.size());
+        ArrayList<Long> batchIds = new ArrayList<>(nodes.size());
         for (String batchIdString : nodes) {
             batchIds.add(Long.valueOf(batchIdString));
         }

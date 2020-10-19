@@ -26,22 +26,18 @@ public class KafkaClientRunningTest extends AbstractKafkaTest {
     public void testKafkaConsumer() {
         final ExecutorService executor = Executors.newFixedThreadPool(1);
         final KafkaCanalConnector connector = new KafkaCanalConnector(servers, topic, partition, groupId, null, false);
-        executor.submit(new Runnable() {
-
-            @Override
-            public void run() {
-                connector.connect();
-                connector.subscribe();
-                while (running) {
-                    List<Message> messages = connector.getList(3L, TimeUnit.SECONDS);
-                    if (messages != null) {
-                        System.out.println(messages);
-                    }
-                    connector.ack();
+        executor.submit(() -> {
+            connector.connect();
+            connector.subscribe();
+            while (running) {
+                List<Message> messages = connector.getList(3L, TimeUnit.SECONDS);
+                if (messages != null) {
+                    System.out.println(messages);
                 }
-                connector.unsubscribe();
-                connector.disconnect();
+                connector.ack();
             }
+            connector.unsubscribe();
+            connector.disconnect();
         });
 
         sleep(60000);

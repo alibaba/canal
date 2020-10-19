@@ -12,6 +12,6 @@ public class Threads {
                                                             pool,
                                                             0L,
                                                             TimeUnit.MILLISECONDS,
-                                                            new ArrayBlockingQueue<Runnable>(pool * 20),
+                                                            new ArrayBlockingQueue<>(pool * 20),
                                                             DaemonThreadFactory.daemonThreadFactory);
 }

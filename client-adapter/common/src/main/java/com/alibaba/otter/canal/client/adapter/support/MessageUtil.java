@@ -4,7 +4,6 @@ import java.util.*;
 
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -20,7 +19,7 @@ public class MessageUtil {
             return null;
         }
         List<CanalEntry.Entry> entries = message.getEntries();
-        List<Dml> dmls = new ArrayList<Dml>(entries.size());
+        List<Dml> dmls = new ArrayList<>(entries.size());
         for (CanalEntry.Entry entry : entries) {
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
                 || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
@@ -136,7 +135,7 @@ public class MessageUtil {
         if (commonMessages == null) {
             return new ArrayList<>();
         }
-        List<Dml> dmls = new ArrayList<Dml>(commonMessages.size());
+        List<Dml> dmls = new ArrayList<>(commonMessages.size());
         for (CommonMessage commonMessage : commonMessages) {
             Dml dml = flatMessage2Dml(destination, groupId, commonMessage);
             if (dml != null) {

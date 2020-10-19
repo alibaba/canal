@@ -28,71 +28,62 @@ public class GroupEventSinkTest {
 
         ExecutorService executor = Executors.newFixedThreadPool(3);
         final CountDownLatch latch = new CountDownLatch(1);
-        executor.submit(new Runnable() {
-
-            public void run() {
-                for (int i = 0; i < 50; i++) {
-                    try {
-                        eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 1L + i)), address, "ljhtest1");
-                        Thread.sleep(50L + RandomUtils.nextInt(50));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        executor.submit(() -> {
+            for (int i = 0; i < 50; i++) {
+                try {
+                    eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 1L + i)), address, "ljhtest1");
+                    Thread.sleep(50L + RandomUtils.nextInt(50));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-                for (int i = 0; i < 50; i++) {
-                    try {
-                        eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 30L + i)), address, "ljhtest1");
-                        Thread.sleep(50L + RandomUtils.nextInt(50));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                System.out.println("one sink finished!");
-                latch.countDown();
             }
+
+            for (int i = 0; i < 50; i++) {
+                try {
+                    eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 30L + i)), address, "ljhtest1");
+                    Thread.sleep(50L + RandomUtils.nextInt(50));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("one sink finished!");
+            latch.countDown();
         });
 
-        executor.submit(new Runnable() {
-
-            public void run() {
-                for (int i = 0; i < 50; i++) {
-                    try {
-                        eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 10L + i)), address, "ljhtest2");
-                        Thread.sleep(50L + RandomUtils.nextInt(50));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        executor.submit(() -> {
+            for (int i = 0; i < 50; i++) {
+                try {
+                    eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 10L + i)), address, "ljhtest2");
+                    Thread.sleep(50L + RandomUtils.nextInt(50));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-                for (int i = 0; i < 50; i++) {
-                    try {
-                        eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 40L + i)), address, "ljhtest2");
-                        Thread.sleep(50L + RandomUtils.nextInt(50));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                System.out.println("tow sink finished!");
-                latch.countDown();
             }
+
+            for (int i = 0; i < 50; i++) {
+                try {
+                    eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 40L + i)), address, "ljhtest2");
+                    Thread.sleep(50L + RandomUtils.nextInt(50));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("tow sink finished!");
+            latch.countDown();
         });
 
-        executor.submit(new Runnable() {
-
-            public void run() {
-                for (int i = 0; i < 100; i++) {
-                    try {
-                        eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 30L + i)), address, "ljhtest3");
-                        Thread.sleep(50L + RandomUtils.nextInt(50));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        executor.submit(() -> {
+            for (int i = 0; i < 100; i++) {
+                try {
+                    eventSink.sink(Arrays.asList(buildEntry("1", 1L + i, 30L + i)), address, "ljhtest3");
+                    Thread.sleep(50L + RandomUtils.nextInt(50));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                System.out.println("tow sink finished!");
-                latch.countDown();
             }
+            System.out.println("tow sink finished!");
+            latch.countDown();
         });
 
         try {
