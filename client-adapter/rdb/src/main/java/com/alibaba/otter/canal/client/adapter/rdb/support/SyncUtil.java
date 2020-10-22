@@ -1,27 +1,22 @@
 package com.alibaba.otter.canal.client.adapter.rdb.support;
 
+import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.support.Util;
-
 public class SyncUtil {
+    private static final Logger logger  = LoggerFactory.getLogger(SyncUtil.class);
 
     public static Map<String, String> getColumnsMap(MappingConfig.DbMapping dbMapping, Map<String, Object> data) {
         return getColumnsMap(dbMapping, data.keySet());
@@ -93,15 +88,7 @@ public class SyncUtil {
                 }
                 break;
             case Types.TINYINT:
-                if (value instanceof Number) {
-                    pstmt.setByte(i, ((Number) value).byteValue());
-                } else if (value instanceof String) {
-                    pstmt.setByte(i, Byte.parseByte((String) value));
-                } else {
-                    pstmt.setNull(i, type);
-                }
-                break;
-            case Types.SMALLINT:
+                // 向上提升一级，处理unsigned情况
                 if (value instanceof Number) {
                     pstmt.setShort(i, ((Number) value).shortValue());
                 } else if (value instanceof String) {
@@ -110,7 +97,7 @@ public class SyncUtil {
                     pstmt.setNull(i, type);
                 }
                 break;
-            case Types.INTEGER:
+            case Types.SMALLINT:
                 if (value instanceof Number) {
                     pstmt.setInt(i, ((Number) value).intValue());
                 } else if (value instanceof String) {
@@ -119,11 +106,20 @@ public class SyncUtil {
                     pstmt.setNull(i, type);
                 }
                 break;
-            case Types.BIGINT:
+            case Types.INTEGER:
                 if (value instanceof Number) {
                     pstmt.setLong(i, ((Number) value).longValue());
                 } else if (value instanceof String) {
                     pstmt.setLong(i, Long.parseLong((String) value));
+                } else {
+                    pstmt.setNull(i, type);
+                }
+                break;
+            case Types.BIGINT:
+                if (value instanceof Number) {
+                    pstmt.setBigDecimal(i, new BigDecimal(value.toString()));
+                } else if (value instanceof String) {
+                    pstmt.setBigDecimal(i, new BigDecimal(value.toString()));
                 } else {
                     pstmt.setNull(i, type);
                 }
