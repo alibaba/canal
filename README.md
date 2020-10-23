@@ -95,6 +95,7 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 - [canal 消费端开源项目: Otter](http://github.com/alibaba/otter)
 - [阿里巴巴去 Oracle 数据迁移同步工具: yugong](http://github.com/alibaba/yugong)
 - [阿里巴巴离线同步开源项目 DataX](https://github.com/alibaba/datax)
+- [阿里巴巴数据库连接池开源项目 Druid](https://github.com/alibaba/druid)
 
 ## 问题反馈
 - 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
