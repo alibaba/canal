@@ -1,9 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.hbase.monitor;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
+import com.alibaba.otter.canal.client.adapter.hbase.HbaseAdapter;
+import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -13,11 +14,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
-import com.alibaba.otter.canal.client.adapter.hbase.HbaseAdapter;
-import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class HbaseConfigMonitor {
 
@@ -125,8 +125,8 @@ public class HbaseConfigMonitor {
         private void addConfigToCache(File file, MappingConfig config) {
             hbaseAdapter.getHbaseMapping().put(file.getName(), config);
             Map<String, MappingConfig> configMap = hbaseAdapter.getMappingConfigCache()
-                .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "."
-                                 + config.getHbaseMapping().getDatabase() + "." + config.getHbaseMapping().getTable(),
+                .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "_"
+                                 + config.getHbaseMapping().getDatabase() + "-" + config.getHbaseMapping().getTable(),
                     k1 -> new HashMap<>());
             configMap.put(file.getName(), config);
         }
