@@ -23,8 +23,8 @@ public class DBTest {
         // dataSource.setUsername("mytest");
         // dataSource.setPassword("m121212");
 
-        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true");
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://127.0.0.1:3307/mytest?useUnicode=true&zeroDateTimeBehavior=convertToNull&autoReconnect=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai");
         dataSource.setUsername("root");
         dataSource.setPassword("121212");
 
