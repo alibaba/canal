@@ -6,7 +6,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 
 public class TestConstant {
 
-    public final static String    jdbcUrl      = "jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true";
+    public final static String    jdbcUrl      = "jdbc:mysql://127.0.0.1:3307/mytest?useUnicode=true&zeroDateTimeBehavior=convertToNull&autoReconnect=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai";
     public final static String    jdbcUser     = "root";
     public final static String    jdbcPassword = "121212";
 
@@ -14,7 +14,7 @@ public class TestConstant {
 
     static {
         dataSource = new DruidDataSource();
-        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUrl(jdbcUrl);
         dataSource.setUsername(jdbcUser);
         dataSource.setPassword(jdbcPassword);
