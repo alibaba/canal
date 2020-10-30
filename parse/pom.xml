@@ -50,10 +50,6 @@
 			<artifactId>druid</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba.fastsql</groupId>
-			<artifactId>fastsql</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 		</dependency>
