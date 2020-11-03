@@ -16,6 +16,7 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Field;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.changestream.ChangeStreamDocument;
+import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.connection.ClusterDescription;
 import com.mongodb.connection.ClusterType;
 import com.mongodb.connection.ServerDescription;
@@ -193,6 +194,7 @@ public class MongoConnection {
         }
 
         return mongoClient.watch(pipeline)
+                .fullDocument(FullDocument.UPDATE_LOOKUP)
                 .startAtOperationTime(startAtOperationTime)
                 .cursor();
     }

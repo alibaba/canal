@@ -12,6 +12,7 @@ import jdk.nashorn.internal.runtime.Undefined;
 import org.bson.BsonDbPointer;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonTimestamp;
+import org.bson.Document;
 import org.bson.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,8 +212,9 @@ public class ChangeStreamEventConverter extends AbstractCanalLifeCycle implement
         rowDataBuilder.addAfterColumns(extractColumn(ID_FIELD_NAME, idVal, true));
 
         // 处理 $set
-        if (logEvent.getUpdateDescription().getUpdatedFields() != null) {
-            for (Map.Entry<String, Object> field : logEvent.getUpdateDescription().getUpdatedFields().entrySet()) {
+        Document updateFields = logEvent.getUpdateDescription().getUpdatedFields();
+        if (updateFields != null) {
+            for (Map.Entry<String, Object> field : updateFields.entrySet()) {
                 // 忽略 spring data _class
                 if (CLASS_FIELD_NAME.equals(field.getKey())) {
                     continue;
@@ -228,8 +230,9 @@ public class ChangeStreamEventConverter extends AbstractCanalLifeCycle implement
         }
 
         // 处理 删除的field
-        if (CollectionUtils.isEmpty(logEvent.getUpdateDescription().getRemovedFields())) {
-            for (String fieldName : logEvent.getUpdateDescription().getRemovedFields()) {
+        List<String> removedFields = logEvent.getUpdateDescription().getRemovedFields();
+        if (!CollectionUtils.isEmpty(removedFields)) {
+            for (String fieldName : removedFields) {
                 // 忽略 spring data _class
                 if (CLASS_FIELD_NAME.equals(fieldName)) {
                     continue;
@@ -245,6 +248,31 @@ public class ChangeStreamEventConverter extends AbstractCanalLifeCycle implement
 
                 // 变更后列
                 rowDataBuilder.addAfterColumns(columnBuilder);
+            }
+        }
+
+        // 处理 fullDocument，补全RowData
+        if (logEvent.getFullDocument() != null) {
+            for (Map.Entry<String, Object> field : logEvent.getFullDocument().entrySet()) {
+                // 忽略 _id _class
+                if (ID_FIELD_NAME.equals(field.getKey()) || CLASS_FIELD_NAME.equals(field.getKey())) {
+                    continue;
+                }
+
+                // 在更新字段中，不补充
+                if (updateFields != null && updateFields.containsKey(field.getKey())) {
+                    continue;
+                }
+
+                // 在删除字段中，不补充
+                if (removedFields != null && removedFields.contains(field.getKey())) {
+                    continue;
+                }
+
+                if (needField(logEvent.getNamespace().getFullName(), field.getKey())) {
+                    // 变更后列
+                    rowDataBuilder.addAfterColumns(extractColumn(field.getKey(), field.getValue(), true));
+                }
             }
         }
 
