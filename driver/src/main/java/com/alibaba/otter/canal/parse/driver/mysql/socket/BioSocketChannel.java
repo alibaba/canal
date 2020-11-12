@@ -120,7 +120,7 @@ public class BioSocketChannel implements SocketChannel {
             }
         }
 
-        if (n < len && accTimeout >= timeout) {
+        if (n < len) {
             throw new SocketTimeoutException("Timeout occurred, failed to read total " + len + " bytes in " + timeout
                                              + " milliseconds, actual read only " + n + " bytes");
         }
