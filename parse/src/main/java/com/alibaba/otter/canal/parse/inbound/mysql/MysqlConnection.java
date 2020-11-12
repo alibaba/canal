@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,7 +22,6 @@ import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlUpdateExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpGTIDCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.RegisterSlaveCommandPacket;
@@ -40,6 +40,7 @@ import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
+import org.springframework.util.CollectionUtils;
 
 public class MysqlConnection implements ErosaConnection {
 
@@ -47,7 +48,7 @@ public class MysqlConnection implements ErosaConnection {
 
     private MysqlConnector      connector;
     private long                slaveId;
-    private Charset             charset        = Charset.forName("UTF-8");
+    private Charset             charset        = StandardCharsets.UTF_8;
     private BinlogFormat        binlogFormat;
     private BinlogImage         binlogImage;
 
@@ -274,7 +275,7 @@ public class MysqlConnection implements ErosaConnection {
     private void sendRegisterSlave() throws IOException {
         RegisterSlaveCommandPacket cmd = new RegisterSlaveCommandPacket();
         SocketAddress socketAddress = connector.getChannel().getLocalSocketAddress();
-        if (socketAddress == null || !(socketAddress instanceof InetSocketAddress)) {
+        if (!(socketAddress instanceof InetSocketAddress)) {
             return;
         }
 
@@ -536,8 +537,8 @@ public class MysqlConnection implements ErosaConnection {
         try {
             rs = query("select @@global.binlog_checksum");
             List<String> columnValues = rs.getFieldValues();
-            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0) != null
-                && columnValues.get(0).toUpperCase().equals("CRC32")) {
+            if (!CollectionUtils.isEmpty(columnValues) && columnValues.get(0) != null
+                && columnValues.get(0).equalsIgnoreCase("CRC32")) {
                 binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_CRC32;
             } else {
                 binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
