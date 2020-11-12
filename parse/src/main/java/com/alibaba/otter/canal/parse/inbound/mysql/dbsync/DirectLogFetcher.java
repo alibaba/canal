@@ -74,18 +74,13 @@ public class DirectLogFetcher extends LogFetcher {
     public boolean fetch() throws IOException {
         try {
             // Fetching packet header from input.
-            if (!fetch0(0, NET_HEADER_SIZE)) {
-                logger.warn("Reached end of input stream while fetching header");
-                return false;
-            }
+
+            fetch0(0, NET_HEADER_SIZE);
 
             // Fetching the first packet(may a multi-packet).
             int netlen = getUint24(PACKET_LEN_OFFSET);
             int netnum = getUint8(PACKET_SEQ_OFFSET);
-            if (!fetch0(NET_HEADER_SIZE, netlen)) {
-                logger.warn("Reached end of input stream: packet #" + netnum + ", len = " + netlen);
-                return false;
-            }
+            fetch0(NET_HEADER_SIZE, netlen);
 
             // Detecting error code.
             final int mark = getUint8(NET_HEADER_SIZE);
@@ -124,17 +119,11 @@ public class DirectLogFetcher extends LogFetcher {
 
             // The first packet is a multi-packet, concatenate the packets.
             while (netlen == MAX_PACKET_LENGTH) {
-                if (!fetch0(0, NET_HEADER_SIZE)) {
-                    logger.warn("Reached end of input stream while fetching header");
-                    return false;
-                }
+                fetch0(0, NET_HEADER_SIZE);
 
                 netlen = getUint24(PACKET_LEN_OFFSET);
                 netnum = getUint8(PACKET_SEQ_OFFSET);
-                if (!fetch0(limit, netlen)) {
-                    logger.warn("Reached end of input stream: packet #" + netnum + ", len = " + netlen);
-                    return false;
-                }
+                fetch0(limit, netlen);
             }
 
             // Preparing buffer variables to decoding.
