@@ -234,7 +234,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     // 处理无数据的情况，避免空循环挂死
     private void applyWait(int fullTimes) {
-        int newFullTimes = fullTimes > maxFullTimes ? maxFullTimes : fullTimes;
+        int newFullTimes = Math.min(fullTimes, maxFullTimes);
         if (fullTimes <= 3) { // 3次以内
             Thread.yield();
         } else { // 超过3次，最多只sleep 1ms
