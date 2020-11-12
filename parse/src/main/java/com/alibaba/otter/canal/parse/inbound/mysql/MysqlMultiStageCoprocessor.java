@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -263,8 +264,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     LogBuffer buffer = event.getBuffer();
                     logEvent = decoder.decode(buffer, context);
                     event.setEvent(logEvent);
+                    return;
                 }
-
                 int eventType = logEvent.getHeader().getType();
                 TableMeta tableMeta = null;
                 boolean needDmlParse = false;
