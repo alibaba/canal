@@ -178,42 +178,42 @@ public class MemoryTableMeta implements TableMetaTSDB {
             String name = getSqlName(column.getName());
             // String charset = getSqlName(column.getCharsetExpr());
             SQLDataType dataType = column.getDataType();
-            String dataTypStr = dataType.getName();
-            if (StringUtils.equalsIgnoreCase(dataTypStr, "float")) {
+            StringBuilder dataTypStr = new StringBuilder(dataType.getName());
+            if (StringUtils.equalsIgnoreCase(dataTypStr.toString(), "float")) {
                 if (dataType.getArguments().size() == 1) {
                     int num = Integer.valueOf(dataType.getArguments().get(0).toString());
                     if (num > 24) {
-                        dataTypStr = "double";
+                        dataTypStr = new StringBuilder("double");
                     }
                 }
             }
 
             if (dataType.getArguments().size() > 0) {
-                dataTypStr += "(";
+                dataTypStr.append("(");
                 for (int i = 0; i < column.getDataType().getArguments().size(); i++) {
                     if (i != 0) {
-                        dataTypStr += ",";
+                        dataTypStr.append(",");
                     }
                     SQLExpr arg = column.getDataType().getArguments().get(i);
-                    dataTypStr += arg.toString();
+                    dataTypStr.append(arg.toString());
                 }
-                dataTypStr += ")";
+                dataTypStr.append(")");
             }
 
             if (dataType instanceof SQLDataTypeImpl) {
                 SQLDataTypeImpl dataTypeImpl = (SQLDataTypeImpl) dataType;
                 if (dataTypeImpl.isUnsigned()) {
-                    dataTypStr += " unsigned";
+                    dataTypStr.append(" unsigned");
                 }
 
                 if (dataTypeImpl.isZerofill()) {
                     // mysql default behaiver
                     // 如果设置了zerofill，自动给列添加unsigned属性
                     if (!dataTypeImpl.isUnsigned()) {
-                        dataTypStr += " unsigned";
+                        dataTypStr.append(" unsigned");
                     }
 
-                    dataTypStr += " zerofill";
+                    dataTypStr.append(" zerofill");
                 }
             }
 
@@ -224,7 +224,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
             }
 
             fieldMeta.setColumnName(name);
-            fieldMeta.setColumnType(dataTypStr);
+            fieldMeta.setColumnType(dataTypStr.toString());
             fieldMeta.setNullable(true);
             List<SQLColumnConstraint> constraints = column.getConstraints();
             for (SQLColumnConstraint constraint : constraints) {
