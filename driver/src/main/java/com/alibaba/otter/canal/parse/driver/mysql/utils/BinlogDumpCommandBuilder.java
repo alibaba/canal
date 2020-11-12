@@ -25,8 +25,7 @@ public class BinlogDumpCommandBuilder {
     public ChannelBuffer toChannelBuffer(BinlogDumpCommandPacket command) throws IOException {
         byte[] commandBytes = command.toBytes();
         byte[] headerBytes = assembleHeaderBytes(commandBytes.length);
-        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(headerBytes, commandBytes);
-        return buffer;
+        return ChannelBuffers.wrappedBuffer(headerBytes, commandBytes);
     }
 
     private byte[] assembleHeaderBytes(int length) {
