@@ -161,10 +161,10 @@ public class ES6xTemplate implements ESTemplate {
                 mapping.get_type()).setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal)).size(10000);
             SearchResponse response = esSearchRequest.getResponse();
             for (SearchHit hit : response.getHits()) {
-                ESUpdateRequest esUpdateRequest = this.esConnection.new ES6xUpdateRequest(mapping.get_index(),
+                ESDeleteRequest esDeleteRequest = this.esConnection.new ES6xDeleteRequest(mapping.get_index(),
                     mapping.get_type(),
-                    hit.getId()).setDoc(esFieldData);
-                getBulk().add(esUpdateRequest);
+                    hit.getId());
+                getBulk().add(esDeleteRequest);
                 commitBulk();
             }
         }

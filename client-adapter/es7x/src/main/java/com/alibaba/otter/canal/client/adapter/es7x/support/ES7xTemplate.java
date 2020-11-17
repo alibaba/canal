@@ -159,9 +159,9 @@ public class ES7xTemplate implements ESTemplate {
                 .size(10000);
             SearchResponse response = esSearchRequest.getResponse();
             for (SearchHit hit : response.getHits()) {
-                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.get_index(),
-                    hit.getId()).setDoc(esFieldData);
-                getBulk().add(esUpdateRequest);
+                ESDeleteRequest esDeleteRequest = this.esConnection.new ES7xDeleteRequest(mapping.get_index(),
+                    hit.getId());
+                getBulk().add(esDeleteRequest);
                 commitBulk();
             }
         }
