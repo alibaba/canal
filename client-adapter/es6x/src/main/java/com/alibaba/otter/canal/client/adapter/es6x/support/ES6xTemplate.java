@@ -98,6 +98,13 @@ public class ES6xTemplate implements ESTemplate {
                 getBulk().add(esUpdateRequest);
                 commitBulk();
             }
+            if(response.getHits().getHits().length==0){
+                ESConnection.ES6xIndexRequest indexRequest = this.esConnection.new ES6xIndexRequest(mapping.get_index(),
+                        mapping.get_type(), null)
+                        .setSource(esFieldData);
+                getBulk().add(indexRequest);
+                commitBulk();
+            }
         }
     }
 

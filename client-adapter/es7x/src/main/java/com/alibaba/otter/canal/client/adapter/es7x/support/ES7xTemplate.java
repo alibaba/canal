@@ -164,6 +164,13 @@ public class ES7xTemplate implements ESTemplate {
                 getBulk().add(esDeleteRequest);
                 commitBulk();
             }
+            if(response.getHits().getHits().length==0){
+                ESIndexRequest indexRequest = this.esConnection.new ES7xIndexRequest(mapping.get_index(),
+                         null)
+                        .setSource(esFieldData);
+                getBulk().add(indexRequest);
+                commitBulk();
+            }
         }
     }
 
