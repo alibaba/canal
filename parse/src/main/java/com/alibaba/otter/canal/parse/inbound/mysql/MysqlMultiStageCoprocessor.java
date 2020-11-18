@@ -264,7 +264,6 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     LogBuffer buffer = event.getBuffer();
                     logEvent = decoder.decode(buffer, context);
                     event.setEvent(logEvent);
-                    return;
                 }
                 int eventType = logEvent.getHeader().getType();
                 TableMeta tableMeta = null;
