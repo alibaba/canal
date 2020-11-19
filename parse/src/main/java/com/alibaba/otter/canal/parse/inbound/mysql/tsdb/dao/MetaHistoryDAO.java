@@ -15,7 +15,7 @@ import com.google.common.collect.Maps;
 public class MetaHistoryDAO extends MetaBaseDAO {
 
     public Long insert(MetaHistoryDO metaDO) {
-        return (Long) getSqlMapClientTemplate().insert("meta_history.insert", metaDO);
+        return getSqlSession().getMapper(MetaHistoryMapper.class).insert(metaDO);
     }
 
     public List<MetaHistoryDO> findByTimestamp(String destination, Long snapshotTimestamp, Long timestamp) {
@@ -23,13 +23,13 @@ public class MetaHistoryDAO extends MetaBaseDAO {
         params.put("destination", destination);
         params.put("snapshotTimestamp", snapshotTimestamp == null ? 0L : snapshotTimestamp);
         params.put("timestamp", timestamp == null ? 0L : timestamp);
-        return (List<MetaHistoryDO>) getSqlMapClientTemplate().queryForList("meta_history.findByTimestamp", params);
+        return getSqlSession().getMapper(MetaHistoryMapper.class).findByTimestamp(params);
     }
 
     public Integer deleteByName(String destination) {
         HashMap params = Maps.newHashMapWithExpectedSize(2);
         params.put("destination", destination);
-        return getSqlMapClientTemplate().delete("meta_history.deleteByName", params);
+        return getSqlSession().getMapper(MetaHistoryMapper.class).deleteByName(params);
     }
 
     /**
@@ -40,7 +40,7 @@ public class MetaHistoryDAO extends MetaBaseDAO {
         long timestamp = System.currentTimeMillis() - interval * 1000;
         params.put("timestamp", timestamp);
         params.put("destination", destination);
-        return getSqlMapClientTemplate().delete("meta_history.deleteByTimestamp", params);
+        return getSqlSession().getMapper(MetaHistoryMapper.class).deleteByTimestamp(params);
     }
 
     protected void initDao() throws Exception {
