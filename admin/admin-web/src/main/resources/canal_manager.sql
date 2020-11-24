@@ -62,7 +62,7 @@ CREATE TABLE `canal_instance_config` (
   `content_md5` varchar(128) DEFAULT NULL,
   `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name_UNIQUE` (`name`)
+  UNIQUE KEY `name_cluster_server_UNIQUE` (`name`,`cluster_id`,`server_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
