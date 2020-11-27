@@ -263,9 +263,6 @@ public class SchemaItem {
                                              + rightFieldItem.getColumn().getColumnName());
                                     if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
                                         relationTableFields.put(currentTableRelField, selectFieldItem);
-                                    } else {
-                                        throw new UnsupportedOperationException(
-                                            "Relation condition column must in select columns.");
                                     }
                                 }
                             }
