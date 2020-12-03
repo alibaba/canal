@@ -80,7 +80,7 @@ public class ESConnection {
             HttpHost[] httpHosts = new HttpHost[hosts.length];
             for (int i = 0; i < hosts.length; i++) {
                 String host = hosts[i];
-                int j = host.indexOf(":");
+                int j = host.lastIndexOf(":");
                 HttpHost httpHost = new HttpHost(InetAddress.getByName(host.substring(0, j)),
                     Integer.parseInt(host.substring(j + 1)));
                 httpHosts[i] = httpHost;
