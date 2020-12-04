@@ -36,6 +36,7 @@ public class CanalLauncher {
             logger.info("## set default uncaught exception handler");
             setGlobalUncaughtExceptionHandler();
 
+            // 支持rocketmq client 配置日志路径
             System.setProperty("rocketmq.client.logUseSlf4j","true");
 
             logger.info("## load canal configurations");
