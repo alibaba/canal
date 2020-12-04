@@ -36,6 +36,8 @@ public class CanalLauncher {
             logger.info("## set default uncaught exception handler");
             setGlobalUncaughtExceptionHandler();
 
+            System.setProperty("rocketmq.client.logUseSlf4j","true");
+
             logger.info("## load canal configurations");
             String conf = System.getProperty("canal.conf", "classpath:canal.properties");
             Properties properties = new Properties();
