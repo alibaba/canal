@@ -90,7 +90,15 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
             factory.setUsername(username);
             factory.setPassword(password);
         }
-        factory.setHost(nameServer);
+        //解析出端口 modified by 16075140
+        if (nameServer != null && nameServer.contains(":")) {
+            String[] serverHostAndPort = nameServer.split(":");
+            factory.setHost(serverHostAndPort[0]);
+            factory.setPort(Integer.parseInt(serverHostAndPort[1]));
+        } else {
+            factory.setHost(nameServer);
+        }
+
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(5000);
         factory.setVirtualHost(vhost);
