@@ -213,9 +213,13 @@ public class CanalController {
             });
             if (zkclientx != null) {
                 runningMonitor.setZkClient(zkclientx);
+                // 触发创建一下cid节点
+                final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
+                        registerIp + ":" + port);
+                initCid(path);
             }
             // 触发创建一下cid节点
-            runningMonitor.init();
+//            runningMonitor.init();
             return runningMonitor;
         }));
 
