@@ -22,20 +22,30 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
 
     protected MQProperties       mqProperties;
 
-    protected ThreadPoolExecutor executor;
+    protected ThreadPoolExecutor sendExecutor;
+    protected ThreadPoolExecutor buildExecutor;
 
     @Override
     public void init(Properties properties) {
         // parse canal mq properties
         loadCanalMqProperties(properties);
 
-        int parallelThreadSize = mqProperties.getParallelThreadSize();
-        executor = new ThreadPoolExecutor(parallelThreadSize,
-            parallelThreadSize,
+        int parallelBuildThreadSize = mqProperties.getParallelBuildThreadSize();
+        buildExecutor = new ThreadPoolExecutor(parallelBuildThreadSize,
+            parallelBuildThreadSize,
             0,
             TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(parallelThreadSize * 2),
-            new NamedThreadFactory("MQParallel"),
+            new ArrayBlockingQueue<>(parallelBuildThreadSize * 2),
+            new NamedThreadFactory("MQ-Parallel-Builder"),
+            new ThreadPoolExecutor.CallerRunsPolicy());
+
+        int parallelSendThreadSize = mqProperties.getParallelSendThreadSize();
+        sendExecutor = new ThreadPoolExecutor(parallelSendThreadSize,
+            parallelSendThreadSize,
+            0,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(parallelSendThreadSize * 2),
+            new NamedThreadFactory("MQ-Parallel-Sender"),
             new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
@@ -46,8 +56,12 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
 
     @Override
     public void stop() {
-        if (executor != null) {
-            executor.shutdownNow();
+        if (buildExecutor != null) {
+            buildExecutor.shutdownNow();
+        }
+
+        if (sendExecutor != null) {
+            sendExecutor.shutdownNow();
         }
     }
 
@@ -57,7 +71,8 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
      * canal.mq.flat.message = true <br/>
      * canal.mq.database.hash = true <br/>
      * canal.mq.filter.transaction.entry = true <br/>
-     * canal.mq.parallel.thread.size = 8 <br/>
+     * canal.mq.parallel.build.thread.size = 8 <br/>
+     * canal.mq.parallel.send.thread.size = 8 <br/>
      * canal.mq.batch.size = 50 <br/>
      * canal.mq.timeout = 100 <br/>
      * canal.mq.access.channel = local <br/>
@@ -70,6 +85,7 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
         if (!StringUtils.isEmpty(flatMessage)) {
             mqProperties.setFlatMessage(Boolean.parseBoolean(flatMessage));
         }
+
         String databaseHash = properties.getProperty(CanalConstants.CANAL_MQ_DATABASE_HASH);
         if (!StringUtils.isEmpty(databaseHash)) {
             mqProperties.setDatabaseHash(Boolean.parseBoolean(databaseHash));
@@ -78,15 +94,19 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
         if (!StringUtils.isEmpty(filterTranEntry)) {
             mqProperties.setFilterTransactionEntry(Boolean.parseBoolean(filterTranEntry));
         }
-        String parallelThreadSize = properties.getProperty(CanalConstants.CANAL_MQ_PARALLEL_THREAD_SIZE);
-        if (!StringUtils.isEmpty(parallelThreadSize)) {
-            mqProperties.setParallelThreadSize(Integer.parseInt(parallelThreadSize));
+        String parallelBuildThreadSize = properties.getProperty(CanalConstants.CANAL_MQ_BUILD_THREAD_SIZE);
+        if (!StringUtils.isEmpty(parallelBuildThreadSize)) {
+            mqProperties.setParallelBuildThreadSize(Integer.parseInt(parallelBuildThreadSize));
+        }
+        String parallelSendThreadSize = properties.getProperty(CanalConstants.CANAL_MQ_SEND_THREAD_SIZE);
+        if (!StringUtils.isEmpty(parallelSendThreadSize)) {
+            mqProperties.setParallelSendThreadSize(Integer.parseInt(parallelSendThreadSize));
         }
         String batchSize = properties.getProperty(CanalConstants.CANAL_MQ_CANAL_BATCH_SIZE);
         if (!StringUtils.isEmpty(batchSize)) {
             mqProperties.setBatchSize(Integer.parseInt(batchSize));
         }
-        String timeOut = properties.getProperty(CanalConstants.CANAL_MQ_CANAL_FETCH_TIMEOUT);
+        String timeOut = properties.getProperty(CanalConstants.CANAL_MQ_CANAL_GET_TIMEOUT);
         if (!StringUtils.isEmpty(timeOut)) {
             mqProperties.setFetchTimeout(Integer.parseInt(timeOut));
         }
@@ -105,6 +125,16 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
         String aliyunUid = properties.getProperty(CanalConstants.CANAL_ALIYUN_UID);
         if (!StringUtils.isEmpty(aliyunUid)) {
             mqProperties.setAliyunUid(Integer.parseInt(aliyunUid));
+        }
+    }
+
+    /**
+     * 兼容下<=1.1.4的mq配置项
+     */
+    protected void doMoreCompatibleConvert(String oldKey, String newKey, Properties properties) {
+        String value = properties.getProperty(oldKey);
+        if (StringUtils.isNotEmpty(value)) {
+            properties.setProperty(newKey, value);
         }
     }
 }

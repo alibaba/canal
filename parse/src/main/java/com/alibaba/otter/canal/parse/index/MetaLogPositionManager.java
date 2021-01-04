@@ -73,6 +73,6 @@ public class MetaLogPositionManager extends AbstractLogPositionManager {
     @Override
     public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
         // do nothing
-        logger.info("persist LogPosition:{}", destination, logPosition);
+        logger.info("destination [{}] persist LogPosition:{}", destination, logPosition);
     }
 }

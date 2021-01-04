@@ -37,7 +37,7 @@ public class JsonDiffConversion {
     public static StringBuilder print_json_diff(LogBuffer buffer, long len, String columnName, int columnIndex,
                                                 String charsetName) {
         int position = buffer.position();
-        List<String> operation_names = new ArrayList<String>();
+        List<String> operation_names = new ArrayList<>();
         while (buffer.hasRemaining()) {
             int operation_int = buffer.getUint8();
             if (operation_int >= JSON_DIFF_OPERATION_COUNT) {

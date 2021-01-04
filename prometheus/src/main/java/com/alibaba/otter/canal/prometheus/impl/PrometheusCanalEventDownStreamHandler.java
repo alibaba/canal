@@ -1,12 +1,12 @@
 package com.alibaba.otter.canal.prometheus.impl;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.sink.AbstractCanalEventDownStreamHandler;
 import com.alibaba.otter.canal.store.model.Event;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Chuanyi Li
@@ -26,17 +26,23 @@ public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDow
                 switch (type) {
                     case TRANSACTIONBEGIN: {
                         long exec = e.getExecuteTime();
-                        if (exec > 0) localExecTime = exec;
+                        if (exec > 0) {
+                            localExecTime = exec;
+                        }
                         break;
                     }
                     case ROWDATA: {
                         long exec = e.getExecuteTime();
-                        if (exec > 0) localExecTime = exec;
+                        if (exec > 0) {
+                            localExecTime = exec;
+                        }
                         break;
                     }
                     case TRANSACTIONEND: {
                         long exec = e.getExecuteTime();
-                        if (exec > 0) localExecTime = exec;
+                        if (exec > 0) {
+                            localExecTime = exec;
+                        }
                         transactionCounter.incrementAndGet();
                         break;
                     }
@@ -51,7 +57,7 @@ public class PrometheusCanalEventDownStreamHandler extends AbstractCanalEventDow
                 }
             }
             if (localExecTime > 0) {
-                latestExecuteTime.lazySet(localExecTime);
+                latestExecuteTime.set(localExecTime);
             }
         }
         return events;

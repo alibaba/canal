@@ -11,7 +11,7 @@ import java.util.List;
 public class HaAuthenticationInfo {
 
     private AuthenticationInfo       master;
-    private List<AuthenticationInfo> slavers = new ArrayList<AuthenticationInfo>();
+    private List<AuthenticationInfo> slavers = new ArrayList<>();
 
     public AuthenticationInfo getMaster() {
         return master;

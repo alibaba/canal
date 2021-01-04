@@ -24,7 +24,7 @@ public class MigrateMap {
             }
         });
 
-        return new MigrateConcurrentMap<K, V>(computingCache);
+        return new MigrateConcurrentMap<>(computingCache);
     }
 
     public static <K, V> ConcurrentMap<K, V> makeComputingMap(Function<? super K, ? extends V> computingFunction) {

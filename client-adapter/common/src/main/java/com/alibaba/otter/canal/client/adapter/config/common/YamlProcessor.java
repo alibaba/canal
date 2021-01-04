@@ -130,8 +130,7 @@ public abstract class YamlProcessor {
             if (logger.isDebugEnabled()) {
                 logger.debug("Loading from YAML: " + resource);
             }
-            Reader reader = new UnicodeReader(resource.getInputStream());
-            try {
+            try (Reader reader = new UnicodeReader(resource.getInputStream())) {
                 for (Object object : yaml.loadAll(reader)) {
                     if (object != null && process(asMap(object), callback)) {
                         count++;
@@ -142,10 +141,8 @@ public abstract class YamlProcessor {
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug(
-                        "Loaded " + count + " document" + (count > 1 ? "s" : "") + " from YAML resource: " + resource);
+                            "Loaded " + count + " document" + (count > 1 ? "s" : "") + " from YAML resource: " + resource);
                 }
-            } finally {
-                reader.close();
             }
         } catch (IOException ex) {
             handleProcessError(resource, ex);
@@ -166,7 +163,7 @@ public abstract class YamlProcessor {
     @SuppressWarnings("unchecked")
     private Map<String, Object> asMap(Object object) {
         // YAML can have numbers as keys
-        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        Map<String, Object> result = new LinkedHashMap<>();
         if (!(object instanceof Map)) {
             // A document can be a text literal
             result.put("document", object);
@@ -249,7 +246,7 @@ public abstract class YamlProcessor {
      * @since 4.1.3
      */
     protected final Map<String, Object> getFlattenedMap(Map<String, Object> source) {
-        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        Map<String, Object> result = new LinkedHashMap<>();
         buildFlattenedMap(result, source, null);
         return result;
     }

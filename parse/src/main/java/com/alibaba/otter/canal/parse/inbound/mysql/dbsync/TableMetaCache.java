@@ -105,7 +105,7 @@ public class TableMetaCache {
             TableMeta tableMeta = memoryTableMeta.find(schema, table);
             return tableMeta.getFields();
         } else {
-            return new ArrayList<FieldMeta>();
+            return new ArrayList<>();
         }
     }
 
@@ -113,7 +113,7 @@ public class TableMetaCache {
      * 处理desc table的结果
      */
     public static List<FieldMeta> parseTableMetaByDesc(ResultSetPacket packet) {
-        Map<String, Integer> nameMaps = new HashMap<String, Integer>(6, 1f);
+        Map<String, Integer> nameMaps = new HashMap<>(6, 1f);
         int index = 0;
         for (FieldPacket fieldPacket : packet.getFieldDescriptors()) {
             nameMaps.put(fieldPacket.getOriginalName(), index++);
@@ -121,7 +121,7 @@ public class TableMetaCache {
 
         int size = packet.getFieldDescriptors().size();
         int count = packet.getFieldValues().size() / packet.getFieldDescriptors().size();
-        List<FieldMeta> result = new ArrayList<FieldMeta>();
+        List<FieldMeta> result = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             FieldMeta meta = new FieldMeta();
             // 做一个优化，使用String.intern()，共享String对象，减少内存使用

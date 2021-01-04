@@ -5,9 +5,9 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.alibaba.fastsql.sql.repository.SchemaObject;
-import com.alibaba.fastsql.sql.repository.SchemaRepository;
-import com.alibaba.fastsql.util.JdbcConstants;
+import com.alibaba.druid.sql.repository.SchemaObject;
+import com.alibaba.druid.sql.repository.SchemaRepository;
+import com.alibaba.druid.util.JdbcConstants;
 
 /**
  * @author agapple 2018年6月7日 下午5:36:13

@@ -34,8 +34,8 @@ public class CanalMessageSerializerUtil {
                         messageSize += CodedOutputStream.computeInt64Size(1, data.getId());
 
                         int dataSize = 0;
-                        for (int i = 0; i < rowEntries.size(); i++) {
-                            dataSize += CodedOutputStream.computeBytesSizeNoTag(rowEntries.get(i));
+                        for (ByteString rowEntry : rowEntries) {
+                            dataSize += CodedOutputStream.computeBytesSizeNoTag(rowEntry);
                         }
                         messageSize += dataSize;
                         messageSize += 1 * rowEntries.size();
@@ -53,8 +53,8 @@ public class CanalMessageSerializerUtil {
                         output.writeRawVarint32(messageSize);
                         // message
                         output.writeInt64(1, data.getId());
-                        for (int i = 0; i < rowEntries.size(); i++) {
-                            output.writeBytes(2, rowEntries.get(i));
+                        for (ByteString rowEntry : rowEntries) {
+                            output.writeBytes(2, rowEntry);
                         }
                         output.checkNoSpaceLeft();
                         return body;

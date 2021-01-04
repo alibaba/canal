@@ -201,18 +201,19 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
 
     @Override
     public void disconnect() {
-        if (connect != null) {
-            try {
-                connect.close();
-            } catch (IOException e) {
-                throw new CanalClientException("stop connect error", e);
-            }
-        }
         if (channel != null) {
             try {
                 channel.close();
             } catch (IOException | TimeoutException e) {
                 throw new CanalClientException("stop channel error", e);
+            }
+        }
+
+        if (connect != null) {
+            try {
+                connect.close();
+            } catch (IOException e) {
+                throw new CanalClientException("stop connect error", e);
             }
         }
     }

@@ -25,7 +25,6 @@ import com.alibaba.otter.canal.deployer.monitor.InstanceAction;
 import com.alibaba.otter.canal.deployer.monitor.InstanceConfigMonitor;
 import com.alibaba.otter.canal.deployer.monitor.ManagerInstanceConfigMonitor;
 import com.alibaba.otter.canal.deployer.monitor.SpringInstanceConfigMonitor;
-import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.PlainCanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
@@ -74,12 +73,7 @@ public class CanalController {
     }
 
     public CanalController(final Properties properties){
-        managerClients = MigrateMap.makeComputingMap(new Function<String, PlainCanalConfigClient>() {
-
-            public PlainCanalConfigClient apply(String managerAddress) {
-                return getManagerClient(managerAddress);
-            }
-        });
+        managerClients = MigrateMap.makeComputingMap(this::getManagerClient);
 
         // 初始化全局参数设置
         globalInstanceConfig = initGlobalConfig(properties);
@@ -147,85 +141,82 @@ public class CanalController {
 
         final ServerRunningData serverData = new ServerRunningData(registerIp + ":" + port);
         ServerRunningMonitors.setServerData(serverData);
-        ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap(new Function<String, ServerRunningMonitor>() {
+        ServerRunningMonitors.setRunningMonitors(MigrateMap.makeComputingMap((Function<String, ServerRunningMonitor>) destination -> {
+            ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
+            runningMonitor.setDestination(destination);
+            runningMonitor.setListener(new ServerRunningListener() {
 
-            public ServerRunningMonitor apply(final String destination) {
-                ServerRunningMonitor runningMonitor = new ServerRunningMonitor(serverData);
-                runningMonitor.setDestination(destination);
-                runningMonitor.setListener(new ServerRunningListener() {
-
-                    public void processActiveEnter() {
-                        try {
-                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            embededCanalServer.start(destination);
-                            if (canalMQStarter != null) {
-                                canalMQStarter.startDestination(destination);
-                            }
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
+                public void processActiveEnter() {
+                    try {
+                        MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                        embededCanalServer.start(destination);
+                        if (canalMQStarter != null) {
+                            canalMQStarter.startDestination(destination);
                         }
+                    } finally {
+                        MDC.remove(CanalConstants.MDC_DESTINATION);
                     }
-
-                    public void processActiveExit() {
-                        try {
-                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            if (canalMQStarter != null) {
-                                canalMQStarter.stopDestination(destination);
-                            }
-                            embededCanalServer.stop(destination);
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
-                        }
-                    }
-
-                    public void processStart() {
-                        try {
-                            if (zkclientx != null) {
-                                final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
-                                    registerIp + ":" + port);
-                                initCid(path);
-                                zkclientx.subscribeStateChanges(new IZkStateListener() {
-
-                                    public void handleStateChanged(KeeperState state) throws Exception {
-
-                                    }
-
-                                    public void handleNewSession() throws Exception {
-                                        initCid(path);
-                                    }
-
-                                    @Override
-                                    public void handleSessionEstablishmentError(Throwable error) throws Exception {
-                                        logger.error("failed to connect to zookeeper", error);
-                                    }
-                                });
-                            }
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
-                        }
-                    }
-
-                    public void processStop() {
-                        try {
-                            MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
-                            if (zkclientx != null) {
-                                final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
-                                    registerIp + ":" + port);
-                                releaseCid(path);
-                            }
-                        } finally {
-                            MDC.remove(CanalConstants.MDC_DESTINATION);
-                        }
-                    }
-
-                });
-                if (zkclientx != null) {
-                    runningMonitor.setZkClient(zkclientx);
                 }
-                // 触发创建一下cid节点
-                runningMonitor.init();
-                return runningMonitor;
+
+                public void processActiveExit() {
+                    try {
+                        MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                        if (canalMQStarter != null) {
+                            canalMQStarter.stopDestination(destination);
+                        }
+                        embededCanalServer.stop(destination);
+                    } finally {
+                        MDC.remove(CanalConstants.MDC_DESTINATION);
+                    }
+                }
+
+                public void processStart() {
+                    try {
+                        if (zkclientx != null) {
+                            final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
+                                registerIp + ":" + port);
+                            initCid(path);
+                            zkclientx.subscribeStateChanges(new IZkStateListener() {
+
+                                public void handleStateChanged(KeeperState state) throws Exception {
+
+                                }
+
+                                public void handleNewSession() throws Exception {
+                                    initCid(path);
+                                }
+
+                                @Override
+                                public void handleSessionEstablishmentError(Throwable error) throws Exception {
+                                    logger.error("failed to connect to zookeeper", error);
+                                }
+                            });
+                        }
+                    } finally {
+                        MDC.remove(CanalConstants.MDC_DESTINATION);
+                    }
+                }
+
+                public void processStop() {
+                    try {
+                        MDC.put(CanalConstants.MDC_DESTINATION, String.valueOf(destination));
+                        if (zkclientx != null) {
+                            final String path = ZookeeperPathUtils.getDestinationClusterNode(destination,
+                                registerIp + ":" + port);
+                            releaseCid(path);
+                        }
+                    } finally {
+                        MDC.remove(CanalConstants.MDC_DESTINATION);
+                    }
+                }
+
+            });
+            if (zkclientx != null) {
+                runningMonitor.setZkClient(zkclientx);
             }
+            // 触发创建一下cid节点
+            runningMonitor.init();
+            return runningMonitor;
         }));
 
         // 初始化monitor机制
@@ -303,40 +294,37 @@ public class CanalController {
                 }
             };
 
-            instanceConfigMonitors = MigrateMap.makeComputingMap(new Function<InstanceMode, InstanceConfigMonitor>() {
+            instanceConfigMonitors = MigrateMap.makeComputingMap(mode -> {
+                int scanInterval = Integer.valueOf(getProperty(properties,
+                    CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
+                    "5"));
 
-                public InstanceConfigMonitor apply(InstanceMode mode) {
-                    int scanInterval = Integer.valueOf(getProperty(properties,
-                        CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
-                        "5"));
-
-                    if (mode.isSpring()) {
-                        SpringInstanceConfigMonitor monitor = new SpringInstanceConfigMonitor();
-                        monitor.setScanIntervalInSecond(scanInterval);
-                        monitor.setDefaultAction(defaultAction);
-                        // 设置conf目录，默认是user.dir + conf目录组成
-                        String rootDir = getProperty(properties, CanalConstants.CANAL_CONF_DIR);
-                        if (StringUtils.isEmpty(rootDir)) {
-                            rootDir = "../conf";
-                        }
-
-                        if (StringUtils.equals("otter-canal", System.getProperty("appName"))) {
-                            monitor.setRootConf(rootDir);
-                        } else {
-                            // eclipse debug模式
-                            monitor.setRootConf("src/main/resources/");
-                        }
-                        return monitor;
-                    } else if (mode.isManager()) {
-                        ManagerInstanceConfigMonitor monitor = new ManagerInstanceConfigMonitor();
-                        monitor.setScanIntervalInSecond(scanInterval);
-                        monitor.setDefaultAction(defaultAction);
-                        String managerAddress = getProperty(properties, CanalConstants.CANAL_ADMIN_MANAGER);
-                        monitor.setConfigClient(getManagerClient(managerAddress));
-                        return monitor;
-                    } else {
-                        throw new UnsupportedOperationException("unknow mode :" + mode + " for monitor");
+                if (mode.isSpring()) {
+                    SpringInstanceConfigMonitor monitor = new SpringInstanceConfigMonitor();
+                    monitor.setScanIntervalInSecond(scanInterval);
+                    monitor.setDefaultAction(defaultAction);
+                    // 设置conf目录，默认是user.dir + conf目录组成
+                    String rootDir = getProperty(properties, CanalConstants.CANAL_CONF_DIR);
+                    if (StringUtils.isEmpty(rootDir)) {
+                        rootDir = "../conf";
                     }
+
+                    if (StringUtils.equals("otter-canal", System.getProperty("appName"))) {
+                        monitor.setRootConf(rootDir);
+                    } else {
+                        // eclipse debug模式
+                        monitor.setRootConf("src/main/resources/");
+                    }
+                    return monitor;
+                } else if (mode.isManager()) {
+                    ManagerInstanceConfigMonitor monitor = new ManagerInstanceConfigMonitor();
+                    monitor.setScanIntervalInSecond(scanInterval);
+                    monitor.setDefaultAction(defaultAction);
+                    String managerAddress = getProperty(properties, CanalConstants.CANAL_ADMIN_MANAGER);
+                    monitor.setConfigClient(getManagerClient(managerAddress));
+                    return monitor;
+                } else {
+                    throw new UnsupportedOperationException("unknow mode :" + mode + " for monitor");
                 }
             });
         }
@@ -373,27 +361,23 @@ public class CanalController {
             globalConfig.setSpringXml(springXml);
         }
 
-        instanceGenerator = new CanalInstanceGenerator() {
+        instanceGenerator = destination -> {
+            InstanceConfig config = instanceConfigs.get(destination);
+            if (config == null) {
+                throw new CanalServerException("can't find destination:" + destination);
+            }
 
-            public CanalInstance generate(String destination) {
-                InstanceConfig config = instanceConfigs.get(destination);
-                if (config == null) {
-                    throw new CanalServerException("can't find destination:" + destination);
-                }
-
-                if (config.getMode().isManager()) {
-                    PlainCanalInstanceGenerator instanceGenerator = new PlainCanalInstanceGenerator(properties);
-                    instanceGenerator.setCanalConfigClient(managerClients.get(config.getManagerAddress()));
-                    instanceGenerator.setSpringXml(config.getSpringXml());
-                    return instanceGenerator.generate(destination);
-                } else if (config.getMode().isSpring()) {
-                    SpringCanalInstanceGenerator instanceGenerator = new SpringCanalInstanceGenerator();
-                    instanceGenerator.setSpringXml(config.getSpringXml());
-                    return instanceGenerator.generate(destination);
-                } else {
-                    throw new UnsupportedOperationException("unknow mode :" + config.getMode());
-                }
-
+            if (config.getMode().isManager()) {
+                PlainCanalInstanceGenerator instanceGenerator = new PlainCanalInstanceGenerator(properties);
+                instanceGenerator.setCanalConfigClient(managerClients.get(config.getManagerAddress()));
+                instanceGenerator.setSpringXml(config.getSpringXml());
+                return instanceGenerator.generate(destination);
+            } else if (config.getMode().isSpring()) {
+                SpringCanalInstanceGenerator instanceGenerator = new SpringCanalInstanceGenerator();
+                instanceGenerator.setSpringXml(config.getSpringXml());
+                return instanceGenerator.generate(destination);
+            } else {
+                throw new UnsupportedOperationException("unknow mode :" + config.getMode());
             }
 
         };
@@ -443,11 +427,11 @@ public class CanalController {
                 }
                 config.setManagerAddress(managerAddress);
             }
-        } else if (config.getMode().isSpring()) {
-            String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(destination));
-            if (StringUtils.isNotEmpty(springXml)) {
-                config.setSpringXml(springXml);
-            }
+        }
+
+        String springXml = getProperty(properties, CanalConstants.getInstancSpringXmlKey(destination));
+        if (StringUtils.isNotEmpty(springXml)) {
+            config.setSpringXml(springXml);
         }
 
         return config;

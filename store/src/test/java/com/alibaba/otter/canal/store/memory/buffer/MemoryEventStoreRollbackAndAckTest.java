@@ -67,7 +67,7 @@ public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
 
         first = eventStore.getFirstPosition();
         lastest = eventStore.getLatestPosition();
-        List<Event> entrys = new ArrayList<Event>(entrys2.getEvents());
+        List<Event> entrys = new ArrayList<>(entrys2.getEvents());
         Assert.assertTrue(entrys.size() == bufferSize);
         Assert.assertEquals(first, entrys2.getPositionRange().getStart());
         Assert.assertEquals(lastest, entrys2.getPositionRange().getEnd());
@@ -120,7 +120,7 @@ public class MemoryEventStoreRollbackAndAckTest extends MemoryEventStoreBase {
 
         first = eventStore.getFirstPosition();
         lastest = eventStore.getLatestPosition();
-        List<Event> entrys = new ArrayList<Event>(entrys2.getEvents());
+        List<Event> entrys = new ArrayList<>(entrys2.getEvents());
         // because doGet() contains the logic about whether include first event , so not to compare
         //Assert.assertEquals(first, entrys2.getPositionRange().getStart());
         Assert.assertEquals(lastest, entrys2.getPositionRange().getEnd());

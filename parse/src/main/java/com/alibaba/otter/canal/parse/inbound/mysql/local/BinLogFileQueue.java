@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.parse.inbound.mysql.local;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Timer;
@@ -26,7 +25,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 public class BinLogFileQueue {
 
     private String              baseName       = "mysql-bin.";
-    private List<File>          binlogs        = new ArrayList<File>();
+    private List<File>          binlogs        = new ArrayList<>();
     private File                directory;
     private ReentrantLock       lock           = new ReentrantLock();
     private Condition           nextCondition  = lock.newCondition();
@@ -177,7 +176,7 @@ public class BinLogFileQueue {
      * 获取当前所有binlog文件
      */
     public List<File> currentBinlogs() {
-        return new ArrayList<File>(binlogs);
+        return new ArrayList<>(binlogs);
     }
 
     public void destory() {
@@ -216,7 +215,7 @@ public class BinLogFileQueue {
     }
 
     private List<File> listBinlogFiles() {
-        List<File> files = new ArrayList<File>();
+        List<File> files = new ArrayList<>();
         files.addAll(FileUtils.listFiles(directory, new IOFileFilter() {
 
             public boolean accept(File file) {
@@ -230,13 +229,7 @@ public class BinLogFileQueue {
             }
         }, null));
         // 排一下序列
-        Collections.sort(files, new Comparator<File>() {
-
-            public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-
-        });
+        files.sort(Comparator.comparing(File::getName));
         return files;
     }
 

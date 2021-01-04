@@ -51,7 +51,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
     private static final String                             PUT_ROWS_HELP    = "Put table rows of canal instance";
     private static final String                             GET_ROWS_HELP    = "Got table rows of canal instance";
     private static final String                             ACK_ROWS_HELP    = "Acked table rows of canal instance";
-    private final ConcurrentMap<String, StoreMetricsHolder> instances        = new ConcurrentHashMap<String, StoreMetricsHolder>();
+    private final ConcurrentMap<String, StoreMetricsHolder> instances        = new ConcurrentHashMap<>();
     private final List<String>                              storeLabelsList  = Arrays.asList(DEST, "batchMode", "size");
 
     private StoreCollector() {}
@@ -66,7 +66,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
+        List<MetricFamilySamples> mfs = new ArrayList<>();
         CounterMetricFamily put = new CounterMetricFamily(PRODUCE,
                 PRODUCE_HELP, DEST_LABELS_LIST);
         CounterMetricFamily ack = new CounterMetricFamily(CONSUME,
@@ -174,7 +174,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
-    private class StoreMetricsHolder {
+    private static class StoreMetricsHolder {
         private AtomicLong   putSeq;
         private AtomicLong   ackSeq;
         private BatchMode    batchMode;

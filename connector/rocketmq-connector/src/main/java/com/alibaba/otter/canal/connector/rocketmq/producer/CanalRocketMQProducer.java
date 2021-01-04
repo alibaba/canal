@@ -88,6 +88,11 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
 
     private void loadRocketMQProperties(Properties properties) {
         RocketMQProducerConfig rocketMQProperties = (RocketMQProducerConfig) this.mqProperties;
+        // 兼容下<=1.1.4的mq配置
+        doMoreCompatibleConvert("canal.mq.servers", "rocketmq.namesrv.addr", properties);
+        doMoreCompatibleConvert("canal.mq.producerGroup", "rocketmq.producer.group", properties);
+        doMoreCompatibleConvert("canal.mq.namespace", "rocketmq.namespace", properties);
+        doMoreCompatibleConvert("canal.mq.retries", "rocketmq.retry.times.when.send.failed", properties);
 
         String producerGroup = properties.getProperty(RocketMQConstants.ROCKETMQ_PRODUCER_GROUP);
         if (!StringUtils.isEmpty(producerGroup)) {
@@ -121,7 +126,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
 
     @Override
     public void send(MQDestination destination, com.alibaba.otter.canal.protocol.Message message, Callback callback) {
-        ExecutorTemplate template = new ExecutorTemplate(executor);
+        ExecutorTemplate template = new ExecutorTemplate(sendExecutor);
         try {
             if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
                 // 动态topic
@@ -156,19 +161,24 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
     }
 
     public void send(final MQDestination destination, String topicName, com.alibaba.otter.canal.protocol.Message message) {
+        // 获取当前topic的分区数
+        Integer partitionNum = MQMessageUtils.parseDynamicTopicPartition(topicName, destination.getDynamicTopicPartitionNum());
+        if (partitionNum == null) {
+            partitionNum = destination.getPartitionsNum();
+        }
         if (!mqProperties.isFlatMessage()) {
             if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
                 // 并发构造
-                MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, executor);
+                MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
                 // 串行分区
                 com.alibaba.otter.canal.protocol.Message[] messages = MQMessageUtils.messagePartition(datas,
                     message.getId(),
-                    destination.getPartitionsNum(),
+                    partitionNum,
                     destination.getPartitionHash(),
                     mqProperties.isDatabaseHash());
                 int length = messages.length;
 
-                ExecutorTemplate template = new ExecutorTemplate(executor);
+                ExecutorTemplate template = new ExecutorTemplate(sendExecutor);
                 for (int i = 0; i < length; i++) {
                     com.alibaba.otter.canal.protocol.Message dataPartition = messages[i];
                     if (dataPartition != null) {
@@ -190,7 +200,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             }
         } else {
             // 并发构造
-            MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, executor);
+            MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, message.getId());
             // 初始化分区合并队列
@@ -202,7 +212,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
 
                 for (FlatMessage flatMessage : flatMessages) {
                     FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
-                        destination.getPartitionsNum(),
+                        partitionNum,
                         destination.getPartitionHash(),
                         mqProperties.isDatabaseHash());
                     int length = partitionFlatMessage.length;
@@ -211,7 +221,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                     }
                 }
 
-                ExecutorTemplate template = new ExecutorTemplate(executor);
+                ExecutorTemplate template = new ExecutorTemplate(sendExecutor);
                 for (int i = 0; i < partitionFlatMessages.size(); i++) {
                     final List<FlatMessage> flatMessagePart = partitionFlatMessages.get(i);
                     if (flatMessagePart != null) {
@@ -244,7 +254,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
     private void sendMessage(Message message, int partition) {
         try {
             SendResult sendResult = this.defaultMQProducer.send(message, (mqs, msg, arg) -> {
-                if (partition > mqs.size()) {
+                if (partition >= mqs.size()) {
                     return mqs.get(partition % mqs.size());
                 } else {
                     return mqs.get(partition);
@@ -283,7 +293,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 }
             } else {
                 MessageQueue queue;
-                if (partition > size) {
+                if (partition >= size) {
                     queue = queues.get(partition % size);
                 } else {
                     queue = queues.get(partition);

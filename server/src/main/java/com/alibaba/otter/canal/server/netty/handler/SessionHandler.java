@@ -161,8 +161,8 @@ public class SessionHandler extends SimpleChannelHandler {
                             messageSize += com.google.protobuf.CodedOutputStream.computeInt64Size(1, message.getId());
 
                             int dataSize = 0;
-                            for (int i = 0; i < rowEntries.size(); i++) {
-                                dataSize += com.google.protobuf.CodedOutputStream.computeBytesSizeNoTag(rowEntries.get(i));
+                            for (ByteString rowEntry : rowEntries) {
+                                dataSize += CodedOutputStream.computeBytesSizeNoTag(rowEntry);
                             }
                             messageSize += dataSize;
                             messageSize += 1 * rowEntries.size();
@@ -194,8 +194,8 @@ public class SessionHandler extends SimpleChannelHandler {
                             output.writeRawVarint32(messageSize);
                             // message
                             output.writeInt64(1, message.getId());
-                            for (int i = 0; i < rowEntries.size(); i++) {
-                                output.writeBytes(2, rowEntries.get(i));
+                            for (ByteString rowEntry : rowEntries) {
+                                output.writeBytes(2, rowEntry);
                             }
                             output.checkNoSpaceLeft();
                             NettyUtils.write(ctx.getChannel(), body, new ChannelFutureAggregator(get.getDestination(),

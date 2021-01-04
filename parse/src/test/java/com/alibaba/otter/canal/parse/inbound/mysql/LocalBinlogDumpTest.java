@@ -31,7 +31,7 @@ public class LocalBinlogDumpTest {
         final EntryPosition startPosition = new EntryPosition("mysql-bin.000003", 123L);
 
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "canal", "canal"));
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setConnectionCharsetStd(Charset.forName("UTF-8"));
         controller.setDirectory(directory);
         controller.setMasterPosition(startPosition);
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {

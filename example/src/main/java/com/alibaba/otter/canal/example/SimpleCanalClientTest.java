@@ -22,7 +22,7 @@ public class SimpleCanalClientTest extends AbstractCanalClientTest {
         // 根据ip，直接创建链接，无HA的功能
         String destination = "example";
         String ip = AddressUtils.getHostIp();
-        CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
+        CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress("127.0.0.1", 11111),
                 destination,
                 "canal",
                 "canal");
@@ -30,20 +30,16 @@ public class SimpleCanalClientTest extends AbstractCanalClientTest {
         final SimpleCanalClientTest clientTest = new SimpleCanalClientTest(destination);
         clientTest.setConnector(connector);
         clientTest.start();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            public void run() {
-                try {
-                    logger.info("## stop the canal client");
-                    clientTest.stop();
-                } catch (Throwable e) {
-                    logger.warn("##something goes wrong when stopping canal:", e);
-                } finally {
-                    logger.info("## canal client is down.");
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                logger.info("## stop the canal client");
+                clientTest.stop();
+            } catch (Throwable e) {
+                logger.warn("##something goes wrong when stopping canal:", e);
+            } finally {
+                logger.info("## canal client is down.");
             }
-
-        });
+        }));
     }
 
 }
