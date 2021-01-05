@@ -1,0 +1,363 @@
+kind: ConfigMap
+metadata:
+  name: canal-instance-properties
+apiVersion: v1
+data:
+  canal.properties: |-
+    #################################################
+    #########     common argument   #############
+    #################################################
+    #canal.manager.jdbc.url=jdbc:mysql://127.0.0.1:3306/canal_manager?useUnicode=true&characterEncoding=UTF-8
+    #canal.manager.jdbc.username=root
+    #canal.manager.jdbc.password=121212
+    canal.id = 1
+    canal.ip =
+    canal.port = 11111
+    canal.metrics.pull.port = 11112
+    canal.admin.jmx.port = 11113
+    canal.zkServers = paascloud-provider-zk:2181
+    # flush data to zk
+    canal.zookeeper.flush.period = 1000
+    canal.withoutNetty = false
+    # tcp, kafka, RocketMQ
+    canal.serverMode = kafka
+    # flush meta cursor/parse position to file
+    canal.file.data.dir = ${canal.conf.dir}
+    canal.file.flush.period = 1000
+   
+    # aliyun ak/sk , support rds/mq
+    canal.aliyun.accessKey =
+    canal.aliyun.secretKey =
+    
+    #################################################
+    #########     destinations    #############
+    #################################################
+    canal.destinations = paascloud
+    # conf root dir
+    canal.conf.dir =/home/admin/canal-server/conf
+    # auto scan instance dir add/remove and start/stop instance
+    canal.auto.scan = true
+    canal.auto.scan.interval = 5
+   
+    canal.instance.global.mode = spring
+    canal.instance.global.lazy = false
+    #canal.instance.global.manager.address = 127.0.0.1:1099
+    #canal.instance.global.spring.xml = classpath:spring/memory-instance.xml
+    #canal.instance.global.spring.xml = classpath:spring/file-instance.xml
+    canal.instance.global.spring.xml = classpath:spring/default-instance.xml
+        
+    ##################################################
+    #########          MQ          #############
+    ##################################################
+     
+    canal.serverMode = kafka
+    canal.mq.servers = paascloud-kafka:9092
+    canal.mq.retries = 3
+    canal.mq.batchSize = 16384
+    canal.mq.maxRequestSize = 1048576
+    canal.mq.lingerMs = 200
+    canal.mq.bufferMemory = 33554432
+    canal.mq.canalBatchSize = 50
+    canal.mq.canalGetTimeout = 100
+    canal.mq.flatMessage = true
+    canal.mq.compressionType = none
+    canal.mq.acks = all
+    #canal.mq.properties. =
+    canal.mq.producerGroup = canal-producer
+    canal.mq.transaction = false
+    # Set this value to "cloud", if you want open message trace feature in aliyun.
+    canal.mq.accessChannel = local
+    # aliyun mq namespace
+    #canal.mq.namespace =
+    
+    # mq config
+    #canal.mq.topic=example
+    # dynamic topic route by schema or table regex
+    canal.mq.dynamicTopic=paascloud.*\\.pc.*
+    #canal.mq.partition=0
+    canal.mq.properties.enable.idempotence=true
+    # hash partition config
+    canal.mq.partitionsNum=5
+    canal.mq.partitionHash= paascloud.*\\.pc_uac.*:login_name, \
+                  paascloud.*\\.pc_udc_family:id,    \
+                paascloud.*\\.pc_udc_room:family_id, \
+                paascloud.*\\.pc_udc_room_device:room_id , \
+                paascloud.*\\.pc_udc_user_family:family_id, \
+                paascloud.*\\.pc_udc_user_extend_info:user_id 
+                
+                
+    #################################################
+    
+    ##################################################
+    #########     Kafka Kerberos Info    #############
+    ##################################################
+    canal.mq.kafka.kerberos.enable = false
+    canal.mq.kafka.kerberos.krb5FilePath = "../conf/kerberos/krb5.conf"
+    canal.mq.kafka.kerberos.jaasFilePath = "../conf/kerberos/jaas.conf"
+
+    ################################################### 
+    ######### instance common config info #############
+    ###################################################
+    
+    # enable gtid use true/false
+    canal.instance.gtidon=false
+    
+    # position info
+    canal.instance.master.journal.name=
+    canal.instance.master.position=
+    canal.instance.master.timestamp=
+    canal.instance.master.gtid=
+    
+    # rds oss binlog
+    canal.instance.rds.accesskey=
+    canal.instance.rds.secretkey=
+    canal.instance.rds.instanceId=
+
+    # table meta tsdb info
+    canal.instance.tsdb.enable = true
+    canal.instance.tsdb.dir = ${canal.file.data.dir:../conf}/${canal.instance.destination:}
+    canal.instance.tsdb.url = jdbc:h2:${canal.instance.tsdb.dir}/h2;CACHE_SIZE=1000;MODE=MYSQL;
+    #canal.instance.tsdb.url = jdbc:mysql://paascloud-db-mysql:3306/canal_tsdb
+    canal.instance.tsdb.dbUsername = root
+    canal.instance.tsdb.dbPassword = root
+    # dump snapshot interval, default 24 hour
+    canal.instance.tsdb.snapshot.interval = 24
+    # purge snapshot expire , default 360 hour(15 days)
+    canal.instance.tsdb.snapshot.expire = 360
+    canal.instance.tsdb.spring.xml = classpath:spring/tsdb/h2-tsdb.xml
+    #canal.instance.tsdb.spring.xml = classpath:spring/tsdb/mysql-tsdb.xml
+    
+    #canal.instance.standby.address =
+    #canal.instance.standby.journal.name =
+    #canal.instance.standby.position =
+    #canal.instance.standby.timestamp =
+    #canal.instance.standby.gtid=
+ 
+    ## memory store RingBuffer size, should be Math.pow(2,n)
+    canal.instance.memory.buffer.size = 16384
+    ## memory store RingBuffer used memory unit size , default 1kb
+    canal.instance.memory.buffer.memunit = 1024 
+    ## meory store gets mode used MEMSIZE or ITEMSIZE
+    canal.instance.memory.batch.mode = MEMSIZE
+    canal.instance.memory.rawEntry = true   
+
+
+    ## detecing config
+    canal.instance.detecting.enable = false
+    #canal.instance.detecting.sql = insert into retl.xdual values(1,now()) on duplicate key update x=now()
+    canal.instance.detecting.sql = select 1
+    canal.instance.detecting.interval.time = 3
+    canal.instance.detecting.retry.threshold = 3
+    canal.instance.detecting.heartbeatHaEnable = false
+
+    # support maximum transaction size, more than the size of the transaction will be cut into multiple transactions delivery
+    canal.instance.transaction.size =  1024
+    # mysql fallback connected to new master should fallback times
+    canal.instance.fallbackIntervalInSeconds = 60
+
+    # network config
+    canal.instance.network.receiveBufferSize = 16384
+    canal.instance.network.sendBufferSize = 16384
+    canal.instance.network.soTimeout = 30
+
+    # binlog filter config
+    canal.instance.filter.druid.ddl = true
+    canal.instance.filter.query.dcl = false
+    canal.instance.filter.query.dml = false
+    canal.instance.filter.query.ddl = false
+    canal.instance.filter.table.error = false
+    canal.instance.filter.rows = false
+    canal.instance.filter.transaction.entry = false
+
+    # binlog format/image check
+    canal.instance.binlog.format = ROW,STATEMENT,MIXED 
+    canal.instance.binlog.image = FULL,MINIMAL,NOBLOB
+
+    # binlog ddl isolation
+    canal.instance.get.ddl.isolation = false
+
+    # parallel parser config
+    canal.instance.parser.parallel = true
+    ## concurrent thread number, default 60% available processors, suggest not to exceed Runtime.getRuntime().availableProcessors()
+    #canal.instance.parser.parallelThreadSize = 16
+    ## disruptor ringbuffer size, must be power of 2
+    canal.instance.parser.parallelBufferSize = 256
+
+
+    canal.instance.global.mode = spring
+    canal.instance.global.lazy = false
+    #canal.instance.global.manager.address = 127.0.0.1:1099
+    #canal.instance.global.spring.xml = classpath:spring/memory-instance.xml
+    #canal.instance.global.spring.xml = classpath:spring/file-instance.xml
+    canal.instance.global.spring.xml = classpath:spring/default-instance.xml		    
+
+  uac0.instance.properties: |-
+    #################################################
+    # username/password
+    canal.instance.master.address=paascloud-db-mysql-uac0:3307
+    canal.instance.dbUsername=root
+    canal.instance.dbPassword=root
+    canal.instance.connectionCharset = UTF-8
+    # enable druid Decrypt database password
+    canal.instance.enableDruid=false
+    #canal.instance.pwdPublicKey=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALK4BUxdDltRRE5/zXpVEVPUgunvscYFtEip3pmLlhrWpacX7y7GCMo2/JM6LeHmiiNdH1FWgGCpUfircSwlWKUCAwEAAQ==
+    
+    # table regex
+    canal.instance.filter.regex=paascloud.*\\.pc.*
+    # table black regex
+    canal.instance.filter.black.regex=
+    canal.mq.producerGroup = uac0-producer
+  uac1.instance.properties: |-
+    #################################################
+    # username/password
+    canal.instance.master.address=paascloud-db-mysql-uac1:3308
+    canal.instance.dbUsername=root
+    canal.instance.dbPassword=root
+    canal.instance.connectionCharset = UTF-8
+    # enable druid Decrypt database password
+    canal.instance.enableDruid=false
+    #canal.instance.pwdPublicKey=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALK4BUxdDltRRE5/zXpVEVPUgunvscYFtEip3pmLlhrWpacX7y7GCMo2/JM6LeHmiiNdH1FWgGCpUfircSwlWKUCAwEAAQ==
+    
+    # table regex
+    canal.instance.filter.regex=paascloud.*\\.pc.*
+    # table black regex
+    canal.instance.filter.black.regex=  
+    canal.mq.producerGroup = uac1-producer
+
+  udc0.instance.properties: |-
+    #################################################
+    # username/password
+    canal.instance.master.address=paascloud-db-mysql-udc0:3309
+    canal.instance.dbUsername=root
+    canal.instance.dbPassword=root
+    canal.instance.connectionCharset = UTF-8
+    # enable druid Decrypt database password
+    canal.instance.enableDruid=false
+    #canal.instance.pwdPublicKey=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALK4BUxdDltRRE5/zXpVEVPUgunvscYFtEip3pmLlhrWpacX7y7GCMo2/JM6LeHmiiNdH1FWgGCpUfircSwlWKUCAwEAAQ==
+    
+    # table regex
+    canal.instance.filter.regex=paascloud.*\\.pc.*
+    # table black regex
+    canal.instance.filter.black.regex=  
+    canal.mq.producerGroup = udc0-producer
+
+  udc1.instance.properties: |-
+    #################################################
+    # username/password
+    canal.instance.master.address=paascloud-db-mysql-udc1:3310
+    canal.instance.dbUsername=root
+    canal.instance.dbPassword=root
+    canal.instance.connectionCharset = UTF-8
+    # enable druid Decrypt database password
+    canal.instance.enableDruid=false
+    #canal.instance.pwdPublicKey=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALK4BUxdDltRRE5/zXpVEVPUgunvscYFtEip3pmLlhrWpacX7y7GCMo2/JM6LeHmiiNdH1FWgGCpUfircSwlWKUCAwEAAQ==
+    
+    # table regex
+    canal.instance.filter.regex=paascloud.*\\.pc.*
+    # table black regex
+    canal.instance.filter.black.regex=  
+    canal.mq.producerGroup = udc1-producer              
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paascloud-canal-server
+#  namespace: zhanghong
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paascloud-canal-server
+  template:
+    metadata:
+      labels:
+        app: paascloud-canal-server
+    spec:
+#      nodeSelector:
+#        paascloud_kafka: default
+      nodeName: okd-node-2     
+      imagePullSecrets:
+      - name: secret-aliyuncs
+      containers:
+      - name: paascloud-canal-server
+        image: registry.cn-hangzhou.aliyuncs.com/rainbow954/canal-server:v1.1.3
+        imagePullPolicy: Always
+#        2222 sys , 8000 debug , 11111 canal , 11112 metrics
+        ports:
+        - containerPort: 11111
+          name: canal
+        - containerPort: 8000
+          name: debug
+        - containerPort: 11112
+          name: metrics
+        - containerPort: 2222
+          name:  sys                   
+#        env:
+#        - name: canal.id
+#          value: '1'                  
+#        - name: canal.zkServers
+#          value: 'paascloud-provider-zk:2181'   
+#        - name: canal.serverMode
+#          value: 'kafka'
+#        envFrom:
+#        - configMapRef:
+#            name: canal-instance-properties        
+        volumeMounts:
+        - name: canal-instance-configmap
+          mountPath: /home/admin/canal-server/conf/uac0/instance.properties  
+          subPath: path/to/uac0.instance.properties
+#        - name: canal-instance-configmap
+#          mountPath: /home/admin/canal-server/conf/uac1/instance.properties  
+#          subPath: path/to/uac1.instance.properties
+#        - name: canal-instance-configmap
+#          mountPath: /home/admin/canal-server/conf/udc0/instance.properties  
+#          subPath: path/to/udc0.instance.properties
+#        - name: canal-instance-configmap
+#          mountPath: /home/admin/canal-server/conf/udc1/instance.properties  
+#          subPath: path/to/udc1.instance.properties
+        - name: canal-instance-configmap
+          mountPath: /home/admin/canal-server/conf/canal.properties  
+          subPath: path/to/canal.properties              
+        - name: canal-logs
+          mountPath: /home/admin/canal-server/logs  
+        securityContext:
+          privileged: true     #挂本地磁盘时给权限         
+      volumes:
+      - name: canal-instance-configmap
+        configMap:
+          name: canal-instance-properties
+          items:
+          - key: uac0.instance.properties
+            path: path/to/uac0.instance.properties
+          - key: uac1.instance.properties
+            path: path/to/uac1.instance.properties
+          - key: udc0.instance.properties
+            path: path/to/udc0.instance.properties
+          - key: udc1.instance.properties
+            path: path/to/udc1.instance.properties
+          - key: canal.properties
+            path: path/to/canal.properties            
+      - name: canal-logs 
+        hostPath:
+          path: /canal-logs 
+          
+#库名.表名: 唯一主键，多个表之间用逗号分隔
+#canal.mq.partitionHash=mytest.person:id,mytest.role:id
+                                                                                               
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: paascloud-canal-server
+#  namespace: zhanghong
+spec:
+  selector:
+    app: paascloud-canal-server
+  ports:
+  - protocol: TCP
+    port: 11111
+    targetPort: 11111
+
+
+          
