@@ -42,7 +42,7 @@ public class ConfigLoader {
         });
 
         logger.info("## Phoenix mapping config loaded");
-        logger.info("## Phoenix同步线程数: " + ConfigurationManager.getInteger("threads"));
+        logger.info("## Phoenix sync threads: " + ConfigurationManager.getInteger("threads"));
         return result;
     }
 }

@@ -95,3 +95,10 @@ canal.conf:
 #          key: kudu
 #          properties:
 #            kudu.master.address: 127.0.0.1 # ',' split multi address
+#        - name: phoenix
+#            key: phoenix
+#            properties:
+#              jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
+#              jdbc.url: jdbc:phoenix:127.0.0.1:2181:/hbase/db
+#              jdbc.username:
+#              jdbc.password:

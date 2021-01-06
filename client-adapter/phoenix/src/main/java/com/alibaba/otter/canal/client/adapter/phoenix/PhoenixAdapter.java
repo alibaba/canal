@@ -33,7 +33,6 @@ public class PhoenixAdapter implements OuterAdapter {
     private Map<String, MappingConfig> phoenixMapping = new ConcurrentHashMap<>();                // 文件名对应配置
     private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                // 库名-表名对应配置
 
-    //private DruidDataSource dataSource;
     private static  String DriverClass;
     private static  String PhoenixUrl;
     private static  Properties phoenixPro = new Properties();

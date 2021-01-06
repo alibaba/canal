@@ -155,9 +155,9 @@ public class PhoenixSyncService {
     }
 
     /**
-     * 批量同步  实际上将批量DML进行解析并放入List<SingleDml> --> dmlsPartition[hash].add(syncItem);
+     * 批量同步 :将批量DML进行解析并放入List<SingleDml> --> dmlsPartition[hash].add(syncItem);
      * @param mappingConfig 配置集合
-     * @param dmls          批量 DML
+     * @param dmls   批量 DML
      */
     public void sync(Map<String, Map<String, MappingConfig>> mappingConfig, List<Dml> dmls, Properties envProperties) {
         sync(dmls, dml -> {

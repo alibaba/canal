@@ -13,12 +13,25 @@
     <artifactId>client-adapter.phoenix</artifactId>
     <packaging>jar</packaging>
     <name>canal client adapter phoenix module for otter ${project.version}</name>
+
+
     <dependencies>
         <dependency>
             <groupId>org.apache.phoenix</groupId>
             <artifactId>phoenix-core</artifactId>
-            <version>4.15.0-HBase-1.4</version>
+            <version>4.14.1-HBase-1.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>1.4.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>client-adapter.common</artifactId>
@@ -56,9 +69,22 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.58</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.48</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -94,10 +120,27 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
+<!--                            <tasks>-->
+<!--                                <copy todir="${project.basedir}/../launcher/target/classes/phoenix" overwrite="true">-->
+<!--                                    <fileset dir="${project.basedir}/target/classes/phoenix" erroronmissingdir="true">-->
+<!--                                        <include name="*.yml"/>-->
+<!--                                    </fileset>-->
+<!--                                </copy>-->
+<!--                            </tasks>-->
                             <tasks>
-                                <copy todir="${project.basedir}/../launcher/target/classes/kudu" overwrite="true">
-                                    <fileset dir="${project.basedir}/target/classes/kudu" erroronmissingdir="true">
+                                <copy todir="${project.basedir}/../launcher/target/canal-adapter/conf/phoenix" overwrite="true">
+                                    <fileset dir="${project.basedir}/target/classes/phoenix" erroronmissingdir="true">
                                         <include name="*.yml"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.basedir}/../launcher/target/canal-adapter/plugin" overwrite="true">
+                                    <fileset dir="${project.basedir}/target/" erroronmissingdir="true">
+                                        <include name="*with-dependencies.jar"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.basedir}/../launcher/target/classes/phoenix" overwrite="true">
+                                    <fileset dir="${project.basedir}/target/classes/phoenix" erroronmissingdir="true">
+                                        <include name="*.yml" />
                                     </fileset>
                                 </copy>
                             </tasks>
