@@ -142,7 +142,7 @@ public class ESConnection {
                         writeIndex.set(key);
                     }
                 }));
-
+                if(writeIndex.get()==null){writeIndex.set(index);}
                 GetMappingsRequest mappingsRequest = new GetMappingsRequest();
                 mappingsRequest.indices(writeIndex.get());
                 GetMappingsResponse response = restHighLevelClient.indices()

@@ -147,7 +147,7 @@ public class ESConnection {
                         writeIndex.set(key);
                     }
                 }));
-
+                if(writeIndex.get()==null){writeIndex.set(index);}
                 GetMappingsRequest request = new GetMappingsRequest();
                 request.indices(writeIndex.get());
                 GetMappingsResponse response;
