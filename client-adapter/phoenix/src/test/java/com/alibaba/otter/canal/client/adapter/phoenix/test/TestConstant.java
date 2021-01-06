@@ -11,8 +11,8 @@ import java.sql.SQLException;
  */
 public class TestConstant {
     public final static String          jdbcUrl      = "jdbc:mysql://mysql.yanfa.center:3306/BUSINES_LOG?useUnicode=true";
-    public final static String          jdbcUser     = "chensz";
-    public final static String          jdbcPassword = "chensz";
+    public final static String          jdbcUser     = "root";
+    public final static String          jdbcPassword = "123456";
 
     public final static DruidDataSource dataSource;
 
