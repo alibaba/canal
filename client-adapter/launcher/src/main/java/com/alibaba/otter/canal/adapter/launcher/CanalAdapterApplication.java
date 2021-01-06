@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class CanalAdapterApplication {
     public static void main(String[] args) {
+
         SpringApplication application = new SpringApplication(CanalAdapterApplication.class);
         application.setBannerMode(Banner.Mode.OFF);
         application.run(args);
