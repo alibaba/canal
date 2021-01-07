@@ -42,7 +42,7 @@ public class PhoenixSyncTest {
         Map<String, Object> data = new LinkedHashMap<>();
         dataList.add(data);
         data.put("id", 1);
-        data.put("name", "Eric");
+        data.put("name", "sixPulseExcalibur");
         data.put("password", "123456");
         dml.setData(dataList);
 
@@ -61,12 +61,12 @@ public class PhoenixSyncTest {
         Map<String, Object> data = new LinkedHashMap<>();
         dataList.add(data);
         data.put("id", 1);
-        data.put("name", "Eric2");
+        data.put("name", "sixPulseExcalibur2");
         dml.setData(dataList);
         List<Map<String, Object>> oldList = new ArrayList<>();
         Map<String, Object> old = new LinkedHashMap<>();
         oldList.add(old);
-        old.put("name", "Eric");
+        old.put("name", "sixPulseExcalibur");
         dml.setOld(oldList);
         phoenixAdapter.sync(Collections.singletonList(dml));
     }
