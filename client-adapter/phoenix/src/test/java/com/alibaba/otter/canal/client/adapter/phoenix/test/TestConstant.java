@@ -12,7 +12,7 @@ import java.sql.SQLException;
 public class TestConstant {
     public final static String          jdbcUrl      = "jdbc:mysql://127.0.0.1:3306/canal_adapter?useUnicode=true";
     public final static String          jdbcUser     = "root";
-    public final static String          jdbcPassword = "123456";
+    public final static String          jdbcPassword = "!123456";
 
     public final static DruidDataSource dataSource;
 
