@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
+import com.rabbitmq.client.AlreadyClosedException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,6 +177,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
             this.connect.close();
             this.channel.close();
             super.stop();
+        } catch (AlreadyClosedException ex) {
+            logger.error("Connection is already closed", ex);
         } catch (IOException | TimeoutException ex) {
             throw new CanalException("Stop RabbitMQ producer error", ex);
         }
