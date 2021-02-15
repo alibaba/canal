@@ -34,19 +34,19 @@
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
 		<property name="eventParser">
-			<ref local="eventParser" />
+			<ref bean="eventParser" />
 		</property>
 		<property name="eventSink">
-			<ref local="eventSink" />
+			<ref bean="eventSink" />
 		</property>
 		<property name="eventStore">
-			<ref local="eventStore" />
+			<ref bean="eventStore" />
 		</property>
 		<property name="metaManager">
-			<ref local="metaManager" />
+			<ref bean="metaManager" />
 		</property>
 		<property name="alarmHandler">
-			<ref local="alarmHandler" />
+			<ref bean="alarmHandler" />
 		</property>
 	</bean>
 	
