@@ -57,55 +57,43 @@ public class ServerRunningTest extends AbstractZkTest {
         final ServerRunningMonitor runningMonitor2 = buildServerRunning(countLatch, "127.0.0.1", 2089);
         final ServerRunningMonitor runningMonitor3 = buildServerRunning(countLatch, "127.0.0.1", 2090);
         final ExecutorService executor = Executors.newFixedThreadPool(3);
-        executor.submit(new Runnable() {
-
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    if (!runningMonitor1.isStart()) {
-                        runningMonitor1.start();
-                    }
-                    sleep(2000L + RandomUtils.nextInt(500));
-                    if (runningMonitor1.check()) {
-                        runningMonitor1.stop();
-                    }
-                    sleep(2000L + RandomUtils.nextInt(500));
+        executor.submit(() -> {
+            for (int i = 0; i < 10; i++) {
+                if (!runningMonitor1.isStart()) {
+                    runningMonitor1.start();
                 }
+                sleep(2000L + RandomUtils.nextInt(500));
+                if (runningMonitor1.check()) {
+                    runningMonitor1.stop();
+                }
+                sleep(2000L + RandomUtils.nextInt(500));
             }
-
         });
 
-        executor.submit(new Runnable() {
-
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    if (!runningMonitor2.isStart()) {
-                        runningMonitor2.start();
-                    }
-                    sleep(2000L + RandomUtils.nextInt(500));
-                    if (runningMonitor2.check()) {
-                        runningMonitor2.stop();
-                    }
-                    sleep(2000L + RandomUtils.nextInt(500));
+        executor.submit(() -> {
+            for (int i = 0; i < 10; i++) {
+                if (!runningMonitor2.isStart()) {
+                    runningMonitor2.start();
                 }
+                sleep(2000L + RandomUtils.nextInt(500));
+                if (runningMonitor2.check()) {
+                    runningMonitor2.stop();
+                }
+                sleep(2000L + RandomUtils.nextInt(500));
             }
-
         });
 
-        executor.submit(new Runnable() {
-
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    if (!runningMonitor3.isStart()) {
-                        runningMonitor3.start();
-                    }
-                    sleep(2000L + RandomUtils.nextInt(500));
-                    if (runningMonitor3.check()) {
-                        runningMonitor3.stop();
-                    }
-                    sleep(2000L + RandomUtils.nextInt(500));
+        executor.submit(() -> {
+            for (int i = 0; i < 10; i++) {
+                if (!runningMonitor3.isStart()) {
+                    runningMonitor3.start();
                 }
+                sleep(2000L + RandomUtils.nextInt(500));
+                if (runningMonitor3.check()) {
+                    runningMonitor3.stop();
+                }
+                sleep(2000L + RandomUtils.nextInt(500));
             }
-
         });
 
         sleep(30000L);

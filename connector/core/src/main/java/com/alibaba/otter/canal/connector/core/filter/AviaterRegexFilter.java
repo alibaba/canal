@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.connector.core.filter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +41,7 @@ public class AviaterRegexFilter {
         this.defaultEmptyValue = defaultEmptyValue;
         List<String> list = null;
         if (StringUtils.isEmpty(pattern)) {
-            list = new ArrayList<String>();
+            list = new ArrayList<>();
         } else {
             String[] ss = StringUtils.split(pattern, SPLIT);
             list = Arrays.asList(ss);
@@ -51,7 +50,7 @@ public class AviaterRegexFilter {
         // 对pattern按照从长到短的排序
         // 因为 foo|foot 匹配 foot 会出错，原因是 foot 匹配了 foo 之后，会返回 foo，但是 foo 的长度和 foot
         // 的长度不一样
-        Collections.sort(list, COMPARATOR);
+        list.sort(COMPARATOR);
         // 对pattern进行头尾完全匹配
         list = completionPattern(list);
         this.pattern = StringUtils.join(list, PATTERN_SPLIT);
@@ -66,7 +65,7 @@ public class AviaterRegexFilter {
             return defaultEmptyValue;
         }
 
-        Map<String, Object> env = new HashMap<String, Object>();
+        Map<String, Object> env = new HashMap<>();
         env.put("pattern", pattern);
         env.put("target", filtered.toLowerCase());
         return (Boolean) exp.execute(env);
@@ -88,13 +87,7 @@ public class AviaterRegexFilter {
 
         @Override
         public int compare(String str1, String str2) {
-            if (str1.length() > str2.length()) {
-                return -1;
-            } else if (str1.length() < str2.length()) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return Integer.compare(str2.length(), str1.length());
         }
     }
 
@@ -112,7 +105,7 @@ public class AviaterRegexFilter {
      */
 
     private List<String> completionPattern(List<String> patterns) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (String pattern : patterns) {
             StringBuffer stringBuffer = new StringBuffer();
             stringBuffer.append("^");

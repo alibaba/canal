@@ -34,7 +34,7 @@ public class RdsLocalBinlogDumpTest {
         String directory = "/tmp/rds";
         final RdsLocalBinlogEventParser controller = new RdsLocalBinlogEventParser();
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "root", "hello"));
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setConnectionCharsetStd(Charset.forName("UTF-8"));
         controller.setDirectory(directory);
         controller.setAccesskey("");
         controller.setSecretkey("");

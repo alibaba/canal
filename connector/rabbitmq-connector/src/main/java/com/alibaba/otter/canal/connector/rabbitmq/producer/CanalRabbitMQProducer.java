@@ -81,6 +81,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
 
     private void loadRabbitMQProperties(Properties properties) {
         RabbitMQProducerConfig rabbitMQProperties = (RabbitMQProducerConfig) this.mqProperties;
+        // 兼容下<=1.1.4的mq配置
+        doMoreCompatibleConvert("canal.mq.servers", "rabbitmq.host", properties);
 
         String host = properties.getProperty(RabbitMQConstants.RABBITMQ_HOST);
         if (!StringUtils.isEmpty(host)) {
@@ -106,7 +108,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
 
     @Override
     public void send(final MQDestination destination, Message message, Callback callback) {
-        ExecutorTemplate template = new ExecutorTemplate(executor);
+        ExecutorTemplate template = new ExecutorTemplate(sendExecutor);
         try {
             if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
                 // 动态topic
@@ -118,13 +120,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
                     final String topicName = entry.getKey().replace('.', '_');
                     final com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
 
-                    template.submit(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            send(destination, topicName, messageSub);
-                        }
-                    });
+                    template.submit(() -> send(destination, topicName, messageSub));
                 }
 
                 template.waitForResult();
@@ -149,7 +145,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
             sendMessage(topicName, message);
         } else {
             // 并发构造
-            MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(messageSub, executor);
+            MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(messageSub, buildExecutor);
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, messageSub.getId());
             for (FlatMessage flatMessage : flatMessages) {

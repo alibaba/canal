@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -259,7 +260,7 @@ public class ExtensionLoader<T> {
             }
         }
 
-        Map<String, Class<?>> extensionClasses = new HashMap<String, Class<?>>();
+        Map<String, Class<?>> extensionClasses = new HashMap<>();
 
         // 1. plugin folder，customized extension classLoader （jar_dir/plugin）
         String dir = File.separator + this.getJarDirectoryPath() + File.separator + "plugin";
@@ -317,10 +318,8 @@ public class ExtensionLoader<T> {
                 while (urls.hasMoreElements()) {
                     URL url = urls.nextElement();
                     try {
-                        BufferedReader reader = null;
-                        try {
-                            reader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
-                            String line = null;
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                            String line;
                             while ((line = reader.readLine()) != null) {
                                 final int ci = line.indexOf('#');
                                 if (ci >= 0) line = line.substring(0, ci);
@@ -340,10 +339,10 @@ public class ExtensionLoader<T> {
                                             // classLoader);
                                             if (!type.isAssignableFrom(clazz)) {
                                                 throw new IllegalStateException(
-                                                    "Error when load extension class(interface: " + type
-                                                                                + ", class line: " + clazz.getName()
-                                                                                + "), class " + clazz.getName()
-                                                                                + "is not subtype of interface.");
+                                                        "Error when load extension class(interface: " + type
+                                                                + ", class line: " + clazz.getName()
+                                                                + "), class " + clazz.getName()
+                                                                + "is not subtype of interface.");
                                             } else {
                                                 try {
                                                     clazz.getConstructor(type);
@@ -361,10 +360,10 @@ public class ExtensionLoader<T> {
                                                             } else if (c != clazz) {
                                                                 cachedNames.remove(clazz);
                                                                 throw new IllegalStateException(
-                                                                    "Duplicate extension " + type.getName() + " name "
-                                                                                                + n + " on "
-                                                                                                + c.getName() + " and "
-                                                                                                + clazz.getName());
+                                                                        "Duplicate extension " + type.getName() + " name "
+                                                                                + n + " on "
+                                                                                + c.getName() + " and "
+                                                                                + clazz.getName());
                                                             }
                                                         }
                                                     }
@@ -373,19 +372,15 @@ public class ExtensionLoader<T> {
                                         }
                                     } catch (Throwable t) {
                                         IllegalStateException e = new IllegalStateException(
-                                            "Failed to load extension class(interface: " + type + ", class line: "
-                                                                                            + line + ") in " + url
-                                                                                            + ", cause: "
-                                                                                            + t.getMessage(),
-                                            t);
+                                                "Failed to load extension class(interface: " + type + ", class line: "
+                                                        + line + ") in " + url
+                                                        + ", cause: "
+                                                        + t.getMessage(),
+                                                t);
                                         exceptions.put(line, e);
                                     }
                                 }
                             } // end of while read lines
-                        } finally {
-                            if (reader != null) {
-                                reader.close();
-                            }
                         }
                     } catch (Throwable t) {
                         logger.error("Exception when load extension class(interface: " + type + ", class file: " + url

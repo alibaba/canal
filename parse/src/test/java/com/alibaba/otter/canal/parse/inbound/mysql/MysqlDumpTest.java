@@ -32,7 +32,7 @@ public class MysqlDumpTest {
         final MysqlEventParser controller = new MysqlEventParser();
         final EntryPosition startPosition = new EntryPosition("mysql-bin.000001", 4L);
         // startPosition.setGtid("f1ceb61a-a5d5-11e7-bdee-107c3dbcf8a7:1-17");
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setConnectionCharsetStd(Charset.forName("UTF-8"));
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "root", "hello"));

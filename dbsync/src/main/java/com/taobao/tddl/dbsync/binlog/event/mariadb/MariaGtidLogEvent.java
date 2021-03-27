@@ -1,6 +1,8 @@
 package com.taobao.tddl.dbsync.binlog.event.mariadb;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.MariaGtid;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LogHeader;
@@ -11,9 +13,9 @@ import com.taobao.tddl.dbsync.binlog.event.LogHeader;
  * @author jianghang 2014-1-20 下午4:49:10
  * @since 1.0.17
  */
-public class MariaGtidLogEvent extends IgnorableLogEvent {
+public class MariaGtidLogEvent extends LogEvent {
 
-    private long gtid;
+    private MariaGtid mariaGtid;
 
     /**
      * <pre>
@@ -30,13 +32,14 @@ public class MariaGtidLogEvent extends IgnorableLogEvent {
      */
 
     public MariaGtidLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
-        super(header, buffer, descriptionEvent);
-        gtid = buffer.getUlong64().longValue();
-        // do nothing , just ignore log event
+        super(header);
+        long sequence = buffer.getUlong64().longValue();
+        long domainId = buffer.getUint32();
+        long serverId = header.getServerId();
+        mariaGtid = new MariaGtid(domainId, serverId, sequence);
     }
 
-    public long getGtid() {
-        return gtid;
+    public String getGtidStr() {
+        return mariaGtid.toString();
     }
-
 }

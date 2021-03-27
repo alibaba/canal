@@ -10,31 +10,31 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastsql.sql.ast.SQLDataType;
-import com.alibaba.fastsql.sql.ast.SQLDataTypeImpl;
-import com.alibaba.fastsql.sql.ast.SQLExpr;
-import com.alibaba.fastsql.sql.ast.SQLStatement;
-import com.alibaba.fastsql.sql.ast.expr.SQLCharExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLIdentifierExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLMethodInvokeExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLNullExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLPropertyExpr;
-import com.alibaba.fastsql.sql.ast.statement.SQLColumnConstraint;
-import com.alibaba.fastsql.sql.ast.statement.SQLColumnDefinition;
-import com.alibaba.fastsql.sql.ast.statement.SQLColumnPrimaryKey;
-import com.alibaba.fastsql.sql.ast.statement.SQLColumnUniqueKey;
-import com.alibaba.fastsql.sql.ast.statement.SQLCreateTableStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLNotNullConstraint;
-import com.alibaba.fastsql.sql.ast.statement.SQLNullConstraint;
-import com.alibaba.fastsql.sql.ast.statement.SQLSelectOrderByItem;
-import com.alibaba.fastsql.sql.ast.statement.SQLTableElement;
-import com.alibaba.fastsql.sql.dialect.mysql.ast.MySqlPrimaryKey;
-import com.alibaba.fastsql.sql.dialect.mysql.ast.MySqlUnique;
-import com.alibaba.fastsql.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
-import com.alibaba.fastsql.sql.repository.Schema;
-import com.alibaba.fastsql.sql.repository.SchemaObject;
-import com.alibaba.fastsql.sql.repository.SchemaRepository;
-import com.alibaba.fastsql.util.JdbcConstants;
+import com.alibaba.druid.sql.ast.SQLDataType;
+import com.alibaba.druid.sql.ast.SQLDataTypeImpl;
+import com.alibaba.druid.sql.ast.SQLExpr;
+import com.alibaba.druid.sql.ast.SQLStatement;
+import com.alibaba.druid.sql.ast.expr.SQLCharExpr;
+import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
+import com.alibaba.druid.sql.ast.expr.SQLMethodInvokeExpr;
+import com.alibaba.druid.sql.ast.expr.SQLNullExpr;
+import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
+import com.alibaba.druid.sql.ast.statement.SQLColumnConstraint;
+import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
+import com.alibaba.druid.sql.ast.statement.SQLColumnPrimaryKey;
+import com.alibaba.druid.sql.ast.statement.SQLColumnUniqueKey;
+import com.alibaba.druid.sql.ast.statement.SQLCreateTableStatement;
+import com.alibaba.druid.sql.ast.statement.SQLNotNullConstraint;
+import com.alibaba.druid.sql.ast.statement.SQLNullConstraint;
+import com.alibaba.druid.sql.ast.statement.SQLSelectOrderByItem;
+import com.alibaba.druid.sql.ast.statement.SQLTableElement;
+import com.alibaba.druid.sql.dialect.mysql.ast.MySqlPrimaryKey;
+import com.alibaba.druid.sql.dialect.mysql.ast.MySqlUnique;
+import com.alibaba.druid.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
+import com.alibaba.druid.sql.repository.Schema;
+import com.alibaba.druid.sql.repository.SchemaObject;
+import com.alibaba.druid.sql.repository.SchemaRepository;
+import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
@@ -49,7 +49,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 public class MemoryTableMeta implements TableMetaTSDB {
 
     private Logger                       logger     = LoggerFactory.getLogger(MemoryTableMeta.class);
-    private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<List<String>, TableMeta>();
+    private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<>();
     private SchemaRepository             repository = new SchemaRepository(JdbcConstants.MYSQL);
 
     public MemoryTableMeta(){
@@ -143,7 +143,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
     }
 
     public Map<String, String> snapshot() {
-        Map<String, String> schemaDdls = new HashMap<String, String>();
+        Map<String, String> schemaDdls = new HashMap<>();
         for (Schema schema : repository.getSchemas()) {
             StringBuffer data = new StringBuffer(4 * 1024);
             for (String table : schema.showTables()) {

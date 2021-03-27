@@ -31,12 +31,7 @@ public class BaseCanalClientTest {
     protected static final String             SEP                = SystemUtils.LINE_SEPARATOR;
     protected static final String             DATE_FORMAT        = "yyyy-MM-dd HH:mm:ss";
     protected volatile boolean                running            = false;
-    protected Thread.UncaughtExceptionHandler handler            = new Thread.UncaughtExceptionHandler() {
-
-                                                                     public void uncaughtException(Thread t, Throwable e) {
-                                                                         logger.error("parse events has an error", e);
-                                                                     }
-                                                                 };
+    protected Thread.UncaughtExceptionHandler handler            = (t, e) -> logger.error("parse events has an error", e);
     protected Thread                          thread             = null;
     protected CanalConnector                  connector;
     protected static String                   context_format     = null;

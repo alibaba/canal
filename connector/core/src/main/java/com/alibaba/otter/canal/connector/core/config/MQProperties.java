@@ -8,17 +8,18 @@ package com.alibaba.otter.canal.connector.core.config;
  */
 public class MQProperties {
 
-    private boolean flatMessage            = true;
-    private boolean databaseHash           = true;
-    private boolean filterTransactionEntry = true;
-    private Integer parallelThreadSize     = 8;
-    private Integer fetchTimeout           = 100;
-    private Integer batchSize              = 50;
-    private String  accessChannel          = "local";
+    private boolean flatMessage             = true;
+    private boolean databaseHash            = true;
+    private boolean filterTransactionEntry  = true;
+    private Integer parallelBuildThreadSize = 8;
+    private Integer parallelSendThreadSize  = 30;
+    private Integer fetchTimeout            = 100;
+    private Integer batchSize               = 50;
+    private String  accessChannel           = "local";
 
-    private String  aliyunAccessKey        = "";
-    private String  aliyunSecretKey        = "";
-    private int     aliyunUid              = 0;
+    private String  aliyunAccessKey         = "";
+    private String  aliyunSecretKey         = "";
+    private int     aliyunUid               = 0;
 
     public boolean isFlatMessage() {
         return flatMessage;
@@ -44,12 +45,20 @@ public class MQProperties {
         this.filterTransactionEntry = filterTransactionEntry;
     }
 
-    public Integer getParallelThreadSize() {
-        return parallelThreadSize;
+    public Integer getParallelBuildThreadSize() {
+        return parallelBuildThreadSize;
     }
 
-    public void setParallelThreadSize(Integer parallelThreadSize) {
-        this.parallelThreadSize = parallelThreadSize;
+    public void setParallelBuildThreadSize(Integer parallelBuildThreadSize) {
+        this.parallelBuildThreadSize = parallelBuildThreadSize;
+    }
+
+    public Integer getParallelSendThreadSize() {
+        return parallelSendThreadSize;
+    }
+
+    public void setParallelSendThreadSize(Integer parallelSendThreadSize) {
+        this.parallelSendThreadSize = parallelSendThreadSize;
     }
 
     public Integer getFetchTimeout() {

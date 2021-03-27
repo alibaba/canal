@@ -28,7 +28,7 @@ public class MutablePropertySources implements PropertySources {
 
     private final Log                     logger;
 
-    private final List<PropertySource<?>> propertySourceList = new CopyOnWriteArrayList<PropertySource<?>>();
+    private final List<PropertySource<?>> propertySourceList = new CopyOnWriteArrayList<>();
 
     /**
      * Create a new {@link MutablePropertySources}

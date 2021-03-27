@@ -47,7 +47,6 @@ public class CanalRocketMQConsumer implements CanalMsgConsumer {
     private String                                             nameServer;
     private String                                             topic;
     private String                                             groupName;
-    private volatile boolean                                   connected            = false;
     private DefaultMQPushConsumer                              rocketMQConsumer;
     private BlockingQueue<ConsumerBatchMessage<CommonMessage>> messageBlockingQueue;
     private int                                                batchSize            = -1;
@@ -135,7 +134,6 @@ public class CanalRocketMQConsumer implements CanalMsgConsumer {
             });
             rocketMQConsumer.start();
         } catch (MQClientException ex) {
-            connected = false;
             logger.error("Start RocketMQ consumer error", ex);
         }
     }
@@ -231,6 +229,5 @@ public class CanalRocketMQConsumer implements CanalMsgConsumer {
     public void disconnect() {
         rocketMQConsumer.unsubscribe(topic);
         rocketMQConsumer.shutdown();
-        connected = false;
     }
 }
