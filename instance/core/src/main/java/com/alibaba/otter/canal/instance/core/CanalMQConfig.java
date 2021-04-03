@@ -8,6 +8,7 @@ public class CanalMQConfig {
     private String  partitionHash;
     private String  dynamicTopic;
     private String  dynamicTopicPartitionNum;
+    private String  tag;
 
     public String getTopic() {
         return topic;
@@ -55,5 +56,13 @@ public class CanalMQConfig {
 
     public void setDynamicTopicPartitionNum(String dynamicTopicPartitionNum) {
         this.dynamicTopicPartitionNum = dynamicTopicPartitionNum;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }
