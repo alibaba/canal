@@ -1098,7 +1098,6 @@ public class ESSyncService {
      * @param objFieldName      对象字段名
      * @param objField          对象字段
      * @param objectFieldDatas  对象字段值map（key是对象字段名，value是对象字段值）, 为null时会新实例化
-     * @return map（key是对象字段名，value是对象字段值）
      */
     private void getObjectFieldDatasForMainTableInsert(
             ESSyncConfig config, Map<String, Object> esFieldData,
@@ -1167,10 +1166,38 @@ public class ESSyncService {
                         List<Object> list = new ArrayList<>();
                         Supplier<Object> supplier = () -> list;
 
-                        if (ObjFieldType.object.equals(objFieldType) || ObjFieldType.objectFlat.equals(objFieldType)) {
+                        if (ObjFieldType.object.equals(objFieldType)) {
 
                             //对象类型，只取第一个对象
                             supplier = () -> list.isEmpty() ? null : list.get(0);
+
+                        } else if (ObjFieldType.objectFlat.equals(objFieldType)) {
+
+                            //对象扁平化，只取第一个对象
+                            supplier = () -> {
+                                if (! list.isEmpty()) {
+                                    return list.get(0);
+                                }
+
+                                try {
+                                    //如果查不到数据，那就模拟一个空记录，避免更新不到扁平化的字段值
+
+                                    ResultSetMetaData metaData = rs.getMetaData();
+                                    //字段数
+                                    int columnCount = metaData.getColumnCount();
+
+                                    JSONObject jsonObject = new JSONObject(true);
+                                    for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+                                        jsonObject.put(metaData.getColumnLabel(columnIndex), null);
+                                    }
+                                    return jsonObject;
+
+                                } catch (RuntimeException e) {
+                                    throw e;
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            };
 
                         } else if (ObjFieldType.joining.equals(objFieldType)) {
 
