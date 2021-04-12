@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,23 +85,23 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         // 兼容下<=1.1.4的mq配置
         doMoreCompatibleConvert("canal.mq.servers", "rabbitmq.host", properties);
 
-        String host = properties.getProperty(RabbitMQConstants.RABBITMQ_HOST);
+        String host = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_HOST);
         if (!StringUtils.isEmpty(host)) {
             rabbitMQProperties.setHost(host);
         }
-        String vhost = properties.getProperty(RabbitMQConstants.RABBITMQ_VIRTUAL_HOST);
+        String vhost = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_VIRTUAL_HOST);
         if (!StringUtils.isEmpty(vhost)) {
             rabbitMQProperties.setVirtualHost(vhost);
         }
-        String exchange = properties.getProperty(RabbitMQConstants.RABBITMQ_EXCHANGE);
+        String exchange = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_EXCHANGE);
         if (!StringUtils.isEmpty(exchange)) {
             rabbitMQProperties.setExchange(exchange);
         }
-        String username = properties.getProperty(RabbitMQConstants.RABBITMQ_USERNAME);
+        String username = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_USERNAME);
         if (!StringUtils.isEmpty(username)) {
             rabbitMQProperties.setUsername(username);
         }
-        String password = properties.getProperty(RabbitMQConstants.RABBITMQ_PASSWORD);
+        String password = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_PASSWORD);
         if (!StringUtils.isEmpty(password)) {
             rabbitMQProperties.setPassword(password);
         }

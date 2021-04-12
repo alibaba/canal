@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
@@ -94,31 +95,31 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
         doMoreCompatibleConvert("canal.mq.namespace", "rocketmq.namespace", properties);
         doMoreCompatibleConvert("canal.mq.retries", "rocketmq.retry.times.when.send.failed", properties);
 
-        String producerGroup = properties.getProperty(RocketMQConstants.ROCKETMQ_PRODUCER_GROUP);
+        String producerGroup = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_PRODUCER_GROUP);
         if (!StringUtils.isEmpty(producerGroup)) {
             rocketMQProperties.setProducerGroup(producerGroup);
         }
-        String enableMessageTrace = properties.getProperty(RocketMQConstants.ROCKETMQ_ENABLE_MESSAGE_TRACE);
+        String enableMessageTrace = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_ENABLE_MESSAGE_TRACE);
         if (!StringUtils.isEmpty(enableMessageTrace)) {
             rocketMQProperties.setEnableMessageTrace(Boolean.parseBoolean(enableMessageTrace));
         }
-        String customizedTraceTopic = properties.getProperty(RocketMQConstants.ROCKETMQ_CUSTOMIZED_TRACE_TOPIC);
+        String customizedTraceTopic = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_CUSTOMIZED_TRACE_TOPIC);
         if (!StringUtils.isEmpty(customizedTraceTopic)) {
             rocketMQProperties.setCustomizedTraceTopic(customizedTraceTopic);
         }
-        String namespace = properties.getProperty(RocketMQConstants.ROCKETMQ_NAMESPACE);
+        String namespace = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_NAMESPACE);
         if (!StringUtils.isEmpty(namespace)) {
             rocketMQProperties.setNamespace(namespace);
         }
-        String namesrvAddr = properties.getProperty(RocketMQConstants.ROCKETMQ_NAMESRV_ADDR);
+        String namesrvAddr = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_NAMESRV_ADDR);
         if (!StringUtils.isEmpty(namesrvAddr)) {
             rocketMQProperties.setNamesrvAddr(namesrvAddr);
         }
-        String retry = properties.getProperty(RocketMQConstants.ROCKETMQ_RETRY_TIMES_WHEN_SEND_FAILED);
+        String retry = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_RETRY_TIMES_WHEN_SEND_FAILED);
         if (!StringUtils.isEmpty(retry)) {
             rocketMQProperties.setRetryTimesWhenSendFailed(Integer.parseInt(retry));
         }
-        String vipChannelEnabled = properties.getProperty(RocketMQConstants.ROCKETMQ_VIP_CHANNEL_ENABLED);
+        String vipChannelEnabled = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_VIP_CHANNEL_ENABLED);
         if (!StringUtils.isEmpty(vipChannelEnabled)) {
             rocketMQProperties.setVipChannelEnabled(Boolean.parseBoolean(vipChannelEnabled));
         }
