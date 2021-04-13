@@ -41,6 +41,20 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected final AtomicLong     receivedBinlogBytes       = new AtomicLong(0L);
     private final AtomicLong       eventsPublishBlockingTime = new AtomicLong(0L);
 
+    protected MysqlMultiStageCoprocessor.DmlFormat[] supportDmlFormats;
+
+    public void setSupportDmlFormats(String dmls) {
+        String[] formats = StringUtils.split(dmls, ',');
+        if (formats != null) {
+            MysqlMultiStageCoprocessor.DmlFormat[] supportDmlFormats = new MysqlMultiStageCoprocessor.DmlFormat[formats.length];
+            int i = 0;
+            for (String format : formats) {
+                supportDmlFormats[i++] = MysqlMultiStageCoprocessor.DmlFormat.valuesOf(format);
+            }
+            this.supportDmlFormats = supportDmlFormats;
+        }
+    }
+
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
         if (eventFilter != null && eventFilter instanceof AviaterRegexFilter) {
@@ -173,7 +187,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             parallelThreadSize,
             (LogEventConvert) binlogParser,
             transactionBuffer,
-            destination);
+            destination, supportDmlFormats);
         mysqlMultiStageCoprocessor.setEventsPublishBlockingTime(eventsPublishBlockingTime);
         return mysqlMultiStageCoprocessor;
     }

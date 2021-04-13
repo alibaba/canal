@@ -265,6 +265,7 @@
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
 		<property name="supportBinlogFormats" value="${canal.instance.binlog.format}" />
 		<property name="supportBinlogImages" value="${canal.instance.binlog.image}" />
+		<property name="supportDmlFormats" value="${canal.instance.binlog.dml:WRITE,UPDATE,DELETE}" />
 
 		<!-- parallel parser -->
 		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
