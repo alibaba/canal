@@ -16,6 +16,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFact
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBFactory;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
+import org.apache.commons.lang.StringUtils;
 
 public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
