@@ -120,7 +120,7 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
         }
         String aliyunSecretKey = PropertiesUtils.getProperty(properties, CanalConstants.CANAL_ALIYUN_SECRET_KEY);
         if (!StringUtils.isEmpty(aliyunSecretKey)) {
-            mqProperties.setAliyunAccessKey(aliyunSecretKey);
+            mqProperties.setAliyunSecretKey(aliyunSecretKey);
         }
         String aliyunUid = PropertiesUtils.getProperty(properties, CanalConstants.CANAL_ALIYUN_UID);
         if (!StringUtils.isEmpty(aliyunUid)) {
