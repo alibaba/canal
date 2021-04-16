@@ -21,9 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -52,11 +52,11 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private static Pattern                  pattern             = Pattern.compile("Duplicate entry '.*' for key '*'");
     private static Pattern                  h2Pattern           = Pattern.compile("Unique index or primary key violation");
     private static ScheduledExecutorService scheduler           = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread thread = new Thread(r,
-            "[scheduler-table-meta-snapshot]");
-        thread.setDaemon(true);
-        return thread;
-    });
+                                                                    Thread thread = new Thread(r,
+                                                                        "[scheduler-table-meta-snapshot]");
+                                                                    thread.setDaemon(true);
+                                                                    return thread;
+                                                                });
     private ReadWriteLock                   lock                = new ReentrantReadWriteLock();
     private AtomicBoolean                   initialized         = new AtomicBoolean(false);
     private String                          destination;
@@ -463,10 +463,17 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         }
     }
 
+    private String structureSchema(String schema) {
+        if (schema.startsWith("`") && schema.endsWith("`")) {
+            return schema;
+        }
+        return "`" + schema + "`";
+    }
+
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder();
         return builder.append('`')
-            .append(schema)
+            .append(structureSchema(schema))
             .append('`')
             .append('.')
             .append('`')
