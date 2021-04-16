@@ -69,6 +69,12 @@
             <artifactId>mssql-jdbc</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-shaded-client</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- outer adapter jar with dependencies-->
         <dependency>
             <groupId>com.alibaba.otter</groupId>
