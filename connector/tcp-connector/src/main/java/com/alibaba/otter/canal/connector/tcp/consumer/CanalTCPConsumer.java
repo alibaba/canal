@@ -1,11 +1,5 @@
 package com.alibaba.otter.canal.connector.tcp.consumer;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.client.impl.ClusterNodeAccessStrategy;
@@ -18,11 +12,21 @@ import com.alibaba.otter.canal.connector.core.util.MessageUtil;
 import com.alibaba.otter.canal.connector.tcp.config.TCPConstants;
 import com.alibaba.otter.canal.protocol.Message;
 
+import org.apache.commons.lang.StringUtils;
+
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 /**
  * TCP 消费者连接器, 一个destination对应一个SPI实例
- * 
+ *
  * @author rewerma 2020-01-30
- * @version 1.0.0
+ * @author XuDaojie
+ * @version 1.1.5
+ * @since 1.1.5
  */
 @SPI("tcp")
 public class CanalTCPConsumer implements CanalMsgConsumer {
@@ -42,7 +46,7 @@ public class CanalTCPConsumer implements CanalMsgConsumer {
         if (batchSizePro != null) {
             batchSize = Integer.parseInt(batchSizePro);
         }
-        if (host != null) {
+        if (StringUtils.isNotBlank(host)) {
             String[] ipPort = host.split(":");
             SocketAddress sa = new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1]));
             this.canalConnector = new SimpleCanalConnector(sa, username, password, destination);
