@@ -16,7 +16,7 @@
     <name>canal connector rocketMQ module for otter ${project.version}</name>
 
     <properties>
-        <rocketmq_version>4.5.2</rocketmq_version>
+        <rocketmq_version>4.8.0</rocketmq_version>
     </properties>
 
     <dependencies>
