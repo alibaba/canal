@@ -157,16 +157,18 @@ public class SpringInstanceConfigMonitor extends AbstractCanalLifeCycle implemen
 
     private void notifyStart(File instanceDir, String destination, File[] instanceConfigs) {
         try {
-            defaultAction.start(destination);
-            actions.put(destination, defaultAction);
+            boolean started = defaultAction.start(destination);
+            if(started) {
+                actions.put(destination, defaultAction);
 
-            // 启动成功后记录配置文件信息
-            InstanceConfigFiles lastFile = lastFiles.get(destination);
-            List<FileInfo> newFileInfo = new ArrayList<>();
-            for (File instanceConfig : instanceConfigs) {
-                newFileInfo.add(new FileInfo(instanceConfig.getName(), instanceConfig.lastModified()));
+                // 启动成功后记录配置文件信息
+                InstanceConfigFiles lastFile = lastFiles.get(destination);
+                List<FileInfo> newFileInfo = new ArrayList<>();
+                for (File instanceConfig : instanceConfigs) {
+                    newFileInfo.add(new FileInfo(instanceConfig.getName(), instanceConfig.lastModified()));
+                }
+                lastFile.setInstanceFiles(newFileInfo);
             }
-            lastFile.setInstanceFiles(newFileInfo);
         } catch (Throwable e) {
             logger.error(String.format("scan add found[%s] but start failed", destination), e);
         }

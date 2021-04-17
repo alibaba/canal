@@ -128,6 +128,7 @@
         <module>admin</module>
         <module>client-adapter</module>
         <module>connector</module>
+        <module>distributed</module>
     </modules>
 
     <dependencyManagement>
@@ -231,11 +232,6 @@
                 <groupId>com.googlecode.aviator</groupId>
                 <artifactId>aviator</artifactId>
                 <version>2.2.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>1.2.58.sec06</version>
             </dependency>
             <dependency>
                 <groupId>oro</groupId>

@@ -11,7 +11,7 @@ public interface InstanceAction {
     /**
      * 启动destination
      */
-    void start(String destination);
+    boolean start(String destination);
 
     /**
      * 主动释放destination运行

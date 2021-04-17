@@ -27,13 +27,15 @@ import com.google.common.collect.MigrateMap;
  */
 public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle implements InstanceConfigMonitor, CanalLifeCycle {
 
-    private static final Logger         logger               = LoggerFactory.getLogger(ManagerInstanceConfigMonitor.class);
+    private static final Logger         logger               = LoggerFactory
+        .getLogger(ManagerInstanceConfigMonitor.class);
     private long                        scanIntervalInSecond = 5;
     private InstanceAction              defaultAction        = null;
     private Map<String, InstanceAction> actions              = new MapMaker().makeMap();
-    private Map<String, PlainCanal>     configs              = MigrateMap.makeComputingMap(destination -> new PlainCanal());
+    private Map<String, PlainCanal>     configs              = MigrateMap
+        .makeComputingMap(destination -> new PlainCanal());
     private ScheduledExecutorService    executor             = Executors.newScheduledThreadPool(1,
-                                                                 new NamedThreadFactory("canal-instance-scan"));
+        new NamedThreadFactory("canal-instance-scan"));
 
     private volatile boolean            isFirst              = true;
     private PlainCanalConfigClient      configClient;
@@ -120,9 +122,11 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
 
     private void notifyStart(String destination) {
         try {
-            defaultAction.start(destination);
-            actions.put(destination, defaultAction);
-            // 启动成功后记录配置文件信息
+            boolean started = defaultAction.start(destination);
+            if (started) {
+                actions.put(destination, defaultAction);
+                // 启动成功后记录配置文件信息
+            }
         } catch (Throwable e) {
             logger.error(String.format("scan add found[%s] but start failed", destination), e);
         }
