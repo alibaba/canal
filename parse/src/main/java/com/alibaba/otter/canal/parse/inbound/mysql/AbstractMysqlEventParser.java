@@ -38,23 +38,13 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean              filterRows                = false;
     protected boolean              filterTableError          = false;
     protected boolean              useDruidDdlFilter         = true;
+
+    protected boolean              filterDmlInsert           = false;
+    protected boolean              filterDmlUpdate           = false;
+    protected boolean              filterDmlDelete           = false;
     // instance received binlog bytes
     protected final AtomicLong     receivedBinlogBytes       = new AtomicLong(0L);
     private final AtomicLong       eventsPublishBlockingTime = new AtomicLong(0L);
-
-    protected MysqlMultiStageCoprocessor.DmlFormat[] supportDmlFormats;
-
-    public void setSupportDmlFormats(String dmls) {
-        String[] formats = StringUtils.split(dmls, ',');
-        if (formats != null) {
-            MysqlMultiStageCoprocessor.DmlFormat[] supportDmlFormats = new MysqlMultiStageCoprocessor.DmlFormat[formats.length];
-            int i = 0;
-            for (String format : formats) {
-                supportDmlFormats[i++] = MysqlMultiStageCoprocessor.DmlFormat.valuesOf(format);
-            }
-            this.supportDmlFormats = supportDmlFormats;
-        }
-    }
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
@@ -188,7 +178,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             parallelThreadSize,
             (LogEventConvert) binlogParser,
             transactionBuffer,
-            destination, supportDmlFormats);
+            destination, filterDmlInsert, filterDmlUpdate, filterDmlDelete);
         mysqlMultiStageCoprocessor.setEventsPublishBlockingTime(eventsPublishBlockingTime);
         return mysqlMultiStageCoprocessor;
     }
@@ -237,6 +227,30 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setUseDruidDdlFilter(boolean useDruidDdlFilter) {
         this.useDruidDdlFilter = useDruidDdlFilter;
+    }
+
+    public boolean isFilterDmlInsert() {
+        return filterDmlInsert;
+    }
+
+    public void setFilterDmlInsert(boolean filterDmlInsert) {
+        this.filterDmlInsert = filterDmlInsert;
+    }
+
+    public boolean isFilterDmlUpdate() {
+        return filterDmlUpdate;
+    }
+
+    public void setFilterDmlUpdate(boolean filterDmlUpdate) {
+        this.filterDmlUpdate = filterDmlUpdate;
+    }
+
+    public boolean isFilterDmlDelete() {
+        return filterDmlDelete;
+    }
+
+    public void setFilterDmlDelete(boolean filterDmlDelete) {
+        this.filterDmlDelete = filterDmlDelete;
     }
 
     public void setEnableTsdb(boolean enableTsdb) {

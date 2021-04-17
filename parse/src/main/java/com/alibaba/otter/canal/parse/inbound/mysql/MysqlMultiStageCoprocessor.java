@@ -72,17 +72,20 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private BatchEventProcessor<MessageEvent> sinkStoreStage;
     private LogContext                        logContext;
 
-
-    private MysqlMultiStageCoprocessor.DmlFormat[]       supportDmlFormats;
+    protected boolean              filterDmlInsert           = false;
+    protected boolean              filterDmlUpdate           = false;
+    protected boolean              filterDmlDelete           = false;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
-                                      EventTransactionBuffer transactionBuffer, String destination, MysqlMultiStageCoprocessor.DmlFormat[] supportDmlFormats){
+                                      EventTransactionBuffer transactionBuffer, String destination, boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
         this.ringBufferSize = ringBufferSize;
         this.parserThreadCount = parserThreadCount;
         this.logEventConvert = logEventConvert;
         this.transactionBuffer = transactionBuffer;
         this.destination = destination;
-        this.supportDmlFormats = supportDmlFormats;
+        this.filterDmlInsert = filterDmlInsert;
+        this.filterDmlUpdate = filterDmlUpdate;
+        this.filterDmlDelete = filterDmlDelete;
     }
 
     @Override
@@ -247,48 +250,6 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
     }
 
-    public static enum DmlFormat {
-
-        WRITE("WRITE"), UPDATE("UPDATE"), DELETE("DELETE");
-
-        public boolean isWRITE() {
-            return this == WRITE;
-        }
-
-        public boolean isUPDATE() {
-            return this == UPDATE;
-        }
-
-        public boolean isDELETE() {
-            return this == DELETE;
-        }
-
-        private String value;
-
-        private DmlFormat(String value){
-            this.value = value;
-        }
-
-        public static MysqlMultiStageCoprocessor.DmlFormat valuesOf(String value) {
-            MysqlMultiStageCoprocessor.DmlFormat[] formats = values();
-            for (MysqlMultiStageCoprocessor.DmlFormat format : formats) {
-                if (format.value.equalsIgnoreCase(value)) {
-                    return format;
-                }
-            }
-            return null;
-        }
-    }
-
-    private Boolean hasDml(DmlFormat format){
-        for(DmlFormat dmlFormat : supportDmlFormats){
-            if(dmlFormat.equals(format)){
-                return true;
-            }
-        }
-        return false;
-    }
-    
     private class SimpleParserStage implements EventHandler<MessageEvent>, LifecycleAware {
 
         private LogDecoder decoder;
@@ -318,18 +279,18 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     case LogEvent.WRITE_ROWS_EVENT_V1:
                     case LogEvent.WRITE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((WriteRowsLogEvent) logEvent);
-                        needDmlParse = hasDml(DmlFormat.WRITE);//true;
+                        needDmlParse = !filterDmlInsert;//true;
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
                     case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
-                        needDmlParse = hasDml(DmlFormat.UPDATE);//true;
+                        needDmlParse = !filterDmlUpdate;//true;
                         break;
                     case LogEvent.DELETE_ROWS_EVENT_V1:
                     case LogEvent.DELETE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((DeleteRowsLogEvent) logEvent);
-                        needDmlParse = hasDml(DmlFormat.DELETE);//true;
+                        needDmlParse = !filterDmlDelete;//true;
                         break;
                     case LogEvent.ROWS_QUERY_LOG_EVENT:
                         needDmlParse = true;
