@@ -122,6 +122,10 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
         if (!StringUtils.isEmpty(vipChannelEnabled)) {
             rocketMQProperties.setVipChannelEnabled(Boolean.parseBoolean(vipChannelEnabled));
         }
+        String tag = properties.getProperty(RocketMQConstants.ROCKETMQ_TAG);
+        if (!StringUtils.isEmpty(tag)) {
+            rocketMQProperties.setTag(tag);
+        }
     }
 
     @Override
@@ -184,7 +188,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                     if (dataPartition != null) {
                         final int index = i;
                         template.submit(() -> {
-                            Message data = new Message(topicName, destination.getTag(), CanalMessageSerializerUtil.serializer(dataPartition,
+                            Message data = new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), CanalMessageSerializerUtil.serializer(dataPartition,
                                 mqProperties.isFilterTransactionEntry()));
                             sendMessage(data, index);
                         });
@@ -194,7 +198,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 template.waitForResult();
             } else {
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
-                Message data = new Message(topicName, destination.getTag(), CanalMessageSerializerUtil.serializer(message,
+                Message data = new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), CanalMessageSerializerUtil.serializer(message,
                     mqProperties.isFilterTransactionEntry()));
                 sendMessage(data, partition);
             }
@@ -228,7 +232,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                         final int index = i;
                         template.submit(() -> {
                             List<Message> messages = flatMessagePart.stream()
-                                .map(flatMessage -> new Message(topicName, destination.getTag(), JSON.toJSONBytes(flatMessage,
+                                .map(flatMessage -> new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), JSON.toJSONBytes(flatMessage,
                                     SerializerFeature.WriteMapNullValue)))
                                 .collect(Collectors.toList());
                             // 批量发送
@@ -242,7 +246,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             } else {
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
                 List<Message> messages = flatMessages.stream()
-                    .map(flatMessage -> new Message(topicName, destination.getTag(), JSON.toJSONBytes(flatMessage,
+                    .map(flatMessage -> new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), JSON.toJSONBytes(flatMessage,
                         SerializerFeature.WriteMapNullValue)))
                     .collect(Collectors.toList());
                 // 批量发送

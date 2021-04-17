@@ -177,6 +177,5 @@
 		<property name="partitionsNum" value="${canal.mq.partitionsNum}" />
 		<property name="partitionHash" value="${canal.mq.partitionHash}" />
 		<property name="dynamicTopicPartitionNum" value="${canal.mq.dynamicTopicPartitionNum}" />
-		<property name="tag" value="${canal.mq.tag}" />
 	</bean>
 </beans>
