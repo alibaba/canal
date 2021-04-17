@@ -230,8 +230,7 @@ public class SqlParser {
             }
             FieldItem rightFieldItem = new FieldItem();
             visitColumn(sqlBinaryOpExpr.getRight(), rightFieldItem);
-            if (rightFieldItem.getColumnItems().size() != 1 || rightFieldItem.isMethod()
-                || rightFieldItem.isBinaryOp()) {
+            if (rightFieldItem.getColumnItems().size() != 1 || rightFieldItem.isMethod() || rightFieldItem.isBinaryOp()) {
                 throw new UnsupportedOperationException("Unsupported for complex of on-condition");
             }
             tableItem.getRelationFields().add(new RelationFieldsPair(leftFieldItem, rightFieldItem));

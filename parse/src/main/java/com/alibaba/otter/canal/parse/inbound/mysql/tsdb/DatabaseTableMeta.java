@@ -445,7 +445,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
                 // 如果是同一秒内,对比一下history的位点，如果比期望的位点要大，忽略之
                 if (snapshotPosition.getTimestamp() > rollbackPosition.getTimestamp()) {
                     continue;
-                } else if (rollbackPosition.getServerId() == snapshotPosition.getServerId()
+                } else if (rollbackPosition.getServerId().equals(snapshotPosition.getServerId())
                            && snapshotPosition.compareTo(rollbackPosition) > 0) {
                     continue;
                 }
@@ -472,14 +472,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder();
-        return builder.append('`')
-            .append(structureSchema(schema))
-            .append('`')
-            .append('.')
-            .append('`')
-            .append(table)
-            .append('`')
-            .toString();
+        return builder.append(structureSchema(schema)).append('.').append('`').append(table).append('`').toString();
     }
 
     public static boolean compareTableMeta(TableMeta source, TableMeta target) {
