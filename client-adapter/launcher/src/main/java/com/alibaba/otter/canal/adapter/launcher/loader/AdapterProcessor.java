@@ -211,6 +211,7 @@ public class AdapterProcessor {
                                     canalDestination,
                                     System.currentTimeMillis() - begin);
                             }
+                            break;
                         } catch (Exception e) {
                             if (i != retry - 1) {
                                 canalMsgConsumer.rollback(); // 处理失败, 回滚数据

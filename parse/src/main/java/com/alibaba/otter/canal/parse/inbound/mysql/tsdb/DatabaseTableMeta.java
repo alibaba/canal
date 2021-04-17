@@ -21,9 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -52,11 +52,11 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private static Pattern                  pattern             = Pattern.compile("Duplicate entry '.*' for key '*'");
     private static Pattern                  h2Pattern           = Pattern.compile("Unique index or primary key violation");
     private static ScheduledExecutorService scheduler           = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread thread = new Thread(r,
-            "[scheduler-table-meta-snapshot]");
-        thread.setDaemon(true);
-        return thread;
-    });
+                                                                    Thread thread = new Thread(r,
+                                                                        "[scheduler-table-meta-snapshot]");
+                                                                    thread.setDaemon(true);
+                                                                    return thread;
+                                                                });
     private ReadWriteLock                   lock                = new ReentrantReadWriteLock();
     private AtomicBoolean                   initialized         = new AtomicBoolean(false);
     private String                          destination;
@@ -445,7 +445,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
                 // 如果是同一秒内,对比一下history的位点，如果比期望的位点要大，忽略之
                 if (snapshotPosition.getTimestamp() > rollbackPosition.getTimestamp()) {
                     continue;
-                } else if (rollbackPosition.getServerId() == snapshotPosition.getServerId()
+                } else if (rollbackPosition.getServerId().equals(snapshotPosition.getServerId())
                            && snapshotPosition.compareTo(rollbackPosition) > 0) {
                     continue;
                 }
@@ -463,16 +463,16 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         }
     }
 
+    private String structureSchema(String schema) {
+        if (schema.startsWith("`") && schema.endsWith("`")) {
+            return schema;
+        }
+        return "`" + schema + "`";
+    }
+
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder();
-        return builder.append('`')
-            .append(schema)
-            .append('`')
-            .append('.')
-            .append('`')
-            .append(table)
-            .append('`')
-            .toString();
+        return builder.append(structureSchema(schema)).append('.').append('`').append(table).append('`').toString();
     }
 
     public static boolean compareTableMeta(TableMeta source, TableMeta target) {
