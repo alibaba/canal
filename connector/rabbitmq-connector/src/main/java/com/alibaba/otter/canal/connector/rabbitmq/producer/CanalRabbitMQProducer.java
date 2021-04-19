@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
-import com.rabbitmq.client.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,10 @@ import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQConstants;
 import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQProducerConfig;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
+import com.rabbitmq.client.AlreadyClosedException;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
 /**
  * RabbitMQ Producer SPI 实现
@@ -103,10 +106,6 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         if (!StringUtils.isEmpty(password)) {
             rabbitMQProperties.setPassword(password);
         }
-        String deliveryMode = properties.getProperty(RabbitMQConstants.RABBITMQ_DELIVERY_NODE);
-        if (!StringUtils.isEmpty(deliveryMode)) {
-            rabbitMQProperties.setDeliveryMode(deliveryMode);
-        }
     }
 
     @Override
@@ -166,9 +165,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         // tips: 目前逻辑中暂不处理对exchange处理，请在Console后台绑定 才可使用routekey
         try {
             RabbitMQProducerConfig rabbitMQProperties = (RabbitMQProducerConfig) this.mqProperties;
-            AMQP.BasicProperties properties = rabbitMQProperties != null && rabbitMQProperties.getDeliveryMode() != null
-                    && "2".equals(rabbitMQProperties.getDeliveryMode()) ? MessageProperties.MINIMAL_PERSISTENT_BASIC : null;
-            channel.basicPublish(rabbitMQProperties.getExchange(), queueName, properties, message);
+            channel.basicPublish(rabbitMQProperties.getExchange(), queueName, null, message);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

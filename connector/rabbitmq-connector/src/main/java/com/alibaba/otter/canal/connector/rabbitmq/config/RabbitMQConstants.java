@@ -15,7 +15,6 @@ public class RabbitMQConstants {
     public static final String RABBITMQ_VIRTUAL_HOST     = ROOT + "." + "virtual.host";
     public static final String RABBITMQ_USERNAME         = ROOT + "." + "username";
     public static final String RABBITMQ_PASSWORD         = ROOT + "." + "password";
-    public static final String RABBITMQ_DELIVERY_NODE    = ROOT + "." + "deliveryMode";
 
     public static final String RABBITMQ_RESOURCE_OWNERID = ROOT + "." + "rabbitmq.resource.ownerId";
 }

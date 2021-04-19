@@ -140,7 +140,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
         if (!StringUtils.isEmpty(vipChannelEnabled)) {
             rocketMQProperties.setVipChannelEnabled(Boolean.parseBoolean(vipChannelEnabled));
         }
-        String tag = properties.getProperty(RocketMQConstants.ROCKETMQ_TAG);
+        String tag = PropertiesUtils.getProperty(properties, RocketMQConstants.ROCKETMQ_TAG);
         if (!StringUtils.isEmpty(tag)) {
             rocketMQProperties.setTag(tag);
         }
@@ -207,8 +207,10 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                     if (dataPartition != null) {
                         final int index = i;
                         template.submit(() -> {
-                            Message data = new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), CanalMessageSerializerUtil.serializer(dataPartition,
-                                mqProperties.isFilterTransactionEntry()));
+                            Message data = new Message(topicName,
+                                ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                                CanalMessageSerializerUtil.serializer(dataPartition,
+                                    mqProperties.isFilterTransactionEntry()));
                             sendMessage(data, index);
                         });
                     }
@@ -217,8 +219,9 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 template.waitForResult();
             } else {
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
-                Message data = new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), CanalMessageSerializerUtil.serializer(message,
-                    mqProperties.isFilterTransactionEntry()));
+                Message data = new Message(topicName,
+                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                    CanalMessageSerializerUtil.serializer(message, mqProperties.isFilterTransactionEntry()));
                 sendMessage(data, partition);
             }
         } else {
@@ -254,8 +257,9 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                         final int index = i;
                         template.submit(() -> {
                             List<Message> messages = flatMessagePart.stream()
-                                .map(flatMessage -> new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), JSON.toJSONBytes(flatMessage,
-                                    SerializerFeature.WriteMapNullValue)))
+                                .map(flatMessage -> new Message(topicName,
+                                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                                    JSON.toJSONBytes(flatMessage, SerializerFeature.WriteMapNullValue)))
                                 .collect(Collectors.toList());
                             // 批量发送
                             sendMessage(messages, index);
@@ -268,8 +272,9 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             } else {
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
                 List<Message> messages = flatMessages.stream()
-                    .map(flatMessage -> new Message(topicName, ((RocketMQProducerConfig)this.mqProperties).getTag(), JSON.toJSONBytes(flatMessage,
-                        SerializerFeature.WriteMapNullValue)))
+                    .map(flatMessage -> new Message(topicName,
+                        ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                        JSON.toJSONBytes(flatMessage, SerializerFeature.WriteMapNullValue)))
                     .collect(Collectors.toList());
                 // 批量发送
                 sendMessage(messages, partition);
