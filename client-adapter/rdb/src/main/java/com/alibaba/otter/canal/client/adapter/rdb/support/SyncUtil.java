@@ -2,9 +2,8 @@ package com.alibaba.otter.canal.client.adapter.rdb.support;
 
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -22,13 +21,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.support.Util;
-
 public class SyncUtil {
-    private static final Logger logger  = LoggerFactory.getLogger(SyncUtil.class);
 
     public static Map<String, String> getColumnsMap(MappingConfig.DbMapping dbMapping, Map<String, Object> data) {
         return getColumnsMap(dbMapping, data.keySet());
@@ -66,10 +59,10 @@ public class SyncUtil {
     /**
      * 设置 preparedStatement
      *
-     * @param type sqlType
+     * @param type  sqlType
      * @param pstmt 需要设置的preparedStatement
      * @param value 值
-     * @param i 索引号
+     * @param i     索引号
      */
     public static void setPStmt(int type, PreparedStatement pstmt, Object value, int i) throws SQLException {
         switch (type) {
