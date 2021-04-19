@@ -21,6 +21,7 @@ public class FastsqlSchemaTest {
         repository.console(sql2);
         repository.setDefaultSchema("test");
         SchemaObject table = repository.findTable("table_x1");
+        System.out.println(table.getStatement().toString());
         Assert.assertTrue(table.findColumn("value1") != null);
     }
 
@@ -33,6 +34,7 @@ public class FastsqlSchemaTest {
         repository.console(sql);
         repository.setDefaultSchema("test");
         SchemaObject table = repository.findTable("parent");
+        System.out.println(table.getStatement().toString());
         Assert.assertTrue(table.findColumn("id") != null);
     }
 
@@ -46,6 +48,7 @@ public class FastsqlSchemaTest {
         repository.console(sql);
         repository.setDefaultSchema("test");
         SchemaObject table = repository.findTable("articles");
+        System.out.println(table.getStatement().toString());
         Assert.assertTrue(table.findColumn("article_id") != null);
     }
 
@@ -59,6 +62,7 @@ public class FastsqlSchemaTest {
         repository.console(sql);
         repository.setDefaultSchema("test");
         SchemaObject table = repository.findTable("proposal_order_info");
+        System.out.println(table.getStatement().toString());
         Assert.assertTrue(table.findColumn("id") != null);
     }
 
@@ -70,7 +74,8 @@ public class FastsqlSchemaTest {
                      + "DIM_SUM varchar(128) AS (MD5(UPPER(CONCAT(c2, c1)))) PERSISTENT)";
         repository.console(sql);
         repository.setDefaultSchema("test");
-        SchemaObject table = repository.findTable("proposal_order_info");
-        Assert.assertTrue(table.findColumn("id") != null);
+        SchemaObject table = repository.findTable("example_vc_tbl");
+        System.out.println(table.getStatement().toString());
+        Assert.assertTrue(table.findColumn("c1") != null);
     }
 }
