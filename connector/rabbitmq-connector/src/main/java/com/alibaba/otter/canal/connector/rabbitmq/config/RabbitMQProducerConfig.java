@@ -15,6 +15,8 @@ public class RabbitMQProducerConfig extends MQProperties {
     private String exchange;
     private String username;
     private String password;
+    // 1:transient, 2:"persistent"
+    private String  deliveryMode;
 
     public String getHost() {
         return host;
@@ -54,5 +56,13 @@ public class RabbitMQProducerConfig extends MQProperties {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getDeliveryMode() {
+        return deliveryMode;
+    }
+
+    public void setDeliveryMode(String deliveryMode) {
+        this.deliveryMode = deliveryMode;
     }
 }
