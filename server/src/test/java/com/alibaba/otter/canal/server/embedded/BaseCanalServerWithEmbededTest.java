@@ -7,8 +7,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.otter.canal.instance.core.CanalInstance;
-import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalInstanceWithManager;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.parse.CanalEventParser;
@@ -33,12 +31,9 @@ public abstract class BaseCanalServerWithEmbededTest {
     @Before
     public void setUp() {
         server = CanalServerWithEmbedded.instance();
-        server.setCanalInstanceGenerator(new CanalInstanceGenerator() {
-
-            public CanalInstance generate(String destination) {
-                Canal canal = buildCanal();
-                return new CanalInstanceWithManager(canal, FILTER);
-            }
+        server.setCanalInstanceGenerator(destination -> {
+            Canal canal = buildCanal();
+            return new CanalInstanceWithManager(canal, FILTER);
         });
         server.start();
         server.start(DESTINATION);

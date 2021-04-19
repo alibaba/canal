@@ -31,7 +31,7 @@ public class EntryCollector extends Collector implements InstanceRegistry {
     private static final String                             TRANSACTION       = "canal_instance_transactions";
     private static final String                             DELAY_HELP        = "Traffic delay of canal instance in milliseconds";
     private static final String                             TRANSACTION_HELP  = "Transactions counter of canal instance";
-    private final ConcurrentMap<String, EntryMetricsHolder> instances        = new ConcurrentHashMap<String, EntryMetricsHolder>();
+    private final ConcurrentMap<String, EntryMetricsHolder> instances        = new ConcurrentHashMap<>();
 
     private EntryCollector() {}
 
@@ -45,7 +45,7 @@ public class EntryCollector extends Collector implements InstanceRegistry {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
+        List<MetricFamilySamples> mfs = new ArrayList<>();
         GaugeMetricFamily delay = new GaugeMetricFamily(DELAY,
                 DELAY_HELP, DEST_LABELS_LIST);
         CounterMetricFamily transactions = new CounterMetricFamily(TRANSACTION,
@@ -125,7 +125,7 @@ public class EntryCollector extends Collector implements InstanceRegistry {
         }
     }
 
-    private class EntryMetricsHolder {
+    private static class EntryMetricsHolder {
         private AtomicLong   latestExecTime;
         private AtomicLong   transactionCounter;
         private List<String> destLabelValues;

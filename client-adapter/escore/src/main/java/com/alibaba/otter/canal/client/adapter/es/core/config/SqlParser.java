@@ -1,31 +1,31 @@
 package com.alibaba.otter.canal.client.adapter.es.core.config;
 
-import static com.alibaba.fastsql.sql.ast.expr.SQLBinaryOperator.BooleanAnd;
-import static com.alibaba.fastsql.sql.ast.expr.SQLBinaryOperator.Equality;
+import static com.alibaba.druid.sql.ast.expr.SQLBinaryOperator.BooleanAnd;
+import static com.alibaba.druid.sql.ast.expr.SQLBinaryOperator.Equality;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.alibaba.fastsql.sql.SQLUtils;
-import com.alibaba.fastsql.sql.ast.SQLExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLBinaryOpExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLCaseExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLCharExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLIdentifierExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLMethodInvokeExpr;
-import com.alibaba.fastsql.sql.ast.expr.SQLPropertyExpr;
-import com.alibaba.fastsql.sql.ast.statement.SQLExprTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLJoinTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLSelectGroupByClause;
-import com.alibaba.fastsql.sql.ast.statement.SQLSelectItem;
-import com.alibaba.fastsql.sql.ast.statement.SQLSelectStatement;
-import com.alibaba.fastsql.sql.ast.statement.SQLSubqueryTableSource;
-import com.alibaba.fastsql.sql.ast.statement.SQLTableSource;
-import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
-import com.alibaba.fastsql.sql.dialect.mysql.parser.MySqlStatementParser;
-import com.alibaba.fastsql.sql.parser.ParserException;
-import com.alibaba.fastsql.sql.parser.SQLStatementParser;
+import com.alibaba.druid.sql.SQLUtils;
+import com.alibaba.druid.sql.ast.SQLExpr;
+import com.alibaba.druid.sql.ast.expr.SQLBinaryOpExpr;
+import com.alibaba.druid.sql.ast.expr.SQLCaseExpr;
+import com.alibaba.druid.sql.ast.expr.SQLCharExpr;
+import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
+import com.alibaba.druid.sql.ast.expr.SQLMethodInvokeExpr;
+import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
+import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
+import com.alibaba.druid.sql.ast.statement.SQLJoinTableSource;
+import com.alibaba.druid.sql.ast.statement.SQLSelectGroupByClause;
+import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
+import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
+import com.alibaba.druid.sql.ast.statement.SQLSubqueryTableSource;
+import com.alibaba.druid.sql.ast.statement.SQLTableSource;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
+import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
+import com.alibaba.druid.sql.parser.ParserException;
+import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.RelationFieldsPair;
@@ -230,8 +230,7 @@ public class SqlParser {
             }
             FieldItem rightFieldItem = new FieldItem();
             visitColumn(sqlBinaryOpExpr.getRight(), rightFieldItem);
-            if (rightFieldItem.getColumnItems().size() != 1 || rightFieldItem.isMethod()
-                || rightFieldItem.isBinaryOp()) {
+            if (rightFieldItem.getColumnItems().size() != 1 || rightFieldItem.isMethod() || rightFieldItem.isBinaryOp()) {
                 throw new UnsupportedOperationException("Unsupported for complex of on-condition");
             }
             tableItem.getRelationFields().add(new RelationFieldsPair(leftFieldItem, rightFieldItem));

@@ -25,12 +25,7 @@ public class AbstractCanalClientTest extends BaseCanalClientTest {
 
     protected void start() {
         Assert.notNull(connector, "connector is null");
-        thread = new Thread(new Runnable() {
-
-            public void run() {
-                process();
-            }
-        });
+        thread = new Thread(this::process);
 
         thread.setUncaughtExceptionHandler(handler);
         running = true;

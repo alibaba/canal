@@ -1,7 +1,5 @@
 package com.alibaba.otter.canal.admin.handler;
 
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
@@ -46,16 +44,12 @@ public class HandshakeInitializationHandler extends SimpleChannelHandler {
             .build()
             .toByteArray();
 
-        AdminNettyUtils.write(ctx.getChannel(), body, new ChannelFutureListener() {
-
-            public void operationComplete(ChannelFuture future) throws Exception {
-                logger.info("remove unused channel handlers after authentication is done successfully.");
-                ctx.getPipeline().get(HandshakeInitializationHandler.class.getName());
-                ClientAuthenticationHandler handler = (ClientAuthenticationHandler) ctx.getPipeline()
-                    .get(ClientAuthenticationHandler.class.getName());
-                handler.setSeed(seed);
-            }
-
+        AdminNettyUtils.write(ctx.getChannel(), body, future -> {
+            logger.info("remove unused channel handlers after authentication is done successfully.");
+            ctx.getPipeline().get(HandshakeInitializationHandler.class.getName());
+            ClientAuthenticationHandler handler = (ClientAuthenticationHandler) ctx.getPipeline()
+                .get(ClientAuthenticationHandler.class.getName());
+            handler.setSeed(seed);
         });
         logger.info("send handshake initialization packet to : {}", ctx.getChannel());
     }

@@ -37,8 +37,20 @@ public class MysqlGTIDSetTest {
     }
 
     @Test
+    public void testUpdate() {
+        String gtid1 = "726757ad-4455-11e8-ae04-0242ac110002:1-25536412";
+        MysqlGTIDSet mysqlGTIDSet1 = MysqlGTIDSet.parse(gtid1);
+
+        String gtid2 = "726757ad-4455-11e8-ae04-0242ac110002:1-20304074";
+        MysqlGTIDSet mysqlGTIDSet2 = MysqlGTIDSet.parse(gtid2);
+
+        mysqlGTIDSet1.update(gtid2);
+        assertEquals("726757ad-4455-11e8-ae04-0242ac110002:1-25536412", mysqlGTIDSet1.toString());
+    }
+
+    @Test
     public void testParse() {
-        Map<String, MysqlGTIDSet> cases = new HashMap<String, MysqlGTIDSet>(5);
+        Map<String, MysqlGTIDSet> cases = new HashMap<>(5);
         cases.put("726757ad-4455-11e8-ae04-0242ac110002:1",
             buildForTest(new Material("726757ad-4455-11e8-ae04-0242ac110002", 1, 2)));
         cases.put("726757ad-4455-11e8-ae04-0242ac110002:1-3",
@@ -89,12 +101,12 @@ public class MysqlGTIDSetTest {
     }
 
     private MysqlGTIDSet buildForTest(List<Material> materials) {
-        Map<String, UUIDSet> sets = new HashMap<String, UUIDSet>();
+        Map<String, UUIDSet> sets = new HashMap<>();
         for (Material a : materials) {
             UUIDSet.Interval interval = new UUIDSet.Interval();
             interval.start = a.start;
             interval.stop = a.stop;
-            List<UUIDSet.Interval> intervals = new ArrayList<UUIDSet.Interval>();
+            List<UUIDSet.Interval> intervals = new ArrayList<>();
             intervals.add(interval);
 
             if (a.start1 > 0 && a.stop1 > 0) {

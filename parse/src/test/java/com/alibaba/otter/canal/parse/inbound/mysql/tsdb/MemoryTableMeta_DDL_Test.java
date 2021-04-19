@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.alibaba.fastsql.sql.repository.Schema;
+import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.google.common.collect.Lists;
 
@@ -78,7 +78,27 @@ public class MemoryTableMeta_DDL_Test {
         File create = new File(dummyFile.getParent() + "/ddl", "ddl_any.sql");
         String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
         memoryTableMeta.apply(null, "test", sql, null);
-        
+
+        List<String> tableNames = Lists.newArrayList();
+        for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
+            tableNames.addAll(schema.showTables());
+        }
+
+        for (String table : tableNames) {
+            TableMeta sourceMeta = memoryTableMeta.find("test", table);
+            System.out.println(sourceMeta.toString());
+        }
+    }
+
+    @Test
+    public void test_create_if_not_exist() throws Throwable {
+        MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
+        File dummyFile = new File(url.getFile());
+        File create = new File(dummyFile.getParent() + "/ddl", "ddl_create_if_not_exist.sql");
+        String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
+        memoryTableMeta.apply(null, "test", sql, null);
+
         List<String> tableNames = Lists.newArrayList();
         for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
             tableNames.addAll(schema.showTables());

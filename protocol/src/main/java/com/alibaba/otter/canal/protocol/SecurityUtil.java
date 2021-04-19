@@ -24,7 +24,7 @@ public class SecurityUtil {
     private static char[]                  digits  = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
             'd', 'e', 'f'                         };
 
-    private static Map<Character, Integer> rDigits = new HashMap<Character, Integer>(16);
+    private static Map<Character, Integer> rDigits = new HashMap<>(16);
     static {
         for (int i = 0; i < digits.length; ++i) {
             rDigits.put(digits[i], i);
@@ -84,8 +84,8 @@ public class SecurityUtil {
      */
     public static String byte2HexStr(byte[] b) {
         StringBuilder hs = new StringBuilder();
-        for (int n = 0; n < b.length; n++) {
-            String hex = (Integer.toHexString(b[n] & 0XFF));
+        for (byte value : b) {
+            String hex = (Integer.toHexString(value & 0XFF));
             if (hex.length() == 1) {
                 hs.append("0" + hex);
             } else {

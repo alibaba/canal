@@ -73,14 +73,11 @@ public class MixedLogPositionManager extends AbstractLogPositionManager {
     @Override
     public void persistLogPosition(final String destination, final LogPosition logPosition) throws CanalParseException {
         memoryLogPositionManager.persistLogPosition(destination, logPosition);
-        executor.submit(new Runnable() {
-
-            public void run() {
-                try {
-                    zooKeeperLogPositionManager.persistLogPosition(destination, logPosition);
-                } catch (Exception e) {
-                    logger.error("ERROR # persist to zookeeper has an error", e);
-                }
+        executor.submit(() -> {
+            try {
+                zooKeeperLogPositionManager.persistLogPosition(destination, logPosition);
+            } catch (Exception e) {
+                logger.error("ERROR # persist to zookeeper has an error", e);
             }
         });
     }

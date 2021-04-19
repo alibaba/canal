@@ -7,7 +7,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -75,21 +74,18 @@ public class CanalServerWithNetty extends AbstractCanalLifeCycle implements Cana
         bootstrap.setOption("child.tcpNoDelay", true);
 
         // 构造对应的pipeline
-        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+        bootstrap.setPipelineFactory(() -> {
+            ChannelPipeline pipelines = Channels.pipeline();
+            pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
+            // support to maintain child socket channel.
+            pipelines.addLast(HandshakeInitializationHandler.class.getName(),
+                new HandshakeInitializationHandler(childGroups));
+            pipelines.addLast(ClientAuthenticationHandler.class.getName(),
+                new ClientAuthenticationHandler(embeddedServer));
 
-            public ChannelPipeline getPipeline() throws Exception {
-                ChannelPipeline pipelines = Channels.pipeline();
-                pipelines.addLast(FixedHeaderFrameDecoder.class.getName(), new FixedHeaderFrameDecoder());
-                // support to maintain child socket channel.
-                pipelines.addLast(HandshakeInitializationHandler.class.getName(),
-                    new HandshakeInitializationHandler(childGroups));
-                pipelines.addLast(ClientAuthenticationHandler.class.getName(),
-                    new ClientAuthenticationHandler(embeddedServer));
-
-                SessionHandler sessionHandler = new SessionHandler(embeddedServer);
-                pipelines.addLast(SessionHandler.class.getName(), sessionHandler);
-                return pipelines;
-            }
+            SessionHandler sessionHandler = new SessionHandler(embeddedServer);
+            pipelines.addLast(SessionHandler.class.getName(), sessionHandler);
+            return pipelines;
         });
 
         // 启动

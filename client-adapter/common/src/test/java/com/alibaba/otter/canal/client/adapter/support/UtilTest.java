@@ -3,9 +3,7 @@ package com.alibaba.otter.canal.client.adapter.support;
 import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Matchers.isNull;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-import com.alibaba.otter.canal.client.adapter.support.Util;
 import com.diffblue.deeptestutils.mock.DTUMemberMatcher;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
