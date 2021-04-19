@@ -72,13 +72,20 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private BatchEventProcessor<MessageEvent> sinkStoreStage;
     private LogContext                        logContext;
 
+    protected boolean              filterDmlInsert           = false;
+    protected boolean              filterDmlUpdate           = false;
+    protected boolean              filterDmlDelete           = false;
+
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
-                                      EventTransactionBuffer transactionBuffer, String destination){
+                                      EventTransactionBuffer transactionBuffer, String destination, boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
         this.ringBufferSize = ringBufferSize;
         this.parserThreadCount = parserThreadCount;
         this.logEventConvert = logEventConvert;
         this.transactionBuffer = transactionBuffer;
         this.destination = destination;
+        this.filterDmlInsert = filterDmlInsert;
+        this.filterDmlUpdate = filterDmlUpdate;
+        this.filterDmlDelete = filterDmlDelete;
     }
 
     @Override
@@ -272,18 +279,18 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     case LogEvent.WRITE_ROWS_EVENT_V1:
                     case LogEvent.WRITE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((WriteRowsLogEvent) logEvent);
-                        needDmlParse = true;
+                        needDmlParse = !filterDmlInsert;//true;
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
                     case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
-                        needDmlParse = true;
+                        needDmlParse = !filterDmlUpdate;//true;
                         break;
                     case LogEvent.DELETE_ROWS_EVENT_V1:
                     case LogEvent.DELETE_ROWS_EVENT:
                         tableMeta = logEventConvert.parseRowsEventForTableMeta((DeleteRowsLogEvent) logEvent);
-                        needDmlParse = true;
+                        needDmlParse = !filterDmlDelete;//true;
                         break;
                     case LogEvent.ROWS_QUERY_LOG_EVENT:
                         needDmlParse = true;

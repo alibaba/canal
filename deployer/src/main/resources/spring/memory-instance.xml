@@ -148,6 +148,9 @@
 		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
 		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
 		<property name="useDruidDdlFilter" value="${canal.instance.filter.druid.ddl:true}" />
+		<property name="filterDmlInsert" value="${canal.instance.filter.dml.insert:false}" />
+		<property name="filterDmlUpdate" value="${canal.instance.filter.dml.update:false}" />
+		<property name="filterDmlDelete" value="${canal.instance.filter.dml.delete:false}" />
 		<property name="filterRows" value="${canal.instance.filter.rows:false}" />
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
 		<property name="supportBinlogFormats" value="${canal.instance.binlog.format}" />
