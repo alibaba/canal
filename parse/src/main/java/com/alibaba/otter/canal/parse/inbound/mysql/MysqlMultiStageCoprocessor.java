@@ -76,7 +76,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     protected boolean                         filterDmlDelete = false;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
-                                      EventTransactionBuffer transactionBuffer, String destination, boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
+                                      EventTransactionBuffer transactionBuffer, String destination,
+                                      boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
         this.ringBufferSize = ringBufferSize;
         this.parserThreadCount = parserThreadCount;
         this.logEventConvert = logEventConvert;
