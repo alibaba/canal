@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -105,15 +106,15 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                 kafkaProperties.put(key, value);
             }
         }
-        String kerberosEnabled = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
+        String kerberosEnabled = PropertiesUtils.getProperty(properties, KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
         if (!StringUtils.isEmpty(kerberosEnabled)) {
             kafkaProducerConfig.setKerberosEnabled(Boolean.parseBoolean(kerberosEnabled));
         }
-        String krb5File = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5_FILE);
+        String krb5File = PropertiesUtils.getProperty(properties, KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5_FILE);
         if (!StringUtils.isEmpty(krb5File)) {
             kafkaProducerConfig.setKrb5File(krb5File);
         }
-        String jaasFile = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_JAAS_FILE);
+        String jaasFile = PropertiesUtils.getProperty(properties, KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_JAAS_FILE);
         if (!StringUtils.isEmpty(jaasFile)) {
             kafkaProducerConfig.setJaasFile(jaasFile);
         }

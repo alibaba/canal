@@ -14,6 +14,7 @@ import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanal;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
 import com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator;
+import com.alibaba.otter.canal.parse.CanalEventParser;
 
 /**
  * 基于manager生成对应的{@linkplain CanalInstance}
@@ -35,7 +36,7 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
     }
 
     public CanalInstance generate(String destination) {
-        synchronized (CanalInstanceGenerator.class) {
+        synchronized (CanalEventParser.class) {
             try {
                 PlainCanal canal = canalConfigClient.findInstance(destination, null);
                 if (canal == null) {

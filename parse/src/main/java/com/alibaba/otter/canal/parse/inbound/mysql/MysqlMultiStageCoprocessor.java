@@ -53,7 +53,7 @@ import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
  */
 public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implements MultiStageCoprocessor {
 
-    private static final int                  maxFullTimes = 10;
+    private static final int                  maxFullTimes    = 10;
     private LogEventConvert                   logEventConvert;
     private EventTransactionBuffer            transactionBuffer;
     private ErosaConnection                   connection;
@@ -71,10 +71,9 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private BatchEventProcessor<MessageEvent> simpleParserStage;
     private BatchEventProcessor<MessageEvent> sinkStoreStage;
     private LogContext                        logContext;
-
-    protected boolean              filterDmlInsert           = false;
-    protected boolean              filterDmlUpdate           = false;
-    protected boolean              filterDmlDelete           = false;
+    protected boolean                         filterDmlInsert = false;
+    protected boolean                         filterDmlUpdate = false;
+    protected boolean                         filterDmlDelete = false;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination, boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
@@ -106,8 +105,8 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         // stage 2
         this.logContext = new LogContext();
         simpleParserStage = new BatchEventProcessor<>(disruptorMsgBuffer,
-                sequenceBarrier,
-                new SimpleParserStage(logContext));
+            sequenceBarrier,
+            new SimpleParserStage(logContext));
         simpleParserStage.setExceptionHandler(exceptionHandler);
         disruptorMsgBuffer.addGatingSequences(simpleParserStage.getSequence());
 
@@ -126,9 +125,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         // stage 4
         SequenceBarrier sinkSequenceBarrier = disruptorMsgBuffer.newBarrier(sequence);
-        sinkStoreStage = new BatchEventProcessor<>(disruptorMsgBuffer,
-                sinkSequenceBarrier,
-                new SinkStoreStage());
+        sinkStoreStage = new BatchEventProcessor<>(disruptorMsgBuffer, sinkSequenceBarrier, new SinkStoreStage());
         sinkStoreStage.setExceptionHandler(exceptionHandler);
         disruptorMsgBuffer.addGatingSequences(sinkStoreStage.getSequence());
 
@@ -278,19 +275,25 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                 switch (eventType) {
                     case LogEvent.WRITE_ROWS_EVENT_V1:
                     case LogEvent.WRITE_ROWS_EVENT:
-                        tableMeta = logEventConvert.parseRowsEventForTableMeta((WriteRowsLogEvent) logEvent);
-                        needDmlParse = !filterDmlInsert;//true;
+                        if (!filterDmlInsert) {
+                            tableMeta = logEventConvert.parseRowsEventForTableMeta((WriteRowsLogEvent) logEvent);
+                            needDmlParse = true;
+                        }
                         break;
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
                     case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
-                        tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
-                        needDmlParse = !filterDmlUpdate;//true;
+                        if (!filterDmlUpdate) {
+                            tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
+                            needDmlParse = true;
+                        }
                         break;
                     case LogEvent.DELETE_ROWS_EVENT_V1:
                     case LogEvent.DELETE_ROWS_EVENT:
-                        tableMeta = logEventConvert.parseRowsEventForTableMeta((DeleteRowsLogEvent) logEvent);
-                        needDmlParse = !filterDmlDelete;//true;
+                        if (!filterDmlDelete) {
+                            tableMeta = logEventConvert.parseRowsEventForTableMeta((DeleteRowsLogEvent) logEvent);
+                            needDmlParse = true;
+                        }
                         break;
                     case LogEvent.ROWS_QUERY_LOG_EVENT:
                         needDmlParse = true;
@@ -448,7 +451,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         @Override
         public void handleEventException(final Throwable ex, final long sequence, final Object event) {
-            //异常上抛，否则processEvents的逻辑会默认会mark为成功执行，有丢数据风险
+            // 异常上抛，否则processEvents的逻辑会默认会mark为成功执行，有丢数据风险
             throw new CanalParseException(ex);
         }
 

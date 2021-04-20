@@ -420,11 +420,27 @@ public class JsonConversion {
         for (int i = 0; i < endIndex; ++i) {
             char c = data.charAt(i);
             if (c == '"') {
-                sb.append('\\');
+                sb.append("\\\"");
+            } else if (c == '\n') {
+                sb.append("\\n");
+            } else if (c == '\r') {
+                sb.append("\\r");
             } else if (c == '\\') {
-                sb.append("\\");
+                sb.append("\\\\");
+            } else if (c == '\t') {
+                sb.append("\\t");
+            } else if (c < 16) {
+                sb.append("\\u000");
+                sb.append(Integer.toHexString(c));
+            } else if (c < 32) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else if (c >= 0x7f && c <= 0xA0) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else {
+                sb.append(c);
             }
-            sb.append(c);
         }
         return sb;
     }

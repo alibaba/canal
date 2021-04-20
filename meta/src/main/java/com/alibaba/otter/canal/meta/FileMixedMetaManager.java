@@ -91,6 +91,8 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             for (ClientIdentity clientIdentity : tasks) {
                 MDC.put("destination", String.valueOf(clientIdentity.getDestination()));
                 try {
+                    updateCursorTasks.remove(clientIdentity);
+
                     // 定时将内存中的最新值刷到file中，多次变更只刷一次
                     if (logger.isInfoEnabled()) {
                         LogPosition cursor = (LogPosition) getCursor(clientIdentity);
@@ -100,7 +102,6 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                                 cursor.getIdentity().getSourceAddress().toString());
                     }
                     flushDataToFile(clientIdentity.getDestination());
-                    updateCursorTasks.remove(clientIdentity);
                 } catch (Throwable e) {
                     // ignore
                     logger.error("period update" + clientIdentity.toString() + " curosr failed!", e);

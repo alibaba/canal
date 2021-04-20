@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -60,6 +58,8 @@ import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
 import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 
 /**
@@ -195,9 +195,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         Pair.Builder builder = Pair.newBuilder();
         builder.setKey("gtid");
         if (logEvent instanceof MariaGtidLogEvent) {
-            builder.setValue(((MariaGtidLogEvent)logEvent).getGtidStr());
+            builder.setValue(((MariaGtidLogEvent) logEvent).getGtidStr());
         } else if (logEvent instanceof MariaGtidListLogEvent) {
-            builder.setValue(((MariaGtidListLogEvent)logEvent).getGtidStr());
+            builder.setValue(((MariaGtidListLogEvent) logEvent).getGtidStr());
         }
         Header header = createHeader(logHeader, "", "", EventType.GTID);
         return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
@@ -294,7 +294,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuilder = RowChange.newBuilder();
-
             rowChangeBuilder.setIsDdl(!isDml);
             rowChangeBuilder.setSql(queryString);
             if (StringUtils.isNotEmpty(event.getDbName())) {// 可能为空

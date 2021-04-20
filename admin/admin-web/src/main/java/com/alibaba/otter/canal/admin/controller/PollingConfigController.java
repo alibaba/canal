@@ -46,14 +46,15 @@ public class PollingConfigController {
     public BaseModel<CanalConfig> canalConfigPoll(@RequestHeader String user, @RequestHeader String passwd,
                                                   @RequestParam String ip, @RequestParam Integer port,
                                                   @RequestParam String md5, @RequestParam boolean register,
-                                                  @RequestParam String cluster, @PathVariable String env) {
+                                                  @RequestParam String cluster, @RequestParam String name,
+                                                  @PathVariable String env) {
         if (!auth(user, passwd)) {
             throw new RuntimeException("auth :" + user + " is failed");
         }
 
         if (StringUtils.isEmpty(md5) && register) {
             // do something
-            pollingConfigService.autoRegister(ip, port, cluster);
+            pollingConfigService.autoRegister(ip, port, cluster, StringUtils.trimToNull(name));
         }
 
         CanalConfig canalConfig = pollingConfigService.getChangedConfig(ip, port, md5);
