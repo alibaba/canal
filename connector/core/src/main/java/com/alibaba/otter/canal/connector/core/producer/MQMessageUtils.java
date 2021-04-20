@@ -145,6 +145,9 @@ public class MQMessageUtils {
      * @return 分隔后的message map
      */
     public static Map<String, Message> messageTopics(Message message, String defaultTopic, String dynamicTopicConfigs, String dynamicTopicPrefix) {
+        if(dynamicTopicPrefix == null){
+            dynamicTopicPrefix = "";
+        }
         List<CanalEntry.Entry> entries;
         if (message.isRaw()) {
             List<ByteString> rawEntries = message.getRawEntries();
