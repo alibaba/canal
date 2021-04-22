@@ -34,6 +34,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +124,7 @@ public class BinlogDownloadQueue {
     public boolean isLastFile(String fileName) {
         String needCompareName = lastDownload;
         if (StringUtils.isNotEmpty(needCompareName) && StringUtils.endsWith(needCompareName, "tar")) {
-            needCompareName = needCompareName.substring(0, needCompareName.indexOf("."));
+            needCompareName = needCompareName.substring(0, needCompareName.lastIndexOf("."));
         }
         return (needCompareName == null || fileName.equalsIgnoreCase(needCompareName)) && binlogList.isEmpty();
     }
@@ -223,7 +224,7 @@ public class BinlogDownloadQueue {
                 TarArchiveEntry tarArchiveEntry = null;
                 while ((tarArchiveEntry = tais.getNextTarEntry()) != null) {
                     String name = tarArchiveEntry.getName();
-                    File tarFile = new File(parentFile, name + ".tmp");
+                    File tarFile = new File(parentFile, name);
                     logger.info("start to download file " + tarFile.getName());
                     if (tarFile.exists()) {
                         tarFile.delete();
@@ -244,7 +245,7 @@ public class BinlogDownloadQueue {
                 }
                 tais.close();
             } else {
-                File file = new File(parentFile, fileName + ".tmp");
+                File file = new File(parentFile, fileName);
                 if (file.exists()) {
                     file.delete();
                 }
