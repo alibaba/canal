@@ -9,6 +9,7 @@ package com.alibaba.otter.canal.connector.core.config;
 public class MQProperties {
 
     private boolean flatMessage             = true;
+    private boolean flatMessageOnlyData     = false;
     private boolean databaseHash            = true;
     private boolean filterTransactionEntry  = true;
     private Integer parallelBuildThreadSize = 8;
@@ -16,6 +17,7 @@ public class MQProperties {
     private Integer fetchTimeout            = 100;
     private Integer batchSize               = 50;
     private String  accessChannel           = "local";
+    private String  flatMessageSqlType      = "INSERT";
 
     private String  aliyunAccessKey         = "";
     private String  aliyunSecretKey         = "";
@@ -27,6 +29,22 @@ public class MQProperties {
 
     public void setFlatMessage(boolean flatMessage) {
         this.flatMessage = flatMessage;
+    }
+
+    public boolean isFlatMessageOnlyData() {
+        return flatMessageOnlyData;
+    }
+
+    public void setFlatMessageOnlyData(boolean flatMessageOnlyData) {
+        this.flatMessageOnlyData = flatMessageOnlyData;
+    }
+
+    public void setFlatMessageSqlType(String flatMessageSqlType) {
+        this.flatMessageSqlType = flatMessageSqlType;
+    }
+
+    public String getFlatMessageSqlType() {
+        return this.flatMessageSqlType;
     }
 
     public boolean isDatabaseHash() {
