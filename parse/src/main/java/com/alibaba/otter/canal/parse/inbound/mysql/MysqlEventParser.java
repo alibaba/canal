@@ -69,7 +69,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private int                  dumpErrorCount                    = 0;        // binlogDump失败异常计数
     private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
     private boolean              rdsOssMode                        = false;
-    private boolean              autoResetLatestPosMode            = false;    // true: binlog被删除之后，自动按最新的数据订阅
+    private boolean              autoResetLatestPosMode            = false;    // true:
+                                                                                // binlog被删除之后，自动按最新的数据订阅
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -347,7 +348,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 if (StringUtils.isNotEmpty(logPosition.getPostion().getGtid())) {
                     return logPosition.getPostion();
                 }
-            }else {
+            } else {
                 if (masterPosition != null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
                     return masterPosition;
                 }
@@ -401,7 +402,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 fixedPosition.getJournalName(),
                 true);
             if (entryPosition == null) {
-                throw new CanalParseException("[fixed timestamp] can't found begin/commit position before with fixed position"
+                throw new CanalParseException("[fixed timestamp] can't found begin/commit position before with fixed position "
                                               + fixedPosition.getJournalName() + ":" + fixedPosition.getPosition());
             }
             return entryPosition;
@@ -486,7 +487,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         return findPosition;
                     }
                     // 处理 binlog 位点被删除的情况，提供自动重置到当前位点的功能
-                    // 应用场景: 测试环境不稳定，位点经常被删。强烈不建议在正式环境中开启此控制参数，因为binlog 丢失调到最新位点也即意味着数据丢失
+                    // 应用场景: 测试环境不稳定，位点经常被删。强烈不建议在正式环境中开启此控制参数，因为binlog
+                    // 丢失调到最新位点也即意味着数据丢失
                     if (isAutoResetLatestPosMode()) {
                         dumpErrorCount = 0;
                         return findEndPosition(mysqlConnection);
@@ -497,9 +499,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         return null;
                     }
                 } else if (StringUtils.isBlank(logPosition.getPostion().getJournalName())
-                        && logPosition.getPostion().getPosition() <= 0
-                        && logPosition.getPostion().getTimestamp() > 0) {
-                    return fallbackFindByStartTimestamp(logPosition,mysqlConnection);
+                           && logPosition.getPostion().getPosition() <= 0
+                           && logPosition.getPostion().getTimestamp() > 0) {
+                    return fallbackFindByStartTimestamp(logPosition, mysqlConnection);
                 }
                 // 其余情况
                 logger.warn("prepare to find start position just last position\n {}",
@@ -522,7 +524,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      * @param mysqlConnection
      * @return
      */
-    protected EntryPosition fallbackFindByStartTimestamp(LogPosition logPosition,MysqlConnection mysqlConnection){
+    protected EntryPosition fallbackFindByStartTimestamp(LogPosition logPosition, MysqlConnection mysqlConnection) {
         long timestamp = logPosition.getPostion().getTimestamp();
         long newStartTimestamp = timestamp - fallbackIntervalInSeconds * 1000;
         logger.warn("prepare to find start position by last position {}:{}:{}", new Object[] { "", "",
