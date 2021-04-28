@@ -3,6 +3,7 @@ package org.elasticsearch.client;
 import java.io.IOException;
 
 import org.apache.http.client.methods.HttpGet;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.common.Strings;
 
@@ -26,5 +27,13 @@ public class RequestConvertersExt {
         String[] types = getMappingsRequest.types() == null ? Strings.EMPTY_ARRAY : getMappingsRequest.types();
 
         return new Request(HttpGet.METHOD_NAME, RequestConverters.endpoint(indices, "_mapping", types));
+    }
+
+
+    static Request getAlias(GetAliasesRequest getAliasesRequest) throws IOException {
+        String[] indices = getAliasesRequest.indices() == null ? Strings.EMPTY_ARRAY : getAliasesRequest.indices();
+        String[] aliases = getAliasesRequest.aliases() == null ? Strings.EMPTY_ARRAY : getAliasesRequest.aliases();
+
+        return new Request(HttpGet.METHOD_NAME, RequestConverters.endpoint(indices, "_alias", aliases));
     }
 }
