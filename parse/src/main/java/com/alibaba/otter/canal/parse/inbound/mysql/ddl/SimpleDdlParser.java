@@ -76,19 +76,22 @@ public class SimpleDdlParser {
         result = parseRename(queryString, schmeaName, RENAME_PATTERN);
         if (result != null) {
             result.setType(EventType.RENAME);
-
-            String[] renameStrings = queryString.split(",");
-            if (renameStrings.length > 1) {
-                DdlResult lastResult = result;
-                for (int i = 1; i < renameStrings.length; i++) {
-                    DdlResult ddlResult = parseRename(renameStrings[i], schmeaName, RENAME_REMNANT_PATTERN);
-                    ddlResult.setType(EventType.RENAME);
-                    lastResult.setRenameTableResult(ddlResult);
-                    lastResult = ddlResult;
+            if(StringUtils.isNotBlank(queryString)) {
+                String[] renameStrings = queryString.split(",");
+                if (renameStrings.length > 1) {
+                    DdlResult lastResult = result;
+                    for (int i = 1; i < renameStrings.length; i++) {
+                        DdlResult ddlResult = parseRename(renameStrings[i], schmeaName, RENAME_REMNANT_PATTERN);
+                        if (ddlResult != null) {
+                            ddlResult.setType(EventType.RENAME);
+                            lastResult.setRenameTableResult(ddlResult);
+                            lastResult = ddlResult;
+                        }
+                    }
                 }
-            }
 
-            return result;
+                return result;
+            }
         }
 
         result = parseDdl(queryString, schmeaName, CREATE_INDEX_PATTERN, 5);
@@ -173,12 +176,12 @@ public class SimpleDdlParser {
             // 特殊处理引号`
             tableString = removeEscape(tableString);
             // 处理schema.table的写法
-            String names[] = StringUtils.split(tableString, ".");
+            String[] names = StringUtils.split(tableString, ".");
             if (names.length == 0) {
                 return null;
             }
 
-            if (names != null && names.length > 1) {
+            if (names.length > 1) {
                 return new DdlResult(removeEscape(names[0]), removeEscape(names[1]));
             } else {
                 return new DdlResult(schmeaName, removeEscape(names[0]));
@@ -211,11 +214,8 @@ public class SimpleDdlParser {
             if (index1 == -1) {
                 return sql;
             }
-            StringBuilder sb = new StringBuilder();
-            sb.append(sql.substring(0, index0));
-            sb.append(" ");
-            sb.append(sql.substring(index1 + end.length()));
-            sql = sb.toString();
+            String sb = sql.substring(0, index0) + " " + sql.substring(index1 + end.length());
+            sql = sb;
         }
     }
 }

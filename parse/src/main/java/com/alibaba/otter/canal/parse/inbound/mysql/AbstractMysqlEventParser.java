@@ -48,11 +48,11 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     protected BinlogParser buildParser() {
         LogEventConvert convert = new LogEventConvert();
-        if (eventFilter != null && eventFilter instanceof AviaterRegexFilter) {
+        if (eventFilter instanceof AviaterRegexFilter) {
             convert.setNameFilter((AviaterRegexFilter) eventFilter);
         }
 
-        if (eventBlackFilter != null && eventBlackFilter instanceof AviaterRegexFilter) {
+        if (eventBlackFilter instanceof AviaterRegexFilter) {
             convert.setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
 
@@ -73,12 +73,12 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         super.setEventFilter(eventFilter);
 
         // 触发一下filter变更
-        if (eventFilter != null && eventFilter instanceof AviaterRegexFilter) {
+        if (eventFilter instanceof AviaterRegexFilter) {
             if (binlogParser instanceof LogEventConvert) {
                 ((LogEventConvert) binlogParser).setNameFilter((AviaterRegexFilter) eventFilter);
             }
 
-            if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            if (tableMetaTSDB instanceof DatabaseTableMeta) {
                 ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
             }
         }
@@ -88,12 +88,12 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         super.setEventBlackFilter(eventBlackFilter);
 
         // 触发一下filter变更
-        if (eventBlackFilter != null && eventBlackFilter instanceof AviaterRegexFilter) {
+        if (eventBlackFilter instanceof AviaterRegexFilter) {
             if (binlogParser instanceof LogEventConvert) {
                 ((LogEventConvert) binlogParser).setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
             }
 
-            if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            if (tableMetaTSDB instanceof DatabaseTableMeta) {
                 ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
             }
         }
@@ -108,7 +108,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             ((LogEventConvert) binlogParser).setFieldFilterMap(getFieldFilterMap());
         }
 
-        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+        if (tableMetaTSDB instanceof DatabaseTableMeta) {
             ((DatabaseTableMeta) tableMetaTSDB).setFieldFilterMap(getFieldFilterMap());
         }
     }
@@ -122,7 +122,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             ((LogEventConvert) binlogParser).setFieldBlackFilterMap(getFieldBlackFilterMap());
         }
 
-        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+        if (tableMetaTSDB instanceof DatabaseTableMeta) {
             ((DatabaseTableMeta) tableMetaTSDB).setFieldBlackFilterMap(getFieldBlackFilterMap());
         }
     }

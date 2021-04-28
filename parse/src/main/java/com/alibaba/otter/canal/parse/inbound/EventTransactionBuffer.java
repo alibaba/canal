@@ -68,6 +68,8 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
                 flush();// 刷新上一次的数据
                 put(entry);
                 break;
+            case HEARTBEAT:
+                // master过来的heartbeat，说明binlog已经读完了，是idle状态
             case TRANSACTIONEND:
                 put(entry);
                 flush();
@@ -79,11 +81,6 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
                 if (eventType != null && !isDml(eventType)) {
                     flush();
                 }
-                break;
-            case HEARTBEAT:
-                // master过来的heartbeat，说明binlog已经读完了，是idle状态
-                put(entry);
-                flush();
                 break;
             default:
                 break;

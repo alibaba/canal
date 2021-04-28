@@ -215,7 +215,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
                 StringBuilder sql = new StringBuilder();
                 for (String table : tables) {
-                    sql.append("show create table `" + schema + "`.`" + table + "`;");
+                    sql.append("show create table `").append(schema).append("`.`").append(table).append("`;");
                 }
 
                 List<ResultSetPacket> packets = connection.queryMulti(sql.toString());

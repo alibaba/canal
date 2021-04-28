@@ -69,8 +69,7 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
     // ================ setter / getter ================
 
     private BeanFactory getBeanFactory(String springXml) {
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
-        return applicationContext;
+        return new ClassPathXmlApplicationContext(springXml);
     }
 
     public void setCanalConfigClient(PlainCanalConfigClient canalConfigClient) {

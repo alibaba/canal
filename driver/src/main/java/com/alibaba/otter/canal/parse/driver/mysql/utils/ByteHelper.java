@@ -43,9 +43,8 @@ public abstract class ByteHelper {
      * @return
      */
     public static long readUnsignedIntLittleEndian(byte[] data, int index) {
-        long result = (long) (data[index] & 0xFF) | (long) ((data[index + 1] & 0xFF) << 8)
+        return (long) (data[index] & 0xFF) | (long) ((data[index + 1] & 0xFF) << 8)
                       | (long) ((data[index + 2] & 0xFF) << 16) | (long) ((data[index + 3] & 0xFF) << 24);
-        return result;
     }
 
     public static long readUnsignedLongLittleEndian(byte[] data, int index) {
@@ -58,13 +57,11 @@ public abstract class ByteHelper {
     }
 
     public static int readUnsignedShortLittleEndian(byte[] data, int index) {
-        int result = (data[index] & 0xFF) | ((data[index + 1] & 0xFF) << 8);
-        return result;
+        return (data[index] & 0xFF) | ((data[index + 1] & 0xFF) << 8);
     }
 
     public static int readUnsignedMediumLittleEndian(byte[] data, int index) {
-        int result = (data[index] & 0xFF) | ((data[index + 1] & 0xFF) << 8) | ((data[index + 2] & 0xFF) << 16);
-        return result;
+        return (data[index] & 0xFF) | ((data[index + 1] & 0xFF) << 8) | ((data[index + 2] & 0xFF) << 16);
     }
 
     public static long readLengthCodedBinary(byte[] data, int index) throws IOException {

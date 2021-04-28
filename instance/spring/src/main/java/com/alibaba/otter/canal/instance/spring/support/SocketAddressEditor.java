@@ -19,7 +19,7 @@ public class SocketAddressEditor extends PropertyEditorSupport implements Proper
             if (addresses.length != 2) {
                 throw new RuntimeException("address[" + text + "] is illegal, eg.127.0.0.1:3306");
             } else {
-                setValue(new InetSocketAddress(addresses[0], Integer.valueOf(addresses[1])));
+                setValue(new InetSocketAddress(addresses[0], Integer.parseInt(addresses[1])));
             }
         } else {
             setValue(null);
