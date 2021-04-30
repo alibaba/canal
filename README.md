@@ -99,4 +99,4 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 - [阿里巴巴实时数据同步工具 DTS](https://www.aliyun.com/product/dts)
 
 ## 问题反馈
-- 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
+- 报告 issue: [github issues](https://github.com/alibaba/canal/issues) 
