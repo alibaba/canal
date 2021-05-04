@@ -1,5 +1,8 @@
 package com.alibaba.otter.canal.client.adapter.rdb.support;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,9 +13,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * sql批量执行器
@@ -60,6 +60,9 @@ public class BatchExecutor implements Closeable {
             SyncUtil.setPStmt(type, pstmt, value, i + 1);
         }
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("DML: {}", pstmt.toString());
+        }
         pstmt.execute();
         idx.incrementAndGet();
         pstmt.close();
