@@ -169,7 +169,7 @@ public class MysqlConnector {
             } else if (body[0] == -2) {
                 throw new IOException("Unexpected EOF packet at handshake phase.");
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("unexpected packet with field_count=" + body[0]);
             }
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
