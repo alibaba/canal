@@ -76,8 +76,8 @@ public class CanalLauncher {
                 }
                 Properties managerProperties = canalConfig.getProperties();
                 // merge local
-                managerProperties.putAll(properties);
-                int scanIntervalInSecond = Integer.valueOf(CanalController.getProperty(managerProperties,
+                properties.putAll( managerProperties );
+                int scanIntervalInSecond = Integer.valueOf(CanalController.getProperty(properties,
                     CanalConstants.CANAL_AUTO_SCAN_INTERVAL,
                     "5"));
                 executor.scheduleWithFixedDelay(new Runnable() {
@@ -95,8 +95,8 @@ public class CanalLauncher {
                                     canalStater.stop();
                                     Properties managerProperties = newCanalConfig.getProperties();
                                     // merge local
-                                    managerProperties.putAll(properties);
-                                    canalStater.setProperties(managerProperties);
+                                    properties.putAll( managerProperties );
+                                    canalStater.setProperties(properties);
                                     canalStater.start();
 
                                     lastCanalConfig = newCanalConfig;
@@ -109,10 +109,8 @@ public class CanalLauncher {
                     }
 
                 }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
-                canalStater.setProperties(managerProperties);
-            } else {
-                canalStater.setProperties(properties);
             }
+            canalStater.setProperties(properties);
 
             canalStater.start();
             runningLatch.await();
