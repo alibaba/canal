@@ -46,7 +46,7 @@ public class MysqlConnector {
 
     private SocketChannel       channel;
     private volatile boolean    dumping           = false;
-    // mysql connectinnId
+    // mysql connectionId
     private long                connectionId      = -1;
     private AtomicBoolean       connected         = new AtomicBoolean(false);
     // serverVersion
