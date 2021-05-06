@@ -110,23 +110,22 @@ public class ES6xTemplate implements ESTemplate {
     }
 
     @Override
-    public void updateByQuery(ESSyncConfig config, Map<String, Object> paramsTmp, Map<String, Object> esFieldData) {
+    public void updateByQuery(ESSyncConfig config, Map<FieldItem, Object> paramsTmp, Map<String, Object> esFieldData) {
         if (paramsTmp.isEmpty()) {
             return;
         }
         ESMapping mapping = config.getEsMapping();
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        paramsTmp.forEach((fieldName, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
+        paramsTmp.forEach((fieldItem, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldItem.getFieldName().equals(mapping.get_id()) ? "_id" : fieldItem.getFieldName(), value)));
 
         // 查询sql批量更新
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
+        StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
         List<Object> values = new ArrayList<>();
-        paramsTmp.forEach((fieldName, value) -> {
-            sql.append("_v.").append(fieldName).append("=? AND ");
+        paramsTmp.forEach((fieldItem, value) -> {
+            sql.append(fieldItem.getOwner()).append(".").append(fieldItem.getColumn().getColumnName()).append("=? AND ");
             values.add(value);
         });
-        // TODO 直接外部包裹sql会导致全表扫描性能低, 待优化拼接内部where条件
         int len = sql.length();
         sql.delete(len - 4, len);
         Integer syncCount = (Integer) Util.sqlRS(ds, sql.toString(), values, rs -> {

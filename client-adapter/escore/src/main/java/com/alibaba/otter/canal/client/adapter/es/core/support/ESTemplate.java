@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
 
 public interface ESTemplate {
 
@@ -34,7 +35,7 @@ public interface ESTemplate {
      * @param paramsTmp sql查询条件
      * @param esFieldData 数据Map
      */
-    void updateByQuery(ESSyncConfig config, Map<String, Object> paramsTmp, Map<String, Object> esFieldData);
+    void updateByQuery(ESSyncConfig config, Map<SchemaItem.FieldItem, Object> paramsTmp, Map<String, Object> esFieldData);
 
     /**
      * 通过主键删除数据
