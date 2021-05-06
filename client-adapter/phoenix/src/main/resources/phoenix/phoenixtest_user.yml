@@ -1,0 +1,22 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+outerAdapterKey: phoenix
+concurrent: true
+dbMapping:
+  database: mytest
+  table: user
+  targetTable: mytest.user
+  escapeUpper: true  # 字段默认大写，并用双引号引起来
+  targetPk:
+    id: ID
+  mapAll: true  # 映射所有字段(默认true，不包含排除的字段)
+  alter: true   # 允许修改表结构(默认true，mapAll=true时可以新增，drop=true时可以删除字段)
+  drop: false   # 允许删除字段(默认false)
+  skipMissing: false # 是否跳过缺失的字段(默认false，允许新增字段时会自动同步缺失的字段;true时跳过缺失的字段)
+  limit: false  # 是否限与数据长度限制一致(默认false，不限制长度避免修改长度而无法修改)
+  targetColumns:
+    id: ID
+    name: NAME
+  excludeColumns: # 排除字段
+    - password
