@@ -273,7 +273,7 @@ public class MysqlConnector {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("unexpected packet with field_count=" + body[0]);
             }
         }
     }
@@ -304,7 +304,7 @@ public class MysqlConnector {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
             default:
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("unexpected packet with field_count=" + body[0]);
         }
     }
 
