@@ -1,0 +1,71 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esMapping:
+  _index: person
+  _type: _doc
+  _id: _id
+  #pk: id
+
+  #示例数据: {"id":"1","name":"刘一","age":"51","create_time":"2020-05-17T21:43:40+08:00","country_id":"1","relationshipIds":["1","2","3","4","5","6","7","8","9"],"friendNames":["陈二","张三2"],"country":{"id":"1","create_time":"2020-05-17T19:03:15+08:00","name":"中国"},"friends":[{"id":"2","name":"陈二"},{"id":"3","name":"张三2"}],"knowPersonNames":"郑十;吴九;周八;孙七;赵六;王五;李四;张三2;陈二","country_create_time":"2020-05-17T19:03:15+08:00","country_name":"中国"}
+
+  sql: "select
+          p._id, p._id as id, p._name as name, p._age as age, p._create_time as create_time, p._country_id as country_id, rst.relationshipIds
+          from person p left join (select rs._person_id, group_concat(rs._id separator ';') as relationshipIds from person_relationship rs group by rs._person_id) rst on rst._person_id=p._id"
+
+  # 对象字段
+  objFields:
+    # 是否并行查询, 开启并行时建议调大数据库连接数, 默认为false(不开启)
+    parallel: false
+    # 并行线程数, 默认为1
+    threadSize: 1
+    # 对象字段详情
+    fields:
+
+      friendNames:
+        # 类型【必填】
+        #   esMapping.objFields.fields.?.sql 非空情况下 支持 单字段数组(array)、JSON对象(object)、JSON对象数组(objectArray)、字符串拼接(joining)、扁平化(objectFlat)
+        #   esMapping.objFields.fields.?.sql 为空情况下 支持 单字段数组(array)、JSON对象(object), 需要主表sql(esMapping.sql)中利用group_concat函数拼接好数组、对象JSON, 需注意调大mysql的group_concat_max_len配置
+        type: array
+        # 子表查询语句
+        #   不支持 多表关联查询
+        #   不支持 “select * ” 写法
+        #   需对主表sql中任意一个或以上的字段进行关联查询, 可用“${?}”表达式引用主表字段(需保证值不为null), 如: where _fk = '${rid}'
+        sql: "select _other_person_name from person_relationship where _relationship='朋友' and _person_id='${id}'"
+        # 分隔符
+        #   esMapping.objFields.fields.?.sql 非空情况下 esMapping.objFields.fields.?.type = joining 有效
+        #   esMapping.objFields.fields.?.sql 为空情况下 esMapping.objFields.fields.?.type = array 有效
+        separator:
+        # 是否反向更新, 默认为true(当子表有数据变动时，也会同步更新到es中)
+        reverseUpdate: true
+
+      relationshipIds:
+        type: array
+        separator: ;
+
+      country:
+        type: object
+        sql: "select c._id as id, c._create_time as create_time, c._name as name from country c where c._id='${country_id}'"
+
+      friends:
+        type: objectArray
+        sql: "select _other_person_id as id, _other_person_name as name from person_relationship where _relationship='朋友' and _person_id='${id}'"
+
+      knowPersonNames:
+        type: joining
+        sql: "select _other_person_name from person_relationship where _person_id='${id}' order by _other_person_id desc"
+        separator: ;
+
+      countryFlat:
+        # 扁平化(objectFlat): 将该子表数据全部扁平化放入主表数据中, 而不作为某个对象字段存在, 适用场景: 子表数据无需反向更新主表es数据
+        type: objectFlat
+        sql: "select _create_time as country_create_time, _name as country_name from country where _id='${country_id}'"
+        reverseUpdate: false
+
+
+  # etl 的条件参数
+  etlCondition: "where p._create_time >= {} and p._create_time <= {} order by p._id"
+  # 提交批数量
+  commitBatch: 1000
+  # 提交批大小, 默认值为1M (1048576)
+  commitBatchSize: 1048576

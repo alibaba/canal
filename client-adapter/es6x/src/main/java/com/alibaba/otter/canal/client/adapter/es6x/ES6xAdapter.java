@@ -1,14 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es6x;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.sql.DataSource;
-
-import org.elasticsearch.action.search.SearchResponse;
-
 import com.alibaba.otter.canal.client.adapter.es.core.ESAdapter;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es6x.etl.ESEtlService;
@@ -18,6 +9,13 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
+import org.elasticsearch.action.search.SearchResponse;
+
+import javax.sql.DataSource;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * ES 6.x 外部适配器
@@ -75,7 +73,7 @@ public class ES6xAdapter extends ESAdapter {
         ESSyncConfig config = esSyncConfig.get(task);
         if (config != null) {
             DataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-            ESEtlService esEtlService = new ESEtlService(esConnection, config);
+            ESEtlService esEtlService = new ESEtlService(esConnection, config, esSyncService);
             if (dataSource != null) {
                 return esEtlService.importData(params);
             } else {
@@ -89,7 +87,7 @@ public class ES6xAdapter extends ESAdapter {
             for (ESSyncConfig configTmp : esSyncConfig.values()) {
                 // 取所有的destination为task的配置
                 if (configTmp.getDestination().equals(task)) {
-                    ESEtlService esEtlService = new ESEtlService(esConnection, configTmp);
+                    ESEtlService esEtlService = new ESEtlService(esConnection, configTmp, esSyncService);
                     EtlResult etlRes = esEtlService.importData(params);
                     if (!etlRes.getSucceeded()) {
                         resSuccess = false;

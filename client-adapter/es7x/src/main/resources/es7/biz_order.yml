@@ -18,3 +18,4 @@ esMapping:
     - customer_id
   etlCondition: "where t.c_time>={}"
   commitBatch: 3000
+  commitBatchSize: 1048576

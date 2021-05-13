@@ -1,22 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.es7x.etl;
 
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.lang.StringUtils;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-
+import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
+import com.alibaba.otter.canal.client.adapter.es.core.service.ESSyncService;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESBulkResponse;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESIndexRequest;
@@ -29,6 +17,18 @@ import com.alibaba.otter.canal.client.adapter.support.AbstractEtlService;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ES ETL Service
@@ -41,12 +41,14 @@ public class ESEtlService extends AbstractEtlService {
     private ESConnection esConnection;
     private ESTemplate   esTemplate;
     private ESSyncConfig config;
+    private ESSyncService esSyncService;
 
-    public ESEtlService(ESConnection esConnection, ESSyncConfig config){
+    public ESEtlService(ESConnection esConnection, ESSyncConfig config, ESSyncService esSyncService){
         super("ES", config);
         this.esConnection = esConnection;
         this.esTemplate = new ES7xTemplate(esConnection);
         this.config = config;
+        this.esSyncService = esSyncService;
     }
 
     public EtlResult importData(List<String> params) {
@@ -114,6 +116,9 @@ public class ESEtlService extends AbstractEtlService {
                             });
                         }
 
+                        //填充对象字段值
+                        esFieldData.putAll(esSyncService.getObjectFieldDatasForMainTableInsert(config, esFieldData));
+
                         if (idVal != null) {
                             String parentVal = (String) esFieldData.remove("$parent_routing");
                             if (mapping.isUpsert()) {
@@ -125,7 +130,7 @@ public class ESEtlService extends AbstractEtlService {
                                     esUpdateRequest.setRouting(parentVal);
                                 }
 
-                                esBulkRequest.add(esUpdateRequest);
+                                batchBegin = add(mapping, esBulkRequest, esFieldData, esUpdateRequest, batchBegin);
                             } else {
                                 ESIndexRequest esIndexRequest = this.esConnection.new ES7xIndexRequest(
                                     mapping.get_index(),
@@ -133,7 +138,7 @@ public class ESEtlService extends AbstractEtlService {
                                 if (StringUtils.isNotEmpty(parentVal)) {
                                     esIndexRequest.setRouting(parentVal);
                                 }
-                                esBulkRequest.add(esIndexRequest);
+                                batchBegin = add(mapping, esBulkRequest, esFieldData, esIndexRequest, batchBegin);
                             }
                         } else {
                             idVal = esFieldData.get(mapping.getPk());
@@ -145,45 +150,21 @@ public class ESEtlService extends AbstractEtlService {
                                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(
                                     mapping.get_index(),
                                     hit.getId()).setDoc(esFieldData);
-                                esBulkRequest.add(esUpdateRequest);
+                                batchBegin = add(mapping, esBulkRequest, esFieldData, esUpdateRequest, batchBegin);
                             }
                         }
 
                         if (esBulkRequest.numberOfActions() % mapping.getCommitBatch() == 0
                             && esBulkRequest.numberOfActions() > 0) {
-                            long esBatchBegin = System.currentTimeMillis();
-                            ESBulkResponse rp = esBulkRequest.bulk();
-                            if (rp.hasFailures()) {
-                                rp.processFailBulkResponse("全量数据 etl 异常 ");
-                            }
-
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("全量数据批量导入批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                    (System.currentTimeMillis() - batchBegin),
-                                    (System.currentTimeMillis() - esBatchBegin),
-                                    esBulkRequest.numberOfActions(),
-                                    mapping.get_index());
-                            }
+                            bulk(mapping, esBulkRequest, batchBegin, false);
                             batchBegin = System.currentTimeMillis();
-                            esBulkRequest.resetBulk();
                         }
                         count++;
                         impCount.incrementAndGet();
                     }
 
                     if (esBulkRequest.numberOfActions() > 0) {
-                        long esBatchBegin = System.currentTimeMillis();
-                        ESBulkResponse rp = esBulkRequest.bulk();
-                        if (rp.hasFailures()) {
-                            rp.processFailBulkResponse("全量数据 etl 异常 ");
-                        }
-                        if (logger.isTraceEnabled()) {
-                            logger.trace("全量数据批量导入最后批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                (System.currentTimeMillis() - batchBegin),
-                                (System.currentTimeMillis() - esBatchBegin),
-                                esBulkRequest.numberOfActions(),
-                                mapping.get_index());
-                        }
+                        bulk(mapping, esBulkRequest, batchBegin, true);
                     }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
@@ -197,6 +178,59 @@ public class ESEtlService extends AbstractEtlService {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return false;
+        }
+    }
+
+    private long add(ESMapping mapping, ESBulkRequest esBulkRequest, Map<String, Object> esFieldData, ESBulkRequest.IESRequest esRequest, long batchBegin) {
+        boolean leCommitBatchSize =
+                esBulkRequest.add(esRequest, mapping.getCommitBatchSize(), bytesSizeToAdd -> {
+                    if (esBulkRequest.numberOfActions() <= 0) {
+                        try {
+                            esBulkRequest.add(esRequest);
+                            bulk(mapping, esBulkRequest, batchBegin, false);
+                        } catch (Exception e) {
+                            logger.error("全量数据批量导入批次中单条数据已达上限, 尝试单独推送失败！" + JSON.toJSONString(esFieldData), e);
+                            throw e;
+                        }
+                    } else {
+                        //若批次数据大小已达上限，不继续添加，先提交再手动添加
+
+                        bulk(mapping, esBulkRequest, batchBegin, false);
+                        esBulkRequest.add(esRequest);
+                    }
+                    return false;
+                });
+        if (leCommitBatchSize) {
+            return batchBegin;
+        }
+        return System.currentTimeMillis();
+    }
+
+    private void bulk(ESMapping mapping, ESBulkRequest esBulkRequest, long batchBegin, boolean isLast) {
+        int numberOfActions = esBulkRequest.numberOfActions();
+        if (numberOfActions <= 0) {
+            logger.warn("全量数据批量导入批次无数据, 忽略");
+            return;
+        }
+
+        try {
+            long esBatchBegin = System.currentTimeMillis();
+            ESBulkResponse rp = esBulkRequest.bulk();
+            if (rp.hasFailures()) {
+                rp.processFailBulkResponse("全量数据 etl 异常 ");
+            }
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("全量数据批量导入{}批次耗时: {}, es执行时间: {}, 批次个数: {}, 批次大小: {}, index; {}",
+                        isLast ? "最后" : "",
+                        (System.currentTimeMillis() - batchBegin),
+                        (System.currentTimeMillis() - esBatchBegin),
+                        esBulkRequest.numberOfActions(),
+                        esBulkRequest.estimatedSizeInBytes(),
+                        mapping.get_index());
+            }
+        } finally {
+            esBulkRequest.resetBulk();
         }
     }
 }

@@ -10,6 +10,7 @@ esMapping:
   sql: "select t.id, t.name, t.email from customer t"
   etlCondition: "where t.c_time>={}"
   commitBatch: 3000
+  commitBatchSize: 1048576
 
 
 #{
