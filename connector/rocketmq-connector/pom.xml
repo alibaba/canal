@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>canal.connector</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.5-SNAPSHOT</version>
+        <version>1.1.6-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -16,7 +14,7 @@
     <name>canal connector rocketMQ module for otter ${project.version}</name>
 
     <properties>
-        <rocketmq_version>4.5.2</rocketmq_version>
+        <rocketmq_version>4.8.0</rocketmq_version>
     </properties>
 
     <dependencies>
@@ -85,7 +83,7 @@
                             <tasks>
                                 <copy todir="${project.basedir}/../../deployer/target/canal/plugin" overwrite="true">
                                     <fileset dir="${project.basedir}/target" erroronmissingdir="true">
-                                        <include name="connector.rocketmq-${project.version}-jar-with-dependencies.jar"/>
+                                        <include name="connector.rocketmq-${project.version}-jar-with-dependencies.jar" />
                                     </fileset>
                                 </copy>
                                 <copy todir="${project.basedir}/../../client-adapter/launcher/target/canal-adapter/plugin" overwrite="true">

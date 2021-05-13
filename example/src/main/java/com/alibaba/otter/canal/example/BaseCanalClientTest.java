@@ -31,7 +31,8 @@ public class BaseCanalClientTest {
     protected static final String             SEP                = SystemUtils.LINE_SEPARATOR;
     protected static final String             DATE_FORMAT        = "yyyy-MM-dd HH:mm:ss";
     protected volatile boolean                running            = false;
-    protected Thread.UncaughtExceptionHandler handler            = (t, e) -> logger.error("parse events has an error", e);
+    protected Thread.UncaughtExceptionHandler handler            = (t, e) -> logger.error("parse events has an error",
+                                                                     e);
     protected Thread                          thread             = null;
     protected CanalConnector                  connector;
     protected static String                   context_format     = null;
@@ -148,7 +149,7 @@ public class BaseCanalClientTest {
                             entry.getHeader().getGtid(), String.valueOf(delayTime) });
 
                 if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
-                    logger.info(" sql ----> " + rowChage.getSql() + SEP);
+                    logger.info("ddl : " + rowChage.getIsDdl() + " ,  sql ----> " + rowChage.getSql() + SEP);
                     continue;
                 }
 

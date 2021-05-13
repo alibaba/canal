@@ -55,6 +55,7 @@ public class CanalLauncher {
                 boolean autoRegister = BooleanUtils.toBoolean(CanalController.getProperty(properties,
                     CanalConstants.CANAL_ADMIN_AUTO_REGISTER));
                 String autoCluster = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_AUTO_CLUSTER);
+                String name = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_REGISTER_NAME);
                 String registerIp = CanalController.getProperty(properties, CanalConstants.CANAL_REGISTER_IP);
                 if (StringUtils.isEmpty(registerIp)) {
                     registerIp = AddressUtils.getHostIp();
@@ -65,7 +66,8 @@ public class CanalLauncher {
                     registerIp,
                     Integer.parseInt(adminPort),
                     autoRegister,
-                    autoCluster);
+                    autoCluster,
+                    name);
                 PlainCanal canalConfig = configClient.findServer(null);
                 if (canalConfig == null) {
                     throw new IllegalArgumentException("managerAddress:" + managerAddress

@@ -21,7 +21,6 @@ import com.alibaba.otter.canal.parse.driver.mysql.MysqlQueryExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlUpdateExecutor;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.BinlogDumpGTIDCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.RegisterSlaveCommandPacket;
@@ -444,7 +443,8 @@ public class MysqlConnection implements ErosaConnection {
             // mysql5.6需要设置slave_uuid避免被server kill链接
             update("set @slave_uuid=uuid()");
         } catch (Exception e) {
-            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")
+                && !StringUtils.contains(e.getMessage(), "slave_uuid can't be set")) {
                 logger.warn("update slave_uuid failed", e);
             }
         }

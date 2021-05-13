@@ -79,9 +79,10 @@ public class PeriodMixedMetaManager extends MemoryMetaManager implements CanalMe
             List<ClientIdentity> tasks = new ArrayList<>(updateCursorTasks);
             for (ClientIdentity clientIdentity : tasks) {
                 try {
+                    updateCursorTasks.remove(clientIdentity);
+
                     // 定时将内存中的最新值刷到zookeeper中，多次变更只刷一次
                     zooKeeperMetaManager.updateCursor(clientIdentity, getCursor(clientIdentity));
-                    updateCursorTasks.remove(clientIdentity);
                 } catch (Throwable e) {
                     // ignore
                     logger.error("period update" + clientIdentity.toString() + " curosr failed!", e);
