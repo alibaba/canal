@@ -69,7 +69,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
         tableMetas.clear();
         synchronized (this) {
             if (StringUtils.isNotEmpty(schema)) {
-                repository.setDefaultSchema(schema);
+                repository.setDefaultSchema(structureSchema(schema));
             }
 
             try {
@@ -155,6 +155,13 @@ public class MemoryTableMeta implements TableMetaTSDB {
         }
 
         return schemaDdls;
+    }
+
+    private String structureSchema(String schema) {
+        if (schema.startsWith("`") && schema.endsWith("`")) {
+            return schema;
+        }
+        return "`" + schema + "`";
     }
 
     private TableMeta parse(SQLCreateTableStatement statement) {

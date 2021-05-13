@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.admin.service.impl;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -28,11 +29,11 @@ public class PollingConfigServiceImpl implements PollingConfigService {
     @Autowired
     CanalClusterService canalClusterService;
 
-    public boolean autoRegister(String ip, Integer adminPort, String cluster) {
+    public boolean autoRegister(String ip, Integer adminPort, String cluster, String name) {
         NodeServer server = NodeServer.find.query().where().eq("ip", ip).eq("adminPort", adminPort).findOne();
         if (server == null) {
             server = new NodeServer();
-            server.setName(ip);
+            server.setName(Optional.ofNullable(name).orElse(ip));
             server.setIp(ip);
             server.setAdminPort(adminPort);
             server.setTcpPort(adminPort + 1);

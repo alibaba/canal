@@ -38,7 +38,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -56,13 +59,13 @@ public class ESConnection {
         TRANSPORT, REST
     }
 
-    private ESClientMode        mode;
+    private ESClientMode mode;
 
-    private TransportClient     transportClient;
+    private TransportClient transportClient;
 
     private RestHighLevelClient restHighLevelClient;
 
-    public ESConnection(String[] hosts, Map<String, String> properties, ESClientMode mode) throws UnknownHostException{
+    public ESConnection(String[] hosts, Map<String, String> properties, ESClientMode mode) throws UnknownHostException {
         this.mode = mode;
         if (mode == ESClientMode.TRANSPORT) {
             Settings.Builder settingBuilder = Settings.builder();
@@ -72,24 +75,17 @@ public class ESConnection {
             for (String host : hosts) {
                 int i = host.indexOf(":");
                 transportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.substring(0, i)),
-                    Integer.parseInt(host.substring(i + 1))));
+                        Integer.parseInt(host.substring(i + 1))));
             }
         } else {
-            HttpHost[] httpHosts = new HttpHost[hosts.length];
-            for (int i = 0; i < hosts.length; i++) {
-                String host = hosts[i];
-                int j = host.indexOf(":");
-                HttpHost httpHost = new HttpHost(InetAddress.getByName(host.substring(0, j)),
-                    Integer.parseInt(host.substring(j + 1)));
-                httpHosts[i] = httpHost;
-            }
+            HttpHost[] httpHosts = Arrays.stream(hosts).map(this::createHttpHost).toArray(HttpHost[]::new);
             RestClientBuilder restClientBuilder = RestClient.builder(httpHosts);
             String nameAndPwd = properties.get("security.auth");
             if (StringUtils.isNotEmpty(nameAndPwd) && nameAndPwd.contains(":")) {
                 String[] nameAndPwdArr = nameAndPwd.split(":");
                 final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
                 credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(nameAndPwdArr[0],
-                    nameAndPwdArr[1]));
+                        nameAndPwdArr[1]));
                 restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
             }
             restHighLevelClient = new RestHighLevelClient(restClientBuilder);
@@ -114,15 +110,15 @@ public class ESConnection {
             ImmutableOpenMap<String, MappingMetaData> mappings;
             try {
                 mappings = transportClient.admin()
-                    .cluster()
-                    .prepareState()
-                    .execute()
-                    .actionGet()
-                    .getState()
-                    .getMetaData()
-                    .getIndices()
-                    .get(index)
-                    .getMappings();
+                        .cluster()
+                        .prepareState()
+                        .execute()
+                        .actionGet()
+                        .getState()
+                        .getMetaData()
+                        .getIndices()
+                        .get(index)
+                        .getMappings();
             } catch (NullPointerException e) {
                 throw new IllegalArgumentException("Not found the mapping info of index: " + index);
             }
@@ -160,9 +156,9 @@ public class ESConnection {
 
         private IndexRequestBuilder indexRequestBuilder;
 
-        private IndexRequest        indexRequest;
+        private IndexRequest indexRequest;
 
-        public ES6xIndexRequest(String index, String type, String id){
+        public ES6xIndexRequest(String index, String type, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 indexRequestBuilder = transportClient.prepareIndex(index, type, id);
             } else {
@@ -204,19 +200,19 @@ public class ESConnection {
             this.indexRequest = indexRequest;
         }
 
-		@Override
-		public ESBulkRequest add(ESBulkRequest esBulkRequest) {
-			ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
-			if (mode == ESClientMode.TRANSPORT) {
-				es6xBulkRequest.getBulkRequestBuilder().add(indexRequestBuilder);
-			} else {
-				es6xBulkRequest.getBulkRequest().add(indexRequest);
-			}
-			return esBulkRequest;
-		}
+        @Override
+        public ESBulkRequest add(ESBulkRequest esBulkRequest) {
+            ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
+            if (mode == ESClientMode.TRANSPORT) {
+                es6xBulkRequest.getBulkRequestBuilder().add(indexRequestBuilder);
+            } else {
+                es6xBulkRequest.getBulkRequest().add(indexRequest);
+            }
+            return esBulkRequest;
+        }
 
-		@Override
-		public boolean add(ESBulkRequest esBulkRequest, int commitBatchSize, Function<Long, Boolean> ifGtCommitBatchSize) {
+        @Override
+        public boolean add(ESBulkRequest esBulkRequest, int commitBatchSize, Function<Long, Boolean> ifGtCommitBatchSize) {
             ES6xBulkRequest es6xBulkRequest = (ES6xBulkRequest) esBulkRequest;
             BytesReference source;
             BulkRequest bulkRequest;
@@ -228,27 +224,27 @@ public class ESConnection {
                 bulkRequest = es6xBulkRequest.getBulkRequest();
             }
 
-			long addSize = (source != null ? source.length() : 0) + ES6xBulkRequest.REQUEST_OVERHEAD;
+            long addSize = (source != null ? source.length() : 0) + ES6xBulkRequest.REQUEST_OVERHEAD;
 
             //超出 批次提交大小 限制（单位为字节）, 且回调函数返回true就可以继续添加, 否则就抛弃这一条
             if ((addSize + bulkRequest.estimatedSizeInBytes()) > commitBatchSize
-                    && ! ifGtCommitBatchSize.apply(addSize)) {
+                    && !ifGtCommitBatchSize.apply(addSize)) {
                 return false;
-			}
+            }
 
-			add(esBulkRequest);
+            add(esBulkRequest);
 
-			return true;
-		}
-	}
+            return true;
+        }
+    }
 
     public class ES6xUpdateRequest implements ESBulkRequest.ESUpdateRequest {
 
         private UpdateRequestBuilder updateRequestBuilder;
 
-        private UpdateRequest        updateRequest;
+        private UpdateRequest updateRequest;
 
-        public ES6xUpdateRequest(String index, String type, String id){
+        public ES6xUpdateRequest(String index, String type, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 updateRequestBuilder = transportClient.prepareUpdate(index, type, id);
             } else {
@@ -337,7 +333,7 @@ public class ESConnection {
 
             //超出 批次提交大小 限制（单位为字节）, 且回调函数返回true就可以继续添加, 否则就抛弃这一条
             if ((addSize + bulkRequest.estimatedSizeInBytes()) > commitBatchSize
-                    && ! ifGtCommitBatchSize.apply(addSize)) {
+                    && !ifGtCommitBatchSize.apply(addSize)) {
                 return false;
             }
 
@@ -351,9 +347,9 @@ public class ESConnection {
 
         private DeleteRequestBuilder deleteRequestBuilder;
 
-        private DeleteRequest        deleteRequest;
+        private DeleteRequest deleteRequest;
 
-        public ES6xDeleteRequest(String index, String type, String id){
+        public ES6xDeleteRequest(String index, String type, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 deleteRequestBuilder = transportClient.prepareDelete(index, type, id);
             } else {
@@ -402,7 +398,7 @@ public class ESConnection {
 
             //超出 批次提交大小 限制（单位为字节）, 且回调函数返回true就可以继续添加, 否则就抛弃这一条
             if ((addSize + bulkRequest.estimatedSizeInBytes()) > commitBatchSize
-                    && ! ifGtCommitBatchSize.apply(addSize)) {
+                    && !ifGtCommitBatchSize.apply(addSize)) {
                 return false;
             }
 
@@ -416,11 +412,11 @@ public class ESConnection {
 
         private SearchRequestBuilder searchRequestBuilder;
 
-        private SearchRequest        searchRequest;
+        private SearchRequest searchRequest;
 
-        private SearchSourceBuilder  sourceBuilder;
+        private SearchSourceBuilder sourceBuilder;
 
-        public ESSearchRequest(String index, String... types){
+        public ESSearchRequest(String index, String... types) {
             if (mode == ESClientMode.TRANSPORT) {
                 searchRequestBuilder = transportClient.prepareSearch(index).setTypes(types);
             } else {
@@ -483,9 +479,9 @@ public class ESConnection {
 
         private BulkRequestBuilder bulkRequestBuilder;
 
-        private BulkRequest        bulkRequest;
+        private BulkRequest bulkRequest;
 
-        public ES6xBulkRequest(){
+        public ES6xBulkRequest() {
             if (mode == ESClientMode.TRANSPORT) {
                 bulkRequestBuilder = transportClient.prepareBulk();
             } else {
@@ -554,7 +550,7 @@ public class ESConnection {
 
         private BulkResponse bulkResponse;
 
-        public ES6xBulkResponse(BulkResponse bulkResponse){
+        public ES6xBulkResponse(BulkResponse bulkResponse) {
             this.bulkResponse = bulkResponse;
         }
 
@@ -602,5 +598,18 @@ public class ESConnection {
 
     public void setRestHighLevelClient(RestHighLevelClient restHighLevelClient) {
         this.restHighLevelClient = restHighLevelClient;
+    }
+
+    private HttpHost createHttpHost(String uriStr) {
+        URI uri = URI.create(uriStr);
+        if (!org.springframework.util.StringUtils.hasLength(uri.getUserInfo())) {
+            return HttpHost.create(uri.toString());
+        }
+        try {
+            return HttpHost.create(new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(),
+                    uri.getQuery(), uri.getFragment()).toString());
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }
