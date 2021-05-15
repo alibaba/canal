@@ -149,7 +149,7 @@ public class DirectLogFetcherTest {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Register slave:" + err.toString());
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
     }
