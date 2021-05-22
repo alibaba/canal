@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * Kafka client example
+ * RocketMQ client example
  *
  * @author machengyuan @ 2018-6-12
  * @version 1.0.0

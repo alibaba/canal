@@ -11,7 +11,7 @@ import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 
 /**
- * Kafka client example
+ * RocketMQ client example
  *
  * @author machengyuan @ 2018-6-12
  * @version 1.0.0
