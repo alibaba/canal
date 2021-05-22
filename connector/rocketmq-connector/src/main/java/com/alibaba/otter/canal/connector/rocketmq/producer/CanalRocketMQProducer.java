@@ -331,6 +331,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 }
 
                 try {
+                    // 阿里云RocketMQ暂不支持批量发送消息，当canal.mq.flatMessage = true时，会发送失败
                     SendResult sendResult = this.defaultMQProducer.send(messages, queue);
                     if (logger.isDebugEnabled()) {
                         logger.debug("Send Message Result: {}", sendResult);
