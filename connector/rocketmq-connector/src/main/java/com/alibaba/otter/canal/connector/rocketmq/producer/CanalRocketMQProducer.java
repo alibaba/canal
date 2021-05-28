@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.connector.rocketmq.producer;
 
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -154,7 +155,8 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 // 动态topic
                 Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils.messageTopics(message,
                     destination.getTopic(),
-                    destination.getDynamicTopic());
+                    destination.getDynamicTopic(),
+                        Objects.toString(destination.getDynamicTopicPrefix(),"").trim());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
                     String topicName = entry.getKey().replace('.', '_');
