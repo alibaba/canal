@@ -72,12 +72,7 @@ public class ClientRunningMonitor extends AbstractCanalLifeCycle {
                     initRunning();
                 } else {
                     // 否则就是等待delayTime，避免因网络瞬端或者zk异常，导致出现频繁的切换操作
-                    delayExector.schedule(new Runnable() {
-
-                        public void run() {
-                            initRunning();
-                        }
-                    }, delayTime, TimeUnit.SECONDS);
+                    delayExector.schedule(() -> initRunning(), delayTime, TimeUnit.SECONDS);
                 }
             }
 

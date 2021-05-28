@@ -80,11 +80,11 @@ public class KafkaCanalConnector implements CanalMQConnector {
 
         connected = true;
         if (kafkaConsumer == null && !flatMessage) {
-            kafkaConsumer = new KafkaConsumer<String, Message>(properties);
+            kafkaConsumer = new KafkaConsumer<>(properties);
 
         }
         if (kafkaConsumer2 == null && flatMessage) {
-            kafkaConsumer2 = new KafkaConsumer<String, String>(properties);
+            kafkaConsumer2 = new KafkaConsumer<>(properties);
         }
     }
 

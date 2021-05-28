@@ -90,7 +90,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
                                                                                             throws InterruptedException {
         boolean hasRowData = false;
         boolean hasHeartBeat = false;
-        List<Event> events = new ArrayList<Event>();
+        List<Event> events = new ArrayList<>();
         for (CanalEntry.Entry entry : entrys) {
             if (!doFilter(entry)) {
                 continue;

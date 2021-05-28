@@ -39,6 +39,7 @@ public class TableMetaCache {
     public static final String              EXTRA          = "EXTRA";
     private MysqlConnection                 connection;
     private boolean                         isOnRDS        = false;
+    private boolean                         isOnPolarX     = false;
     private boolean                         isOnTSDB       = false;
 
     private TableMetaTSDB                   tableMetaTSDB;
@@ -79,6 +80,14 @@ public class TableMetaCache {
             }
         } catch (IOException e) {
         }
+
+        try {
+            ResultSetPacket packet = connection.query("show global variables  like 'polarx\\_%'");
+            if (packet.getFieldValues().size() > 0) {
+                isOnPolarX = true;
+            }
+        } catch (IOException e) {
+        }
     }
 
     private synchronized TableMeta getTableMetaByDB(String fullname) throws IOException {
@@ -105,7 +114,7 @@ public class TableMetaCache {
             TableMeta tableMeta = memoryTableMeta.find(schema, table);
             return tableMeta.getFields();
         } else {
-            return new ArrayList<FieldMeta>();
+            return new ArrayList<>();
         }
     }
 
@@ -113,7 +122,7 @@ public class TableMetaCache {
      * 处理desc table的结果
      */
     public static List<FieldMeta> parseTableMetaByDesc(ResultSetPacket packet) {
-        Map<String, Integer> nameMaps = new HashMap<String, Integer>(6, 1f);
+        Map<String, Integer> nameMaps = new HashMap<>(6, 1f);
         int index = 0;
         for (FieldPacket fieldPacket : packet.getFieldDescriptors()) {
             nameMaps.put(fieldPacket.getOriginalName(), index++);
@@ -121,7 +130,7 @@ public class TableMetaCache {
 
         int size = packet.getFieldDescriptors().size();
         int count = packet.getFieldValues().size() / packet.getFieldDescriptors().size();
-        List<FieldMeta> result = new ArrayList<FieldMeta>();
+        List<FieldMeta> result = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             FieldMeta meta = new FieldMeta();
             // 做一个优化，使用String.intern()，共享String对象，减少内存使用
@@ -254,7 +263,6 @@ public class TableMetaCache {
             .toString();
     }
 
-
     public boolean isOnTSDB() {
         return isOnTSDB;
     }
@@ -269,6 +277,14 @@ public class TableMetaCache {
 
     public void setOnRDS(boolean isOnRDS) {
         this.isOnRDS = isOnRDS;
+    }
+
+    public boolean isOnPolarX() {
+        return isOnPolarX;
+    }
+
+    public void setOnPolarX(boolean isOnPolarX) {
+        this.isOnPolarX = isOnPolarX;
     }
 
 }

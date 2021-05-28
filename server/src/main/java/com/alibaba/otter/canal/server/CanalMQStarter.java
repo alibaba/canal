@@ -72,22 +72,18 @@ public class CanalMQStarter {
             running = true;
             logger.info("## the MQ workers is running now ......");
 
-            shutdownThread = new Thread() {
-
-                public void run() {
-                    try {
-                        logger.info("## stop the MQ workers");
-                        running = false;
-                        executorService.shutdown();
-                        canalMQProducer.stop();
-                    } catch (Throwable e) {
-                        logger.warn("##something goes wrong when stopping MQ workers:", e);
-                    } finally {
-                        logger.info("## canal MQ is down.");
-                    }
+            shutdownThread = new Thread(() -> {
+                try {
+                    logger.info("## stop the MQ workers");
+                    running = false;
+                    executorService.shutdown();
+                    canalMQProducer.stop();
+                } catch (Throwable e) {
+                    logger.warn("##something goes wrong when stopping MQ workers:", e);
+                } finally {
+                    logger.info("## canal MQ is down.");
                 }
-
-            };
+            });
 
             Runtime.getRuntime().addShutdownHook(shutdownThread);
         } catch (Throwable e) {
