@@ -47,15 +47,15 @@ public class LocalBinlogDumpTest {
                     }
 
                     if (entry.getEntryType() == EntryType.ROWDATA) {
-                        RowChange rowChage = null;
+                        RowChange rowChange = null;
                         try {
-                            rowChage = RowChange.parseFrom(entry.getStoreValue());
+                            rowChange = RowChange.parseFrom(entry.getStoreValue());
                         } catch (Exception e) {
                             throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
                                                        + entry.toString(), e);
                         }
 
-                        EventType eventType = rowChage.getEventType();
+                        EventType eventType = rowChange.getEventType();
                         System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s] , eventType : %s",
                             entry.getHeader().getLogfileName(),
                             entry.getHeader().getLogfileOffset(),
@@ -63,7 +63,7 @@ public class LocalBinlogDumpTest {
                             entry.getHeader().getTableName(),
                             eventType));
 
-                        for (RowData rowData : rowChage.getRowDatasList()) {
+                        for (RowData rowData : rowChange.getRowDatasList()) {
                             if (eventType == EventType.DELETE) {
                                 print(rowData.getBeforeColumnsList());
                             } else if (eventType == EventType.INSERT) {
