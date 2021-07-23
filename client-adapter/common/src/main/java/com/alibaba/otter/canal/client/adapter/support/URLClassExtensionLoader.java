@@ -15,7 +15,6 @@ public class URLClassExtensionLoader extends URLClassLoader {
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         Class<?> c = findLoadedClass(name);
-
         if (c != null) {
             return c;
         }
