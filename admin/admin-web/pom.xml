@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.admin</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>canal.admin-web</artifactId>
