@@ -95,8 +95,8 @@
         <!--maven properties-->
         <downloadSources>true</downloadSources>
         <!-- compiler settings properties -->
-        <java_source_version>1.8</java_source_version>
-        <java_target_version>1.8</java_target_version>
+        <java_source_version>11</java_source_version>
+        <java_target_version>11</java_target_version>
         <file_encoding>UTF-8</file_encoding>
         <javadoc_skip>true</javadoc_skip>
         <spring_version>5.0.5.RELEASE</spring_version>
