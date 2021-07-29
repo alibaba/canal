@@ -301,7 +301,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         boolean compareAll = true;
         for (Schema schema : tmpMemoryTableMeta.getRepository().getSchemas()) {
             for (String table : schema.showTables()) {
-                String fullName = schema + "." + table;
+                String fullName = schema.getName() + "." + table;
                 if (blackFilter == null || !blackFilter.filter(fullName)) {
                     if (filter == null || filter.filter(fullName)) {
                         // issue : https://github.com/alibaba/canal/issues/1168
