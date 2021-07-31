@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.index.query.BoolQueryBuilder;
+// import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.JoinSetting;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
@@ -114,26 +115,64 @@ public class ES7xTemplate implements ESTemplate {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace("updateByQuery esMapping: {}", config.getEsMapping());
+            logger.trace("updateByQuery esMapping:");
+            Map<String, JoinSetting> joinSettings = config.getEsMapping().getJoinSettings();
+            for (String key : joinSettings.keySet()) {
+                logger.trace("{}", joinSettings.get(key));
+            }
+
             logger.trace("updateByQuery paramsTmp: {}", paramsTmp);
             logger.trace("updateByQuery esFieldData:{}", esFieldData);
             logger.trace("updateByQuery {}", dml);
         }
 
         ESMapping mapping = config.getEsMapping();
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        paramsTmp.forEach((fieldName, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
+        // 看起来没什么用，不知道从哪儿复制过来的
+        // BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        // paramsTmp.forEach((fieldName, value) ->
+        // queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
 
         // 查询sql批量更新
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
+        // Marked by Wu Jian Ping
+        // StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() +
+        // ") _v WHERE ");
+        // List<Object> values = new ArrayList<>();
+        // paramsTmp.forEach((fieldName, value) -> {
+        // sql.append("_v.").append(fieldName).append("=? AND ");
+        // values.add(value);
+        // });
+
+        // 从DML中获取表名
+        String eventSourceTableName = dml.getTable();
+        // 获取joinSettings
+        Map<String, JoinSetting> joinSettings = config.getEsMapping().getJoinSettings();
+        // 组装SQL
+        StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
         List<Object> values = new ArrayList<>();
         paramsTmp.forEach((fieldName, value) -> {
-            sql.append("_v.").append(fieldName).append("=? AND ");
+            JoinSetting joinSetting = null;
+
+            for (JoinSetting setting : joinSettings.values()) {
+                // 这边"_id"就直接写死了，因为同步数据是需要SQL语句中有"select xxx as _id"这样的栏位的
+                if (fieldName == "_id" && setting.getPrimary()) {
+                    joinSetting = setting;
+                    break;
+                } else if (eventSourceTableName.trim().equalsIgnoreCase(setting.getTableName().trim())
+                        && fieldName.trim().equalsIgnoreCase(setting.getRefColumnName().trim())) {
+                    joinSetting = setting;
+                    break;
+                }
+            }
+
+            if (joinSetting == null) {
+                throw new RuntimeException("Cannot found joinSetting for column:" + fieldName);
+            }
+
+            sql.append(joinSetting.getAliasName()).append(".").append(joinSetting.getRefColumnName()).append("=? AND ");
             values.add(value);
         });
 
-        // TODO 直接外部包裹sql会导致全表扫描性能低, 待优化拼接内部where条件
         int len = sql.length();
         sql.delete(len - 4, len); // 移除4个字符为 “AND”
 
@@ -146,17 +185,8 @@ public class ES7xTemplate implements ESTemplate {
             try {
                 while (rs.next()) {
                     Object idVal = getIdValFromRS(mapping, rs);
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("before append4Update");
-                    }
                     append4Update(mapping, idVal, esFieldData);
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("after append4Update");
-                    }
                     commitBulk();
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("after commit Bulk");
-                    }
                     count++;
                 }
             } catch (Exception e) {
