@@ -264,6 +264,7 @@ public class ESSyncConfig implements AdapterConfig {
         private String aliasName;
         private String refColumnName;
         private Boolean primary = false;
+        private String sequenceColumnName;
 
         public String getTableName() {
             return this.tableName;
@@ -297,10 +298,19 @@ public class ESSyncConfig implements AdapterConfig {
             this.primary = primary;
         }
 
+        public String getSequenceColumnName() {
+            return this.sequenceColumnName;
+        }
+
+        public void setSequenceColumnName(String sequenceColumnName) {
+            this.sequenceColumnName = sequenceColumnName;
+        }
+
         @Override
         public String toString() {
             return "JoinSetting {" + "tableName='" + tableName + '\'' + ", aliasName='" + aliasName + '\''
-                    + ", refColumnName='" + refColumnName + '\'' + ", primary=" + primary + '}';
+                    + ", refColumnName='" + refColumnName + '\'' + ", primary=" + primary + ", seuenceColumnName='"
+                    + sequenceColumnName + '\'' + '}';
         }
     }
 }

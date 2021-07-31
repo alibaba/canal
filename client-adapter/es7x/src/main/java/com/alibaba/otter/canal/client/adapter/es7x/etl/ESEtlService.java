@@ -86,10 +86,12 @@ public class ESEtlService extends AbstractEtlService {
         try {
             DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
 
+            String etlCondition = null;
+
             List<Object> values = new ArrayList<>();
             // 拼接条件
             if (config.getMapping().getEtlCondition() != null && params != null) {
-                String etlCondition = config.getMapping().getEtlCondition();
+                etlCondition = config.getMapping().getEtlCondition();
                 for (String param : params) {
                     etlCondition = etlCondition.replace("{}", "?");
                     values.add(param);
@@ -117,12 +119,8 @@ public class ESEtlService extends AbstractEtlService {
 
             // 获取总数，这边直接通过主表获取，假如存在条件的话，拼接一下条件
             String countSql = "SELECT COUNT(1) FROM " + joinSetting.getTableName() + " " + joinSetting.getAliasName();
-            if (config.getMapping().getEtlCondition() != null && params != null) {
-                String etlCondition = config.getMapping().getEtlCondition();
-                for (int i = 0; i < params.size(); ++i) {
-                    etlCondition = etlCondition.replace("{}", "?");
-                }
 
+            if (etlCondition != null) {
                 countSql += " " + etlCondition;
             }
 
@@ -143,7 +141,7 @@ public class ESEtlService extends AbstractEtlService {
             });
 
             // 当大于1万条记录时开启多线程
-            // TODO: 采用limit分页取数据的方式，大表性能存在问题，使用线程并不能解决该问题，实际上线程在这里的价值并不大
+            // NOTE: 采用limit分页取数据的方式，大表性能存在问题，使用线程并不能解决该问题，实际上线程在这里的价值并不大
             if (cnt >= 10000) {
                 int threadCount = Runtime.getRuntime().availableProcessors();
 
@@ -155,20 +153,61 @@ public class ESEtlService extends AbstractEtlService {
                     logger.debug("workerCnt {} for cnt {} threadCount {}", workerCnt, cnt, threadCount);
                 }
 
-                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
-                List<Future<Boolean>> futures = new ArrayList<>();
-                for (long i = 0; i < workerCnt; i++) {
-                    offset = size * i;
-                    String sqlFinal = sql + " LIMIT " + offset + "," + size;
-                    Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
-                            config.getMapping(), impCount, errMsg));
-                    futures.add(future);
-                }
+                // 假如不存在etlCondition，且存在sequenceColumnName的配置
+                if (joinSetting.getSequenceColumnName() != null && etlCondition == null) {
+                    // 获取一下最大值
+                    String maxSequenceSql = "SELECT MAX(" + joinSetting.getSequenceColumnName() + ") FROM "
+                            + joinSetting.getTableName();
+                    long maxSequence = (Long) Util.sqlRS(dataSource, maxSequenceSql, values, rs -> {
+                        Long max = null;
+                        try {
+                            if (rs.next()) {
+                                max = ((Number) rs.getObject(1)).longValue();
+                            }
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                        return max == null ? 0L : max;
+                    });
 
-                for (Future<Boolean> future : futures) {
-                    future.get();
+                    ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
+                    List<Future<Boolean>> futures = new ArrayList<>();
+                    for (long i = 0; i < workerCnt; i++) {
+                        long startSequence = i * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        long endSequence = (i + 1) * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        // 生成栏位名，如：a.id,
+                        // 最终生成SQL为：
+                        // select xxx from user a where a.id > 5000000 and a.id < 5010000 limit 1000
+                        String sequenceColumnRealName = joinSetting.getAliasName() + "."
+                                + joinSetting.getSequenceColumnName();
+                        String sqlFinal = sql + " WHERE " + sequenceColumnRealName + " > " + startSequence + " AND "
+                                + sequenceColumnRealName + " <= " + endSequence + " LIMIT " + size;
+                        Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
+                                config.getMapping(), impCount, errMsg));
+                        futures.add(future);
+                    }
+
+                    for (Future<Boolean> future : futures) {
+                        future.get();
+                    }
+                    executor.shutdown();
+
+                } else {
+                    ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
+                    List<Future<Boolean>> futures = new ArrayList<>();
+                    for (long i = 0; i < workerCnt; i++) {
+                        offset = size * i;
+                        String sqlFinal = sql + " LIMIT " + offset + "," + size;
+                        Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
+                                config.getMapping(), impCount, errMsg));
+                        futures.add(future);
+                    }
+
+                    for (Future<Boolean> future : futures) {
+                        future.get();
+                    }
+                    executor.shutdown();
                 }
-                executor.shutdown();
             } else {
                 executeSqlImport(dataSource, sql, values, config.getMapping(), impCount, errMsg);
             }
@@ -191,6 +230,11 @@ public class ESEtlService extends AbstractEtlService {
             AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount, List<String> errMsg) {
         try {
             ESMapping mapping = (ESMapping) adapterMapping;
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("ES7批量导入, sql:{} values:{}", sql, values);
+            }
+
             Util.sqlRS(ds, sql, values, rs -> {
                 int count = 0;
                 try {
