@@ -17,7 +17,10 @@ esMapping:
     - tableName: user
       aliasName: a
       refColumnName: id
+      # 是否为主表
       primary: true
+      # 自动递增栏位名, 用于优化全量同步过程中提升MySQL查询性能
+      sequenceColumnName: id
 
     - tableName: role
       aliasName: b

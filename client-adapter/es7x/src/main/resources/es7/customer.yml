@@ -10,11 +10,19 @@ esMapping:
   sql: "select t.id as _id, t.name, t.email from customer t"
   etlCondition: "where t.c_time>={}"
 
+  # 对SQL语句的表以及join信息做配置
   joinSettings:
+      # 表名  
     - tableName: customer
+      # 在SQL语句中的别名
       aliasName: t
+      # 主表: 配置该字段填为主键栏位名
+      # 子表: 配置与主表join的外键来为名
       refColumnName: id
+      # 是否为主表
       primary: true
+      # 自动递增栏位名, 用于优化全量同步过程中提升MySQL查询性能
+      sequenceColumnName: id
 
   commitBatch: 3000
 
