@@ -23,3 +23,4 @@ canal-admin/canal-admin-ui/dist/
 canal-admin/canal-admin-ui/node/
 canal-admin/canal-admin-ui/node_modules/
 canal-admin/canal-admin-server/src/main/resources/conf/
+.factorypath
