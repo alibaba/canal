@@ -17,4 +17,11 @@ esMapping:
   skips:
     - customer_id
   etlCondition: "where t.c_time>={}"
+
+  joinSettings:
+    - tableName: biz_order
+      aliasName: t
+      refColumnName: id
+      primary: true
+
   commitBatch: 3000

@@ -3,12 +3,19 @@ destination: example
 groupId: g1
 esMapping:
   _index: customer
-  _id: id
+  _id: _id
   relations:
     customer_order:
       name: customer
-  sql: "select t.id, t.name, t.email from customer t"
+  sql: "select t.id as _id, t.name, t.email from customer t"
   etlCondition: "where t.c_time>={}"
+
+  joinSettings:
+    - tableName: customer
+      aliasName: t
+      refColumnName: id
+      primary: true
+
   commitBatch: 3000
 
 
