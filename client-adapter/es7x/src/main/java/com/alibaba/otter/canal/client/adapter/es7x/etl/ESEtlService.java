@@ -39,10 +39,10 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
 public class ESEtlService extends AbstractEtlService {
 
     private ESConnection esConnection;
-    private ESTemplate   esTemplate;
+    private ESTemplate esTemplate;
     private ESSyncConfig config;
 
-    public ESEtlService(ESConnection esConnection, ESSyncConfig config){
+    public ESEtlService(ESConnection esConnection, ESSyncConfig config) {
         super("ES", config);
         this.esConnection = esConnection;
         this.esTemplate = new ES7xTemplate(esConnection);
@@ -53,12 +53,12 @@ public class ESEtlService extends AbstractEtlService {
         ESMapping mapping = config.getEsMapping();
         logger.info("start etl to import data to index: {}", mapping.get_index());
         String sql = mapping.getSql();
+        logger.info("sql:{}", sql);
         return importData(sql, params);
     }
 
     protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
-                                       AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount,
-                                       List<String> errMsg) {
+            AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount, List<String> errMsg) {
         try {
             ESMapping mapping = (ESMapping) adapterMapping;
             Util.sqlRS(ds, sql, values, rs -> {
@@ -92,15 +92,12 @@ public class ESEtlService extends AbstractEtlService {
                                 Map<String, Object> relations = new HashMap<>();
                                 relations.put("name", relationMapping.getName());
                                 if (StringUtils.isNotEmpty(relationMapping.getParent())) {
-                                    FieldItem parentFieldItem = mapping.getSchemaItem()
-                                        .getSelectFields()
-                                        .get(relationMapping.getParent());
+                                    FieldItem parentFieldItem = mapping.getSchemaItem().getSelectFields()
+                                            .get(relationMapping.getParent());
                                     Object parentVal;
                                     try {
-                                        parentVal = esTemplate.getValFromRS(mapping,
-                                            rs,
-                                            parentFieldItem.getFieldName(),
-                                            parentFieldItem.getFieldName());
+                                        parentVal = esTemplate.getValFromRS(mapping, rs, parentFieldItem.getFieldName(),
+                                                parentFieldItem.getFieldName());
                                     } catch (SQLException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -118,8 +115,7 @@ public class ESEtlService extends AbstractEtlService {
                             String parentVal = (String) esFieldData.remove("$parent_routing");
                             if (mapping.isUpsert()) {
                                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(
-                                    mapping.get_index(),
-                                    idVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
+                                        mapping.get_index(), idVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
 
                                 if (StringUtils.isNotEmpty(parentVal)) {
                                     esUpdateRequest.setRouting(parentVal);
@@ -128,8 +124,7 @@ public class ESEtlService extends AbstractEtlService {
                                 esBulkRequest.add(esUpdateRequest);
                             } else {
                                 ESIndexRequest esIndexRequest = this.esConnection.new ES7xIndexRequest(
-                                    mapping.get_index(),
-                                    idVal.toString()).setSource(esFieldData);
+                                        mapping.get_index(), idVal.toString()).setSource(esFieldData);
                                 if (StringUtils.isNotEmpty(parentVal)) {
                                     esIndexRequest.setRouting(parentVal);
                                 }
@@ -138,19 +133,17 @@ public class ESEtlService extends AbstractEtlService {
                         } else {
                             idVal = esFieldData.get(mapping.getPk());
                             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index())
-                                .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
-                                .size(10000);
+                                    .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal)).size(10000);
                             SearchResponse response = esSearchRequest.getResponse();
                             for (SearchHit hit : response.getHits()) {
                                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(
-                                    mapping.get_index(),
-                                    hit.getId()).setDoc(esFieldData);
+                                        mapping.get_index(), hit.getId()).setDoc(esFieldData);
                                 esBulkRequest.add(esUpdateRequest);
                             }
                         }
 
                         if (esBulkRequest.numberOfActions() % mapping.getCommitBatch() == 0
-                            && esBulkRequest.numberOfActions() > 0) {
+                                && esBulkRequest.numberOfActions() > 0) {
                             long esBatchBegin = System.currentTimeMillis();
                             ESBulkResponse rp = esBulkRequest.bulk();
                             if (rp.hasFailures()) {
@@ -159,10 +152,9 @@ public class ESEtlService extends AbstractEtlService {
 
                             if (logger.isTraceEnabled()) {
                                 logger.trace("全量数据批量导入批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                    (System.currentTimeMillis() - batchBegin),
-                                    (System.currentTimeMillis() - esBatchBegin),
-                                    esBulkRequest.numberOfActions(),
-                                    mapping.get_index());
+                                        (System.currentTimeMillis() - batchBegin),
+                                        (System.currentTimeMillis() - esBatchBegin), esBulkRequest.numberOfActions(),
+                                        mapping.get_index());
                             }
                             batchBegin = System.currentTimeMillis();
                             esBulkRequest.resetBulk();
@@ -179,10 +171,9 @@ public class ESEtlService extends AbstractEtlService {
                         }
                         if (logger.isTraceEnabled()) {
                             logger.trace("全量数据批量导入最后批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                (System.currentTimeMillis() - batchBegin),
-                                (System.currentTimeMillis() - esBatchBegin),
-                                esBulkRequest.numberOfActions(),
-                                mapping.get_index());
+                                    (System.currentTimeMillis() - batchBegin),
+                                    (System.currentTimeMillis() - esBatchBegin), esBulkRequest.numberOfActions(),
+                                    mapping.get_index());
                         }
                     }
                 } catch (Exception e) {
