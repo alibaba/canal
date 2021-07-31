@@ -143,7 +143,7 @@ public class ESEtlService extends AbstractEtlService {
             });
 
             // 当大于1万条记录时开启多线程
-            // TODO: 采用limit分页取数据的方式，大表性能存在问题，这边需要优化
+            // TODO: 采用limit分页取数据的方式，大表性能存在问题，使用线程并不能解决该问题，实际上线程在这里的价值并不大
             if (cnt >= 10000) {
                 int threadCount = Runtime.getRuntime().availableProcessors();
 
