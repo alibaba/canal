@@ -3,14 +3,28 @@ destination: example
 groupId: g1
 esMapping:
   _index: mytest_user
-  _type: _doc
   _id: _id
-  upsert: true
+#  upsert: true
 #  pk: id
-  sql: "select a.id as _id, a.name as _name, a.role_id as _role_id, b.role_name as _role_name,
-        a.c_time as _c_time from user a
+  sql: "select a.id as _id, a.name, a.role_id, b.role_name,
+        a.c_time from user a
         left join role b on b.id=a.role_id"
 #  objFields:
 #    _labels: array:;
   etlCondition: "where a.c_time>={}"
+
+  joinSettings:
+    - tableName: user
+      aliasName: a
+      refColumnName: id
+      # 是否为主表
+      primary: true
+      # 自动递增栏位名, 用于优化全量同步过程中提升MySQL查询性能
+      sequenceColumnName: id
+
+    - tableName: role
+      aliasName: b
+      refColumnName: role_id
+      primary: false
+  
   commitBatch: 3000
