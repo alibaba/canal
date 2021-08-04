@@ -58,6 +58,7 @@ public class RdbEtlService extends AbstractEtlService {
             Map<String, String> columnsMap = new LinkedHashMap<>();
             Map<String, Integer> columnType = new LinkedHashMap<>();
 
+            // 获取表结构
             Util.sqlRS(targetDS, "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping) + " LIMIT 1 ", rs -> {
                 try {
 
@@ -81,7 +82,7 @@ public class RdbEtlService extends AbstractEtlService {
                 int idx = 1;
 
                 try {
-                    boolean completed = false;
+                    // boolean completed = false;
 
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
@@ -96,13 +97,80 @@ public class RdbEtlService extends AbstractEtlService {
                     }
                     len = insertSql.length();
                     insertSql.delete(len - 1, len).append(")");
+
+                    // Marked by Wu Jian Ping, 取消事务，充分利用多线程
+                    // try (Connection connTarget = targetDS.getConnection();
+                    // PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString()))
+                    // {
+                    // connTarget.setAutoCommit(false);
+
+                    // while (rs.next()) {
+                    // completed = false;
+
+                    // pstmt.clearParameters();
+
+                    // // 删除数据
+                    // Map<String, Object> pkVal = new LinkedHashMap<>();
+                    // StringBuilder deleteSql = new StringBuilder(
+                    // "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
+                    // appendCondition(dbMapping, deleteSql, pkVal, rs);
+                    // try (PreparedStatement pstmt2 =
+                    // connTarget.prepareStatement(deleteSql.toString())) {
+                    // int k = 1;
+                    // for (Object val : pkVal.values()) {
+                    // pstmt2.setObject(k++, val);
+                    // }
+                    // pstmt2.execute();
+                    // }
+
+                    // int i = 1;
+                    // for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
+                    // String targetClolumnName = entry.getKey();
+                    // String srcColumnName = entry.getValue();
+                    // if (srcColumnName == null) {
+                    // srcColumnName = targetClolumnName;
+                    // }
+
+                    // Integer type = columnType.get(targetClolumnName.toLowerCase());
+
+                    // Object value = rs.getObject(srcColumnName);
+                    // if (value != null) {
+                    // SyncUtil.setPStmt(type, pstmt, value, i);
+                    // } else {
+                    // pstmt.setNull(i, type);
+                    // }
+
+                    // i++;
+                    // }
+
+                    // pstmt.execute();
+                    // if (logger.isTraceEnabled()) {
+                    // logger.trace("Insert into target table, sql: {}", insertSql);
+                    // }
+
+                    // if (idx % dbMapping.getCommitBatch() == 0) {
+                    // connTarget.commit();
+                    // completed = true;
+                    // }
+                    // idx++;
+                    // impCount.incrementAndGet();
+                    // if (logger.isDebugEnabled()) {
+                    // logger.debug("successful import count:" + impCount.get());
+                    // }
+                    // }
+                    // if (!completed) {
+                    // connTarget.commit();
+                    // }
+                    // }
+
+                    // Added by Wu Jian Ping
+                    // 取消事务，在多线程环境下，启用事务，会出现获取锁失败错误，导致整个批次失败
+                    // 并且3000一个批次，会使得目标表长期处于锁定状态
                     try (Connection connTarget = targetDS.getConnection();
                             PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
-                        connTarget.setAutoCommit(false);
+                        connTarget.setAutoCommit(true);
 
                         while (rs.next()) {
-                            completed = false;
-
                             pstmt.clearParameters();
 
                             // 删除数据
@@ -143,19 +211,13 @@ public class RdbEtlService extends AbstractEtlService {
                                 logger.trace("Insert into target table, sql: {}", insertSql);
                             }
 
-                            if (idx % dbMapping.getCommitBatch() == 0) {
-                                connTarget.commit();
-                                completed = true;
-                            }
                             idx++;
                             impCount.incrementAndGet();
                             if (logger.isDebugEnabled()) {
                                 logger.debug("successful import count:" + impCount.get());
                             }
                         }
-                        if (!completed) {
-                            connTarget.commit();
-                        }
+
                     }
 
                 } catch (Exception e) {
