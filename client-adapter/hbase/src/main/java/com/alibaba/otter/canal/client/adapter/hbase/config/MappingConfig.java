@@ -12,15 +12,15 @@ import java.util.*;
  */
 public class MappingConfig implements AdapterConfig {
 
-    private String       dataSourceKey;   // 数据源key
+    private String dataSourceKey; // 数据源key
 
-    private String       outerAdapterKey; // adapter key
+    private String outerAdapterKey; // adapter key
 
-    private String       groupId;         // groupId
+    private String groupId; // groupId
 
-    private String       destination;     // canal实例或MQ的topic
+    private String destination; // canal实例或MQ的topic
 
-    private HbaseMapping hbaseMapping;    // hbase映射配置
+    private HbaseMapping hbaseMapping; // hbase映射配置
 
     public String getDataSourceKey() {
         return dataSourceKey;
@@ -86,8 +86,10 @@ public class MappingConfig implements AdapterConfig {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         MappingConfig config = (MappingConfig) o;
 
@@ -103,10 +105,10 @@ public class MappingConfig implements AdapterConfig {
 
         private boolean isRowKey = false;
         private Integer rowKeyLen;
-        private String  column;
-        private String  family;
-        private String  qualifier;
-        private String  type;
+        private String column;
+        private String family;
+        private String qualifier;
+        private String type;
 
         public boolean isRowKey() {
             return isRowKey;
@@ -158,8 +160,10 @@ public class MappingConfig implements AdapterConfig {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             ColumnItem that = (ColumnItem) o;
             return Objects.equals(column, that.column);
         }
@@ -172,7 +176,7 @@ public class MappingConfig implements AdapterConfig {
     }
 
     public enum Mode {
-                      STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
+        STRING("STRING"), NATIVE("NATIVE"), PHOENIX("PHOENIX");
 
         private String type;
 
@@ -180,30 +184,31 @@ public class MappingConfig implements AdapterConfig {
             return type;
         }
 
-        Mode(String type){
+        Mode(String type) {
             this.type = type;
         }
     }
 
     public static class HbaseMapping implements AdapterMapping {
 
-        private Mode                    mode               = Mode.STRING;           // hbase默认转换格式
-        private String                  database;                                   // 数据库名或schema名
-        private String                  table;                                      // 表面名
-        private String                  hbaseTable;                                 // hbase表名
-        private String                  family             = "CF";                  // 默认统一column family
-        private boolean                 uppercaseQualifier = true;                  // 是否转大写
-        private boolean                 autoCreateTable    = false;                 // 同步时HBase中表不存在的情况下自动建表
-        private String                  rowKey;                                     // 指定复合主键为rowKey
-        private Map<String, String>     columns;                                    // 字段映射
-        private List<String>            excludeColumns;                             // 不映射的字段
-        private ColumnItem              rowKeyColumn;                               // rowKey字段
-        private String                  etlCondition;                               // etl条件sql
+        private Mode mode = Mode.STRING; // hbase默认转换格式
+        private String database; // 数据库名或schema名
+        private String table; // 表面名
+        private String sequenceColumn = null; // 目标表自增字段名
+        private String hbaseTable; // hbase表名
+        private String family = "CF"; // 默认统一column family
+        private boolean uppercaseQualifier = true; // 是否转大写
+        private boolean autoCreateTable = false; // 同步时HBase中表不存在的情况下自动建表
+        private String rowKey; // 指定复合主键为rowKey
+        private Map<String, String> columns; // 字段映射
+        private List<String> excludeColumns; // 不映射的字段
+        private ColumnItem rowKeyColumn; // rowKey字段
+        private String etlCondition; // etl条件sql
 
-        private Map<String, ColumnItem> columnItems        = new LinkedHashMap<>(); // 转换后的字段映射列表
-        private Set<String>             families           = new LinkedHashSet<>(); // column family列表
-        private int                     readBatch          = 5000;
-        private int                     commitBatch        = 5000;                  // etl等批量提交大小
+        private Map<String, ColumnItem> columnItems = new LinkedHashMap<>(); // 转换后的字段映射列表
+        private Set<String> families = new LinkedHashSet<>(); // column family列表
+        private int readBatch = 5000;
+        private int commitBatch = 5000; // etl等批量提交大小
 
         public Mode getMode() {
             return mode;
@@ -227,6 +232,14 @@ public class MappingConfig implements AdapterConfig {
 
         public void setTable(String table) {
             this.table = table;
+        }
+
+        public String getSequenceColumn() {
+            return this.sequenceColumn;
+        }
+
+        public void setSequenceColumn(String sequenceColumn) {
+            this.sequenceColumn = sequenceColumn;
         }
 
         public String getHbaseTable() {
@@ -391,12 +404,15 @@ public class MappingConfig implements AdapterConfig {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
 
             HbaseMapping hbaseMapping = (HbaseMapping) o;
 
-            if (table != null ? !table.equals(hbaseMapping.table) : hbaseMapping.table != null) return false;
+            if (table != null ? !table.equals(hbaseMapping.table) : hbaseMapping.table != null)
+                return false;
             return hbaseTable != null ? hbaseTable.equals(hbaseMapping.hbaseTable) : hbaseMapping.hbaseTable == null;
         }
 

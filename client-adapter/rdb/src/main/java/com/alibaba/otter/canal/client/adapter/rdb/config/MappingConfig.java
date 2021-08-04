@@ -101,7 +101,7 @@ public class MappingConfig implements AdapterConfig {
         private String targetDb; // 目标库名
         private String targetTable; // 目标表名
         private Map<String, String> targetColumns; // 目标表字段映射
-
+        private String sequenceColumn = null; // 目标表自增字段名
         private boolean caseInsensitive = false; // 目标表不区分大小写，默认是否
 
         private String etlCondition; // etl条件sql
@@ -165,6 +165,14 @@ public class MappingConfig implements AdapterConfig {
 
         public void setTargetTable(String targetTable) {
             this.targetTable = targetTable;
+        }
+
+        public String getSequenceColumn() {
+            return this.sequenceColumn;
+        }
+
+        public void setSequenceColumn(String sequenceColumn) {
+            this.sequenceColumn = sequenceColumn;
         }
 
         public Map<String, String> getTargetColumns() {

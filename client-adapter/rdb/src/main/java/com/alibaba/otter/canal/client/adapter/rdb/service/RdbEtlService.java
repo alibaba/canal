@@ -43,8 +43,9 @@ public class RdbEtlService extends AbstractEtlService {
      */
     public EtlResult importData(List<String> params) {
         DbMapping dbMapping = config.getDbMapping();
-        String sql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable();
-        return importData(sql, params);
+        String tableFullName = dbMapping.getDatabase() + "." + dbMapping.getTable();
+        String sql = "SELECT * FROM " + tableFullName;
+        return importData(sql, params, tableFullName, dbMapping.getSequenceColumn());
     }
 
     /**

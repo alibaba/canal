@@ -8,6 +8,7 @@ kuduMapping:
   targetTable: test
   targetPk:
     id: id
+  sequenceColumn: id # 源数据自增序列字段（有可以填写，用于提升全量同步性能）
   mapAll: true
   targetColumns:
     id:

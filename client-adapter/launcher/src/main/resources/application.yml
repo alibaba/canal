@@ -58,14 +58,12 @@ canal.conf:
       outerAdapters:
       - name: logger
 #      - name: rdb
-#        key: mysql1
 #        properties:
 #          jdbc.driverClassName: com.mysql.jdbc.Driver
 #          jdbc.url: jdbc:mysql://127.0.0.1:3306/mytest2?useUnicode=true
 #          jdbc.username: root
 #          jdbc.password: 121212
 #      - name: rdb
-#        key: oracle1
 #        properties:
 #          jdbc.driverClassName: oracle.jdbc.OracleDriver
 #          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE

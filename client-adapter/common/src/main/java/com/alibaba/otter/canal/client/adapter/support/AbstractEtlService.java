@@ -16,18 +16,18 @@ import com.google.common.base.Joiner;
 
 public abstract class AbstractEtlService {
 
-    protected Logger      logger       = LoggerFactory.getLogger(this.getClass());
+    protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private String        type;
+    private String type;
     private AdapterConfig config;
-    private final long    CNT_PER_TASK = 10000L;
+    private final long CNT_PER_TASK = 10000L;
 
-    public AbstractEtlService(String type, AdapterConfig config){
+    public AbstractEtlService(String type, AdapterConfig config) {
         this.type = type;
         this.config = config;
     }
 
-    protected EtlResult importData(String sql, List<String> params) {
+    protected EtlResult importData(String sql, List<String> params, String tableFullName, String sequenceColumnName) {
         EtlResult etlResult = new EtlResult();
         AtomicLong impCount = new AtomicLong();
         List<String> errMsg = new ArrayList<>();
@@ -41,10 +41,12 @@ public abstract class AbstractEtlService {
         try {
             DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
 
+            String etlCondition = null;
+
             List<Object> values = new ArrayList<>();
             // 拼接条件
             if (config.getMapping().getEtlCondition() != null && params != null) {
-                String etlCondition = config.getMapping().getEtlCondition();
+                etlCondition = config.getMapping().getEtlCondition();
                 for (String param : params) {
                     etlCondition = etlCondition.replace("{}", "?");
                     values.add(param);
@@ -54,11 +56,20 @@ public abstract class AbstractEtlService {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("etl sql : {}", sql);
+                logger.debug("etl sql : {}, values:{}", sql, values);
             }
 
-            // 获取总数
-            String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
+            // 获取总数，这边直接通过主表获取，假如存在条件的话，拼接一下条件
+            String countSql = "SELECT COUNT(1) FROM " + tableFullName;
+
+            if (etlCondition != null) {
+                countSql += " " + etlCondition;
+            }
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("count sql : {}, values:{}", countSql, values);
+            }
+
             long cnt = (Long) Util.sqlRS(dataSource, countSql, values, rs -> {
                 Long count = null;
                 try {
@@ -72,6 +83,7 @@ public abstract class AbstractEtlService {
             });
 
             // 当大于1万条记录时开启多线程
+            // NOTE: 采用limit分页取数据的方式，大表性能存在问题，使用线程并不能解决该问题，实际上线程在这里的价值并不大
             if (cnt >= 10000) {
                 int threadCount = Runtime.getRuntime().availableProcessors();
 
@@ -83,29 +95,62 @@ public abstract class AbstractEtlService {
                     logger.debug("workerCnt {} for cnt {} threadCount {}", workerCnt, cnt, threadCount);
                 }
 
-                ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
-                List<Future<Boolean>> futures = new ArrayList<>();
-                for (long i = 0; i < workerCnt; i++) {
-                    offset = size * i;
-                    String sqlFinal = sql + " LIMIT " + offset + "," + size;
-                    Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource,
-                        sqlFinal,
-                        values,
-                        config.getMapping(),
-                        impCount,
-                        errMsg));
-                    futures.add(future);
-                }
+                // 假如不存在etlCondition，且存在sequenceColumnName的配置
+                if (etlCondition == null && sequenceColumnName != null) {
+                    // 获取一下最大值
+                    String maxSequenceSql = "SELECT MAX(" + sequenceColumnName + ") FROM " + tableFullName;
+                    long maxSequence = (Long) Util.sqlRS(dataSource, maxSequenceSql, values, rs -> {
+                        Long max = null;
+                        try {
+                            if (rs.next()) {
+                                max = ((Number) rs.getObject(1)).longValue();
+                            }
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                        return max == null ? 0L : max;
+                    });
 
-                for (Future<Boolean> future : futures) {
-                    future.get();
+                    ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
+                    List<Future<Boolean>> futures = new ArrayList<>();
+                    for (long i = 0; i < workerCnt; i++) {
+                        long startSequence = i * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        long endSequence = (i + 1) * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        // 最终生成SQL为：
+                        // <raw sql> where sequence > 5000000 and sequence < 5010000 limit 1000
+                        String sqlFinal = sql + " WHERE " + sequenceColumnName + " > " + startSequence + " AND "
+                                + sequenceColumnName + " <= " + endSequence + " LIMIT " + size;
+                        Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
+                                config.getMapping(), impCount, errMsg));
+                        futures.add(future);
+                    }
+
+                    for (Future<Boolean> future : futures) {
+                        future.get();
+                    }
+                    executor.shutdown();
+
+                } else {
+                    ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
+                    List<Future<Boolean>> futures = new ArrayList<>();
+                    for (long i = 0; i < workerCnt; i++) {
+                        offset = size * i;
+                        String sqlFinal = sql + " LIMIT " + offset + "," + size;
+                        Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
+                                config.getMapping(), impCount, errMsg));
+                        futures.add(future);
+                    }
+
+                    for (Future<Boolean> future : futures) {
+                        future.get();
+                    }
+                    executor.shutdown();
                 }
-                executor.shutdown();
             } else {
                 executeSqlImport(dataSource, sql, values, config.getMapping(), impCount, errMsg);
             }
 
-            logger.info("数据全量导入完成, 一共导入 {} 条数据, 耗时: {}", impCount.get(), System.currentTimeMillis() - start);
+            logger.info("RDB 数据全量导入完成, 一共导入 {} 条数据, 耗时: {}", impCount.get(), System.currentTimeMillis() - start);
             etlResult.setResultMessage("导入" + type + " 数据：" + impCount.get() + " 条");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -120,7 +165,6 @@ public abstract class AbstractEtlService {
     }
 
     protected abstract boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
-                                                AdapterConfig.AdapterMapping mapping, AtomicLong impCount,
-                                                List<String> errMsg);
+            AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg);
 
 }
