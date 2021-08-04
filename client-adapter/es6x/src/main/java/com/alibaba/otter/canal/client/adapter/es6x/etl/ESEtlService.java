@@ -123,8 +123,8 @@ public class ESEtlService extends AbstractEtlService {
                 countSql += " " + etlCondition;
             }
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("ES6 全量count sql : {}, values:{}", countSql, values);
+            if (logger.isInfoEnabled()) {
+                logger.info("ES6 全量count sql : {}, values:{}", countSql, values);
             }
 
             long cnt = (Long) Util.sqlRS(dataSource, countSql, values, rs -> {
@@ -132,6 +132,9 @@ public class ESEtlService extends AbstractEtlService {
                 try {
                     if (rs.next()) {
                         count = ((Number) rs.getObject(1)).longValue();
+                        if (logger.isInfoEnabled()) {
+                            logger.info("ES7 待同步数据总量:{}", count);
+                        }
                     }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
@@ -182,8 +185,8 @@ public class ESEtlService extends AbstractEtlService {
                         String sqlFinal = sql + " WHERE " + sequenceColumnRealName + " > " + startSequence + " AND "
                                 + sequenceColumnRealName + " <= " + endSequence + " LIMIT " + size;
 
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("ES6 全量分批导入, sql: {}", sqlFinal);
+                        if (logger.isInfoEnabled()) {
+                            logger.info("ES6 全量分批导入, sql: {}", sqlFinal);
                         }
 
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
@@ -203,8 +206,8 @@ public class ESEtlService extends AbstractEtlService {
                         offset = size * i;
                         String sqlFinal = sql + " LIMIT " + offset + "," + size;
 
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("ES6 全量分批导入, sql: {}", sqlFinal);
+                        if (logger.isInfoEnabled()) {
+                            logger.info("ES6 全量分批导入, sql: {}", sqlFinal);
                         }
 
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
