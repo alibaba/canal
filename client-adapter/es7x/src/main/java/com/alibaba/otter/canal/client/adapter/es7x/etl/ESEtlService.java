@@ -208,7 +208,7 @@ public class ESEtlService extends AbstractEtlService {
                         String sqlFinal = sql + " LIMIT " + offset + "," + size;
 
                         if (logger.isInfoEnabled()) {
-                            logger.info("ES7 全量分批导入, sql: {}", sqlFinal);
+                            logger.info("ES7 全量分批导入, sql: {}, values:{}", sqlFinal, values);
                         }
 
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,

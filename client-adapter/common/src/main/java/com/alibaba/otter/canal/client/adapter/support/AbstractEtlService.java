@@ -66,8 +66,8 @@ public abstract class AbstractEtlService {
                 countSql += " " + etlCondition;
             }
 
-            if (logger.isDebugEnabled()) {
-                logger.debug(type + " 全量count sql : {}, values:{}", countSql, values);
+            if (logger.isInfoEnabled()) {
+                logger.info(type + " 全量count sql : {}, values:{}", countSql, values);
             }
 
             long cnt = (Long) Util.sqlRS(dataSource, countSql, values, rs -> {
@@ -75,6 +75,9 @@ public abstract class AbstractEtlService {
                 try {
                     if (rs.next()) {
                         count = ((Number) rs.getObject(1)).longValue();
+                        if (logger.isInfoEnabled()) {
+                            logger.info(type + " 待同步数据总量:{}", count);
+                        }
                     }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
@@ -143,7 +146,7 @@ public abstract class AbstractEtlService {
                         String sqlFinal = sql + " LIMIT " + offset + "," + size;
 
                         if (logger.isDebugEnabled()) {
-                            logger.debug(type + " 全量分批导入, sql: {}", sqlFinal);
+                            logger.debug(type + " 全量分批导入, sql: {}, values:{}", sqlFinal, values);
                         }
 
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
