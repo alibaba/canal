@@ -183,7 +183,8 @@ public class ESEtlService extends AbstractEtlService {
                         String sequenceColumnRealName = joinSetting.getAliasName() + "."
                                 + joinSetting.getSequenceColumnName();
                         String sqlFinal = sql + " WHERE " + sequenceColumnRealName + " > " + startSequence + " AND "
-                                + sequenceColumnRealName + " <= " + endSequence + " LIMIT " + size;
+                                + sequenceColumnRealName + " <= " + endSequence + " LIMIT "
+                                + (endSequence - startSequence);
 
                         if (logger.isInfoEnabled()) {
                             logger.info("ES7 全量分批导入, sql: {}", sqlFinal);

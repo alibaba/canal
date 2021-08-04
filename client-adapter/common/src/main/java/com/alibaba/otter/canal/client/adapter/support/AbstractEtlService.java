@@ -122,7 +122,7 @@ public abstract class AbstractEtlService {
                         // 最终生成SQL为：
                         // <raw sql> where sequence > 5000000 and sequence < 5010000 limit 1000
                         String sqlFinal = sql + " WHERE " + sequenceColumnName + " > " + startSequence + " AND "
-                                + sequenceColumnName + " <= " + endSequence + " LIMIT " + size;
+                                + sequenceColumnName + " <= " + endSequence + " LIMIT " + (endSequence - startSequence);
 
                         if (logger.isDebugEnabled()) {
                             logger.debug(type + " 全量分批导入, sql: {}", sqlFinal);
