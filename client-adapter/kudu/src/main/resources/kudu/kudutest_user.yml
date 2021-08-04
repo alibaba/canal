@@ -1,6 +1,5 @@
 dataSourceKey: defaultDS
 destination: test_instance
-outerAdapterKey: kudu
 groupId: g1
 kuduMapping:
   database: test

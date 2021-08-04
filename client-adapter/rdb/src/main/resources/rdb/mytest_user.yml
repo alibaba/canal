@@ -23,7 +23,6 @@ dbMapping:
 #dataSourceKey: defaultDS
 #destination: example
 #groupId: g1
-#outerAdapterKey: mysql1
 #concurrent: true
 #dbMapping:
 #  mirrorDb: true
