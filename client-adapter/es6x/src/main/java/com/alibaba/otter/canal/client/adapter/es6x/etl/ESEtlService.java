@@ -124,7 +124,7 @@ public class ESEtlService extends AbstractEtlService {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("count sql : {}, values:{}", countSql, values);
+                logger.debug("ES6 全量count sql : {}, values:{}", countSql, values);
             }
 
             long cnt = (Long) Util.sqlRS(dataSource, countSql, values, rs -> {
@@ -181,6 +181,11 @@ public class ESEtlService extends AbstractEtlService {
                                 + joinSetting.getSequenceColumnName();
                         String sqlFinal = sql + " WHERE " + sequenceColumnRealName + " > " + startSequence + " AND "
                                 + sequenceColumnRealName + " <= " + endSequence + " LIMIT " + size;
+
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("ES6 全量分批导入, sql: {}", sqlFinal);
+                        }
+
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
                                 config.getMapping(), impCount, errMsg));
                         futures.add(future);
@@ -197,6 +202,11 @@ public class ESEtlService extends AbstractEtlService {
                     for (long i = 0; i < workerCnt; i++) {
                         offset = size * i;
                         String sqlFinal = sql + " LIMIT " + offset + "," + size;
+
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("ES6 全量分批导入, sql: {}", sqlFinal);
+                        }
+
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
                                 config.getMapping(), impCount, errMsg));
                         futures.add(future);
@@ -211,7 +221,7 @@ public class ESEtlService extends AbstractEtlService {
                 executeSqlImport(dataSource, sql, values, config.getMapping(), impCount, errMsg);
             }
 
-            logger.info("ES7 数据全量导入完成, 一共导入 {} 条数据, 耗时: {}", impCount.get(), System.currentTimeMillis() - start);
+            logger.info("ES6 数据全量导入完成, 一共导入 {} 条数据, 耗时: {}", impCount.get(), System.currentTimeMillis() - start);
             etlResult.setResultMessage("导入" + type + " 数据：" + impCount.get() + " 条");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

@@ -125,7 +125,7 @@ public class ESEtlService extends AbstractEtlService {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("count sql : {}, values:{}", countSql, values);
+                logger.debug("ES7 全量count sql : {}, values:{}", countSql, values);
             }
 
             long cnt = (Long) Util.sqlRS(dataSource, countSql, values, rs -> {
@@ -182,6 +182,11 @@ public class ESEtlService extends AbstractEtlService {
                                 + joinSetting.getSequenceColumnName();
                         String sqlFinal = sql + " WHERE " + sequenceColumnRealName + " > " + startSequence + " AND "
                                 + sequenceColumnRealName + " <= " + endSequence + " LIMIT " + size;
+
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("ES7 全量分批导入, sql: {}", sqlFinal);
+                        }
+
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
                                 config.getMapping(), impCount, errMsg));
                         futures.add(future);
@@ -198,6 +203,11 @@ public class ESEtlService extends AbstractEtlService {
                     for (long i = 0; i < workerCnt; i++) {
                         offset = size * i;
                         String sqlFinal = sql + " LIMIT " + offset + "," + size;
+
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("ES7 全量分批导入, sql: {}", sqlFinal);
+                        }
+
                         Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
                                 config.getMapping(), impCount, errMsg));
                         futures.add(future);
