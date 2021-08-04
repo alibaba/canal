@@ -29,10 +29,10 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
  */
 public class RdbEtlService extends AbstractEtlService {
 
-    private DataSource    targetDS;
+    private DataSource targetDS;
     private MappingConfig config;
 
-    public RdbEtlService(DataSource targetDS, MappingConfig config){
+    public RdbEtlService(DataSource targetDS, MappingConfig config) {
         super("RDB", config);
         this.targetDS = targetDS;
         this.config = config;
@@ -51,7 +51,7 @@ public class RdbEtlService extends AbstractEtlService {
      * 执行导入
      */
     protected boolean executeSqlImport(DataSource srcDS, String sql, List<Object> values,
-                                       AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
+            AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
         try {
             DbMapping dbMapping = (DbMapping) mapping;
             Map<String, String> columnsMap = new LinkedHashMap<>();
@@ -84,8 +84,8 @@ public class RdbEtlService extends AbstractEtlService {
 
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
-                    columnsMap
-                        .forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+                    columnsMap.forEach(
+                            (targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
 
                     int len = insertSql.length();
                     insertSql.delete(len - 1, len).append(") VALUES (");
@@ -107,7 +107,7 @@ public class RdbEtlService extends AbstractEtlService {
                             // 删除数据
                             Map<String, Object> pkVal = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
-                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
+                                    "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
                             appendCondition(dbMapping, deleteSql, pkVal, rs);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
                                 int k = 1;
@@ -174,7 +174,7 @@ public class RdbEtlService extends AbstractEtlService {
      * 拼接目标表主键where条件
      */
     private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values,
-                                        ResultSet rs) throws SQLException {
+            ResultSet rs) throws SQLException {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();

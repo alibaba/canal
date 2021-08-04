@@ -38,20 +38,20 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
 @SPI("rdb")
 public class RdbAdapter implements OuterAdapter {
 
-    private static Logger                           logger              = LoggerFactory.getLogger(RdbAdapter.class);
+    private static Logger logger = LoggerFactory.getLogger(RdbAdapter.class);
 
-    private Map<String, MappingConfig>              rdbMapping          = new ConcurrentHashMap<>();                // 文件名对应配置
-    private Map<String, Map<String, MappingConfig>> mappingConfigCache  = new ConcurrentHashMap<>();                // 库名-表名对应配置
-    private Map<String, MirrorDbConfig>             mirrorDbConfigCache = new ConcurrentHashMap<>();                // 镜像库配置
+    private Map<String, MappingConfig> rdbMapping = new ConcurrentHashMap<>(); // 文件名对应配置
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>(); // 库名-表名对应配置
+    private Map<String, MirrorDbConfig> mirrorDbConfigCache = new ConcurrentHashMap<>(); // 镜像库配置
 
-    private DruidDataSource                         dataSource;
+    private DruidDataSource dataSource;
 
-    private RdbSyncService                          rdbSyncService;
-    private RdbMirrorDbSyncService                  rdbMirrorDbSyncService;
+    private RdbSyncService rdbSyncService;
+    private RdbMirrorDbSyncService rdbMirrorDbSyncService;
 
-    private RdbConfigMonitor                        rdbConfigMonitor;
+    private RdbConfigMonitor rdbConfigMonitor;
 
-    private Properties                              envProperties;
+    private Properties envProperties;
 
     public Map<String, MappingConfig> getRdbMapping() {
         return rdbMapping;
@@ -77,8 +77,8 @@ public class RdbAdapter implements OuterAdapter {
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
             if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
-                    .equalsIgnoreCase(configuration.getKey()))) {
+                    || (mappingConfig.getOuterAdapterKey() != null
+                            && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
                 rdbMapping.put(key, mappingConfig);
             }
         });
@@ -94,19 +94,21 @@ public class RdbAdapter implements OuterAdapter {
                 String key;
                 if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
                     key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                          + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                          + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                            + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                            + mappingConfig.getDbMapping().getDatabase() + "-"
+                            + mappingConfig.getDbMapping().getTable();
                 } else {
                     key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                          + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                            + mappingConfig.getDbMapping().getDatabase() + "-"
+                            + mappingConfig.getDbMapping().getTable();
                 }
                 Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
-                    k1 -> new ConcurrentHashMap<>());
+                        k1 -> new ConcurrentHashMap<>());
                 configMap.put(configName, mappingConfig);
             } else {
                 // mirrorDB
                 String key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                             + mappingConfig.getDbMapping().getDatabase();
+                        + mappingConfig.getDbMapping().getDatabase();
                 mirrorDbConfigCache.put(key, MirrorDbConfig.create(configName, mappingConfig));
             }
         }
@@ -138,17 +140,14 @@ public class RdbAdapter implements OuterAdapter {
         String threads = properties.get("threads");
         // String commitSize = properties.get("commitSize");
 
-        boolean skipDupException = BooleanUtils.toBoolean(configuration.getProperties()
-            .getOrDefault("skipDupException", "true"));
-        rdbSyncService = new RdbSyncService(dataSource,
-            threads != null ? Integer.valueOf(threads) : null,
-            skipDupException);
+        boolean skipDupException = BooleanUtils
+                .toBoolean(configuration.getProperties().getOrDefault("skipDupException", "true"));
+        rdbSyncService = new RdbSyncService(dataSource, threads != null ? Integer.valueOf(threads) : null,
+                skipDupException);
 
-        rdbMirrorDbSyncService = new RdbMirrorDbSyncService(mirrorDbConfigCache,
-            dataSource,
-            threads != null ? Integer.valueOf(threads) : null,
-            rdbSyncService.getColumnsTypeCache(),
-            skipDupException);
+        rdbMirrorDbSyncService = new RdbMirrorDbSyncService(mirrorDbConfigCache, dataSource,
+                threads != null ? Integer.valueOf(threads) : null, rdbSyncService.getColumnsTypeCache(),
+                skipDupException);
 
         rdbConfigMonitor = new RdbConfigMonitor();
         rdbConfigMonitor.init(configuration.getKey(), this, envProperties);
@@ -175,7 +174,7 @@ public class RdbAdapter implements OuterAdapter {
     /**
      * ETL方法
      *
-     * @param task 任务名, 对应配置名
+     * @param task   任务名, 对应配置名
      * @param params etl筛选条件
      * @return ETL结果
      */

@@ -24,11 +24,11 @@ public class BatchExecutor implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(BatchExecutor.class);
 
-    private DataSource          dataSource;
-    private Connection          conn;
-    private AtomicInteger       idx    = new AtomicInteger(0);
+    private DataSource dataSource;
+    private Connection conn;
+    private AtomicInteger idx = new AtomicInteger(0);
 
-    public BatchExecutor(DataSource dataSource){
+    public BatchExecutor(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
