@@ -1,6 +1,8 @@
 dataSourceKey: defaultDS
 destination: example
 groupId: g1
+outerAdapterKey: example_hbase # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
+
 hbaseMapping:
   mode: STRING #NATIVE   #PHOENIX
   database: mytest # 数据库名

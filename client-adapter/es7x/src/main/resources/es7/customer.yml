@@ -1,18 +1,29 @@
 dataSourceKey: defaultDS
 destination: example
 groupId: g1
+outerAdapterKey: example_es7 # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
+
 esMapping:
   _index: customer
+  _type: _doc
   _id: _id
+  
   relations:
     customer_order:
       name: customer
-  sql: "select t.id as _id, t.name, t.email from customer t"
+
+  sql: "
+  select 
+    t.id as _id, 
+    t.name, 
+    t.email 
+  from customer t"
+
   etlCondition: "where t.c_time>={}"
 
   # 对SQL语句的表以及join信息做配置
   joinSettings:
-      # 表名  
+    # 表名
     - tableName: customer
       # 在SQL语句中的别名
       aliasName: t
@@ -25,8 +36,6 @@ esMapping:
       sequenceColumnName: id
 
   commitBatch: 3000
-
-
 #{
 #  "mappings":{
 #    "_doc":{

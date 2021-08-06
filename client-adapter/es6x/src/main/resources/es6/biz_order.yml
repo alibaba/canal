@@ -1,27 +1,36 @@
 dataSourceKey: defaultDS
 destination: example
 groupId: g1
+outerAdapterKey: example_es6 # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
+
 esMapping:
   _index: customer
+  _type: _doc
   _id: _id
+  
   relations:
     customer_order:
       name: order
       parent: customer_id
-  sql: "select concat('oid_', t.id) as _id,
-        t.customer_id,
-        t.id as order_id,
-        t.serial_code as order_serial,
-        t.c_time as order_time
-        from biz_order t"
+
+  sql: "
+  select 
+    concat('oid_', t.id) as _id, 
+    t.customer_id, 
+    t.id as order_id, 
+    t.serial_code as order_serial, 
+    t.c_time as order_time 
+  from biz_order t"
+
   skips:
     - customer_id
+
   etlCondition: "where t.c_time>={}"
 
   joinSettings:
     - tableName: biz_order
       aliasName: t
-      refColumnName: id      
+      refColumnName: id
       # 是否为主表
       primary: true
       # 自动递增栏位名, 用于优化全量同步过程中提升MySQL查询性能
