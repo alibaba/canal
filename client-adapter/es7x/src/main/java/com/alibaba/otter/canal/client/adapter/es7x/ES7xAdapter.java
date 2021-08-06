@@ -14,6 +14,7 @@ import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es7x.etl.ESEtlService;
 import com.alibaba.otter.canal.client.adapter.es7x.support.ES7xTemplate;
 import com.alibaba.otter.canal.client.adapter.es7x.support.ESConnection;
+import com.alibaba.otter.canal.client.adapter.es7x.support.ESConnection.ESSearchRequest;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
@@ -59,7 +60,9 @@ public class ES7xAdapter extends ESAdapter {
     public Map<String, Object> count(String task) {
         ESSyncConfig config = esSyncConfig.get(task);
         ESSyncConfig.ESMapping mapping = config.getEsMapping();
-        SearchResponse response = this.esConnection.new ESSearchRequest(mapping.get_index()).size(0).getResponse();
+        // ES7 需要加上"track_total_hits": true, 才能返回所有记录条数
+        SearchResponse response = this.esConnection.new ESSearchRequest(mapping.get_index()).size(0)
+                .setTrackTotalHits(true).getResponse();
 
         long rowCount = response.getHits().getTotalHits().value;
         Map<String, Object> res = new LinkedHashMap<>();
