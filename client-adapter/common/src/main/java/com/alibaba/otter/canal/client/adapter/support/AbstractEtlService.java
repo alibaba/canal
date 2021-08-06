@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -98,31 +99,58 @@ public abstract class AbstractEtlService {
                     logger.debug("workerCnt {} for cnt {} threadCount {}", workerCnt, cnt, threadCount);
                 }
 
-                // 假如不存在etlCondition，且存在sequenceColumnName的配置
-                if (etlCondition == null && sequenceColumnName != null) {
+                // 假如存在sequenceColumnName的配置
+                if (sequenceColumnName != null) {
                     // 获取一下最大值
-                    String maxSequenceSql = "SELECT MAX(" + sequenceColumnName + ") FROM " + tableFullName;
-                    long maxSequence = (Long) Util.sqlRS(dataSource, maxSequenceSql, values, rs -> {
-                        Long max = null;
-                        try {
-                            if (rs.next()) {
-                                max = ((Number) rs.getObject(1)).longValue();
-                            }
-                        } catch (Exception e) {
-                            logger.error(e.getMessage(), e);
-                        }
-                        return max == null ? 0L : max;
-                    });
+                    String sequenceSql = "SELECT MIN(" + sequenceColumnName + ") as min, MAX(" + sequenceColumnName
+                            + ") as max FROM " + tableFullName;
+
+                    if (etlCondition != null) {
+                        sequenceSql += " " + etlCondition;
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    HashMap<String, Long> sequenceMap = (HashMap<String, Long>) Util.sqlRS(dataSource, sequenceSql,
+                            values, rs -> {
+                                Long max = null;
+                                Long min = null;
+                                try {
+                                    if (rs.next()) {
+                                        min = ((Number) rs.getObject("min")).longValue();
+                                        max = ((Number) rs.getObject("max")).longValue();
+                                    }
+                                } catch (Exception e) {
+                                    logger.error(e.getMessage(), e);
+                                }
+                                max = (max == null ? 1L : max);
+                                min = (min == null ? 1L : min);
+
+                                HashMap<String, Long> map = new HashMap<>();
+                                map.put("min", min);
+                                map.put("max", max);
+
+                                return map;
+                            });
+
+                    long maxSequence = sequenceMap.get("max");
+                    long minSequence = sequenceMap.get("min") - 1;
+
+                    if (logger.isInfoEnabled()) {
+                        logger.info("ES7 全量导入, start:{}, end:{}", minSequence, maxSequence);
+                    }
 
                     ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
                     List<Future<Boolean>> futures = new ArrayList<>();
                     for (long i = 0; i < workerCnt; i++) {
-                        long startSequence = i * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
-                        long endSequence = (i + 1) * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        long startSequence = minSequence
+                                + i * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        long endSequence = minSequence
+                                + (i + 1) * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
                         // 最终生成SQL为：
                         // <raw sql> where sequence > 5000000 and sequence < 5010000 limit 1000
-                        String sqlFinal = sql + " WHERE " + sequenceColumnName + " > " + startSequence + " AND "
-                                + sequenceColumnName + " <= " + endSequence + " LIMIT " + (endSequence - startSequence);
+                        String sqlFinal = sql + (etlCondition == null ? " WHERE " : " AND ") + sequenceColumnName
+                                + " > " + startSequence + " AND " + sequenceColumnName + " <= " + endSequence
+                                + " LIMIT " + (endSequence - startSequence);
 
                         if (logger.isDebugEnabled()) {
                             logger.debug(type + " 全量分批导入, sql: {}", sqlFinal);
