@@ -85,14 +85,17 @@ public class MysqlConnection implements ErosaConnection {
         connector.setConnTimeout(connTimeout);
     }
 
+    @Override
     public void connect() throws IOException {
         connector.connect();
     }
 
+    @Override
     public void reconnect() throws IOException {
         connector.reconnect();
     }
 
+    @Override
     public void disconnect() throws IOException {
         connector.disconnect();
     }

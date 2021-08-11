@@ -1,9 +1,5 @@
 package com.alibaba.otter.canal.prometheus.impl;
 
-import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
-
-import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
-import com.alibaba.otter.canal.parse.inbound.mysql.AbstractMysqlEventParser;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CounterMetricFamily;
 import io.prometheus.client.GaugeMetricFamily;
@@ -20,8 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.parse.CanalEventParser;
+import com.alibaba.otter.canal.parse.ParserMetrics;
+import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
+import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
 import com.alibaba.otter.canal.prometheus.InstanceRegistry;
 import com.google.common.base.Preconditions;
+
+import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
 
 /**
  * @author Chuanyi Li
@@ -93,12 +94,12 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         final String destination = instance.getDestination();
         ParserMetricsHolder holder;
         CanalEventParser parser = instance.getEventParser();
-        if (parser instanceof AbstractMysqlEventParser) {
-            holder = singleHolder(destination, (AbstractMysqlEventParser)parser, "0");
+        if (parser instanceof AbstractEventParser) {
+            holder = singleHolder(destination, (AbstractEventParser) parser, "0");
         } else if (parser instanceof GroupEventParser) {
             holder = groupHolder(destination, (GroupEventParser)parser);
         } else {
-            throw new IllegalArgumentException("CanalEventParser must be either AbstractMysqlEventParser or GroupEventParser.");
+            throw new IllegalArgumentException("CanalEventParser must be either AbstractEventParser or GroupEventParser.");
         }
         Preconditions.checkNotNull(holder);
         ParserMetricsHolder old = instances.put(destination, holder);
@@ -107,7 +108,7 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         }
     }
 
-    private ParserMetricsHolder singleHolder(String destination, AbstractMysqlEventParser parser, String id) {
+    private ParserMetricsHolder singleHolder(String destination, ParserMetrics parser, String id) {
         ParserMetricsHolder holder = new ParserMetricsHolder();
         holder.parserLabelValues = Arrays.asList(destination, id);
         holder.modeLabelValues = Arrays.asList(destination, Boolean.toString(parser.isParallel()));
@@ -125,11 +126,11 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         int num = parsers.size();
         for (int i = 0; i < num; i ++) {
             CanalEventParser parser = parsers.get(i);
-            if (parser instanceof AbstractMysqlEventParser) {
-                ParserMetricsHolder single = singleHolder(destination, (AbstractMysqlEventParser)parser, Integer.toString(i + 1));
+            if (parser instanceof AbstractEventParser) {
+                ParserMetricsHolder single = singleHolder(destination, (AbstractEventParser) parser, Integer.toString(i + 1));
                 groupHolder.holders.add(single);
             } else {
-                logger.warn("Null or non AbstractMysqlEventParser, ignore.");
+                logger.warn("Null or non AbstractEventParser, ignore.");
             }
         }
         return groupHolder;
