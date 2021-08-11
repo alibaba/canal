@@ -27,13 +27,4 @@ esMapping:
 
   etlCondition: "where t.c_time>={}"
 
-  joinSettings:
-    - tableName: biz_order
-      aliasName: t
-      refColumnName: id
-      # 是否为主表
-      primary: true
-      # 自动递增栏位名, 用于优化全量同步过程中提升MySQL查询性能
-      sequenceColumnName: id
-
   commitBatch: 3000
