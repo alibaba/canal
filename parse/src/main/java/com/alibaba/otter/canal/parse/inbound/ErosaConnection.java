@@ -9,13 +9,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
  * 
  * @author: yuanzu Date: 12-9-20 Time: 下午2:47
  */
-public interface ErosaConnection {
-
-    public void connect() throws IOException;
-
-    public void reconnect() throws IOException;
-
-    public void disconnect() throws IOException;
+public interface ErosaConnection extends BinlogConnection {
 
     /**
      * 用于快速数据查找,和dump的区别在于，seek会只给出部分的数据
