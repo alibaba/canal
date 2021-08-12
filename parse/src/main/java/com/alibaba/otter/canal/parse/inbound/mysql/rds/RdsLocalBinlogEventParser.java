@@ -40,6 +40,7 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
     public RdsLocalBinlogEventParser(){
     }
 
+    @Override
     public void start() throws CanalParseException {
         try {
             Assert.notNull(accesskey);

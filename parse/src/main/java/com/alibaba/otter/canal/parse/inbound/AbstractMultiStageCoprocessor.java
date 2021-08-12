@@ -16,9 +16,14 @@ import com.lmax.disruptor.InsufficientCapacityException;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkerPool;
 
+/**
+ * Abstraction of MultiStageCoprocessor common process
+ *
+ * @author wanghe
+ */
 public abstract class AbstractMultiStageCoprocessor<Event> extends AbstractCanalLifeCycle implements MultiStageCoprocessor {
 
-    protected static final int                              maxFullTimes     = 10;
+    protected static final int                              MAX_FULL_TIMES   = 10;
     protected              EventTransactionBuffer           transactionBuffer;
     protected              int                              ringBufferSize;
     protected              String                           destination;
@@ -36,6 +41,12 @@ public abstract class AbstractMultiStageCoprocessor<Event> extends AbstractCanal
         this.destination = destination;
     }
 
+    /**
+     * setEventData will set data into the event entity
+     *
+     * @param event the entity in RingBuffer
+     * @param data  the data to set into event entity
+     */
     protected abstract void setEventData(Event event, Object data);
 
     @Override
@@ -85,9 +96,9 @@ public abstract class AbstractMultiStageCoprocessor<Event> extends AbstractCanal
         long blockingStart = 0L;
         int fullTimes = 0;
         do {
-            /**
-             * 由于改为processor仅终止自身stage而不是stop，那么需要由incident标识coprocessor是否正常工作。
-             * 让dump线程能够及时感知
+            /*
+              由于改为processor仅终止自身stage而不是stop，那么需要由incident标识coprocessor是否正常工作。
+              让dump线程能够及时感知
              */
             if (exception != null) {
                 throw exception;
@@ -106,7 +117,6 @@ public abstract class AbstractMultiStageCoprocessor<Event> extends AbstractCanal
                     blockingStart = System.nanoTime();
                 }
                 // park
-                // LockSupport.parkNanos(1L);
                 applyWait(++fullTimes);
                 interupted = Thread.interrupted();
                 if (fullTimes % 1000 == 0) {
@@ -119,12 +129,16 @@ public abstract class AbstractMultiStageCoprocessor<Event> extends AbstractCanal
         return isStart();
     }
 
-    // 处理无数据的情况，避免空循环挂死
+    /**
+     * 处理无数据的情况，避免空循环挂死
+     *
+     * @param fullTimes 缓冲区填满的次数
+     */
     private void applyWait(int fullTimes) {
-        int newFullTimes = Math.min(fullTimes, maxFullTimes);
-        if (fullTimes <= 3) { // 3次以内
+        int newFullTimes = Math.min(fullTimes, MAX_FULL_TIMES);
+        if (fullTimes <= 3) {
             Thread.yield();
-        } else { // 超过3次，最多只sleep 1ms
+        } else {
             LockSupport.parkNanos(100 * 1000L * newFullTimes);
         }
 

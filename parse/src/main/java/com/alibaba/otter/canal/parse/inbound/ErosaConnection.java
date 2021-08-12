@@ -7,7 +7,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 /**
  * 通用的Erosa的链接接口, 用于一般化处理mysql/oracle的解析过程
  * 
- * @author: yuanzu Date: 12-9-20 Time: 下午2:47
+ * @author yuanzu Date: 12-9-20 Time: 下午2:47
  */
 public interface ErosaConnection extends BinlogConnection {
 
