@@ -8,6 +8,8 @@ esMapping:
   _type: _doc
   _id: _id
 
+  sequenceColumn: id
+
   #  upsert: true
   #  pk: id
 

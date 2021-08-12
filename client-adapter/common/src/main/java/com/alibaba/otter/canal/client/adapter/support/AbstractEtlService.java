@@ -28,7 +28,7 @@ public abstract class AbstractEtlService {
         this.config = config;
     }
 
-    protected EtlResult importData(String sql, List<String> params, String tableFullName, String sequenceColumnName) {
+    protected EtlResult importData(String sql, List<String> params, String tableFullName, String sequenceColumn) {
         EtlResult etlResult = new EtlResult();
         AtomicLong impCount = new AtomicLong();
         List<String> errMsg = new ArrayList<>();
@@ -99,10 +99,10 @@ public abstract class AbstractEtlService {
                     logger.debug("workerCnt {} for cnt {} threadCount {}", workerCnt, cnt, threadCount);
                 }
 
-                // 假如存在sequenceColumnName的配置
-                if (sequenceColumnName != null) {
+                // 假如存在sequenceColumn的配置
+                if (sequenceColumn != null) {
                     // 获取一下最大值
-                    String sequenceSql = "SELECT MIN(" + sequenceColumnName + ") as min, MAX(" + sequenceColumnName
+                    String sequenceSql = "SELECT MIN(" + sequenceColumn + ") as min, MAX(" + sequenceColumn
                             + ") as max FROM " + tableFullName;
 
                     if (etlCondition != null) {
@@ -148,9 +148,9 @@ public abstract class AbstractEtlService {
                                 + (i + 1) * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
                         // 最终生成SQL为：
                         // <raw sql> where sequence > 5000000 and sequence < 5010000 limit 1000
-                        String sqlFinal = sql + (etlCondition == null ? " WHERE " : " AND ") + sequenceColumnName
-                                + " > " + startSequence + " AND " + sequenceColumnName + " <= " + endSequence
-                                + " LIMIT " + (endSequence - startSequence);
+                        String sqlFinal = sql + (etlCondition == null ? " WHERE " : " AND ") + sequenceColumn + " > "
+                                + startSequence + " AND " + sequenceColumn + " <= " + endSequence + " LIMIT "
+                                + (endSequence - startSequence);
 
                         if (logger.isDebugEnabled()) {
                             logger.debug(type + " 全量分批导入, sql: {}", sqlFinal);

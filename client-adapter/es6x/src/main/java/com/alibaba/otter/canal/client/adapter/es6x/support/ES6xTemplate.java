@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
-import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.JoinSetting;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
@@ -38,6 +37,8 @@ import com.alibaba.otter.canal.client.adapter.es6x.support.ESConnection.ESSearch
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.TableItem;
 
 public class ES6xTemplate implements ESTemplate {
 
@@ -110,15 +111,50 @@ public class ES6xTemplate implements ESTemplate {
     @Override
     public void updateByQuery(ESSyncConfig config, Map<String, Object> paramsTmp, Map<String, Object> esFieldData,
             Dml dml) {
-        if (paramsTmp.isEmpty()) {
+        if (paramsTmp.isEmpty() || esFieldData.isEmpty()) { // 增加 esFieldData.isEmpty() 的判断过滤掉不必要的判断，用于提升性能
             return;
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace("updateByQuery esMapping:");
-            Map<String, JoinSetting> joinSettings = config.getEsMapping().getJoinSettings();
-            for (String key : joinSettings.keySet()) {
-                logger.trace("{}", joinSettings.get(key));
+            logger.trace("updateByQuery aliasTableItems:");
+            Map<String, TableItem> aliasTableItems = config.getEsMapping().getSchemaItem().getAliasTableItems();
+            for (String key : aliasTableItems.keySet()) {
+                logger.trace("key:{}, value: {}", key, aliasTableItems.get(key));
+            }
+
+            logger.trace("updateByQuery selectFields:");
+            Map<String, FieldItem> selectFields = config.getEsMapping().getSchemaItem().getSelectFields();
+            for (String key : selectFields.keySet()) {
+                logger.trace("key:{}, value:{}", selectFields.get(key));
+            }
+
+            logger.trace("updateByQuery columnFields:");
+            Map<String, List<FieldItem>> columnFields = config.getEsMapping().getSchemaItem().getColumnFields();
+            for (String key : columnFields.keySet()) {
+
+                List<FieldItem> fields = columnFields.get(key);
+
+                String tmp = "";
+
+                for (FieldItem o : fields) {
+                    tmp += o;
+                }
+
+                logger.trace("key:{}, value: [ {} ]", key, tmp);
+            }
+
+            logger.trace("updateByQuery tableItemAliases:");
+            Map<String, List<TableItem>> tableItemAliases = config.getEsMapping().getSchemaItem().getTableItemAliases();
+            for (String key : tableItemAliases.keySet()) {
+
+                List<TableItem> tableItems = tableItemAliases.get(key);
+                String tmp = "";
+
+                for (TableItem o : tableItems) {
+                    tmp += o;
+                }
+
+                logger.trace("key:{}, value: [ {} ]", key, tmp);
             }
 
             logger.trace("updateByQuery paramsTmp: {}", paramsTmp);
@@ -127,49 +163,33 @@ public class ES6xTemplate implements ESTemplate {
         }
 
         ESMapping mapping = config.getEsMapping();
-        // 看起来没什么用，不知道从哪儿复制过来的
-        // BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        // paramsTmp.forEach((fieldName, value) ->
-        // queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
-
         // 查询sql批量更新
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        // Marked by Wu Jian Ping
-        // StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() +
-        // ") _v WHERE ");
-        // List<Object> values = new ArrayList<>();
-        // paramsTmp.forEach((fieldName, value) -> {
-        // sql.append("_v.").append(fieldName).append("=? AND ");
-        // values.add(value);
-        // });
 
-        // 从DML中获取表名
-        String eventSourceTableName = dml.getTable();
-        // 获取joinSettings
-        Map<String, JoinSetting> joinSettings = config.getEsMapping().getJoinSettings();
         // 组装SQL
         StringBuilder sql = new StringBuilder(mapping.getSql() + " WHERE ");
         List<Object> values = new ArrayList<>();
         paramsTmp.forEach((fieldName, value) -> {
-            JoinSetting joinSetting = null;
+            String finalFieldName = null;
 
-            for (JoinSetting setting : joinSettings.values()) {
-                // 这边"_id"就直接写死了，因为同步数据是需要SQL语句中有"select xxx as _id"这样的栏位的
-                if (fieldName == "_id" && setting.getPrimary()) {
-                    joinSetting = setting;
-                    break;
-                } else if (eventSourceTableName.trim().equalsIgnoreCase(setting.getTableName().trim())
-                        && fieldName.trim().equalsIgnoreCase(setting.getRefColumnName().trim())) {
-                    joinSetting = setting;
-                    break;
+            ColumnItem columnItem = config.getEsMapping().getSchemaItem().getSelectFields().get(fieldName).getColumn();
+            if (columnItem != null) {
+                if (columnItem.getOwner() != null) {
+                    finalFieldName = String.format("%s.%s", columnItem.getOwner(), columnItem.getColumnName());
+                } else {
+                    finalFieldName = columnItem.getColumnName();
                 }
             }
 
-            if (joinSetting == null) {
-                throw new RuntimeException("Cannot found joinSetting for column:" + fieldName);
+            if (finalFieldName == null) {
+                throw new RuntimeException("Cannot create condition for select field:{}, in updateByQuery" + fieldName);
             }
 
-            sql.append(joinSetting.getAliasName()).append(".").append(joinSetting.getRefColumnName()).append("=? AND ");
+            if (logger.isTraceEnabled()) {
+                logger.trace("updateByQuery finalFieldName: {}", finalFieldName);
+            }
+
+            sql.append(finalFieldName + " = ? AND ");
             values.add(value);
         });
 

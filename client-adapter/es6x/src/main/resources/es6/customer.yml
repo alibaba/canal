@@ -7,6 +7,8 @@ esMapping:
   _index: customer
   _type: _doc
   _id: _id
+
+  sequenceColumn: id
   
   relations:
     customer_order:

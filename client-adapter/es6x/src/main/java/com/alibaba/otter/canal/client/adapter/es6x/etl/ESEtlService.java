@@ -16,7 +16,6 @@ import org.elasticsearch.search.SearchHit;
 
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
-import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.JoinSetting;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
 import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest.ESBulkResponse;
@@ -39,6 +38,8 @@ import java.util.concurrent.Future;
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.TableItem;
 
 /**
  * ES ETL Service
@@ -103,21 +104,14 @@ public class ESEtlService extends AbstractEtlService {
                 logger.debug("etl sql : {}, values:{}", sql, values);
             }
 
-            JoinSetting joinSetting = null;
-            for (JoinSetting setting : config.getEsMapping().getJoinSettings().values()) {
-                if (setting.getPrimary()) {
-                    joinSetting = setting;
-                    break;
-                }
-            }
+            TableItem mainTable = config.getEsMapping().getSchemaItem().getMainTable();
 
-            if (joinSetting == null) {
-                logger.error("Cannot find primry table defination in joinSettings");
-                throw new RuntimeException("Cannot find primry table defination in joinSettings");
+            if (mainTable == null) {
+                throw new RuntimeException("Cannot found main table");
             }
 
             // 获取总数，这边直接通过主表获取，假如存在条件的话，拼接一下条件
-            String countSql = "SELECT COUNT(1) FROM " + joinSetting.getTableName() + " " + joinSetting.getAliasName();
+            String countSql = "SELECT COUNT(1) FROM " + mainTable.getTableFullName() + " " + mainTable.getAlias();
 
             if (etlCondition != null) {
                 countSql += " " + etlCondition;
@@ -133,7 +127,7 @@ public class ESEtlService extends AbstractEtlService {
                     if (rs.next()) {
                         count = ((Number) rs.getObject(1)).longValue();
                         if (logger.isInfoEnabled()) {
-                            logger.info("ES7 待同步数据总量:{}", count);
+                            logger.info("ES6 待同步数据总量:{}", count);
                         }
                     }
                 } catch (Exception e) {
@@ -155,14 +149,15 @@ public class ESEtlService extends AbstractEtlService {
                     logger.debug("workerCnt {} for cnt {} threadCount {}", workerCnt, cnt, threadCount);
                 }
 
-                // 假如存在sequenceColumnName的配置
-                if (joinSetting.getSequenceColumnName() != null) {
+                ESMapping esMapping = this.config.getEsMapping();
+                // 假如存在sequenceColumn的配置
+                if (esMapping.getSequenceColumn() != null) {
                     // 获取一下最小序号和最大序号
-                    String sequenceSql = "SELECT MIN(" + joinSetting.getSequenceColumnName() + ") as min, MAX("
-                            + joinSetting.getSequenceColumnName() + ") as max FROM " + joinSetting.getTableName();
+                    String sequenceSql = "SELECT MIN(" + esMapping.getSequenceColumn() + ") as min, MAX("
+                            + esMapping.getSequenceColumn() + ") as max FROM " + mainTable.getTableFullName();
 
-                    if (joinSetting.getAliasName() != null) {
-                        sequenceSql += " " + joinSetting.getAliasName();
+                    if (mainTable.getAlias() != null) {
+                        sequenceSql += " " + mainTable.getAlias();
                     }
                     if (etlCondition != null) {
                         sequenceSql += " " + etlCondition;
@@ -208,8 +203,14 @@ public class ESEtlService extends AbstractEtlService {
                         // 生成栏位名，如：a.id,
                         // 最终生成SQL为：
                         // select xxx from user a where a.id > 5000000 and a.id < 5010000 limit 1000
-                        String sequenceColumnRealName = joinSetting.getAliasName() + "."
-                                + joinSetting.getSequenceColumnName();
+                        String sequenceColumnRealName = "";
+
+                        if (mainTable.getAlias() != null) {
+                            sequenceColumnRealName += mainTable.getAlias() + ".";
+                        }
+
+                        sequenceColumnRealName += esMapping.getSequenceColumn();
+
                         String sqlFinal = sql + (etlCondition == null ? " WHERE " : " AND ") + sequenceColumnRealName
                                 + " > " + startSequence + " AND " + sequenceColumnRealName + " <= " + endSequence
                                 + " LIMIT " + (endSequence - startSequence);

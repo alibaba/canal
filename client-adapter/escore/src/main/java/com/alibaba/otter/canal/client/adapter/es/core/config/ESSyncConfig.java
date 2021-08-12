@@ -114,7 +114,7 @@ public class ESSyncConfig implements AdapterConfig {
 
         private SchemaItem schemaItem; // sql解析结果模型
 
-        private Map<String, JoinSetting> joinSettings = new LinkedHashMap<>();
+        private String sequenceColumn = null; // 自增栏位名称，用于全量ETL性能提升
 
         public String get_index() {
             return _index;
@@ -228,12 +228,12 @@ public class ESSyncConfig implements AdapterConfig {
             this.schemaItem = schemaItem;
         }
 
-        public Map<String, JoinSetting> getJoinSettings() {
-            return this.joinSettings;
+        public String getSequenceColumn() {
+            return this.sequenceColumn;
         }
 
-        public void setJoinSettings(Map<String, JoinSetting> joinSettings) {
-            this.joinSettings = joinSettings;
+        public void setSequenceColumn(String sequenceColumn) {
+            this.sequenceColumn = sequenceColumn;
         }
     }
 
@@ -256,61 +256,6 @@ public class ESSyncConfig implements AdapterConfig {
 
         public void setParent(String parent) {
             this.parent = parent;
-        }
-    }
-
-    public static class JoinSetting {
-        private String tableName;
-        private String aliasName;
-        private String refColumnName;
-        private Boolean primary = false;
-        private String sequenceColumnName;
-
-        public String getTableName() {
-            return this.tableName;
-        }
-
-        public void setTableName(String tableName) {
-            this.tableName = tableName;
-        }
-
-        public String getAliasName() {
-            return this.aliasName;
-        }
-
-        public void setAliasName(String aliasName) {
-            this.aliasName = aliasName;
-        }
-
-        public String getRefColumnName() {
-            return this.refColumnName;
-        }
-
-        public void setRefColumnName(String refColumnName) {
-            this.refColumnName = refColumnName;
-        }
-
-        public Boolean getPrimary() {
-            return this.primary;
-        }
-
-        public void setPrimary(Boolean primary) {
-            this.primary = primary;
-        }
-
-        public String getSequenceColumnName() {
-            return this.sequenceColumnName;
-        }
-
-        public void setSequenceColumnName(String sequenceColumnName) {
-            this.sequenceColumnName = sequenceColumnName;
-        }
-
-        @Override
-        public String toString() {
-            return "JoinSetting {" + "tableName='" + tableName + '\'' + ", aliasName='" + aliasName + '\''
-                    + ", refColumnName='" + refColumnName + '\'' + ", primary=" + primary + ", seuenceColumnName='"
-                    + sequenceColumnName + '\'' + '}';
         }
     }
 }
