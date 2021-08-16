@@ -358,7 +358,7 @@ public class RdbSyncService {
     }
 
     /**
-     * 更新操作
+     * 更新操作(upsert模式)
      *
      * @param config 配置项
      * @param dml    DML数据
@@ -414,7 +414,7 @@ public class RdbSyncService {
         }
 
         // 处理upsert 之 update 部分
-        upsertSql.append("ON DUPLICATE KEY UPDATE ");
+        upsertSql.append(" ON DUPLICATE KEY UPDATE ");
 
         boolean hasMatched = false;
         for (String srcColumnName : old.keySet()) {
