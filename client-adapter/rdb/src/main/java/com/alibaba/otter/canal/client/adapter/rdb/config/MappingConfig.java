@@ -111,6 +111,8 @@ public class MappingConfig implements AdapterConfig {
 
         private Map<String, String> allMapColumns;
 
+        private boolean upsert = false; // 更新时是否启用upsert
+
         public boolean getMirrorDb() {
             return mirrorDb;
         }
@@ -228,6 +230,14 @@ public class MappingConfig implements AdapterConfig {
 
         public void setAllMapColumns(Map<String, String> allMapColumns) {
             this.allMapColumns = allMapColumns;
+        }
+
+        public boolean getUpsert() {
+            return this.upsert;
+        }
+
+        public void setUpsert(boolean upsert) {
+            this.upsert = upsert;
         }
     }
 }

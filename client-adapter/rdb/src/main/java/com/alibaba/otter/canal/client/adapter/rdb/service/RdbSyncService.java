@@ -212,7 +212,11 @@ public class RdbSyncService {
                 if (type != null && type.equalsIgnoreCase("INSERT")) {
                     insert(batchExecutor, config, dml);
                 } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                    update(batchExecutor, config, dml);
+                    if (config.getDbMapping().getUpsert()) {
+                        upsert(batchExecutor, config, dml);
+                    } else {
+                        update(batchExecutor, config, dml);
+                    }
                 } else if (type != null && type.equalsIgnoreCase("DELETE")) {
                     delete(batchExecutor, config, dml);
                 } else if (type != null && type.equalsIgnoreCase("TRUNCATE")) {
@@ -350,6 +354,101 @@ public class RdbSyncService {
         batchExecutor.execute(updateSql.toString(), values);
         if (logger.isTraceEnabled()) {
             logger.trace("Update target table, sql: {}", updateSql);
+        }
+    }
+
+    /**
+     * 更新操作
+     *
+     * @param config 配置项
+     * @param dml    DML数据
+     */
+    private void upsert(BatchExecutor batchExecutor, MappingConfig config, SingleDml dml) throws SQLException {
+        Map<String, Object> data = dml.getData();
+        if (data == null || data.isEmpty()) {
+            return;
+        }
+
+        Map<String, Object> old = dml.getOld();
+        if (old == null || old.isEmpty()) {
+            return;
+        }
+
+        DbMapping dbMapping = config.getDbMapping();
+
+        Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
+
+        Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
+
+        StringBuilder upsertSql = new StringBuilder();
+
+        // 处理upsert 之 insert 部分
+        upsertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
+
+        columnsMap.forEach((targetColumnName, srcColumnName) -> upsertSql.append("`").append(targetColumnName)
+                .append("`").append(","));
+        int len = upsertSql.length();
+        upsertSql.delete(len - 1, len).append(") VALUES (");
+        int mapLen = columnsMap.size();
+        for (int i = 0; i < mapLen; i++) {
+            upsertSql.append("?,");
+        }
+        len = upsertSql.length();
+        upsertSql.delete(len - 1, len).append(")");
+
+        List<Map<String, ?>> values = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
+            String targetColumnName = entry.getKey();
+            String srcColumnName = entry.getValue();
+            if (srcColumnName == null) {
+                srcColumnName = Util.cleanColumn(targetColumnName);
+            }
+
+            Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
+            if (type == null) {
+                throw new RuntimeException("Target column: " + targetColumnName + " not matched");
+            }
+            Object value = data.get(srcColumnName);
+            BatchExecutor.setValue(values, type, value);
+        }
+
+        // 处理upsert 之 update 部分
+        upsertSql.append("ON DUPLICATE KEY UPDATE ");
+
+        boolean hasMatched = false;
+        for (String srcColumnName : old.keySet()) {
+            List<String> targetColumnNames = new ArrayList<>();
+            columnsMap.forEach((targetColumn, srcColumn) -> {
+                if (srcColumnName.equalsIgnoreCase(srcColumn)) {
+                    targetColumnNames.add(targetColumn);
+                }
+            });
+            if (!targetColumnNames.isEmpty()) {
+                hasMatched = true;
+                for (String targetColumnName : targetColumnNames) {
+                    upsertSql.append("`").append(targetColumnName).append("`").append("=?, ");
+                    Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
+                    if (type == null) {
+                        throw new RuntimeException("Target column: " + targetColumnName + " not matched");
+                    }
+                    BatchExecutor.setValue(values, type, data.get(srcColumnName));
+                }
+            }
+        }
+
+        if (!hasMatched) {
+            logger.warn("Did not matched any columns to update ");
+            return;
+        }
+
+        len = upsertSql.length();
+        upsertSql.delete(len - 2, len);
+
+        batchExecutor.execute(upsertSql.toString(), values);
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("Upsert target table, sql: {}", upsertSql);
         }
     }
 
