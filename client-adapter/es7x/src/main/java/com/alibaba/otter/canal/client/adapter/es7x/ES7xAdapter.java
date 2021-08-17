@@ -14,7 +14,6 @@ import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es7x.etl.ESEtlService;
 import com.alibaba.otter.canal.client.adapter.es7x.support.ES7xTemplate;
 import com.alibaba.otter.canal.client.adapter.es7x.support.ESConnection;
-import com.alibaba.otter.canal.client.adapter.es7x.support.ESConnection.ESSearchRequest;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
