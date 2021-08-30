@@ -18,3 +18,4 @@ dbMapping:
   etlCondition: 
   commitBatch: 1 # 批量提交的大小
 
+
