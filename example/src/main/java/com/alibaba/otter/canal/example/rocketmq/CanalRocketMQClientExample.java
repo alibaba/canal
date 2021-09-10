@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.example.rocketmq;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +35,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
     public CanalRocketMQClientExample(String nameServers, String topic, String groupId, boolean enableMessageTrace,
         String accessKey, String secretKey, String accessChannel, String namespace) {
         connector = new RocketMQCanalConnector(nameServers, topic, groupId, accessKey,
-            secretKey, -1, false, enableMessageTrace,
+            secretKey, -1, true, enableMessageTrace,
             null, accessChannel, namespace);
     }
 
@@ -103,20 +105,21 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    List<Message> messages = connector.getListWithoutAck(1000L, TimeUnit.MILLISECONDS); // 获取message
-                    for (Message message : messages) {
+                    List<FlatMessage> messages = connector.getFlatListWithoutAck(1000L, TimeUnit.MILLISECONDS); // 获取message
+                    for (FlatMessage message : messages) {
+                        logger.info("message:{}", JSON.toJSONString(message));
                         long batchId = message.getId();
-                        int size = message.getEntries().size();
-                        if (batchId == -1 || size == 0) {
-                            // try {
-                            // Thread.sleep(1000);
-                            // } catch (InterruptedException e) {
-                            // }
-                        } else {
-                            printSummary(message, batchId, size);
-                            printEntry(message.getEntries());
-                            // logger.info(message.toString());
-                        }
+                        int size = message.getData().size();
+//                        if (batchId == -1 || size == 0) {
+//                            // try {
+//                            // Thread.sleep(1000);
+//                            // } catch (InterruptedException e) {
+//                            // }
+//                        } else {
+//                            printSummary(message, batchId, size);
+//                            printEntry(message.getEntries());
+//                            // logger.info(message.toString());
+//                        }
                     }
 
                     connector.ack(); // 提交确认
