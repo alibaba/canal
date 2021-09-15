@@ -58,6 +58,11 @@
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
+	<logger name="com.alibaba.otter.canal.client.adapter.http" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
