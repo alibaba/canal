@@ -4,7 +4,7 @@ groupId: g1
 outerAdapterKey: example_http # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
 
 httpMapping:
-  etlCondition: "where c_time>={}"  
+  etlCondition: "where c_time>={}"
   monitorTables: # 监控哪些表
     - tableName: logstore.user
       # actions为可选参数，不配置的情况下，同时监控"INSERT", "UPDATE", "DELETE"
