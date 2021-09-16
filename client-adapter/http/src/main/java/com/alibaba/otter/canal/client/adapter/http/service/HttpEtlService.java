@@ -115,8 +115,8 @@ public class HttpEtlService extends AbstractEtlService {
         EtlSetting etlSetting = ((HttpMapping) adapterMapping).getEtlSetting();
         int threads = etlSetting.getThreads();
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("HTTP 批量导入, sql:{}", sql);
+        if (logger.isInfoEnabled()) {
+            logger.info("HTTP 批量导入, sql:{}, values:{}", sql, values);
         }
 
         List<String> columns = new ArrayList<>();
