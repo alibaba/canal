@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+// import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
@@ -59,6 +59,7 @@ public class HttpAdapter implements OuterAdapter {
 
         Map<String, String> properties = configuration.getProperties();
         String serviceUrl = properties.get("serviceUrl");
+        String sign = properties.get("sign");
 
         try {
             this.envProperties = envProperties;
@@ -100,7 +101,7 @@ public class HttpAdapter implements OuterAdapter {
                 });
             }
 
-            httpTemplate = new HttpTemplate(serviceUrl);
+            httpTemplate = new HttpTemplate(serviceUrl, sign);
             httpSyncService = new HttpSyncService(httpTemplate);
 
             configMonitor = new HttpConfigMonitor();
@@ -120,9 +121,10 @@ public class HttpAdapter implements OuterAdapter {
                 return;
             }
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("HTTP DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
-            }
+            // if (logger.isDebugEnabled()) {
+            // logger.debug("HTTP DML: {}", JSON.toJSONString(dml,
+            // SerializerFeature.WriteMapNullValue));
+            // }
 
             String destination = StringUtils.trimToEmpty(dml.getDestination());
             String groupId = StringUtils.trimToEmpty(dml.getGroupId());

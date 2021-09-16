@@ -4,7 +4,6 @@
 
 package com.alibaba.otter.canal.client.adapter.http.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,25 +29,25 @@ public class HttpSyncService {
     public void sync(MappingConfig config, Dml dml) {
         if (config != null) {
             if (logger.isDebugEnabled()) {
-                logger.debug("HttpSyncService.sync: config: {}, dml: ",
+                logger.debug("HttpSyncService.sync: config: {}, dml: {}",
                         JSON.toJSONString(config, SerializerFeature.WriteMapNullValue),
                         JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
             }
 
             String type = dml.getType();
             String database = dml.getDatabase();
-            String tableName = dml.getTable();
-            String tableFullName = database + "." + tableName;
+            String table = dml.getTable();
+            List<Map<String, Object>> list = dml.getData();
 
-            if (type != null && type.equalsIgnoreCase("INSERT")) {
-                List<Map<String, Object>> dataList = new ArrayList<>();
-                httpTemplate.insert(tableFullName, dataList);
-            } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                List<Map<String, Object>> dataList = new ArrayList<>();
-                httpTemplate.update(tableFullName, dataList);
-            } else if (type != null && type.equalsIgnoreCase("DELETE")) {
-                List<Map<String, Object>> dataList = new ArrayList<>();
-                httpTemplate.insert(tableFullName, dataList);
+            if (list.size() > 0) {
+                Map<String, Object> data = list.get(0);
+                if (type != null && type.equalsIgnoreCase("INSERT")) {
+                    httpTemplate.insert(database, table, data);
+                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
+                    httpTemplate.update(database, table, data);
+                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
+                    httpTemplate.delete(database, table, data);
+                }
             }
         }
     }

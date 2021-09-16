@@ -108,4 +108,6 @@ canal.conf:
 
             # - name: http
             #   key: example_http
-            #   serviceUrl: http://127.0.0.1:9001/sync1
+            #   properties:
+            #     serviceUrl: http://127.0.0.1:9001/sync1
+            #     sign: 123
