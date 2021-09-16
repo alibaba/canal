@@ -22,6 +22,7 @@ import com.alibaba.otter.canal.client.adapter.http.HttpAdapter;
 import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.fastjson.JSON;
 
 public class HttpConfigMonitor {
 
@@ -133,6 +134,11 @@ public class HttpConfigMonitor {
             Map<String, MappingConfig> configMap = httpAdapter.getMappingConfigCache()
                     .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()), k1 -> new HashMap<>());
             configMap.put(file.getName(), config);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("mappingConfig:{}", JSON.toJSONString(httpAdapter.getHttpMapping()));
+                logger.debug("mappingConfigCache:{}", JSON.toJSONString(httpAdapter.getMappingConfigCache()));
+            }
         }
 
         private void deleteConfigFromCache(File file) {

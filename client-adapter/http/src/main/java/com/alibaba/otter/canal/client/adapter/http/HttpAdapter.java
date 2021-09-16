@@ -72,10 +72,6 @@ public class HttpAdapter implements OuterAdapter {
                                 && config.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
 
                     this.mappingConfig.put(key, config);
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("key: {} \nhttpMappingConfig: {}", key, config);
-                    }
                 }
             });
 
@@ -96,9 +92,8 @@ public class HttpAdapter implements OuterAdapter {
             }
 
             if (logger.isDebugEnabled()) {
-                this.mappingConfigCache.forEach((key, config) -> {
-                    logger.debug("key: {} \nhttpMappingConfig: {}", key, config);
-                });
+                logger.debug("mappingConfig:{}", JSON.toJSONString(this.mappingConfig));
+                logger.debug("mappingConfigCache:{}", JSON.toJSONString(this.mappingConfigCache));
             }
 
             httpTemplate = new HttpTemplate(serviceUrl, sign);
