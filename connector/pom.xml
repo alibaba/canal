@@ -97,6 +97,7 @@
         <module>rocketmq-connector</module>
         <module>rabbitmq-connector</module>
         <module>tcp-connector</module>
+        <module>pulsarmq-connector</module>
     </modules>
 
     <build>
