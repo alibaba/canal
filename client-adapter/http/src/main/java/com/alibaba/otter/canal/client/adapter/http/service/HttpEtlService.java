@@ -4,18 +4,20 @@
 
 package com.alibaba.otter.canal.client.adapter.http.service;
 
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import javax.sql.DataSource;
+import java.sql.*;
+import com.google.common.base.Joiner;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig.EtlSetting;
+import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig.HttpMapping;
 import com.alibaba.otter.canal.client.adapter.http.support.HttpTemplate;
 import com.alibaba.otter.canal.client.adapter.support.AbstractEtlService;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
@@ -35,34 +37,148 @@ public class HttpEtlService extends AbstractEtlService {
 
     public EtlResult importData(List<String> params) {
         EtlResult etlResult = new EtlResult();
-        etlResult.setSucceeded(true);
+        AtomicLong impCount = new AtomicLong();
+        List<String> errMsg = new ArrayList<>();
+        HttpMapping httpMapping = this.config.getHttpMapping();
+        EtlSetting etlSetting = httpMapping.getEtlSetting();
+
+        String sql = "select * from " + etlSetting.getDatabase() + "." + etlSetting.getTable();
+
+        long start = System.currentTimeMillis();
+        try {
+            DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+
+            String etlCondition = null;
+
+            List<Object> values = new ArrayList<>();
+            // 拼接条件
+            if (etlSetting.getCondition() != null && params != null) {
+                etlCondition = etlSetting.getCondition();
+                for (String param : params) {
+                    etlCondition = etlCondition.replace("{}", "?");
+                    values.add(param);
+                }
+
+                sql += " " + etlCondition;
+            }
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("etl sql : {}, values:{}", sql, values);
+            }
+
+            // 获取总数，这边直接通过主表获取，假如存在条件的话，拼接一下条件
+            String countSql = "SELECT COUNT(1) FROM " + etlSetting.getDatabase() + "." + etlSetting.getTable();
+
+            if (etlCondition != null) {
+                countSql += " " + etlCondition;
+            }
+
+            if (logger.isInfoEnabled()) {
+                logger.info("HTTP 全量count sql : {}, values:{}", countSql, values);
+            }
+
+            long total = (Long) Util.sqlRS(dataSource, countSql, values, rs -> {
+                Long count = null;
+                try {
+                    if (rs.next()) {
+                        count = ((Number) rs.getObject(1)).longValue();
+                        if (logger.isInfoEnabled()) {
+                            logger.info("HTTP 待同步数据总量:{}", count);
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+                return count == null ? 0L : count;
+            });
+            Boolean result = executeSqlImport(dataSource, sql, values, httpMapping, impCount, errMsg);
+            if (result) {
+                logger.info("HTTP 数据全量导入完成, 总共: {} 条数据，导入成功: {} 条数据, 耗时: {} 毫秒", total, impCount.get(),
+                        System.currentTimeMillis() - start);
+                etlResult.setResultMessage("导入数据：成功" + impCount.get() + " 条, 总条数:" + total);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            errMsg.add("HTTP 数据导入异常 =>" + e.getMessage());
+        }
+
+        if (errMsg.isEmpty()) {
+            etlResult.setSucceeded(true);
+        } else {
+            etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
+        }
         return etlResult;
     }
 
-    @Override
     protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
-            AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
+            AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount, List<String> errMsg) {
 
-        MappingConfig.HttpMapping httpMapping = (MappingConfig.HttpMapping) mapping;
+        EtlSetting etlSetting = ((HttpMapping) adapterMapping).getEtlSetting();
+        int threads = etlSetting.getThreads();
 
-        Map<String, String> columnsMap = new LinkedHashMap<>();// 需要同步的字段
-
-        try {
-            Util.sqlRS(ds, "SELECT * FROM USER" + " LIMIT 1", rs -> {
-                try {
-                    return true;
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                    return false;
-                }
-            });
-            // 写入数据
-            logger.info("etl select data sql is :{}", sql);
-            return true;
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            return false;
+        if (logger.isDebugEnabled()) {
+            logger.debug("HTTP 批量导入, sql:{}", sql);
         }
 
+        List<String> columns = new ArrayList<>();
+
+        try {
+            ExecutorService executor = Util.newFixedThreadPool(threads, 60000L);
+            List<Future<Boolean>> futures = new ArrayList<>();
+
+            Util.sqlRS(ds, sql, values, rs -> {
+                try {
+                    while (rs.next()) {
+                        // 理论上不搞锁也没关系
+                        if (columns.size() == 0) {
+                            synchronized (this.getClass()) {
+                                if (columns.size() == 0) {
+                                    logger.info("colums: {}", JSON.toJSONString(columns));
+                                    if (columns.size() == 0) {
+                                        ResultSetMetaData metaData = rs.getMetaData();
+                                        int columnCount = metaData.getColumnCount();
+                                        for (int i = 1; i <= columnCount; ++i) {
+                                            columns.add(metaData.getColumnName(i));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Map<String, Object> data = new LinkedHashMap<>();
+                        for (String col : columns) {
+                            data.put(col, rs.getObject(col));
+                        }
+
+                        Future<Boolean> future = executor.submit(() -> {
+                            try {
+                                this.httpTemplate.buildEtlTask(etlSetting.getDatabase(), etlSetting.getTable(), data)
+                                        .run();
+                                impCount.incrementAndGet();
+                                return true;
+                            } catch (Exception error) {
+                                logger.error(error.getMessage(), error);
+                                return false;
+                            }
+                        });
+                        futures.add(future);
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                    errMsg.add("HTTP etl failed! ==>" + e.getMessage());
+                    throw new RuntimeException(e);
+                }
+                return 0;
+            });
+
+            for (Future<Boolean> future : futures) {
+                future.get();
+            }
+            executor.shutdown();
+            return true;
+        } catch (Exception e) {
+            errMsg.add("HTTP 数据导入异常 => " + e.getMessage());
+            return false;
+        }
     }
 }

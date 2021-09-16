@@ -79,6 +79,7 @@ public class MappingConfig implements AdapterConfig {
         private String etlCondition; // etl条件sql
         private String serviceUrl; // http接口地址
         private List<MonitorTable> monitorTables = new ArrayList<>();
+        private EtlSetting etlSetting;
 
         public String getEtlCondition() {
             return etlCondition;
@@ -102,6 +103,53 @@ public class MappingConfig implements AdapterConfig {
 
         public void setMonitorTables(List<MonitorTable> monitorTables) {
             this.monitorTables = monitorTables;
+        }
+
+        public EtlSetting getEtlSetting() {
+            return this.etlSetting;
+        }
+
+        public void setEtlSetting(EtlSetting etlSetting) {
+            this.etlSetting = etlSetting;
+        }
+    }
+
+    public static class EtlSetting {
+        private String database;
+        private String table;
+        private String condition;
+        private int threads = 100;
+
+        public String getDatabase() {
+            return this.database;
+        }
+
+        public void setDatabase(String database) {
+            this.database = database;
+        }
+
+        public String getTable() {
+            return this.table;
+        }
+
+        public void setTable(String table) {
+            this.table = table;
+        }
+
+        public String getCondition() {
+            return this.condition;
+        }
+
+        public void setCondition(String condition) {
+            this.condition = condition;
+        }
+
+        public int getThreads() {
+            return this.threads;
+        }
+
+        public void setThread(int threads) {
+            this.threads = threads;
         }
     }
 

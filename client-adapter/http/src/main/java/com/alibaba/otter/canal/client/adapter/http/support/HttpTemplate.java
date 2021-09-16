@@ -1,19 +1,18 @@
+
 /**
  * Created by Wu Jian Ping on - 2021/09/15.
  */
-
 package com.alibaba.otter.canal.client.adapter.http.support;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.github.kevinsawicki.http.HttpRequest;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 
 public class HttpTemplate {
     private String serviceUrl;
@@ -25,19 +24,23 @@ public class HttpTemplate {
     }
 
     public void insert(String database, String table, Map<String, Object> data) {
-        new Task(this.serviceUrl, this.sign, database, table, data, "insert").start();
+        new Thread(new Task(this.serviceUrl, this.sign, database, table, data, "insert")).start();
     }
 
     public void update(String database, String table, Map<String, Object> data) {
-        new Task(this.serviceUrl, this.sign, database, table, data, "update").start();
+        new Thread(new Task(this.serviceUrl, this.sign, database, table, data, "update")).start();
 
     }
 
     public void delete(String database, String table, Map<String, Object> data) {
-        new Task(this.serviceUrl, this.sign, database, table, data, "delete").start();
+        new Thread(new Task(this.serviceUrl, this.sign, database, table, data, "delete")).start();
     }
 
-    public static class Task extends Thread {
+    public Task buildEtlTask(String database, String table, Map<String, Object> data) {
+        return new Task(this.serviceUrl, this.sign, database, table, data, "update");
+    }
+
+    public static class Task implements Runnable {
         private Logger logger = LoggerFactory.getLogger(this.getClass());
 
         private String serviceUrl;
@@ -57,6 +60,7 @@ public class HttpTemplate {
             this.action = action;
         }
 
+        @Override
         public void run() {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("database", this.database);

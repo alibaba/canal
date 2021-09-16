@@ -4,11 +4,10 @@
 
 package com.alibaba.otter.canal.client.adapter.http.monitor;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
-import com.alibaba.otter.canal.client.adapter.http.HttpAdapter;
-import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -18,10 +17,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
+import com.alibaba.otter.canal.client.adapter.http.HttpAdapter;
+import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 
 public class HttpConfigMonitor {
 

@@ -1,12 +1,12 @@
+/**
+ * Created by Wu Jian Ping on - 2021/09/15.
+ */
+
 package com.alibaba.otter.canal.client.adapter.http.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-
-/**
- * Created by Wu Jian Ping on - 2021/09/15.
- */
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

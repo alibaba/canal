@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.fastjson.JSON;
-// import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
@@ -24,6 +23,7 @@ import com.alibaba.otter.canal.client.adapter.http.config.MappingConfigLoader;
 import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig.MonitorTable;
 import com.alibaba.otter.canal.client.adapter.http.monitor.HttpConfigMonitor;
 import com.alibaba.otter.canal.client.adapter.http.support.HttpTemplate;
+import com.alibaba.otter.canal.client.adapter.http.service.HttpEtlService;
 import com.alibaba.otter.canal.client.adapter.http.service.HttpSyncService;
 
 @SPI("http")
@@ -193,8 +193,37 @@ public class HttpAdapter implements OuterAdapter {
     @Override
     public EtlResult etl(String task, List<String> params) {
         EtlResult etlResult = new EtlResult();
-        etlResult.setSucceeded(true);
-        etlResult.setResultMessage("同步成功");
+        MappingConfig config = this.mappingConfig.get(task);
+        HttpEtlService httpEtlService = new HttpEtlService(this.httpTemplate, config);
+        if (config != null) {
+            return httpEtlService.importData(params);
+        } else {
+            StringBuilder resultMsg = new StringBuilder();
+            boolean resSucc = true;
+            for (MappingConfig configTmp : this.mappingConfig.values()) {
+                // 取所有的destination为task的配置
+                if (configTmp.getDestination().equals(task)) {
+                    EtlResult etlRes = httpEtlService.importData(params);
+                    if (!etlRes.getSucceeded()) {
+                        resSucc = false;
+                        resultMsg.append(etlRes.getErrorMessage()).append("\n");
+                    } else {
+                        resultMsg.append(etlRes.getResultMessage()).append("\n");
+                    }
+                }
+            }
+            if (resultMsg.length() > 0) {
+                etlResult.setSucceeded(resSucc);
+                if (resSucc) {
+                    etlResult.setResultMessage(resultMsg.toString());
+                } else {
+                    etlResult.setErrorMessage(resultMsg.toString());
+                }
+                return etlResult;
+            }
+        }
+        etlResult.setSucceeded(false);
+        etlResult.setErrorMessage("Task not found");
         return etlResult;
     }
 
