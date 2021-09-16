@@ -153,7 +153,8 @@ public class HttpEtlService extends AbstractEtlService {
                                 impCount.incrementAndGet();
                                 return true;
                             } catch (Exception error) {
-                                logger.error(error.getMessage(), error);
+                                // execute里面已经有错误日志了，所以这边无需记录
+                                // logger.error(error.getMessage(), error);
                                 return false;
                             }
                         });
