@@ -61,19 +61,24 @@ public class HttpTemplate {
         }
 
         public void execute() {
-            Map<String, Object> body = new LinkedHashMap<>();
-            body.put("database", this.database);
-            body.put("table", this.table);
-            body.put("action", this.action);
-            body.put("data", this.data);
-            body.put("sign", this.sign);
+            try {
+                Map<String, Object> body = new LinkedHashMap<>();
+                body.put("database", this.database);
+                body.put("table", this.table);
+                body.put("action", this.action);
+                body.put("data", this.data);
+                body.put("sign", this.sign);
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("{}", JSON.toJSONString(body, SerializerFeature.WriteMapNullValue));
+                if (logger.isDebugEnabled()) {
+                    logger.debug("{}", JSON.toJSONString(body, SerializerFeature.WriteMapNullValue));
+                }
+
+                HttpRequest.post(this.serviceUrl).contentType("application/json;charset=UTF-8")
+                        .send(JSON.toJSONString(body, SerializerFeature.WriteMapNullValue)).code();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                throw e;
             }
-
-            HttpRequest.post(this.serviceUrl).contentType("application/json;charset=UTF-8")
-                    .send(JSON.toJSONString(body, SerializerFeature.WriteMapNullValue)).code();
         }
     }
 
