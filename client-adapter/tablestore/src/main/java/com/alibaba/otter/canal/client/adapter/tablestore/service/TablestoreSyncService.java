@@ -137,6 +137,7 @@ public class TablestoreSyncService {
                     change.setPrimaryKey(primaryKey);
                     // 部分update 部分delete
 
+                    boolean validData = false;
                     for (Map.Entry<String, Object> entry : old.entrySet()) {
                         if (dbMapping.getTargetPk().containsKey(entry.getKey())) {
                             // 这是个主键, 不需要再次处理
@@ -149,6 +150,7 @@ public class TablestoreSyncService {
                         // 非主键
                         String targetColumn = columnMap.get(entry.getKey());
                         Object value = map.get(entry.getKey());
+                        validData = true;
                         if (value == null) {
                             change.deleteColumns(targetColumn);
                         } else {
@@ -157,7 +159,9 @@ public class TablestoreSyncService {
                             change.put(targetColumn, columnValue);
                         }
                     }
-                    changeList.add(change);
+                    if (validData) {
+                        changeList.add(change);
+                    }
 
                 }
             }
@@ -214,6 +218,7 @@ public class TablestoreSyncService {
                 RowUpdateChange change = new RowUpdateChange(dbMapping.getTargetTable());
                 PrimaryKey primaryKey = buildPrimaryKey(map, typeMap, columnMap, dbMapping.getTargetPk());
                 change.setPrimaryKey(primaryKey);
+                boolean validData = false;
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
                     if (dbMapping.getTargetPk().containsKey(entry.getKey())) {
                         // 这是个主键, 不需要再次处理
@@ -224,10 +229,13 @@ public class TablestoreSyncService {
                         continue;
                     }
                     // 非主键
+                    validData = true;
                     String targetColumn = columnMap.get(entry.getKey());
                     change.deleteColumns(targetColumn);
                 }
-                changeList.add(change);
+                if (validData) {
+                    changeList.add(change);
+                }
             }
 
         } else {

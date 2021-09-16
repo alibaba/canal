@@ -60,6 +60,9 @@ public class SyncUtil {
                     return ((Time) value).getTime();
                 } else if (value instanceof java.util.Date) {
                     return ((java.util.Date) value).getTime();
+                } else if (value instanceof Boolean) {
+                    Boolean ob =  ((Boolean)value);
+                    return ob ? 1L : 0L;
                 }
                 return null;
             case BINARY:
