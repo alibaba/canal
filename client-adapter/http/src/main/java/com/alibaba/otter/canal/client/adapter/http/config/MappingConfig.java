@@ -148,7 +148,7 @@ public class MappingConfig implements AdapterConfig {
             return this.threads;
         }
 
-        public void setThread(int threads) {
+        public void setThreads(int threads) {
             this.threads = threads;
         }
     }

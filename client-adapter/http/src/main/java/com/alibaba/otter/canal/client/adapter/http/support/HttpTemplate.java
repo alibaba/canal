@@ -24,23 +24,23 @@ public class HttpTemplate {
     }
 
     public void insert(String database, String table, Map<String, Object> data) {
-        new Thread(new Task(this.serviceUrl, this.sign, database, table, data, "insert")).start();
+        new Thread(new RunnableTask(this.serviceUrl, this.sign, database, table, data, "insert")).start();
     }
 
     public void update(String database, String table, Map<String, Object> data) {
-        new Thread(new Task(this.serviceUrl, this.sign, database, table, data, "update")).start();
+        new Thread(new RunnableTask(this.serviceUrl, this.sign, database, table, data, "update")).start();
 
     }
 
     public void delete(String database, String table, Map<String, Object> data) {
-        new Thread(new Task(this.serviceUrl, this.sign, database, table, data, "delete")).start();
+        new Thread(new RunnableTask(this.serviceUrl, this.sign, database, table, data, "delete")).start();
     }
 
     public Task buildEtlTask(String database, String table, Map<String, Object> data) {
         return new Task(this.serviceUrl, this.sign, database, table, data, "update");
     }
 
-    public static class Task implements Runnable {
+    public static class Task {
         private Logger logger = LoggerFactory.getLogger(this.getClass());
 
         private String serviceUrl;
@@ -60,8 +60,7 @@ public class HttpTemplate {
             this.action = action;
         }
 
-        @Override
-        public void run() {
+        public void execute() {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("database", this.database);
             body.put("table", this.table);
@@ -75,6 +74,18 @@ public class HttpTemplate {
 
             HttpRequest.post(this.serviceUrl).contentType("application/json;charset=UTF-8")
                     .send(JSON.toJSONString(body, SerializerFeature.WriteMapNullValue)).code();
+        }
+    }
+
+    public static class RunnableTask extends Task implements Runnable {
+        public RunnableTask(String serviceUrl, String sign, String database, String table, Map<String, Object> data,
+                String action) {
+            super(serviceUrl, sign, database, table, data, action);
+        }
+
+        @Override
+        public void run() {
+            this.execute();
         }
     }
 }

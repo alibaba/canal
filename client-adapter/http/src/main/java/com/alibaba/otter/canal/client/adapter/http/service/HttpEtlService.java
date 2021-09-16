@@ -13,7 +13,6 @@ import java.sql.*;
 import com.google.common.base.Joiner;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.http.config.MappingConfig.EtlSetting;
@@ -133,13 +132,10 @@ public class HttpEtlService extends AbstractEtlService {
                         if (columns.size() == 0) {
                             synchronized (this.getClass()) {
                                 if (columns.size() == 0) {
-                                    logger.info("colums: {}", JSON.toJSONString(columns));
-                                    if (columns.size() == 0) {
-                                        ResultSetMetaData metaData = rs.getMetaData();
-                                        int columnCount = metaData.getColumnCount();
-                                        for (int i = 1; i <= columnCount; ++i) {
-                                            columns.add(metaData.getColumnName(i));
-                                        }
+                                    ResultSetMetaData metaData = rs.getMetaData();
+                                    int columnCount = metaData.getColumnCount();
+                                    for (int i = 1; i <= columnCount; ++i) {
+                                        columns.add(metaData.getColumnName(i));
                                     }
                                 }
                             }
@@ -153,7 +149,7 @@ public class HttpEtlService extends AbstractEtlService {
                         Future<Boolean> future = executor.submit(() -> {
                             try {
                                 this.httpTemplate.buildEtlTask(etlSetting.getDatabase(), etlSetting.getTable(), data)
-                                        .run();
+                                        .execute();
                                 impCount.incrementAndGet();
                                 return true;
                             } catch (Exception error) {
