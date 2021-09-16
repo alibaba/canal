@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.client.adapter.tablestore.service;
 
 
 import com.alibaba.otter.canal.client.adapter.support.*;
+import com.alibaba.otter.canal.client.adapter.tablestore.TablestoreAdapter;
 import com.alibaba.otter.canal.client.adapter.tablestore.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.tablestore.support.SyncUtil;
 import com.alicloud.openservices.tablestore.TableStoreWriter;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 public class TablestoreEtlService extends AbstractEtlService {
 
@@ -37,7 +39,7 @@ public class TablestoreEtlService extends AbstractEtlService {
 
     public EtlResult importData(List<String> params) {
         MappingConfig.DbMapping dbMapping = config.getDbMapping();
-        String sql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable();
+        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping.getDatabase(), dbMapping.getTable());
         return importData(sql, params);
     }
 
@@ -81,6 +83,10 @@ public class TablestoreEtlService extends AbstractEtlService {
                         if (result != null && result.isAllSucceed()) {
                             impCount.incrementAndGet();
                             idx++;
+                        } else if (result != null && !result.isAllSucceed()) {
+                            List<WriterResult.RowChangeStatus> totalFailedRows = result.getFailedRows();
+                            List<String> msgs = totalFailedRows.stream().map(e -> TablestoreAdapter.buildErrorMsgForFailedRowChange(e)).collect(Collectors.toList());
+                            logger.error("Failed rows when ETL:" + org.springframework.util.StringUtils.collectionToDelimitedString(msgs, ",", "[", "]"));
                         }
                     } catch (InterruptedException e) {
                         logger.info("InterruptedException", e);

@@ -211,7 +211,7 @@ public class TablestoreAdapter implements OuterAdapter {
      * @param rowChangeStatus
      * @return
      */
-    private String buildErrorMsgForFailedRowChange(WriterResult.RowChangeStatus rowChangeStatus) {
+    public static String buildErrorMsgForFailedRowChange(WriterResult.RowChangeStatus rowChangeStatus) {
         StringBuilder sb = new StringBuilder("{Exception:");
         sb.append(rowChangeStatus.getException().getMessage()).append(",Table:")
         .append(rowChangeStatus.getRowChange().getTableName()).append(",PrimaryKey:")
