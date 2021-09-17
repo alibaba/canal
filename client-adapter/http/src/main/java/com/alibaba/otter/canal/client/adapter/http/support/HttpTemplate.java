@@ -71,7 +71,7 @@ public class HttpTemplate {
         if (!endpoint.endsWith("/")) {
             endpoint = endpoint + "/";
         }
-        endpoint = endpoint + "/count";
+        endpoint = endpoint + "count";
         String response = HttpRequest.get(endpoint).body();
 
         if (logger.isDebugEnabled()) {
