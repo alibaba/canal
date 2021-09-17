@@ -6,8 +6,6 @@ package com.alibaba.otter.canal.client.adapter.http.service;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import javax.sql.DataSource;
 import java.sql.*;
 import com.google.common.base.Joiner;
@@ -22,6 +20,8 @@ import com.alibaba.otter.canal.client.adapter.support.AbstractEtlService;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+
+import java.util.concurrent.CompletableFuture;
 
 public class HttpEtlService extends AbstractEtlService {
 
@@ -92,9 +92,10 @@ public class HttpEtlService extends AbstractEtlService {
             });
             Boolean result = executeSqlImport(dataSource, sql, values, httpMapping, impCount, errMsg);
             if (result) {
-                logger.info("HTTP 数据全量导入完成, 总共: {} 条数据，导入成功: {} 条数据, 耗时: {} 毫秒", total, impCount.get(),
+                String s = String.format("HTTP 数据全量导入完成, 总共: %s 条数据，导入成功: %s 条数据, 耗时: %s 毫秒", total, impCount.get(),
                         System.currentTimeMillis() - start);
-                etlResult.setResultMessage("导入数据：成功" + impCount.get() + " 条, 总条数:" + total);
+                logger.info(s);
+                etlResult.setResultMessage(s);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -113,7 +114,6 @@ public class HttpEtlService extends AbstractEtlService {
             AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount, List<String> errMsg) {
 
         EtlSetting etlSetting = ((HttpMapping) adapterMapping).getEtlSetting();
-        int threads = etlSetting.getThreads();
 
         if (logger.isInfoEnabled()) {
             logger.info("HTTP 批量导入, sql:{}, values:{}", sql, values);
@@ -122,8 +122,7 @@ public class HttpEtlService extends AbstractEtlService {
         List<String> columns = new ArrayList<>();
 
         try {
-            ExecutorService executor = Util.newFixedThreadPool(threads, 60000L);
-            List<Future<Boolean>> futures = new ArrayList<>();
+            List<CompletableFuture<Boolean>> futures = new ArrayList<>();
 
             Util.sqlRS(ds, sql, values, rs -> {
                 try {
@@ -146,18 +145,8 @@ public class HttpEtlService extends AbstractEtlService {
                             data.put(col, rs.getObject(col));
                         }
 
-                        Future<Boolean> future = executor.submit(() -> {
-                            try {
-                                this.httpTemplate.buildEtlTask(etlSetting.getDatabase(), etlSetting.getTable(), data)
-                                        .execute();
-                                impCount.incrementAndGet();
-                                return true;
-                            } catch (Exception error) {
-                                // execute里面已经有错误日志了，所以这边无需记录
-                                // logger.error(error.getMessage(), error);
-                                return false;
-                            }
-                        });
+                        CompletableFuture<Boolean> future = this.httpTemplate.runAsync(etlSetting.getDatabase(),
+                                etlSetting.getTable(), "update", data);
                         futures.add(future);
                     }
                 } catch (Exception e) {
@@ -168,10 +157,11 @@ public class HttpEtlService extends AbstractEtlService {
                 return 0;
             });
 
-            for (Future<Boolean> future : futures) {
-                future.get();
+            for (CompletableFuture<Boolean> future : futures) {
+                if (future.get()) {
+                    impCount.incrementAndGet();
+                }
             }
-            executor.shutdown();
             return true;
         } catch (Exception e) {
             errMsg.add("HTTP 数据导入异常 => " + e.getMessage());

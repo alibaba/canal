@@ -118,7 +118,6 @@ public class MappingConfig implements AdapterConfig {
         private String database;
         private String table;
         private String condition;
-        private int threads = 100;
 
         public String getDatabase() {
             return this.database;
@@ -142,14 +141,6 @@ public class MappingConfig implements AdapterConfig {
 
         public void setCondition(String condition) {
             this.condition = condition;
-        }
-
-        public int getThreads() {
-            return this.threads;
-        }
-
-        public void setThreads(int threads) {
-            this.threads = threads;
         }
     }
 
