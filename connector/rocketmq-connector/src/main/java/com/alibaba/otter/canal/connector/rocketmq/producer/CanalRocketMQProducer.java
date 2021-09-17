@@ -232,7 +232,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             // 初始化分区合并队列
             if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
                 List<List<FlatMessage>> partitionFlatMessages = new ArrayList<>();
-                for (int i = 0; i < destination.getPartitionsNum(); i++) {
+                for (int i = 0; i < partitionNum; i++) {
                     partitionFlatMessages.add(new ArrayList<>());
                 }
 

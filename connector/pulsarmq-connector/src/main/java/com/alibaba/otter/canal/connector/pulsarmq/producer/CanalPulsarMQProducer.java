@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * PulsarMQ Producer SPI 实现
@@ -41,6 +42,10 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
     private static final Map<String, Producer<byte[]>> PRODUCERS = new HashMap<>();
 
     protected ThreadPoolExecutor sendPartitionExecutor;
+    /**
+     * 消息体分区属性名称
+     */
+    public static final String MSG_PROPERTY_PARTITION_NAME = "partitionNum";
     /**
      * pulsar客户端，管理连接
      */
@@ -181,47 +186,99 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         // 并发构造
         MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
         if (!mqProperties.isFlatMessage()) {
-            // 串行发送
-
-            for (MQMessageUtils.EntryRowData r : datas) {
-                CanalEntry.Entry entry = r.entry;
-                if (null == entry) {
-                    continue;
+            // 动态计算目标分区
+            if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
+                for (MQMessageUtils.EntryRowData r : datas) {
+                    CanalEntry.Entry entry = r.entry;
+                    if (null == entry) {
+                        continue;
+                    }
+                    // 串行分区
+                    com.alibaba.otter.canal.protocol.Message[] messages = MQMessageUtils.messagePartition(datas,
+                            message.getId(),
+                            partitionNum,
+                            destination.getPartitionHash(),
+                            mqProperties.isDatabaseHash());
+                    // 发送
+                    int len = messages.length;
+                    for (int i = 0; i < len; i++) {
+                        final int partition = i;
+                        com.alibaba.otter.canal.protocol.Message m = messages[i];
+                        template.submit(() -> {
+                            sendMessage(topicName, partition, m);
+                        });
+                    }
                 }
-
-                template.submit(() -> {
-                    sendMessage(topicName, message.getId(), entry);
-                });
-
+            } else {
+                // 默认分区
+                final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
+                sendMessage(topicName, partition, message);
             }
         } else {
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, message.getId());
-            template.submit(() -> {
-                sendMessage(topicName, flatMessages);
-            });
+
+            // 初始化分区合并队列
+            if (destination.getPartitionHash() != null && !destination.getPartitionHash().isEmpty()) {
+                List<List<FlatMessage>> partitionFlatMessages = new ArrayList<>();
+                int len = partitionNum;
+                for (int i = 0; i < len; i++) {
+                    partitionFlatMessages.add(new ArrayList<>());
+                }
+
+                for (FlatMessage flatMessage : flatMessages) {
+                    FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
+                            partitionNum,
+                            destination.getPartitionHash(),
+                            mqProperties.isDatabaseHash());
+                    int length = partitionFlatMessage.length;
+                    for (int i = 0; i < length; i++) {
+                        // 增加null判断,issue #3267
+                        if (partitionFlatMessage[i] != null) {
+                            partitionFlatMessages.get(i).add(partitionFlatMessage[i]);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < len; i++) {
+                    final List<FlatMessage> flatMessagePart = partitionFlatMessages.get(i);
+                    if (flatMessagePart != null && flatMessagePart.size() > 0) {
+                        final int partition = i;
+                        template.submit(() -> {
+                            // 批量发送
+                            sendMessage(topicName, partition, flatMessagePart);
+                        });
+                    }
+                }
+
+                // 批量等所有分区的结果
+                template.waitForResult();
+            } else {
+                // 默认分区
+                final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
+                sendMessage(topicName, partition, flatMessages);
+            }
         }
     }
 
     /**
      * 发送原始消息，需要做分区处理
      *
-     * @param topic topic
-     * @param msgId 消息ID
-     * @param entry 原始消息内容
+     * @param topic        topic
+     * @param partitionNum 目标分区
+     * @param msg          原始消息内容
      * @return void
      * @date 2021/9/10 17:55
      * @author chad
      * @since 1 by chad at 2021/9/10 新增
      */
-    private void sendMessage(String topic, long msgId, CanalEntry.Entry entry) {
+    private void sendMessage(String topic, int partitionNum, com.alibaba.otter.canal.protocol.Message msg) {
         Producer<byte[]> producer = getProducer(topic);
-        List<CanalEntry.Entry> entries = new ArrayList<>(1);
-        entries.add(entry);
-        com.alibaba.otter.canal.protocol.Message msg = new com.alibaba.otter.canal.protocol.Message(msgId, entries);
         byte[] msgBytes = CanalMessageSerializerUtil.serializer(msg, mqProperties.isFilterTransactionEntry());
         try {
-            MessageId msgResultId = producer.newMessage().value(msgBytes).send();
+            MessageId msgResultId = producer.newMessage()
+                    .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partitionNum))
+                    .value(msgBytes).send();
             // todo 判断发送结果
             if (logger.isDebugEnabled()) {
                 logger.debug("Send Message to topic:{} Result: {}", topic, msgResultId);
@@ -241,12 +298,17 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * @author chad
      * @since 1 by chad at 2021/9/10 新增
      */
-    private void sendMessage(String topic, List<FlatMessage> flatMessages) {
+    private void sendMessage(String topic, int partition, List<FlatMessage> flatMessages) {
         Producer<byte[]> producer = getProducer(topic);
         for (FlatMessage f : flatMessages) {
             try {
-                MessageId msgResultId = producer.newMessage().value(JSON.toJSONBytes(f, SerializerFeature.WriteMapNullValue)).send();
-                // todo 判断发送结果
+                MessageId msgResultId = producer
+                        .newMessage()
+                        .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partition))
+                        .value(JSON.toJSONBytes(f, SerializerFeature.WriteMapNullValue))
+                        .send()
+                        //
+                        ;
                 if (logger.isDebugEnabled()) {
                     logger.debug("Send Messages to topic:{} Result: {}", topic, msgResultId);
                 }
@@ -291,7 +353,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                     producer = client.newProducer()
                             .topic(fullTopic)
                             // 指定路由器
-                            .messageRouter(mqProperties.isFlatMessage() ? new FlagMessageRouterImpl() : new MessageRouterImpl())
+                            .messageRouter(new MessageRouterImpl(topic))
                             .create();
                     // 放入缓存
                     PRODUCERS.put(topic, producer);
@@ -311,29 +373,33 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * @author chad
      * @version 1
      * @since 1 by chad at 2021/9/10 新增
+     * @since 2 by chad at 2021/9/17 修改为msg自带目标分区
      */
     private static class MessageRouterImpl implements MessageRouter {
-        @Override
-        public int choosePartition(Message<?> msg, TopicMetadata metadata) {
-            // todo 原始Entry消息分区
-            return 0;
-        }
-    }
+        private String topicLocal;
 
-    /**
-     * Pulsar扁平消息自定义路由策略
-     *
-     * @author chad
-     * @version 1
-     * @since 1 by chad at 2021/9/10 新增
-     */
-    private static class FlagMessageRouterImpl implements MessageRouter {
+        public MessageRouterImpl(String topicLocal) {
+            this.topicLocal = topicLocal;
+        }
+
         @Override
         public int choosePartition(Message<?> msg, TopicMetadata metadata) {
-            // 获取当前topic的分区数
+            String partitionStr = msg.getProperty(MSG_PROPERTY_PARTITION_NAME);
+            int partition = 0;
+            if (!StringUtils.isEmpty(partitionStr)) {
+                try {
+                    partition = Integer.parseInt(partitionStr);
+                } catch (NumberFormatException e) {
+                    logger.warn("Parse msg {} property failed for value: {}", MSG_PROPERTY_PARTITION_NAME, partitionStr);
+                }
+            }
+            // topic创建时设置的分区数
             Integer partitionNum = metadata.numPartitions();
-            // todo 扁平消息分区
-            return 0;
+            // 如果 partition 超出 partitionNum，取余数
+            if (null != partitionNum && partition >= partitionNum) {
+                partition = partition % partitionNum;
+            }
+            return partition;
         }
     }
 

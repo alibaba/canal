@@ -671,16 +671,32 @@ public class MQMessageUtils {
     }
 
     public static class PartitionData {
-
+        /**
+         * 当{schemaName.tableName}没有正则时，就匹配{schemaName.tableName}
+         */
         public String             simpleName;
+        /**
+         * 当{schemaName.tableName}有正则时，匹配正则
+         */
         public AviaterRegexFilter regexFilter;
+        /**
+         * hash模式
+         */
         public HashMode           hashMode = new HashMode();
     }
 
     public static class HashMode {
-
+        /**
+         * 当{schemaName.tableName}:$pk$时，使用自动主键hash
+         */
         public boolean      autoPkHash = false;
+        /**
+         * 当表达式仅为{schemaName.tableName}，没有:时，仅使用table hash
+         */
         public boolean      tableHash  = false;
+        /**
+         * 当表达式为{schemaName.tableName}:id^name^age时，pkNames为：id, name, age三个
+         */
         public List<String> pkNames    = Lists.newArrayList();
     }
 
