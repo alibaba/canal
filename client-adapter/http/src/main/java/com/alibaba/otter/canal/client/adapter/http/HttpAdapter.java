@@ -99,8 +99,8 @@ public class HttpAdapter implements OuterAdapter {
             this.httpTemplate = new HttpTemplate(serviceUrl, sign);
             this.httpSyncService = new HttpSyncService(this.httpTemplate);
 
-            configMonitor = new HttpConfigMonitor();
-            configMonitor.init(this, envProperties);
+            this.configMonitor = new HttpConfigMonitor();
+            this.configMonitor.init(this, envProperties);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -241,6 +241,8 @@ public class HttpAdapter implements OuterAdapter {
 
     @Override
     public void destroy() {
-
+        if (this.configMonitor != null) {
+            this.configMonitor.destroy();
+        }
     }
 }
