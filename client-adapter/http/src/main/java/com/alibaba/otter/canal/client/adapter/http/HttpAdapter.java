@@ -96,8 +96,8 @@ public class HttpAdapter implements OuterAdapter {
                 logger.debug("mappingConfigCache:{}", JSON.toJSONString(this.mappingConfigCache));
             }
 
-            httpTemplate = new HttpTemplate(serviceUrl, sign);
-            httpSyncService = new HttpSyncService(httpTemplate);
+            this.httpTemplate = new HttpTemplate(serviceUrl, sign);
+            this.httpSyncService = new HttpSyncService(this.httpTemplate);
 
             configMonitor = new HttpConfigMonitor();
             configMonitor.init(this, envProperties);
@@ -223,6 +223,24 @@ public class HttpAdapter implements OuterAdapter {
     }
 
     @Override
+    public Map<String, Object> count(String task) {
+        int count = this.httpTemplate.count();
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("count", count);
+        return res;
+    }
+
+    @Override
+    public String getDestination(String task) {
+        MappingConfig config = mappingConfig.get(task);
+        if (config != null && config.getHttpMapping() != null) {
+            return config.getDestination();
+        }
+        return null;
+    }
+
+    @Override
     public void destroy() {
+
     }
 }

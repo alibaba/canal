@@ -12,9 +12,12 @@ import org.slf4j.LoggerFactory;
 import com.github.kevinsawicki.http.HttpRequest;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 
 public class HttpTemplate {
+    private static Logger logger = LoggerFactory.getLogger(HttpTemplate.class);
+
     private String serviceUrl;
     private String sign;
 
@@ -38,6 +41,27 @@ public class HttpTemplate {
 
     public Task buildEtlTask(String database, String table, Map<String, Object> data) {
         return new Task(this.serviceUrl, this.sign, database, table, data, "update");
+    }
+
+    public int count() {
+        String endpoint = this.serviceUrl;
+        if (!endpoint.endsWith("/")) {
+            endpoint = endpoint + "/";
+        }
+        endpoint = endpoint + "/count";
+        String response = HttpRequest.get(endpoint).body();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("count response: {}", response);
+        }
+
+        JSONObject result = JSON.parseObject(response);
+        Object obj = result.get("count");
+
+        if (obj != null) {
+            return (int) obj;
+        }
+        return 0;
     }
 
     public static class Task {
