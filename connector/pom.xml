@@ -14,15 +14,6 @@
     <packaging>pom</packaging>
     <name>canal connector module for otter ${project.version}</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.test.skip>true</maven.test.skip>
-        <downloadSources>true</downloadSources>
-        <java_source_version>1.8</java_source_version>
-        <java_target_version>1.8</java_target_version>
-        <file_encoding>UTF-8</file_encoding>
-    </properties>
-
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
