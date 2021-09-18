@@ -28,7 +28,6 @@ httpMapping:
     database: logstore
     table: user
     condition: "where userId >= {}"
-    threads: 2
   
   monitorTables:
     - tableName: logstore.user
