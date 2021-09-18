@@ -9,8 +9,7 @@ httpMapping:
     database: logstore
     table: user
     condition: "where updateTime >= {}"
-    threads: 16 # 并行处理线程数
-
+   
   monitorTables: # 监控哪些表
     - tableName: logstore.user
       # actions为可选参数，不配置的情况下，同时监控"INSERT", "UPDATE", "DELETE"
