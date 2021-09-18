@@ -197,9 +197,9 @@ public class ESEtlService extends AbstractEtlService {
                     List<Future<Boolean>> futures = new ArrayList<>();
                     for (long i = 0; i < workerCnt; i++) {
                         long startSequence = minSequence
-                                + i * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                                + i * Double.valueOf(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
                         long endSequence = minSequence
-                                + (i + 1) * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                                + (i + 1) * Double.valueOf(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
                         // 生成栏位名，如：a.id,
                         // 最终生成SQL为：
                         // select xxx from user a where a.id > 5000000 and a.id < 5010000 limit 1000

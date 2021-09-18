@@ -143,9 +143,9 @@ public abstract class AbstractEtlService {
                     List<Future<Boolean>> futures = new ArrayList<>();
                     for (long i = 0; i < workerCnt; i++) {
                         long startSequence = minSequence
-                                + i * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                                + i * Double.valueOf(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
                         long endSequence = minSequence
-                                + (i + 1) * new Double(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                                + (i + 1) * Double.valueOf(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
                         // 最终生成SQL为：
                         // <raw sql> where sequence > 5000000 and sequence < 5010000 limit 1000
                         String sqlFinal = sql + (etlCondition == null ? " WHERE " : " AND ") + sequenceColumn + " > "

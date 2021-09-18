@@ -14,7 +14,7 @@ import com.google.common.cache.LoadingCache;
 public class MigrateMap {
 
     public static <K, V> ConcurrentMap<K, V> makeComputingMap(CacheBuilder<Object, Object> builder,
-                                                              Function<? super K, ? extends V> computingFunction) {
+            Function<? super K, ? extends V> computingFunction) {
         final Function<? super K, ? extends V> function = computingFunction;
         LoadingCache<K, V> computingCache = builder.build(new CacheLoader<K, V>() {
 
@@ -33,11 +33,11 @@ public class MigrateMap {
 
     final static class MigrateConcurrentMap<K, V> implements ConcurrentMap<K, V> {
 
-        private final LoadingCache<K, V>  computingCache;
+        private final LoadingCache<K, V> computingCache;
 
         private final ConcurrentMap<K, V> cacheView;
 
-        MigrateConcurrentMap(LoadingCache<K, V> computingCache){
+        MigrateConcurrentMap(LoadingCache<K, V> computingCache) {
             this.computingCache = computingCache;
             this.cacheView = computingCache.asMap();
         }
