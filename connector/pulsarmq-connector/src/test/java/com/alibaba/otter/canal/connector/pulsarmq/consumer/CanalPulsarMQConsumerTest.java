@@ -39,7 +39,7 @@ public class CanalPulsarMQConsumerTest {
         properties.setProperty(PulsarMQConstants.PULSARMQ_BATCH_PROCESS_TIMEOUT, String.valueOf(30));
         properties.setProperty(PulsarMQConstants.PULSARMQ_SERVER_URL, "pulsar://192.168.1.200:6650");
         properties.setProperty(PulsarMQConstants.PULSARMQ_ROLE_TOKEN, "123456");
-        properties.setProperty(PulsarMQConstants.PULSARMQ_SUBSCRIPT_NAME, "test_partition_order");
+        properties.setProperty(PulsarMQConstants.PULSARMQ_SUBSCRIPT_NAME, "test-for-canal-pulsar-consumer");
         properties.setProperty(PulsarMQConstants.PULSARMQ_REDELIVERY_DELAY_SECONDS, String.valueOf(30));
         properties.setProperty(PulsarMQConstants.PULSARMQ_ACK_TIMEOUT_SECONDS, String.valueOf(30));
         properties.setProperty(PulsarMQConstants.PULSARMQ_IS_RETRY, String.valueOf(true));
