@@ -94,9 +94,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--maven properties-->
         <downloadSources>true</downloadSources>
+        <java.version>11</java.version>
         <!-- compiler settings properties -->
         <java_source_version>11</java_source_version>
         <java_target_version>11</java_target_version>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <file_encoding>UTF-8</file_encoding>
         <javadoc_skip>true</javadoc_skip>
         <spring_version>5.0.5.RELEASE</spring_version>
@@ -107,6 +110,7 @@
         </argline>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+
     </properties>
 
     <modules>

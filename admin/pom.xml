@@ -17,15 +17,6 @@
         <module>admin-web</module>
     </modules>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.test.skip>true</maven.test.skip>
-        <downloadSources>true</downloadSources>
-        <java_source_version>1.8</java_source_version>
-        <java_target_version>1.8</java_target_version>
-        <file_encoding>UTF-8</file_encoding>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
