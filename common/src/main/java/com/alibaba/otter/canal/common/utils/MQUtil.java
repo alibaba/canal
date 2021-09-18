@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.client.pulsarmq;
+package com.alibaba.otter.canal.common.utils;
 
 
 public class MQUtil {

@@ -3,19 +3,18 @@ package com.alibaba.otter.canal.client.pulsarmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.CanalMessageDeserializer;
-import com.alibaba.otter.canal.client.ConsumerBatchMessage;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
+import com.alibaba.otter.canal.common.utils.MQUtil;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.apache.pulsar.client.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,10 +32,36 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
 
     private static final Logger logger = LoggerFactory.getLogger(PulsarMQCanalConnector.class);
 
-//    private volatile ConsumerBatchMessage lastGetBatchMessage;
     private volatile Messages<byte[]> lastGetBatchMessage;
 
-//    private BlockingQueue<ConsumerBatchMessage> messageBlockingQueue;
+    /**
+     * 连接pulsar客户端
+     */
+    private PulsarClient pulsarClient;
+    /**
+     * 消费者
+     */
+    private Consumer<byte[]> consumer;
+    /**
+     * 是否扁平化Canal消息内容
+     */
+    private boolean isFlatMessage = false;
+    /**
+     * 主题名称
+     */
+    private String topic;
+    /**
+     * 环境连接URL
+     */
+    private String serviceUrl;
+    /**
+     * 角色认证token
+     */
+    private String roleToken;
+    /**
+     * 订阅客户端名称
+     */
+    private String subscriptName;
     /**
      * 每次批量获取数据的最大条目数，默认30
      */
@@ -50,38 +75,14 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
      * </p>
      * 任一条件满足，即执行批量消费
      */
-    private int batchTimeoutSeconds = 30;
+    private int getBatchTimeoutSeconds = 30;
     /**
-     * 批量处理消息时，一次批量处理的超时时间
+     * 批量处理消息时，一次批量处理的超时时间秒数
      * <p>
      * 该时间应该根据{@code batchSize}和{@code batchTimeoutSeconds}合理设置
      * </p>
      */
-    private long batchProcessTimeout = 60 * 1000;
-    /**
-     * 连接pulsar客户端
-     */
-    private PulsarClient pulsarClient;
-    /**
-     * 主题名称，多个以逗号分隔
-     */
-    private String[] topics;
-    /**
-     * 环境连接URL
-     */
-    private String serviceUrl;
-    /**
-     * 角色认证token
-     */
-    private String roleToken;
-    /**
-     * 订阅模式
-     */
-    private SubscriptionType subscriptionType;
-    /**
-     * 订阅客户端名称
-     */
-    private String subscriptName;
+    private int batchProcessTimeoutSeconds = 60;
     /**
      * 消费失败后的重试秒数，默认60秒
      */
@@ -105,21 +106,65 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
      */
     private int maxRedeliveryCount = 128;
     /**
-     * 消费者
-     */
-    private Consumer<byte[]> consumer;
-    /**
-     * 是否扁平化Canal消息内容
-     */
-    private boolean isFlatMessage;
-    /**
      * 连接标识位，在连接或关闭连接后改变值
      */
     private boolean connected = false;
 
-    public PulsarMQCanalConnector(String serviceUrl, String roleToken, String... topics) {
-        this.topics = topics;
+    /**
+     * 除必要参数外，其他参数使用默认值
+     * <p>
+     * 由于pulsar会根据subscriptName来区分消费实例，并且已经分配的指定实例的消息会固定到该实例的retry（重试）和dlq（死信）队列中，
+     * 所以subscriptName必传，且必须跟之前的一致，否则会导致之前消费失败的消息不会重消费。
+     * </p>
+     *
+     * @param isFlatMessage true使用扁平消息
+     * @param serviceUrl    pulsar服务连接地址，通常为：pulsar:host:ip或http://host:ip
+     * @param roleToken     有对应topic的消费者权限的角色token
+     * @param topic         订阅主题
+     * @param subscriptName 订阅和客户端名称，同一个订阅名视为同一个消费实例
+     * @date 2021/9/18 08:54
+     * @author chad
+     * @since 1 by chad at 2021/9/18 完善
+     */
+    public PulsarMQCanalConnector(boolean isFlatMessage, String serviceUrl, String roleToken, String topic
+            , String subscriptName) {
+        this.isFlatMessage = isFlatMessage;
+        this.serviceUrl = serviceUrl;
+        this.roleToken = roleToken;
+        this.topic = topic;
+        this.subscriptName = subscriptName;
+        if (StringUtils.isEmpty(this.subscriptName)) {
+            throw new RuntimeException("Pulsar Consumer subscriptName required");
+        }
+    }
 
+    /**
+     * 完全自定义的消费实例参数
+     *
+     * @date 2021/9/18 10:20
+     * @author chad
+     * @since 1 by chad at 2021/9/18 完善
+     */
+    public PulsarMQCanalConnector(boolean isFlatMessage, String serviceUrl, String roleToken, String topic
+            , String subscriptName, int batchSize, int getBatchTimeoutSeconds, int batchProcessTimeoutSeconds
+            , int redeliveryDelaySeconds, int ackTimeoutSeconds, boolean isRetry, boolean isRetryDLQUpperCase
+            , int maxRedeliveryCount) {
+        this.isFlatMessage = isFlatMessage;
+        this.serviceUrl = serviceUrl;
+        this.roleToken = roleToken;
+        this.topic = topic;
+        this.subscriptName = subscriptName;
+        if (StringUtils.isEmpty(this.subscriptName)) {
+            throw new RuntimeException("Pulsar Consumer subscriptName required");
+        }
+        this.batchSize = batchSize;
+        this.getBatchTimeoutSeconds = getBatchTimeoutSeconds;
+        this.batchProcessTimeoutSeconds = batchProcessTimeoutSeconds;
+        this.redeliveryDelaySeconds = redeliveryDelaySeconds;
+        this.ackTimeoutSeconds = ackTimeoutSeconds;
+        this.isRetry = isRetry;
+        this.isRetryDLQUpperCase = isRetryDLQUpperCase;
+        this.maxRedeliveryCount = maxRedeliveryCount;
     }
 
     @Override
@@ -167,17 +212,15 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
         }
         ConsumerBuilder<byte[]> builder = pulsarClient.newConsumer();
 
-        if (MQUtil.isPatternTopic(this.topics[0])) {
-            // 正则只支持一个
-            builder.topicsPattern(this.topics[0]);
-        } else if (1 == this.topics.length) {
-            builder.topic(topics[0]);
+        if (MQUtil.isPatternTopic(this.topic)) {
+            // 正则
+            builder.topicsPattern(this.topic);
         } else {// 多个topic
-            builder.topic(this.topics);
+            builder.topic(this.topic);
         }
-        // 为保证消息的有序性，仅支持独占模式
-        // 一个topic只能有一个消费者
-        builder.subscriptionType(SubscriptionType.Exclusive);
+        // 为保证消息的有序性，仅支持单消费实例模式
+        // 灾备模式，一个分区只能有一个消费者，如果当前消费者不可用，自动切换到其他消费者
+        builder.subscriptionType(SubscriptionType.Failover);
 
         builder
                 // 调用consumer.negativeAcknowledge(message) （即nack）来表示消费失败的消息
@@ -190,10 +233,10 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
                     // 最大重试次数
                     .maxRedeliverCount(this.maxRedeliveryCount);
             // 指定重试队列，不是多个或通配符topic才能判断重试队列
-            if (this.topics.length == 1 && !MQUtil.isPatternTag(this.topics[0])) {
-                String retryTopic = this.topics[0] + (this.isRetryDLQUpperCase ? "-RETRY" : "-retry");
+            if (!MQUtil.isPatternTag(this.topic)) {
+                String retryTopic = this.topic + (this.isRetryDLQUpperCase ? "-RETRY" : "-retry");
                 dlqBuilder.retryLetterTopic(retryTopic);
-                String dlqTopic = this.topics[0] + (this.isRetryDLQUpperCase ? "-DLQ" : "-dlq");
+                String dlqTopic = this.topic + (this.isRetryDLQUpperCase ? "-DLQ" : "-dlq");
                 dlqBuilder.deadLetterTopic(dlqTopic);
             }
 
@@ -202,11 +245,14 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
                     .deadLetterPolicy(dlqBuilder.build());
         }
 
-        // 超时
+        // ack超时
         builder.ackTimeout(this.ackTimeoutSeconds, TimeUnit.SECONDS);
 
-        // todo pulsar批量设置
-//        builder.batchReceivePolicy()
+        // pulsar批量获取消息设置
+        builder.batchReceivePolicy(new BatchReceivePolicy.Builder()
+                .maxNumMessages(this.batchSize)
+                .timeout(this.getBatchTimeoutSeconds, TimeUnit.SECONDS)
+                .build());
 
         try {
             this.consumer = builder.subscribe();
@@ -286,6 +332,9 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
 
     /**
      * 获取泛型数据，供其他方法调用
+     * <p>
+     * 不支持多线程调用
+     * </p>
      *
      * @return java.util.List<T>
      * @date 2021/9/14 15:20
