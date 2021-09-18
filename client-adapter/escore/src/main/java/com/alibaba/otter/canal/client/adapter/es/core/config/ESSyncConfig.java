@@ -15,17 +15,17 @@ import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
  */
 public class ESSyncConfig implements AdapterConfig {
 
-    private String    dataSourceKey;    // 数据源key
+    private String dataSourceKey; // 数据源key
 
-    private String    outerAdapterKey;  // adapter key
+    private String outerAdapterKey; // adapter key
 
-    private String    groupId;          // group id
+    private String groupId; // group id
 
-    private String    destination;      // canal destination
+    private String destination; // canal destination
 
     private ESMapping esMapping;
 
-    private String    esVersion = "es6";
+    private String esVersion = "es6";
 
     public void validate() {
         if (esMapping._index == null) {
@@ -96,23 +96,25 @@ public class ESSyncConfig implements AdapterConfig {
 
     public static class ESMapping implements AdapterMapping {
 
-        private String                       _index;
-        private String                       _type;
-        private String                       _id;
-        private boolean                      upsert          = false;
-        private String                       pk;
-        private Map<String, RelationMapping> relations       = new LinkedHashMap<>();
-        private String                       sql;
+        private String _index;
+        private String _type;
+        private String _id;
+        private boolean upsert = false;
+        private String pk;
+        private Map<String, RelationMapping> relations = new LinkedHashMap<>();
+        private String sql;
         // 对象字段, 例: objFields:
         // - _labels: array:;
-        private Map<String, String>          objFields       = new LinkedHashMap<>();
-        private List<String>                 skips           = new ArrayList<>();
-        private int                          commitBatch     = 1000;
-        private String                       etlCondition;
-        private boolean                      syncByTimestamp = false;                // 是否按时间戳定时同步
-        private Long                         syncInterval;                           // 同步时间间隔
+        private Map<String, String> objFields = new LinkedHashMap<>();
+        private List<String> skips = new ArrayList<>();
+        private int commitBatch = 1000;
+        private String etlCondition;
+        private boolean syncByTimestamp = false; // 是否按时间戳定时同步
+        private Long syncInterval; // 同步时间间隔
 
-        private SchemaItem                   schemaItem;                             // sql解析结果模型
+        private SchemaItem schemaItem; // sql解析结果模型
+
+        private String sequenceColumn = null; // 自增栏位名称，用于全量ETL性能提升
 
         public String get_index() {
             return _index;
@@ -224,6 +226,14 @@ public class ESSyncConfig implements AdapterConfig {
 
         public void setSchemaItem(SchemaItem schemaItem) {
             this.schemaItem = schemaItem;
+        }
+
+        public String getSequenceColumn() {
+            return this.sequenceColumn;
+        }
+
+        public void setSequenceColumn(String sequenceColumn) {
+            this.sequenceColumn = sequenceColumn;
         }
     }
 

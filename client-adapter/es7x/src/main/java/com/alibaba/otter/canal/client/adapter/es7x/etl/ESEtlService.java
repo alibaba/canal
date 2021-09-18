@@ -30,6 +30,17 @@ import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.Util;
 
+import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
+import java.util.concurrent.ExecutorService;
+import java.util.ArrayList;
+import com.alibaba.druid.pool.DruidDataSource;
+import java.util.concurrent.Future;
+import com.google.common.base.Joiner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.TableItem;
+
 /**
  * ES ETL Service
  *
@@ -38,11 +49,15 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
  */
 public class ESEtlService extends AbstractEtlService {
 
-    private ESConnection esConnection;
-    private ESTemplate   esTemplate;
-    private ESSyncConfig config;
+    private static final Logger logger = LoggerFactory.getLogger(AbstractEtlService.class);
 
-    public ESEtlService(ESConnection esConnection, ESSyncConfig config){
+    private ESConnection esConnection;
+    private ESTemplate esTemplate;
+    private ESSyncConfig config;
+    private final long CNT_PER_TASK = 10000L;
+    private final String type = "ES";
+
+    public ESEtlService(ESConnection esConnection, ESSyncConfig config) {
         super("ES", config);
         this.esConnection = esConnection;
         this.esTemplate = new ES7xTemplate(esConnection);
@@ -53,14 +68,216 @@ public class ESEtlService extends AbstractEtlService {
         ESMapping mapping = config.getEsMapping();
         logger.info("start etl to import data to index: {}", mapping.get_index());
         String sql = mapping.getSql();
+        logger.info("sql:{}", sql);
         return importData(sql, params);
     }
 
+    // Added by Wu Jian Ping, Instread of AbstractEtlService.importData
+    protected EtlResult importData(String sql, List<String> params) {
+        EtlResult etlResult = new EtlResult();
+        AtomicLong impCount = new AtomicLong();
+        List<String> errMsg = new ArrayList<>();
+        if (config == null) {
+            logger.warn("{} mapping config is null, etl go end ", type);
+            etlResult.setErrorMessage(type + "mapping config is null, etl go end ");
+            return etlResult;
+        }
+
+        long start = System.currentTimeMillis();
+        try {
+            DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+
+            String etlCondition = null;
+
+            List<Object> values = new ArrayList<>();
+            // 拼接条件
+            if (config.getMapping().getEtlCondition() != null && params != null) {
+                etlCondition = config.getMapping().getEtlCondition();
+                for (String param : params) {
+                    etlCondition = etlCondition.replace("{}", "?");
+                    values.add(param);
+                }
+
+                sql += " " + etlCondition;
+            }
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("etl sql : {}, values:{}", sql, values);
+            }
+
+            TableItem mainTable = config.getEsMapping().getSchemaItem().getMainTable();
+
+            if (mainTable == null) {
+                throw new RuntimeException("Cannot found main table");
+            }
+
+            // 获取总数，这边直接通过主表获取，假如存在条件的话，拼接一下条件
+            String countSql = "SELECT COUNT(1) FROM " + mainTable.getTableFullName() + " " + mainTable.getAlias();
+
+            if (etlCondition != null) {
+                countSql += " " + etlCondition;
+            }
+
+            if (logger.isInfoEnabled()) {
+                logger.info("ES7 全量count sql : {}, values:{}", countSql, values);
+            }
+
+            long cnt = (Long) Util.sqlRS(dataSource, countSql, values, rs -> {
+                Long count = null;
+                try {
+                    if (rs.next()) {
+                        count = ((Number) rs.getObject(1)).longValue();
+                        if (logger.isInfoEnabled()) {
+                            logger.info("ES7 待同步数据总量:{}", count);
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+                return count == null ? 0L : count;
+            });
+
+            // 当大于1万条记录时开启多线程
+            // NOTE: 采用limit分页取数据的方式，大表性能存在问题，使用线程并不能解决该问题，实际上线程在这里的价值并不大
+            if (cnt >= 10000) {
+                int threadCount = Runtime.getRuntime().availableProcessors();
+
+                long offset;
+                long size = CNT_PER_TASK;
+                long workerCnt = cnt / size + (cnt % size == 0 ? 0 : 1);
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("workerCnt {} for cnt {} threadCount {}", workerCnt, cnt, threadCount);
+                }
+
+                ESMapping esMapping = this.config.getEsMapping();
+                // 假如存在sequenceColumn的配置
+                if (esMapping.getSequenceColumn() != null) {
+                    // 获取一下最小序号和最大序号
+                    String sequenceSql = "SELECT MIN(" + esMapping.getSequenceColumn() + ") as min, MAX("
+                            + esMapping.getSequenceColumn() + ") as max FROM " + mainTable.getTableFullName();
+
+                    if (mainTable.getAlias() != null) {
+                        sequenceSql += " " + mainTable.getAlias();
+                    }
+                    if (etlCondition != null) {
+                        sequenceSql += " " + etlCondition;
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    HashMap<String, Long> sequenceMap = (HashMap<String, Long>) Util.sqlRS(dataSource, sequenceSql,
+                            values, rs -> {
+                                Long max = null;
+                                Long min = null;
+                                try {
+                                    if (rs.next()) {
+                                        min = ((Number) rs.getObject("min")).longValue();
+                                        max = ((Number) rs.getObject("max")).longValue();
+                                    }
+                                } catch (Exception e) {
+                                    logger.error(e.getMessage(), e);
+                                }
+                                max = (max == null ? 1L : max);
+                                min = (min == null ? 1L : min);
+
+                                HashMap<String, Long> map = new HashMap<>();
+                                map.put("min", min);
+                                map.put("max", max);
+
+                                return map;
+                            });
+
+                    long maxSequence = sequenceMap.get("max");
+                    long minSequence = sequenceMap.get("min") - 1;
+
+                    if (logger.isInfoEnabled()) {
+                        logger.info("ES7 全量导入, start:{}, end:{}", minSequence, maxSequence);
+                    }
+
+                    ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
+                    List<Future<Boolean>> futures = new ArrayList<>();
+                    for (long i = 0; i < workerCnt; i++) {
+                        long startSequence = minSequence
+                                + i * Double.valueOf(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        long endSequence = minSequence
+                                + (i + 1) * Double.valueOf(Math.floor(maxSequence * 1.0 / workerCnt)).longValue();
+                        // 生成栏位名，如：a.id,
+                        // 最终生成SQL为：
+                        // select xxx from user a where a.id > 5000000 and a.id < 5010000 limit 1000
+                        String sequenceColumnRealName = "";
+
+                        if (mainTable.getAlias() != null) {
+                            sequenceColumnRealName += mainTable.getAlias() + ".";
+                        }
+
+                        sequenceColumnRealName += esMapping.getSequenceColumn();
+
+                        String sqlFinal = sql + (etlCondition == null ? " WHERE " : " AND ") + sequenceColumnRealName
+                                + " > " + startSequence + " AND " + sequenceColumnRealName + " <= " + endSequence
+                                + " LIMIT " + (endSequence - startSequence);
+
+                        if (logger.isInfoEnabled()) {
+                            logger.info("ES7 全量分批导入, sql: {}", sqlFinal);
+                        }
+
+                        Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
+                                config.getMapping(), impCount, errMsg));
+                        futures.add(future);
+                    }
+
+                    for (Future<Boolean> future : futures) {
+                        future.get();
+                    }
+                    executor.shutdown();
+
+                } else {
+                    ExecutorService executor = Util.newFixedThreadPool(threadCount, 5000L);
+                    List<Future<Boolean>> futures = new ArrayList<>();
+                    for (long i = 0; i < workerCnt; i++) {
+                        offset = size * i;
+                        String sqlFinal = sql + " LIMIT " + offset + "," + size;
+
+                        if (logger.isInfoEnabled()) {
+                            logger.info("ES7 全量分批导入, sql: {}, values:{}", sqlFinal, values);
+                        }
+
+                        Future<Boolean> future = executor.submit(() -> executeSqlImport(dataSource, sqlFinal, values,
+                                config.getMapping(), impCount, errMsg));
+                        futures.add(future);
+                    }
+
+                    for (Future<Boolean> future : futures) {
+                        future.get();
+                    }
+                    executor.shutdown();
+                }
+            } else {
+                executeSqlImport(dataSource, sql, values, config.getMapping(), impCount, errMsg);
+            }
+
+            logger.info("ES7 数据全量导入完成, 一共导入 {} 条数据, 耗时: {}", impCount.get(), System.currentTimeMillis() - start);
+            etlResult.setResultMessage("导入" + type + " 数据：" + impCount.get() + " 条");
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            errMsg.add(type + " 数据导入异常 =>" + e.getMessage());
+        }
+        if (errMsg.isEmpty()) {
+            etlResult.setSucceeded(true);
+        } else {
+            etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
+        }
+        return etlResult;
+    }
+
     protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
-                                       AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount,
-                                       List<String> errMsg) {
+            AdapterConfig.AdapterMapping adapterMapping, AtomicLong impCount, List<String> errMsg) {
         try {
             ESMapping mapping = (ESMapping) adapterMapping;
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("ES7批量导入, sql:{} values:{}", sql, values);
+            }
+
             Util.sqlRS(ds, sql, values, rs -> {
                 int count = 0;
                 try {
@@ -92,15 +309,12 @@ public class ESEtlService extends AbstractEtlService {
                                 Map<String, Object> relations = new HashMap<>();
                                 relations.put("name", relationMapping.getName());
                                 if (StringUtils.isNotEmpty(relationMapping.getParent())) {
-                                    FieldItem parentFieldItem = mapping.getSchemaItem()
-                                        .getSelectFields()
-                                        .get(relationMapping.getParent());
+                                    FieldItem parentFieldItem = mapping.getSchemaItem().getSelectFields()
+                                            .get(relationMapping.getParent());
                                     Object parentVal;
                                     try {
-                                        parentVal = esTemplate.getValFromRS(mapping,
-                                            rs,
-                                            parentFieldItem.getFieldName(),
-                                            parentFieldItem.getFieldName());
+                                        parentVal = esTemplate.getValFromRS(mapping, rs, parentFieldItem.getFieldName(),
+                                                parentFieldItem.getFieldName());
                                     } catch (SQLException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -118,8 +332,7 @@ public class ESEtlService extends AbstractEtlService {
                             String parentVal = (String) esFieldData.remove("$parent_routing");
                             if (mapping.isUpsert()) {
                                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(
-                                    mapping.get_index(),
-                                    idVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
+                                        mapping.get_index(), idVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
 
                                 if (StringUtils.isNotEmpty(parentVal)) {
                                     esUpdateRequest.setRouting(parentVal);
@@ -128,8 +341,7 @@ public class ESEtlService extends AbstractEtlService {
                                 esBulkRequest.add(esUpdateRequest);
                             } else {
                                 ESIndexRequest esIndexRequest = this.esConnection.new ES7xIndexRequest(
-                                    mapping.get_index(),
-                                    idVal.toString()).setSource(esFieldData);
+                                        mapping.get_index(), idVal.toString()).setSource(esFieldData);
                                 if (StringUtils.isNotEmpty(parentVal)) {
                                     esIndexRequest.setRouting(parentVal);
                                 }
@@ -138,19 +350,17 @@ public class ESEtlService extends AbstractEtlService {
                         } else {
                             idVal = esFieldData.get(mapping.getPk());
                             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index())
-                                .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
-                                .size(10000);
+                                    .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal)).size(10000);
                             SearchResponse response = esSearchRequest.getResponse();
                             for (SearchHit hit : response.getHits()) {
                                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(
-                                    mapping.get_index(),
-                                    hit.getId()).setDoc(esFieldData);
+                                        mapping.get_index(), hit.getId()).setDoc(esFieldData);
                                 esBulkRequest.add(esUpdateRequest);
                             }
                         }
 
                         if (esBulkRequest.numberOfActions() % mapping.getCommitBatch() == 0
-                            && esBulkRequest.numberOfActions() > 0) {
+                                && esBulkRequest.numberOfActions() > 0) {
                             long esBatchBegin = System.currentTimeMillis();
                             ESBulkResponse rp = esBulkRequest.bulk();
                             if (rp.hasFailures()) {
@@ -159,10 +369,9 @@ public class ESEtlService extends AbstractEtlService {
 
                             if (logger.isTraceEnabled()) {
                                 logger.trace("全量数据批量导入批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                    (System.currentTimeMillis() - batchBegin),
-                                    (System.currentTimeMillis() - esBatchBegin),
-                                    esBulkRequest.numberOfActions(),
-                                    mapping.get_index());
+                                        (System.currentTimeMillis() - batchBegin),
+                                        (System.currentTimeMillis() - esBatchBegin), esBulkRequest.numberOfActions(),
+                                        mapping.get_index());
                             }
                             batchBegin = System.currentTimeMillis();
                             esBulkRequest.resetBulk();
@@ -179,10 +388,9 @@ public class ESEtlService extends AbstractEtlService {
                         }
                         if (logger.isTraceEnabled()) {
                             logger.trace("全量数据批量导入最后批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                (System.currentTimeMillis() - batchBegin),
-                                (System.currentTimeMillis() - esBatchBegin),
-                                esBulkRequest.numberOfActions(),
-                                mapping.get_index());
+                                    (System.currentTimeMillis() - batchBegin),
+                                    (System.currentTimeMillis() - esBatchBegin), esBulkRequest.numberOfActions(),
+                                    mapping.get_index());
                         }
                     }
                 } catch (Exception e) {

@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * ES 映射配置视图
  *
@@ -14,13 +13,13 @@ import java.util.Map;
  */
 public class SchemaItem {
 
-    private Map<String, TableItem>                aliasTableItems = new LinkedHashMap<>(); // 别名对应表名
-    private Map<String, FieldItem>                selectFields    = new LinkedHashMap<>(); // 查询字段
-    private String                                sql;
+    private Map<String, TableItem> aliasTableItems = new LinkedHashMap<>(); // 别名对应表名
+    private Map<String, FieldItem> selectFields = new LinkedHashMap<>(); // 查询字段
+    private String sql;
 
     private volatile Map<String, List<TableItem>> tableItemAliases;
     private volatile Map<String, List<FieldItem>> columnFields;
-    private volatile Boolean                      allFieldsSimple;
+    private volatile Boolean allFieldsSimple;
 
     public void init() {
         this.getTableItemAliases();
@@ -68,7 +67,7 @@ public class SchemaItem {
                     tableItemAliases = new LinkedHashMap<>();
                     aliasTableItems.forEach((alias, tableItem) -> {
                         List<TableItem> aliases = tableItemAliases
-                            .computeIfAbsent(tableItem.getTableName().toLowerCase(), k -> new ArrayList<>());
+                                .computeIfAbsent(tableItem.getTableName().toLowerCase(), k -> new ArrayList<>());
                         aliases.add(tableItem);
                     });
                 }
@@ -83,25 +82,25 @@ public class SchemaItem {
                 if (columnFields == null) {
                     columnFields = new LinkedHashMap<>();
                     getSelectFields()
-                        .forEach((fieldName, fieldItem) -> fieldItem.getColumnItems().forEach(columnItem -> {
-                            // TableItem tableItem = getAliasTableItems().get(columnItem.getOwner());
-                            // if (!tableItem.isSubQuery()) {
-                            //当数据列并非原始列时，columnName是空的，例如concat('px',id)
-                            if(columnItem.getColumnName() != null) {
-                                List<FieldItem> fieldItems = columnFields.computeIfAbsent(
-                                        columnItem.getOwner() + "." + columnItem.getColumnName(),
-                                        k -> new ArrayList<>());
-                                fieldItems.add(fieldItem);
-                            }
-                            // } else {
-                            // tableItem.getSubQueryFields().forEach(subQueryField -> {
-                            // List<FieldItem> fieldItems = columnFields.computeIfAbsent(
-                            // columnItem.getOwner() + "." + subQueryField.getColumn().getColumnName(),
-                            // k -> new ArrayList<>());
-                            // fieldItems.add(fieldItem);
-                            // });
-                            // }
-                        }));
+                            .forEach((fieldName, fieldItem) -> fieldItem.getColumnItems().forEach(columnItem -> {
+                                // TableItem tableItem = getAliasTableItems().get(columnItem.getOwner());
+                                // if (!tableItem.isSubQuery()) {
+                                // 当数据列并非原始列时，columnName是空的，例如concat('px',id)
+                                if (columnItem.getColumnName() != null) {
+                                    List<FieldItem> fieldItems = columnFields.computeIfAbsent(
+                                            columnItem.getOwner() + "." + columnItem.getColumnName(),
+                                            k -> new ArrayList<>());
+                                    fieldItems.add(fieldItem);
+                                }
+                                // } else {
+                                // tableItem.getSubQueryFields().forEach(subQueryField -> {
+                                // List<FieldItem> fieldItems = columnFields.computeIfAbsent(
+                                // columnItem.getOwner() + "." + subQueryField.getColumn().getColumnName(),
+                                // k -> new ArrayList<>());
+                                // fieldItems.add(fieldItem);
+                                // });
+                                // }
+                            }));
                 }
             }
         }
@@ -145,22 +144,22 @@ public class SchemaItem {
 
     public static class TableItem {
 
-        private SchemaItem                               schemaItem;
+        private SchemaItem schemaItem;
 
-        private String                                   schema;
-        private String                                   tableName;
-        private String                                   alias;
-        private String                                   subQuerySql;
-        private List<FieldItem>                          subQueryFields = new ArrayList<>();
-        private List<RelationFieldsPair>                 relationFields = new ArrayList<>();
+        private String schema;
+        private String tableName;
+        private String alias;
+        private String subQuerySql;
+        private List<FieldItem> subQueryFields = new ArrayList<>();
+        private List<RelationFieldsPair> relationFields = new ArrayList<>();
 
-        private boolean                                  main;
-        private boolean                                  subQuery;
+        private boolean main;
+        private boolean subQuery;
 
-        private volatile Map<FieldItem, List<FieldItem>> relationTableFields;               // 当前表关联条件字段对应主表查询字段
-        private volatile List<FieldItem>                 relationSelectFieldItems;          // 子表所在主表的查询字段
+        private volatile Map<FieldItem, List<FieldItem>> relationTableFields; // 当前表关联条件字段对应主表查询字段
+        private volatile List<FieldItem> relationSelectFieldItems; // 子表所在主表的查询字段
 
-        public TableItem(SchemaItem schemaItem){
+        public TableItem(SchemaItem schemaItem) {
             this.schemaItem = schemaItem;
         }
 
@@ -186,6 +185,14 @@ public class SchemaItem {
 
         public void setTableName(String tableName) {
             this.tableName = tableName;
+        }
+
+        public String getTableFullName() {
+            if (this.schema != null) {
+                return this.schema + "." + this.tableName;
+            } else {
+                return this.tableName;
+            }
         }
 
         public String getAlias() {
@@ -253,19 +260,18 @@ public class SchemaItem {
                             }
 
                             if (currentTableRelField != null) {
-                                List<FieldItem> selectFieldItem = getSchemaItem().getColumnFields()
-                                    .get(leftFieldItem.getOwner() + "." + leftFieldItem.getColumn().getColumnName());
+                                List<FieldItem> selectFieldItem = getSchemaItem().getColumnFields().get(
+                                        leftFieldItem.getOwner() + "." + leftFieldItem.getColumn().getColumnName());
                                 if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
                                     relationTableFields.put(currentTableRelField, selectFieldItem);
                                 } else {
-                                    selectFieldItem = getSchemaItem().getColumnFields()
-                                        .get(rightFieldItem.getOwner() + "."
-                                             + rightFieldItem.getColumn().getColumnName());
+                                    selectFieldItem = getSchemaItem().getColumnFields().get(rightFieldItem.getOwner()
+                                            + "." + rightFieldItem.getColumn().getColumnName());
                                     if (selectFieldItem != null && !selectFieldItem.isEmpty()) {
                                         relationTableFields.put(currentTableRelField, selectFieldItem);
                                     } else {
                                         throw new UnsupportedOperationException(
-                                            "Relation condition column must in select columns.");
+                                                "Relation condition column must in select columns.");
                                     }
                                 }
                             }
@@ -292,6 +298,103 @@ public class SchemaItem {
             }
             return relationSelectFieldItems;
         }
+
+        @Override
+        public String toString() {
+            String s = "TableItem { ";
+            if (this.schema != null) {
+                s += String.format("schema = '%s'", this.schema);
+            } else {
+                s += "schema = null";
+            }
+            s += ", ";
+            s += String.format("tableName = '%s'", this.tableName);
+            s += ", ";
+            s += String.format("alias = '%s'", this.alias);
+            s += ", ";
+            s += String.format("isMain = %b", this.main);
+            s += ", ";
+            if (this.subQuerySql != null) {
+                s += String.format("subQuerySql = '%s'", this.subQuerySql);
+            } else {
+                s += "subQuerySql = null";
+            }
+            s += ", ";
+
+            if (this.subQueryFields != null) {
+                s += "subQueryFields = [ ";
+                String tmp = "";
+                for (FieldItem o : this.subQueryFields) {
+                    tmp += String.format("%s, ", o);
+                }
+                if (!tmp.equalsIgnoreCase("")) {
+                    s += tmp.substring(0, tmp.length() - 2);
+                }
+                s += " ], ";
+            } else {
+                s += "subQueryFields = null, ";
+            }
+
+            if (this.relationFields != null) {
+                s += "relationFields = [ ";
+                String tmp = "";
+                for (RelationFieldsPair o : this.relationFields) {
+                    tmp += String.format("%s, ", o);
+                }
+                if (!tmp.equalsIgnoreCase("")) {
+                    s += tmp.substring(0, tmp.length() - 2);
+                }
+                s += " ]";
+            } else {
+                s += "relationFields = null";
+            }
+
+            s += ", ";
+
+            Map<FieldItem, List<FieldItem>> relationTableFields = this.getRelationTableFields();
+            if (relationTableFields != null) {
+                s += "relationTableFields = [ ";
+                String tmp = "";
+
+                for (FieldItem key : relationTableFields.keySet()) {
+                    tmp += String.format("{ key:{}", key);
+
+                    List<FieldItem> fields = relationTableFields.get(key);
+                    if (fields != null) {
+                        tmp += ", values = [ ";
+
+                        String tmp2 = "";
+                        for (FieldItem field : fields) {
+                            tmp2 += " { ";
+                            tmp2 += field;
+                            tmp2 += " }, ";
+                        }
+
+                        if (!tmp2.equalsIgnoreCase("")) {
+                            tmp2 = tmp2.substring(0, tmp2.length() - 2);
+                        }
+
+                        tmp += tmp2;
+                    } else {
+                        tmp += ", values = null ";
+                    }
+
+                    tmp += " ] }, ";
+                }
+
+                if (!tmp.equalsIgnoreCase("")) {
+                    s += tmp.substring(0, tmp.length() - 2);
+                }
+                s += " ]";
+            } else {
+                s += "relationTableFields = null";
+            }
+
+            s += " }";
+
+            return s;
+        }
+
     }
 
     public static class RelationFieldsPair {
@@ -299,7 +402,7 @@ public class SchemaItem {
         private FieldItem leftFieldItem;
         private FieldItem rightFieldItem;
 
-        public RelationFieldsPair(FieldItem leftFieldItem, FieldItem rightFieldItem){
+        public RelationFieldsPair(FieldItem leftFieldItem, FieldItem rightFieldItem) {
             this.leftFieldItem = leftFieldItem;
             this.rightFieldItem = rightFieldItem;
         }
@@ -319,17 +422,33 @@ public class SchemaItem {
         public void setRightFieldItem(FieldItem rightFieldItem) {
             this.rightFieldItem = rightFieldItem;
         }
+
+        @Override
+        public String toString() {
+            String s = "RelationFieldsPair { ";
+
+            s += "leftFieldItem = ";
+            s += this.leftFieldItem != null ? this.leftFieldItem : "null";
+            s += ", ";
+
+            s += "rightFieldItem = ";
+            s += this.rightFieldItem != null ? this.rightFieldItem : "null";
+
+            s += " }";
+
+            return s;
+        }
     }
 
     public static class FieldItem {
 
-        private String           fieldName;
-        private String           expr;
+        private String fieldName;
+        private String expr;
         private List<ColumnItem> columnItems = new ArrayList<>();
-        private List<String>     owners      = new ArrayList<>();
+        private List<String> owners = new ArrayList<>();
 
-        private boolean          method;
-        private boolean          binaryOp;
+        private boolean method;
+        private boolean binaryOp;
 
         public String getFieldName() {
             return fieldName;
@@ -401,8 +520,10 @@ public class SchemaItem {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
 
             FieldItem fieldItem = (FieldItem) o;
 
@@ -412,6 +533,57 @@ public class SchemaItem {
         @Override
         public int hashCode() {
             return fieldName != null ? fieldName.hashCode() : 0;
+        }
+
+        @Override
+        public String toString() {
+            String s = "FieldItem { ";
+
+            s += String.format("fieldName = '%s'", this.fieldName);
+            s += ", ";
+
+            s += String.format("expr = '%s'", this.expr);
+            s += ", ";
+
+            s += String.format("method = %b", this.method);
+            s += ", ";
+
+            s += String.format("binaryOp = %b", this.binaryOp);
+            s += ", ";
+
+            if (this.owners != null) {
+                s += "owners = [ ";
+                String tmp = "";
+                for (String o : this.owners) {
+                    tmp += String.format("'%s', ", o);
+                }
+                if (!tmp.equalsIgnoreCase("")) {
+                    s += tmp.substring(0, tmp.length() - 2);
+                }
+                s += " ], ";
+            } else {
+                s += "owners = null, ";
+            }
+
+            if (this.columnItems != null) {
+                s += "columnItems = [ ";
+
+                String tmp = "";
+
+                for (ColumnItem o : this.columnItems) {
+                    tmp += String.format("%s, ", o);
+                }
+                if (!tmp.equalsIgnoreCase("")) {
+                    s += tmp.substring(0, tmp.length() - 2);
+                }
+
+                s += " ]";
+            } else {
+                s += "columnItems = null";
+            }
+
+            s += " }";
+            return s;
         }
     }
 
@@ -434,6 +606,27 @@ public class SchemaItem {
 
         public void setColumnName(String columnName) {
             this.columnName = columnName;
+        }
+
+        @Override
+        public String toString() {
+            String s = "ColumnItem { ";
+
+            if (this.owner != null) {
+                s += String.format("owner = '%s'", this.owner);
+            } else {
+                s += "owner = null";
+            }
+            s += ", ";
+
+            if (this.columnName != null) {
+                s += String.format("columnName = '%s'", this.columnName);
+            } else {
+                s += "columnName = null";
+            }
+            s += " }";
+
+            return s;
         }
     }
 }

@@ -28,15 +28,14 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
  */
 public class RdbMirrorDbSyncService {
 
-    private static final Logger         logger = LoggerFactory.getLogger(RdbMirrorDbSyncService.class);
+    private static final Logger logger = LoggerFactory.getLogger(RdbMirrorDbSyncService.class);
 
-    private Map<String, MirrorDbConfig> mirrorDbConfigCache;                                           // 镜像库配置
-    private DataSource                  dataSource;
-    private RdbSyncService              rdbSyncService;                                                // rdbSyncService代理
+    private Map<String, MirrorDbConfig> mirrorDbConfigCache; // 镜像库配置
+    private DataSource dataSource;
+    private RdbSyncService rdbSyncService; // rdbSyncService代理
 
     public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DataSource dataSource,
-                                  Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
-                                  boolean skipDupException){
+            Integer threads, Map<String, Map<String, Integer>> columnsTypeCache, boolean skipDupException) {
         this.mirrorDbConfigCache = mirrorDbConfigCache;
         this.dataSource = dataSource;
         this.rdbSyncService = new RdbSyncService(dataSource, threads, columnsTypeCache, skipDupException);
@@ -116,9 +115,9 @@ public class RdbMirrorDbSyncService {
     /**
      * 初始化表配置
      *
-     * @param key 配置key: destination.database.table
+     * @param key           配置key: destination.database.table
      * @param baseConfigMap db sync config
-     * @param dml DML
+     * @param dml           DML
      */
     private void initMappingConfig(String key, MappingConfig baseConfigMap, MirrorDbConfig mirrorDbConfig, Dml dml) {
         MappingConfig mappingConfig = mirrorDbConfig.getTableConfig().get(key);

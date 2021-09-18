@@ -3,18 +3,12 @@
   <parent>
     <artifactId>canal.admin</artifactId>
     <groupId>com.alibaba.otter</groupId>
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.5</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>canal.admin-ui</artifactId>
   <name>canal admin-ui module for otter ${project.version}</name>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <java.version>1.8</java.version>
-    <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
-  </properties>
 
   <profiles>
     <profile>
