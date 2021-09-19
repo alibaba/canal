@@ -1,1 +1,0 @@
-kafka=com.alibaba.otter.canal.connector.kafka.consumer.CanalKafkaConsumer
