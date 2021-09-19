@@ -1,3 +1,0 @@
-# Bootstrap Configuration
-org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-  com.alibaba.otter.canal.adapter.launcher.config.BootstrapConfiguration
