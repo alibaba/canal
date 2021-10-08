@@ -1,0 +1,46 @@
+dataSourceKey: defaultDS
+outerAdapterKey: order
+destination: example
+groupId: g4
+esMapping:
+  _index: order
+  _id: _id
+#  upsert: true
+#  pk: id
+  sql: "select id as _id, order_id as order_id, placed_at as placed_at,updated_at as updated_at from order"
+#  objFields:
+#    _labels: array:;
+  etlCondition: "where updated_at>={}"
+  commitBatch: 3000
+
+#   PUT order
+# {
+#     "mappings": {
+#             "properties": {
+#                 "id": {
+#                     "type": "long"
+#                 },
+#                 "order_id": {
+#                     "type": "keyword"
+#                 },
+#                 "placed_by": {
+#                     "analyzer": "ik_max_word",
+#                     "type": "text",
+#                     "fields": {
+#                         "keyword": {
+#                             "ignore_above": 256,
+#                             "type": "keyword"
+#                         }
+#                     }
+#                 },
+#                 "placed_at": {
+#                   "type": "date",
+#                           "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+#                 },
+#                 "updated_at": {
+#                           "type": "date",
+#                           "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+#                 }
+#             }
+#     }
+# }
