@@ -12,7 +12,7 @@
     <groupId>com.alibaba.otter</groupId>
     <artifactId>connector.pulsarmq</artifactId>
     <packaging>jar</packaging>
-
+    <name>canal connector pulsarmq module for otter ${project.version}</name>
 
     <dependencies>
         <dependency>
