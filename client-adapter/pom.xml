@@ -33,6 +33,7 @@
         <module>escore</module>
         <module>kudu</module>
         <module>phoenix</module>
+        <module>tablestore</module>
     </modules>
 
     <licenses>
@@ -251,6 +252,25 @@
                 <version>1.9.0</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>com.aliyun.openservices</groupId>
+                <artifactId>tablestore</artifactId>
+                <version>5.10.3</version>
+                <classifier>jar-with-dependencies</classifier>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpasyncclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
