@@ -419,6 +419,9 @@
                     <systemProperties>
                         <!-- common shared -->
                     </systemProperties>
+                	<parallel>classes</parallel>
+                	<useUnlimitedThreads>true</useUnlimitedThreads>
+
                 </configuration>
             </plugin>
             <!-- javadoc -->
