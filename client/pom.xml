@@ -132,18 +132,18 @@
 			<version>1.1.1</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- Pulsar -->
+		<dependency>
+			<groupId>org.apache.pulsar</groupId>
+			<artifactId>pulsar-client</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- junit -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<!-- Pulsar -->
-		<dependency>
-			<groupId>org.apache.pulsar</groupId>
-			<artifactId>pulsar-client</artifactId>
 		</dependency>
 	</dependencies>
 

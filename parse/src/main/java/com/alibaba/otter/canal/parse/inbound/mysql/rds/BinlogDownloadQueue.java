@@ -223,7 +223,7 @@ public class BinlogDownloadQueue {
                 TarArchiveEntry tarArchiveEntry = null;
                 while ((tarArchiveEntry = tais.getNextTarEntry()) != null) {
                     String name = tarArchiveEntry.getName();
-                    File tarFile = new File(parentFile, name);
+                    File tarFile = new File(parentFile, name + ".tmp");
                     logger.info("start to download file " + tarFile.getName());
                     if (tarFile.exists()) {
                         tarFile.delete();
@@ -244,7 +244,7 @@ public class BinlogDownloadQueue {
                 }
                 tais.close();
             } else {
-                File file = new File(parentFile, fileName);
+                File file = new File(parentFile, fileName + ".tmp");
                 if (file.exists()) {
                     file.delete();
                 }

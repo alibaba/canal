@@ -92,12 +92,12 @@
     </repositories>
 
     <modules>
-        <module>kafka-connector</module>
         <module>core</module>
+        <module>kafka-connector</module>
         <module>rocketmq-connector</module>
         <module>rabbitmq-connector</module>
-        <module>tcp-connector</module>
         <module>pulsarmq-connector</module>
+        <module>tcp-connector</module>
     </modules>
 
     <build>
