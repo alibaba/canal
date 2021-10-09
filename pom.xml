@@ -233,11 +233,6 @@
                 <version>2.2.1</version>
             </dependency>
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>1.2.58.sec06</version>
-            </dependency>
-            <dependency>
                 <groupId>oro</groupId>
                 <artifactId>oro</artifactId>
                 <version>2.0.8</version>
@@ -345,6 +340,12 @@
                 <artifactId>javax.annotation-api</artifactId>
                 <version>${javax.annotation-api.version}</version>
             </dependency>
+            <!-- Pulsar -->
+            <dependency>
+                <groupId>org.apache.pulsar</groupId>
+                <artifactId>pulsar-client</artifactId>
+                <version>2.8.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -419,6 +420,9 @@
                     <systemProperties>
                         <!-- common shared -->
                     </systemProperties>
+                	<parallel>classes</parallel>
+                	<useUnlimitedThreads>true</useUnlimitedThreads>
+
                 </configuration>
             </plugin>
             <!-- javadoc -->

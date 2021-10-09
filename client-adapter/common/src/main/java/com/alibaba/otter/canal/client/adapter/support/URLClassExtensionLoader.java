@@ -21,7 +21,9 @@ public class URLClassExtensionLoader extends URLClassLoader {
 
         if (name.startsWith("java.") || name.startsWith("org.slf4j.") || name.startsWith("org.apache.logging")
             || name.startsWith("org.apache.zookeeper.") || name.startsWith("org.I0Itec.zkclient.")
-            || name.startsWith("org.apache.commons.logging.")) {
+            || name.startsWith("org.apache.commons.logging.")
+            || name.startsWith("com.alibaba.druid")
+            ) {
             // || name.startsWith("org.apache.hadoop."))
             // {
             c = super.loadClass(name);

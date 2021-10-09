@@ -2,7 +2,9 @@ package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
@@ -25,7 +27,7 @@ import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 
 /**
  * local bin log connection (not real connection)
- * 
+ *
  * @author yuanzu Date: 12-9-27 Time: 下午6:14
  */
 public class LocalBinLogConnection implements ErosaConnection {
@@ -37,9 +39,26 @@ public class LocalBinLogConnection implements ErosaConnection {
     private int                 bufferSize = 16 * 1024;
     private boolean             running    = false;
     private long                serverId;
+
+    /** rdsOosMode binlog 的 serverId 是两个 */
+    private boolean             isRdsOssMode = false;
+
+    /** rdsOosMode 主从信息 */
+    private final Set<Long> rdsOssMasterSlaveInfo = new HashSet<>(4);
+
+    private boolean firstUpdateRdsOssMasterSlave = true;
+
     private FileParserListener  parserListener;
 
     public LocalBinLogConnection(){
+    }
+
+    public boolean isRdsOssMode() {
+        return isRdsOssMode;
+    }
+
+    public void setRdsOssMode(boolean rdsOssMode) {
+        isRdsOssMode = rdsOssMode;
     }
 
     public LocalBinLogConnection(String directory, boolean needWait){
@@ -94,9 +113,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                     if (event == null) {
                         continue;
                     }
-                    if (serverId != 0 && event.getServerId() != serverId) {
-                        throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
-                    }
+                    checkServerId(event);
 
                     if (!func.sink(event)) {
                         needContinue = false;
@@ -131,6 +148,30 @@ public class LocalBinLogConnection implements ErosaConnection {
         }
     }
 
+    /**
+     * 1. 非 rdsOos 模式下需要要校验 serverId 是否一致 防止解析其他实例的 binlog
+     * 2. rdsOos 高可用模式下解析 binlog 会有两个 serverId,分别对应着主从节点 binlog解析出来的 serverId
+     * 主从的关系可能会变, 但是 serverId一直都会是这两个 serverId
+     *
+     * @param event
+     */
+    private void checkServerId(LogEvent event) {
+        if (serverId != 0 && event.getServerId() != serverId) {
+            if (isRdsOssMode()) {
+                // 第一次添加主从信息
+                if (firstUpdateRdsOssMasterSlave) {
+                    firstUpdateRdsOssMasterSlave = false;
+                    rdsOssMasterSlaveInfo.add(event.getServerId());
+                } else if (!rdsOssMasterSlaveInfo.contains(event.getServerId())) {
+                    // 主从节点信息之外的节点信息
+                    throw new ServerIdNotMatchException("unexpected rds serverId " + serverId + " in binlog file !");
+                }
+            } else {
+                throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
+            }
+        }
+    }
+
     public void dump(long timestampMills, SinkFunction func) throws IOException {
         List<File> currentBinlogs = binlogs.currentBinlogs();
         File current = currentBinlogs.get(currentBinlogs.size() - 1);
@@ -158,9 +199,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                 while (fetcher.fetch()) {
                     LogEvent event = decoder.decode(fetcher, context);
                     if (event != null) {
-                        if (serverId != 0 && event.getServerId() != serverId) {
-                            throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
-                        }
+                        checkServerId(event);
 
                         if (event.getWhen() > timestampSeconds) {
                             break;
@@ -234,9 +273,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                     if (event == null) {
                         continue;
                     }
-                    if (serverId != 0 && event.getServerId() != serverId) {
-                        throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
-                    }
+                    checkServerId(event);
 
                     if (!coprocessor.publish(event)) {
                         needContinue = false;
@@ -304,9 +341,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                 while (fetcher.fetch()) {
                     LogEvent event = decoder.decode(fetcher, context);
                     if (event != null) {
-                        if (serverId != 0 && event.getServerId() != serverId) {
-                            throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
-                        }
+                        checkServerId(event);
 
                         if (event.getWhen() > timestampSeconds) {
                             break;
@@ -404,6 +439,7 @@ public class LocalBinLogConnection implements ErosaConnection {
 
     public void setServerId(long serverId) {
         this.serverId = serverId;
+        rdsOssMasterSlaveInfo.add(serverId);
     }
 
     public void setParserListener(FileParserListener parserListener) {

@@ -36,7 +36,7 @@ public class MQMessageUtils {
     private static Map<String, List<PartitionData>>    partitionDatas    = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
                                                                              .softValues(),
                                                                              pkHashConfigs -> {
-                                                                                 List<PartitionData> datas = Lists.newArrayList();
+                                                                                 List<PartitionData> datas = new ArrayList<>();
 
                                                                                  String[] pkHashConfigArray = StringUtils.split(StringUtils.replace(pkHashConfigs,
                                                                                      ",",
@@ -75,7 +75,7 @@ public class MQMessageUtils {
     private static Map<String, List<DynamicTopicData>> dynamicTopicDatas = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
                                                                              .softValues(),
                                                                               pkHashConfigs -> {
-                                                                                List<DynamicTopicData> datas = Lists.newArrayList();
+                                                                                List<DynamicTopicData> datas = new ArrayList<>();
                                                                                 String[] dynamicTopicArray = StringUtils.split(StringUtils.replace(pkHashConfigs,
                                                                                     ",",
                                                                                     ";"),
@@ -102,7 +102,7 @@ public class MQMessageUtils {
     private static Map<String, List<TopicPartitionData>> topicPartitionDatas = MigrateMap.makeComputingMap(CacheBuilder.newBuilder()
                                                                                 .softValues(),
                                                                                 tPConfigs -> {
-                                                                                    List<TopicPartitionData> datas = Lists.newArrayList();
+                                                                                    List<TopicPartitionData> datas = new ArrayList<>();
                                                                                     String[] tPArray = StringUtils.split(StringUtils.replace(tPConfigs,
                                                                                             ",",
                                                                                             ";"),
@@ -258,7 +258,7 @@ public class MQMessageUtils {
         List<Entry>[] partitionEntries = new List[partitionsNum];
         for (int i = 0; i < partitionsNum; i++) {
             // 注意一下并发
-            partitionEntries[i] = Collections.synchronizedList(Lists.newArrayList());
+            partitionEntries[i] = Collections.synchronizedList(new ArrayList<>());
         }
 
         for (EntryRowData data : datas) {
@@ -671,17 +671,34 @@ public class MQMessageUtils {
     }
 
     public static class PartitionData {
-
+        /**
+         * 当{schemaName.tableName}没有正则时，就匹配{schemaName.tableName}
+         */
         public String             simpleName;
+        /**
+         * 当{schemaName.tableName}有正则时，匹配正则
+         */
         public AviaterRegexFilter regexFilter;
+        /**
+         * hash模式
+         */
         public HashMode           hashMode = new HashMode();
     }
 
     public static class HashMode {
-
+        /**
+         * 当{schemaName.tableName}:$pk$时，使用自动主键hash
+         */
         public boolean      autoPkHash = false;
+        /**
+         * 当表达式仅为{schemaName.tableName}，没有:时，仅使用table hash
+         */
         public boolean      tableHash  = false;
-        public List<String> pkNames    = Lists.newArrayList();
+
+        /**
+         * 当表达式为{schemaName.tableName}:id^name^age时，pkNames为：id, name, age三个
+         */
+        public List<String> pkNames    = new ArrayList<>();
     }
 
     public static class DynamicTopicData {
