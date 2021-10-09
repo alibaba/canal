@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.connector.rabbitmq.producer;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
@@ -116,7 +117,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
                 // 动态topic
                 Map<String, Message> messageMap = MQMessageUtils.messageTopics(message,
                     destination.getTopic(),
-                    destination.getDynamicTopic());
+                    destination.getDynamicTopic(),
+                        Objects.toString(destination.getDynamicTopicPrefix(),"").trim());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
                     final String topicName = entry.getKey().replace('.', '_');
