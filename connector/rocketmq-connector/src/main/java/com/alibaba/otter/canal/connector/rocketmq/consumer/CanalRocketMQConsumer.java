@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.connector.rocketmq.consumer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -30,7 +31,6 @@ import com.alibaba.otter.canal.connector.core.util.MessageUtil;
 import com.alibaba.otter.canal.connector.rocketmq.config.RocketMQConstants;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
-import com.google.common.collect.Lists;
 
 /**
  * RocketMQ consumer SPI 实现
@@ -142,7 +142,7 @@ public class CanalRocketMQConsumer implements CanalMsgConsumer {
         if (logger.isDebugEnabled()) {
             logger.debug("Get Message: {}", messageExts);
         }
-        List<CommonMessage> messageList = Lists.newArrayList();
+        List<CommonMessage> messageList = new ArrayList<>();
         for (MessageExt messageExt : messageExts) {
             byte[] data = messageExt.getBody();
             if (data != null) {

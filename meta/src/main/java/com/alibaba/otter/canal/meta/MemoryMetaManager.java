@@ -1,9 +1,6 @@
 package com.alibaba.otter.canal.meta;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
@@ -35,7 +32,7 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
 
         cursors = new MapMaker().makeMap();
 
-        destinations = MigrateMap.makeComputingMap(destination -> Lists.newArrayList());
+        destinations = MigrateMap.makeComputingMap(destination -> new ArrayList<>());
     }
 
     public void stop() {
@@ -186,8 +183,8 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
 
         public synchronized Map<Long, PositionRange> listAllPositionRange() {
             Set<Long> batchIdSets = batches.keySet();
-            List<Long> batchIds = Lists.newArrayList(batchIdSets);
-            Collections.sort(Lists.newArrayList(batchIds));
+            List<Long> batchIds = new ArrayList<>(batchIdSets);
+            Collections.sort(new ArrayList<>(batchIds));
 
             return Maps.newHashMap(batches);
         }

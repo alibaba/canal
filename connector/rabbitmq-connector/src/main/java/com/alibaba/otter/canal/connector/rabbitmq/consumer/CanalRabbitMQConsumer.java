@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.connector.rabbitmq.consumer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -23,7 +24,6 @@ import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQConstants;
 import com.alibaba.otter.canal.connector.rabbitmq.producer.AliyunCredentialsProvider;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
-import com.google.common.collect.Lists;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -137,7 +137,7 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
         if (logger.isDebugEnabled()) {
             logger.debug("Get Message: {}", new String(messageData));
         }
-        List<CommonMessage> messageList = Lists.newArrayList();
+        List<CommonMessage> messageList = new ArrayList<>();
         if (!flatMessage) {
             Message message = CanalMessageSerializerUtil.deserializer(messageData);
             messageList.addAll(MessageUtil.convert(message));
