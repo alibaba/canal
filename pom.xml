@@ -180,6 +180,10 @@
                 <version>1.9</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>1.9</version>
@@ -414,6 +418,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire.version}</version>
                 <configuration>
+                    <skipTests>true</skipTests>
                     <useSystemClassLoader>true</useSystemClassLoader>
                     <forkMode>once</forkMode>
                     <argLine>${argline} ${jacocoArgLine}</argLine>

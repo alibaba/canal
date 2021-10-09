@@ -1,14 +1,17 @@
 server:
-  port: 8081
+  port: 18081
 spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
     default-property-inclusion: non_null
+logging:
+  level:
+    com.alibaba.otter.canal.client.adapter.es: DEBUG
 
 canal.conf:
-  mode: tcp #tcp kafka rocketMQ rabbitMQ
-  flatMessage: true
+  mode: kafka #tcp kafka rocketMQ rabbitMQ
+  flatMessage: false
   zookeeperHosts:
   syncBatchSize: 1000
   retries: 0
@@ -46,17 +49,24 @@ canal.conf:
     rabbitmq.password:
     rabbitmq.resource.ownerId:
 
-#  srcDataSources:
-#    defaultDS:
-#      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
-#      username: root
-#      password: 121212
+  srcDataSources:
+    defaultDS:
+      url: jdbc:mysql://127.0.0.1:3306/order?useUnicode=true
+      username: root
+      password: rootroot
   canalAdapters:
-  - instance: example # canal instance Name or mq topic name
-    groups:
-    - groupId: g1
-      outerAdapters:
-      - name: logger
+    - instance: example # canal instance Name or mq topic name
+      groups:
+        - groupId: g4
+          outerAdapters:
+            - name: logger
+            - name: es7
+              key: order
+              hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
+              properties:
+                mode: transport # or rest
+                # security.auth: test:123456 #  only used for rest mode
+                cluster.name: codemao
 #      - name: rdb
 #        key: mysql1
 #        properties:
