@@ -139,6 +139,12 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Pulsar -->
+		<dependency>
+			<groupId>org.apache.pulsar</groupId>
+			<artifactId>pulsar-client</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
