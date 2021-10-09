@@ -1,29 +1,5 @@
 package com.alibaba.otter.canal.connector.rocketmq.producer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.rocketmq.acl.common.AclClientRPCHook;
-import org.apache.rocketmq.acl.common.SessionCredentials;
-import org.apache.rocketmq.client.AccessChannel;
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl;
-import org.apache.rocketmq.client.impl.producer.TopicPublishInfo;
-import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.remoting.RPCHook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.common.CanalException;
@@ -40,6 +16,29 @@ import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
 import com.alibaba.otter.canal.connector.rocketmq.config.RocketMQConstants;
 import com.alibaba.otter.canal.connector.rocketmq.config.RocketMQProducerConfig;
 import com.alibaba.otter.canal.protocol.FlatMessage;
+import org.apache.commons.lang.StringUtils;
+import org.apache.rocketmq.acl.common.AclClientRPCHook;
+import org.apache.rocketmq.acl.common.SessionCredentials;
+import org.apache.rocketmq.client.AccessChannel;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl;
+import org.apache.rocketmq.client.impl.producer.TopicPublishInfo;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.remoting.RPCHook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * RocketMQ Producer SPI 实现
@@ -186,6 +185,12 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
         // 获取当前topic的分区数
         Integer partitionNum = MQMessageUtils.parseDynamicTopicPartition(topicName,
             destination.getDynamicTopicPartitionNum());
+        
+        // 获取topic的队列数为分区数
+        if(partitionNum == null){
+            partitionNum = getTopicDynamicQueuesSize(destination.getEnableDynamicQueuePartition(), topicName);
+        }
+        
         if (partitionNum == null) {
             partitionNum = destination.getPartitionsNum();
         }
@@ -331,6 +336,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 }
 
                 try {
+                    // 阿里云RocketMQ暂不支持批量发送消息，当canal.mq.flatMessage = true时，会发送失败
                     SendResult sendResult = this.defaultMQProducer.send(messages, queue);
                     if (logger.isDebugEnabled()) {
                         logger.debug("Send Message Result: {}", sendResult);
@@ -351,5 +357,19 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
         }
 
         super.stop();
+    }
+    
+    private Integer getTopicDynamicQueuesSize(Boolean enable, String topicName){
+        if(enable!=null && enable){
+            topicName = this.defaultMQProducer.withNamespace(topicName);
+            DefaultMQProducerImpl innerProducer = this.defaultMQProducer.getDefaultMQProducerImpl();
+            TopicPublishInfo topicInfo = innerProducer.getTopicPublishInfoTable().get(topicName);
+            if(topicInfo == null){
+                return null;
+            }else{
+                return topicInfo.getMessageQueueList().size();
+            }
+        }
+        return null;
     }
 }

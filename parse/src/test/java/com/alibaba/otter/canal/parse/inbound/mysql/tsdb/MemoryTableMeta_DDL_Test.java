@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -15,7 +16,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
-import com.google.common.collect.Lists;
 
 /**
  * @author agapple 2017年8月1日 下午7:15:54
@@ -79,7 +79,7 @@ public class MemoryTableMeta_DDL_Test {
         String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
         memoryTableMeta.apply(null, "test", sql, null);
 
-        List<String> tableNames = Lists.newArrayList();
+        List<String> tableNames = new ArrayList<>();
         for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
             tableNames.addAll(schema.showTables());
         }
@@ -99,7 +99,7 @@ public class MemoryTableMeta_DDL_Test {
         String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
         memoryTableMeta.apply(null, "test", sql, null);
 
-        List<String> tableNames = Lists.newArrayList();
+        List<String> tableNames = new ArrayList<>();
         for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
             tableNames.addAll(schema.showTables());
         }

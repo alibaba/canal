@@ -32,6 +32,7 @@
         <module>es7x</module>
         <module>escore</module>
         <module>kudu</module>
+        <module>phoenix</module>
     </modules>
 
     <licenses>

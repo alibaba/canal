@@ -63,7 +63,7 @@ public class AdapterProcessor {
         // load connector consumer
         ExtensionLoader<CanalMsgConsumer> loader = new ExtensionLoader<>(CanalMsgConsumer.class);
         canalMsgConsumer = loader
-            .getExtension(canalClientConfig.getMode().toLowerCase(), CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
+            .getExtension(canalClientConfig.getMode().toLowerCase(),destination ,CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
 
         Properties properties = canalClientConfig.getConsumerProperties();
         properties.put(CanalConstants.CANAL_MQ_FLAT_MESSAGE, canalClientConfig.getFlatMessage());
