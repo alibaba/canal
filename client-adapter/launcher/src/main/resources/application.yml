@@ -49,6 +49,7 @@ canal.conf:
     rabbitmq.password:
     rabbitmq.resource.ownerId:
 
+# canal支持动态加载配置，此为动态加载配置的数据库，结合canal-admin使用
   srcDataSources:
     defaultDS:
       url: jdbc:mysql://127.0.0.1:3306/order?useUnicode=true
