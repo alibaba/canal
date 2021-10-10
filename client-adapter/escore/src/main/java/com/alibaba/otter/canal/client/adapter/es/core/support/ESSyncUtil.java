@@ -279,8 +279,15 @@ public class ESSyncUtil {
 
         TableItem mainTable = schemaItem.getMainTable();
 
+//        for (ColumnItem idColumnItem : schemaItem.getIdFieldItem(mapping).getColumnItems()) {
+//            if ((mainTable.getAlias() == null && idColumnItem.getOwner() == null)
+//                || (mainTable.getAlias() != null && mainTable.getAlias().equals(idColumnItem.getOwner()))) {
+//                idColumns.add(idColumnItem);
+//            }
+//        }
+
         for (ColumnItem idColumnItem : schemaItem.getIdFieldItem(mapping).getColumnItems()) {
-            if ((mainTable.getAlias() == null && idColumnItem.getOwner() == null)
+            if ((mainTable.getAlias() == null)
                 || (mainTable.getAlias() != null && mainTable.getAlias().equals(idColumnItem.getOwner()))) {
                 idColumns.add(idColumnItem);
             }

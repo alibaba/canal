@@ -62,10 +62,10 @@ canal.conf:
             - name: logger
             - name: es7
               key: order
-              hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
+              hosts: http://127.0.0.1:9200 # 127.0.0.1:9200 for rest mode
               properties:
-                mode: transport # or rest
-                # security.auth: test:123456 #  only used for rest mode
+                mode: rest # or rest
+#                security.auth: test:root #  only used for rest mode
                 cluster.name: codemao
 #      - name: rdb
 #        key: mysql1

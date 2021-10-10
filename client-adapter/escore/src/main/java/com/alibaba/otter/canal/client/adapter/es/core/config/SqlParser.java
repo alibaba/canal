@@ -68,7 +68,7 @@ public class SqlParser {
             }
             return schemaItem;
         } catch (Exception e) {
-            throw new ParserException();
+            throw new ParserException(e.getStackTrace().toString());
         }
     }
 
