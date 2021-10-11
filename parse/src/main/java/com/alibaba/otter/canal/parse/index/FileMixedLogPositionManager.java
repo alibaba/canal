@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.parse.index;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,7 +37,7 @@ import com.google.common.collect.MigrateMap;
 public class FileMixedLogPositionManager extends AbstractLogPositionManager {
 
     private final static Logger      logger       = LoggerFactory.getLogger(FileMixedLogPositionManager.class);
-    private final static Charset     charset      = Charset.forName("UTF-8");
+    private final static Charset     charset      = StandardCharsets.UTF_8;
 
     private File                     dataDir;
 

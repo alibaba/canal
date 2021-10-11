@@ -18,6 +18,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
+import com.alibaba.otter.canal.parse.inbound.BinlogConnection;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
@@ -43,7 +44,7 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
  * @author jianghang 2012-6-21 下午04:06:32
  * @version 1.0.0
  */
-public class MysqlEventParser extends AbstractMysqlEventParser implements CanalEventParser, CanalHASwitchable {
+public class MysqlEventParser extends AbstractMysqlEventParser implements CanalEventParser<LogEvent>, CanalHASwitchable {
 
     private CanalHAController    haController                      = null;
 
@@ -72,17 +73,19 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private boolean              autoResetLatestPosMode            = false;    // true:
                                                                                 // binlog被删除之后，自动按最新的数据订阅
 
+    @Override
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
     }
 
-    protected void preDump(ErosaConnection connection) {
+    @Override
+    protected void preDump(BinlogConnection connection) {
         if (!(connection instanceof MysqlConnection)) {
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
         }
 
         if (binlogParser != null && binlogParser instanceof LogEventConvert) {
-            metaConnection = (MysqlConnection) connection.fork();
+            metaConnection = ((MysqlConnection) connection).fork();
             try {
                 metaConnection.connect();
             } catch (IOException e) {
@@ -133,7 +136,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
-    protected void afterDump(ErosaConnection connection) {
+    @Override
+    protected void afterDump(BinlogConnection connection) {
         super.afterDump(connection);
 
         if (connection == null) {
@@ -154,6 +158,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
+    @Override
     public void start() throws CanalParseException {
         if (runningInfo == null) { // 第一次链接主库
             runningInfo = masterInfo;
@@ -162,6 +167,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         super.start();
     }
 
+    @Override
     public void stop() throws CanalParseException {
         if (metaConnection != null) {
             try {
@@ -179,6 +185,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         super.stop();
     }
 
+    @Override
     protected TimerTask buildHeartBeatTimeTask(ErosaConnection connection) {
         if (!(connection instanceof MysqlConnection)) {
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
@@ -193,10 +200,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     }
 
+    @Override
     protected void stopHeartBeat() {
         TimerTask heartBeatTimerTask = this.heartBeatTimerTask;
         super.stopHeartBeat();
-        if (heartBeatTimerTask != null && heartBeatTimerTask instanceof MysqlDetectingTimeTask) {
+        if (heartBeatTimerTask instanceof MysqlDetectingTimeTask) {
             MysqlConnection mysqlConnection = ((MysqlDetectingTimeTask) heartBeatTimerTask).getMysqlConnection();
             try {
                 mysqlConnection.disconnect();
@@ -222,6 +230,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             this.mysqlConnection = mysqlConnection;
         }
 
+        @Override
         public void run() {
             try {
                 if (reconnect) {
@@ -262,11 +271,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     // 处理主备切换的逻辑
+    @Override
     public void doSwitch() {
         AuthenticationInfo newRunningInfo = (runningInfo.equals(masterInfo) ? standbyInfo : masterInfo);
         this.doSwitch(newRunningInfo);
     }
 
+    @Override
     public void doSwitch(AuthenticationInfo newRunningInfo) {
         // 1. 需要停止当前正在复制的过程
         // 2. 找到新的position点
@@ -309,7 +320,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         connection.getConnector().setSendBufferSize(sendBufferSize);
         connection.getConnector().setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
         connection.setCharset(connectionCharset);
-        connection.setReceivedBinlogBytes(receivedBinlogBytes);
+        connection.setReceivedBinlogBytes(receivedBinlogCount);
         // 随机生成slaveId
         if (this.slaveId <= 0) {
             this.slaveId = generateUniqueServerId();
@@ -339,6 +350,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         }
     }
 
+    @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) throws IOException {
         if (isGTIDMode()) {
             // GTID模式下，CanalLogPositionManager里取最后的gtid，没有则取instanc配置中的
@@ -469,7 +481,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                             return null;
                         }
                         // position不存在，从文件头开始
-                        entryPosition.setPosition(BINLOG_START_OFFEST);
+                        entryPosition.setPosition(BINLOG_START_OFFSET);
                         return entryPosition;
                     } else {
                         return specificLogFilePosition;
@@ -547,6 +559,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
             private LogPosition lastPosition;
 
+            @Override
             public boolean sink(LogEvent event) {
                 try {
                     CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, true);
@@ -567,7 +580,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
                     lastPosition = buildLastPosition(entry);
                 } catch (Exception e) {
-                    processSinkError(e, lastPosition, entryPosition.getJournalName(), entryPosition.getPosition());
+                    processSinkError(e, entryPosition, lastPosition == null ? null : lastPosition.getPostion());
                     return false;
                 }
 
@@ -766,8 +779,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             // 开始遍历文件
             mysqlConnection.seek(searchBinlogFile, 4L, endPosition.getGtid(), new SinkFunction<LogEvent>() {
 
-                private LogPosition lastPosition;
-
+                @Override
                 public boolean sink(LogEvent event) {
                     EntryPosition entryPosition = null;
                     try {
@@ -825,10 +837,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                             entryPosition.setGtid(entry.getHeader().getGtid());
                             logPosition.setPostion(entryPosition);
                         }
-
-                        lastPosition = buildLastPosition(entry);
                     } catch (Throwable e) {
-                        processSinkError(e, lastPosition, searchBinlogFile, 4L);
+                        logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s,%s]", searchBinlogFile, 4), e);
                     }
 
                     return running;
@@ -921,14 +931,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setDetectingSQL(String detectingSQL) {
         this.detectingSQL = detectingSQL;
-    }
-
-    public void setDetectingIntervalInSeconds(Integer detectingIntervalInSeconds) {
-        this.detectingIntervalInSeconds = detectingIntervalInSeconds;
-    }
-
-    public void setDetectingEnable(boolean detectingEnable) {
-        this.detectingEnable = detectingEnable;
     }
 
     public void setFallbackIntervalInSeconds(int fallbackIntervalInSeconds) {

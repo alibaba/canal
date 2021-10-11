@@ -146,7 +146,7 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
         return endBuilder.build();
     }
 
-    protected static CanalEntry.Pair createSpecialPair(String key, String value) {
+    protected CanalEntry.Pair createSpecialPair(String key, String value) {
         CanalEntry.Pair.Builder pairBuilder = CanalEntry.Pair.newBuilder();
         pairBuilder.setKey(key);
         pairBuilder.setValue(value);

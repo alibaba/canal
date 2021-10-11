@@ -50,10 +50,9 @@ public class MysqlMultiStageCoprocessor extends AbstractMultiStageCoprocessor<My
 
     private final int                         parserThreadCount;
     private final LogEventConvert             logEventConvert;
-    protected boolean                         filterDmlInsert = false;
-    protected boolean                         filterDmlUpdate = false;
-    protected boolean                         filterDmlDelete = false;
-
+    private boolean                           filterDmlInsert = false;
+    private boolean                           filterDmlUpdate = false;
+    private boolean                           filterDmlDelete = false;
     private ErosaConnection                   connection;
     private GTIDSet                           gtidSet;
     private LogContext                        logContext;

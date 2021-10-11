@@ -6,14 +6,15 @@ import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
+import com.alibaba.otter.canal.parse.inbound.BinlogConnection;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta;
-import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
  * 基于本地binlog文件的复制
@@ -21,7 +22,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  * @author jianghang 2012-6-21 下午04:07:33
  * @version 1.0.0
  */
-public class LocalBinlogEventParser extends AbstractMysqlEventParser implements CanalEventParser {
+public class LocalBinlogEventParser extends AbstractMysqlEventParser implements CanalEventParser<LogEvent> {
 
     // 数据库信息
     protected AuthenticationInfo masterInfo;
@@ -43,7 +44,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     }
 
     @Override
-    protected void preDump(ErosaConnection connection) {
+    protected void preDump(BinlogConnection connection) {
         metaConnection = buildMysqlConnection();
         try {
             metaConnection.connect();
@@ -65,7 +66,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     }
 
     @Override
-    protected void afterDump(ErosaConnection connection) {
+    protected void afterDump(BinlogConnection connection) {
         if (metaConnection != null) {
             try {
                 metaConnection.disconnect();
@@ -76,6 +77,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
         }
     }
 
+    @Override
     public void start() throws CanalParseException {
         if (runningInfo == null) { // 第一次链接主库
             runningInfo = masterInfo;
@@ -159,10 +161,6 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
     }
 
     // ========================= setter / getter =========================
-
-    public void setLogPositionManager(CanalLogPositionManager logPositionManager) {
-        this.logPositionManager = logPositionManager;
-    }
 
     public void setDirectory(String directory) {
         this.directory = directory;

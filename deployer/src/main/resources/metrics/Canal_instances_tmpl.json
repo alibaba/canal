@@ -219,7 +219,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(canal_instance_received_binlog_bytes{destination=~\"$destination\", parser=\"0\"}[2m]) / 1024",
+          "expr": "rate(canal_instance_received_binlog_count{destination=~\"$destination\", parser=\"0\"}[2m]) / 1024",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,
@@ -227,7 +227,7 @@
           "refId": "A"
         },
         {
-          "expr": "rate(canal_instance_client_bytes{destination=~\"$destination\"}[2m]) / 1024",
+          "expr": "rate(canal_instance_client_count{destination=~\"$destination\"}[2m]) / 1024",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,
@@ -235,7 +235,7 @@
           "refId": "B"
         },
         {
-          "expr": "rate(canal_instance_received_binlog_bytes{destination=~\"$destination\", parser=\"1\"}[2m]) / 1024",
+          "expr": "rate(canal_instance_received_binlog_count{destination=~\"$destination\", parser=\"1\"}[2m]) / 1024",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,
@@ -243,7 +243,7 @@
           "refId": "C"
         },
         {
-          "expr": "rate(canal_instance_received_binlog_bytes{destination=~\"$destination\", parser=\"2\"}[2m]) / 1024",
+          "expr": "rate(canal_instance_received_binlog_count{destination=~\"$destination\", parser=\"2\"}[2m]) / 1024",
           "format": "time_series",
           "interval": "15s",
           "intervalFactor": 2,

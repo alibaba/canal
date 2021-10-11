@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
-import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
@@ -86,7 +85,7 @@ public class GroupEventParserTest {
         return mysqlEventPaser;
     }
 
-    private BinlogParser buildParser(AuthenticationInfo info) {
+    private AbstractBinlogParser<LogEvent> buildParser(AuthenticationInfo info) {
         return new AbstractBinlogParser<LogEvent>() {
 
             @Override

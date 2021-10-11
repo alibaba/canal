@@ -1,9 +1,5 @@
 package com.alibaba.otter.canal.prometheus.impl;
 
-import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
-
-import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
-import com.alibaba.otter.canal.parse.inbound.mysql.AbstractMysqlEventParser;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CounterMetricFamily;
 import io.prometheus.client.GaugeMetricFamily;
@@ -20,8 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.parse.CanalEventParser;
+import com.alibaba.otter.canal.parse.ParserMetrics;
+import com.alibaba.otter.canal.parse.inbound.AbstractEventParser;
+import com.alibaba.otter.canal.parse.inbound.group.GroupEventParser;
 import com.alibaba.otter.canal.prometheus.InstanceRegistry;
 import com.google.common.base.Preconditions;
+
+import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
 
 /**
  * @author Chuanyi Li
@@ -31,12 +32,12 @@ public class ParserCollector extends Collector implements InstanceRegistry {
     private static final Logger                              logger                = LoggerFactory.getLogger(ParserCollector.class);
     private static final long                                NANO_PER_MILLI        = 1000 * 1000L;
     private static final String                              PUBLISH_BLOCKING      = "canal_instance_publish_blocking_time";
-    private static final String                              RECEIVED_BINLOG       = "canal_instance_received_binlog_bytes";
+    private static final String                              RECEIVED_BINLOG       = "canal_instance_received_binlog_count";
     private static final String                              PARSER_MODE           = "canal_instance_parser_mode";
     private static final String                              MODE_LABEL            = "parallel";
     private static final String                              PARSER_LABEL          = "parser";
     private static final String                              PUBLISH_BLOCKING_HELP = "Publish blocking time of dump thread in milliseconds";
-    private static final String                              RECEIVED_BINLOG_HELP  = "Received binlog bytes";
+    private static final String                              RECEIVED_BINLOG_HELP  = "Received binlog count (mysql: bytes)";
     private static final String                              MODE_HELP             = "Parser mode(parallel/serial) of instance";
     private final List<String>                               modeLabels            = Arrays.asList(DEST, MODE_LABEL);
     private final List<String>                               parserLabels          = Arrays.asList(DEST, PARSER_LABEL);
@@ -85,7 +86,7 @@ public class ParserCollector extends Collector implements InstanceRegistry {
             blockingCounter.addMetric(holder.parserLabelValues, (holder.eventsPublishBlockingTime.doubleValue() / NANO_PER_MILLI));
         }
         modeGauge.addMetric(holder.modeLabelValues, 1);
-        bytesCounter.addMetric(holder.parserLabelValues, holder.receivedBinlogBytes.doubleValue());
+        bytesCounter.addMetric(holder.parserLabelValues, holder.receivedBinlogCount.doubleValue());
     }
 
     @Override
@@ -93,12 +94,12 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         final String destination = instance.getDestination();
         ParserMetricsHolder holder;
         CanalEventParser parser = instance.getEventParser();
-        if (parser instanceof AbstractMysqlEventParser) {
-            holder = singleHolder(destination, (AbstractMysqlEventParser)parser, "0");
+        if (parser instanceof AbstractEventParser) {
+            holder = singleHolder(destination, (AbstractEventParser) parser, "0");
         } else if (parser instanceof GroupEventParser) {
             holder = groupHolder(destination, (GroupEventParser)parser);
         } else {
-            throw new IllegalArgumentException("CanalEventParser must be either AbstractMysqlEventParser or GroupEventParser.");
+            throw new IllegalArgumentException("CanalEventParser must be either AbstractEventParser or GroupEventParser.");
         }
         Preconditions.checkNotNull(holder);
         ParserMetricsHolder old = instances.put(destination, holder);
@@ -107,15 +108,15 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         }
     }
 
-    private ParserMetricsHolder singleHolder(String destination, AbstractMysqlEventParser parser, String id) {
+    private ParserMetricsHolder singleHolder(String destination, ParserMetrics parser, String id) {
         ParserMetricsHolder holder = new ParserMetricsHolder();
         holder.parserLabelValues = Arrays.asList(destination, id);
         holder.modeLabelValues = Arrays.asList(destination, Boolean.toString(parser.isParallel()));
         holder.eventsPublishBlockingTime = parser.getEventsPublishBlockingTime();
-        holder.receivedBinlogBytes = parser.getReceivedBinlogBytes();
+        holder.receivedBinlogCount = parser.getReceivedBinlogCount();
         holder.isParallel = parser.isParallel();
         Preconditions.checkNotNull(holder.eventsPublishBlockingTime);
-        Preconditions.checkNotNull(holder.receivedBinlogBytes);
+        Preconditions.checkNotNull(holder.receivedBinlogCount);
         return holder;
     }
 
@@ -125,11 +126,11 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         int num = parsers.size();
         for (int i = 0; i < num; i ++) {
             CanalEventParser parser = parsers.get(i);
-            if (parser instanceof AbstractMysqlEventParser) {
-                ParserMetricsHolder single = singleHolder(destination, (AbstractMysqlEventParser)parser, Integer.toString(i + 1));
+            if (parser instanceof AbstractEventParser) {
+                ParserMetricsHolder single = singleHolder(destination, (AbstractEventParser) parser, Integer.toString(i + 1));
                 groupHolder.holders.add(single);
             } else {
-                logger.warn("Null or non AbstractMysqlEventParser, ignore.");
+                logger.warn("Null or non AbstractEventParser, ignore.");
             }
         }
         return groupHolder;
@@ -145,7 +146,7 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         private List<String> parserLabelValues;
         private List<String> modeLabelValues;
         // metrics for single parser
-        private AtomicLong   receivedBinlogBytes;
+        private AtomicLong   receivedBinlogCount;
         private AtomicLong   eventsPublishBlockingTime;
         // parser mode
         private boolean      isParallel;

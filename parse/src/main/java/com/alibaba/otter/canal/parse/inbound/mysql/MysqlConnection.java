@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,7 +47,7 @@ public class MysqlConnection implements ErosaConnection {
 
     private MysqlConnector      connector;
     private long                slaveId;
-    private Charset             charset        = Charset.forName("UTF-8");
+    private Charset             charset        = StandardCharsets.UTF_8;
     private BinlogFormat        binlogFormat;
     private BinlogImage         binlogImage;
 
@@ -85,14 +86,17 @@ public class MysqlConnection implements ErosaConnection {
         connector.setConnTimeout(connTimeout);
     }
 
+    @Override
     public void connect() throws IOException {
         connector.connect();
     }
 
+    @Override
     public void reconnect() throws IOException {
         connector.reconnect();
     }
 
+    @Override
     public void disconnect() throws IOException {
         connector.disconnect();
     }

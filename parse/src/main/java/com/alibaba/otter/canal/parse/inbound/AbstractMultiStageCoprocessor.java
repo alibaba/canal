@@ -35,7 +35,8 @@ public abstract class AbstractMultiStageCoprocessor<Event> extends AbstractCanal
     protected              List<BatchEventProcessor<Event>> eventProcessors  = new ArrayList<>();
     protected              List<ExecutorService>            executorServices = new ArrayList<>();
 
-    public AbstractMultiStageCoprocessor(String destination, EventTransactionBuffer transactionBuffer, int ringBufferSize) {
+    public AbstractMultiStageCoprocessor(String destination, EventTransactionBuffer transactionBuffer,
+                                         int ringBufferSize) {
         this.destination = destination;
         this.transactionBuffer = transactionBuffer;
         this.ringBufferSize = ringBufferSize;

@@ -18,6 +18,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.LocalBinlogEventParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
  * 基于rds binlog备份文件的复制
@@ -25,7 +26,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
  * @author agapple 2017年10月15日 下午1:27:36
  * @since 1.0.25
  */
-public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements CanalEventParser, LocalBinLogConnection.FileParserListener {
+public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements CanalEventParser<LogEvent>, LocalBinLogConnection.FileParserListener {
 
     private String              url;                // openapi地址
     private String              accesskey;          // 云账号的ak
@@ -40,6 +41,7 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
     public RdsLocalBinlogEventParser(){
     }
 
+    @Override
     public void start() throws CanalParseException {
         try {
             Assert.notNull(accesskey);
