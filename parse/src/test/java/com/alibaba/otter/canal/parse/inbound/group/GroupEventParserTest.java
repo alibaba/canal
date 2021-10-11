@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.sink.entry.EntryEventSink;
 import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
-public class GroupEventPaserTest {
+public class GroupEventParserTest {
 
     private static final String DETECTING_SQL = "insert into retl.xdual values(1,now()) on duplicate key update x=now()";
     private static final String MYSQL_ADDRESS = "127.0.0.1";

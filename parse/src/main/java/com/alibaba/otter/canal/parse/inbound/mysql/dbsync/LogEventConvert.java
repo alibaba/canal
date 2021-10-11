@@ -4,23 +4,19 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
-import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.alibaba.otter.canal.parse.inbound.BinlogParser;
+import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
@@ -64,11 +60,11 @@ import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 
 /**
  * 基于{@linkplain LogEvent}转化为Entry对象的处理
- * 
+ *
  * @author jianghang 2013-1-17 下午02:41:14
  * @version 1.0.0
  */
-public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogParser<LogEvent> {
+public class LogEventConvert extends AbstractBinlogParser<LogEvent> {
 
     public static final String          XA_XID              = "XA_XID";
     public static final String          XA_TYPE             = "XA_TYPE";
@@ -76,8 +72,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public static final String          XA_END              = "XA END";
     public static final String          XA_COMMIT           = "XA COMMIT";
     public static final String          XA_ROLLBACK         = "XA ROLLBACK";
-    public static final String          ISO_8859_1          = "ISO-8859-1";
-    public static final String          UTF_8               = "UTF-8";
     public static final int             TINYINT_MAX_VALUE   = 256;
     public static final int             SMALLINT_MAX_VALUE  = 65536;
     public static final int             MEDIUMINT_MAX_VALUE = 16777216;
@@ -88,16 +82,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     public static final String          COMMIT              = "COMMIT";
     public static final Logger          logger              = LoggerFactory.getLogger(LogEventConvert.class);
 
-    private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
-    private volatile AviaterRegexFilter nameBlackFilter;
-    private Map<String, List<String>>   fieldFilterMap      = new HashMap<>();
-    private Map<String, List<String>>   fieldBlackFilterMap = new HashMap<>();
-
     private TableMetaCache              tableMetaCache;
-    private Charset                     charset             = Charset.defaultCharset();
-    private boolean                     filterQueryDcl      = false;
-    private boolean                     filterQueryDml      = false;
-    private boolean                     filterQueryDdl      = false;
     // 是否跳过table相关的解析异常,比如表不存在或者列数量不匹配,issue 92
     private boolean                     filterTableError    = false;
     // 新增rows过滤，用于仅订阅除rows以外的数据
@@ -157,6 +142,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return null;
     }
 
+    @Override
     public void reset() {
         // do nothing
         if (tableMetaCache != null) {
@@ -295,7 +281,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
             RowChange.Builder rowChangeBuilder = RowChange.newBuilder();
             rowChangeBuilder.setIsDdl(!isDml);
-            rowChangeBuilder.setSql(queryString);
+            rowChangeBuilder.setSql(fillUpTableName(queryString, event.getDbName()));
             if (StringUtils.isNotEmpty(event.getDbName())) {// 可能为空
                 rowChangeBuilder.setDdlSchemaName(event.getDbName());
             }
@@ -394,7 +380,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         // mysql5.6支持，需要设置binlog-rows-query-log-events=1，可详细打印原始DML语句
         String queryString = null;
         try {
-            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+            queryString = new String(event.getRowsQuery().getBytes(StandardCharsets.ISO_8859_1), charset.name());
             String tableName = null;
             if (useDruidDdlFilter) {
                 List<DdlResult> results = DruidDdlParser.parse(queryString, null);
@@ -416,7 +402,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         // mariaDb支持，需要设置binlog_annotate_row_events=true，可详细打印原始DML语句
         String queryString = null;
         try {
-            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+            queryString = new String(event.getRowsQuery().getBytes(StandardCharsets.ISO_8859_1), charset.name());
             return buildQueryEntry(queryString, event.getHeader());
         } catch (UnsupportedEncodingException e) {
             throw new CanalParseException(e);
@@ -510,10 +496,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void parseTableMapEvent(TableMapLogEvent event) {
         try {
-            String charsetDbName = new String(event.getDbName().getBytes(ISO_8859_1), charset.name());
+            String charsetDbName = new String(event.getDbName().getBytes(StandardCharsets.ISO_8859_1), charset.name());
             event.setDbname(charsetDbName);
 
-            String charsetTbName = new String(event.getTableName().getBytes(ISO_8859_1), charset.name());
+            String charsetTbName = new String(event.getTableName().getBytes(StandardCharsets.ISO_8859_1), charset.name());
             event.setTblname(charsetTbName);
         } catch (UnsupportedEncodingException e) {
             throw new CanalParseException(e);
@@ -839,7 +825,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                             javaType = Types.CLOB;
                         } else {
                             // byte数组，直接使用iso-8859-1保留对应编码，浪费内存
-                            columnBuilder.setValue(new String((byte[]) value, ISO_8859_1));
+                            columnBuilder.setValue(new String((byte[]) value, StandardCharsets.ISO_8859_1));
                             // columnBuilder.setValueBytes(ByteString.copyFrom((byte[])
                             // value));
                             javaType = Types.BLOB;
@@ -902,7 +888,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         // 记录的是该binlog的start offest
         headerBuilder.setLogfileOffset(logHeader.getLogPos() - logHeader.getEventLen());
         headerBuilder.setServerId(logHeader.getServerId());
-        headerBuilder.setServerenCode(UTF_8);// 经过java输出后所有的编码为unicode
+        headerBuilder.setServerenCode(StandardCharsets.UTF_8.toString());// 经过java输出后所有的编码为unicode
         headerBuilder.setExecuteTime(logHeader.getWhen() * 1000L);
         headerBuilder.setSourceType(Type.MYSQL);
         if (eventType != null) {
@@ -944,32 +930,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return headerBuilder.build();
     }
 
-    private boolean isUpdate(List<Column> bfColumns, String newValue, int index) {
-        if (bfColumns == null) {
-            throw new CanalParseException("ERROR ## the bfColumns is null");
-        }
-
-        if (index < 0) {
-            return false;
-        }
-
-        for (Column column : bfColumns) {
-            if (column.getIndex() == index) {// 比较before / after的column index
-                if (column.getIsNull() && newValue == null) {
-                    // 如果全是null
-                    return false;
-                } else if (newValue != null && (!column.getIsNull() && column.getValue().equals(newValue))) {
-                    // fixed issue #135, old column is Null
-                    // 如果不为null，并且相等
-                    return false;
-                }
-            }
-        }
-
-        // 比如nolob/minial模式下,可能找不到before记录,认为是有变化
-        return true;
-    }
-
     private TableMeta getTableMeta(String dbName, String tbName, boolean useCache, EntryPosition position) {
         try {
             return tableMetaCache.getTableMeta(dbName, tbName, useCache, position);
@@ -1001,97 +961,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return "mysql".equalsIgnoreCase(schema) && "ha_health_check".equalsIgnoreCase(table);
     }
 
-    /**
-     * 字段过滤判断
-     */
-    private boolean needField(List<String> fieldList, List<String> blackFieldList, String columnName) {
-        if (fieldList == null || fieldList.isEmpty()) {
-            return blackFieldList == null || blackFieldList.isEmpty()
-                   || !blackFieldList.contains(columnName.toUpperCase());
-        } else {
-            return fieldList.contains(columnName.toUpperCase());
-        }
-    }
-
-    public static TransactionBegin createTransactionBegin(long threadId) {
-        TransactionBegin.Builder beginBuilder = TransactionBegin.newBuilder();
-        beginBuilder.setThreadId(threadId);
-        return beginBuilder.build();
-    }
-
-    public static TransactionEnd createTransactionEnd(long transactionId) {
-        TransactionEnd.Builder endBuilder = TransactionEnd.newBuilder();
-        endBuilder.setTransactionId(String.valueOf(transactionId));
-        return endBuilder.build();
-    }
-
-    public static Pair createSpecialPair(String key, String value) {
-        Pair.Builder pairBuilder = Pair.newBuilder();
-        pairBuilder.setKey(key);
-        pairBuilder.setValue(value);
-        return pairBuilder.build();
-    }
-
-    public static Entry createEntry(Header header, EntryType entryType, ByteString storeValue) {
-        Entry.Builder entryBuilder = Entry.newBuilder();
-        entryBuilder.setHeader(header);
-        entryBuilder.setEntryType(entryType);
-        entryBuilder.setStoreValue(storeValue);
-        return entryBuilder.build();
-    }
-
-    public void setCharset(Charset charset) {
-        this.charset = charset;
-    }
-
-    public void setNameFilter(AviaterRegexFilter nameFilter) {
-        this.nameFilter = nameFilter;
-        logger.warn("--> init table filter : " + nameFilter.toString());
-    }
-
-    public void setNameBlackFilter(AviaterRegexFilter nameBlackFilter) {
-        this.nameBlackFilter = nameBlackFilter;
-        logger.warn("--> init table black filter : " + nameBlackFilter.toString());
-    }
-
-    public void setFieldFilterMap(Map<String, List<String>> fieldFilterMap) {
-        if (fieldFilterMap != null) {
-            this.fieldFilterMap = fieldFilterMap;
-        } else {
-            this.fieldFilterMap = new HashMap<>();
-        }
-
-        for (Map.Entry<String, List<String>> entry : this.fieldFilterMap.entrySet()) {
-            logger.warn("--> init field filter : " + entry.getKey() + "->" + entry.getValue());
-        }
-    }
-
-    public void setFieldBlackFilterMap(Map<String, List<String>> fieldBlackFilterMap) {
-        if (fieldBlackFilterMap != null) {
-            this.fieldBlackFilterMap = fieldBlackFilterMap;
-        } else {
-            this.fieldBlackFilterMap = new HashMap<>();
-        }
-
-        for (Map.Entry<String, List<String>> entry : this.fieldBlackFilterMap.entrySet()) {
-            logger.warn("--> init field black filter : " + entry.getKey() + "->" + entry.getValue());
-        }
-    }
-
     public void setTableMetaCache(TableMetaCache tableMetaCache) {
         this.tableMetaCache = tableMetaCache;
-    }
-
-    public void setFilterQueryDcl(boolean filterQueryDcl) {
-        this.filterQueryDcl = filterQueryDcl;
-    }
-
-    public void setFilterQueryDml(boolean filterQueryDml) {
-        this.filterQueryDml = filterQueryDml;
-    }
-
-    public void setFilterQueryDdl(boolean filterQueryDdl) {
-        this.filterQueryDdl = filterQueryDdl;
     }
 
     public void setFilterTableError(boolean filterTableError) {
