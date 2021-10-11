@@ -92,8 +92,8 @@ public class HttpAdapter implements OuterAdapter {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("mappingConfig:{}", JSON.toJSONString(this.mappingConfig));
-                logger.debug("mappingConfigCache:{}", JSON.toJSONString(this.mappingConfigCache));
+                logger.debug("mappingConfig: {}", JSON.toJSONString(this.mappingConfig));
+                logger.debug("mappingConfigCache: {}", JSON.toJSONString(this.mappingConfigCache));
             }
 
             this.httpTemplate = new HttpTemplate(serviceUrl, sign);
@@ -111,15 +111,14 @@ public class HttpAdapter implements OuterAdapter {
         if (dmls == null || dmls.isEmpty()) {
             return;
         }
+
+        Map<String, List<Dml>> validDmls = new ConcurrentHashMap<>();
+        Map<String, MappingConfig> configMaps = new ConcurrentHashMap<>();
+
         for (Dml dml : dmls) {
             if (dml == null) {
-                return;
+                continue;
             }
-
-            // if (logger.isDebugEnabled()) {
-            // logger.debug("HTTP DML: {}", JSON.toJSONString(dml,
-            // SerializerFeature.WriteMapNullValue));
-            // }
 
             String destination = StringUtils.trimToEmpty(dml.getDestination());
             String groupId = StringUtils.trimToEmpty(dml.getGroupId());
@@ -132,8 +131,8 @@ public class HttpAdapter implements OuterAdapter {
             }
 
             if (configMap != null) {
-                List<MappingConfig> configs = new ArrayList<>();
-                configMap.values().forEach(config -> {
+                for (String key : configMap.keySet()) {
+                    MappingConfig config = configMap.get(key);
                     boolean matchGroup = false;
                     if (StringUtils.isNotEmpty(config.getGroupId())) {
                         if (config.getGroupId().equals(dml.getGroupId())) {
@@ -174,14 +173,23 @@ public class HttpAdapter implements OuterAdapter {
                         }
 
                         if (shouldSync) {
-                            configs.add(config);
+                            if (!validDmls.containsKey(key)) {
+                                validDmls.put(key, new ArrayList<Dml>());
+                            }
+                            List<Dml> list = validDmls.get(key);
+                            list.add(dml);
+
+                            if (!configMaps.containsKey(key)) {
+                                configMaps.put(key, config);
+                            }
                         }
                     }
-                });
-                if (!configs.isEmpty()) {
-                    configs.forEach(config -> httpSyncService.sync(config, dml));
                 }
             }
+        }
+
+        for (String key : validDmls.keySet()) {
+            this.httpSyncService.sync(configMaps.get(key), validDmls.get(key));
         }
     }
 

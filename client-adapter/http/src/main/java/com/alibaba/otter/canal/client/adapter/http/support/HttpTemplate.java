@@ -6,6 +6,7 @@ package com.alibaba.otter.canal.client.adapter.http.support;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +17,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 
 import java.util.concurrent.CompletableFuture;
-
-import static java.util.concurrent.CompletableFuture.completedFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class HttpTemplate {
     private static Logger logger = LoggerFactory.getLogger(HttpTemplate.class);
@@ -30,27 +30,18 @@ public class HttpTemplate {
         this.sign = sign;
     }
 
-    public void insert(String database, String table, Map<String, Object> data) {
-        this.runAsync(database, table, "insert", data);
+    public CompletableFuture<Boolean> runAsync(String mode, List<Map<String, Object>> dmls) {
+        return CompletableFuture.supplyAsync(() -> {
+            return execute(mode, dmls, null);
+        });
     }
 
-    public void update(String database, String table, Map<String, Object> data) {
-        this.runAsync(database, table, "update", data);
-
-    }
-
-    public void delete(String database, String table, Map<String, Object> data) {
-        this.runAsync(database, table, "delete", data);
-    }
-
-    public CompletableFuture<Boolean> runAsync(String database, String table, String action, Map<String, Object> data) {
+    public boolean execute(String mode, List<Map<String, Object>> dmls, AtomicLong impCount) {
         try {
             Map<String, Object> body = new LinkedHashMap<>();
-            body.put("database", database);
-            body.put("table", table);
-            body.put("action", action);
-            body.put("data", data);
+            body.put("mode", mode);
             body.put("sign", this.sign);
+            body.put("dmls", dmls);
 
             if (logger.isDebugEnabled()) {
                 logger.debug("{}", JSON.toJSONString(body, SerializerFeature.WriteMapNullValue));
@@ -59,10 +50,17 @@ public class HttpTemplate {
             HttpRequest.post(this.serviceUrl).contentType("application/json;charset=UTF-8")
                     .send(JSON.toJSONString(body, SerializerFeature.WriteMapNullValue)).code();
 
-            return completedFuture(true);
+            if (impCount != null) {
+                long total = impCount.addAndGet(dmls.size());
+                if (logger.isInfoEnabled()) {
+                    logger.info("Complete Count: {}", total);
+                }
+            }
+
+            return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return completedFuture(false);
+            return false;
         }
     }
 

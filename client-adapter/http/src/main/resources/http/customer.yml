@@ -9,7 +9,9 @@ httpMapping:
     database: logstore
     table: user
     condition: "where updateTime >= {}"
-   
+    batchSize: 10000
+    threads: 16
+
   monitorTables: # 监控哪些表
     - tableName: logstore.user
       # actions为可选参数，不配置的情况下，同时监控"INSERT", "UPDATE", "DELETE"

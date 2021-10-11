@@ -77,7 +77,6 @@ public class MappingConfig implements AdapterConfig {
 
     public static class HttpMapping implements AdapterMapping {
         private String etlCondition; // etl条件sql
-        private String serviceUrl; // http接口地址
         private List<MonitorTable> monitorTables = new ArrayList<>();
         private EtlSetting etlSetting;
 
@@ -87,14 +86,6 @@ public class MappingConfig implements AdapterConfig {
 
         public void setEtlCondition(String etlCondition) {
             this.etlCondition = etlCondition;
-        }
-
-        public String getServiceUrl() {
-            return this.serviceUrl;
-        }
-
-        public void setServiceUrl(String url) {
-            this.serviceUrl = url;
         }
 
         public List<MonitorTable> getMonitorTables() {
@@ -118,6 +109,8 @@ public class MappingConfig implements AdapterConfig {
         private String database;
         private String table;
         private String condition;
+        private int batchSize = 1000;
+        private int threads = Runtime.getRuntime().availableProcessors();
 
         public String getDatabase() {
             return this.database;
@@ -141,6 +134,22 @@ public class MappingConfig implements AdapterConfig {
 
         public void setCondition(String condition) {
             this.condition = condition;
+        }
+
+        public int getBatchSize() {
+            return this.batchSize;
+        }
+
+        public void setBatchSize(int batchSize) {
+            this.batchSize = batchSize;
+        }
+
+        public int getThreads() {
+            return this.threads;
+        }
+
+        public void setThreads(int threads) {
+            this.threads = threads;
         }
     }
 

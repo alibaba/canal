@@ -21,7 +21,8 @@ import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.Util;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 public class HttpEtlService extends AbstractEtlService {
 
@@ -116,16 +117,18 @@ public class HttpEtlService extends AbstractEtlService {
         EtlSetting etlSetting = ((HttpMapping) adapterMapping).getEtlSetting();
 
         if (logger.isInfoEnabled()) {
-            logger.info("HTTP 批量导入, sql:{}, values:{}", sql, values);
+            logger.info("HTTP 批量导入, threads: {}, batchSize: {}, sql:{}, values:{}", etlSetting.getThreads(),
+                    etlSetting.getBatchSize(), sql, values);
         }
 
         List<String> columns = new ArrayList<>();
 
         try {
-            List<CompletableFuture<Boolean>> futures = new ArrayList<>();
-
+            ExecutorService executor = Util.newFixedThreadPool(etlSetting.getThreads(), 5000L);
+            List<Future<Boolean>> futures = new ArrayList<>();
             Util.sqlRS(ds, sql, values, rs -> {
                 try {
+                    final List<Map<String, Object>> cachedDmls = new ArrayList<>();
                     while (rs.next()) {
                         // 理论上不搞锁也没关系
                         if (columns.size() == 0) {
@@ -145,8 +148,38 @@ public class HttpEtlService extends AbstractEtlService {
                             data.put(col, rs.getObject(col));
                         }
 
-                        CompletableFuture<Boolean> future = this.httpTemplate.runAsync(etlSetting.getDatabase(),
-                                etlSetting.getTable(), "update", data);
+                        Map<String, Object> item = new LinkedHashMap<>();
+                        item.put("database", etlSetting.getDatabase());
+                        item.put("table", etlSetting.getTable());
+                        item.put("action", "update");
+                        item.put("data", data);
+
+                        cachedDmls.add(item);
+
+                        if (cachedDmls.size() >= etlSetting.getBatchSize()) {
+                            List<Map<String, Object>> tempCachedDmls = new ArrayList<>();
+                            for (Map<String, Object> o : cachedDmls) {
+                                tempCachedDmls.add(o);
+                            }
+
+                            cachedDmls.clear();
+
+                            Future<Boolean> future = executor
+                                    .submit(() -> this.httpTemplate.execute("etl", tempCachedDmls, impCount));
+
+                            futures.add(future);
+                        }
+                    }
+
+                    if (cachedDmls.size() > 0) {
+                        List<Map<String, Object>> tempCachedDmls = new ArrayList<>();
+                        for (Map<String, Object> o : cachedDmls) {
+                            tempCachedDmls.add(o);
+                        }
+
+                        Future<Boolean> future = executor
+                                .submit(() -> this.httpTemplate.execute("etl", tempCachedDmls, impCount));
+
                         futures.add(future);
                     }
                 } catch (Exception e) {
@@ -157,11 +190,10 @@ public class HttpEtlService extends AbstractEtlService {
                 return 0;
             });
 
-            for (CompletableFuture<Boolean> future : futures) {
-                if (future.get()) {
-                    impCount.incrementAndGet();
-                }
+            for (Future<Boolean> future : futures) {
+                future.get();
             }
+            executor.shutdown();
             return true;
         } catch (Exception e) {
             errMsg.add("HTTP 数据导入异常 => " + e.getMessage());

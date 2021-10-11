@@ -4,6 +4,8 @@
 
 package com.alibaba.otter.canal.client.adapter.http.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,28 +28,44 @@ public class HttpSyncService {
         this.httpTemplate = httpTemplate;
     }
 
-    public void sync(MappingConfig config, Dml dml) {
+    public void sync(MappingConfig config, List<Dml> dmls) {
         if (config != null) {
             if (logger.isDebugEnabled()) {
                 logger.debug("HttpSyncService.sync: config: {}, dml: {}",
                         JSON.toJSONString(config, SerializerFeature.WriteMapNullValue),
-                        JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                        JSON.toJSONString(dmls, SerializerFeature.WriteMapNullValue));
             }
 
-            String type = dml.getType();
-            String database = dml.getDatabase();
-            String table = dml.getTable();
-            List<Map<String, Object>> list = dml.getData();
+            List<Map<String, Object>> list = new ArrayList<>();
+
+            for (Dml dml : dmls) {
+                String type = dml.getType();
+                String database = dml.getDatabase();
+                String table = dml.getTable();
+                List<Map<String, Object>> dataList = dml.getData();
+
+                // 这边有必要过滤掉数据操作以外的DML
+                if (type != null && type.equalsIgnoreCase("INSERT")) {
+                    type = "insert";
+                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
+                    type = "update";
+                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
+                    type = "delete";
+                }
+
+                if (type != null && dataList.size() > 0) {
+                    Map<String, Object> data = dataList.get(0);
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("database", database);
+                    item.put("table", table);
+                    item.put("action", type);
+                    item.put("data", data);
+                    list.add(item);
+                }
+            }
 
             if (list.size() > 0) {
-                Map<String, Object> data = list.get(0);
-                if (type != null && type.equalsIgnoreCase("INSERT")) {
-                    httpTemplate.insert(database, table, data);
-                } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
-                    httpTemplate.update(database, table, data);
-                } else if (type != null && type.equalsIgnoreCase("DELETE")) {
-                    httpTemplate.delete(database, table, data);
-                }
+                this.httpTemplate.runAsync("sync", list);
             }
         }
     }

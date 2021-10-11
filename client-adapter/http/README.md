@@ -28,6 +28,8 @@ httpMapping:
     database: logstore
     table: user
     condition: "where userId >= {}"
+    batchSize: 3000
+    threads: 16
   
   monitorTables:
     - tableName: logstore.user
