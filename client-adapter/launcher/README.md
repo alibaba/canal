@@ -125,3 +125,17 @@ esMapping:
 * https://zhuanlan.zhihu.com/p/66281594   有赞亿级订单同步的探索与实践
 * https://juejin.cn/post/6945784603508637709  Canal 解决 MySQL 和 Redis 数据同步问题
 * https://blog.csdn.net/u014730658/article/details/108399658  基于canal的client-adapter数据同步必读指南
+
+
+# 编译 & 运行adapter
+## 编译
+1、canal module for otter (root)
+执行mvn install
+![image-20211011170305670](https://tva1.sinaimg.cn/large/008i3skNgy1gvbhb8t8nwj60a70740su02.jpg)
+
+2、 canal client adapter module for otter
+执行mvn install
+![image-20211011170443899](https://tva1.sinaimg.cn/large/008i3skNgy1gvbhcvv82uj60bu06vaa302.jpg)
+
+## 运行
+1、初始化数据库表

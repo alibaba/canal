@@ -95,13 +95,14 @@ public abstract class ESAdapter implements OuterAdapter {
             }
         }
         esSyncService.commit(); // 批次统一提交
-
     }
 
     private void sync(Dml dml) {
         String database = dml.getDatabase();
         String table = dml.getTable();
         Map<String, ESSyncConfig> configMap;
+        table = "`" + table +"`";
+        dml.setTable(table);
         if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
             configMap = dbTableEsSyncConfig.get(StringUtils.trimToEmpty(dml.getDestination()) + "-"
                                                 + StringUtils.trimToEmpty(dml.getGroupId()) + "_" + database + "-"

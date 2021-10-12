@@ -5,6 +5,6 @@ groupId: g4
 esMapping:
   _index: order
   _id: id
-  sql: "select ANY_VALUE(order1.id) as id, ANY_VALUE(order1.order_id) as order_id, ANY_VALUE(order1.placed_at) as placed_at, ANY_VALUE(order1.updated_at) as updated_at, ANY_VALUE(order1.placed_by_id) as placed_by_id, ANY_VALUE(performance.owner_id) as owner_id, ANY_VALUE(employee.department_id) as department_id ,MIN(organization.admin_tree_path) AS admin_tree_path from order1 LEFT JOIN `order`.order_performance performance on performance.order_id = order1.order_id LEFT JOIN internal_account.user_employee  employee ON employee.user_id = performance.owner_id LEFT JOIN ( SELECT id, admin_tree_path FROM internal_account.organization WHERE organization.admin_tree_path IS NOT NULL ) organization ON organization.id = employee.department_id"
+  sql: "SELECT ANY_VALUE(o.id) AS id,ANY_VALUE(o.order_id) AS order_id, ANY_VALUE(o.placed_at) AS placed_at, ANY_VALUE(o.updated_at) AS updated_at, ANY_VALUE(o.placed_by_id) AS placed_by_id, ANY_VALUE(performance.owner_id) AS owner_id, ANY_VALUE(employee.department_id) AS department_id, MIN(organization.admin_tree_path) AS admin_tree_path FROM `order` as o LEFT JOIN `order`.order_performance performance ON performance.order_id = o.order_id LEFT JOIN internal_account.user_employee employee ON employee.user_id = performance.owner_id LEFT JOIN (SELECT id, admin_tree_path FROM internal_account.organization WHERE organization.admin_tree_path IS NOT NULL) organization ON organization.id = employee.department_id"
   etlCondition: "where updated_at>={}"
   commitBatch: 3000
