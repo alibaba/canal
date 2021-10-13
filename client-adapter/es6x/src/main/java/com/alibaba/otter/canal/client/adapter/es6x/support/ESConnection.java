@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
@@ -14,6 +15,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -29,6 +31,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
+import org.elasticsearch.client.GetAliasesResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -129,9 +132,20 @@ public class ESConnection {
 
         } else {
             ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings;
+            AtomicReference<String> writeIndex = new AtomicReference<>();
             try {
+
+                GetAliasesRequest aliasesRequest = new GetAliasesRequest();
+                aliasesRequest.indices(index);
+                GetAliasesResponse aliasesResponse = RestHighLevelClientExt.getAlias(restHighLevelClient, aliasesRequest, RequestOptions.DEFAULT);
+                aliasesResponse.getAliases().forEach((key, aliasMetaDataSet) -> aliasMetaDataSet.forEach(aliasMetaData -> {
+                    if (aliasMetaData.getAlias().equals(index) && aliasMetaData.writeIndex()) {
+                        writeIndex.set(key);
+                    }
+                }));
+                if(writeIndex.get()==null){writeIndex.set(index);}
                 GetMappingsRequest request = new GetMappingsRequest();
-                request.indices(index);
+                request.indices(writeIndex.get());
                 GetMappingsResponse response;
                 // try {
                 // response = restHighLevelClient
@@ -150,7 +164,7 @@ public class ESConnection {
                 logger.error(e.getMessage(), e);
                 return null;
             }
-            mappingMetaData = mappings.get(index).get(type);
+            mappingMetaData = mappings.get(writeIndex.get()).get(type);
         }
         return mappingMetaData;
     }

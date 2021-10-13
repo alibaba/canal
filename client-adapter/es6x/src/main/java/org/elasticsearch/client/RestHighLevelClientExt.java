@@ -4,6 +4,7 @@ import static java.util.Collections.emptySet;
 
 import java.io.IOException;
 
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 
@@ -23,6 +24,17 @@ public class RestHighLevelClientExt {
             options,
             GetMappingsResponse::fromXContent,
             emptySet());
+
+    }
+
+    public static GetAliasesResponse getAlias(RestHighLevelClient restHighLevelClient,
+                                               GetAliasesRequest getAliasesRequest,
+                                                 RequestOptions options) throws IOException {
+        return restHighLevelClient.performRequestAndParseEntity(getAliasesRequest,
+                RequestConvertersExt::getAlias,
+                options,
+                GetAliasesResponse::fromXContent,
+                emptySet());
 
     }
 

@@ -392,9 +392,7 @@ public class ES6xTemplate implements ESTemplate {
     private String getEsType(ESMapping mapping, String fieldName) {
         String key = mapping.get_index() + "-" + mapping.get_type();
         Map<String, String> fieldType = esFieldTypes.get(key);
-        if (fieldType != null) {
-            return fieldType.get(fieldName);
-        } else {
+        if (fieldType == null || fieldType.get(fieldName) == null) {
             MappingMetaData mappingMetaData = esConnection.getMapping(mapping.get_index(), mapping.get_type());
 
             if (mappingMetaData == null) {
@@ -415,8 +413,8 @@ public class ES6xTemplate implements ESTemplate {
             }
             esFieldTypes.put(key, fieldType);
 
-            return fieldType.get(fieldName);
         }
+        return fieldType.get(fieldName);
     }
 
     private void putRelationDataFromRS(ESMapping mapping, SchemaItem schemaItem, ResultSet resultSet,
