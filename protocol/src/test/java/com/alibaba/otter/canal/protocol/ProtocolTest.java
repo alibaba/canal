@@ -1,4 +1,4 @@
-package com.alibaba.otter.canal.server;
+package com.alibaba.otter.canal.protocol;
 
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
