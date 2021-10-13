@@ -8,9 +8,10 @@ spring:
 logging:
   level:
     com.alibaba.otter.canal.client.adapter.es: DEBUG
+#    com.alibaba.otter.canal: DEBUG
 
 canal.conf:
-  mode: kafka #tcp kafka rocketMQ rabbitMQ
+  mode: tcp #tcp kafka rocketMQ rabbitMQ
   flatMessage: false
   zookeeperHosts:
   syncBatchSize: 1000
@@ -56,9 +57,9 @@ canal.conf:
       username: root
       password: rootroot
   canalAdapters:
-    - instance: example # canal instance Name or mq topic name
+    - instance: order1 # canal instance Name or mq topic name
       groups:
-        - groupId: g4
+        - groupId: g1   # kafka模式
           outerAdapters:
             - name: logger
             - name: es7

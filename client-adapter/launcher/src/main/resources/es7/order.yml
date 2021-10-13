@@ -1,6 +1,6 @@
 dataSourceKey: defaultDS
 outerAdapterKey: order
-destination: example
+destination: order1
 groupId: g4
 esMapping:
   _index: order
