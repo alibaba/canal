@@ -85,6 +85,14 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
         if (!StringUtils.isEmpty(flatMessage)) {
             mqProperties.setFlatMessage(Boolean.parseBoolean(flatMessage));
         }
+        String flatMessageOnlyData = properties.getProperty(CanalConstants.CANAL_MQ_FLAT_MESSAGE_ONLYDATA);
+        if (!StringUtils.isEmpty(flatMessageOnlyData)) {
+            mqProperties.setFlatMessageOnlyData(Boolean.parseBoolean(flatMessageOnlyData));
+        }
+        String flatMessageSqlType = properties.getProperty(CanalConstants.CANAL_MQ_FLAT_MESSAGE_SQLTYPE);
+        if (!StringUtils.isEmpty(flatMessageSqlType)) {
+            mqProperties.setFlatMessageSqlType(flatMessageSqlType);
+        }
 
         String databaseHash = PropertiesUtils.getProperty(properties, CanalConstants.CANAL_MQ_DATABASE_HASH);
         if (!StringUtils.isEmpty(databaseHash)) {
