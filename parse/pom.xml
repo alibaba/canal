@@ -77,6 +77,10 @@
 		    <groupId>com.lmax</groupId>
 		    <artifactId>disruptor</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.oceanbase.logproxy.client</groupId>
+			<artifactId>client</artifactId>
+		</dependency>
 		<!-- test dependency -->
 		<dependency>
 			<groupId>junit</groupId>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd"
+       default-autowire="byName">
+
+    <import resource="classpath:spring-ob/base-instance.xml"/>
+
+    <bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
+        <property name="destination" value="${canal.instance.destination}"/>
+        <property name="metaManager" ref="metaManager"/>
+        <property name="eventParser" ref="eventParser"/>
+        <property name="eventSink" ref="eventSink"/>
+        <property name="eventStore" ref="eventStore"/>
+        <property name="alarmHandler" ref="alarmHandler"/>
+        <property name="mqConfig" ref="mqConfig"/>
+    </bean>
+
+    <bean id="metaManager" class="com.alibaba.otter.canal.meta.MemoryMetaManager"/>
+
+    <bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.oceanbase.logproxy.LogProxyEventParser"
+          parent="baseEventParser">
+
+        <!-- 解析位点记录 -->
+        <property name="logPositionManager">
+            <bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager"/>
+        </property>
+
+        <!-- log proxy配置 -->
+        <property name="logProxyConfig">
+            <bean class="com.oceanbase.clogproxy.client.config.ObReaderConfig">
+                <property name="rsList" value="${canal.instance.oceanbase.rsList}"/>
+                <property name="username" value="${canal.instance.oceanbase.username}"/>
+                <property name="password" value="${canal.instance.oceanbase.password}"/>
+                <property name="startTimestamp" value="${canal.instance.oceanbase.startTimestamp:0}"/>
+                <property name="tableWhiteList" value="${canal.instance.filter.regex}"/>
+            </bean>
+        </property>
+
+        <property name="logProxyInfo">
+            <bean class="com.alibaba.otter.canal.parse.support.AuthenticationInfo" init-method="initPwd">
+                <property name="address" value="${canal.instance.oceanbase.logproxy.address}"/>
+            </bean>
+        </property>
+
+        <property name="sslConfig">
+            <bean class="com.alibaba.otter.canal.parse.inbound.oceanbase.logproxy.LogProxyConnection.SslConfig">
+                <constructor-arg index="0" value="${canal.instance.oceanbase.logproxy.sslEnabled:false}"/>
+                <constructor-arg index="1" value="${canal.instance.oceanbase.logproxy.serverCert}"/>
+                <constructor-arg index="2" value="${canal.instance.oceanbase.logproxy.clientCert}"/>
+                <constructor-arg index="3" value="${canal.instance.oceanbase.logproxy.clientKey}"/>
+            </bean>
+        </property>
+    </bean>
+
+</beans>

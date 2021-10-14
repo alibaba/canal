@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd"
+>
+
+    <!-- properties -->
+    <bean class="com.alibaba.otter.canal.instance.spring.support.PropertyPlaceholderConfigurer" lazy-init="false">
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/><!-- 允许system覆盖 -->
+        <property name="locationNames">
+            <list>
+                <value>classpath:canal.properties</value>
+                <value>classpath:${canal.instance.destination:}/instance.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="socketAddressEditor" class="com.alibaba.otter.canal.instance.spring.support.SocketAddressEditor"/>
+    <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+        <property name="propertyEditorRegistrars">
+            <list>
+                <ref bean="socketAddressEditor"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="baseEventParser" class="com.alibaba.otter.canal.parse.inbound.oceanbase.AbstractOceanBaseEventParser"
+          abstract="true">
+
+        <property name="destination" value="${canal.instance.destination}"/>
+        <property name="alarmHandler" ref="alarmHandler"/>
+        <property name="transactionSize" value="${canal.instance.transaction.size:1024}"/>
+        <property name="tenant" value="${canal.instance.oceanbase.tenant}"/>
+        <property name="excludeTenantInDbName" value="${canal.instance.parser.excludeTenantInDbName:true}"/>
+
+        <property name="eventFilter">
+            <bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter">
+                <constructor-arg index="0" value="${canal.instance.filter.regex:.*\..*}"/>
+            </bean>
+        </property>
+
+        <property name="eventBlackFilter">
+            <bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter">
+                <constructor-arg index="0" value="${canal.instance.filter.black.regex:}"/>
+                <constructor-arg index="1" value="false"/>
+            </bean>
+        </property>
+
+        <property name="fieldFilter" value="${canal.instance.filter.field}"/>
+        <property name="fieldBlackFilter" value="${canal.instance.filter.black.field}"/>
+
+        <property name="filterQueryDml" value="${canal.instance.filter.query.dml:false}"/>
+        <property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}"/>
+        <property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}"/>
+        <property name="filterDmlInsert" value="${canal.instance.filter.dml.insert:false}"/>
+        <property name="filterDmlUpdate" value="${canal.instance.filter.dml.update:false}"/>
+        <property name="filterDmlDelete" value="${canal.instance.filter.dml.delete:false}"/>
+
+        <property name="parallel" value="${canal.instance.parser.parallel:true}"/>
+        <property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}"/>
+        <property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}"/>
+        <property name="eventSink" ref="eventSink"/>
+    </bean>
+
+    <bean id="eventSink" class="com.alibaba.otter.canal.sink.entry.EntryEventSink">
+        <property name="eventStore" ref="eventStore"/>
+        <property name="filterTransactionEntry" value="${canal.instance.filter.transaction.entry:false}"/>
+    </bean>
+
+    <bean id="eventStore" class="com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer">
+        <property name="bufferSize" value="${canal.instance.memory.buffer.size:16384}"/>
+        <property name="bufferMemUnit" value="${canal.instance.memory.buffer.memunit:1024}"/>
+        <property name="batchMode" value="${canal.instance.memory.batch.mode:MEMSIZE}"/>
+        <property name="ddlIsolation" value="${canal.instance.get.ddl.isolation:false}"/>
+        <property name="raw" value="${canal.instance.memory.rawEntry:true}"/>
+    </bean>
+
+    <!-- 报警处理类 -->
+    <bean id="alarmHandler" class="com.alibaba.otter.canal.common.alarm.LogAlarmHandler"/>
+
+    <bean id="mqConfig" class="com.alibaba.otter.canal.instance.core.CanalMQConfig">
+        <property name="topic" value="${canal.mq.topic}"/>
+        <property name="dynamicTopic" value="${canal.mq.dynamicTopic}"/>
+        <property name="partition" value="${canal.mq.partition}"/>
+        <property name="partitionsNum" value="${canal.mq.partitionsNum}"/>
+        <property name="partitionHash" value="${canal.mq.partitionHash}"/>
+        <property name="dynamicTopicPartitionNum" value="${canal.mq.dynamicTopicPartitionNum}"/>
+        <property name="enableDynamicQueuePartition" value="${canal.mq.enableDynamicQueuePartition}" />
+    </bean>
+</beans>
