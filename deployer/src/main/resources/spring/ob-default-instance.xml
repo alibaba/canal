@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd"
 >
 
-    <import resource="classpath:spring-ob/base-instance.xml"/>
+    <import resource="classpath:spring/ob-base-instance.xml"/>
 
     <bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
         <property name="destination" value="${canal.instance.destination}"/>
@@ -16,9 +16,23 @@
         <property name="mqConfig" ref="mqConfig"/>
     </bean>
 
-    <bean id="metaManager" class="com.alibaba.otter.canal.meta.FileMixedMetaManager">
-        <property name="dataDir" value="${canal.file.data.dir:../conf}"/>
-        <property name="period" value="${canal.file.flush.period:1000}"/>
+    <bean id="zkClientx" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="com.alibaba.otter.canal.common.zookeeper.ZkClientx"/>
+        <property name="targetMethod" value="getZkClient"/>
+        <property name="arguments">
+            <list>
+                <value>${canal.zkServers:127.0.0.1:2181}</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="metaManager" class="com.alibaba.otter.canal.meta.PeriodMixedMetaManager">
+        <property name="zooKeeperMetaManager">
+            <bean class="com.alibaba.otter.canal.meta.ZooKeeperMetaManager">
+                <property name="zkClientx" ref="zkClientx"/>
+            </bean>
+        </property>
+        <property name="period" value="${canal.zookeeper.flush.period:1000}"/>
     </bean>
 
     <bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.oceanbase.logproxy.LogProxyEventParser"
@@ -28,7 +42,7 @@
         <property name="logPositionManager">
             <bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
                 <constructor-arg>
-                    <bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
+                    <bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager"/>
                 </constructor-arg>
                 <constructor-arg>
                     <bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">

@@ -2,9 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd"
-       default-autowire="byName">
+>
 
-    <import resource="classpath:spring-ob/base-instance.xml"/>
+    <import resource="classpath:spring/ob-base-instance.xml"/>
 
     <bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
         <property name="destination" value="${canal.instance.destination}"/>
@@ -16,14 +16,26 @@
         <property name="mqConfig" ref="mqConfig"/>
     </bean>
 
-    <bean id="metaManager" class="com.alibaba.otter.canal.meta.MemoryMetaManager"/>
+    <bean id="metaManager" class="com.alibaba.otter.canal.meta.FileMixedMetaManager">
+        <property name="dataDir" value="${canal.file.data.dir:../conf}"/>
+        <property name="period" value="${canal.file.flush.period:1000}"/>
+    </bean>
 
     <bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.oceanbase.logproxy.LogProxyEventParser"
           parent="baseEventParser">
 
         <!-- 解析位点记录 -->
         <property name="logPositionManager">
-            <bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager"/>
+            <bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
+                <constructor-arg>
+                    <bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
+                </constructor-arg>
+                <constructor-arg>
+                    <bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
+                        <constructor-arg ref="metaManager"/>
+                    </bean>
+                </constructor-arg>
+            </bean>
         </property>
 
         <!-- log proxy配置 -->
