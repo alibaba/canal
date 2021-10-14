@@ -3,9 +3,10 @@ package com.alibaba.otter.canal.client.adapter.es.core.config;
 import static com.alibaba.druid.sql.ast.expr.SQLBinaryOperator.BooleanAnd;
 import static com.alibaba.druid.sql.ast.expr.SQLBinaryOperator.Equality;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
@@ -30,6 +31,9 @@ import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnIt
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.RelationFieldsPair;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.TableItem;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.util.CollectionUtils;
+
 
 /**
  * ES同步指定sql格式解析
@@ -38,6 +42,11 @@ import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.TableIte
  * @version 1.0.0
  */
 public class SqlParser {
+
+    /**
+     * 子表sql中的逻辑主表名
+     */
+    public static final String OBJ_FIELD_SQL_MAIN_TABLE_LOGIC_NAME = "[$_main]";
 
     /**
      * 解析sql
@@ -53,6 +62,7 @@ public class SqlParser {
 
             SchemaItem schemaItem = new SchemaItem();
             schemaItem.setSql(SQLUtils.toMySqlString(sqlSelectQueryBlock));
+            schemaItem.setLimit(Objects.toString(sqlSelectQueryBlock.getLimit(), null));
             SQLTableSource sqlTableSource = sqlSelectQueryBlock.getFrom();
             List<TableItem> tableItems = new ArrayList<>();
             SqlParser.visitSelectTable(schemaItem, sqlTableSource, tableItems, null);
@@ -68,8 +78,95 @@ public class SqlParser {
             }
             return schemaItem;
         } catch (Exception e) {
-            throw new ParserException();
+            throw new ParserException(e, sql);
         }
+    }
+
+
+    /**
+     * 解析对象字段 sql
+     *
+     * @param objFieldName      对象字段名
+     * @param sql               对象字段 sql
+     * @param mainSchemaItem    主表sql解析结果
+     * @return 视图对象
+     */
+    public static SchemaItem parseObjField(String objFieldName, String sql, SchemaItem mainSchemaItem) {
+        SchemaItem schemaItem = parse(sql);
+
+        try {
+            sql = schemaItem.getSql();
+            Map<String, TableItem> aliasTableItems = schemaItem.getAliasTableItems();
+            if (aliasTableItems.size() > 1) {
+                throw new ParserException("("+objFieldName+") Parse obj field sql error: only support one table!");
+            }
+
+            TableItem mainTableRefItem = new TableItem(schemaItem);
+            mainTableRefItem.setAlias(OBJ_FIELD_SQL_MAIN_TABLE_LOGIC_NAME);
+            mainTableRefItem.setTableName(OBJ_FIELD_SQL_MAIN_TABLE_LOGIC_NAME);
+            mainTableRefItem.setSchema(mainSchemaItem.getMainTable().getSchema());
+
+            //主表sql字段
+            Set<String> mainTableFieldNames = mainSchemaItem.getSelectFields().keySet();
+
+            //子表sql和主表sql的关联字段
+            List<RelationFieldsPair> relationFieldsPairs = new ArrayList<>();
+            //子表sql引用的主表字段
+            List<FieldItem> mainFieldRefList = new ArrayList<>();
+
+            Matcher matcher = Pattern.compile("\\s+(\\S*?)\\s+=\\s+([\"']?\\$\\{(\\S*?)\\}[\"']?)\\s+").matcher(sql + " ");
+            while (matcher.find()){
+                FieldItem leftPart = new FieldItem();
+                FieldItem rightPart = new FieldItem();
+                RelationFieldsPair relationFieldsPair = new RelationFieldsPair(leftPart, rightPart);
+
+                //子表字段，如：“r._id”
+                String childFieldExpr = matcher.group(1);
+                leftPart.setExpr(childFieldExpr);
+                if (StringUtils.isBlank(childFieldExpr)) {
+                    throw new ParserException("("+objFieldName+") Parse obj field sql error: left relation expr parse error = "+matcher.group());
+                }
+
+                //子表字段名，如：“_id”
+                String childFieldName = childFieldExpr.contains(".") ? StringUtils.substringAfter(childFieldExpr, ".") : childFieldExpr;
+                leftPart.setFieldName(childFieldName);
+                if (StringUtils.isBlank(childFieldName)) {
+                    throw new ParserException("("+objFieldName+") Parse obj field sql error: left relation expr parse field name error = "+matcher.group());
+                }
+
+                //主表字段，如：“${_id}”
+                String mainFieldExpr = matcher.group(2);
+                rightPart.setExpr(mainFieldExpr);
+                if (StringUtils.isBlank(mainFieldExpr)) {
+                    throw new ParserException("("+objFieldName+") Parse obj field sql error: right relation expr parse error = "+matcher.group());
+                }
+
+                //主表字段名，如：“_id”
+                String mainFieldName = matcher.group(3);
+                rightPart.setFieldName(mainFieldName);
+                if (StringUtils.isBlank(mainFieldName)) {
+                    throw new ParserException("("+objFieldName+") Parse obj field sql error: right relation expr parse field name error = "+matcher.group());
+                }
+
+                if (mainTableFieldNames.stream().noneMatch(fieldName -> StringUtils.equalsIgnoreCase(mainFieldName, fieldName))) {
+                    throw new ParserException("("+objFieldName+") Parse obj field sql error: unknown main table field name = "+mainFieldName);
+                }
+                mainFieldRefList.add(rightPart);
+                relationFieldsPairs.add(relationFieldsPair);
+            }
+            if (CollectionUtils.isEmpty(relationFieldsPairs)) {
+                throw new ParserException("Child table sql hasn't associated with main table sql field");
+            }
+            mainTableRefItem.setSubQueryFields(mainFieldRefList);
+            mainTableRefItem.setRelationFields(relationFieldsPairs);
+
+            aliasTableItems.put(OBJ_FIELD_SQL_MAIN_TABLE_LOGIC_NAME, mainTableRefItem);
+            schemaItem.getTableItemAliases().put(OBJ_FIELD_SQL_MAIN_TABLE_LOGIC_NAME, Collections.singletonList(mainTableRefItem));
+
+        } catch (Exception e) {
+            throw new ParserException(e, sql);
+        }
+        return schemaItem;
     }
 
     /**

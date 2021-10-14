@@ -21,6 +21,7 @@ public class SchemaItem {
     private volatile Map<String, List<TableItem>> tableItemAliases;
     private volatile Map<String, List<FieldItem>> columnFields;
     private volatile Boolean                      allFieldsSimple;
+    private String                                limit;
 
     public void init() {
         this.getTableItemAliases();
@@ -141,6 +142,14 @@ public class SchemaItem {
         } else {
             return getSelectFields().get(mapping.getPk());
         }
+    }
+
+    public String getLimit() {
+        return limit;
+    }
+
+    public void setLimit(String limit) {
+        this.limit = limit;
     }
 
     public static class TableItem {
