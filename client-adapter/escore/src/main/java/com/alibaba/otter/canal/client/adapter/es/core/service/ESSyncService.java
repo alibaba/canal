@@ -209,7 +209,7 @@ public class ESSyncService {
 
             if (schemaItem.getAliasTableItems().size() == 1 && schemaItem.isAllFieldsSimple()) {
                 // ------单表 & 所有字段都为简单字段------
-                singleTableSimpleFiledUpdate(config, dml, data, old);
+                singleTableSimpleFiledUpdate(config,schemaItem.getMainTable().getAlias(), dml, data, old);
             } else {
                 // ------主表 查询sql来更新------
                 if (schemaItem.getMainTable().getTableName().equalsIgnoreCase(dml.getTable())) {
@@ -263,7 +263,7 @@ public class ESSyncService {
 
                     // 判断主键和所更新的字段是否全为简单字段
                     if (idFieldSimple && allUpdateFieldSimple && !fkChanged) {
-                        singleTableSimpleFiledUpdate(config, dml, data, old);
+                        singleTableSimpleFiledUpdate(config,schemaItem.getMainTable().getAlias(), dml, data, old);
                     } else {
                         mainTableUpdate(config, dml, data, old);
                     }
@@ -810,12 +810,12 @@ public class ESSyncService {
      * @param data 单行data数据
      * @param old 单行old数据
      */
-    private void singleTableSimpleFiledUpdate(ESSyncConfig config, Dml dml, Map<String, Object> data,
+    private void singleTableSimpleFiledUpdate(ESSyncConfig config,String owner, Dml dml, Map<String, Object> data,
                                               Map<String, Object> old) {
         ESMapping mapping = config.getEsMapping();
         Map<String, Object> esFieldData = new LinkedHashMap<>();
 
-        Object idVal = esTemplate.getESDataFromDmlData(mapping, data, old, esFieldData);
+        Object idVal = esTemplate.getESDataFromDmlData(mapping,owner, data, old, esFieldData);
 
         if (logger.isTraceEnabled()) {
             logger.trace("Main table update to es index, destination:{}, table: {}, index: {}, id: {}",
