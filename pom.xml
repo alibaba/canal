@@ -348,8 +348,8 @@
             </dependency>
             <!-- OceanBase Log Client -->
             <dependency>
-                <groupId>com.oceanbase.logproxy.client</groupId>
-                <artifactId>client</artifactId>
+                <groupId>com.oceanbase.logclient</groupId>
+                <artifactId>logproxy-client</artifactId>
                 <version>1.0.0</version>
             </dependency>
         </dependencies>

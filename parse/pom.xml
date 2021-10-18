@@ -78,8 +78,8 @@
 		    <artifactId>disruptor</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.oceanbase.logproxy.client</groupId>
-			<artifactId>client</artifactId>
+			<groupId>com.oceanbase.logclient</groupId>
+			<artifactId>logproxy-client</artifactId>
 		</dependency>
 		<!-- test dependency -->
 		<dependency>
