@@ -23,6 +23,7 @@ import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
 import com.alibaba.otter.canal.connector.core.spi.ExtensionLoader;
+import org.springframework.util.CollectionUtils;
 
 /**
  * 适配处理器
@@ -139,6 +140,7 @@ public class AdapterProcessor {
         if (dmls.size() <= canalClientConfig.getSyncBatchSize()) {
             adapter.sync(dmls);
         } else {
+            List<Exception> exceptionList = new ArrayList<>();
             int len = 0;
             List<Dml> dmlsBatch = new ArrayList<>();
             for (Dml dml : dmls) {
@@ -149,13 +151,27 @@ public class AdapterProcessor {
                     len += dml.getData().size();
                 }
                 if (len >= canalClientConfig.getSyncBatchSize()) {
-                    adapter.sync(dmlsBatch);
+                    try {
+                        adapter.sync(dmlsBatch);
+                    } catch (Exception e) {
+                        logger.error("Error while sync dmls", e);
+                        exceptionList.add(e);
+                    }
                     dmlsBatch.clear();
                     len = 0;
                 }
             }
             if (!dmlsBatch.isEmpty()) {
-                adapter.sync(dmlsBatch);
+                try {
+                    adapter.sync(dmlsBatch);
+                } catch (Exception e) {
+                    logger.error("Error while sync dmls", e);
+                    exceptionList.add(e);
+                }
+            }
+            if (!CollectionUtils.isEmpty(exceptionList)) {
+                List<String> msgs = exceptionList.stream().map(e -> e.getMessage()).collect(Collectors.toList());
+                throw new RuntimeException(org.springframework.util.StringUtils.collectionToDelimitedString(msgs, ","));
             }
         }
     }
