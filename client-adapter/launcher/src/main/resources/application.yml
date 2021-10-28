@@ -12,7 +12,7 @@ logging:
 
 canal.conf:
   mode: tcp #tcp kafka rocketMQ rabbitMQ
-  flatMessage: false
+  flatMessage: true
   zookeeperHosts:
   syncBatchSize: 1000
   retries: 0
@@ -53,7 +53,7 @@ canal.conf:
 # canal支持动态加载配置，此为动态加载配置的数据库，结合canal-admin使用
   srcDataSources:
     defaultDS:
-      url: jdbc:mysql://127.0.0.1:3306/order?useUnicode=true
+      url: jdbc:mysql://127.0.0.1:3306/account?useUnicode=true
       username: root
       password: rootroot
   canalAdapters:
@@ -66,7 +66,7 @@ canal.conf:
               key: order
               hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
               properties:
-                mode: transport # or rest
+                mode: transport # transport or rest
 #                security.auth: test:root #  only used for rest mode
                 cluster.name: codemao
 #      - name: rdb
@@ -87,7 +87,7 @@ canal.conf:
 #        key: postgres1
 #        properties:
 #          jdbc.driverClassName: org.postgresql.Driver
-#          jdbc.url: jdbc:postgresql://localhost:5432/postgres
+#          jdbc.url: jdbc:postgresql://localhost:5432/postegres
 #          jdbc.username: postgres
 #          jdbc.password: 121212
 #          threads: 1

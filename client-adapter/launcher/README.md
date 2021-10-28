@@ -119,7 +119,7 @@ esMapping:
 * https://github.com/alibaba/canal/pull/3723
 * https://github.com/alibaba/canal/issues/3328
 * https://github.com/alibaba/canal/issues/2023 
-    如果修改主表字段，从表刚好有同名字段，ES中会一并修改从表对应的字段#2023
+如果修改主表字段，从表刚好有同名字段，ES中会一并修改从表对应的字段#2023
 * In aggregated query without GROUP BY, expression #1 of SELECT list contains nonaggregated column 'order.order1.id'; this is incompatible with sql_mode=only_full_group_by
 * https://docs.oracle.com/cd/E17952_01/mysql-5.6-en/group-by-handling.html
 * https://zhuanlan.zhihu.com/p/66281594   有赞亿级订单同步的探索与实践
