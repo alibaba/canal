@@ -7,7 +7,7 @@ esMapping:
   _id: user_id
   #sql: "SELECT ANY_VALUE(o.id) AS id,ANY_VALUE(o.order_id) AS order_id, ANY_VALUE(o.placed_at) AS placed_at, ANY_VALUE(o.updated_at) AS updated_at, ANY_VALUE(o.placed_by_id) AS placed_by_id, ANY_VALUE(performance.owner_id) AS owner_id, ANY_VALUE(employee.department_id) AS department_id, MIN(organization.admin_tree_path) AS admin_tree_path FROM `order` as o LEFT JOIN `order`.order_performance performance ON performance.order_id = o.order_id LEFT JOIN internal_account.user_employee employee ON employee.user_id = performance.owner_id LEFT JOIN (SELECT id, admin_tree_path FROM internal_account.organization WHERE organization.admin_tree_path IS NOT NULL) organization ON organization.id = employee.department_id"
   # sql: "select id, order_id from `order` o"
-  sql: "select u.id as user_id, a.hashed_phone_number as hashed_phone_number, u.username as username, u.fullname as fullname, u.nickname as nickname from user u inner join basic_auth a on u.id = a.user_id  inner join user_extension e on u.id = e.user_id"
+  sql: "select u.id as user_id, a.hashed_phone_number as hashed_phone_number, u.username as username, u.fullname as fullname, u.nickname as nickname, u.created_at as created_at from user u inner join basic_auth a on u.id = a.user_id  inner join user_extension e on u.id = e.user_id"
   etlCondition: "where u.id>={}"
   commitBatch: 3000
 
