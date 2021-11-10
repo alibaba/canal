@@ -25,10 +25,10 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
 
     public static final Logger logger = LoggerFactory.getLogger(AbstractBinlogParser.class);
 
-    protected static final String TABLE     = "TABLE";
-    protected static final String ALTER     = "ALTER";
-    protected static final String RENAME    = "RENAME";
-    protected static final String TO        = "TO";
+    protected static final String TABLE  = "TABLE";
+    protected static final String ALTER  = "ALTER";
+    protected static final String RENAME = "RENAME";
+    protected static final String TO     = "TO";
 
     /**
      * 字符集
@@ -65,49 +65,78 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
     }
 
     /**
+     * 从DDL中的表名获取不带库名和反斜线的表名
+     *
+     * @param ddlTableName DDL语句中的表名
+     * @return 不带库名和反斜线的表名
+     */
+    protected String getCleanTableName(String ddlTableName) {
+        String table = ddlTableName.substring(ddlTableName.indexOf(".") + 1);
+        if (table.startsWith("`") && table.endsWith("`")) {
+            table = table.substring(1, table.length() - 1);
+        }
+        return table;
+    }
+
+    /**
      * 补全DDL语句中的表名为 "库名.表名"
      *
-     * @param ddl DDL语句
+     * @param arr 原本的DDL语句数组
      * @param db  db名
-     * @return 补全后的库名
+     * @return 补全表名后的DDL
      */
-    public String fillUpTableName(String ddl, String db) {
-        boolean modified = false;
-        if (StringUtils.isNotBlank(ddl) && StringUtils.isNotBlank(db)) {
-            String[] arr = ddl.split("\\s+");
-            // ddl on table
-            if (arr.length > 2 && TABLE.equalsIgnoreCase(arr[1])) {
-                if (!arr[2].contains(".")) {
-                    arr[2] = String.format("`%s`.%s", db, arr[2]);
-                    modified = true;
-                }
-                // rename
-                switch (arr[0].toUpperCase()) {
-                    case ALTER:
-                        if (arr.length > 5 && RENAME.equalsIgnoreCase(arr[3]) && TO.equalsIgnoreCase(arr[4])) {
-                            if (!arr[5].contains(".")) {
-                                arr[5] = String.format("`%s`.%s", db, arr[5]);
-                                modified = true;
-                            }
-                        }
-                        break;
-                    case RENAME:
-                        if (arr.length > 4 && TO.equalsIgnoreCase(arr[3])) {
-                            if (!arr[4].contains(".")) {
-                                arr[4] = String.format("`%s`.%s", db, arr[4]);
-                                modified = true;
-                            }
-                        }
-                        break;
-                    default:
-                        // not rename, do nothing
-                }
-            }
-            if (modified) {
-                ddl = String.join(" ", arr);
+    protected String getSqlWithCompleteTableName(String[] arr, String db) {
+        // create/drop/alter/rename table name ...
+        if (!arr[2].contains(".")) {
+            arr[2] = String.format("%s.%s", structureSchema(db), structureSchema(arr[2]));
+            // rename
+            switch (arr[0].toUpperCase()) {
+                // alter table name1 rename to name2, table name index are 2 and 5.
+                case ALTER:
+                    if (arr.length > 5 && RENAME.equalsIgnoreCase(arr[3]) && TO.equalsIgnoreCase(arr[4])) {
+                        arr[5] = String.format("%s.%s", structureSchema(db), structureSchema(arr[5]));
+                    }
+                    break;
+                // rename table name1 to name2, table name index are 2 and 4.
+                case RENAME:
+                    if (arr.length > 4 && TO.equalsIgnoreCase(arr[3])) {
+                        arr[4] = String.format("%s.%s", structureSchema(db), structureSchema(arr[4]));
+                    }
+                    break;
+                default:
+                    // not rename, do nothing
             }
         }
-        return ddl;
+        return String.join(" ", arr);
+    }
+
+    /**
+     * 切分操作数据表的DDL并返回切分后的字符串数组，如果不是操作表的语句则返回null
+     *
+     * @param ddl DDL语句
+     * @return 字符串数组
+     */
+    protected String[] splitTableDdl(String ddl) {
+        if (StringUtils.isNotBlank(ddl)) {
+            String[] arr = ddl.split("\\s+");
+            if (arr.length > 2 && TABLE.equalsIgnoreCase(arr[1])) {
+                return arr;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 补全schema中的反引号
+     *
+     * @param schema 原schema
+     * @return 处理后的schema
+     */
+    protected String structureSchema(String schema) {
+        if (schema.startsWith("`") && schema.endsWith("`")) {
+            return schema;
+        }
+        return "`" + schema + "`";
     }
 
     /**
@@ -120,13 +149,15 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
      */
     protected boolean needField(List<String> fieldList, List<String> blackFieldList, String columnName) {
         if (fieldList == null || fieldList.isEmpty()) {
-            return blackFieldList == null || blackFieldList.isEmpty() || !blackFieldList.contains(columnName.toUpperCase());
+            return blackFieldList == null || blackFieldList.isEmpty()
+                   || !blackFieldList.contains(columnName.toUpperCase());
         } else {
             return fieldList.contains(columnName.toUpperCase());
         }
     }
 
-    protected CanalEntry.Entry createEntry(CanalEntry.Header header, CanalEntry.EntryType entryType, ByteString storeValue) {
+    protected CanalEntry.Entry createEntry(CanalEntry.Header header, CanalEntry.EntryType entryType,
+                                           ByteString storeValue) {
         CanalEntry.Entry.Builder entryBuilder = CanalEntry.Entry.newBuilder();
         entryBuilder.setHeader(header);
         entryBuilder.setEntryType(entryType);

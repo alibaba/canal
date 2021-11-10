@@ -71,14 +71,8 @@ public class RdbMirrorDbSyncService {
                     logger.debug("DDL: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
                 }
                 executeDdl(mirrorDbConfig, dml);
-                // 删除对应库表配置
-                if (StringUtils.isNotEmpty(dml.getTable())) {
-                    rdbSyncService.getColumnsTypeCache().remove(destination + "." + database + "." + dml.getTable());
-                    mirrorDbConfig.getTableConfig().remove(dml.getTable());
-                } else {
-                    rdbSyncService.getColumnsTypeCache().clear();
-                    mirrorDbConfig.getTableConfig().clear();
-                }
+                rdbSyncService.getColumnsTypeCache().remove(destination + "." + database + "." + dml.getTable());
+                mirrorDbConfig.getTableConfig().remove(dml.getTable()); // 删除对应库表配置
             } else {
                 // DML
                 initMappingConfig(dml.getTable(), mirrorDbConfig.getMappingConfig(), mirrorDbConfig, dml);
