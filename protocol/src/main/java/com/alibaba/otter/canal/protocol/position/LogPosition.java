@@ -10,7 +10,7 @@ public class LogPosition extends Position {
 
     private static final long serialVersionUID = 3875012010277005819L;
     private LogIdentity       identity;
-    private EntryPosition     postion;
+    private EntryPosition     position;
 
     public LogIdentity getIdentity() {
         return identity;
@@ -20,12 +20,12 @@ public class LogPosition extends Position {
         this.identity = identity;
     }
 
-    public EntryPosition getPostion() {
-        return postion;
+    public EntryPosition getPosition() {
+        return position;
     }
 
-    public void setPostion(EntryPosition postion) {
-        this.postion = postion;
+    public void setPosition(EntryPosition position) {
+        this.position = position;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class LogPosition extends Position {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((identity == null) ? 0 : identity.hashCode());
-        result = prime * result + ((postion == null) ? 0 : postion.hashCode());
+        result = prime * result + ((position == null) ? 0 : position.hashCode());
         return result;
     }
 
@@ -56,11 +56,11 @@ public class LogPosition extends Position {
         } else if (!identity.equals(other.identity)) {
             return false;
         }
-        if (postion == null) {
-            if (other.postion != null) {
+        if (position == null) {
+            if (other.position != null) {
                 return false;
             }
-        } else if (!postion.equals(other.postion)) {
+        } else if (!position.equals(other.position)) {
             return false;
         }
         return true;

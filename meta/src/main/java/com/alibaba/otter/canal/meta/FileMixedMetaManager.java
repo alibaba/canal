@@ -96,9 +96,9 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                     // 定时将内存中的最新值刷到file中，多次变更只刷一次
                     if (logger.isInfoEnabled()) {
                         LogPosition cursor = (LogPosition) getCursor(clientIdentity);
-                        logger.info("clientId:{} cursor:[{},{},{},{},{}] address[{}]", clientIdentity.getClientId(), cursor.getPostion().getJournalName(),
-                                cursor.getPostion().getPosition(), cursor.getPostion().getTimestamp(),
-                                cursor.getPostion().getServerId(), cursor.getPostion().getGtid(),
+                        logger.info("clientId:{} cursor:[{},{},{},{},{}] address[{}]", clientIdentity.getClientId(), cursor.getPosition().getJournalName(),
+                                cursor.getPosition().getPosition(), cursor.getPosition().getTimestamp(),
+                                cursor.getPosition().getServerId(), cursor.getPosition().getGtid(),
                                 cursor.getIdentity().getSourceAddress().toString());
                     }
                     flushDataToFile(clientIdentity.getDestination());

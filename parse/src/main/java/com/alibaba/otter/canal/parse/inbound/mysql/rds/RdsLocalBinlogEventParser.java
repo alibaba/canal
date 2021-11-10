@@ -40,6 +40,7 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
     public RdsLocalBinlogEventParser(){
     }
 
+    @Override
     public void start() throws CanalParseException {
         try {
             Assert.notNull(accesskey);
@@ -163,9 +164,9 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             // 处理下logManager位点问题
             LogPosition logPosition = logPositionManager.getLatestIndexBy(destination);
             Long timestamp = 0L;
-            if (logPosition != null && logPosition.getPostion() != null) {
-                timestamp = logPosition.getPostion().getTimestamp();
-                EntryPosition position = logPosition.getPostion();
+            if (logPosition != null && logPosition.getPosition() != null) {
+                timestamp = logPosition.getPosition().getTimestamp();
+                EntryPosition position = logPosition.getPosition();
                 LogPosition newLogPosition = new LogPosition();
                 String journalName = position.getJournalName();
                 int sepIdx = journalName.indexOf(".");
@@ -173,7 +174,7 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
                 int index = NumberUtils.toInt(fileIndex) + 1;
                 String newJournalName = journalName.substring(0, sepIdx) + "."
                                         + StringUtils.leftPad(String.valueOf(index), fileIndex.length(), "0");
-                newLogPosition.setPostion(new EntryPosition(newJournalName,
+                newLogPosition.setPosition(new EntryPosition(newJournalName,
                     4L,
                     position.getTimestamp(),
                     position.getServerId()));

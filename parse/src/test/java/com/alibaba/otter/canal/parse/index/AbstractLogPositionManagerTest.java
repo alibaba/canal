@@ -34,7 +34,7 @@ public class AbstractLogPositionManagerTest extends AbstractZkTest {
     protected LogPosition buildPosition(int number) {
         LogPosition position = new LogPosition();
         position.setIdentity(new LogIdentity(new InetSocketAddress(MYSQL_ADDRESS, 3306), 1234L));
-        position.setPostion(new EntryPosition("mysql-bin.000000" + number, 106L, new Date().getTime()));
+        position.setPosition(new EntryPosition("mysql-bin.000000" + number, 106L, new Date().getTime()));
         return position;
     }
 }

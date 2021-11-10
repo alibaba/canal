@@ -448,7 +448,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         // set gtid
         position.setGtid(entry.getHeader().getGtid());
 
-        logPosition.setPostion(position);
+        logPosition.setPosition(position);
 
         LogIdentity identity = new LogIdentity(runningInfo.getAddress(), -1L);
         logPosition.setIdentity(identity);
@@ -458,7 +458,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected void processSinkError(Throwable e, LogPosition lastPosition, String startBinlogFile, Long startPosition) {
         if (lastPosition != null) {
             logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s]",
-                lastPosition.getPostion()),
+                lastPosition.getPosition()),
                 e);
         } else {
             logger.warn(String.format("ERROR ## parse this event has an error , last position : [%s,%s]",

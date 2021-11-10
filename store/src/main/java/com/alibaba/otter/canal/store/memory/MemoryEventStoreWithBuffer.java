@@ -275,7 +275,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         long next = current;
         long end = current;
         // 如果startPosition为null，说明是第一次，默认+1处理
-        if (startPosition == null || !startPosition.getPostion().isIncluded()) { // 第一次订阅之后，需要包含一下start位置，防止丢失第一条记录
+        if (startPosition == null || !startPosition.getPosition().isIncluded()) { // 第一次订阅之后，需要包含一下start位置，防止丢失第一条记录
             next = next + 1;
         }
 
@@ -551,7 +551,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             long current = getSequence.get();
             long maxAbleSequence = putSequence.get();
             long next = current;
-            if (startPosition == null || !startPosition.getPostion().isIncluded()) { // 第一次订阅之后，需要包含一下start位置，防止丢失第一条记录
+            if (startPosition == null || !startPosition.getPosition().isIncluded()) { // 第一次订阅之后，需要包含一下start位置，防止丢失第一条记录
                 next = next + 1;// 少一条数据
             }
 

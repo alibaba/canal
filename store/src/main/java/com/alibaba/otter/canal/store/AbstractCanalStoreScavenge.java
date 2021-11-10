@@ -63,13 +63,13 @@ public abstract class AbstractCanalStoreScavenge extends AbstractCanalLifeCycle 
     private LogPosition min(LogPosition position1, LogPosition position2) {
         if (position1.getIdentity().equals(position2.getIdentity())) {
             // 首先根据文件进行比较
-            if (position1.getPostion().getJournalName().compareTo(position2.getPostion().getJournalName()) < 0) {
+            if (position1.getPosition().getJournalName().compareTo(position2.getPosition().getJournalName()) < 0) {
                 return position2;
-            } else if (position1.getPostion().getJournalName().compareTo(position2.getPostion().getJournalName()) > 0) {
+            } else if (position1.getPosition().getJournalName().compareTo(position2.getPosition().getJournalName()) > 0) {
                 return position1;
             } else {
                 // 根据offest进行比较
-                if (position1.getPostion().getPosition() < position2.getPostion().getPosition()) {
+                if (position1.getPosition().getPosition() < position2.getPosition().getPosition()) {
                     return position2;
                 } else {
                     return position1;
@@ -77,7 +77,7 @@ public abstract class AbstractCanalStoreScavenge extends AbstractCanalLifeCycle 
             }
         } else {
             // 不同的主备库，根据时间进行比较
-            if (position1.getPostion().getTimestamp() < position2.getPostion().getTimestamp()) {
+            if (position1.getPosition().getTimestamp() < position2.getPosition().getTimestamp()) {
                 return position2;
             } else {
                 return position1;

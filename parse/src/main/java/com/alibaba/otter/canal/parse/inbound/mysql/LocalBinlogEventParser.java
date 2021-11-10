@@ -152,7 +152,7 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
                 }
             }
         } else {
-            return logPosition.getPostion();
+            return logPosition.getPosition();
         }
 
         return null;

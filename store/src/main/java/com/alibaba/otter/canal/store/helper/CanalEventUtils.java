@@ -20,13 +20,13 @@ public class CanalEventUtils {
     public static LogPosition min(LogPosition position1, LogPosition position2) {
         if (position1.getIdentity().equals(position2.getIdentity())) {
             // 首先根据文件进行比较
-            if (position1.getPostion().getJournalName().compareTo(position2.getPostion().getJournalName()) > 0) {
+            if (position1.getPosition().getJournalName().compareTo(position2.getPosition().getJournalName()) > 0) {
                 return position2;
-            } else if (position1.getPostion().getJournalName().compareTo(position2.getPostion().getJournalName()) < 0) {
+            } else if (position1.getPosition().getJournalName().compareTo(position2.getPosition().getJournalName()) < 0) {
                 return position1;
             } else {
                 // 根据offest进行比较
-                if (position1.getPostion().getPosition() > position2.getPostion().getPosition()) {
+                if (position1.getPosition().getPosition() > position2.getPosition().getPosition()) {
                     return position2;
                 } else {
                     return position1;
@@ -34,7 +34,7 @@ public class CanalEventUtils {
             }
         } else {
             // 不同的主备库，根据时间进行比较
-            if (position1.getPostion().getTimestamp() > position2.getPostion().getTimestamp()) {
+            if (position1.getPosition().getTimestamp() > position2.getPosition().getTimestamp()) {
                 return position2;
             } else {
                 return position1;
@@ -56,7 +56,7 @@ public class CanalEventUtils {
         position.setGtid(event.getGtid());
 
         LogPosition logPosition = new LogPosition();
-        logPosition.setPostion(position);
+        logPosition.setPosition(position);
         logPosition.setIdentity(event.getLogIdentity());
         return logPosition;
     }
@@ -76,7 +76,7 @@ public class CanalEventUtils {
         position.setGtid(event.getGtid());
 
         LogPosition logPosition = new LogPosition();
-        logPosition.setPostion(position);
+        logPosition.setPosition(position);
         logPosition.setIdentity(event.getLogIdentity());
         return logPosition;
     }
@@ -85,7 +85,7 @@ public class CanalEventUtils {
      * 判断当前的entry和position是否相同
      */
     public static boolean checkPosition(Event event, LogPosition logPosition) {
-        EntryPosition position = logPosition.getPostion();
+        EntryPosition position = logPosition.getPosition();
         boolean result = position.getTimestamp().equals(event.getExecuteTime());
 
         boolean exactely = (StringUtils.isBlank(position.getJournalName()) && position.getPosition() == null);

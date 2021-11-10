@@ -217,7 +217,7 @@ public class MysqlEventParserTest {
             public LogPosition getLatestIndexBy(String destination) {
                 LogPosition masterLogPosition = new LogPosition();
                 masterLogPosition.setIdentity(new LogIdentity(new InetSocketAddress("127.0.0.1", 3306), 1234L));
-                masterLogPosition.setPostion(new EntryPosition(1322803601000L));
+                masterLogPosition.setPosition(new EntryPosition(1322803601000L));
                 return masterLogPosition;
             }
         });
