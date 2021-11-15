@@ -1,16 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.kudu;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfigLoader;
@@ -20,8 +9,18 @@ import com.alibaba.otter.canal.client.adapter.kudu.service.KuduSyncService;
 import com.alibaba.otter.canal.client.adapter.kudu.support.KuduTemplate;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author liuyadong
@@ -34,8 +33,6 @@ public class KuduAdapter implements OuterAdapter {
 
     private Map<String, KuduMappingConfig>              kuduMapping        = new ConcurrentHashMap<>();                 // 文件名对应配置
     private Map<String, Map<String, KuduMappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                 // 库名-表名对应配置
-
-    private String                                      dataSourceKey;
 
     private KuduTemplate                                kuduTemplate;
 
@@ -58,12 +55,13 @@ public class KuduAdapter implements OuterAdapter {
         this.envProperties = envProperties;
         Map<String, KuduMappingConfig> kuduMappingTmp = KuduMappingConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置,获取连接key，key为配置文件名称
-        kuduMappingTmp.forEach((key, mappingConfig) -> {
-            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
-                    .equalsIgnoreCase(configuration.getKey()))) {
-                kuduMapping.put(key, mappingConfig);
-                dataSourceKey = mappingConfig.getDataSourceKey();
+        kuduMappingTmp.forEach((key, config) -> {
+            boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                    .equalsIgnoreCase(configuration.getKey());
+            boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                    .startsWith(config.getDestination() + "_" + config.getGroupId());
+            if (sameMatch || prefixMatch) {
+                kuduMapping.put(key, config);
             }
         });
         // 判断目标字段是否为空
@@ -85,6 +83,8 @@ public class KuduAdapter implements OuterAdapter {
             Map<String, KuduMappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
                 k1 -> new ConcurrentHashMap<>());
             configMap.put(configName, mappingConfig);
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), configName,
+                    configuration.getKey());
         }
         Map<String, String> properties = configuration.getProperties();
 

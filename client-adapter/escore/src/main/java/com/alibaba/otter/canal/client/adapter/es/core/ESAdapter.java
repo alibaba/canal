@@ -1,14 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.es.core;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
@@ -21,7 +12,16 @@ import com.alibaba.otter.canal.client.adapter.es.core.support.ESTemplate;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.SPI;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * ES外部适配器
@@ -61,9 +61,11 @@ public abstract class ESAdapter implements OuterAdapter {
             Map<String, ESSyncConfig> esSyncConfigTmp = ESSyncConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
             esSyncConfigTmp.forEach((key, config) -> {
-                if ((config.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
-                        .equalsIgnoreCase(configuration.getKey()))) {
+                boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                        .equalsIgnoreCase(configuration.getKey());
+                boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                        .startsWith(config.getDestination() + "_" + config.getGroupId());
+                if (sameMatch || prefixMatch) {
                     esSyncConfig.put(key, config);
                 }
             });
@@ -73,6 +75,8 @@ public abstract class ESAdapter implements OuterAdapter {
                 ESSyncConfig config = entry.getValue();
 
                 addSyncConfigToCache(configName, config);
+                FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), configName,
+                        configuration.getKey());
             }
 
             esSyncService = new ESSyncService(esTemplate);
