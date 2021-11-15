@@ -230,6 +230,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum SourcingType {
+        POSTGRESQL,
         /** mysql DB */
         MYSQL,
         /** localBinLog */
@@ -249,6 +250,10 @@ public class CanalParameter implements Serializable {
 
         public boolean isOracle() {
             return this.equals(SourcingType.ORACLE);
+        }
+
+        public boolean isPostgresql() {
+            return this.equals(SourcingType.POSTGRESQL);
         }
 
         public boolean isGroup() {

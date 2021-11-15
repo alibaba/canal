@@ -1,20 +1,5 @@
 package com.alibaba.otter.canal.instance.manager;
 
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
@@ -46,6 +31,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsBinlogEventParserProxy
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFactory;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBBuilder;
+import com.alibaba.otter.canal.parse.inbound.pgsql.PgsqlEventParser;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.index.FailbackLogPositionManager;
 import com.alibaba.otter.canal.parse.index.MemoryLogPositionManager;
@@ -59,6 +45,19 @@ import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
 import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
 import com.alibaba.otter.canal.store.model.BatchMode;
+import java.io.File;
+import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 /**
  * 单个canal实例，比如一个destination会独立一个实例
@@ -386,6 +385,58 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             }
 
             eventParser = localBinlogEventParser;
+        } else if (type.isPostgresql()) {
+            PgsqlEventParser parser = new PgsqlEventParser();
+            parser.setDestination(destination);
+            // 网络相关参数
+            Integer timeout = parameters.getDefaultConnectionTimeoutInSeconds();
+            timeout = timeout == null ? 60 : timeout;
+            timeout = Math.max(timeout, 60); // 最少60秒
+            parser.setLoginTimeoutInSeconds(timeout);
+            parser.setSocketTimeoutInSeconds(timeout);
+            parser.setConnectTimeoutInSeconds(timeout);
+            parser.setSendBufferSize(parameters.getSendBufferSize());
+            parser.setReceiveBufferSize(parameters.getReceiveBufferSize());
+            // 心跳检查参数
+            parser.setDetectingEnable(parameters.getDetectingEnable());
+            parser.setDetectingSQL(parameters.getDetectingSQL());
+            parser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
+            // 数据库信息参数
+            parser.setSlaveId(parameters.getSlaveId());
+            List<List<DataSourcing>> dataSourceList = parameters.getGroupDbAddresses();
+            List<DataSourcing> dataSources = dataSourceList.get(0);
+            if (!CollectionUtils.isEmpty(dataSources)) {
+                DataSourcing master = dataSources.get(0);
+                parser.setMasterInfo(new AuthenticationInfo(
+                    master.getDbAddress(),
+                    parameters.getDbUsername(),
+                    parameters.getDbPassword(),
+                    parameters.getDefaultDatabaseName()));
+
+            }
+
+            if (!CollectionUtils.isEmpty(parameters.getPositions())) {
+                EntryPosition masterPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
+                    EntryPosition.class);
+                // binlog位置参数
+                parser.setMasterPosition(masterPosition);
+                if (parameters.getPositions().size() > 1) {
+                    EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(1),
+                        EntryPosition.class);
+                    parser.setStandbyPosition(standbyPosition);
+                }
+            }
+            parser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
+
+            parser.setTransactionSize(parameters.getTransactionSize());
+            parser.setLogPositionManager(initLogPositionManager());
+            parser.setAlarmHandler(getAlarmHandler());
+            parser.setEventSink(getEventSink());
+
+            parser.setHaController(initHaController());
+
+            parser.setNameFilter(new AviaterRegexFilter(filter));
+            eventParser = parser;
         } else if (type.isOracle()) {
             throw new CanalException("unsupport SourcingType for " + type);
         } else {
