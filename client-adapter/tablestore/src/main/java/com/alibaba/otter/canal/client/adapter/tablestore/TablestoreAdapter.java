@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.tablestore;
 
 
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -55,12 +56,14 @@ public class TablestoreAdapter implements OuterAdapter {
         this.configuration = configuration;
         Map<String, MappingConfig> tablestoreMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
-        tablestoreMappingTmp.forEach((key, mappingConfig) -> {
-            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
-                    .equalsIgnoreCase(configuration.getKey()))) {
-                tablestoreMapping.put(key, mappingConfig);
-                mappingConfig.getDbMapping().init(mappingConfig);
+        tablestoreMappingTmp.forEach((key, config) -> {
+            boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                    .equalsIgnoreCase(configuration.getKey());
+            boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                    .startsWith(config.getDestination() + "_" + config.getGroupId());
+            if (sameMatch || prefixMatch) {
+                tablestoreMappingTmp.put(key, config);
+                config.getDbMapping().init(config);
             }
         });
 
@@ -109,6 +112,8 @@ public class TablestoreAdapter implements OuterAdapter {
                     k1 -> new ConcurrentHashMap<>());
             config2writerMap.put(configName, writer);
 
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), configName,
+                    configuration.getKey());
         }
 
         tablestoreSyncService = new TablestoreSyncService();

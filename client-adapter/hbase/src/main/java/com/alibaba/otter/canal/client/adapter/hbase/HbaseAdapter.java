@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.hbase;
 
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,11 +64,13 @@ public class HbaseAdapter implements OuterAdapter {
             this.envProperties = envProperties;
             Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
-            hbaseMappingTmp.forEach((key, mappingConfig) -> {
-                if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (mappingConfig.getOuterAdapterKey() != null
-                        && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
-                    hbaseMapping.put(key, mappingConfig);
+            hbaseMappingTmp.forEach((key, config) -> {
+                boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                        .equalsIgnoreCase(configuration.getKey());
+                boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                        .startsWith(config.getDestination() + "_" + config.getGroupId());
+                if (sameMatch || prefixMatch) {
+                    hbaseMapping.put(key, config);
                 }
             });
             for (Map.Entry<String, MappingConfig> entry : hbaseMapping.entrySet()) {
@@ -87,6 +90,8 @@ public class HbaseAdapter implements OuterAdapter {
                 Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
                     k1 -> new ConcurrentHashMap<>());
                 configMap.put(configName, mappingConfig);
+                FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), configName,
+                        configuration.getKey());
             }
 
             Map<String, String> properties = configuration.getProperties();

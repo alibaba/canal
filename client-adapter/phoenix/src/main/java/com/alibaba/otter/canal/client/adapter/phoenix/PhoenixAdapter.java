@@ -66,11 +66,13 @@ public class PhoenixAdapter implements OuterAdapter {
         this.envProperties = envProperties;
         Map<String, MappingConfig> phoenixMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
-        phoenixMappingTmp.forEach((key, mappingConfig) -> {
-            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (mappingConfig.getOuterAdapterKey() != null
-                    && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
-                phoenixMapping.put(key, mappingConfig);
+        phoenixMappingTmp.forEach((key, config) -> {
+            boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                    .equalsIgnoreCase(configuration.getKey());
+            boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                    .startsWith(config.getDestination() + "_" + config.getGroupId());
+            if (sameMatch || prefixMatch) {
+                phoenixMappingTmp.put(key, config);
             }
         });
 
@@ -95,6 +97,8 @@ public class PhoenixAdapter implements OuterAdapter {
             Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
                     k1 -> new ConcurrentHashMap<>());
             configMap.put(configName, mappingConfig);
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), configName,
+                    configuration.getKey());
         }
 
 

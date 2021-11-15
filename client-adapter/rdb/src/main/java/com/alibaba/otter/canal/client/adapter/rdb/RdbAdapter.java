@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.rdb;
 
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -75,11 +76,13 @@ public class RdbAdapter implements OuterAdapter {
         this.envProperties = envProperties;
         Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
-        rdbMappingTmp.forEach((key, mappingConfig) -> {
-            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
-                    .equalsIgnoreCase(configuration.getKey()))) {
-                rdbMapping.put(key, mappingConfig);
+        rdbMappingTmp.forEach((key, config) -> {
+            boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                    .equalsIgnoreCase(configuration.getKey());
+            boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                    .startsWith(config.getDestination() + "_" + config.getGroupId());
+            if (sameMatch || prefixMatch) {
+                rdbMapping.put(key, config);
             }
         });
 
@@ -109,6 +112,8 @@ public class RdbAdapter implements OuterAdapter {
                              + mappingConfig.getDbMapping().getDatabase();
                 mirrorDbConfigCache.put(key, MirrorDbConfig.create(configName, mappingConfig));
             }
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), configName,
+                    configuration.getKey());
         }
 
         // 初始化连接池
