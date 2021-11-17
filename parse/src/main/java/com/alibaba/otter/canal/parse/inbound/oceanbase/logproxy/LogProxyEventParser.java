@@ -43,6 +43,7 @@ public class LogProxyEventParser extends AbstractOceanBaseEventParser<LogMessage
         if (startPosition != null) {
             logProxyConfig.setStartTimestamp(startPosition.getTimestamp());
         }
+        logger.info("Build connection with config {}", logProxyConfig.toString());
         return new LogProxyConnection(logProxyInfo.getAddress(), logProxyConfig, sslConfig);
     }
 
