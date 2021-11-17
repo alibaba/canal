@@ -177,26 +177,36 @@ public class RdbSyncService {
             }
 
             for (MappingConfig config : configMap.values()) {
-                boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
-                if (config.getConcurrent()) {
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
-                    singleDmls.forEach(singleDml -> {
-                        int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                        SyncItem syncItem = new SyncItem(config, singleDml);
-                        dmlsPartition[hash].add(syncItem);
-                    });
-                } else {
-                    int hash = 0;
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
-                    singleDmls.forEach(singleDml -> {
-                        SyncItem syncItem = new SyncItem(config, singleDml);
-                        dmlsPartition[hash].add(syncItem);
-                    });
-                }
+                appendDmlPartition(config, dml);
             }
             return true;
         }
     }   );
+    }
+
+    /**
+     * 将Dml加入 {@link #dmlsPartition}
+     *
+     * @param config 表映射配置
+     * @param dml    Dml对象
+     */
+    public void appendDmlPartition(MappingConfig config, Dml dml) {
+        boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
+        if (config.getConcurrent()) {
+            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+            singleDmls.forEach(singleDml -> {
+                int hash = pkHash(config.getDbMapping(), singleDml.getData());
+                SyncItem syncItem = new SyncItem(config, singleDml);
+                dmlsPartition[hash].add(syncItem);
+            });
+        } else {
+            int hash = 0;
+            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+            singleDmls.forEach(singleDml -> {
+                SyncItem syncItem = new SyncItem(config, singleDml);
+                dmlsPartition[hash].add(syncItem);
+            });
+        }
     }
 
     /**
