@@ -69,7 +69,7 @@ public class CanalParameter implements Serializable {
     // binlog链接信息
     private IndexMode                indexMode;
     private List<String>             positions;                                                      // 数据库positions信息
-    private String                   defaultDatabaseName;                                            // 默认链接的数据库schmea
+    private String                   defaultDatabaseName;                                            // 默认链接的数据库schema
     private Long                     slaveId;                                                        // 链接到mysql的slaveId
     private Integer                  fallbackIntervalInSeconds          = 60;                        // 数据库发生切换查找时回退的时间
 

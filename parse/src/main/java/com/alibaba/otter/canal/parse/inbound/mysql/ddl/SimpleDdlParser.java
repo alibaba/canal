@@ -47,33 +47,33 @@ public class SimpleDdlParser {
     public static final String CREATE_INDEX_PATTERN   = "^\\s*CREATE\\s*(UNIQUE)?(FULLTEXT)?(SPATIAL)?\\s*INDEX\\s*(.*?)\\s+ON\\s+(.*?)$";
     public static final String DROP_INDEX_PATTERN     = "^\\s*DROP\\s*INDEX\\s*(.*?)\\s+ON\\s+(.*?)$";
 
-    public static DdlResult parse(String queryString, String schmeaName) {
+    public static DdlResult parse(String queryString, String schemaName) {
         queryString = removeComment(queryString); // 去除/* */的sql注释内容
-        DdlResult result = parseDdl(queryString, schmeaName, ALERT_PATTERN, 2);
+        DdlResult result = parseDdl(queryString, schemaName, ALERT_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.ALTER);
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, CREATE_PATTERN, 2);
+        result = parseDdl(queryString, schemaName, CREATE_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.CREATE);
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, DROP_PATTERN, 2);
+        result = parseDdl(queryString, schemaName, DROP_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.ERASE);
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, TRUNCATE_PATTERN, 2);
+        result = parseDdl(queryString, schemaName, TRUNCATE_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.TRUNCATE);
             return result;
         }
 
-        result = parseRename(queryString, schmeaName, RENAME_PATTERN);
+        result = parseRename(queryString, schemaName, RENAME_PATTERN);
         if (result != null) {
             result.setType(EventType.RENAME);
 
@@ -81,7 +81,7 @@ public class SimpleDdlParser {
             if (renameStrings.length > 1) {
                 DdlResult lastResult = result;
                 for (int i = 1; i < renameStrings.length; i++) {
-                    DdlResult ddlResult = parseRename(renameStrings[i], schmeaName, RENAME_REMNANT_PATTERN);
+                    DdlResult ddlResult = parseRename(renameStrings[i], schemaName, RENAME_REMNANT_PATTERN);
                     ddlResult.setType(EventType.RENAME);
                     lastResult.setRenameTableResult(ddlResult);
                     lastResult = ddlResult;
@@ -91,19 +91,19 @@ public class SimpleDdlParser {
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, CREATE_INDEX_PATTERN, 5);
+        result = parseDdl(queryString, schemaName, CREATE_INDEX_PATTERN, 5);
         if (result != null) {
             result.setType(EventType.CINDEX);
             return result;
         }
 
-        result = parseDdl(queryString, schmeaName, DROP_INDEX_PATTERN, 2);
+        result = parseDdl(queryString, schemaName, DROP_INDEX_PATTERN, 2);
         if (result != null) {
             result.setType(EventType.DINDEX);
             return result;
         }
 
-        result = new DdlResult(schmeaName);
+        result = new DdlResult(schemaName);
         if (isDml(queryString, INSERT_PATTERN)) {
             result.setType(EventType.INSERT);
             return result;
@@ -123,11 +123,11 @@ public class SimpleDdlParser {
         return result;
     }
 
-    private static DdlResult parseDdl(String queryString, String schmeaName, String pattern, int index) {
+    private static DdlResult parseDdl(String queryString, String schemaName, String pattern, int index) {
         Perl5Matcher matcher = new Perl5Matcher();
         if (matcher.matches(queryString, PatternUtils.getPattern(pattern))) {
-            DdlResult result = parseTableName(matcher.getMatch().group(index), schmeaName);
-            return result != null ? result : new DdlResult(schmeaName); // 无法解析时，直接返回schmea，进行兼容处理
+            DdlResult result = parseTableName(matcher.getMatch().group(index), schemaName);
+            return result != null ? result : new DdlResult(schemaName); // 无法解析时，直接返回schema，进行兼容处理
         }
 
         return null;
@@ -142,11 +142,11 @@ public class SimpleDdlParser {
         }
     }
 
-    private static DdlResult parseRename(String queryString, String schmeaName, String pattern) {
+    private static DdlResult parseRename(String queryString, String schemaName, String pattern) {
         Perl5Matcher matcher = new Perl5Matcher();
         if (matcher.matches(queryString, PatternUtils.getPattern(pattern))) {
-            DdlResult orign = parseTableName(matcher.getMatch().group(1), schmeaName);
-            DdlResult target = parseTableName(matcher.getMatch().group(2), schmeaName);
+            DdlResult orign = parseTableName(matcher.getMatch().group(1), schemaName);
+            DdlResult target = parseTableName(matcher.getMatch().group(2), schemaName);
             if (orign != null && target != null) {
                 return new DdlResult(target.getSchemaName(),
                     target.getTableName(),
@@ -158,7 +158,7 @@ public class SimpleDdlParser {
         return null;
     }
 
-    private static DdlResult parseTableName(String matchString, String schmeaName) {
+    private static DdlResult parseTableName(String matchString, String schemaName) {
         Perl5Matcher tableMatcher = new Perl5Matcher();
         matchString = matchString + " ";
         if (tableMatcher.matches(matchString, PatternUtils.getPattern(TABLE_PATTERN))) {
@@ -181,7 +181,7 @@ public class SimpleDdlParser {
             if (names != null && names.length > 1) {
                 return new DdlResult(removeEscape(names[0]), removeEscape(names[1]));
             } else {
-                return new DdlResult(schmeaName, removeEscape(names[0]));
+                return new DdlResult(schemaName, removeEscape(names[0]));
             }
         }
 

@@ -45,7 +45,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
  */
 public class DruidDdlParser {
 
-    public static List<DdlResult> parse(String queryString, String schmeaName) {
+    public static List<DdlResult> parse(String queryString, String schemaName) {
         List<SQLStatement> stmtList = null;
         try {
             stmtList = SQLUtils.parseStatements(queryString, JdbcConstants.MYSQL, false);
@@ -61,37 +61,37 @@ public class DruidDdlParser {
             if (statement instanceof SQLCreateTableStatement) {
                 DdlResult ddlResult = new DdlResult();
                 SQLCreateTableStatement createTable = (SQLCreateTableStatement) statement;
-                processName(ddlResult, schmeaName, createTable.getName(), false);
+                processName(ddlResult, schemaName, createTable.getName(), false);
                 ddlResult.setType(EventType.CREATE);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLAlterTableStatement) {
                 SQLAlterTableStatement alterTable = (SQLAlterTableStatement) statement;
                 if (alterTable.getTableOptions().size() > 0) {
                     DdlResult ddlResult = new DdlResult();
-                    processName(ddlResult, schmeaName, alterTable.getName(), false);
+                    processName(ddlResult, schemaName, alterTable.getName(), false);
                     ddlResult.setType(EventType.ALTER);
                     ddlResults.add(ddlResult);
                 }
                 for (SQLAlterTableItem item : alterTable.getItems()) {
                     if (item instanceof SQLAlterTableRename) {
                         DdlResult ddlResult = new DdlResult();
-                        processName(ddlResult, schmeaName, alterTable.getName(), true);
-                        processName(ddlResult, schmeaName, ((SQLAlterTableRename) item).getToName(), false);
+                        processName(ddlResult, schemaName, alterTable.getName(), true);
+                        processName(ddlResult, schemaName, ((SQLAlterTableRename) item).getToName(), false);
                         ddlResult.setType(EventType.RENAME);
                         ddlResults.add(ddlResult);
                     } else if (item instanceof SQLAlterTableAddIndex) {
                         DdlResult ddlResult = new DdlResult();
-                        processName(ddlResult, schmeaName, alterTable.getName(), false);
+                        processName(ddlResult, schemaName, alterTable.getName(), false);
                         ddlResult.setType(EventType.CINDEX);
                         ddlResults.add(ddlResult);
                     } else if (item instanceof SQLAlterTableDropIndex || item instanceof SQLAlterTableDropKey) {
                         DdlResult ddlResult = new DdlResult();
-                        processName(ddlResult, schmeaName, alterTable.getName(), false);
+                        processName(ddlResult, schemaName, alterTable.getName(), false);
                         ddlResult.setType(EventType.DINDEX);
                         ddlResults.add(ddlResult);
                     } else if (item instanceof SQLAlterTableAddConstraint) {
                         DdlResult ddlResult = new DdlResult();
-                        processName(ddlResult, schmeaName, alterTable.getName(), false);
+                        processName(ddlResult, schemaName, alterTable.getName(), false);
                         SQLConstraint constraint = ((SQLAlterTableAddConstraint) item).getConstraint();
                         if (constraint instanceof SQLUnique) {
                             ddlResult.setType(EventType.CINDEX);
@@ -99,12 +99,12 @@ public class DruidDdlParser {
                         }
                     } else if (item instanceof SQLAlterTableDropConstraint) {
                         DdlResult ddlResult = new DdlResult();
-                        processName(ddlResult, schmeaName, alterTable.getName(), false);
+                        processName(ddlResult, schemaName, alterTable.getName(), false);
                         ddlResult.setType(EventType.DINDEX);
                         ddlResults.add(ddlResult);
                     } else {
                         DdlResult ddlResult = new DdlResult();
-                        processName(ddlResult, schmeaName, alterTable.getName(), false);
+                        processName(ddlResult, schemaName, alterTable.getName(), false);
                         ddlResult.setType(EventType.ALTER);
                         ddlResults.add(ddlResult);
                     }
@@ -113,7 +113,7 @@ public class DruidDdlParser {
                 SQLDropTableStatement dropTable = (SQLDropTableStatement) statement;
                 for (SQLExprTableSource tableSource : dropTable.getTableSources()) {
                     DdlResult ddlResult = new DdlResult();
-                    processName(ddlResult, schmeaName, tableSource.getExpr(), false);
+                    processName(ddlResult, schemaName, tableSource.getExpr(), false);
                     ddlResult.setType(EventType.ERASE);
                     ddlResults.add(ddlResult);
                 }
@@ -121,21 +121,21 @@ public class DruidDdlParser {
                 SQLCreateIndexStatement createIndex = (SQLCreateIndexStatement) statement;
                 SQLTableSource tableSource = createIndex.getTable();
                 DdlResult ddlResult = new DdlResult();
-                processName(ddlResult, schmeaName, ((SQLExprTableSource) tableSource).getExpr(), false);
+                processName(ddlResult, schemaName, ((SQLExprTableSource) tableSource).getExpr(), false);
                 ddlResult.setType(EventType.CINDEX);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLDropIndexStatement) {
                 SQLDropIndexStatement dropIndex = (SQLDropIndexStatement) statement;
                 SQLExprTableSource tableSource = dropIndex.getTableName();
                 DdlResult ddlResult = new DdlResult();
-                processName(ddlResult, schmeaName, tableSource.getExpr(), false);
+                processName(ddlResult, schemaName, tableSource.getExpr(), false);
                 ddlResult.setType(EventType.DINDEX);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLTruncateStatement) {
                 SQLTruncateStatement truncate = (SQLTruncateStatement) statement;
                 for (SQLExprTableSource tableSource : truncate.getTableSources()) {
                     DdlResult ddlResult = new DdlResult();
-                    processName(ddlResult, schmeaName, tableSource.getExpr(), false);
+                    processName(ddlResult, schemaName, tableSource.getExpr(), false);
                     ddlResult.setType(EventType.TRUNCATE);
                     ddlResults.add(ddlResult);
                 }
@@ -143,29 +143,29 @@ public class DruidDdlParser {
                 MySqlRenameTableStatement rename = (MySqlRenameTableStatement) statement;
                 for (Item item : rename.getItems()) {
                     DdlResult ddlResult = new DdlResult();
-                    processName(ddlResult, schmeaName, item.getName(), true);
-                    processName(ddlResult, schmeaName, item.getTo(), false);
+                    processName(ddlResult, schemaName, item.getName(), true);
+                    processName(ddlResult, schemaName, item.getTo(), false);
                     ddlResult.setType(EventType.RENAME);
                     ddlResults.add(ddlResult);
                 }
             } else if (statement instanceof SQLInsertStatement) {
                 DdlResult ddlResult = new DdlResult();
                 SQLInsertStatement insert = (SQLInsertStatement) statement;
-                processName(ddlResult, schmeaName, insert.getTableName(), false);
+                processName(ddlResult, schemaName, insert.getTableName(), false);
                 ddlResult.setType(EventType.INSERT);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLUpdateStatement) {
                 DdlResult ddlResult = new DdlResult();
                 SQLUpdateStatement update = (SQLUpdateStatement) statement;
                 // 拿到的表名可能为null,比如update a,b set a.id=x
-                processName(ddlResult, schmeaName, update.getTableName(), false);
+                processName(ddlResult, schemaName, update.getTableName(), false);
                 ddlResult.setType(EventType.UPDATE);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLDeleteStatement) {
                 DdlResult ddlResult = new DdlResult();
                 SQLDeleteStatement delete = (SQLDeleteStatement) statement;
                 // 拿到的表名可能为null,比如delete a,b from a where a.id = b.id
-                processName(ddlResult, schmeaName, delete.getTableName(), false);
+                processName(ddlResult, schemaName, delete.getTableName(), false);
                 ddlResult.setType(EventType.DELETE);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLCreateDatabaseStatement) {
