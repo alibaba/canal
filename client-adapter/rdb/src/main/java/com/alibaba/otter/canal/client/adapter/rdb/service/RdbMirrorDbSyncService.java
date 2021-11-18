@@ -160,6 +160,7 @@ public class RdbMirrorDbSyncService {
                 logger.trace("Execute DDL sql: {} for database: {}", ddl.getSql(), ddl.getDatabase());
             }
         } catch (Exception e) {
+            logger.error("Failed to execute DDL sql {} for database: {}", ddl.getSql(), ddl.getDatabase());
             throw new RuntimeException(e);
         }
     }
