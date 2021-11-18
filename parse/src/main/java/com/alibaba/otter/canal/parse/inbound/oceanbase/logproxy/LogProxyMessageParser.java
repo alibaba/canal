@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.oceanbase.clogproxy.client.message.DataMessage;
 import com.oceanbase.clogproxy.client.message.LogMessage;
@@ -193,10 +195,15 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
 
         // DDL类型的LogMessage没有存表名，并且SQL本身可能缺少库名前缀。
         // 因此这里从SQL中提取表名填补到CanalEntry，并补全SQL中的表名为`db`.`table`格式
-        String ddlTableName = getTableNameFromSql(ddl);
-        ddl = getSqlWithSchema(ddl, message.getDbName());
+        String table = null;
+        List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, message.getDbName());
+        if (ddlResults.size() > 0) {
+            table = ddlResults.get(0).getTableName();
+            String schema = ddlResults.get(0).getSchemaName();
+            ddl = completeTableNameInSql(ddl, schema, message.getDbName());
+        }
 
-        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, ddlTableName);
+        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, table);
         CanalEntry.RowChange.Builder rowChangeBuilder = CanalEntry.RowChange.newBuilder();
         rowChangeBuilder.setIsDdl(true);
         rowChangeBuilder.setSql(ddl);
@@ -239,7 +246,7 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         }
         String tableName = message.getTableName();
         if (StringUtils.isEmpty(tableName) && ddlTableName != null) {
-            tableName = getCleanTableName(ddlTableName);
+            tableName = ddlTableName;
         }
         if (StringUtils.isNotBlank(tableName)) {
             headerBuilder.setTableName(tableName);

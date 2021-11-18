@@ -4,7 +4,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -16,8 +15,6 @@ import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
-import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
-import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
@@ -78,11 +75,12 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
      * 补全SQL中的schema
      *
      * @param sql    原始的SQL语句
-     * @param schema schema
+     * @param schema 库名
+     * @param table  表名
      * @return 补全后的SQL
      */
-    protected String getSqlWithSchema(String sql, String schema) {
-        if (StringUtils.isBlank(sql) || StringUtils.isBlank(schema)) {
+    protected String completeTableNameInSql(String sql, String schema, String table) {
+        if (StringUtils.isBlank(sql) || StringUtils.isBlank(schema) || StringUtils.isBlank(table)) {
             return sql;
         }
 
@@ -94,7 +92,7 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
             }
 
             for (SQLStatement sqlStatement : stmtList) {
-                SchemaModifier modifier = new SchemaModifier(schema);
+                TableNameModifier modifier = new TableNameModifier(schema, table);
                 sqlStatement.accept(modifier);
                 return sqlStatement.toString();
             }
@@ -105,67 +103,25 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
     }
 
     /**
-     * 从SQL中的获取表名
-     *
-     * @param sql SQL语句
-     * @return 表名
+     * 一个补全表名的SQLASTVisitor实现
      */
-    protected String getTableNameFromSql(String sql) {
-        DbType dbType = JdbcConstants.MYSQL;
-        try {
-            List<SQLStatement> stmtList = SQLUtils.parseStatements(sql, dbType);
-            if (CollectionUtils.isEmpty(stmtList)) {
-                return null;
-            }
-
-            for (SQLStatement sqlStatement : stmtList) {
-                MySqlSchemaStatVisitor visitor = new MySqlSchemaStatVisitor();
-                sqlStatement.accept(visitor);
-                Map<TableStat.Name, TableStat> tables = visitor.getTables();
-                Set<TableStat.Name> tableNameSet = tables.keySet();
-                for (TableStat.Name name : tableNameSet) {
-                    String tableName = name.getName();
-                    if (StringUtils.isNotBlank(tableName)) {
-                        return tableName;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("get table name from sql err: {}", e.getMessage());
-        }
-        return null;
-    }
-
-
-    public class SchemaModifier extends MySqlASTVisitorAdapter {
+    public class TableNameModifier extends MySqlASTVisitorAdapter {
 
         private final String schema;
+        private final String table;
 
-        public SchemaModifier(String schema) {
+        public TableNameModifier(String schema, String table) {
             this.schema = schema;
+            this.table = table;
         }
 
         @Override
         public boolean visit(SQLExprTableSource x) {
+            x.setExpr(structureSchema(table));
             x.setSchema(structureSchema(schema));
-            x.setExpr(structureSchema(x.getTableName()));
             x.getExpr().accept(this);
             return false;
         }
-    }
-
-    /**
-     * 获取不带库名和反斜线的表名
-     *
-     * @param schema 原本的表名
-     * @return 不带库名和反斜线的表名
-     */
-    protected String getCleanTableName(String schema) {
-        String table = schema.substring(schema.indexOf(".") + 1);
-        if (table.startsWith("`") && table.endsWith("`")) {
-            table = table.substring(1, table.length() - 1);
-        }
-        return table;
     }
 
     /**
