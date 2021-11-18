@@ -283,11 +283,7 @@ public class LogEventConvert extends AbstractBinlogParser<LogEvent> {
             rowChangeBuilder.setIsDdl(!isDml);
 
             // 对于操作表的DDL，补全其表名为`db`.`table`格式
-            String[] ddlArray = splitTableDdl(queryString);
-            if (ddlArray != null) {
-                queryString = getSqlWithCompleteTableName(ddlArray, event.getDbName());
-            }
-
+            queryString = getSqlWithSchema(queryString, event.getDbName());
             rowChangeBuilder.setSql(queryString);
             if (StringUtils.isNotEmpty(event.getDbName())) {// 可能为空
                 rowChangeBuilder.setDdlSchemaName(event.getDbName());

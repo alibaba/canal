@@ -193,12 +193,8 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
 
         // DDL类型的LogMessage没有存表名，并且SQL本身可能缺少库名前缀。
         // 因此这里从SQL中提取表名填补到CanalEntry，并补全SQL中的表名为`db`.`table`格式
-        String[] tableDdlArray = splitTableDdl(ddl);
-        String ddlTableName = null;
-        if (tableDdlArray != null && tableDdlArray.length >2) {
-            ddlTableName = tableDdlArray[2];
-            ddl = getSqlWithCompleteTableName(tableDdlArray, getTargetDbName(message.getDbName()));
-        }
+        String ddlTableName = getTableNameFromSql(ddl);
+        ddl = getSqlWithSchema(ddl, message.getDbName());
 
         CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, ddlTableName);
         CanalEntry.RowChange.Builder rowChangeBuilder = CanalEntry.RowChange.newBuilder();

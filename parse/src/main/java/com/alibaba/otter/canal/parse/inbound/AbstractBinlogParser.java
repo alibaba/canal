@@ -4,11 +4,21 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.DbType;
+import com.alibaba.druid.sql.SQLUtils;
+import com.alibaba.druid.sql.ast.SQLStatement;
+import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
+import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
+import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
+import com.alibaba.druid.stat.TableStat;
+import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -65,65 +75,97 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
     }
 
     /**
-     * 从DDL中的表名获取不带库名和反斜线的表名
+     * 补全SQL中的schema
      *
-     * @param ddlTableName DDL语句中的表名
+     * @param sql    原始的SQL语句
+     * @param schema schema
+     * @return 补全后的SQL
+     */
+    protected String getSqlWithSchema(String sql, String schema) {
+        if (StringUtils.isBlank(sql) || StringUtils.isBlank(schema)) {
+            return sql;
+        }
+
+        DbType dbType = JdbcConstants.MYSQL;
+        try {
+            List<SQLStatement> stmtList = SQLUtils.parseStatements(sql, dbType);
+            if (CollectionUtils.isEmpty(stmtList)) {
+                return sql;
+            }
+
+            for (SQLStatement sqlStatement : stmtList) {
+                SchemaModifier modifier = new SchemaModifier(schema);
+                sqlStatement.accept(modifier);
+                return sqlStatement.toString();
+            }
+        } catch (Exception e) {
+            logger.error("set schema to sql err: {}", e.getMessage());
+        }
+        return sql;
+    }
+
+    /**
+     * 从SQL中的获取表名
+     *
+     * @param sql SQL语句
+     * @return 表名
+     */
+    protected String getTableNameFromSql(String sql) {
+        DbType dbType = JdbcConstants.MYSQL;
+        try {
+            List<SQLStatement> stmtList = SQLUtils.parseStatements(sql, dbType);
+            if (CollectionUtils.isEmpty(stmtList)) {
+                return null;
+            }
+
+            for (SQLStatement sqlStatement : stmtList) {
+                MySqlSchemaStatVisitor visitor = new MySqlSchemaStatVisitor();
+                sqlStatement.accept(visitor);
+                Map<TableStat.Name, TableStat> tables = visitor.getTables();
+                Set<TableStat.Name> tableNameSet = tables.keySet();
+                for (TableStat.Name name : tableNameSet) {
+                    String tableName = name.getName();
+                    if (StringUtils.isNotBlank(tableName)) {
+                        return tableName;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("get table name from sql err: {}", e.getMessage());
+        }
+        return null;
+    }
+
+
+    public class SchemaModifier extends MySqlASTVisitorAdapter {
+
+        private final String schema;
+
+        public SchemaModifier(String schema) {
+            this.schema = schema;
+        }
+
+        @Override
+        public boolean visit(SQLExprTableSource x) {
+            x.setSchema(structureSchema(schema));
+            x.setExpr(structureSchema(x.getTableName()));
+            x.getExpr().accept(this);
+            return false;
+        }
+    }
+
+    /**
+     * 获取不带库名和反斜线的表名
+     *
+     * @param schema 原本的表名
      * @return 不带库名和反斜线的表名
      */
-    protected String getCleanTableName(String ddlTableName) {
-        String table = ddlTableName.substring(ddlTableName.indexOf(".") + 1);
+    protected String getCleanTableName(String schema) {
+        String table = schema.substring(schema.indexOf(".") + 1);
         if (table.startsWith("`") && table.endsWith("`")) {
             table = table.substring(1, table.length() - 1);
         }
         return table;
-    }
-
-    /**
-     * 补全DDL语句中的表名为 "库名.表名"
-     *
-     * @param arr 原本的DDL语句数组
-     * @param db  db名
-     * @return 补全表名后的DDL
-     */
-    protected String getSqlWithCompleteTableName(String[] arr, String db) {
-        // create/drop/alter/rename table name ...
-        if (!arr[2].contains(".")) {
-            arr[2] = String.format("%s.%s", structureSchema(db), structureSchema(arr[2]));
-            // rename
-            switch (arr[0].toUpperCase()) {
-                // alter table name1 rename to name2, table name index are 2 and 5.
-                case ALTER:
-                    if (arr.length > 5 && RENAME.equalsIgnoreCase(arr[3]) && TO.equalsIgnoreCase(arr[4])) {
-                        arr[5] = String.format("%s.%s", structureSchema(db), structureSchema(arr[5]));
-                    }
-                    break;
-                // rename table name1 to name2, table name index are 2 and 4.
-                case RENAME:
-                    if (arr.length > 4 && TO.equalsIgnoreCase(arr[3])) {
-                        arr[4] = String.format("%s.%s", structureSchema(db), structureSchema(arr[4]));
-                    }
-                    break;
-                default:
-                    // not rename, do nothing
-            }
-        }
-        return String.join(" ", arr);
-    }
-
-    /**
-     * 切分操作数据表的DDL并返回切分后的字符串数组，如果不是操作表的语句则返回null
-     *
-     * @param ddl DDL语句
-     * @return 字符串数组
-     */
-    protected String[] splitTableDdl(String ddl) {
-        if (StringUtils.isNotBlank(ddl)) {
-            String[] arr = ddl.split("\\s+");
-            if (arr.length > 2 && TABLE.equalsIgnoreCase(arr[1])) {
-                return arr;
-            }
-        }
-        return null;
     }
 
     /**
