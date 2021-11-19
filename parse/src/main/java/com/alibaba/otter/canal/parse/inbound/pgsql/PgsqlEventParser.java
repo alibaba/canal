@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound.pgsql;
 
 import com.alibaba.otter.canal.common.CanalException;
-import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.CanalHASwitchable;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
@@ -54,7 +53,6 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
   private int sendBufferSize = 64 * 1024 * 1024;    // 64MB
 
   private long slaveId;                           // 链接到pgsql的connection的id
-  private PgsqlConnection dumpConnection;         // dumpConnection
 
   // 心跳检查信息
   private String detectingSQL;                    // 心跳sql
@@ -65,7 +63,6 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
   private boolean autoResetLatestPosMode = false; // true: binlog被删除之后，自动按最新的数据订阅
   // MetaCache
   private PgsqlMetaCache tableMetaCache;          // 对应meta
-  private AviaterRegexFilter nameFilter;          // 名字过滤, schema.table
   private int metaCacheTimeout = 60;              // 元数据超时时间
 
   /**
@@ -117,7 +114,7 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
   @Override
   protected PgsqlBinlogParser buildParser() {
     PgsqlBinlogParser parser = new PgsqlBinlogParser();
-    parser.setNameFilter(this.nameFilter);
+    parser.setNameFilter(this.eventFilter);
     return parser;
   }
 
@@ -243,10 +240,13 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
     if (!(connection instanceof PgsqlConnection)) {
       throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
     }
+    ((PgsqlConnection) connection).disconnect();
     if (this.metaConnection != null) {
       this.metaConnection.disconnect();
     }
-    this.tableMetaCache.clear();
+    if (this.tableMetaCache != null) {
+      this.tableMetaCache.clear();
+    }
   }
 
   @Override
@@ -266,30 +266,26 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
   protected void dumping() {
     // 开始执行replication
     MDC.put("destination", String.valueOf(this.destination));
+    PgsqlConnection dumpConnection = null;
     while (this.running) {
       try {
         // 1. 构造PgsqlConnection连接
-        this.dumpConnection = buildErosaConnection();
+        dumpConnection = buildErosaConnection();
 
         // 2. 启动一个心跳线程
-        startHeartBeat(this.dumpConnection);
+        startHeartBeat(dumpConnection);
 
         // 3. 执行dump前的准备工作
-        preDump(this.dumpConnection);
+        preDump(dumpConnection);
 
-        this.dumpConnection.connect();// 链接
+        dumpConnection.connect();// 链接
 
-        long queryServerId = this.dumpConnection.queryServerId();
-        if (queryServerId != 0) {
-          this.serverId = queryServerId;
-        }
-        if (this.dumpConnection.stat != null) {
-          this.slaveId = this.dumpConnection.stat.getConnectionId();
-        }
+        this.serverId = dumpConnection.queryServerId();
+        this.slaveId = dumpConnection.stat.getConnectionId();
 
         // 4. 获取最后的位置信息
         long start = System.currentTimeMillis();
-        EntryPosition startPosition = findStartPosition(this.dumpConnection);
+        EntryPosition startPosition = findStartPosition(dumpConnection);
         if (startPosition == null) {
           throw new PositionNotFoundException("can't find start position for " + this.destination);
         }
@@ -302,44 +298,11 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
         logger.info("find start position successfully, {}", startPosition + " cost : "
             + (end - start) + "ms , the next step is binlog dump");
 
-        SinkFunction<PgsqlLogEvent> sinkHandler = new SinkFunction<PgsqlLogEvent>() {
-
-          private LogPosition lastPosition;
-
-          @Override
-          public boolean sink(PgsqlLogEvent event) {
-            try {
-              Entry entry = parseAndProfilingIfNecessary(event, false);
-
-              if (!running) {
-                return running;
-              }
-
-              if (entry != null) {
-                // 有正常数据流过，清空exception
-                exception = null;
-                transactionBuffer.add(entry);
-                // 记录一下对应的positions
-                this.lastPosition = buildLastPosition(entry);
-                // 记录一下最后一次有数据的时间
-                lastEntryTime = System.currentTimeMillis();
-              }
-              return running;
-            } catch (Throwable e) {
-              // 记录一下，出错的位点信息
-              processSinkError(e,
-                  this.lastPosition,
-                  startPosition.getJournalName(),
-                  startPosition.getPosition());
-              throw new CanalParseException(e); // 继续抛出异常，让上层统一感知
-            }
-          }
-
-        };
+        PgsqlSinkFunction psf = new PgsqlSinkFunction(startPosition);
 
         // 5. 开始dump数据
         logger.info("starting dumping.");
-        dumpConnection.dump(startPosition.getJournalName(), startPosition.getPosition(), sinkHandler);
+        dumpConnection.dump(startPosition.getJournalName(), startPosition.getPosition(), psf);
       } catch (Throwable e) {
         processDumpError(e);
         exception = e;
@@ -364,11 +327,7 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
         // 重新置为中断状态
         boolean ignore = Thread.interrupted();
         // 关闭一下链接
-        afterDump(this.dumpConnection);
-        if (this.dumpConnection != null) {
-          this.dumpConnection.disconnect();
-          this.dumpConnection = null;
-        }
+        afterDump(dumpConnection);
       }
       // 出异常了，退出sink消费，释放一下状态
       eventSink.interrupt();
@@ -484,14 +443,6 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
     this.slaveId = slaveId;
   }
 
-  public PgsqlConnection getDumpConnection() {
-    return dumpConnection;
-  }
-
-  public void setDumpConnection(PgsqlConnection dumpConnection) {
-    this.dumpConnection = dumpConnection;
-  }
-
   public String getDetectingSQL() {
     return detectingSQL;
   }
@@ -548,14 +499,6 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
     this.tableMetaCache = tableMetaCache;
   }
 
-  public AviaterRegexFilter getNameFilter() {
-    return nameFilter;
-  }
-
-  public void setNameFilter(AviaterRegexFilter nameFilter) {
-    this.nameFilter = nameFilter;
-  }
-
   public int getMetaCacheTimeout() {
     return metaCacheTimeout;
   }
@@ -565,6 +508,47 @@ public class PgsqlEventParser extends AbstractEventParser<PgsqlLogEvent> impleme
   }
 
   // endregion getter/setter
+
+  class PgsqlSinkFunction implements SinkFunction<PgsqlLogEvent> {
+
+    private LogPosition lastPosition;
+
+    private final EntryPosition startPosition;
+
+    public PgsqlSinkFunction(EntryPosition startPosition) {
+      this.startPosition = startPosition;
+    }
+
+    @Override
+    public boolean sink(PgsqlLogEvent event) {
+      try {
+        Entry entry = parseAndProfilingIfNecessary(event, false);
+
+        if (!running) {
+          return running;
+        }
+
+        if (entry != null) {
+          // 有正常数据流过，清空exception
+          exception = null;
+          transactionBuffer.add(entry);
+          // 记录一下对应的positions
+          this.lastPosition = buildLastPosition(entry);
+          // 记录一下最后一次有数据的时间
+          lastEntryTime = System.currentTimeMillis();
+        }
+        return running;
+      } catch (Throwable e) {
+        // 记录一下，出错的位点信息
+        processSinkError(e,
+            this.lastPosition,
+            startPosition.getJournalName(),
+            startPosition.getPosition());
+        throw new CanalParseException(e); // 继续抛出异常，让上层统一感知
+      }
+    }
+
+  }
 
   class PgsqlDetectingTimeTask extends TimerTask {
 

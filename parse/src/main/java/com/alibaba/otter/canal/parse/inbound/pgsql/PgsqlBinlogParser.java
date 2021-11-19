@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound.pgsql;
 
-import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 public class PgsqlBinlogParser extends AbstractBinlogParser<PgsqlLogEvent> {
 
   private PgsqlMetaCache tableMetaCache;
-  private AviaterRegexFilter nameFilter;
+  private CanalEventFilter nameFilter;
 
   public PgsqlBinlogParser() {
   }
@@ -289,11 +289,11 @@ public class PgsqlBinlogParser extends AbstractBinlogParser<PgsqlLogEvent> {
     this.tableMetaCache = tableMetaCache;
   }
 
-  public AviaterRegexFilter getNameFilter() {
+  public CanalEventFilter getNameFilter() {
     return nameFilter;
   }
 
-  public void setNameFilter(AviaterRegexFilter nameFilter) {
+  public void setNameFilter(CanalEventFilter nameFilter) {
     this.nameFilter = nameFilter;
   }
 

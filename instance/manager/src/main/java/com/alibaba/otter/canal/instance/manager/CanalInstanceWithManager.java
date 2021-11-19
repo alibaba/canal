@@ -271,172 +271,11 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
     private CanalEventParser doInitEventParser(SourcingType type, List<InetSocketAddress> dbAddresses) {
         CanalEventParser eventParser;
         if (type.isMysql()) {
-            MysqlEventParser mysqlEventParser = null;
-            if (StringUtils.isNotEmpty(parameters.getRdsAccesskey())
-                && StringUtils.isNotEmpty(parameters.getRdsSecretkey())
-                && StringUtils.isNotEmpty(parameters.getRdsInstanceId())) {
-
-                mysqlEventParser = new RdsBinlogEventParserProxy();
-                ((RdsBinlogEventParserProxy) mysqlEventParser).setAccesskey(parameters.getRdsAccesskey());
-                ((RdsBinlogEventParserProxy) mysqlEventParser).setSecretkey(parameters.getRdsSecretkey());
-                ((RdsBinlogEventParserProxy) mysqlEventParser).setInstanceId(parameters.getRdsInstanceId());
-            } else {
-                mysqlEventParser = new MysqlEventParser();
-            }
-            mysqlEventParser.setDestination(destination);
-            // 编码参数
-            mysqlEventParser.setConnectionCharset(parameters.getConnectionCharset());
-            mysqlEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
-            // 网络相关参数
-            mysqlEventParser.setDefaultConnectionTimeoutInSeconds(parameters.getDefaultConnectionTimeoutInSeconds());
-            mysqlEventParser.setSendBufferSize(parameters.getSendBufferSize());
-            mysqlEventParser.setReceiveBufferSize(parameters.getReceiveBufferSize());
-            // 心跳检查参数
-            mysqlEventParser.setDetectingEnable(parameters.getDetectingEnable());
-            mysqlEventParser.setDetectingSQL(parameters.getDetectingSQL());
-            mysqlEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
-            // 数据库信息参数
-            mysqlEventParser.setSlaveId(parameters.getSlaveId());
-            if (!CollectionUtils.isEmpty(dbAddresses)) {
-                mysqlEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
-                    parameters.getDbUsername(),
-                    parameters.getDbPassword(),
-                    parameters.getDefaultDatabaseName()));
-
-                if (dbAddresses.size() > 1) {
-                    mysqlEventParser.setStandbyInfo(new AuthenticationInfo(dbAddresses.get(1),
-                        parameters.getDbUsername(),
-                        parameters.getDbPassword(),
-                        parameters.getDefaultDatabaseName()));
-                }
-            }
-
-            if (!CollectionUtils.isEmpty(parameters.getPositions())) {
-                EntryPosition masterPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
-                    EntryPosition.class);
-                // binlog位置参数
-                mysqlEventParser.setMasterPosition(masterPosition);
-
-                if (parameters.getPositions().size() > 1) {
-                    EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(1),
-                        EntryPosition.class);
-                    mysqlEventParser.setStandbyPosition(standbyPosition);
-                }
-            }
-            mysqlEventParser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
-            mysqlEventParser.setProfilingEnabled(false);
-            mysqlEventParser.setFilterTableError(parameters.getFilterTableError());
-            mysqlEventParser.setParallel(parameters.getParallel());
-            mysqlEventParser.setIsGTIDMode(BooleanUtils.toBoolean(parameters.getGtidEnable()));
-            // tsdb
-            if (parameters.getTsdbSnapshotInterval() != null) {
-                mysqlEventParser.setTsdbSnapshotInterval(parameters.getTsdbSnapshotInterval());
-            }
-            if (parameters.getTsdbSnapshotExpire() != null) {
-                mysqlEventParser.setTsdbSnapshotExpire(parameters.getTsdbSnapshotExpire());
-            }
-            boolean tsdbEnable = BooleanUtils.toBoolean(parameters.getTsdbEnable());
-            if (tsdbEnable) {
-                mysqlEventParser.setTableMetaTSDBFactory(new DefaultTableMetaTSDBFactory() {
-
-                    @Override
-                    public void destory(String destination) {
-                        TableMetaTSDBBuilder.destory(destination);
-                    }
-
-                    @Override
-                    public TableMetaTSDB build(String destination, String springXml) {
-                        synchronized (CanalInstanceWithManager.class) {
-                            try {
-                                System.setProperty("canal.instance.tsdb.url", parameters.getTsdbJdbcUrl());
-                                System.setProperty("canal.instance.tsdb.dbUsername", parameters.getTsdbJdbcUserName());
-                                System.setProperty("canal.instance.tsdb.dbPassword", parameters.getTsdbJdbcPassword());
-
-                                return TableMetaTSDBBuilder.build(destination, "classpath:spring/tsdb/mysql-tsdb.xml");
-                            } finally {
-                                System.setProperty("canal.instance.tsdb.url", "");
-                                System.setProperty("canal.instance.tsdb.dbUsername", "");
-                                System.setProperty("canal.instance.tsdb.dbPassword", "");
-                            }
-                        }
-                    }
-                });
-                mysqlEventParser.setEnableTsdb(tsdbEnable);
-            }
-            eventParser = mysqlEventParser;
+            eventParser = createMysqlEventParser(dbAddresses);
         } else if (type.isLocalBinlog()) {
-            LocalBinlogEventParser localBinlogEventParser = new LocalBinlogEventParser();
-            localBinlogEventParser.setDestination(destination);
-            localBinlogEventParser.setBufferSize(parameters.getReceiveBufferSize());
-            localBinlogEventParser.setConnectionCharset(parameters.getConnectionCharset());
-            localBinlogEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
-            localBinlogEventParser.setDirectory(parameters.getLocalBinlogDirectory());
-            localBinlogEventParser.setProfilingEnabled(false);
-            localBinlogEventParser.setDetectingEnable(parameters.getDetectingEnable());
-            localBinlogEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
-            localBinlogEventParser.setFilterTableError(parameters.getFilterTableError());
-            localBinlogEventParser.setParallel(parameters.getParallel());
-            // 数据库信息，反查表结构时需要
-            if (!CollectionUtils.isEmpty(dbAddresses)) {
-                localBinlogEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
-                    parameters.getDbUsername(),
-                    parameters.getDbPassword(),
-                    parameters.getDefaultDatabaseName()));
-            }
-
-            eventParser = localBinlogEventParser;
+            eventParser = createLocalBinlogEventParser(dbAddresses);
         } else if (type.isPostgresql()) {
-            PgsqlEventParser parser = new PgsqlEventParser();
-            parser.setDestination(destination);
-            // 网络相关参数
-            Integer timeout = parameters.getDefaultConnectionTimeoutInSeconds();
-            timeout = timeout == null ? 60 : timeout;
-            timeout = Math.max(timeout, 60); // 最少60秒
-            parser.setLoginTimeoutInSeconds(timeout);
-            parser.setSocketTimeoutInSeconds(timeout);
-            parser.setConnectTimeoutInSeconds(timeout);
-            parser.setSendBufferSize(parameters.getSendBufferSize());
-            parser.setReceiveBufferSize(parameters.getReceiveBufferSize());
-            // 心跳检查参数
-            parser.setDetectingEnable(parameters.getDetectingEnable());
-            parser.setDetectingSQL(parameters.getDetectingSQL());
-            parser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
-            // 数据库信息参数
-            parser.setSlaveId(parameters.getSlaveId());
-            List<List<DataSourcing>> dataSourceList = parameters.getGroupDbAddresses();
-            List<DataSourcing> dataSources = dataSourceList.get(0);
-            if (!CollectionUtils.isEmpty(dataSources)) {
-                DataSourcing master = dataSources.get(0);
-                parser.setMasterInfo(new AuthenticationInfo(
-                    master.getDbAddress(),
-                    parameters.getDbUsername(),
-                    parameters.getDbPassword(),
-                    parameters.getDefaultDatabaseName()));
-
-            }
-
-            if (!CollectionUtils.isEmpty(parameters.getPositions())) {
-                EntryPosition masterPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
-                    EntryPosition.class);
-                // binlog位置参数
-                parser.setMasterPosition(masterPosition);
-                if (parameters.getPositions().size() > 1) {
-                    EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(1),
-                        EntryPosition.class);
-                    parser.setStandbyPosition(standbyPosition);
-                }
-            }
-            parser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
-
-            parser.setTransactionSize(parameters.getTransactionSize());
-            parser.setLogPositionManager(initLogPositionManager());
-            parser.setAlarmHandler(getAlarmHandler());
-            parser.setEventSink(getEventSink());
-
-            parser.setHaController(initHaController());
-
-            parser.setNameFilter(new AviaterRegexFilter(filter));
-            eventParser = parser;
+            eventParser = createPgsqlEventParser(dbAddresses);
         } else if (type.isOracle()) {
             throw new CanalException("unsupport SourcingType for " + type);
         } else {
@@ -462,13 +301,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                 abstractEventParser.setEventBlackFilter(aviaterFilter);
             }
         }
-        if (eventParser instanceof MysqlEventParser) {
-            MysqlEventParser mysqlEventParser = (MysqlEventParser) eventParser;
 
-            // 初始化haController，绑定与eventParser的关系，haController会控制eventParser
-            CanalHAController haController = initHaController();
-            mysqlEventParser.setHaController(haController);
-        }
         return eventParser;
     }
 
@@ -519,6 +352,180 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         return logPositionManager;
     }
 
+    protected LocalBinlogEventParser createLocalBinlogEventParser(List<InetSocketAddress> dbAddresses) {
+        LocalBinlogEventParser localBinlogEventParser = new LocalBinlogEventParser();
+        localBinlogEventParser.setDestination(destination);
+        localBinlogEventParser.setBufferSize(parameters.getReceiveBufferSize());
+        localBinlogEventParser.setConnectionCharset(parameters.getConnectionCharset());
+        localBinlogEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
+        localBinlogEventParser.setDirectory(parameters.getLocalBinlogDirectory());
+        localBinlogEventParser.setProfilingEnabled(false);
+        localBinlogEventParser.setDetectingEnable(parameters.getDetectingEnable());
+        localBinlogEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
+        localBinlogEventParser.setFilterTableError(parameters.getFilterTableError());
+        localBinlogEventParser.setParallel(parameters.getParallel());
+        // 数据库信息，反查表结构时需要
+        if (!CollectionUtils.isEmpty(dbAddresses)) {
+            localBinlogEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
+                parameters.getDbUsername(),
+                parameters.getDbPassword(),
+                parameters.getDefaultDatabaseName()));
+        }
+        return localBinlogEventParser;
+    }
+
+    protected MysqlEventParser createMysqlEventParser(List<InetSocketAddress> dbAddresses) {
+
+        MysqlEventParser mysqlEventParser = null;
+        if (StringUtils.isNotEmpty(parameters.getRdsAccesskey())
+            && StringUtils.isNotEmpty(parameters.getRdsSecretkey())
+            && StringUtils.isNotEmpty(parameters.getRdsInstanceId())) {
+
+            mysqlEventParser = new RdsBinlogEventParserProxy();
+            ((RdsBinlogEventParserProxy) mysqlEventParser).setAccesskey(parameters.getRdsAccesskey());
+            ((RdsBinlogEventParserProxy) mysqlEventParser).setSecretkey(parameters.getRdsSecretkey());
+            ((RdsBinlogEventParserProxy) mysqlEventParser).setInstanceId(parameters.getRdsInstanceId());
+        } else {
+            mysqlEventParser = new MysqlEventParser();
+        }
+        mysqlEventParser.setDestination(destination);
+        // 编码参数
+        mysqlEventParser.setConnectionCharset(parameters.getConnectionCharset());
+        mysqlEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
+        // 网络相关参数
+        mysqlEventParser.setDefaultConnectionTimeoutInSeconds(parameters.getDefaultConnectionTimeoutInSeconds());
+        mysqlEventParser.setSendBufferSize(parameters.getSendBufferSize());
+        mysqlEventParser.setReceiveBufferSize(parameters.getReceiveBufferSize());
+        // 心跳检查参数
+        mysqlEventParser.setDetectingEnable(parameters.getDetectingEnable());
+        mysqlEventParser.setDetectingSQL(parameters.getDetectingSQL());
+        mysqlEventParser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
+        // 数据库信息参数
+        mysqlEventParser.setSlaveId(parameters.getSlaveId());
+        if (!CollectionUtils.isEmpty(dbAddresses)) {
+            mysqlEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
+                parameters.getDbUsername(),
+                parameters.getDbPassword(),
+                parameters.getDefaultDatabaseName()));
+
+            if (dbAddresses.size() > 1) {
+                mysqlEventParser.setStandbyInfo(new AuthenticationInfo(dbAddresses.get(1),
+                    parameters.getDbUsername(),
+                    parameters.getDbPassword(),
+                    parameters.getDefaultDatabaseName()));
+            }
+        }
+
+        if (!CollectionUtils.isEmpty(parameters.getPositions())) {
+            EntryPosition masterPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
+                EntryPosition.class);
+            // binlog位置参数
+            mysqlEventParser.setMasterPosition(masterPosition);
+
+            if (parameters.getPositions().size() > 1) {
+                EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(1),
+                    EntryPosition.class);
+                mysqlEventParser.setStandbyPosition(standbyPosition);
+            }
+        }
+        mysqlEventParser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
+        mysqlEventParser.setProfilingEnabled(false);
+        mysqlEventParser.setFilterTableError(parameters.getFilterTableError());
+        mysqlEventParser.setParallel(parameters.getParallel());
+        mysqlEventParser.setIsGTIDMode(BooleanUtils.toBoolean(parameters.getGtidEnable()));
+        // tsdb
+        if (parameters.getTsdbSnapshotInterval() != null) {
+            mysqlEventParser.setTsdbSnapshotInterval(parameters.getTsdbSnapshotInterval());
+        }
+        if (parameters.getTsdbSnapshotExpire() != null) {
+            mysqlEventParser.setTsdbSnapshotExpire(parameters.getTsdbSnapshotExpire());
+        }
+        boolean tsdbEnable = BooleanUtils.toBoolean(parameters.getTsdbEnable());
+        if (tsdbEnable) {
+            mysqlEventParser.setTableMetaTSDBFactory(new DefaultTableMetaTSDBFactory() {
+
+                @Override
+                public void destory(String destination) {
+                    TableMetaTSDBBuilder.destory(destination);
+                }
+
+                @Override
+                public TableMetaTSDB build(String destination, String springXml) {
+                    try {
+                        System.setProperty("canal.instance.tsdb.url", parameters.getTsdbJdbcUrl());
+                        System.setProperty("canal.instance.tsdb.dbUsername", parameters.getTsdbJdbcUserName());
+                        System.setProperty("canal.instance.tsdb.dbPassword", parameters.getTsdbJdbcPassword());
+
+                        return TableMetaTSDBBuilder.build(destination, "classpath:spring/tsdb/mysql-tsdb.xml");
+                    } finally {
+                        System.setProperty("canal.instance.tsdb.url", "");
+                        System.setProperty("canal.instance.tsdb.dbUsername", "");
+                        System.setProperty("canal.instance.tsdb.dbPassword", "");
+                    }
+                }
+            });
+            mysqlEventParser.setEnableTsdb(tsdbEnable);
+        }
+
+        // 初始化haController，绑定与eventParser的关系，haController会控制eventParser
+        CanalHAController haController = initHaController();
+        mysqlEventParser.setHaController(haController);
+        return mysqlEventParser;
+    }
+
+    protected PgsqlEventParser createPgsqlEventParser(List<InetSocketAddress> dbAddresses) {
+        PgsqlEventParser parser = new PgsqlEventParser();
+        parser.setDestination(destination);
+        // 网络相关参数
+        Integer timeout = parameters.getDefaultConnectionTimeoutInSeconds();
+        timeout = timeout == null ? 60 : timeout;
+        timeout = Math.max(timeout, 60); // 最少60秒
+        parser.setLoginTimeoutInSeconds(timeout);
+        parser.setSocketTimeoutInSeconds(timeout);
+        parser.setConnectTimeoutInSeconds(timeout);
+        parser.setSendBufferSize(parameters.getSendBufferSize());
+        parser.setReceiveBufferSize(parameters.getReceiveBufferSize());
+        // 心跳检查参数
+        parser.setDetectingEnable(parameters.getDetectingEnable());
+        parser.setDetectingSQL(parameters.getDetectingSQL());
+        parser.setDetectingIntervalInSeconds(parameters.getDetectingIntervalInSeconds());
+        // 数据库信息参数
+        parser.setSlaveId(parameters.getSlaveId());
+
+        if (!CollectionUtils.isEmpty(dbAddresses)) {
+            parser.setMasterInfo(new AuthenticationInfo(
+                dbAddresses.get(0),
+                parameters.getDbUsername(),
+                parameters.getDbPassword(),
+                parameters.getDefaultDatabaseName()));
+
+        }
+
+        if (!CollectionUtils.isEmpty(parameters.getPositions())) {
+            EntryPosition masterPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
+                EntryPosition.class);
+            // binlog位置参数
+            parser.setMasterPosition(masterPosition);
+            if (parameters.getPositions().size() > 1) {
+                EntryPosition standbyPosition = JsonUtils.unmarshalFromString(parameters.getPositions().get(1),
+                    EntryPosition.class);
+                parser.setStandbyPosition(standbyPosition);
+            }
+        }
+        parser.setFallbackIntervalInSeconds(parameters.getFallbackIntervalInSeconds());
+
+        parser.setTransactionSize(parameters.getTransactionSize());
+        parser.setLogPositionManager(initLogPositionManager());
+        parser.setAlarmHandler(getAlarmHandler());
+        parser.setEventSink(getEventSink());
+
+        parser.setHaController(initHaController());
+
+        parser.setEventFilter(new AviaterRegexFilter(filter));
+        return parser;
+    }
+
+    @Override
     protected void startEventParserInternal(CanalEventParser eventParser, boolean isGroup) {
         if (eventParser instanceof AbstractEventParser) {
             AbstractEventParser abstractEventParser = (AbstractEventParser) eventParser;

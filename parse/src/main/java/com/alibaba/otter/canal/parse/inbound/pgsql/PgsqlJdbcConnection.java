@@ -69,7 +69,12 @@ public class PgsqlJdbcConnection extends PgsqlConnection {
         if (event == null) {
           // pgsql返回值可能为空
           {
-            Thread.sleep(1000);
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+              break;
+            }
           }
           continue;
         }

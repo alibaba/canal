@@ -32,7 +32,7 @@ public abstract class PgsqlLogFetcher extends LogFetcher {
     try {
       return doFetch();
     } catch (InterruptedException e) {
-      Thread.currentThread().interrupt(); // 清除中断标记
+      Thread.currentThread().interrupt();
       throw new IOException(e);
     } catch (Exception e) {
       throw new IOException(e);
