@@ -53,7 +53,7 @@ public final class UriUtils {
             return Collections.EMPTY_MAP;
         }
         String query = uri.getRawQuery();
-        HashMap<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<>();
         @SuppressWarnings("resource")
         Scanner scan = new Scanner(query);
         scan.useDelimiter(SPLIT);

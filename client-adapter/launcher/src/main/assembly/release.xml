@@ -31,8 +31,15 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>../elasticsearch/src/main/resources/es</directory>
-            <outputDirectory>/conf/es</outputDirectory>
+            <directory>../es6x/src/main/resources/es6</directory>
+            <outputDirectory>/conf/es6</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../es7x/src/main/resources/es7</directory>
+            <outputDirectory>/conf/es7</outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>
@@ -45,7 +52,21 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>../kudu/src/main/resources/kudu</directory>
+            <outputDirectory>/conf/kudu</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>../rdb/src/main/resources/</directory>
+            <outputDirectory>/conf</outputDirectory>
+            <excludes>
+                <exclude>META-INF/**</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>../tablestore/src/main/resources/</directory>
             <outputDirectory>/conf</outputDirectory>
             <excludes>
                 <exclude>META-INF/**</exclude>

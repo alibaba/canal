@@ -5,8 +5,6 @@ import static org.apache.http.client.config.RequestConfig.custom;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +32,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +56,7 @@ public class HttpHelper {
         HttpGet httpGet = new HttpGet(uri);
         HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(config);
-        CloseableHttpResponse response = httpclient.execute(httpGet, context);
-        try {
+        try (CloseableHttpResponse response = httpclient.execute(httpGet, context)) {
             int statusCode = response.getStatusLine().getStatusCode();
             long end = System.currentTimeMillis();
             long cost = end - start;
@@ -72,10 +68,9 @@ public class HttpHelper {
             } else {
                 String errorMsg = EntityUtils.toString(response.getEntity());
                 throw new RuntimeException("requestGet remote error, url=" + uri.toString() + ", code=" + statusCode
-                                           + ", error msg=" + errorMsg);
+                        + ", error msg=" + errorMsg);
             }
         } finally {
-            response.close();
             httpGet.releaseConnection();
         }
     }
@@ -140,13 +135,9 @@ public class HttpHelper {
         CloseableHttpResponse response = null;
         try {
             // 创建支持忽略证书的https
-            final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            final SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (x509Certificates, s) -> true)
+                    .build();
 
             CloseableHttpClient httpClient = HttpClientBuilder.create()
                 .setSSLContext(sslContext)
@@ -205,13 +196,9 @@ public class HttpHelper {
         CloseableHttpResponse response = null;
         try {
             // 创建支持忽略证书的https
-            final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            final SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (x509Certificates, s) -> true)
+                    .build();
 
             CloseableHttpClient httpClient = HttpClientBuilder.create()
                 .setSSLContext(sslContext)

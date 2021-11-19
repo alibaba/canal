@@ -1,10 +1,12 @@
 package com.alibaba.otter.canal.client.rocketmq;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.client.ConsumerBatchMessage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
@@ -164,7 +166,7 @@ public class RocketMQCanalConnector implements CanalMQConnector {
         if (logger.isDebugEnabled()) {
             logger.debug("Get Message: {}", messageExts);
         }
-        List messageList = Lists.newArrayList();
+        List messageList = new ArrayList<>();
         for (MessageExt messageExt : messageExts) {
             byte[] data = messageExt.getBody();
             if (data != null) {

@@ -141,7 +141,7 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
-    private class ParserMetricsHolder {
+    private static class ParserMetricsHolder {
         private List<String> parserLabelValues;
         private List<String> modeLabelValues;
         // metrics for single parser
@@ -151,7 +151,7 @@ public class ParserCollector extends Collector implements InstanceRegistry {
         private boolean      isParallel;
     }
 
-    private class GroupParserMetricsHolder extends ParserMetricsHolder {
+    private static class GroupParserMetricsHolder extends ParserMetricsHolder {
         private final List<ParserMetricsHolder> holders = new ArrayList<>();
     }
 

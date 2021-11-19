@@ -20,7 +20,7 @@ import org.junit.Test;
 public class AbstractMetaManagerTest extends AbstractZkTest {
 
     private static final String MYSQL_ADDRESS  = "127.0.0.1";
-    protected ClientIdentity    clientIdentity = new ClientIdentity(destination, (short) 1); ;
+    protected ClientIdentity    clientIdentity = new ClientIdentity(destination, (short) 1);
 
     @Test
     public void doSubscribeTest(CanalMetaManager metaManager) {
@@ -116,6 +116,6 @@ public class AbstractMetaManagerTest extends AbstractZkTest {
         LogPosition end = new LogPosition();
         end.setIdentity(new LogIdentity(new InetSocketAddress(MYSQL_ADDRESS, 3306), 1234L));
         end.setPostion(new EntryPosition("mysql-bin.000000" + (number + 1), 106L, (new Date().getTime()) + 1000 * 1000L));
-        return new PositionRange<LogPosition>(start, end);
+        return new PositionRange<>(start, end);
     }
 }

@@ -2,8 +2,8 @@ package com.alibaba.otter.canal.client.adapter.support;
 
 import java.util.*;
 
+import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 
 /**
@@ -19,7 +19,7 @@ public class MessageUtil {
             return null;
         }
         List<CanalEntry.Entry> entries = message.getEntries();
-        List<Dml> dmls = new ArrayList<Dml>(entries.size());
+        List<Dml> dmls = new ArrayList<>(entries.size());
         for (CanalEntry.Entry entry : entries) {
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
                 || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
@@ -131,10 +131,13 @@ public class MessageUtil {
         return dmls;
     }
 
-    public static List<Dml> flatMessage2Dml(String destination, String groupId, List<FlatMessage> flatMessages) {
-        List<Dml> dmls = new ArrayList<Dml>(flatMessages.size());
-        for (FlatMessage flatMessage : flatMessages) {
-            Dml dml = flatMessage2Dml(destination, groupId, flatMessage);
+    public static List<Dml> flatMessage2Dml(String destination, String groupId, List<CommonMessage> commonMessages) {
+        if (commonMessages == null) {
+            return new ArrayList<>();
+        }
+        List<Dml> dmls = new ArrayList<>(commonMessages.size());
+        for (CommonMessage commonMessage : commonMessages) {
+            Dml dml = flatMessage2Dml(destination, groupId, commonMessage);
             if (dml != null) {
                 dmls.add(dml);
             }
@@ -143,31 +146,31 @@ public class MessageUtil {
         return dmls;
     }
 
-    public static Dml flatMessage2Dml(String destination, String groupId, FlatMessage flatMessage) {
-        if (flatMessage == null) {
+    public static Dml flatMessage2Dml(String destination, String groupId, CommonMessage commonMessage) {
+        if (commonMessage == null) {
             return null;
         }
         Dml dml = new Dml();
         dml.setDestination(destination);
         dml.setGroupId(groupId);
-        dml.setDatabase(flatMessage.getDatabase());
-        dml.setTable(flatMessage.getTable());
-        dml.setPkNames(flatMessage.getPkNames());
-        dml.setIsDdl(flatMessage.getIsDdl());
-        dml.setType(flatMessage.getType());
-        dml.setTs(flatMessage.getTs());
-        dml.setEs(flatMessage.getEs());
-        dml.setSql(flatMessage.getSql());
+        dml.setDatabase(commonMessage.getDatabase());
+        dml.setTable(commonMessage.getTable());
+        dml.setPkNames(commonMessage.getPkNames());
+        dml.setIsDdl(commonMessage.getIsDdl());
+        dml.setType(commonMessage.getType());
+        dml.setTs(commonMessage.getTs());
+        dml.setEs(commonMessage.getEs());
+        dml.setSql(commonMessage.getSql());
         // if (flatMessage.getSqlType() == null || flatMessage.getMysqlType() == null) {
         // throw new RuntimeException("SqlType or mysqlType is null");
         // }
-        List<Map<String, String>> data = flatMessage.getData();
+        List<Map<String, Object>> data = commonMessage.getData();
         if (data != null) {
-            dml.setData(changeRows(dml.getTable(), data, flatMessage.getSqlType(), flatMessage.getMysqlType()));
+            dml.setData(data);
         }
-        List<Map<String, String>> old = flatMessage.getOld();
+        List<Map<String, Object>> old = commonMessage.getOld();
         if (old != null) {
-            dml.setOld(changeRows(dml.getTable(), old, flatMessage.getSqlType(), flatMessage.getMysqlType()));
+            dml.setOld(old);
         }
         return dml;
     }

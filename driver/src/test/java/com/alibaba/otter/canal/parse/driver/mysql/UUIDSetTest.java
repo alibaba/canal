@@ -16,7 +16,7 @@ public class UUIDSetTest {
 
     @Test
     public void testToString() {
-        Map<String, String> cases = new HashMap<String, String>(4);
+        Map<String, String> cases = new HashMap<>(4);
         cases.put("726757ad-4455-11e8-ae04-0242ac110002:1", "726757ad-4455-11e8-ae04-0242ac110002:1");
         cases.put("726757ad-4455-11e8-ae04-0242ac110002:1-3", "726757ad-4455-11e8-ae04-0242ac110002:1-3");
         cases.put("726757ad-4455-11e8-ae04-0242ac110002:1-3:4-6", "726757ad-4455-11e8-ae04-0242ac110002:1-6");

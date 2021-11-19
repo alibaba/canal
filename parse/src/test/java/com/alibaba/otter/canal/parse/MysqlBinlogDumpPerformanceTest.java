@@ -1,9 +1,10 @@
 package com.alibaba.otter.canal.parse;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.junit.Ignore;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -15,7 +16,6 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import org.junit.Ignore;
 
 @Ignore
 public class MysqlBinlogDumpPerformanceTest {
@@ -23,7 +23,7 @@ public class MysqlBinlogDumpPerformanceTest {
     public static void main(String args[]) {
         final MysqlEventParser controller = new MysqlEventParser();
         final EntryPosition startPosition = new EntryPosition("mysql-bin.000007", 89796293L, 100L);
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setConnectionCharset("UTF-8");
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
         controller.setFilterQueryDml(true);

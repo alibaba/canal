@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
-<sqlMap namespace="meta_snapshot">
-    <typeAlias alias="metaSnapshotDO" type="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDO"/>
-    <typeAlias alias="tableMetaSnapshotDO"
-               type="com.alibaba.middleware.jingwei.biz.dataobject.CanalTableMetaSnapshotDO"/>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotMapper">
     <sql id="allColumns">
         <![CDATA[
 		gmt_create,gmt_modified,destination,binlog_file,binlog_offest,binlog_master_id,binlog_timestamp,data,extra
@@ -16,48 +13,36 @@
         ]]>
     </sql>
 
-    <select id="findByTimestamp" parameterClass="java.util.Map" resultClass="metaSnapshotDO">
-    	select <include refid="allVOColumns"/>
-    	<![CDATA[
+    <select id="findByTimestamp" parameterType="java.util.Map" resultType="metaSnapshotDO">
+        select <include refid="allVOColumns"/>
+        <![CDATA[
         from meta_snapshot a
-        where destination = #destination# and binlog_timestamp < #timestamp#
+        where destination = #{destination} and binlog_timestamp < #{timestamp}
         order by binlog_timestamp desc,id desc
         limit 1
         ]]>
     </select>
-    
-     <select id="findByTimestampOnDerby" parameterClass="java.util.Map" resultClass="metaSnapshotDO">
-   		select * FROM ( 
-   		select ROW_NUMBER() OVER() AS rownum, <include refid="allVOColumns"/>
-   		<![CDATA[ 
-   		from meta_snapshot a
-   		where destination = #destination# and binlog_timestamp < #timestamp#
-        order by binlog_timestamp desc,id desc
-		) AS tmp 
-		WHERE rownum <= 5
-		]]>
-    </select>
 
-    <insert id="insert" parameterClass="metaSnapshotDO">
+    <insert id="insert" parameterType="metaSnapshotDO">
         insert into meta_snapshot (<include refid="allColumns"/>)
-        values(CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,#destination#,#binlogFile#,#binlogOffest#,#binlogMasterId#,#binlogTimestamp#,#data#,#extra#)
+        values(CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,#{destination},#{binlogFile},#{binlogOffest},#{binlogMasterId},#{binlogTimestamp},#{data},#{extra})
     </insert>
 
-    <update id="update" parameterClass="metaSnapshotDO">
+    <update id="update" parameterType="metaSnapshotDO">
         update meta_snapshot set gmt_modified=now(),
-        binlog_file=#binlogFile#,binlog_offest=#binlogOffest#,binlog_master_id=#binlogMasterId#,binlog_timestamp=#binlogTimestamp#,data=#data#,extra=#extra#
-        where destination=#destination# and binlog_timestamp=0
+        binlog_file=#{binlogFile},binlog_offest=#{binlogOffest},binlog_master_id=#{binlogMasterId},binlog_timestamp=#{binlogTimestamp},data=#{data},extra=#{extra}
+        where destination=#{destination} and binlog_timestamp=0
     </update>
 
- 	<delete id="deleteByName" parameterClass="java.util.Map">
-        delete from meta_snapshot 
-        where destination=#destination#
+    <delete id="deleteByName" parameterType="java.util.Map">
+        delete from meta_snapshot
+        where destination=#{destination}
     </delete>
 
-    <delete id="deleteByTimestamp" parameterClass="java.util.Map">
+    <delete id="deleteByTimestamp" parameterType="java.util.Map">
         <![CDATA[
 		delete from meta_snapshot
-		where destination=#destination# and binlog_timestamp < #timestamp# and binlog_timestamp > 0
+		where destination=#{destination} and binlog_timestamp < #{timestamp} and binlog_timestamp > 0
         ]]>
     </delete>
-</sqlMap>
+</mapper>

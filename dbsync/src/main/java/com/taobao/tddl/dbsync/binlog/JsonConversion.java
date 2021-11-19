@@ -167,7 +167,7 @@ public class JsonConversion {
                 int type_byte = buffer.getUint8();
                 int position = buffer.position();
                 // Then there's the length of the value.
-                int q_max_bytes = (int) Math.min(len, 5);
+                int q_max_bytes = (int) Math.min(len - 1, 5);
                 long q_tlen = 0;
                 long q_str_len = 0;
                 long q_n = 0;
@@ -420,11 +420,27 @@ public class JsonConversion {
         for (int i = 0; i < endIndex; ++i) {
             char c = data.charAt(i);
             if (c == '"') {
-                sb.append('\\');
+                sb.append("\\\"");
+            } else if (c == '\n') {
+                sb.append("\\n");
+            } else if (c == '\r') {
+                sb.append("\\r");
             } else if (c == '\\') {
-                sb.append("\\");
+                sb.append("\\\\");
+            } else if (c == '\t') {
+                sb.append("\\t");
+            } else if (c < 16) {
+                sb.append("\\u000");
+                sb.append(Integer.toHexString(c));
+            } else if (c < 32) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else if (c >= 0x7f && c <= 0xA0) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else {
+                sb.append(c);
             }
-            sb.append(c);
         }
         return sb;
     }

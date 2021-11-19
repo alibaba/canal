@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
  */
 public class CompositePropertySource extends EnumerablePropertySource<Object> {
 
-    private final Set<PropertySource<?>> propertySources = new LinkedHashSet<PropertySource<?>>();
+    private final Set<PropertySource<?>> propertySources = new LinkedHashSet<>();
 
     /**
      * Create a new {@code CompositePropertySource}.
@@ -56,7 +56,7 @@ public class CompositePropertySource extends EnumerablePropertySource<Object> {
 
     @Override
     public String[] getPropertyNames() {
-        Set<String> names = new LinkedHashSet<String>();
+        Set<String> names = new LinkedHashSet<>();
         for (PropertySource<?> propertySource : this.propertySources) {
             if (!(propertySource instanceof EnumerablePropertySource)) {
                 throw new IllegalStateException(
@@ -83,7 +83,7 @@ public class CompositePropertySource extends EnumerablePropertySource<Object> {
      * @since 4.1
      */
     public void addFirstPropertySource(PropertySource<?> propertySource) {
-        List<PropertySource<?>> existing = new ArrayList<PropertySource<?>>(this.propertySources);
+        List<PropertySource<?>> existing = new ArrayList<>(this.propertySources);
         this.propertySources.clear();
         this.propertySources.add(propertySource);
         this.propertySources.addAll(existing);

@@ -140,7 +140,7 @@ public class YmlConfigBinder {
             MutablePropertySources propertySources = new MutablePropertySources();
             propertySources.addFirst(propertySource);
 
-            PropertiesConfigurationFactory<Object> factory = new PropertiesConfigurationFactory<Object>(target);
+            PropertiesConfigurationFactory<Object> factory = new PropertiesConfigurationFactory<>(target);
             factory.setPropertySources(propertySources);
             factory.setIgnoreInvalidFields(true);
             factory.setIgnoreUnknownFields(true);

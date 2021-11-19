@@ -16,7 +16,7 @@ import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
  */
 public final class LogContext {
 
-    private final Map<Long, TableMapLogEvent> mapOfTable = new HashMap<Long, TableMapLogEvent>();
+    private final Map<Long, TableMapLogEvent> mapOfTable = new HashMap<>();
 
     private FormatDescriptionLogEvent         formatDescription;
 
@@ -24,7 +24,7 @@ public final class LogContext {
 
     private GTIDSet                           gtidSet;
 
-    private GtidLogEvent                      gtidLogEvent; // save current gtid log event
+    private LogEvent                          gtidLogEvent; // save current gtid log event
 
     public LogContext(){
         this.formatDescription = FormatDescriptionLogEvent.FORMAT_DESCRIPTION_EVENT_5_x;
@@ -75,11 +75,11 @@ public final class LogContext {
         this.gtidSet = gtidSet;
     }
 
-    public GtidLogEvent getGtidLogEvent() {
+    public LogEvent getGtidLogEvent() {
         return gtidLogEvent;
     }
 
-    public void setGtidLogEvent(GtidLogEvent gtidLogEvent) {
+    public void setGtidLogEvent(LogEvent gtidLogEvent) {
         this.gtidLogEvent = gtidLogEvent;
     }
 }

@@ -20,23 +20,19 @@ public class SimpleCanalClientPermanceTest {
         int perSum = 0;
         long start = System.currentTimeMillis();
         long end = 0;
-        final ArrayBlockingQueue<Long> queue = new ArrayBlockingQueue<Long>(100);
+        final ArrayBlockingQueue<Long> queue = new ArrayBlockingQueue<>(100);
         try {
             final CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
                 destination,
-                "",
-                "");
+                "canal",
+                "canal");
 
-            Thread ackThread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            long batchId = queue.take();
-                            connector.ack(batchId);
-                        } catch (InterruptedException e) {
-                        }
+            Thread ackThread = new Thread(() -> {
+                while (true) {
+                    try {
+                        long batchId = queue.take();
+                        connector.ack(batchId);
+                    } catch (InterruptedException e) {
                     }
                 }
             });

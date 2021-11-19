@@ -1,14 +1,14 @@
 //wpackage com.alibaba.otter.canal.client.adapter.rdb.test;
 //
-//import com.alibaba.fastsql.sql.ast.SQLName;
-//import com.alibaba.fastsql.sql.ast.SQLStatement;
-//import com.alibaba.fastsql.sql.ast.statement.SQLCreateTableStatement;
-//import com.alibaba.fastsql.sql.ast.statement.SQLExprTableSource;
-//import com.alibaba.fastsql.sql.dialect.mysql.parser.MySqlCreateTableParser;
-//import com.alibaba.fastsql.sql.dialect.mysql.parser.MySqlStatementParser;
-//import com.alibaba.fastsql.sql.dialect.mysql.visitor.MySqlOutputVisitor;
-//import com.alibaba.fastsql.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
-//import com.alibaba.fastsql.sql.parser.SQLStatementParser;
+//import com.alibaba.druid.sql.ast.SQLName;
+//import com.alibaba.druid.sql.ast.SQLStatement;
+//import com.alibaba.druid.sql.ast.statement.SQLCreateTableStatement;
+//import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
+//import com.alibaba.druid.sql.dialect.mysql.parser.MySqlCreateTableParser;
+//import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
+//import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlOutputVisitor;
+//import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
+//import com.alibaba.druid.sql.parser.SQLStatementParser;
 //
 //import java.io.StringWriter;
 //

@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+
+  <!--支持NAMESPACE映射 -->
+   <property>
+          <name>phoenix.schema.isNamespaceMappingEnabled</name>
+          <value>true</value>
+   </property>
+   <property>
+          <name>phoenix.schema.mapSystemTablesToNamespace</name>
+          <value>true</value>
+   </property>
+  <!--支持phoenix的二级索引 -->
+   <property>
+          <name>hbase.regionserver.wal.codec</name>
+          <value>org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec</value>
+   </property>
+   <property>  
+        <name>hbase.table.sanity.checks</name>  
+        <value>false</value> 
+   </property> 
+  <!--启动压缩文件检查 -->
+   <property>
+     <name>hbase.regionserver.codecs</name>
+     <value>snappy,lzo</value>
+   </property>
+  <!-- rpc 超时时长 -->
+	<property>
+	  <name>hbase.rpc.timeout</name>
+	  <value>1200000</value>
+	</property>
+	<property>
+	  <name>hbase.client.operation.timeout</name>
+	  <value>600000</value>
+	</property>
+	<property>
+	  <name>hbase.client.scanner.timeout.period</name>
+	  <value>1200000</value>
+	</property>
+	<property>
+	  <name>hbase.client.scanner.timeout.period</name>
+	  <value>1200000</value>
+	</property>
+	<property>
+	 <name>phoenix.query.timeoutMs</name>
+	 <value>1800000</value>
+	</property>
+	<property>
+	 <name>phoenix.query.keepAliveMs</name>
+	 <value>600000</value>
+	</property>
+	<property>
+	  <name>hbase.client.ipc.pool.type</name>
+	  <value>RoundRobinPool</value>
+	</property>
+	<property>
+	  <name>hbase.client.ipc.pool.size</name>
+	  <value>10</value>
+	</property>
+	<property>
+	  <name>index.builder.threads.keepalivetime</name>
+	  <value>1200000</value>
+	</property>
+	<property>
+	  <name>index.write.threads.keepalivetime</name>
+	  <value>1200000</value>
+	</property>
+	<property>
+	  <name>hbase.htable.threads.keepalivetime</name>
+	  <value>1200000</value>
+	</property>
+<!--允许写入自定义WAL编辑，确保索引更新的正确性 -->
+	<property>
+	  <name>hbase.regionserver.wal.codec</name>
+	  <value>org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec</value>
+	</property>
+
+</configuration>

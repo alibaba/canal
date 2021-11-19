@@ -24,26 +24,22 @@ public class SimpleCanalClientTest extends AbstractCanalClientTest {
         String ip = AddressUtils.getHostIp();
         CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
             destination,
-            "",
-            "");
+            "canal",
+            "canal");
 
         final SimpleCanalClientTest clientTest = new SimpleCanalClientTest(destination);
         clientTest.setConnector(connector);
         clientTest.start();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            public void run() {
-                try {
-                    logger.info("## stop the canal client");
-                    clientTest.stop();
-                } catch (Throwable e) {
-                    logger.warn("##something goes wrong when stopping canal:", e);
-                } finally {
-                    logger.info("## canal client is down.");
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                logger.info("## stop the canal client");
+                clientTest.stop();
+            } catch (Throwable e) {
+                logger.warn("##something goes wrong when stopping canal:", e);
+            } finally {
+                logger.info("## canal client is down.");
             }
-
-        });
+        }));
     }
 
 }

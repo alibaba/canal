@@ -25,10 +25,11 @@ public class NettyUtils {
     private static final Logger logger           = LoggerFactory.getLogger(NettyUtils.class);
     public static int           HEADER_LENGTH    = 4;
     public static Timer         hashedWheelTimer = new HashedWheelTimer();
+    public static int           VERSION          = 1;
 
     public static void write(Channel channel, ByteBuffer body, ChannelFutureListener channelFutureListner) {
         byte[] header = ByteBuffer.allocate(HEADER_LENGTH).order(ByteOrder.BIG_ENDIAN).putInt(body.limit()).array();
-        List<ChannelBuffer> components = new ArrayList<ChannelBuffer>(2);
+        List<ChannelBuffer> components = new ArrayList<>(2);
         components.add(ChannelBuffers.wrappedBuffer(ByteOrder.BIG_ENDIAN, header));
         components.add(ChannelBuffers.wrappedBuffer(body));
 
@@ -53,6 +54,7 @@ public class NettyUtils {
         write(channel,
             Packet.newBuilder()
                 .setType(CanalPacket.PacketType.ACK)
+                .setVersion(VERSION)
                 .setBody(Ack.newBuilder().build().toByteString())
                 .build()
                 .toByteArray(),
@@ -69,6 +71,7 @@ public class NettyUtils {
         write(channel,
             Packet.newBuilder()
                 .setType(CanalPacket.PacketType.ACK)
+                .setVersion(VERSION)
                 .setBody(Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(errorMessage).build().toByteString())
                 .build()
                 .toByteArray(),
@@ -77,17 +80,19 @@ public class NettyUtils {
 
     public static byte[] ackPacket() {
         return Packet.newBuilder()
-                .setType(CanalPacket.PacketType.ACK)
-                .setBody(Ack.newBuilder().build().toByteString())
-                .build()
-                .toByteArray();
+            .setType(CanalPacket.PacketType.ACK)
+            .setVersion(VERSION)
+            .setBody(Ack.newBuilder().build().toByteString())
+            .build()
+            .toByteArray();
     }
 
     public static byte[] errorPacket(int errorCode, String errorMessage) {
         return Packet.newBuilder()
-                .setType(CanalPacket.PacketType.ACK)
-                .setBody(Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(errorMessage).build().toByteString())
-                .build()
-                .toByteArray();
+            .setType(CanalPacket.PacketType.ACK)
+            .setVersion(VERSION)
+            .setBody(Ack.newBuilder().setErrorCode(errorCode).setErrorMessage(errorMessage).build().toByteString())
+            .build()
+            .toByteArray();
     }
 }

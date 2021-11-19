@@ -1,11 +1,9 @@
 package com.alibaba.otter.canal.instance.manager;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -109,6 +107,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         super.start();
     }
 
+    @SuppressWarnings("resource")
     protected void initAlarmHandler() {
         logger.info("init alarmHandler begin...");
         String alarmHandlerClass = parameters.getAlarmHandlerClass();
@@ -118,13 +117,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         } else {
             try {
                 File externalLibDir = new File(alarmHandlerPluginDir);
-                File[] jarFiles = externalLibDir.listFiles(new FilenameFilter() {
-
-                    @Override
-                    public boolean accept(File dir, String name) {
-                        return name.endsWith(".jar");
-                    }
-                });
+                File[] jarFiles = externalLibDir.listFiles((dir, name) -> name.endsWith(".jar"));
                 if (jarFiles == null || jarFiles.length == 0) {
                     throw new IllegalStateException(String.format("alarmHandlerPluginDir [%s] can't find any name endswith \".jar\" file.",
                         alarmHandlerPluginDir));
@@ -242,9 +235,9 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         List<List<DataSourcing>> groupDbAddresses = parameters.getGroupDbAddresses();
         if (!CollectionUtils.isEmpty(groupDbAddresses)) {
             int size = groupDbAddresses.get(0).size();// 取第一个分组的数量，主备分组的数量必须一致
-            List<CanalEventParser> eventParsers = new ArrayList<CanalEventParser>();
+            List<CanalEventParser> eventParsers = new ArrayList<>();
             for (int i = 0; i < size; i++) {
-                List<InetSocketAddress> dbAddress = new ArrayList<InetSocketAddress>();
+                List<InetSocketAddress> dbAddress = new ArrayList<>();
                 SourcingType lastType = null;
                 for (List<DataSourcing> groupDbAddress : groupDbAddresses) {
                     if (lastType != null && !lastType.equals(groupDbAddress.get(i).getType())) {
@@ -270,7 +263,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             }
         } else {
             // 创建一个空数据库地址的parser，可能使用了tddl指定地址，启动的时候才会从tddl获取地址
-            this.eventParser = doInitEventParser(type, new ArrayList<InetSocketAddress>());
+            this.eventParser = doInitEventParser(type, new ArrayList<>());
         }
 
         logger.info("init eventParser end! \n\t load CanalEventParser:{}", eventParser.getClass().getName());
@@ -293,7 +286,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             }
             mysqlEventParser.setDestination(destination);
             // 编码参数
-            mysqlEventParser.setConnectionCharset(Charset.forName(parameters.getConnectionCharset()));
+            mysqlEventParser.setConnectionCharset(parameters.getConnectionCharset());
             mysqlEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
             // 网络相关参数
             mysqlEventParser.setDefaultConnectionTimeoutInSeconds(parameters.getDefaultConnectionTimeoutInSeconds());
@@ -374,7 +367,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             LocalBinlogEventParser localBinlogEventParser = new LocalBinlogEventParser();
             localBinlogEventParser.setDestination(destination);
             localBinlogEventParser.setBufferSize(parameters.getReceiveBufferSize());
-            localBinlogEventParser.setConnectionCharset(Charset.forName(parameters.getConnectionCharset()));
+            localBinlogEventParser.setConnectionCharset(parameters.getConnectionCharset());
             localBinlogEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
             localBinlogEventParser.setDirectory(parameters.getLocalBinlogDirectory());
             localBinlogEventParser.setProfilingEnabled(false);
@@ -494,7 +487,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
 
     private synchronized ZkClientx getZkclientx() {
         // 做一下排序，保证相同的机器只使用同一个链接
-        List<String> zkClusters = new ArrayList<String>(parameters.getZkClusters());
+        List<String> zkClusters = new ArrayList<>(parameters.getZkClusters());
         Collections.sort(zkClusters);
 
         return ZkClientx.getZkClient(StringUtils.join(zkClusters, ";"));

@@ -46,9 +46,11 @@ public class MysqlConnector {
 
     private SocketChannel       channel;
     private volatile boolean    dumping           = false;
-    // mysql connectinnId
+    // mysql connectionId
     private long                connectionId      = -1;
     private AtomicBoolean       connected         = new AtomicBoolean(false);
+    // serverVersion
+    private String              serverVersion;
 
     public static final int     timeout           = 5 * 1000;                                     // 5s
 
@@ -167,7 +169,7 @@ public class MysqlConnector {
             } else if (body[0] == -2) {
                 throw new IOException("Unexpected EOF packet at handshake phase.");
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
@@ -179,6 +181,7 @@ public class MysqlConnector {
         }
 
         connectionId = handshakePacket.threadId; // 记录一下connection
+        serverVersion = handshakePacket.serverVersion; // 记录serverVersion
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
         ClientAuthenticationPacket clientAuth = new ClientAuthenticationPacket();
         clientAuth.setCharsetNumber(charsetNumber);
@@ -270,7 +273,7 @@ public class MysqlConnector {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
     }
@@ -301,7 +304,7 @@ public class MysqlConnector {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
             default:
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
         }
     }
 
@@ -410,6 +413,10 @@ public class MysqlConnector {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getServerVersion() {
+        return serverVersion;
     }
 
 }
