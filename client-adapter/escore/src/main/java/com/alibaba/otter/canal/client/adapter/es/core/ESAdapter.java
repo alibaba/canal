@@ -15,6 +15,7 @@ import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -42,6 +43,8 @@ public abstract class ESAdapter implements OuterAdapter {
 
     protected Properties                             envProperties;
 
+    protected OuterAdapterConfig                     configuration;
+
     public ESSyncService getEsSyncService() {
         return esSyncService;
     }
@@ -58,26 +61,12 @@ public abstract class ESAdapter implements OuterAdapter {
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
             this.envProperties = envProperties;
+            this.configuration = configuration;
             Map<String, ESSyncConfig> esSyncConfigTmp = ESSyncConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
             esSyncConfigTmp.forEach((key, config) -> {
-                boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
-                        .equalsIgnoreCase(configuration.getKey());
-                boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
-                        .startsWith(config.getDestination() + "_" + config.getGroupId());
-                if (sameMatch || prefixMatch) {
-                    esSyncConfig.put(key, config);
-                }
+                addConfig(key, config);
             });
-
-            for (Map.Entry<String, ESSyncConfig> entry : esSyncConfig.entrySet()) {
-                String configName = entry.getKey();
-                ESSyncConfig config = entry.getValue();
-
-                addSyncConfigToCache(configName, config);
-                FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), configName,
-                        configuration.getKey());
-            }
 
             esSyncService = new ESSyncService(esTemplate);
 
@@ -142,7 +131,7 @@ public abstract class ESAdapter implements OuterAdapter {
         return null;
     }
 
-    public void addSyncConfigToCache(String configName, ESSyncConfig config) {
+    private void addSyncConfigToCache(String configName, ESSyncConfig config) {
         Properties envProperties = this.envProperties;
         SchemaItem schemaItem = SqlParser.parse(config.getEsMapping().getSql());
         config.getEsMapping().setSchemaItem(schemaItem);
@@ -159,28 +148,69 @@ public abstract class ESAdapter implements OuterAdapter {
         String schema = matcher.group(2);
 
         schemaItem.getAliasTableItems()
-            .values()
-            .forEach(tableItem -> {
-                Map<String, ESSyncConfig> esSyncConfigMap;
-                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                    esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
-                                                                          + "-"
-                                                                          + StringUtils.trimToEmpty(config.getGroupId())
-                                                                          + "_"
-                                                                          + schema
-                                                                          + "-"
-                                                                          + tableItem.getTableName(),
-                        k -> new ConcurrentHashMap<>());
-                } else {
-                    esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
-                                                                          + "_"
-                                                                          + schema
-                                                                          + "-"
-                                                                          + tableItem.getTableName(),
-                        k -> new ConcurrentHashMap<>());
-                }
+                .values()
+                .forEach(tableItem -> {
+                    Map<String, ESSyncConfig> esSyncConfigMap;
+                    if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                        esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
+                                        + "-"
+                                        + StringUtils.trimToEmpty(config.getGroupId())
+                                        + "_"
+                                        + schema
+                                        + "-"
+                                        + tableItem.getTableName(),
+                                k -> new ConcurrentHashMap<>());
+                    } else {
+                        esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
+                                        + "_"
+                                        + schema
+                                        + "-"
+                                        + tableItem.getTableName(),
+                                k -> new ConcurrentHashMap<>());
+                    }
 
-                esSyncConfigMap.put(configName, config);
-            });
+                    esSyncConfigMap.put(configName, config);
+                });
+    }
+
+    public boolean addConfig(String fileName, ESSyncConfig config) {
+        if (match(config)) {
+            esSyncConfig.put(fileName, config);
+            addSyncConfigToCache(fileName, config);
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), fileName,
+                    configuration.getKey());
+            return true;
+        }
+        return false;
+    }
+
+    public void updateConfig(String fileName, ESSyncConfig config) {
+        if (config.getOuterAdapterKey() != null && !config.getOuterAdapterKey()
+                .equals(configuration.getKey())) {
+            // 理论上不允许改这个 因为本身就是通过这个关联起Adapter和Config的
+            throw new RuntimeException("not allow to change outAdapterKey");
+        }
+        esSyncConfig.put(fileName, config);
+        addSyncConfigToCache(fileName, config);
+    }
+
+    public void deleteConfig(String fileName) {
+        esSyncConfig.remove(fileName);
+        for (Map<String, ESSyncConfig> configMap : dbTableEsSyncConfig.values()) {
+            if (configMap != null) {
+                configMap.remove(fileName);
+            }
+        }
+        FileName2KeyMapping.unregister(getClass().getAnnotation(SPI.class).value(), fileName);
+    }
+
+    private boolean match(ESSyncConfig config) {
+        boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                .equalsIgnoreCase(configuration.getKey());
+        boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                .startsWith(StringUtils
+                        .join(new String[]{Util.AUTO_GENERATED_PREFIX, config.getDestination(),
+                                config.getGroupId()}, '-'));
+        return sameMatch || prefixMatch;
     }
 }

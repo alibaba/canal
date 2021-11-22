@@ -14,6 +14,10 @@ public class FileName2KeyMapping {
         MAP.putIfAbsent(join(type, fileName), key);
     }
 
+    public static void unregister(String type, String fileName) {
+        MAP.remove(join(type, fileName));
+    }
+
     public static String getKey(String type, String fileName) {
         return MAP.get(join(type, fileName));
     }

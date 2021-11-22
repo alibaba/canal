@@ -5,6 +5,7 @@ import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +56,10 @@ public class CanalAdapterLoader {
                 for (OuterAdapterConfig config : group.getOuterAdapters()) {
                     // 保证一定有key
                     if (config.getKey() == null) {
-                        config.setKey(canalAdapter.getInstance() + "_" + StringUtils
-                                .trimToEmpty(group.getGroupId()) + "_" + i);
+                        String key = StringUtils.join(new String[]{Util.AUTO_GENERATED_PREFIX,
+                                        canalAdapter.getInstance(), group.getGroupId(), String.valueOf(i)},
+                                '-');
+                        config.setKey(key);
                     }
                     i++;
                     loadAdapter(config, canalOuterAdapters);
@@ -64,16 +67,16 @@ public class CanalAdapterLoader {
                 canalOuterAdapterGroups.add(canalOuterAdapters);
 
                 AdapterProcessor adapterProcessor = canalAdapterProcessors.computeIfAbsent(canalAdapter.getInstance()
-                                                                                           + "|"
-                                                                                           + StringUtils.trimToEmpty(group.getGroupId()),
-                    f -> new AdapterProcessor(canalClientConfig,
-                        canalAdapter.getInstance(),
-                        group.getGroupId(),
-                        canalOuterAdapterGroups));
+                                + "|"
+                                + StringUtils.trimToEmpty(group.getGroupId()),
+                        f -> new AdapterProcessor(canalClientConfig,
+                                canalAdapter.getInstance(),
+                                group.getGroupId(),
+                                canalOuterAdapterGroups));
                 adapterProcessor.start();
 
                 logger.info("Start adapter for canal-client mq topic: {} succeed", canalAdapter.getInstance() + "-"
-                                                                                   + group.getGroupId());
+                        + group.getGroupId());
             }
         }
 
