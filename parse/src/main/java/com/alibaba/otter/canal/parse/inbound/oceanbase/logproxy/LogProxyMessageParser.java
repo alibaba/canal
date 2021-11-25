@@ -199,8 +199,10 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, message.getDbName());
         if (ddlResults.size() > 0) {
             table = ddlResults.get(0).getTableName();
-            String schema = getTargetDbName(ddlResults.get(0).getSchemaName());
-            ddl = completeTableNameInSql(ddl, schema, table);
+            if (ddlResults.get(0).getType() == CanalEntry.EventType.ALTER) {
+                String schema = getTargetDbName(ddlResults.get(0).getSchemaName());
+                ddl = completeTableNameInSql(ddl, schema, table);
+            }
         }
 
         CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, table);
