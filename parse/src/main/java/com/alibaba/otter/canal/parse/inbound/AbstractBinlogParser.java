@@ -32,11 +32,6 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
 
     public static final Logger logger = LoggerFactory.getLogger(AbstractBinlogParser.class);
 
-    protected static final String TABLE  = "TABLE";
-    protected static final String ALTER  = "ALTER";
-    protected static final String RENAME = "RENAME";
-    protected static final String TO     = "TO";
-
     /**
      * 字符集
      */
