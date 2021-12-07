@@ -100,6 +100,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
         logger.info("init successful....");
     }
 
+    @Override
     public void start() {
         // 初始化metaManager
         logger.info("start CannalInstance for {}-{} with parameters:{}", canalId, destination, parameters);
@@ -276,10 +277,12 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             eventParser = createLocalBinlogEventParser(dbAddresses);
         } else if (type.isPostgresql()) {
             eventParser = createPgsqlEventParser(dbAddresses);
+        } else if (type.isSqlServer()) {
+            eventParser = createSqlServerEventParser(dbAddresses);
         } else if (type.isOracle()) {
-            throw new CanalException("unsupport SourcingType for " + type);
+            eventParser = createOracleEventParser(dbAddresses);
         } else {
-            throw new CanalException("unsupport SourcingType for " + type);
+            throw new CanalException("unsupported SourcingType for " + type);
         }
 
         // add transaction support at 2012-12-06
@@ -523,6 +526,14 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
 
         parser.setEventFilter(new AviaterRegexFilter(filter));
         return parser;
+    }
+
+    protected CanalEventParser createSqlServerEventParser(List<InetSocketAddress> dbAddresses) {
+        throw new CanalException("unsupported SourcingType for SQLServer");
+    }
+
+    protected CanalEventParser createOracleEventParser(List<InetSocketAddress> dbAddresses) {
+        throw new CanalException("unsupported SourcingType for Oracle");
     }
 
     @Override
