@@ -54,7 +54,7 @@ public class PgsqlJdbcConnection extends PgsqlConnection {
 
   @Override
   public void seek(String binlog, Long binlogPosition, String gtid, SinkFunction func) throws IOException {
-    SinkFunction<PgsqlLogEvent> sf = func;
+    throw new UnsupportedOperationException("unsupported seek(String binlog, Long binlogPosition, String gtid, SinkFunction func)");
   }
 
   @Override
@@ -92,17 +92,17 @@ public class PgsqlJdbcConnection extends PgsqlConnection {
 
   @Override
   public void dump(long timestamp, SinkFunction func) throws IOException {
-
+    throw new UnsupportedOperationException("unsupported dump(long timestamp, SinkFunction func) now");
   }
 
   @Override
   public void dump(String binlog, Long binlogPosition, MultiStageCoprocessor coprocessor) throws IOException {
-
+    throw new UnsupportedOperationException("unsupported dump(String binlog, Long binlogPosition, MultiStageCoprocessor coprocessor) now");
   }
 
   @Override
   public void dump(long timestamp, MultiStageCoprocessor coprocessor) throws IOException {
-
+    throw new UnsupportedOperationException("unsupported dump(long timestamp, MultiStageCoprocessor coprocessor) now");
   }
 
   @Override
