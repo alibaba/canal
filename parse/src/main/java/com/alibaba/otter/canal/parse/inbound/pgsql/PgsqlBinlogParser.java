@@ -6,6 +6,7 @@ import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.CanalEntry.Column;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
 import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.CanalEntry.Header;
@@ -17,12 +18,16 @@ import com.taobao.tddl.dbsync.binlog.pgsql.PgsqlCommitEvent;
 import com.taobao.tddl.dbsync.binlog.pgsql.PgsqlLogEvent;
 import com.taobao.tddl.dbsync.binlog.pgsql.PgsqlRowEvent;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.commons.lang.StringUtils;
 
 public class PgsqlBinlogParser extends AbstractBinlogParser<PgsqlLogEvent> {
 
   private PgsqlMetaCache tableMetaCache;
-  private CanalEventFilter nameFilter;
+  private CanalEventFilter<String> nameFilter;
 
   public PgsqlBinlogParser() {
   }
@@ -148,6 +153,20 @@ public class PgsqlBinlogParser extends AbstractBinlogParser<PgsqlLogEvent> {
       row = parseOneColumn(rowDataBuilder, index++, row, tableMeta);
     } while (row.length() > 0);
 
+    /*
+    注意pgsql update pk的问题: https://doxygen.postgresql.org/test__decoding_8c_source.html
+    sql: update t set a = ?, b = ?, pk = ?,uk = ?,c = ?, d = ? where pk = ?
+    log: table db.tb: UPDATE: old-key: pk[character varying]:'x' a[character varying]:'y' uk[character varying]:'z' c[character varying]:'aa' new-tuple: pk[character varying]:'l' a[character varying]:'l' b[character varying]:'m' uk[character varying]:null e[character varying]:'n'
+    */
+    if (CanalEntry.EventType.UPDATE.equals(eventType) && !rowDataBuilder.getBeforeColumnsList().isEmpty()) {
+      List<Column> beforeColumnsList = rowDataBuilder.getBeforeColumnsList();
+      List<Column> afterColumnsList = distinctColumns(rowDataBuilder.getAfterColumnsList());
+
+      rowDataBuilder = CanalEntry.RowData.newBuilder();
+      rowDataBuilder.addAllBeforeColumns(beforeColumnsList);
+      rowDataBuilder.addAllAfterColumns(afterColumnsList);
+    }
+
     CanalEntry.RowData rowData = rowDataBuilder.build();
 
     Header header = Header
@@ -189,7 +208,7 @@ public class PgsqlBinlogParser extends AbstractBinlogParser<PgsqlLogEvent> {
       int i = colName.indexOf(": ");
       colName = colName.substring(i + 2);
       isOldPk = true;
-      isPk = false;
+      isPk = true;
     } else {
       if (colName.contains("new-tuple:")) {
         int i = colName.indexOf(": ");
@@ -279,6 +298,33 @@ public class PgsqlBinlogParser extends AbstractBinlogParser<PgsqlLogEvent> {
     return this.tableMetaCache.getTableMeta(schema, table);
   }
 
+  protected List<Column> distinctColumns(List<Column> columns) {
+    Map<String, Column> map = new TreeMap<>();
+    for (int i = columns.size() - 1; i >= 0; i--) {
+      Column column = columns.get(i);
+      if (!map.containsKey(column.getName())) {
+        map.put(column.getName(), column);
+      }
+    }
+    List<Column> ret = new ArrayList<>(map.size());
+    int index = 0;
+    for (Map.Entry<String, Column> e : map.entrySet()) {
+      Column column = e.getValue();
+      CanalEntry.Column.Builder columnBuilder = CanalEntry.Column.newBuilder();
+      columnBuilder.setIsKey(column.getIsKey());
+      columnBuilder.setMysqlType(column.getMysqlType());
+      columnBuilder.setIndex(index++);
+      columnBuilder.setIsNull(column.getIsNull());
+      columnBuilder.setValue(column.getValue());
+      columnBuilder.setSqlType(column.getSqlType());
+      columnBuilder.setUpdated(column.getUpdated());
+      columnBuilder.setName(column.getName());
+      ret.add(column);
+    }
+    map.clear();
+    return ret;
+  }
+
   // region getter/setter
 
   public PgsqlMetaCache getTableMetaCache() {
@@ -289,7 +335,7 @@ public class PgsqlBinlogParser extends AbstractBinlogParser<PgsqlLogEvent> {
     this.tableMetaCache = tableMetaCache;
   }
 
-  public CanalEventFilter getNameFilter() {
+  public CanalEventFilter<String> getNameFilter() {
     return nameFilter;
   }
 
