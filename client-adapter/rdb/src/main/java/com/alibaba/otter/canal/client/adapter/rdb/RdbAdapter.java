@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.client.adapter.rdb;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.filter.stat.StatFilter;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
@@ -128,6 +130,14 @@ public class RdbAdapter implements OuterAdapter {
         // List<String> array = new ArrayList<>();
         // array.add("set names utf8mb4;");
         // dataSource.setConnectionInitSqls(array);
+
+        if ("true".equals(properties.getOrDefault("druid.stat.enable", "true"))) {
+            StatFilter statFilter = new StatFilter();
+            statFilter.setSlowSqlMillis(Long.parseLong(properties.getOrDefault("druid.stat.slowSqlMillis", "1000")));
+            statFilter.setMergeSql(true);
+            statFilter.setLogSlowSql(true);
+            dataSource.setProxyFilters(Collections.singletonList(statFilter));
+        }
 
         try {
             dataSource.init();
