@@ -7,17 +7,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SingleDml;
+import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 /**
@@ -31,10 +31,10 @@ public class RdbMirrorDbSyncService {
     private static final Logger         logger = LoggerFactory.getLogger(RdbMirrorDbSyncService.class);
 
     private Map<String, MirrorDbConfig> mirrorDbConfigCache;                                           // 镜像库配置
-    private DataSource                  dataSource;
+    private DruidDataSource             dataSource;
     private RdbSyncService              rdbSyncService;                                                // rdbSyncService代理
 
-    public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DataSource dataSource,
+    public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DruidDataSource dataSource,
                                   Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
                                   boolean skipDupException){
         this.mirrorDbConfigCache = mirrorDbConfigCache;
@@ -153,7 +153,13 @@ public class RdbMirrorDbSyncService {
      */
     private void executeDdl(MirrorDbConfig mirrorDbConfig, Dml ddl) {
         try (Connection conn = dataSource.getConnection(); Statement statement = conn.createStatement()) {
-            statement.execute(ddl.getSql());
+            // 替换反引号
+            String sql = ddl.getSql();
+            String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
+            if (!"`".equals(backtick)) {
+                sql = sql.replaceAll("`", backtick);
+            }
+            statement.execute(sql);
             // 移除对应配置
             mirrorDbConfig.getTableConfig().remove(ddl.getTable());
             if (logger.isTraceEnabled()) {
