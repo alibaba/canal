@@ -41,7 +41,7 @@ public class LogProxyEventParser extends AbstractOceanBaseEventParser<LogMessage
         // priority of start position source: position manager > properties file > zero value
         EntryPosition startPosition = findStartPosition();
         if (startPosition != null) {
-            logProxyConfig.setStartTimestamp(startPosition.getTimestamp());
+            logProxyConfig.setStartTimestamp(startPosition.getTimestamp()/1000);
         }
         logger.info("Build connection with config {}", logProxyConfig.toString());
         return new LogProxyConnection(logProxyInfo.getAddress(), logProxyConfig, sslConfig);

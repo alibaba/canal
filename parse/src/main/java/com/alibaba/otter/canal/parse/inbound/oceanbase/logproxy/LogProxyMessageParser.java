@@ -215,7 +215,7 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
 
     private CanalEntry.Entry parseHeartBeatRecord(LogMessage message) {
         CanalEntry.Header.Builder headerBuilder = CanalEntry.Header.newBuilder();
-        headerBuilder.setExecuteTime(Long.parseLong(message.getTimestamp()));
+        headerBuilder.setExecuteTime(Long.parseLong(message.getTimestamp())*1000);
         headerBuilder.setEventType(CanalEntry.EventType.MHEARTBEAT);
         CanalEntry.Entry.Builder entryBuilder = CanalEntry.Entry.newBuilder();
         entryBuilder.setHeader(headerBuilder.build());
@@ -234,7 +234,7 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         headerBuilder.setVersion(message.getVersion());
         headerBuilder.setLogfileOffset(message.getFileOffset());
         headerBuilder.setEventType(eventType);
-        headerBuilder.setExecuteTime(Long.parseLong(message.getTimestamp()));
+        headerBuilder.setExecuteTime(Long.parseLong(message.getTimestamp())*1000);
 
         if (message.getOB10UniqueId() != null) {
             headerBuilder.setGtid(message.getOB10UniqueId());
