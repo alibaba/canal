@@ -163,7 +163,7 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
             CanalEntry.EventType.UPDATE)) || (filterDmlDelete && eventType.equals(CanalEntry.EventType.DELETE))) {
             return null;
         }
-        CanalEntry.Header header = createHeader(message, eventType);
+        CanalEntry.Header header = createHeader(message, eventType, 1);
         CanalEntry.RowData rowData = dmlRowData(message);
         CanalEntry.RowChange.Builder builder = CanalEntry.RowChange.newBuilder();
         builder.setIsDdl(false);
@@ -175,14 +175,14 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
     private CanalEntry.Entry parseBeginRecord(LogMessage message) throws Exception {
         messageCount();
         CanalEntry.TransactionBegin transactionBegin = createTransactionBegin(Long.parseLong(message.getThreadId()));
-        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY);
+        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, 0);
         return createEntry(header, CanalEntry.EntryType.TRANSACTIONBEGIN, transactionBegin.toByteString());
     }
 
     private CanalEntry.Entry parseCommitRecord(LogMessage message) {
         messageCount();
         CanalEntry.TransactionEnd transactionEnd = createTransactionEnd(0);
-        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.XACOMMIT);
+        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.XACOMMIT, 0);
         return createEntry(header, CanalEntry.EntryType.TRANSACTIONEND, transactionEnd.toByteString());
     }
 
@@ -205,7 +205,7 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
             }
         }
 
-        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, table);
+        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, 0, table);
         CanalEntry.RowChange.Builder rowChangeBuilder = CanalEntry.RowChange.newBuilder();
         rowChangeBuilder.setIsDdl(true);
         rowChangeBuilder.setSql(ddl);
@@ -223,11 +223,11 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         return entryBuilder.build();
     }
 
-    private CanalEntry.Header createHeader(LogMessage message, CanalEntry.EventType eventType) {
-        return createHeader(message, eventType, null);
+    private CanalEntry.Header createHeader(LogMessage message, CanalEntry.EventType eventType, int rowsCount) {
+        return createHeader(message, eventType, rowsCount, null);
     }
 
-    private CanalEntry.Header createHeader(LogMessage message, CanalEntry.EventType eventType, String ddlTableName) {
+    private CanalEntry.Header createHeader(LogMessage message, CanalEntry.EventType eventType, int rowsCount, String ddlTableName) {
         CanalEntry.Header.Builder headerBuilder = CanalEntry.Header.newBuilder();
         headerBuilder.setServerenCode(StandardCharsets.UTF_8.toString());
         headerBuilder.setLogfileName(LOGFILE_NAME);
@@ -253,6 +253,8 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         if (StringUtils.isNotBlank(tableName)) {
             headerBuilder.setTableName(tableName);
         }
+        CanalEntry.Pair pair = createSpecialPair("rowsCount", String.valueOf(rowsCount));
+        headerBuilder.addProps(pair);
         return headerBuilder.build();
     }
 
