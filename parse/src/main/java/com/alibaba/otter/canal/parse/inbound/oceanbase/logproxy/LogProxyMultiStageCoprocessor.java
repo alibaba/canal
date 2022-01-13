@@ -19,7 +19,7 @@ import com.lmax.disruptor.Sequence;
 import com.lmax.disruptor.SequenceBarrier;
 import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.WorkerPool;
-import com.oceanbase.clogproxy.client.message.LogMessage;
+import com.oceanbase.oms.logmessage.LogMessage;
 
 /**
  * 基于LogProxy的MultiStageCoprocessor实现

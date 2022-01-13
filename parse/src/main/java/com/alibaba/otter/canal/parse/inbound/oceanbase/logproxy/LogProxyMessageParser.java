@@ -19,8 +19,8 @@ import com.alibaba.otter.canal.parse.inbound.AbstractBinlogParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.oceanbase.clogproxy.client.message.DataMessage;
-import com.oceanbase.clogproxy.client.message.LogMessage;
+import com.oceanbase.oms.logmessage.DataMessage;
+import com.oceanbase.oms.logmessage.LogMessage;
 
 /**
  * 基于LogProxy的BinlogParser实现

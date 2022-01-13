@@ -19,8 +19,8 @@ import com.oceanbase.clogproxy.client.LogProxyClient;
 import com.oceanbase.clogproxy.client.config.ObReaderConfig;
 import com.oceanbase.clogproxy.client.exception.LogProxyClientException;
 import com.oceanbase.clogproxy.client.listener.RecordListener;
-import com.oceanbase.clogproxy.client.message.DataMessage;
-import com.oceanbase.clogproxy.client.message.LogMessage;
+import com.oceanbase.oms.logmessage.DataMessage;
+import com.oceanbase.oms.logmessage.LogMessage;
 
 /**
  * 基于LogProxy的OceanBaseConnection实现

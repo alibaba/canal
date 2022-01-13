@@ -12,7 +12,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.oceanbase.clogproxy.client.config.ObReaderConfig;
-import com.oceanbase.clogproxy.client.message.LogMessage;
+import com.oceanbase.oms.logmessage.LogMessage;
 
 /**
  * 基于LogProxy的CanalEventParser实现
