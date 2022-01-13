@@ -65,6 +65,14 @@
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
+	<logger name="com.alibaba.otter.canal.server" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+	<logger name="com.alibaba.otter.canal.meta" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
 	<logger name="com.alibaba.otter.canal.instance" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
