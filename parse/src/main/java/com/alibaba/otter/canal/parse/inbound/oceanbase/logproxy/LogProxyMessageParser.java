@@ -191,6 +191,7 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         if (filterQueryDdl) {
             return null;
         }
+        CanalEntry.EventType eventType = CanalEntry.EventType.QUERY;
         String ddl = message.getFieldList().get(0).getValue().toString(charset.name());
 
         // DDL类型的LogMessage没有存表名，并且SQL本身可能缺少库名前缀。
@@ -199,17 +200,18 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, message.getDbName());
         if (ddlResults.size() > 0) {
             table = ddlResults.get(0).getTableName();
-            if (ddlResults.get(0).getType() == CanalEntry.EventType.ALTER) {
+            eventType = ddlResults.get(0).getType();
+            if (eventType == CanalEntry.EventType.ALTER) {
                 String schema = getTargetDbName(ddlResults.get(0).getSchemaName());
                 ddl = completeTableNameInSql(ddl, schema, table);
             }
         }
 
-        CanalEntry.Header header = createHeader(message, CanalEntry.EventType.QUERY, 0, table);
+        CanalEntry.Header header = createHeader(message, eventType, 0, table);
         CanalEntry.RowChange.Builder rowChangeBuilder = CanalEntry.RowChange.newBuilder();
         rowChangeBuilder.setIsDdl(true);
         rowChangeBuilder.setSql(ddl);
-        rowChangeBuilder.setEventType(CanalEntry.EventType.QUERY);
+        rowChangeBuilder.setEventType(eventType);
         return createEntry(header, CanalEntry.EntryType.ROWDATA, rowChangeBuilder.build().toByteString());
     }
 
