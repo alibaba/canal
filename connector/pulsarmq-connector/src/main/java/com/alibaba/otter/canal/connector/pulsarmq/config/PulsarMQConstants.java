@@ -57,6 +57,10 @@ public class PulsarMQConstants {
      * 最大重试次数
      */
     public static final String PULSARMQ_MAX_REDELIVERY_COUNT = ROOT + "." + "maxRedeliveryCount";
+    /**
+     * Pulsar admin服务器地址
+     */
+    public static final String PULSARMQ_ADMIN_SERVER_URL = ROOT + "." + "adminServerUrl";
 
 
 }
