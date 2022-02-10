@@ -203,6 +203,9 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         if (partitionNum == null) {
             partitionNum = destination.getPartitionsNum();
         }
+        // 提前获取Producer对象，同时支持多分区topic的创建
+        Producer<byte[]> producer = getProducer(topicName, partitionNum);
+
         ExecutorTemplate template = new ExecutorTemplate(sendPartitionExecutor);
         // 并发构造
         MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
@@ -225,16 +228,15 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                     for (int i = 0; i < len; i++) {
                         final int partition = i;
                         com.alibaba.otter.canal.protocol.Message m = messages[i];
-                        Integer topicPartitionNum = partitionNum;
                         template.submit(() -> {
-                            sendMessage(topicName, topicPartitionNum, partition, m);
+                            sendMessage(topicName, partition, m);
                         });
                     }
                 }
             } else {
                 // 默认分区
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
-                sendMessage(topicName, partitionNum, partition, message);
+                sendMessage(topicName, partition, message);
             }
         } else {
             // 串行分区
@@ -266,10 +268,9 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                     final List<FlatMessage> flatMessagePart = partitionFlatMessages.get(i);
                     if (flatMessagePart != null && flatMessagePart.size() > 0) {
                         final int partition = i;
-                        Integer topicPartitionNum = partitionNum;
                         template.submit(() -> {
                             // 批量发送
-                            sendMessage(topicName, topicPartitionNum, partition, flatMessagePart);
+                            sendMessage(topicName, partition, flatMessagePart);
                         });
                     }
                 }
@@ -279,7 +280,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
             } else {
                 // 默认分区
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
-                sendMessage(topicName, partitionNum, partition, flatMessages);
+                sendMessage(topicName, partition, flatMessages);
             }
         }
     }
@@ -288,20 +289,19 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * 发送原始消息，需要做分区处理
      *
      * @param topic        topic
-     * @param topicPartitionNum topic分区数据
-     * @param targetPartitionNum 目标分区
+     * @param partitionNum 目标分区
      * @param msg          原始消息内容
      * @return void
      * @date 2021/9/10 17:55
      * @author chad
      * @since 1 by chad at 2021/9/10 新增
      */
-    private void sendMessage(String topic,Integer topicPartitionNum, int targetPartitionNum, com.alibaba.otter.canal.protocol.Message msg) {
-        Producer<byte[]> producer = getProducer(topic,topicPartitionNum);
+    private void sendMessage(String topic, int partitionNum, com.alibaba.otter.canal.protocol.Message msg) {
+        Producer<byte[]> producer = getProducer(topic,null);
         byte[] msgBytes = CanalMessageSerializerUtil.serializer(msg, mqProperties.isFilterTransactionEntry());
         try {
             MessageId msgResultId = producer.newMessage()
-                    .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(targetPartitionNum))
+                    .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partitionNum))
                     .value(msgBytes).send();
             // todo 判断发送结果
             if (logger.isDebugEnabled()) {
@@ -322,8 +322,8 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * @author chad
      * @since 1 by chad at 2021/9/10 新增
      */
-    private void sendMessage(String topic, Integer topicPartitionNum, int targetPartitionNum, List<FlatMessage> flatMessages) {
-        Producer<byte[]> producer = getProducer(topic,topicPartitionNum);
+    private void sendMessage(String topic, int targetPartitionNum, List<FlatMessage> flatMessages) {
+        Producer<byte[]> producer = getProducer(topic,null);
         for (FlatMessage f : flatMessages) {
             try {
                 MessageId msgResultId = producer
@@ -342,45 +342,6 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         }
     }
 
-    private Producer<byte[]> getProducer(String topic) {
-        Producer producer = PRODUCERS.get(topic);
-
-        if (null == producer) {
-            try {
-                synchronized (PRODUCERS) {
-                    producer = PRODUCERS.get(topic);
-                    if (null != producer) {
-                        return producer;
-                    }
-
-                    // 拼接topic前缀
-                    PulsarMQProducerConfig pulsarMQProperties = (PulsarMQProducerConfig) this.mqProperties;
-                    String prefix = pulsarMQProperties.getTopicTenantPrefix();
-                    String fullTopic = topic;
-                    if (!StringUtils.isEmpty(prefix)) {
-                        if (!prefix.endsWith("/")) {
-                            fullTopic = "/" + fullTopic;
-                        }
-                        fullTopic = pulsarMQProperties.getTopicTenantPrefix() + fullTopic;
-                    }
-
-                    // 创建指定topic的生产者
-                    producer = client.newProducer()
-                            .topic(fullTopic)
-                            // 指定路由器
-                            .messageRouter(new MessageRouterImpl(topic))
-                            .create();
-                    // 放入缓存
-                    PRODUCERS.put(topic, producer);
-                }
-            } catch (PulsarClientException e) {
-                logger.error("create producer failed for topic: " + topic, e);
-                throw new RuntimeException(e);
-            }
-        }
-
-        return producer;
-    }
     /**
      * 获取指定topic的生产者，并且使用缓存
      *
