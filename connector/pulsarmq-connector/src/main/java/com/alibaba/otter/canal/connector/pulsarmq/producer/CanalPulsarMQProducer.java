@@ -289,19 +289,19 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * 发送原始消息，需要做分区处理
      *
      * @param topic        topic
-     * @param partitionNum 目标分区
+     * @param partition 目标分区
      * @param msg          原始消息内容
      * @return void
      * @date 2021/9/10 17:55
      * @author chad
      * @since 1 by chad at 2021/9/10 新增
      */
-    private void sendMessage(String topic, int partitionNum, com.alibaba.otter.canal.protocol.Message msg) {
-        Producer<byte[]> producer = getProducer(topic,null);
+    private void sendMessage(String topic, int partition, com.alibaba.otter.canal.protocol.Message msg) {
+        Producer<byte[]> producer = PRODUCERS.get(topic);
         byte[] msgBytes = CanalMessageSerializerUtil.serializer(msg, mqProperties.isFilterTransactionEntry());
         try {
             MessageId msgResultId = producer.newMessage()
-                    .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partitionNum))
+                    .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partition))
                     .value(msgBytes).send();
             // todo 判断发送结果
             if (logger.isDebugEnabled()) {
@@ -322,13 +322,13 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * @author chad
      * @since 1 by chad at 2021/9/10 新增
      */
-    private void sendMessage(String topic, int targetPartitionNum, List<FlatMessage> flatMessages) {
-        Producer<byte[]> producer = getProducer(topic,null);
+    private void sendMessage(String topic, int partition, List<FlatMessage> flatMessages) {
+        Producer<byte[]> producer = PRODUCERS.get(topic);
         for (FlatMessage f : flatMessages) {
             try {
                 MessageId msgResultId = producer
                         .newMessage()
-                        .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(targetPartitionNum))
+                        .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partition))
                         .value(JSON.toJSONBytes(f, SerializerFeature.WriteMapNullValue))
                         .send()
                         //
