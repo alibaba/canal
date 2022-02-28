@@ -203,8 +203,10 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         if (partitionNum == null) {
             partitionNum = destination.getPartitionsNum();
         }
-        // 提前获取Producer对象，同时支持多分区topic的创建
-        Producer<byte[]> producer = getProducer(topicName, partitionNum);
+        // 创建多分区topic
+        if(pulsarAdmin!=null && partitionNum!=null && partitionNum>0 && PRODUCERS.get(topicName)==null) {
+            createMultipleTopic(topicName, partitionNum);
+        }
 
         ExecutorTemplate template = new ExecutorTemplate(sendPartitionExecutor);
         // 并发构造
@@ -297,7 +299,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * @since 1 by chad at 2021/9/10 新增
      */
     private void sendMessage(String topic, int partitionNum, com.alibaba.otter.canal.protocol.Message msg) {
-        Producer<byte[]> producer = PRODUCERS.get(topic);
+        Producer<byte[]> producer = getProducer(topic);
         byte[] msgBytes = CanalMessageSerializerUtil.serializer(msg, mqProperties.isFilterTransactionEntry());
         try {
             MessageId msgResultId = producer.newMessage()
@@ -323,7 +325,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * @since 1 by chad at 2021/9/10 新增
      */
     private void sendMessage(String topic, int partition, List<FlatMessage> flatMessages) {
-        Producer<byte[]> producer = PRODUCERS.get(topic);
+        Producer<byte[]> producer = getProducer(topic);
         for (FlatMessage f : flatMessages) {
             try {
                 MessageId msgResultId = producer
@@ -343,22 +345,41 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
     }
 
     /**
-     * 获取指定topic的生产者，并且使用缓存
-     *
+     * 创建多分区topic
      * @param topic
-     * @return org.apache.pulsar.client.api.Producer<byte [ ]>
-     * @date 2021/9/10 11:21
-     * @author chad
-     * @since 1 by chad at 2021/9/10 新增
+     * @param partitionNum
      */
-    private Producer<byte[]> getProducer(String topic,Integer partitionNum) {
-        Producer producer = PRODUCERS.get(topic);
+    private void createMultipleTopic(String topic,Integer partitionNum) {
+        // 拼接topic前缀
+        PulsarMQProducerConfig pulsarMQProperties = (PulsarMQProducerConfig) this.mqProperties;
+        String prefix = pulsarMQProperties.getTopicTenantPrefix();
+        String fullTopic = topic;
+        if (!StringUtils.isEmpty(prefix)) {
+            if (!prefix.endsWith("/")) {
+                fullTopic = "/" + fullTopic;
+            }
+            fullTopic = pulsarMQProperties.getTopicTenantPrefix() + fullTopic;
+        }
 
-        if (null == producer) {
+        // 创建分区topic
+        try {
+            pulsarAdmin.topics().createPartitionedTopic(fullTopic, partitionNum);
+        } catch (PulsarAdminException e) {
+            // TODO 无论是否报错，都继续后续的操作，此处不进行阻塞
+        }
+    }
+    /**
+     * 获取topic
+     * @param topic
+     * @return
+     */
+    private Producer<byte[]> getProducer(String topic) {
+        Producer producer = PRODUCERS.get(topic);
+        if (null == producer || !producer.isConnected()) {
             try {
                 synchronized (PRODUCERS) {
                     producer = PRODUCERS.get(topic);
-                    if (null != producer) {
+                    if (null != producer && producer.isConnected()) {
                         return producer;
                     }
 
@@ -371,15 +392,6 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                             fullTopic = "/" + fullTopic;
                         }
                         fullTopic = pulsarMQProperties.getTopicTenantPrefix() + fullTopic;
-                    }
-
-                    // 创建分区topic
-                    if(pulsarAdmin!=null && partitionNum!=null && partitionNum>0) {
-                        try {
-                            pulsarAdmin.topics().createPartitionedTopic(fullTopic, partitionNum);
-                        } catch (PulsarAdminException e) {
-                            // TODO 无论是否报错，都继续后续的操作，此处不进行阻塞
-                        }
                     }
 
                     // 创建指定topic的生产者
