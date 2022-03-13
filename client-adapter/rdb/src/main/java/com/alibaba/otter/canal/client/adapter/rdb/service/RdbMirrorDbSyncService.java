@@ -28,15 +28,15 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
  */
 public class RdbMirrorDbSyncService {
 
-    private static final Logger         logger = LoggerFactory.getLogger(RdbMirrorDbSyncService.class);
+    private static final Logger logger = LoggerFactory.getLogger(RdbMirrorDbSyncService.class);
 
     private Map<String, MirrorDbConfig> mirrorDbConfigCache;                                           // 镜像库配置
-    private DataSource                  dataSource;
-    private RdbSyncService              rdbSyncService;                                                // rdbSyncService代理
+    private DataSource dataSource;
+    private RdbSyncService rdbSyncService;                                                // rdbSyncService代理
 
     public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DataSource dataSource,
                                   Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
-                                  boolean skipDupException){
+                                  boolean skipDupException) {
         this.mirrorDbConfigCache = mirrorDbConfigCache;
         this.dataSource = dataSource;
         this.rdbSyncService = new RdbSyncService(dataSource, threads, columnsTypeCache, skipDupException);
@@ -116,9 +116,9 @@ public class RdbMirrorDbSyncService {
     /**
      * 初始化表配置
      *
-     * @param key 配置key: destination.database.table
+     * @param key           配置key: destination.database.table
      * @param baseConfigMap db sync config
-     * @param dml DML
+     * @param dml           DML
      */
     private void initMappingConfig(String key, MappingConfig baseConfigMap, MirrorDbConfig mirrorDbConfig, Dml dml) {
         MappingConfig mappingConfig = mirrorDbConfig.getTableConfig().get(key);
@@ -134,7 +134,13 @@ public class RdbMirrorDbSyncService {
             mappingConfig.setDbMapping(dbMapping);
             dbMapping.setDatabase(dml.getDatabase());
             dbMapping.setTable(dml.getTable());
-            dbMapping.setTargetDb(dml.getDatabase());
+            String targetDb = mirrorDbConfig.getMappingConfig().getDbMapping().getTargetDb();
+            if (logger.isDebugEnabled())
+                logger.debug("mirrorDbConfig targetDb={},sourceDb={}", targetDb, dml.getDatabase());
+            if (StringUtils.isNotBlank(targetDb))
+                dbMapping.setTargetDb(targetDb);
+            else
+                dbMapping.setTargetDb(dml.getDatabase());
             dbMapping.setTargetTable(dml.getTable());
             dbMapping.setMapAll(true);
             List<String> pkNames = dml.getPkNames();
@@ -152,6 +158,13 @@ public class RdbMirrorDbSyncService {
      * @param ddl DDL
      */
     private void executeDdl(MirrorDbConfig mirrorDbConfig, Dml ddl) {
+        MappingConfig.DbMapping dbMapping = mirrorDbConfig.getMappingConfig().getDbMapping();
+        if (dbMapping.getMirrorDb() && dbMapping.getIgnoreDdlTables().contains(ddl.getTable())) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("ignore ddl table: {} for database: {}", ddl.getTable(), dbMapping.getTargetDb());
+            }
+            return;
+        }
         try (Connection conn = dataSource.getConnection(); Statement statement = conn.createStatement()) {
             statement.execute(ddl.getSql());
             // 移除对应配置
