@@ -435,5 +435,13 @@ public class SchemaItem {
         public void setColumnName(String columnName) {
             this.columnName = columnName;
         }
+
+        @Override
+        public String toString() {
+            return "ColumnItem{" +
+                    "owner='" + owner + '\'' +
+                    ", columnName='" + columnName + '\'' +
+                    '}';
+        }
     }
 }

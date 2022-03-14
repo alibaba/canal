@@ -113,6 +113,16 @@ public class ESSyncConfig implements AdapterConfig {
         private Long                         syncInterval;                           // 同步时间间隔
 
         private SchemaItem                   schemaItem;                             // sql解析结果模型
+        private String                       targetOwner;  //目标表别名
+        private List<String>                 targetColumns;//目标表扩展字段
+
+        public String getTargetOwner() {
+            return targetOwner;
+        }
+
+        public void setTargetOwner(String targetOwner) {
+            this.targetOwner = targetOwner;
+        }
 
         public String get_index() {
             return _index;
@@ -224,6 +234,14 @@ public class ESSyncConfig implements AdapterConfig {
 
         public void setSchemaItem(SchemaItem schemaItem) {
             this.schemaItem = schemaItem;
+        }
+
+        public List<String> getTargetColumns() {
+            return targetColumns;
+        }
+
+        public void setTargetColumns(List<String> targetColumns) {
+            this.targetColumns = targetColumns;
         }
     }
 
