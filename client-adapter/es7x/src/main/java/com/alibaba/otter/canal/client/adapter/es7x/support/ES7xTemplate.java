@@ -319,13 +319,15 @@ public class ES7xTemplate implements ESTemplate {
         Iterator<String> stringIterator = mapping.getTargetColumns().iterator();
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             if (org.springframework.util.CollectionUtils.isEmpty(fieldItem.getColumnItems())) {
-                logger.info("before fieldItem columnItems={}, targetColumns={}", JSON.toJSONString(fieldItem.getColumnItems()), mapping.getTargetColumns());
+                if (logger.isDebugEnabled())
+                    logger.debug("before fieldItem columnItems={}, targetColumns={}", JSON.toJSONString(fieldItem.getColumnItems()), mapping.getTargetColumns());
                 //匹配不到select field的通过扩展字段填充
                 ColumnItem columnItem = new ColumnItem();
                 columnItem.setColumnName(stringIterator.next());
                 columnItem.setOwner(mapping.getTargetOwner());
                 fieldItem.setColumnItems(Lists.newArrayList(columnItem));
-                logger.info("after fill full fieldItem columnItems={}", JSON.toJSONString(fieldItem.getColumnItems()));
+                if (logger.isDebugEnabled())
+                    logger.debug("after fill full fieldItem columnItems={}", JSON.toJSONString(fieldItem.getColumnItems()));
             }
             ColumnItem columnItem = fieldItem.getColumnItems().iterator().next();
             String columnName = columnItem.getColumnName();
