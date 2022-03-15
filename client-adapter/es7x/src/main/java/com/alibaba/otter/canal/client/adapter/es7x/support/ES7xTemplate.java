@@ -246,20 +246,29 @@ public class ES7xTemplate implements ESTemplate {
         SchemaItem schemaItem = mapping.getSchemaItem();
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
+        if (logger.isDebugEnabled())
+            logger.debug("getESDataFromRS selectFields={}", JSON.toJSONString(schemaItem.getSelectFields().values()));
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             if (fieldItem.getFieldName().equals(idFieldName)) {
                 resultIdVal = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
             }
-
-            for (ColumnItem columnItem : fieldItem.getColumnItems()) {
-                if (dmlOld.containsKey(columnItem.getColumnName())
-                        && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+            if (!org.springframework.util.CollectionUtils.isEmpty(mapping.getTargetColumns()) && StringUtils.isNotBlank(mapping.getTargetOwner())) {
+                if (!mapping.getSkips().contains(fieldItem.getFieldName())) {
                     esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
                             getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName()));
-                    break;
+                }
+            } else {
+                for (ColumnItem columnItem : fieldItem.getColumnItems()) {
+                    if (dmlOld.containsKey(columnItem.getColumnName()) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+                        esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
+                                getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName()));
+                        break;
+                    }
                 }
             }
         }
+        if (logger.isDebugEnabled())
+            logger.debug("esFieldData={}", esFieldData);
 
         // 添加父子文档关联信息
         putRelationDataFromRS(mapping, schemaItem, resultSet, esFieldData);
@@ -276,7 +285,6 @@ public class ES7xTemplate implements ESTemplate {
                 value = ((Byte) value).intValue() != 0;
             }
         }
-
         // 如果是对象类型
         if (mapping.getObjFields().containsKey(fieldName)) {
             return ESSyncUtil.convertToEsObj(value, mapping.getObjFields().get(fieldName));
@@ -313,6 +321,8 @@ public class ES7xTemplate implements ESTemplate {
     @Override
     public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> dmlOld,
                                        Map<String, Object> esFieldData) {
+        if (logger.isDebugEnabled())
+            logger.debug("dmlData={},esFieldData={}", dmlData, esFieldData);
         SchemaItem schemaItem = mapping.getSchemaItem();
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
@@ -336,11 +346,13 @@ public class ES7xTemplate implements ESTemplate {
                 resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
             }
 
-            if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
+            if (/*dmlOld.containsKey(columnName) && */!mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
                         getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }
         }
+        if (logger.isDebugEnabled())
+            logger.debug("esFieldData={}", esFieldData);
 
         // 添加父子文档关联信息
         putRelationData(mapping, schemaItem, dmlOld, esFieldData);
