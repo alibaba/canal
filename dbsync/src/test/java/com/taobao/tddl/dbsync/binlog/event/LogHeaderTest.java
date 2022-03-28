@@ -30,7 +30,7 @@ public class LogHeaderTest {
         final LogHeader objectUnderTest = new LogHeader(type);
 
         // Assert side effects
-        final HashMap<String, String> hashMap = new HashMap<String, String>();
+        final HashMap<String, String> hashMap = new HashMap<>();
         Assert.assertEquals(hashMap, objectUnderTest.gtidMap);
     }
 

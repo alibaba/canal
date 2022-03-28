@@ -4,12 +4,12 @@
     <parent>
         <groupId>com.alibaba.otter</groupId>
         <artifactId>canal</artifactId>
-        <version>1.1.5-SNAPSHOT</version>
+        <version>1.1.6-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal.client-adapter</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.1.6-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>canal client adapter module for otter ${project.version}</name>
 
@@ -32,6 +32,8 @@
         <module>es7x</module>
         <module>escore</module>
         <module>kudu</module>
+        <module>phoenix</module>
+        <module>tablestore</module>
     </modules>
 
     <licenses>
@@ -172,7 +174,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.47</version>
+                <version>5.1.48</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
@@ -192,7 +194,7 @@
 
             <dependency>
                 <groupId>org.apache.hbase</groupId>
-                <artifactId>hbase-client</artifactId>
+                <artifactId>hbase-shaded-client</artifactId>
                 <version>1.1.2</version>
                 <exclusions>
                     <exclusion>
@@ -250,6 +252,25 @@
                 <version>1.9.0</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>com.aliyun.openservices</groupId>
+                <artifactId>tablestore</artifactId>
+                <version>5.10.3</version>
+                <classifier>jar-with-dependencies</classifier>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpasyncclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 

@@ -7,8 +7,8 @@ import java.util.List;
 public class ResultSetPacket {
 
     private SocketAddress     sourceAddress;
-    private List<FieldPacket> fieldDescriptors = new ArrayList<FieldPacket>();
-    private List<String>      fieldValues      = new ArrayList<String>();
+    private List<FieldPacket> fieldDescriptors = new ArrayList<>();
+    private List<String>      fieldValues      = new ArrayList<>();
 
     public void setFieldDescriptors(List<FieldPacket> fieldDescriptors) {
         this.fieldDescriptors = fieldDescriptors;

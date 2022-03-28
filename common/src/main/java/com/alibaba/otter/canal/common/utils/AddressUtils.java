@@ -18,20 +18,11 @@ public class AddressUtils {
     private static final Pattern IP_PATTERN   = Pattern.compile("[0-9]{1,3}(\\.[0-9]{1,3}){3,}");
 
     public static boolean isAvailablePort(int port) {
-        ServerSocket ss = null;
-        try {
-            ss = new ServerSocket(port);
+        try (ServerSocket ss = new ServerSocket(port)) {
             ss.bind(null);
             return true;
         } catch (IOException e) {
             return false;
-        } finally {
-            if (ss != null) {
-                try {
-                    ss.close();
-                } catch (IOException e) {
-                }
-            }
         }
     }
 

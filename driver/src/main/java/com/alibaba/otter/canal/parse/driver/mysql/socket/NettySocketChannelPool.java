@@ -31,7 +31,7 @@ public abstract class NettySocketChannelPool {
 
     private static EventLoopGroup              group     = new NioEventLoopGroup();                              // 非阻塞IO线程组
     private static Bootstrap                   boot      = new Bootstrap();                                      // 主
-    private static Map<Channel, SocketChannel> chManager = new ConcurrentHashMap<Channel, SocketChannel>();
+    private static Map<Channel, SocketChannel> chManager = new ConcurrentHashMap<>();
     private static final Logger                logger    = LoggerFactory.getLogger(NettySocketChannelPool.class);
 
     static {

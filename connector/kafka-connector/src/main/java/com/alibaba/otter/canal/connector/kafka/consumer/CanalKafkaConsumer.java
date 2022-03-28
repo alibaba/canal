@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -53,6 +54,8 @@ public class CanalKafkaConsumer implements CanalMsgConsumer {
             String k = (String) entry.getKey();
             Object v = entry.getValue();
             if (k.startsWith(PREFIX_KAFKA_CONFIG) && v != null) {
+                // check env config
+                v = PropertiesUtils.getProperty(properties, k);
                 kafkaProperties.put(k.substring(PREFIX_KAFKA_CONFIG.length()), v);
             }
         }

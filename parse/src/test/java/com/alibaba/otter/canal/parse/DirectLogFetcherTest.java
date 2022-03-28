@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
-@Ignore
+
 public class DirectLogFetcherTest {
 
     protected final Logger logger         = LoggerFactory.getLogger(this.getClass());
@@ -57,7 +56,7 @@ public class DirectLogFetcherTest {
     public void testSimple() {
         DirectLogFetcher fetcher = new DirectLogFetcher();
         try {
-            MysqlConnector connector = new MysqlConnector(new InetSocketAddress("127.0.0.1", 3306), "root", "hello");
+            MysqlConnector connector = new MysqlConnector(new InetSocketAddress("127.0.0.1", 3306), "canal", "canal");
             connector.connect();
             updateSettings(connector);
             loadBinlogChecksum(connector);
@@ -84,6 +83,9 @@ public class DirectLogFetcherTest {
                         // binlogFileName = ((RotateLogEvent)
                         // event).getFilename();
                         System.out.println(((RotateLogEvent) event).getFilename());
+                        break;
+                    case LogEvent.TABLE_MAP_EVENT:
+                        parseTableMapEvent((TableMapLogEvent) event);
                         break;
                     case LogEvent.WRITE_ROWS_EVENT_V1:
                     case LogEvent.WRITE_ROWS_EVENT:
@@ -147,7 +149,7 @@ public class DirectLogFetcherTest {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Register slave:" + err.toString());
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
     }
@@ -173,13 +175,13 @@ public class DirectLogFetcherTest {
             logger.warn("update wait_timeout failed", e);
         }
         try {
-            update("set net_write_timeout=1800", connector);
+            update("set net_write_timeout=7200", connector);
         } catch (Exception e) {
             logger.warn("update net_write_timeout failed", e);
         }
 
         try {
-            update("set net_read_timeout=1800", connector);
+            update("set net_read_timeout=7200", connector);
         } catch (Exception e) {
             logger.warn("update net_read_timeout failed", e);
         }
@@ -206,7 +208,8 @@ public class DirectLogFetcherTest {
             // mysql5.6需要设置slave_uuid避免被server kill链接
             update("set @slave_uuid=uuid()", connector);
         } catch (Exception e) {
-            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")
+                && !StringUtils.contains(e.getMessage(), "slave_uuid can't be set")) {
                 logger.warn("update slave_uuid failed", e);
             }
         }
@@ -270,6 +273,18 @@ public class DirectLogFetcherTest {
         System.out.println(String.format("================> binlog[%s:%s]", binlogFileName, event.getHeader()
             .getLogPos() - event.getHeader().getEventLen()));
         System.out.println("sql : " + new String(event.getRowsQuery().getBytes("ISO-8859-1"), charset.name()));
+    }
+
+    public void parseTableMapEvent(TableMapLogEvent event) {
+        try {
+            String charsetDbName = new String(event.getDbName().getBytes("ISO-8859-1"), charset.name());
+            event.setDbname(charsetDbName);
+
+            String charsetTbName = new String(event.getTableName().getBytes("ISO-8859-1"), charset.name());
+            event.setTblname(charsetTbName);
+        } catch (UnsupportedEncodingException e) {
+            throw new CanalParseException(e);
+        }
     }
 
     protected void parseXidEvent(XidLogEvent event) throws Exception {

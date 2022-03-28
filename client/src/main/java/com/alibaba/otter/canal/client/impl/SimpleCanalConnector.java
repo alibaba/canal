@@ -64,7 +64,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private SocketChannel        channel;
     private ReadableByteChannel  readableChannel;
     private WritableByteChannel  writableChannel;
-    private List<Compression>    supportedCompressions = new ArrayList<Compression>();
+    private List<Compression>    supportedCompressions = new ArrayList<>();
     private ClientIdentity       clientIdentity;
     private ClientRunningMonitor runningMonitor;                                                             // 运行控制
     private ZkClientx            zkClientx;
@@ -98,6 +98,7 @@ public class SimpleCanalConnector implements CanalConnector {
         this.clientIdentity = new ClientIdentity(destination, (short) 1001);
     }
 
+    @Override
     public void connect() throws CanalClientException {
         if (connected) {
             return;
@@ -124,6 +125,7 @@ public class SimpleCanalConnector implements CanalConnector {
         connected = true;
     }
 
+    @Override
     public void disconnect() throws CanalClientException {
         if (rollbackOnDisConnect && channel.isConnected()) {
             rollback();
@@ -222,10 +224,12 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void subscribe() throws CanalClientException {
         subscribe(""); // 传递空字符即可
     }
 
+    @Override
     public void subscribe(String filter) throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -255,6 +259,7 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void unsubscribe() throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -281,20 +286,24 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public Message get(int batchSize) throws CanalClientException {
         return get(batchSize, null, null);
     }
 
+    @Override
     public Message get(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         Message message = getWithoutAck(batchSize, timeout, unit);
         ack(message.getId());
         return message;
     }
 
+    @Override
     public Message getWithoutAck(int batchSize) throws CanalClientException {
         return getWithoutAck(batchSize, null, null);
     }
 
+    @Override
     public Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -331,6 +340,7 @@ public class SimpleCanalConnector implements CanalConnector {
         return CanalMessageDeserializer.deserializer(data, lazyParseEntry);
     }
 
+    @Override
     public void ack(long batchId) throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -352,6 +362,7 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void rollback(long batchId) throws CanalClientException {
         waitClientRunning();
         ClientRollback ca = ClientRollback.newBuilder()
@@ -370,9 +381,10 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void rollback() throws CanalClientException {
         waitClientRunning();
-        rollback(0);// 0代笔未设置
+        rollback(0); // 0 代表未设置
     }
 
     // ==================== helper method ====================

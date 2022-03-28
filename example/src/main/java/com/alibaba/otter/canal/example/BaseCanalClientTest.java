@@ -31,12 +31,8 @@ public class BaseCanalClientTest {
     protected static final String             SEP                = SystemUtils.LINE_SEPARATOR;
     protected static final String             DATE_FORMAT        = "yyyy-MM-dd HH:mm:ss";
     protected volatile boolean                running            = false;
-    protected Thread.UncaughtExceptionHandler handler            = new Thread.UncaughtExceptionHandler() {
-
-                                                                     public void uncaughtException(Thread t, Throwable e) {
-                                                                         logger.error("parse events has an error", e);
-                                                                     }
-                                                                 };
+    protected Thread.UncaughtExceptionHandler handler            = (t, e) -> logger.error("parse events has an error",
+                                                                     e);
     protected Thread                          thread             = null;
     protected CanalConnector                  connector;
     protected static String                   context_format     = null;
@@ -136,14 +132,14 @@ public class BaseCanalClientTest {
             }
 
             if (entry.getEntryType() == EntryType.ROWDATA) {
-                RowChange rowChage = null;
+                RowChange rowChange = null;
                 try {
-                    rowChage = RowChange.parseFrom(entry.getStoreValue());
+                    rowChange = RowChange.parseFrom(entry.getStoreValue());
                 } catch (Exception e) {
                     throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
                 }
 
-                EventType eventType = rowChage.getEventType();
+                EventType eventType = rowChange.getEventType();
 
                 logger.info(row_format,
                     new Object[] { entry.getHeader().getLogfileName(),
@@ -152,13 +148,13 @@ public class BaseCanalClientTest {
                             String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
                             entry.getHeader().getGtid(), String.valueOf(delayTime) });
 
-                if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
-                    logger.info(" sql ----> " + rowChage.getSql() + SEP);
+                if (eventType == EventType.QUERY || rowChange.getIsDdl()) {
+                    logger.info("ddl : " + rowChange.getIsDdl() + " ,  sql ----> " + rowChange.getSql() + SEP);
                     continue;
                 }
 
-                printXAInfo(rowChage.getPropsList());
-                for (RowData rowData : rowChage.getRowDatasList()) {
+                printXAInfo(rowChange.getPropsList());
+                for (RowData rowData : rowChange.getRowDatasList()) {
                     if (eventType == EventType.DELETE) {
                         printColumn(rowData.getBeforeColumnsList());
                     } else if (eventType == EventType.INSERT) {
@@ -221,7 +217,7 @@ public class BaseCanalClientTest {
 
     /**
      * 获取当前Entry的 GTID信息示例
-     * 
+     *
      * @param header
      * @return
      */
@@ -239,7 +235,7 @@ public class BaseCanalClientTest {
 
     /**
      * 获取当前Entry的 GTID Sequence No信息示例
-     * 
+     *
      * @param header
      * @return
      */
@@ -257,7 +253,7 @@ public class BaseCanalClientTest {
 
     /**
      * 获取当前Entry的 GTID Last Committed信息示例
-     * 
+     *
      * @param header
      * @return
      */

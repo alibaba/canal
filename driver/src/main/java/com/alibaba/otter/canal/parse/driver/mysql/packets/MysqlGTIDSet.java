@@ -84,13 +84,13 @@ public class MysqlGTIDSet implements GTIDSet {
         Map<String, UUIDSet> m;
 
         if (gtidData == null || gtidData.length() < 1) {
-            m = new HashMap<String, UUIDSet>();
+            m = new HashMap<>();
         } else {
             // 存在多个GTID时会有回车符
             String[] uuidStrs = gtidData.replaceAll("\n", "").split(",");
-            m = new HashMap<String, UUIDSet>(uuidStrs.length);
-            for (int i = 0; i < uuidStrs.length; i++) {
-                UUIDSet uuidSet = UUIDSet.parse(uuidStrs[i]);
+            m = new HashMap<>(uuidStrs.length);
+            for (String uuidStr : uuidStrs) {
+                UUIDSet uuidSet = UUIDSet.parse(uuidStr);
                 m.put(uuidSet.SID.toString(), uuidSet);
             }
         }

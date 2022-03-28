@@ -280,10 +280,10 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         }
 
         if (current >= maxAbleSequence) {
-            return new Events<Event>();
+            return new Events<>();
         }
 
-        Events<Event> result = new Events<Event>();
+        Events<Event> result = new Events<>();
         List<Event> entrys = result.getEvents();
         long memsize = 0;
         if (batchMode.isItemSize()) {
@@ -329,7 +329,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
 
         }
 
-        PositionRange<LogPosition> range = new PositionRange<LogPosition>();
+        PositionRange<LogPosition> range = new PositionRange<>();
         result.setPositionRange(range);
 
         range.setStart(CanalEventUtils.createPosition(entrys.get(0)));
@@ -354,7 +354,7 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
             profiling(result.getEvents(), OP.GET);
             return result;
         } else {
-            return new Events<Event>();
+            return new Events<>();
         }
     }
 

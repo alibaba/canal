@@ -18,24 +18,24 @@ public class Message implements Serializable {
 
     private static final long      serialVersionUID = 1234034768477580009L;
     private long                   id;
-    private List<CanalEntry.Entry> entries          = new ArrayList<CanalEntry.Entry>();
+    private List<CanalEntry.Entry> entries          = new ArrayList<>();
     // row data for performance, see:
     // https://github.com/alibaba/canal/issues/726
     private boolean                raw              = true;
-    private List<ByteString>       rawEntries       = new ArrayList<ByteString>();
+    private List<ByteString>       rawEntries       = new ArrayList<>();
 
     public Message(long id, List<Entry> entries){
         this.id = id;
-        this.entries = entries == null ? new ArrayList<Entry>() : entries;
+        this.entries = entries == null ? new ArrayList<>() : entries;
         this.raw = false;
     }
 
     public Message(long id, boolean raw, List entries){
         this.id = id;
         if (raw) {
-            this.rawEntries = entries == null ? new ArrayList<ByteString>() : entries;
+            this.rawEntries = entries == null ? new ArrayList<>() : entries;
         } else {
-            this.entries = entries == null ? new ArrayList<Entry>() : entries;
+            this.entries = entries == null ? new ArrayList<>() : entries;
         }
         this.raw = raw;
     }

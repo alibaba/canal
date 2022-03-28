@@ -661,7 +661,7 @@ public class CanalParameter implements Serializable {
 
     public List<InetSocketAddress> getDbAddresses() {
         if (dbAddresses == null) {
-            dbAddresses = new ArrayList<InetSocketAddress>();
+            dbAddresses = new ArrayList<>();
             if (masterAddress != null) {
                 dbAddresses.add(masterAddress);
             }
@@ -675,22 +675,22 @@ public class CanalParameter implements Serializable {
 
     public List<List<DataSourcing>> getGroupDbAddresses() {
         if (groupDbAddresses == null) {
-            groupDbAddresses = new ArrayList<List<DataSourcing>>();
+            groupDbAddresses = new ArrayList<>();
             if (dbAddresses != null) {
                 for (InetSocketAddress address : dbAddresses) {
-                    List<DataSourcing> groupAddresses = new ArrayList<DataSourcing>();
+                    List<DataSourcing> groupAddresses = new ArrayList<>();
                     groupAddresses.add(new DataSourcing(sourcingType, address));
                     groupDbAddresses.add(groupAddresses);
                 }
             } else {
                 if (masterAddress != null) {
-                    List<DataSourcing> groupAddresses = new ArrayList<DataSourcing>();
+                    List<DataSourcing> groupAddresses = new ArrayList<>();
                     groupAddresses.add(new DataSourcing(sourcingType, masterAddress));
                     groupDbAddresses.add(groupAddresses);
                 }
 
                 if (standbyAddress != null) {
-                    List<DataSourcing> groupAddresses = new ArrayList<DataSourcing>();
+                    List<DataSourcing> groupAddresses = new ArrayList<>();
                     groupAddresses.add(new DataSourcing(sourcingType, standbyAddress));
                     groupDbAddresses.add(groupAddresses);
                 }
@@ -731,7 +731,7 @@ public class CanalParameter implements Serializable {
 
     public List<String> getPositions() {
         if (positions == null) {
-            positions = new ArrayList<String>();
+            positions = new ArrayList<>();
             String masterPosition = buildPosition(masterLogfileName, masterLogfileOffest, masterTimestamp);
             if (masterPosition != null) {
                 positions.add(masterPosition);

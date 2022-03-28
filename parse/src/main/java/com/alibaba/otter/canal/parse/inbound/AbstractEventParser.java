@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -23,11 +24,9 @@ import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.MysqlGTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
-import com.alibaba.otter.canal.parse.inbound.EventTransactionBuffer.TransactionFlushCallback;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlMultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
@@ -40,6 +39,8 @@ import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+
+import static com.alibaba.otter.canal.parse.driver.mysql.utils.GtidUtil.parseGtidSet;
 
 /**
  * 抽象的EventParser, 最大化共用mysql/oracle版本的实现
@@ -85,14 +86,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     protected Thread                                 parseThread                = null;
 
-    protected Thread.UncaughtExceptionHandler        handler                    = new Thread.UncaughtExceptionHandler() {
-
-                                                                                    public void uncaughtException(Thread t,
-                                                                                                                  Throwable e) {
-                                                                                        logger.error("parse events has an error",
-                                                                                            e);
-                                                                                    }
-                                                                                };
+    protected Thread.UncaughtExceptionHandler        handler                    = (t, e) -> logger.error("parse events has an error",
+        e);
 
     protected EventTransactionBuffer                 transactionBuffer;
     protected int                                    transactionSize            = 1024;
@@ -139,22 +134,19 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 
     public AbstractEventParser(){
         // 初始化一下
-        transactionBuffer = new EventTransactionBuffer(new TransactionFlushCallback() {
+        transactionBuffer = new EventTransactionBuffer(transaction -> {
+            boolean successed = consumeTheEventAndProfilingIfNecessary(transaction);
+            if (!running) {
+                return;
+            }
 
-            public void flush(List<CanalEntry.Entry> transaction) throws InterruptedException {
-                boolean successed = consumeTheEventAndProfilingIfNecessary(transaction);
-                if (!running) {
-                    return;
-                }
+            if (!successed) {
+                throw new CanalParseException("consume failed!");
+            }
 
-                if (!successed) {
-                    throw new CanalParseException("consume failed!");
-                }
-
-                LogPosition position = buildLastTransactionPosition(transaction);
-                if (position != null) { // 可能position为空
-                    logPositionManager.persistLogPosition(AbstractEventParser.this.destination, position);
-                }
+            LogPosition position = buildLastTransactionPosition(transaction);
+            if (position != null) { // 可能position为空
+                logPositionManager.persistLogPosition(AbstractEventParser.this.destination, position);
             }
         });
     }
@@ -175,6 +167,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
             public void run() {
                 MDC.put("destination", String.valueOf(destination));
                 ErosaConnection erosaConnection = null;
+                boolean isMariaDB = false;
                 while (running) {
                     try {
                         // 开始执行replication
@@ -192,6 +185,10 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         long queryServerId = erosaConnection.queryServerId();
                         if (queryServerId != 0) {
                             serverId = queryServerId;
+                        }
+
+                        if (erosaConnection instanceof MysqlConnection) {
+                            isMariaDB = ((MysqlConnection)erosaConnection).isMariaDB();
                         }
                         // 4. 获取最后的位置信息
                         long start = System.currentTimeMillis();
@@ -257,7 +254,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             multiStageCoprocessor = buildMultiStageCoprocessor();
                             if (isGTIDMode() && StringUtils.isNotEmpty(startPosition.getGtid())) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
-                                GTIDSet gtidSet = MysqlGTIDSet.parse(startPosition.getGtid());
+                                GTIDSet gtidSet = parseGtidSet(startPosition.getGtid(),isMariaDB);
                                 ((MysqlMultiStageCoprocessor) multiStageCoprocessor).setGtidSet(gtidSet);
                                 multiStageCoprocessor.start();
                                 erosaConnection.dump(gtidSet, multiStageCoprocessor);
@@ -275,7 +272,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         } else {
                             if (isGTIDMode() && StringUtils.isNotEmpty(startPosition.getGtid())) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
-                                erosaConnection.dump(MysqlGTIDSet.parse(startPosition.getGtid()), sinkHandler);
+                                erosaConnection.dump(parseGtidSet(startPosition.getGtid(), isMariaDB), sinkHandler);
                             } else {
                                 if (StringUtils.isEmpty(startPosition.getJournalName())
                                     && startPosition.getTimestamp() != null) {
@@ -541,7 +538,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         }
         heartBeatTimerTask = null;
     }
-
+    
     /**
      * 解析字段过滤规则
      */
@@ -718,7 +715,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     public void setNeedOnlyChangedField(boolean needOnlyChangedField) {
         this.needOnlyChangedField = needOnlyChangedField;
     }
-	
+
 	public String getFieldBlackFilter() {
 		return fieldBlackFilter;
 	}

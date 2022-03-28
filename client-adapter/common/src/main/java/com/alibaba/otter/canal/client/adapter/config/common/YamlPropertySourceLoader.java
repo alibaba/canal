@@ -3,7 +3,6 @@ package com.alibaba.otter.canal.client.adapter.config.common;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.springframework.util.ClassUtils;
@@ -72,14 +71,8 @@ public class YamlPropertySourceLoader implements PropertySourceLoader {
         }
 
         public Map<String, Object> process() {
-            final Map<String, Object> result = new LinkedHashMap<String, Object>();
-            process(new MatchCallback() {
-
-                @Override
-                public void process(Properties properties, Map<String, Object> map) {
-                    result.putAll(getFlattenedMap(map));
-                }
-            });
+            final Map<String, Object> result = new LinkedHashMap<>();
+            process((properties, map) -> result.putAll(getFlattenedMap(map)));
             return result;
         }
 

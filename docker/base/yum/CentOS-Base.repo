@@ -1,0 +1,66 @@
+# CentOS-Base.repo
+#
+# The mirror system uses the connecting IP address of the client and the
+# update status of each mirror to pick mirrors that are updated to and
+# geographically close to the client.  You should use this for CentOS updates
+# unless you are manually picking other mirrors.
+#
+# If the mirrorlist= does not work for you, as a fall back you can try the
+# remarked out baseurl= line instead.
+#
+
+[base]
+name=CentOS-$releasever - Base
+failovermethod=priority
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os&infra=$infra
+baseurl=https://mirrors.aliyun.com/centos-vault/centos/$releasever/os/$basearch/
+        https://mirrors.cloud.tencent.com/centos/$releasever/os/$basearch/
+        https://vault.centos.org/centos/$releasever/os/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+#released updates
+[updates]
+name=CentOS-$releasever - Updates
+failovermethod=priority
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates&infra=$infra
+baseurl=https://mirrors.aliyun.com/centos-vault/centos/$releasever/updates/$basearch/
+        https://mirrors.cloud.tencent.com/centos/$releasever/updates/$basearch/
+        https://vault.centos.org/centos/$releasever/updates/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+#additional packages that may be useful
+[extras]
+name=CentOS-$releasever - Extras
+failovermethod=priority
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras&infra=$infra
+baseurl=https://mirrors.aliyun.com/centos-vault/centos/$releasever/extras/$basearch/
+        https://mirrors.cloud.tencent.com/centos/$releasever/extras/$basearch/
+        https://vault.centos.org/centos/$releasever/extras/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+#additional packages that extend functionality of existing packages
+[centosplus]
+name=CentOS-$releasever - Plus
+failovermethod=priority
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=centosplus&infra=$infra
+baseurl=https://mirrors.aliyun.com/centos-vault/centos/$releasever/centosplus/$basearch/
+        https://mirrors.cloud.tencent.com/centos/6.0/centosplus/$basearch/
+        https://vault.centos.org/centos/$releasever/centosplus/$basearch/
+gpgcheck=1
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+#contrib - packages by Centos Users
+[contrib]
+name=CentOS-$releasever - Contrib
+failovermethod=priority
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=contrib&infra=$infra
+baseurl=https://mirrors.aliyun.com/centos-vault/centos/$releasever/contrib/$basearch/
+        https://mirrors.cloud.tencent.com/centos/$releasever/contrib/$basearch/
+        https://vault.centos.org/centos/$releasever/contrib/$basearch/
+gpgcheck=1
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6

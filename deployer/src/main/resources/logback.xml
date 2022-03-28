@@ -85,6 +85,10 @@
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
+	<logger name="com.alibaba.otter.canal.connector.pulsarmq" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
 	<root level="WARN">
 		<!-- <appender-ref ref="STDOUT"/>  -->
 		<appender-ref ref="CANAL-ROOT" />

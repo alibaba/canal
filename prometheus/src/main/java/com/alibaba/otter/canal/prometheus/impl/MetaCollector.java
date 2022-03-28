@@ -28,7 +28,7 @@ public class MetaCollector extends Collector implements InstanceRegistry {
     private static final String                            INSTANCE_HELP     = "Canal instance";
     private static final String                            SUBSCRIPTION      = "canal_instance_subscriptions";
     private static final String                            SUBSCRIPTION_HELP = "Canal instance subscriptions";
-    private final ConcurrentMap<String, MetaMetricsHolder> instances         = new ConcurrentHashMap<String, MetaMetricsHolder>();
+    private final ConcurrentMap<String, MetaMetricsHolder> instances         = new ConcurrentHashMap<>();
 
     private MetaCollector() {}
 
@@ -42,7 +42,7 @@ public class MetaCollector extends Collector implements InstanceRegistry {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
+        List<MetricFamilySamples> mfs = new ArrayList<>();
         GaugeMetricFamily instanceInfo = new GaugeMetricFamily(INSTANCE,
                 INSTANCE_HELP, INFO_LABELS_LIST);
         GaugeMetricFamily subsInfo = new GaugeMetricFamily(SUBSCRIPTION,
@@ -81,7 +81,7 @@ public class MetaCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
-    private class MetaMetricsHolder {
+    private static class MetaMetricsHolder {
         private List<String>     infoLabelValues;
         private List<String>     destLabelValues;
         private CanalMetaManager metaManager;

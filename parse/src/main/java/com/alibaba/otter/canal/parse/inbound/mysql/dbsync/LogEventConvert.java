@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
@@ -61,10 +60,13 @@ import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
+import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 
 /**
  * 基于{@linkplain LogEvent}转化为Entry对象的处理
- *
+ * 
  * @author jianghang 2013-1-17 下午02:41:14
  * @version 1.0.0
  */
@@ -90,10 +92,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
-    private Map<String, List<String>> fieldFilterMap 		= new HashMap<String, List<String>>();
-    private Map<String, List<String>> 	fieldBlackFilterMap = new HashMap<String, List<String>>();
+    private Map<String, List<String>>   fieldFilterMap 		= new HashMap<>();
+    private Map<String, List<String>> 	fieldBlackFilterMap = new HashMap<>();
     // 必须字段（忽略fieldFilter）
-    private Map<String, List<String>> 	fieldNecessaryMap 		= new HashMap<String, List<String>>();
+    private Map<String, List<String>> 	fieldNecessaryMap 	= new HashMap<>();
     // 控制是否只关心filter字段发生变化，默认向前兼容-否
     private boolean needOnlyChangedField;
 
@@ -125,6 +127,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             case LogEvent.XID_EVENT:
                 return parseXidEvent((XidLogEvent) logEvent);
             case LogEvent.TABLE_MAP_EVENT:
+                parseTableMapEvent((TableMapLogEvent) logEvent);
                 break;
             case LogEvent.WRITE_ROWS_EVENT_V1:
             case LogEvent.WRITE_ROWS_EVENT:
@@ -150,6 +153,9 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return parseGTIDLogEvent((GtidLogEvent) logEvent);
             case LogEvent.HEARTBEAT_LOG_EVENT:
                 return parseHeartbeatLogEvent((HeartbeatLogEvent) logEvent);
+            case LogEvent.GTID_EVENT:
+            case LogEvent.GTID_LIST_EVENT:
+                return parseMariaGTIDLogEvent(logEvent);
             default:
                 break;
         }
@@ -186,6 +192,19 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             builder.setValue(String.valueOf(logEvent.getSequenceNumber()));
         }
 
+        Header header = createHeader(logHeader, "", "", EventType.GTID);
+        return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
+    }
+
+    private Entry parseMariaGTIDLogEvent(LogEvent logEvent) {
+        LogHeader logHeader = logEvent.getHeader();
+        Pair.Builder builder = Pair.newBuilder();
+        builder.setKey("gtid");
+        if (logEvent instanceof MariaGtidLogEvent) {
+            builder.setValue(((MariaGtidLogEvent) logEvent).getGtidStr());
+        } else if (logEvent instanceof MariaGtidListLogEvent) {
+            builder.setValue(((MariaGtidListLogEvent) logEvent).getGtidStr());
+        }
         Header header = createHeader(logHeader, "", "", EventType.GTID);
         return createEntry(header, EntryType.GTIDLOG, builder.build().toByteString());
     }
@@ -280,16 +299,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             }
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
-            RowChange.Builder rowChangeBuider = RowChange.newBuilder();
-            if (type != EventType.QUERY && !isDml) {
-                rowChangeBuider.setIsDdl(true);
-            }
-            rowChangeBuider.setSql(queryString);
+            RowChange.Builder rowChangeBuilder = RowChange.newBuilder();
+            rowChangeBuilder.setIsDdl(!isDml);
+            rowChangeBuilder.setSql(queryString);
             if (StringUtils.isNotEmpty(event.getDbName())) {// 可能为空
-                rowChangeBuider.setDdlSchemaName(event.getDbName());
+                rowChangeBuilder.setDdlSchemaName(event.getDbName());
             }
-            rowChangeBuider.setEventType(type);
-            return createEntry(header, EntryType.ROWDATA, rowChangeBuider.build().toByteString());
+            rowChangeBuilder.setEventType(type);
+            return createEntry(header, EntryType.ROWDATA, rowChangeBuilder.build().toByteString());
         }
     }
 
@@ -497,6 +514,18 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return parseRowsEvent(event, null);
     }
 
+    public void parseTableMapEvent(TableMapLogEvent event) {
+        try {
+            String charsetDbName = new String(event.getDbName().getBytes(ISO_8859_1), charset.name());
+            event.setDbname(charsetDbName);
+
+            String charsetTbName = new String(event.getTableName().getBytes(ISO_8859_1), charset.name());
+            event.setTblname(charsetTbName);
+        } catch (UnsupportedEncodingException e) {
+            throw new CanalParseException(e);
+        }
+    }
+
     public Entry parseRowsEvent(RowsLogEvent event, TableMeta tableMeta) {
         if (filterRows) {
             return null;
@@ -625,7 +654,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         boolean tableError = false;
         // check table fileds count，只能处理加字段
         boolean existRDSNoPrimaryKey = false;
-        //获取字段过滤条件
+        // 获取字段过滤条件
         List<String> fieldList = null;
         List<String> blackFieldList = null;
         List<String> fieldNecessaryList = null;
@@ -637,7 +666,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         }
 
         if (tableMeta != null && columnInfo.length > tableMeta.getFields().size()) {
-            if (tableMetaCache.isOnRDS()) {
+            if (tableMetaCache.isOnRDS() || tableMetaCache.isOnPolarX()) {
                 // 特殊处理下RDS的场景
                 List<FieldMeta> primaryKeys = tableMeta.getPrimaryFields();
                 if (primaryKeys == null || primaryKeys.isEmpty()) {
@@ -689,7 +718,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             if (existRDSNoPrimaryKey && i == columnCnt - 1 && info.type == LogEvent.MYSQL_TYPE_LONGLONG) {
                 // 不解析最后一列
-                String rdsRowIdColumnName = "#alibaba_rds_row_id#";
+                String rdsRowIdColumnName = "__#alibaba_rds_row_id#__";
+                if (tableMetaCache.isOnPolarX()) {
+                    rdsRowIdColumnName = "_drds_implicit_id_";
+                }
                 buffer.nextValue(rdsRowIdColumnName, i, info.type, info.meta, false);
                 Column.Builder columnBuilder = Column.newBuilder();
                 columnBuilder.setName(rdsRowIdColumnName);
@@ -751,7 +783,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             // fixed issue
             // https://github.com/alibaba/canal/issues/66，特殊处理binary/varbinary，不能做编码处理
             boolean isBinary = false;
-            boolean isSingleBit = false;
             if (fieldMeta != null) {
                 if (StringUtils.containsIgnoreCase(fieldMeta.getColumnType(), "VARBINARY")) {
                     isBinary = true;
@@ -1075,7 +1106,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     	if (fieldFilterMap != null) {
     		this.fieldFilterMap = fieldFilterMap;
     	} else {
-    		this.fieldFilterMap = new HashMap<String, List<String>>();
+    		this.fieldFilterMap = new HashMap<>();
     	}
 
 		for (Map.Entry<String, List<String>> entry : this.fieldFilterMap.entrySet()) {
@@ -1087,7 +1118,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 		if (fieldBlackFilterMap != null) {
     		this.fieldBlackFilterMap = fieldBlackFilterMap;
     	} else {
-    		this.fieldBlackFilterMap = new HashMap<String, List<String>>();
+    		this.fieldBlackFilterMap = new HashMap<>();
     	}
 
 		for (Map.Entry<String, List<String>> entry : this.fieldBlackFilterMap.entrySet()) {
