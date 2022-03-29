@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.SQLUtils;
@@ -78,7 +78,6 @@ public abstract class AbstractBinlogParser<T> extends AbstractCanalLifeCycle imp
         if (StringUtils.isBlank(sql) || StringUtils.isBlank(schema) || StringUtils.isBlank(table)) {
             return sql;
         }
-
         DbType dbType = JdbcConstants.MYSQL;
         try {
             List<SQLStatement> stmtList = SQLUtils.parseStatements(sql, dbType);

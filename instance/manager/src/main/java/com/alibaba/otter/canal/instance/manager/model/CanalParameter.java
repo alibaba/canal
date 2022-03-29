@@ -237,7 +237,9 @@ public class CanalParameter implements Serializable {
         /** oracle DB */
         ORACLE,
         /** 多库合并模式 */
-        GROUP;
+        GROUP,
+        /** OceanBase */
+        OCEANBASE;
 
         public boolean isMysql() {
             return this.equals(SourcingType.MYSQL);
@@ -253,6 +255,10 @@ public class CanalParameter implements Serializable {
 
         public boolean isGroup() {
             return this.equals(SourcingType.GROUP);
+        }
+
+        public boolean isOceanBase() {
+            return this.equals(SourcingType.OCEANBASE);
         }
     }
 

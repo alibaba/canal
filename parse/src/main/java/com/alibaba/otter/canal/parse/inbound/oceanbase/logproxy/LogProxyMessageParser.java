@@ -99,7 +99,7 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
     @Override
     public CanalEntry.Entry parse(LogMessage message, boolean isSeek) throws CanalParseException {
         // LogProxy的连接参数中包含DML的白名单，因此这里只需要检查黑名单
-        String name = message.getDbName() + "." + message.getTableName();
+        String name = getTargetDbName(message.getDbName()) + "." + message.getTableName();
         if (nameBlackFilter != null && nameBlackFilter.filter(name)) {
             return null;
         }
@@ -122,10 +122,6 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
                     entry = parseCommitRecord(message);
                     break;
                 case DDL:
-                    // LogProxy对DDL没有过滤，需要单独进行白名单过滤
-                    if (nameFilter != null && !nameFilter.filter(name)) {
-                        return null;
-                    }
                     entry = parseDdlRecord(message);
                     break;
                 case HEARTBEAT:
@@ -196,14 +192,26 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
 
         // DDL类型的LogMessage没有存表名，并且SQL本身可能缺少库名前缀。
         // 因此这里从SQL中提取表名填补到CanalEntry，并补全SQL中的表名为`db`.`table`格式
+        String dbName = null;
         String table = null;
-        List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, message.getDbName());
+        List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, getTargetDbName(message.getDbName()));
         if (ddlResults.size() > 0) {
-            table = ddlResults.get(0).getTableName();
-            eventType = ddlResults.get(0).getType();
+            DdlResult ddlResult = ddlResults.get(0);
+            eventType = ddlResult.getType();
+            dbName = ddlResult.getSchemaName();
+            table = ddlResult.getTableName();
+
+            // LogProxy对DDL没有过滤，而且ddl的message中没有表名，这里单独处理
+            String tableFullName = dbName + "." + table;
+            if (nameFilter != null && !nameFilter.filter(tableFullName)) {
+                return null;
+            }
+            if (nameBlackFilter != null && nameBlackFilter.filter(tableFullName)) {
+                return null;
+            }
+
             if (eventType == CanalEntry.EventType.ALTER) {
-                String schema = getTargetDbName(ddlResults.get(0).getSchemaName());
-                ddl = completeTableNameInSql(ddl, schema, table);
+                ddl = completeTableNameInSql(ddl, dbName, table);
             }
         }
 
@@ -212,6 +220,9 @@ public class LogProxyMessageParser extends AbstractBinlogParser<LogMessage> {
         rowChangeBuilder.setIsDdl(true);
         rowChangeBuilder.setSql(ddl);
         rowChangeBuilder.setEventType(eventType);
+        if (dbName != null) {
+            rowChangeBuilder.setDdlSchemaName(dbName);
+        }
         return createEntry(header, CanalEntry.EntryType.ROWDATA, rowChangeBuilder.build().toByteString());
     }
 

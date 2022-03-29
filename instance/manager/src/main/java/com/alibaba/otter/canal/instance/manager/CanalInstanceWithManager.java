@@ -5,8 +5,10 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
@@ -46,6 +49,8 @@ import com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsBinlogEventParserProxy
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFactory;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBBuilder;
+import com.alibaba.otter.canal.parse.inbound.oceanbase.logproxy.LogProxyConnection;
+import com.alibaba.otter.canal.parse.inbound.oceanbase.logproxy.LogProxyEventParser;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.index.FailbackLogPositionManager;
 import com.alibaba.otter.canal.parse.index.MemoryLogPositionManager;
@@ -59,6 +64,7 @@ import com.alibaba.otter.canal.sink.entry.group.GroupEventSink;
 import com.alibaba.otter.canal.store.AbstractCanalStoreScavenge;
 import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
 import com.alibaba.otter.canal.store.model.BatchMode;
+import com.oceanbase.clogproxy.client.config.ObReaderConfig;
 
 /**
  * 单个canal实例，比如一个destination会独立一个实例
@@ -384,6 +390,46 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             }
 
             eventParser = localBinlogEventParser;
+        } else if (type.isOceanBase()) {
+            if (CollectionUtils.isEmpty(dbAddresses)) {
+                throw new CanalException("OceanBase log proxy address missed");
+            }
+
+            JSONObject extraParam = JSONObject.parseObject(parameters.getLocalBinlogDirectory());
+            String tenant = extraParam.getString("tenant");
+            String rsList = extraParam.getString("rsList");
+
+            String tableWhiteList = tenant + ".*.*";
+            if (filter != null) {
+                tableWhiteList = Arrays.stream(filter.split(","))
+                    .map(s -> tenant + "." + s)
+                    .collect(Collectors.joining("|"));
+            }
+
+            Long startTimestamp = 0L;
+            if (!CollectionUtils.isEmpty(parameters.getPositions())) {
+                EntryPosition position = JsonUtils.unmarshalFromString(parameters.getPositions().get(0),
+                    EntryPosition.class);
+                startTimestamp = position.getTimestamp();
+            }
+
+            ObReaderConfig obReaderConfig = new ObReaderConfig();
+            obReaderConfig.setUsername(parameters.getDbUsername());
+            obReaderConfig.setPassword(parameters.getDbPassword());
+            obReaderConfig.setRsList(rsList);
+            obReaderConfig.setTableWhiteList(tableWhiteList);
+            obReaderConfig.setStartTimestamp(startTimestamp);
+
+            LogProxyEventParser logProxyEventParser = new LogProxyEventParser();
+            logProxyEventParser.setDestination(destination);
+            logProxyEventParser.setLogProxyInfo(new AuthenticationInfo(dbAddresses.get(0), null, null));
+            logProxyEventParser.setLogProxyConfig(obReaderConfig);
+            logProxyEventParser.setProfilingEnabled(false);
+            logProxyEventParser.setParallel(parameters.getParallel());
+            logProxyEventParser.setSslConfig(new LogProxyConnection.SslConfig(false, null, null, null));
+            logProxyEventParser.setExcludeTenantInDbName(true);
+            logProxyEventParser.setTenant(tenant);
+            eventParser = logProxyEventParser;
         } else if (type.isOracle()) {
             throw new CanalException("unsupport SourcingType for " + type);
         } else {
