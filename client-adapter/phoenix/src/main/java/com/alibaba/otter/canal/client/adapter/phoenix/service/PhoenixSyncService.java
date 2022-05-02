@@ -6,8 +6,8 @@ import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.parser.ParserException;
 import com.alibaba.druid.util.JdbcConstants;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.phoenix.config.ConfigurationManager;
 import com.alibaba.otter.canal.client.adapter.phoenix.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.phoenix.config.MappingConfig.DbMapping;
@@ -208,7 +208,7 @@ public class PhoenixSyncService {
                 for (Map.Entry<String, MappingConfig> entry : configMap.entrySet()) {
                     MappingConfig config = entry.getValue();
                     if (config.isDebug()) {
-                        logger.info("DML: {} {}", entry.getKey(), JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                        logger.info("DML: {} {}", entry.getKey(), JSON.toJSONString(dml, Feature.WriteNulls));
                     }
                     if (config.getConcurrent()) {
                         //并行同步
@@ -257,7 +257,7 @@ public class PhoenixSyncService {
                 } else if (type != null && type.equalsIgnoreCase("TRUNCATE")) {
                     truncate(batchExecutor, config);
                 } else if (logger.isInfoEnabled()){
-                    logger.info("SingleDml: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                    logger.info("SingleDml: {}", JSON.toJSONString(dml, Feature.WriteNulls));
                 }
             } catch (SQLException e) {
                 logger.error("sync error: " + e.getMessage(), e);
@@ -268,7 +268,7 @@ public class PhoenixSyncService {
 
     private void alter(BatchExecutor batchExecutor, MappingConfig config, Dml dml, List<SQLStatement> stmtList, String configFile) throws SQLException {
         if (config.isDebug()) {
-            logger.info("DML: {} {}", configFile, JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+            logger.info("DML: {} {}", configFile, JSON.toJSONString(dml, Feature.WriteNulls));
         }
         DbMapping dbMapping = config.getDbMapping();
         if (!dbMapping.isAlter()) {

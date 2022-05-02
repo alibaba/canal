@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.common.utils;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -8,14 +7,13 @@ import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.alibaba.fastjson.parser.ParserConfig;
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
-import com.alibaba.fastjson.serializer.SerializeConfig;
-import com.alibaba.fastjson.serializer.SerializeWriter;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONFactory;
+import com.alibaba.fastjson2.TypeReference;
+import com.alibaba.fastjson2.filter.PropertyFilter;
+import com.alibaba.fastjson2.JSONWriter;
+import com.alibaba.fastjson2.writer.ObjectWriter;
+
 
 /**
  * 字节处理相关工具类
@@ -25,13 +23,12 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 public class JsonUtils {
 
     static {
-        SerializeConfig.getGlobalInstance().put(InetAddress.class, InetAddressSerializer.instance);
-        SerializeConfig.getGlobalInstance().put(Inet4Address.class, InetAddressSerializer.instance);
-        SerializeConfig.getGlobalInstance().put(Inet6Address.class, InetAddressSerializer.instance);
-        // ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
+        JSON.register(InetAddress.class, InetAddressWriter.instance);
+        JSON.register(Inet4Address.class, InetAddressWriter.instance);
+        JSON.register(Inet6Address.class, InetAddressWriter.instance);
 
-        ParserConfig.getGlobalInstance().addAccept("com.alibaba.otter.");
-        ParserConfig.getGlobalInstance().addAccept("com.taobao.tddl.dbsync.");
+        JSONFactory.getDefaultObjectReaderProvider().addAutoTypeAccept("com.alibaba.otter.");
+        JSONFactory.getDefaultObjectReaderProvider().addAutoTypeAccept("com.taobao.tddl.dbsync.");
     }
 
     public static <T> T unmarshalFromByte(byte[] bytes, Class<T> targetClass) {
@@ -46,7 +43,7 @@ public class JsonUtils {
         return JSON.toJSONBytes(obj); // 默认为UTF-8
     }
 
-    public static byte[] marshalToByte(Object obj, SerializerFeature... features) {
+    public static byte[] marshalToByte(Object obj, JSONWriter.Feature... features) {
         return JSON.toJSONBytes(obj, features); // 默认为UTF-8
     }
 
@@ -62,7 +59,7 @@ public class JsonUtils {
         return JSON.toJSONString(obj); // 默认为UTF-8
     }
 
-    public static String marshalToString(Object obj, SerializerFeature... features) {
+    public static String marshalToString(Object obj, JSONWriter.Feature... features) {
         return JSON.toJSONString(obj, features); // 默认为UTF-8
     }
 
@@ -71,29 +68,29 @@ public class JsonUtils {
      */
     public static String marshalToString(Object obj, String... fliterFields) {
         final List<String> propertyFliters = Arrays.asList(fliterFields);
-        try (SerializeWriter out = new SerializeWriter()) {
-            JSONSerializer serializer = new JSONSerializer(out);
-            serializer.getPropertyFilters().add((source, name, value) -> !propertyFliters.contains(name));
-            serializer.write(obj);
-            return out.toString();
-        }
+
+        return JSON.toJSONString(obj, new PropertyFilter() {
+            @Override
+            public boolean process(Object object, String name, Object value) {
+                return !propertyFliters.contains(name);
+            }
+        });
     }
 
-    public static class InetAddressSerializer implements ObjectSerializer {
+    public static class InetAddressWriter implements ObjectWriter {
 
-        public static InetAddressSerializer instance = new InetAddressSerializer();
+        public static InetAddressWriter instance = new InetAddressWriter();
 
         @Override
-        public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features)
-                                                                                                                   throws IOException {
+        public void write(JSONWriter jsonWriter, Object object, Object fieldName, Type fieldType, long features) {
             if (object == null) {
-                serializer.writeNull();
+                jsonWriter.writeNull();
                 return;
             }
 
             InetAddress address = (InetAddress) object;
             // 优先使用name
-            serializer.write(address.getHostName());
+            jsonWriter.writeString(address.getHostName());
         }
     }
 }

@@ -8,11 +8,11 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.alibaba.fastjson2.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
@@ -79,7 +79,7 @@ public class ESSyncService {
                 esSyncConfigs
                     .forEach(esSyncConfig -> configIndexes.append(esSyncConfig.getEsMapping().get_index()).append(" "));
                 logger.debug("DML: {} \nAffected indexes: {}",
-                    JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue),
+                    JSON.toJSONString(dml, JSONWriter.Feature.WriteNulls),
                     configIndexes.toString());
             }
         }
