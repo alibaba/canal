@@ -152,7 +152,6 @@ public abstract class ESAdapter implements OuterAdapter {
         if (!matcher.find()) {
             throw new RuntimeException("Not found the schema of jdbc-url: " + config.getDataSourceKey());
         }
-        String schema = matcher.group(2);
 
         schemaItem.getAliasTableItems()
             .values()
@@ -163,14 +162,14 @@ public abstract class ESAdapter implements OuterAdapter {
                                                                           + "-"
                                                                           + StringUtils.trimToEmpty(config.getGroupId())
                                                                           + "_"
-                                                                          + schema
+                                                                          + tableItem.getSchema()
                                                                           + "-"
                                                                           + tableItem.getTableName(),
                         k -> new ConcurrentHashMap<>());
                 } else {
                     esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
                                                                           + "_"
-                                                                          + schema
+                                                                          + tableItem.getSchema()
                                                                           + "-"
                                                                           + tableItem.getTableName(),
                         k -> new ConcurrentHashMap<>());
