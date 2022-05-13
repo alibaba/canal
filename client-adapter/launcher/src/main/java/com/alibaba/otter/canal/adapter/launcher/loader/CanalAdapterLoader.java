@@ -1,5 +1,11 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
+import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
+import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +14,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +21,6 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
-
-import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
-import com.alibaba.otter.canal.client.adapter.OuterAdapter;
-import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
-import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 
 /**
  * 外部适配器的加载器
@@ -50,24 +49,34 @@ public class CanalAdapterLoader {
 
         for (CanalClientConfig.CanalAdapter canalAdapter : canalClientConfig.getCanalAdapters()) {
             for (CanalClientConfig.Group group : canalAdapter.getGroups()) {
+                int i = 0;
                 List<List<OuterAdapter>> canalOuterAdapterGroups = new CopyOnWriteArrayList<>();
                 List<OuterAdapter> canalOuterAdapters = new CopyOnWriteArrayList<>();
+
                 for (OuterAdapterConfig config : group.getOuterAdapters()) {
+                    // 保证一定有key
+                    if (config.getKey() == null) {
+                        String key = StringUtils.join(new String[]{Util.AUTO_GENERATED_PREFIX,
+                                        canalAdapter.getInstance(), group.getGroupId(), String.valueOf(i)},
+                                '-');
+                        config.setKey(key);
+                    }
+                    i++;
                     loadAdapter(config, canalOuterAdapters);
                 }
                 canalOuterAdapterGroups.add(canalOuterAdapters);
 
                 AdapterProcessor adapterProcessor = canalAdapterProcessors.computeIfAbsent(canalAdapter.getInstance()
-                                                                                           + "|"
-                                                                                           + StringUtils.trimToEmpty(group.getGroupId()),
-                    f -> new AdapterProcessor(canalClientConfig,
-                        canalAdapter.getInstance(),
-                        group.getGroupId(),
-                        canalOuterAdapterGroups));
+                                + "|"
+                                + StringUtils.trimToEmpty(group.getGroupId()),
+                        f -> new AdapterProcessor(canalClientConfig,
+                                canalAdapter.getInstance(),
+                                group.getGroupId(),
+                                canalOuterAdapterGroups));
                 adapterProcessor.start();
 
                 logger.info("Start adapter for canal-client mq topic: {} succeed", canalAdapter.getInstance() + "-"
-                                                                                   + group.getGroupId());
+                        + group.getGroupId());
             }
         }
 
@@ -201,7 +210,7 @@ public class CanalAdapterLoader {
     private void loadAdapter(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
         try {
             OuterAdapter adapter;
-            adapter = loader.getExtension(config.getName(), StringUtils.trimToEmpty(config.getKey()));
+            adapter = loader.getExtension(config.getName(), config.getKey());
 
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
             // 替换ClassLoader
