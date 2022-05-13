@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.rdb.service;
 import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -432,7 +433,12 @@ public class RdbSyncService {
                             ResultSetMetaData rsd = rs.getMetaData();
                             int columnCount = rsd.getColumnCount();
                             for (int i = 1; i <= columnCount; i++) {
-                                columnTypeTmp.put(rsd.getColumnName(i).toLowerCase(), rsd.getColumnType(i));
+                                int colType = rsd.getColumnType(i);
+                                // 修复year类型作为date处理时的data truncated问题
+                                if ("YEAR".equals(rsd.getColumnTypeName(i))) {
+                                    colType = Types.VARCHAR;
+                                }
+                                columnTypeTmp.put(rsd.getColumnName(i).toLowerCase(), colType);
                             }
                             columnsTypeCache.put(cacheKey, columnTypeTmp);
                         } catch (SQLException e) {
