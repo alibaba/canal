@@ -57,13 +57,11 @@ public interface ESTemplate {
 
     Object getIdValFromRS(ESMapping mapping, ResultSet resultSet) throws SQLException;
 
-    Object getESDataFromRS(ESMapping mapping, ResultSet resultSet, Map<String, Object> dmlOld,
-                           Map<String, Object> esFieldData) throws SQLException;
+    Object getESDataFromRS(ESMapping mapping, ResultSet resultSet, Map<String, Object> dmlOld, Map<String, Object> esFieldData) throws SQLException;
 
     Object getValFromData(ESMapping mapping, Map<String, Object> dmlData, String fieldName, String columnName);
 
     Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> esFieldData);
 
-    Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> dmlOld,
-                                Map<String, Object> esFieldData);
+    Object getESDataFromDmlData(ESMapping mapping,String owner, Map<String, Object> dmlData, Map<String, Object> dmlOld, Map<String, Object> esFieldData);
 }

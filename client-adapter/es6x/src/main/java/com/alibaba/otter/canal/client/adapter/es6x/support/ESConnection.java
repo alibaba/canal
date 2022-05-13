@@ -150,7 +150,13 @@ public class ESConnection {
                 logger.error(e.getMessage(), e);
                 return null;
             }
-            mappingMetaData = mappings.get(index).get(type);
+
+            //通过别名查询mapping返回的是真实索引名称，mappings.get(index)返回null，为兼容别名情况修改如下：
+            ImmutableOpenMap<String, MappingMetaData> esIndex = mappings.get(index);
+            if(esIndex == null){
+                esIndex = mappings.valuesIt().next();
+            }
+            mappingMetaData = esIndex.get(type);
         }
         return mappingMetaData;
     }

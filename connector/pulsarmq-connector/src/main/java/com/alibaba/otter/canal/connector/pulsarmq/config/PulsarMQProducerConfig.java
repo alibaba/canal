@@ -4,16 +4,18 @@ import com.alibaba.otter.canal.connector.core.config.MQProperties;
 
 /**
  * Pulsar生产者配置
+ * 
  * @author chad
  * @date 2021/9/15 11:23
  * @since 1 by chad at 2021/9/15 新增
  */
 public class PulsarMQProducerConfig extends MQProperties {
+
     /**
      * pulsar服务连接地址
      * <p>
-     *     broker: pulsar://localhost:6650<br/>
-     *     httpUrl: http://localhost:8080
+     * broker: pulsar://localhost:6650<br/>
+     * httpUrl: http://localhost:8080
      * </p>
      */
     private String serverUrl;
@@ -30,6 +32,10 @@ public class PulsarMQProducerConfig extends MQProperties {
      * 生产者角色权限，请确保该角色有canal使用的所有topic生产者权限（最低要求）
      */
     private String roleToken;
+    /**
+     * admin服务器地址
+     */
+    private String adminServerUrl;
 
     public String getServerUrl() {
         return serverUrl;
@@ -53,5 +59,13 @@ public class PulsarMQProducerConfig extends MQProperties {
 
     public void setTopicTenantPrefix(String topicTenantPrefix) {
         this.topicTenantPrefix = topicTenantPrefix;
+    }
+
+    public String getAdminServerUrl() {
+        return adminServerUrl;
+    }
+
+    public void setAdminServerUrl(String adminServerUrl) {
+        this.adminServerUrl = adminServerUrl;
     }
 }

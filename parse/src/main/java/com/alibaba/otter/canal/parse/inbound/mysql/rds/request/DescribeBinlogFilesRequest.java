@@ -2,11 +2,11 @@ package com.alibaba.otter.canal.parse.inbound.mysql.rds.request;
 
 import java.util.Date;
 
+import com.alibaba.fastjson2.JSON;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson2.TypeReference;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.DescribeBinlogFileResult;
 
 /**
@@ -47,7 +47,7 @@ public class DescribeBinlogFilesRequest extends AbstractRequest<DescribeBinlogFi
     @Override
     protected DescribeBinlogFileResult processResult(HttpResponse response) throws Exception {
         String result = EntityUtils.toString(response.getEntity());
-        DescribeBinlogFileResult describeBinlogFileResult = JSONObject.parseObject(result,
+        DescribeBinlogFileResult describeBinlogFileResult = JSON.parseObject(result,
             new TypeReference<DescribeBinlogFileResult>() {
             });
         return describeBinlogFileResult;
