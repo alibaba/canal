@@ -4,16 +4,18 @@ import com.alibaba.otter.canal.connector.core.config.MQProperties;
 
 /**
  * Pulsar生产者配置
+ * 
  * @author chad
  * @date 2021/9/15 11:23
  * @since 1 by chad at 2021/9/15 新增
  */
 public class PulsarMQProducerConfig extends MQProperties {
+
     /**
      * pulsar服务连接地址
      * <p>
-     *     broker: pulsar://localhost:6650<br/>
-     *     httpUrl: http://localhost:8080
+     * broker: pulsar://localhost:6650<br/>
+     * httpUrl: http://localhost:8080
      * </p>
      */
     private String serverUrl;

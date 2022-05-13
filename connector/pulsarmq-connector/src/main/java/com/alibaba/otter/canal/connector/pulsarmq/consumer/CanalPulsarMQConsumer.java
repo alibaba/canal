@@ -1,20 +1,24 @@
 package com.alibaba.otter.canal.connector.pulsarmq.consumer;
 
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.pulsar.client.api.*;
+
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.common.utils.MQUtil;
 import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
 import com.alibaba.otter.canal.connector.core.spi.SPI;
+import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
+import com.alibaba.otter.canal.connector.core.util.MessageUtil;
 import com.alibaba.otter.canal.connector.pulsarmq.config.PulsarMQConstants;
+import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
-import org.apache.pulsar.client.api.*;
-
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Pulsar consumer SPI 实现
@@ -24,19 +28,20 @@ import java.util.concurrent.TimeUnit;
  */
 @SPI("pulsarmq")
 public class CanalPulsarMQConsumer implements CanalMsgConsumer {
+
     /**
      * 连接pulsar客户端
      */
-    private PulsarClient pulsarClient;
-    private Consumer<byte[]> pulsarMQConsumer;
+    private PulsarClient              pulsarClient;
+    private Consumer<byte[]>          pulsarMQConsumer;
     /**
      * 是否为扁平消息
      */
-    private boolean flatMessage = false;
+    private boolean                   flatMessage            = false;
     /**
      * 主题名称
      */
-    private String topic;
+    private String                    topic;
     /**
      * 单线程控制
      */
@@ -44,58 +49,57 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
     /**
      * 环境连接URL
      */
-    private String serviceUrl;
+    private String                    serviceUrl;
     /**
      * 角色认证token
      */
-    private String roleToken;
+    private String                    roleToken;
     /**
      * 订阅客户端名称
      */
-    private String subscriptName;
+    private String                    subscriptName;
     /**
      * 每次批量获取数据的最大条目数，默认30
      */
-    private int batchSize = 30;
+    private int                       batchSize              = 30;
     /**
-     * 与{@code batchSize}一起决定批量获取的数据大小
-     * 当：
+     * 与{@code batchSize}一起决定批量获取的数据大小 当：
      * <p>
      * 1. {@code batchSize} 条消息未消费时<br/>
      * 2. 距上一次批量消费时间达到{@code batchTimeoutSeconds}秒时
      * </p>
      * 任一条件满足，即执行批量消费
      */
-    private int getBatchTimeoutSeconds = 30;
+    private int                       getBatchTimeoutSeconds = 30;
     /**
      * 批量处理消息时，一次批量处理的超时时间
      * <p>
      * 该时间应该根据{@code batchSize}和{@code batchTimeoutSeconds}合理设置
      * </p>
      */
-    private long batchProcessTimeout = 60 * 1000;
+    private long                      batchProcessTimeout    = 60 * 1000;
     /**
      * 消费失败后的重试秒数，默认60秒
      */
-    private int redeliveryDelaySeconds = 60;
+    private int                       redeliveryDelaySeconds = 60;
     /**
      * 当客户端接收到消息，30秒还没有返回ack给服务端时，ack超时，会重新消费该消息
      */
-    private int ackTimeoutSeconds = 30;
+    private int                       ackTimeoutSeconds      = 30;
     /**
      * 是否开启消息失败重试功能，默认开启
      */
-    private boolean isRetry = true;
+    private boolean                   isRetry                = true;
     /**
      * <p>
      * true重试(-RETRY)和死信队列(-DLQ)后缀为大写，有些地方创建的为小写，需确保正确
      * </p>
      */
-    private boolean isRetryDLQUpperCase = false;
+    private boolean                   isRetryDLQUpperCase    = false;
     /**
      * 最大重试次数
      */
-    private int maxRedeliveryCount = 128;
+    private int                       maxRedeliveryCount     = 128;
 
     @Override
     public void init(Properties properties, String topic, String groupId) {
@@ -106,9 +110,12 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
         }
         this.serviceUrl = properties.getProperty(PulsarMQConstants.PULSARMQ_SERVER_URL);
         this.roleToken = properties.getProperty(PulsarMQConstants.PULSARMQ_ROLE_TOKEN);
-        //this.subscriptName = properties.getProperty(PulsarMQConstants.PULSARMQ_SUBSCRIPT_NAME);
+        this.subscriptName = properties.getProperty(PulsarMQConstants.PULSARMQ_SUBSCRIPT_NAME);
         // 采用groupId作为subscriptName，避免所有的都是同一个订阅者名称
-        this.subscriptName = groupId;
+        if (StringUtils.isEmpty(this.subscriptName)) {
+            this.subscriptName = groupId;
+        }
+
         if (StringUtils.isEmpty(this.subscriptName)) {
             throw new RuntimeException("Pulsar Consumer subscriptName required");
         }
@@ -153,9 +160,9 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
         }
         // 连接创建客户端
         try {
-            //AuthenticationDataProvider
+            // AuthenticationDataProvider
             ClientBuilder builder = PulsarClient.builder().serviceUrl(serviceUrl);
-            if(StringUtils.isNotEmpty(roleToken)) {
+            if (StringUtils.isNotEmpty(roleToken)) {
                 builder.authentication(AuthenticationFactory.token(roleToken));
             }
             pulsarClient = builder.build();
@@ -174,15 +181,14 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
         builder.subscriptionType(SubscriptionType.Failover);
 
         builder
-                // 调用consumer.negativeAcknowledge(message) （即nack）来表示消费失败的消息
-                // 在指定的时间进行重新消费，默认是1分钟。
-                .negativeAckRedeliveryDelay(this.redeliveryDelaySeconds, TimeUnit.SECONDS)
-                .subscriptionName(this.subscriptName)
-        ;
+            // 调用consumer.negativeAcknowledge(message) （即nack）来表示消费失败的消息
+            // 在指定的时间进行重新消费，默认是1分钟。
+            .negativeAckRedeliveryDelay(this.redeliveryDelaySeconds, TimeUnit.SECONDS)
+            .subscriptionName(this.subscriptName);
         if (this.isRetry) {
             DeadLetterPolicy.DeadLetterPolicyBuilder dlqBuilder = DeadLetterPolicy.builder()
-                    // 最大重试次数
-                    .maxRedeliverCount(this.maxRedeliveryCount);
+                // 最大重试次数
+                .maxRedeliverCount(this.maxRedeliveryCount);
             // 指定重试队列，不是多个或通配符topic才能判断重试队列
             if (!MQUtil.isPatternTag(this.topic)) {
                 String retryTopic = this.topic + (this.isRetryDLQUpperCase ? "-RETRY" : "-retry");
@@ -191,19 +197,17 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
                 dlqBuilder.deadLetterTopic(dlqTopic);
             }
 
-            //默认关闭，如果需要重试则开启
-            builder.enableRetry(true)
-                    .deadLetterPolicy(dlqBuilder.build());
+            // 默认关闭，如果需要重试则开启
+            builder.enableRetry(true).deadLetterPolicy(dlqBuilder.build());
         }
 
         // ack超时
         builder.ackTimeout(this.ackTimeoutSeconds, TimeUnit.SECONDS);
 
         // pulsar批量获取消息设置
-        builder.batchReceivePolicy(new BatchReceivePolicy.Builder()
-                .maxNumMessages(this.batchSize)
-                .timeout(this.getBatchTimeoutSeconds, TimeUnit.SECONDS)
-                .build());
+        builder.batchReceivePolicy(new BatchReceivePolicy.Builder().maxNumMessages(this.batchSize)
+            .timeout(this.getBatchTimeoutSeconds, TimeUnit.SECONDS)
+            .build());
 
         try {
             this.pulsarMQConsumer = builder.subscribe();
@@ -225,17 +229,14 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
             this.lastGetBatchMessage = messages;
             for (org.apache.pulsar.client.api.Message<byte[]> msg : messages) {
                 byte[] data = msg.getData();
-                /*if (!this.flatMessage) {
+                if (!this.flatMessage) {
                     Message message = CanalMessageSerializerUtil.deserializer(data);
                     List<CommonMessage> list = MessageUtil.convert(message);
                     messageList.addAll(list);
                 } else {
                     CommonMessage commonMessage = JSON.parseObject(data, CommonMessage.class);
                     messageList.add(commonMessage);
-                }*/
-                // CanalMessageSerializerUtil.deserializer(data) 会转换失败
-                CommonMessage commonMessage = JSON.parseObject(data, CommonMessage.class);
-                messageList.add(commonMessage);
+                }
             }
         } catch (PulsarClientException e) {
             throw new CanalClientException("Receive pulsar batch message error", e);
