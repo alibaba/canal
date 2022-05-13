@@ -17,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.common.alarm.LogAlarmHandler;
@@ -395,7 +396,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                 throw new CanalException("OceanBase log proxy address missed");
             }
 
-            JSONObject extraParam = JSONObject.parseObject(parameters.getLocalBinlogDirectory());
+            JSONObject extraParam = JSON.parseObject(parameters.getLocalBinlogDirectory());
             String tenant = extraParam.getString("tenant");
             String rsList = extraParam.getString("rsList");
 

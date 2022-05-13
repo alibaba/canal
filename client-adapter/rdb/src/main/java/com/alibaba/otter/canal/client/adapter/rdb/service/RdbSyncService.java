@@ -235,7 +235,7 @@ public class RdbSyncService {
                     logger.debug("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
                 }
             } catch (SQLException e) {
-                logger.error("Failed to sync single DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                logger.error("Failed to sync single DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
                 throw new RuntimeException(e);
             }
         }
