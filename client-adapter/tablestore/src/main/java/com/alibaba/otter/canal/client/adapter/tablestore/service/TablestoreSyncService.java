@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.tablestore.enums.TablestoreFieldType;
 import com.alibaba.otter.canal.client.adapter.tablestore.support.SyncUtil;
 import com.alicloud.openservices.tablestore.TableStoreWriter;
@@ -59,7 +59,7 @@ public class TablestoreSyncService {
         Future<WriterResult> future = writer.addRowChangeWithFuture(rowChanges);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+            logger.debug("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
         }
         return future;
     }

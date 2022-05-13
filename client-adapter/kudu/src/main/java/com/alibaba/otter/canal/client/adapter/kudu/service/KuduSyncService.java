@@ -10,8 +10,8 @@ import org.apache.kudu.client.KuduException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 import com.alibaba.otter.canal.client.adapter.kudu.support.KuduTemplate;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
@@ -55,7 +55,7 @@ public class KuduSyncService {
                 delete(config, dml);
             }
             if (logger.isDebugEnabled()) {
-                logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                logger.debug("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
             }
         }
     }
@@ -118,7 +118,7 @@ public class KuduSyncService {
                 }
             } catch (KuduException e) {
                 logger.error(e.getMessage());
-                logger.error("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                logger.error("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
             }
         }
     }
@@ -159,7 +159,7 @@ public class KuduSyncService {
                 }
             } catch (KuduException e) {
                 logger.error(e.getMessage());
-                logger.error("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                logger.error("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
             }
         }
 
@@ -201,7 +201,7 @@ public class KuduSyncService {
                 }
             } catch (KuduException e) {
                 logger.error(e.getMessage());
-                logger.error("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                logger.error("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
             }
         }
     }

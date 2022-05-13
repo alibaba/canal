@@ -22,7 +22,7 @@ import org.apache.rocketmq.remoting.RPCHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;

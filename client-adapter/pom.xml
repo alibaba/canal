@@ -182,9 +182,9 @@
                 <version>42.1.4</version>
             </dependency>
             <dependency>
-                <groupId>com.oracle</groupId>
+                <groupId>com.oracle.database.jdbc</groupId>
                 <artifactId>ojdbc6</artifactId>
-                <version>11.2.0.3</version>
+                <version>11.2.0.4</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.sqlserver</groupId>
@@ -211,6 +211,12 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>2.10.0</version>
+            </dependency>
+            <!-- 单独指定guava版本，兼容curator-client -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
