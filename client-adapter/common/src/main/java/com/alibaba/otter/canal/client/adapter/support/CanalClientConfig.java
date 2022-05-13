@@ -54,6 +54,8 @@ public class CanalClientConfig {
     // canal adapters 配置
     private List<CanalAdapter> canalAdapters;
 
+    private Boolean terminateOnException = false;
+
     public String getCanalServerHost() {
         return canalServerHost;
     }
@@ -220,6 +222,14 @@ public class CanalClientConfig {
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
+    }
+
+    public Boolean getTerminateOnException() {
+        return terminateOnException;
+    }
+
+    public void setTerminateOnException(Boolean terminateOnException) {
+        this.terminateOnException = terminateOnException;
     }
 
     public static class CanalAdapter {

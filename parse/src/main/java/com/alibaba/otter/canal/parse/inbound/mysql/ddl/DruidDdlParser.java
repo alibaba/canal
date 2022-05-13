@@ -66,6 +66,12 @@ public class DruidDdlParser {
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLAlterTableStatement) {
                 SQLAlterTableStatement alterTable = (SQLAlterTableStatement) statement;
+                if (alterTable.getTableOptions().size() > 0) {
+                    DdlResult ddlResult = new DdlResult();
+                    processName(ddlResult, schmeaName, alterTable.getName(), false);
+                    ddlResult.setType(EventType.ALTER);
+                    ddlResults.add(ddlResult);
+                }
                 for (SQLAlterTableItem item : alterTable.getItems()) {
                     if (item instanceof SQLAlterTableRename) {
                         DdlResult ddlResult = new DdlResult();

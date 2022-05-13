@@ -102,6 +102,8 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
             String key = (String) entry.getKey();
             Object value = entry.getValue();
             if (key.startsWith(PREFIX_KAFKA_CONFIG) && value != null) {
+                // check env config
+                value = PropertiesUtils.getProperty(properties, key);
                 key = key.substring(PREFIX_KAFKA_CONFIG.length());
                 kafkaProperties.put(key, value);
             }

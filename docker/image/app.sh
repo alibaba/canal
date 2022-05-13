@@ -141,6 +141,6 @@ waitterm
 echo "==> STOP"
 
 stop_canal
-start_exporter
+stop_exporter
 
 echo "==> STOP SUCCESSFUL ..."

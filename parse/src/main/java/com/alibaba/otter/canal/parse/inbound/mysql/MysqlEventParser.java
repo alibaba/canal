@@ -464,6 +464,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     }
 
                     if (specificLogFilePosition == null) {
+                        if (isRdsOssMode()) {
+                            // 如果binlog位点不存在，并且属于timestamp不为空,可以返回null走到oss binlog处理
+                            return null;
+                        }
                         // position不存在，从文件头开始
                         entryPosition.setPosition(BINLOG_START_OFFEST);
                         return entryPosition;

@@ -1,0 +1,21 @@
+dataSourceKey: defaultDS
+destination: test_ots
+groupId: g1
+outerAdapterKey: mysql1
+threads: 1
+updateChangeColumns: false
+dbMapping:
+  database: test_ots
+  table: test
+  targetTable: canal_target
+  targetPk:
+    oId: oId
+  targetColumns:
+    oId:
+    c_id:
+    p_price:
+    p_count:
+  etlCondition: 
+  commitBatch: 1 # 批量提交的大小
+
+

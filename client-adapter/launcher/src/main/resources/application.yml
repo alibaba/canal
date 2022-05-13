@@ -99,7 +99,14 @@ canal.conf:
 #          # security.auth: test:123456 #  only used for rest mode
 #          cluster.name: elasticsearch
 
-#      - name: kudu
-#        key: example_kudu
-#        properties:
-#          kudu.master.address: 127.0.0.1 # ',' split multi address
+#        - name: kudu
+#          key: example_kudu
+#          properties:
+#            kudu.master.address: 127.0.0.1 # ',' split multi address
+#        - name: phoenix
+#            key: phoenix
+#            properties:
+#              jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
+#              jdbc.url: jdbc:phoenix:127.0.0.1:2181:/hbase/db
+#              jdbc.username:
+#              jdbc.password:
