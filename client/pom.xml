@@ -134,6 +134,11 @@
 			<artifactId>pulsar-client</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.pulsar</groupId>
+			<artifactId>pulsar-client-admin</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- junit -->
 		<dependency>

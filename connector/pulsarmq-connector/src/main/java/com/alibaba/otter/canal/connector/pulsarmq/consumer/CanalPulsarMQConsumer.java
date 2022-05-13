@@ -6,20 +6,14 @@ import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
 import com.alibaba.otter.canal.connector.core.spi.SPI;
-import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
-import com.alibaba.otter.canal.connector.core.util.MessageUtil;
 import com.alibaba.otter.canal.connector.pulsarmq.config.PulsarMQConstants;
-import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.pulsar.client.api.*;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -112,7 +106,9 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
         }
         this.serviceUrl = properties.getProperty(PulsarMQConstants.PULSARMQ_SERVER_URL);
         this.roleToken = properties.getProperty(PulsarMQConstants.PULSARMQ_ROLE_TOKEN);
-        this.subscriptName = properties.getProperty(PulsarMQConstants.PULSARMQ_SUBSCRIPT_NAME);
+        //this.subscriptName = properties.getProperty(PulsarMQConstants.PULSARMQ_SUBSCRIPT_NAME);
+        // 采用groupId作为subscriptName，避免所有的都是同一个订阅者名称
+        this.subscriptName = groupId;
         if (StringUtils.isEmpty(this.subscriptName)) {
             throw new RuntimeException("Pulsar Consumer subscriptName required");
         }
@@ -157,10 +153,12 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
         }
         // 连接创建客户端
         try {
-            pulsarClient = PulsarClient.builder()
-                    .serviceUrl(serviceUrl)
-                    .authentication(AuthenticationFactory.token(roleToken))
-                    .build();
+            //AuthenticationDataProvider
+            ClientBuilder builder = PulsarClient.builder().serviceUrl(serviceUrl);
+            if(StringUtils.isNotEmpty(roleToken)) {
+                builder.authentication(AuthenticationFactory.token(roleToken));
+            }
+            pulsarClient = builder.build();
         } catch (PulsarClientException e) {
             throw new RuntimeException(e);
         }
@@ -220,7 +218,6 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
         List<CommonMessage> messageList = Lists.newArrayList();
         try {
             Messages<byte[]> messages = pulsarMQConsumer.batchReceive();
-
             if (null == messages || messages.size() == 0) {
                 return messageList;
             }
@@ -228,14 +225,17 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
             this.lastGetBatchMessage = messages;
             for (org.apache.pulsar.client.api.Message<byte[]> msg : messages) {
                 byte[] data = msg.getData();
-                if (!this.flatMessage) {
+                /*if (!this.flatMessage) {
                     Message message = CanalMessageSerializerUtil.deserializer(data);
                     List<CommonMessage> list = MessageUtil.convert(message);
                     messageList.addAll(list);
                 } else {
                     CommonMessage commonMessage = JSON.parseObject(data, CommonMessage.class);
                     messageList.add(commonMessage);
-                }
+                }*/
+                // CanalMessageSerializerUtil.deserializer(data) 会转换失败
+                CommonMessage commonMessage = JSON.parseObject(data, CommonMessage.class);
+                messageList.add(commonMessage);
             }
         } catch (PulsarClientException e) {
             throw new CanalClientException("Receive pulsar batch message error", e);
@@ -278,7 +278,8 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
             return;
         }
         try {
-            this.pulsarMQConsumer.unsubscribe();
+            // 会导致暂停期间数据丢失
+            // this.pulsarMQConsumer.unsubscribe();
             this.pulsarClient.close();
         } catch (PulsarClientException e) {
             throw new CanalClientException("Disconnect pulsar consumer error", e);

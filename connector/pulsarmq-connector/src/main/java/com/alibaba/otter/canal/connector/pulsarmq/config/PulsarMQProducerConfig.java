@@ -30,6 +30,10 @@ public class PulsarMQProducerConfig extends MQProperties {
      * 生产者角色权限，请确保该角色有canal使用的所有topic生产者权限（最低要求）
      */
     private String roleToken;
+    /**
+     * admin服务器地址
+     */
+    private String adminServerUrl;
 
     public String getServerUrl() {
         return serverUrl;
@@ -53,5 +57,13 @@ public class PulsarMQProducerConfig extends MQProperties {
 
     public void setTopicTenantPrefix(String topicTenantPrefix) {
         this.topicTenantPrefix = topicTenantPrefix;
+    }
+
+    public String getAdminServerUrl() {
+        return adminServerUrl;
+    }
+
+    public void setAdminServerUrl(String adminServerUrl) {
+        this.adminServerUrl = adminServerUrl;
     }
 }

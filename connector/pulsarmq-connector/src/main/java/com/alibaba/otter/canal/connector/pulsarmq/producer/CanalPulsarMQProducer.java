@@ -17,6 +17,8 @@ import com.alibaba.otter.canal.connector.pulsarmq.config.PulsarMQProducerConfig;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import org.apache.commons.lang.StringUtils;
+import org.apache.pulsar.client.admin.PulsarAdmin;
+import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.*;
 import org.apache.pulsar.shade.com.google.gson.JsonParser;
 import org.slf4j.Logger;
@@ -50,6 +52,10 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      * pulsar客户端，管理连接
      */
     protected PulsarClient client;
+    /**
+     * Pulsar admin 客户端
+     */
+    protected PulsarAdmin pulsarAdmin;
 
     @Override
     public void init(Properties properties) {
@@ -61,17 +67,28 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
 
         // 初始化连接客户端
         try {
-            client = PulsarClient.builder()
+            ClientBuilder builder = PulsarClient.builder()
                     // 填写pulsar的连接地址
-                    .serviceUrl(pulsarMQProducerConfig.getServerUrl())
-                    // 角色权限认证的token
-                    .authentication(AuthenticationFactory.token(pulsarMQProducerConfig.getRoleToken()))
-                    .build();
+                    .serviceUrl(pulsarMQProducerConfig.getServerUrl());
+            if(StringUtils.isNotEmpty(pulsarMQProducerConfig.getRoleToken())) {
+                // 角色权限认证的token
+                builder.authentication(AuthenticationFactory.token(pulsarMQProducerConfig.getRoleToken()));
+            }
+            client = builder.build();
         } catch (PulsarClientException e) {
             throw new RuntimeException(e);
         }
-        // 加载所有生产者 --> topic可能有正则或表名，无法确认所有topic，在使用时再加载
 
+        // 初始化Pulsar admin
+        if(StringUtils.isNotEmpty(pulsarMQProducerConfig.getAdminServerUrl())) {
+            try {
+                pulsarAdmin = PulsarAdmin.builder().serviceHttpUrl(pulsarMQProducerConfig.getAdminServerUrl()).build();
+            } catch (PulsarClientException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // 加载所有生产者 --> topic可能有正则或表名，无法确认所有topic，在使用时再加载
         int parallelPartitionSendThreadSize = mqProperties.getParallelSendThreadSize();
         sendPartitionExecutor = new ThreadPoolExecutor(parallelPartitionSendThreadSize,
                 parallelPartitionSendThreadSize,
@@ -105,6 +122,10 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         String topicTenantPrefix = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_TOPIC_TENANT_PREFIX);
         if (!StringUtils.isEmpty(topicTenantPrefix)) {
             tmpProperties.setTopicTenantPrefix(topicTenantPrefix);
+        }
+        String adminServerUrl = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_ADMIN_SERVER_URL);
+        if(!StringUtils.isEmpty(adminServerUrl)) {
+            tmpProperties.setAdminServerUrl(adminServerUrl);
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Load pulsar properties ==> {}", JSON.toJSON(this.mqProperties));
@@ -182,6 +203,11 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         if (partitionNum == null) {
             partitionNum = destination.getPartitionsNum();
         }
+        // 创建多分区topic
+        if(pulsarAdmin!=null && partitionNum!=null && partitionNum>0 && PRODUCERS.get(topicName)==null) {
+            createMultipleTopic(topicName, partitionNum);
+        }
+
         ExecutorTemplate template = new ExecutorTemplate(sendPartitionExecutor);
         // 并发构造
         MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
@@ -319,22 +345,41 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
     }
 
     /**
-     * 获取指定topic的生产者，并且使用缓存
-     *
+     * 创建多分区topic
      * @param topic
-     * @return org.apache.pulsar.client.api.Producer<byte [ ]>
-     * @date 2021/9/10 11:21
-     * @author chad
-     * @since 1 by chad at 2021/9/10 新增
+     * @param partitionNum
+     */
+    private void createMultipleTopic(String topic,Integer partitionNum) {
+        // 拼接topic前缀
+        PulsarMQProducerConfig pulsarMQProperties = (PulsarMQProducerConfig) this.mqProperties;
+        String prefix = pulsarMQProperties.getTopicTenantPrefix();
+        String fullTopic = topic;
+        if (!StringUtils.isEmpty(prefix)) {
+            if (!prefix.endsWith("/")) {
+                fullTopic = "/" + fullTopic;
+            }
+            fullTopic = pulsarMQProperties.getTopicTenantPrefix() + fullTopic;
+        }
+
+        // 创建分区topic
+        try {
+            pulsarAdmin.topics().createPartitionedTopic(fullTopic, partitionNum);
+        } catch (PulsarAdminException e) {
+            // TODO 无论是否报错，都继续后续的操作，此处不进行阻塞
+        }
+    }
+    /**
+     * 获取topic
+     * @param topic
+     * @return
      */
     private Producer<byte[]> getProducer(String topic) {
         Producer producer = PRODUCERS.get(topic);
-
-        if (null == producer) {
+        if (null == producer || !producer.isConnected()) {
             try {
                 synchronized (PRODUCERS) {
                     producer = PRODUCERS.get(topic);
-                    if (null != producer) {
+                    if (null != producer && producer.isConnected()) {
                         return producer;
                     }
 
@@ -405,7 +450,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
 
     @Override
     public void stop() {
-        logger.info("## Stop RocketMQ producer##");
+        logger.info("## Stop PulsarMQ producer##");
 
         for (Producer p : PRODUCERS.values()) {
             try {
