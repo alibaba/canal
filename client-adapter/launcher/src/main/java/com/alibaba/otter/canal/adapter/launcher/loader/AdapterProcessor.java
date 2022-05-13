@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public class AdapterProcessor {
         // load connector consumer
         ExtensionLoader<CanalMsgConsumer> loader = new ExtensionLoader<>(CanalMsgConsumer.class);
         canalMsgConsumer = loader
-            .getExtension(canalClientConfig.getMode().toLowerCase(), CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
+            .getExtension(canalClientConfig.getMode().toLowerCase(),destination ,CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
 
         Properties properties = canalClientConfig.getConsumerProperties();
         properties.put(CanalConstants.CANAL_MQ_FLAT_MESSAGE, canalClientConfig.getFlatMessage());
@@ -211,13 +212,21 @@ public class AdapterProcessor {
                                     canalDestination,
                                     System.currentTimeMillis() - begin);
                             }
+                            break;
                         } catch (Exception e) {
                             if (i != retry - 1) {
                                 canalMsgConsumer.rollback(); // 处理失败, 回滚数据
                                 logger.error(e.getMessage() + " Error sync and rollback, execute times: " + (i + 1));
                             } else {
-                                canalMsgConsumer.ack();
-                                logger.error(e.getMessage() + " Error sync but ACK!");
+                                if (canalClientConfig.getTerminateOnException()) {
+                                    canalMsgConsumer.rollback();
+                                    logger.error("Retry fail, turn switch off and abort data transfer.");
+                                    syncSwitch.off(canalDestination);
+                                    logger.error("finish turn off switch of destination:" + canalDestination);
+                                } else {
+                                    canalMsgConsumer.ack();
+                                    logger.error(e.getMessage() + " Error sync but ACK!");
+                                }
                             }
                             Thread.sleep(500);
                         }

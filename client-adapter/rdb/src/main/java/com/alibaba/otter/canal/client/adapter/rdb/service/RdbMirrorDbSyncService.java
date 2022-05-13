@@ -7,17 +7,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SingleDml;
+import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 /**
@@ -31,10 +31,10 @@ public class RdbMirrorDbSyncService {
     private static final Logger         logger = LoggerFactory.getLogger(RdbMirrorDbSyncService.class);
 
     private Map<String, MirrorDbConfig> mirrorDbConfigCache;                                           // 镜像库配置
-    private DataSource                  dataSource;
+    private DruidDataSource             dataSource;
     private RdbSyncService              rdbSyncService;                                                // rdbSyncService代理
 
-    public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DataSource dataSource,
+    public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DruidDataSource dataSource,
                                   Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
                                   boolean skipDupException){
         this.mirrorDbConfigCache = mirrorDbConfigCache;
@@ -45,7 +45,7 @@ public class RdbMirrorDbSyncService {
     /**
      * 批量同步方法
      *
-     * @param dmls 批量 DML
+     * @param dmls 批量 DML，包含DDL
      */
     public void sync(List<Dml> dmls) {
         List<Dml> dmlList = new ArrayList<>();
@@ -66,9 +66,13 @@ public class RdbMirrorDbSyncService {
             }
 
             if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
+                // 确保执行DDL前DML已执行完
+                syncDml(dmlList);
+                dmlList.clear();
+
                 // DDL
                 if (logger.isDebugEnabled()) {
-                    logger.debug("DDL: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                    logger.debug("DDL: {}", JSON.toJSONString(dml, Feature.WriteNulls));
                 }
                 executeDdl(mirrorDbConfig, dml);
                 rdbSyncService.getColumnsTypeCache().remove(destination + "." + database + "." + dml.getTable());
@@ -79,38 +83,32 @@ public class RdbMirrorDbSyncService {
                 dmlList.add(dml);
             }
         }
-        if (!dmlList.isEmpty()) {
-            rdbSyncService.sync(dmlList, dml -> {
-                MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache.get(dml.getDestination() + "." + dml.getDatabase());
-                if (mirrorDbConfig == null) {
-                    return false;
-                }
-                String table = dml.getTable();
-                MappingConfig config = mirrorDbConfig.getTableConfig().get(table);
+        syncDml(dmlList);
+    }
 
-                if (config == null) {
-                    return false;
-                }
-                // 是否区分大小写
-                boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
-                if (config.getConcurrent()) {
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
-                    singleDmls.forEach(singleDml -> {
-                        int hash = rdbSyncService.pkHash(config.getDbMapping(), singleDml.getData());
-                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
-                    });
-                } else {
-                    int hash = 0;
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
-                    singleDmls.forEach(singleDml -> {
-                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
-                    });
-                }
-                return true;
-            });
+    /**
+     * 批量同步Dml
+     *
+     * @param dmlList Dml列表，不包含DDL
+     */
+    private void syncDml(List<Dml> dmlList) {
+        if (dmlList == null || dmlList.isEmpty()) {
+            return;
         }
+        rdbSyncService.sync(dmlList, dml -> {
+            MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache.get(dml.getDestination() + "." + dml.getDatabase());
+            if (mirrorDbConfig == null) {
+                return false;
+            }
+            String table = dml.getTable();
+            MappingConfig config = mirrorDbConfig.getTableConfig().get(table);
+
+            if (config == null) {
+                return false;
+            }
+            rdbSyncService.appendDmlPartition(config, dml);
+            return true;
+        });
     }
 
     /**
@@ -153,7 +151,13 @@ public class RdbMirrorDbSyncService {
      */
     private void executeDdl(MirrorDbConfig mirrorDbConfig, Dml ddl) {
         try (Connection conn = dataSource.getConnection(); Statement statement = conn.createStatement()) {
-            statement.execute(ddl.getSql());
+            // 替换反引号
+            String sql = ddl.getSql();
+            String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
+            if (!"`".equals(backtick)) {
+                sql = sql.replaceAll("`", backtick);
+            }
+            statement.execute(sql);
             // 移除对应配置
             mirrorDbConfig.getTableConfig().remove(ddl.getTable());
             if (logger.isTraceEnabled()) {

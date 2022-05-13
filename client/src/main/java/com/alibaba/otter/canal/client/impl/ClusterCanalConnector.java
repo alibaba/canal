@@ -39,6 +39,7 @@ public class ClusterCanalConnector implements CanalConnector {
         this.accessStrategy = accessStrategy;
     }
 
+    @Override
     public void connect() throws CanalClientException {
         while (currentConnector == null) {
             int times = 0;
@@ -85,10 +86,12 @@ public class ClusterCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public boolean checkValid() {
         return currentConnector != null && currentConnector.checkValid();
     }
 
+    @Override
     public void disconnect() throws CanalClientException {
         if (currentConnector != null) {
             currentConnector.disconnect();
@@ -96,10 +99,12 @@ public class ClusterCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void subscribe() throws CanalClientException {
         subscribe(""); // 传递空字符即可
     }
 
+    @Override
     public void subscribe(String filter) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -125,6 +130,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to subscribe after " + times + " times retry.");
     }
 
+    @Override
     public void unsubscribe() throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -142,6 +148,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to unsubscribe after " + times + " times retry.");
     }
 
+    @Override
     public Message get(int batchSize) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -159,6 +166,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to fetch the data after " + times + " times retry");
     }
 
+    @Override
     public Message get(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -176,6 +184,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to fetch the data after " + times + " times retry");
     }
 
+    @Override
     public Message getWithoutAck(int batchSize) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -193,6 +202,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to fetch the data after " + times + " times retry");
     }
 
+    @Override
     public Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -210,6 +220,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to fetch the data after " + times + " times retry");
     }
 
+    @Override
     public void rollback(long batchId) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -227,6 +238,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to rollback after " + times + " times retry");
     }
 
+    @Override
     public void rollback() throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {
@@ -245,6 +257,7 @@ public class ClusterCanalConnector implements CanalConnector {
         throw new CanalClientException("failed to rollback after " + times + " times retry");
     }
 
+    @Override
     public void ack(long batchId) throws CanalClientException {
         int times = 0;
         while (times < retryTimes) {

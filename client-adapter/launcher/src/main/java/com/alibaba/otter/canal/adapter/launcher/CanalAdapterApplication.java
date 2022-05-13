@@ -12,7 +12,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 public class CanalAdapterApplication {
-
     public static void main(String[] args) {
         // 支持rocketmq client 配置日志路径
         System.setProperty("rocketmq.client.logUseSlf4j","true");

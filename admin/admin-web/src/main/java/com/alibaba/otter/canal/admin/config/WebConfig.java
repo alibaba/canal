@@ -84,7 +84,9 @@ public class WebConfig implements WebMvcConfigurer {
             }
         })
             .addPathPatterns("/api/**")
-            .excludePathPatterns("/api/**/config/**")
+            .excludePathPatterns("/api/**/config/server_polling")
+            .excludePathPatterns("/api/**/config/instances_polling")
+            .excludePathPatterns("/api/**/config/instance_polling/**")
             .excludePathPatterns("/api/**/user/login")
             .excludePathPatterns("/api/**/user/logout")
             .excludePathPatterns("/api/**/user/info");

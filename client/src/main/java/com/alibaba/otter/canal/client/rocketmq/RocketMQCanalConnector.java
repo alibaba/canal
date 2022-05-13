@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.rocketmq;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -21,7 +22,7 @@ import org.apache.rocketmq.remoting.RPCHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
@@ -165,7 +166,7 @@ public class RocketMQCanalConnector implements CanalMQConnector {
         if (logger.isDebugEnabled()) {
             logger.debug("Get Message: {}", messageExts);
         }
-        List messageList = Lists.newArrayList();
+        List messageList = new ArrayList<>();
         for (MessageExt messageExt : messageExts) {
             byte[] data = messageExt.getBody();
             if (data != null) {

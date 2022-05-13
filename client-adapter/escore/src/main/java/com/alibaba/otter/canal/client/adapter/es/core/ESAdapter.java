@@ -163,14 +163,14 @@ public abstract class ESAdapter implements OuterAdapter {
                                                                           + "-"
                                                                           + StringUtils.trimToEmpty(config.getGroupId())
                                                                           + "_"
-                                                                          + schema
+                                                                          + tableItem.getSchema() == null ? schema : tableItem.getSchema()
                                                                           + "-"
                                                                           + tableItem.getTableName(),
                         k -> new ConcurrentHashMap<>());
                 } else {
                     esSyncConfigMap = dbTableEsSyncConfig.computeIfAbsent(StringUtils.trimToEmpty(config.getDestination())
                                                                           + "_"
-                                                                          + schema
+                                                                          + tableItem.getSchema() == null ? schema : tableItem.getSchema()
                                                                           + "-"
                                                                           + tableItem.getTableName(),
                         k -> new ConcurrentHashMap<>());

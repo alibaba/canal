@@ -2,7 +2,10 @@ package com.alibaba.otter.canal.client.adapter.es6x.support;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -78,14 +81,7 @@ public class ESConnection {
                     Integer.parseInt(host.substring(i + 1))));
             }
         } else {
-            HttpHost[] httpHosts = new HttpHost[hosts.length];
-            for (int i = 0; i < hosts.length; i++) {
-                String host = hosts[i];
-                int j = host.indexOf(":");
-                HttpHost httpHost = new HttpHost(InetAddress.getByName(host.substring(0, j)),
-                    Integer.parseInt(host.substring(j + 1)));
-                httpHosts[i] = httpHost;
-            }
+            HttpHost[] httpHosts = Arrays.stream(hosts).map(this::createHttpHost).toArray(HttpHost[]::new);
             RestClientBuilder restClientBuilder = RestClient.builder(httpHosts);
             String nameAndPwd = properties.get("security.auth");
             if (StringUtils.isNotEmpty(nameAndPwd) && nameAndPwd.contains(":")) {
@@ -154,7 +150,13 @@ public class ESConnection {
                 logger.error(e.getMessage(), e);
                 return null;
             }
-            mappingMetaData = mappings.get(index).get(type);
+
+            //通过别名查询mapping返回的是真实索引名称，mappings.get(index)返回null，为兼容别名情况修改如下：
+            ImmutableOpenMap<String, MappingMetaData> esIndex = mappings.get(index);
+            if(esIndex == null){
+                esIndex = mappings.valuesIt().next();
+            }
+            mappingMetaData = esIndex.get(type);
         }
         return mappingMetaData;
     }
@@ -506,5 +508,18 @@ public class ESConnection {
 
     public void setRestHighLevelClient(RestHighLevelClient restHighLevelClient) {
         this.restHighLevelClient = restHighLevelClient;
+    }
+
+    private HttpHost createHttpHost(String uriStr) {
+        URI uri = URI.create(uriStr);
+        if (!org.springframework.util.StringUtils.hasLength(uri.getUserInfo())) {
+            return HttpHost.create(uri.toString());
+        }
+        try {
+            return HttpHost.create(new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(),
+                                           uri.getQuery(), uri.getFragment()).toString());
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }
