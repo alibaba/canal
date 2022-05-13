@@ -1,23 +1,19 @@
 package com.alibaba.otter.canal.connector.pulsarmq.consumer;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.otter.canal.connector.core.config.CanalConstants;
-import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
-import com.alibaba.otter.canal.connector.pulsarmq.config.PulsarMQConstants;
-import org.apache.commons.lang.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.otter.canal.connector.core.config.CanalConstants;
+import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
+import com.alibaba.otter.canal.connector.pulsarmq.config.PulsarMQConstants;
 
 /**
  * @author chad
@@ -26,7 +22,7 @@ import static org.junit.Assert.*;
  */
 public class CanalPulsarMQConsumerTest {
 
-    private Properties properties;
+    private Properties            properties;
 
     private CanalPulsarMQConsumer consumer;
 

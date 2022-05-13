@@ -13,7 +13,6 @@ import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanal;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
-import com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 
 /**
@@ -24,7 +23,7 @@ import com.alibaba.otter.canal.parse.CanalEventParser;
  */
 public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
 
-    private static final Logger    logger      = LoggerFactory.getLogger(SpringCanalInstanceGenerator.class);
+    private static final Logger    logger      = LoggerFactory.getLogger(PlainCanalInstanceGenerator.class);
     private String                 springXml;
     private PlainCanalConfigClient canalConfigClient;
     private String                 defaultName = "instance";

@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.client.kafka;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.kafka.protocol.KafkaFlatMessage;
 import com.alibaba.otter.canal.client.kafka.protocol.KafkaMessage;
 import com.alibaba.otter.canal.protocol.FlatMessage;

@@ -12,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
@@ -155,7 +155,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
 
     public void updateCursor(ClientIdentity clientIdentity, Position position) throws CanalMetaManagerException {
         String path = ZookeeperPathUtils.getCursorPath(clientIdentity.getDestination(), clientIdentity.getClientId());
-        byte[] data = JsonUtils.marshalToByte(position, SerializerFeature.WriteClassName);
+        byte[] data = JsonUtils.marshalToByte(position, JSONWriter.Feature.WriteClassName);
         try {
             zkClientx.writeData(path, data);
         } catch (ZkNoNodeException e) {
@@ -166,7 +166,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
     public Long addBatch(ClientIdentity clientIdentity, PositionRange positionRange) throws CanalMetaManagerException {
         String path = ZookeeperPathUtils.getBatchMarkPath(clientIdentity.getDestination(),
             clientIdentity.getClientId());
-        byte[] data = JsonUtils.marshalToByte(positionRange, SerializerFeature.WriteClassName);
+        byte[] data = JsonUtils.marshalToByte(positionRange, JSONWriter.Feature.WriteClassName);
         String batchPath = zkClientx
             .createPersistentSequential(path + ZookeeperPathUtils.ZOOKEEPER_SEPARATOR, data, true);
         String batchIdString = StringUtils.substringAfterLast(batchPath, ZookeeperPathUtils.ZOOKEEPER_SEPARATOR);
@@ -177,7 +177,7 @@ public class ZooKeeperMetaManager extends AbstractCanalLifeCycle implements Cana
                          Long batchId) throws CanalMetaManagerException {
         String path = ZookeeperPathUtils
             .getBatchMarkWithIdPath(clientIdentity.getDestination(), clientIdentity.getClientId(), batchId);
-        byte[] data = JsonUtils.marshalToByte(positionRange, SerializerFeature.WriteClassName);
+        byte[] data = JsonUtils.marshalToByte(positionRange, JSONWriter.Feature.WriteClassName);
         zkClientx.createPersistent(path, data, true);
     }
 
