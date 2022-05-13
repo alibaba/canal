@@ -1,11 +1,10 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
+import com.taobao.tddl.dbsync.binlog.LogBuffer;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-
-import com.taobao.tddl.dbsync.binlog.LogBuffer;
-import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
  * In row-based mode, every row operation event is preceded by a
@@ -343,6 +342,7 @@ public final class TableMapLogEvent extends LogEvent {
         public int          charset;        // 可以通过CharsetUtil进行转化
         public int          geoType;
         public boolean      nullable;
+        public boolean      visibility;
 
         @Override
         public String toString() {
@@ -382,6 +382,12 @@ public final class TableMapLogEvent extends LogEvent {
     public static final int      SIMPLE_PRIMARY_KEY      = 8;
     // Primary key with prefix
     public static final int      PRIMARY_KEY_WITH_PREFIX = 9;
+    // Character set of enum and set columns, optimized to minimize space when many columns have the same charset.
+    public static final int      ENUM_AND_SET_DEFAULT_CHARSET = 10;
+    // Character set of enum and set columns, optimized to minimize space when many columns have the same charset.
+    public static final int      ENUM_AND_SET_COLUMN_CHARSET = 11;
+    // Flag to indicate column visibility attribute
+    public static final int      COLUMN_VISIBILITY       = 12;
 
     private int                  default_charset;
     private boolean              existOptionalMetaData   = false;
@@ -483,6 +489,15 @@ public final class TableMapLogEvent extends LogEvent {
                         break;
                     case PRIMARY_KEY_WITH_PREFIX:
                         parse_pk_with_prefix(buffer, len);
+                        break;
+                    case ENUM_AND_SET_DEFAULT_CHARSET:
+                        parse_default_charset(buffer, len);
+                        break;
+                    case ENUM_AND_SET_COLUMN_CHARSET:
+                        parse_column_charset(buffer, len);
+                        break;
+                    case COLUMN_VISIBILITY:
+                        parse_column_visibility(buffer, len);
                         break;
                     default:
                         throw new IllegalArgumentException("unknow type : " + type);
@@ -646,6 +661,20 @@ public final class TableMapLogEvent extends LogEvent {
         }
 
         return datas;
+    }
+
+
+    private void parse_column_visibility(LogBuffer buffer, int length) {
+        List<Boolean> data = new ArrayList<>(columnInfo.length);
+        for (int i = 0; i < length; i++) {
+            int ut = buffer.getUint8();
+            for (int c = 0x80; c != 0; c >>= 1) {
+                data.add((ut & c) > 0);
+            }
+        }
+        for (int i = 0; i < columnCnt; i++) {
+            columnInfo[i].visibility = data.get(i);
+        }
     }
 
     private void parse_column_name(LogBuffer buffer, int length) {
