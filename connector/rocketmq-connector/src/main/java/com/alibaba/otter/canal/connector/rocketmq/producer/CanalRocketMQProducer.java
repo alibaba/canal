@@ -1,7 +1,7 @@
 package com.alibaba.otter.canal.connector.rocketmq.producer;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
@@ -263,7 +263,7 @@ import java.util.stream.Collectors;
                             List<Message> messages = flatMessagePart.stream()
                                     .map(flatMessage -> new Message(topicName,
                                             ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                                            JSON.toJSONBytes(flatMessage, SerializerFeature.WriteMapNullValue)))
+                                            JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls)))
                                     .collect(Collectors.toList());
                             // 批量发送
                             sendMessage(messages, index);
@@ -278,7 +278,7 @@ import java.util.stream.Collectors;
                 List<Message> messages = flatMessages.stream()
                         .map(flatMessage -> new Message(topicName,
                                 ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                                JSON.toJSONBytes(flatMessage, SerializerFeature.WriteMapNullValue)))
+                                JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls)))
                         .collect(Collectors.toList());
                 // 批量发送
                 sendMessage(messages, partition);

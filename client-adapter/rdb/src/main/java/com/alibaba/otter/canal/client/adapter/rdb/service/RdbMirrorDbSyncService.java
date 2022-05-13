@@ -13,8 +13,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SingleDml;
@@ -68,7 +68,7 @@ public class RdbMirrorDbSyncService {
             if (dml.getIsDdl() != null && dml.getIsDdl() && StringUtils.isNotEmpty(dml.getSql())) {
                 // DDL
                 if (logger.isDebugEnabled()) {
-                    logger.debug("DDL: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                    logger.debug("DDL: {}", JSON.toJSONString(dml, Feature.WriteNulls));
                 }
                 executeDdl(mirrorDbConfig, dml);
                 rdbSyncService.getColumnsTypeCache().remove(destination + "." + database + "." + dml.getTable());
