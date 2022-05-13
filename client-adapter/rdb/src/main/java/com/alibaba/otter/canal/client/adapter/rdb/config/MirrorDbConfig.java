@@ -5,15 +5,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MirrorDbConfig {
 
-    private String             fileName;
-    private MappingConfig      mappingConfig;
+    private String fileName;
+    private MappingConfig mappingConfig;
     private Map<String, MappingConfig> tableConfig = new ConcurrentHashMap<>();
 
     public static MirrorDbConfig create(String fileName, MappingConfig mappingConfig) {
         return new MirrorDbConfig(fileName, mappingConfig);
     }
 
-    public MirrorDbConfig(String fileName, MappingConfig mappingConfig){
+    public MirrorDbConfig(String fileName, MappingConfig mappingConfig) {
         this.fileName = fileName;
         this.mappingConfig = mappingConfig;
     }

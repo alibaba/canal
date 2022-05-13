@@ -60,14 +60,14 @@ public class ESConnection {
         TRANSPORT, REST
     }
 
-    private ESClientMode        mode;
+    private ESClientMode mode;
 
     @SuppressWarnings("deprecation")
-    private TransportClient     transportClient;
+    private TransportClient transportClient;
 
     private RestHighLevelClient restHighLevelClient;
 
-    public ESConnection(String[] hosts, Map<String, String> properties, ESClientMode mode) throws UnknownHostException{
+    public ESConnection(String[] hosts, Map<String, String> properties, ESClientMode mode) throws UnknownHostException {
         this.mode = mode;
         if (mode == ESClientMode.TRANSPORT) {
             Settings.Builder settingBuilder = Settings.builder();
@@ -77,7 +77,7 @@ public class ESConnection {
             for (String host : hosts) {
                 int i = host.indexOf(":");
                 transportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.substring(0, i)),
-                    Integer.parseInt(host.substring(i + 1))));
+                        Integer.parseInt(host.substring(i + 1))));
             }
         } else {
             HttpHost[] httpHosts = Arrays.stream(hosts).map(this::createHttpHost).toArray(HttpHost[]::new);
@@ -86,9 +86,10 @@ public class ESConnection {
             if (StringUtils.isNotEmpty(nameAndPwd) && nameAndPwd.contains(":")) {
                 String[] nameAndPwdArr = nameAndPwd.split(":");
                 final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(nameAndPwdArr[0],
-                    nameAndPwdArr[1]));
-                restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+                credentialsProvider.setCredentials(AuthScope.ANY,
+                        new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
+                restClientBuilder.setHttpClientConfigCallback(
+                        httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
             }
             restHighLevelClient = new RestHighLevelClient(restClientBuilder);
         }
@@ -110,16 +111,8 @@ public class ESConnection {
         MappingMetaData mappingMetaData = null;
         if (mode == ESClientMode.TRANSPORT) {
             try {
-                mappingMetaData = transportClient.admin()
-                    .cluster()
-                    .prepareState()
-                    .execute()
-                    .actionGet()
-                    .getState()
-                    .getMetaData()
-                    .getIndices()
-                    .get(index)
-                    .mapping();
+                mappingMetaData = transportClient.admin().cluster().prepareState().execute().actionGet().getState()
+                        .getMetaData().getIndices().get(index).mapping();
             } catch (NullPointerException e) {
                 throw new IllegalArgumentException("Not found the mapping info of index: " + index);
             }
@@ -128,8 +121,8 @@ public class ESConnection {
             try {
                 GetMappingsRequest request = new GetMappingsRequest();
                 request.indices(index);
-                GetMappingsResponse response = restHighLevelClient.indices()
-                    .getMapping(request, RequestOptions.DEFAULT);
+                GetMappingsResponse response = restHighLevelClient.indices().getMapping(request,
+                        RequestOptions.DEFAULT);
 
                 mappings = response.mappings();
             } catch (NullPointerException e) {
@@ -147,9 +140,9 @@ public class ESConnection {
 
         private IndexRequestBuilder indexRequestBuilder;
 
-        private IndexRequest        indexRequest;
+        private IndexRequest indexRequest;
 
-        public ES7xIndexRequest(String index, String id){
+        public ES7xIndexRequest(String index, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 indexRequestBuilder = transportClient.prepareIndex();
                 indexRequestBuilder.setIndex(index);
@@ -199,9 +192,9 @@ public class ESConnection {
 
         private UpdateRequestBuilder updateRequestBuilder;
 
-        private UpdateRequest        updateRequest;
+        private UpdateRequest updateRequest;
 
-        public ES7xUpdateRequest(String index, String id){
+        public ES7xUpdateRequest(String index, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 updateRequestBuilder = transportClient.prepareUpdate();
                 updateRequestBuilder.setIndex(index);
@@ -259,9 +252,9 @@ public class ESConnection {
 
         private DeleteRequestBuilder deleteRequestBuilder;
 
-        private DeleteRequest        deleteRequest;
+        private DeleteRequest deleteRequest;
 
-        public ES7xDeleteRequest(String index, String id){
+        public ES7xDeleteRequest(String index, String id) {
             if (mode == ESClientMode.TRANSPORT) {
                 deleteRequestBuilder = transportClient.prepareDelete();
                 deleteRequestBuilder.setIndex(index);
@@ -292,11 +285,11 @@ public class ESConnection {
 
         private SearchRequestBuilder searchRequestBuilder;
 
-        private SearchRequest        searchRequest;
+        private SearchRequest searchRequest;
 
-        private SearchSourceBuilder  sourceBuilder;
+        private SearchSourceBuilder sourceBuilder;
 
-        public ESSearchRequest(String index){
+        public ESSearchRequest(String index) {
             if (mode == ESClientMode.TRANSPORT) {
                 searchRequestBuilder = transportClient.prepareSearch(index);
             } else {
@@ -319,6 +312,14 @@ public class ESConnection {
                 searchRequestBuilder.setSize(size);
             } else {
                 sourceBuilder.size(size);
+            }
+            return this;
+        }
+
+        public ESSearchRequest setTrackTotalHits(boolean trackTotalHits) {
+            if (mode == ESClientMode.TRANSPORT) {
+            } else {
+                sourceBuilder.trackTotalHits(trackTotalHits);
             }
             return this;
         }
@@ -357,9 +358,9 @@ public class ESConnection {
 
         private BulkRequestBuilder bulkRequestBuilder;
 
-        private BulkRequest        bulkRequest;
+        private BulkRequest bulkRequest;
 
-        public ES7xBulkRequest(){
+        public ES7xBulkRequest() {
             if (mode == ESClientMode.TRANSPORT) {
                 bulkRequestBuilder = transportClient.prepareBulk();
             } else {
@@ -448,7 +449,7 @@ public class ESConnection {
 
         private BulkResponse bulkResponse;
 
-        public ES7xBulkResponse(BulkResponse bulkResponse){
+        public ES7xBulkResponse(BulkResponse bulkResponse) {
             this.bulkResponse = bulkResponse;
         }
 
@@ -505,7 +506,7 @@ public class ESConnection {
         }
         try {
             return HttpHost.create(new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(),
-                                           uri.getQuery(), uri.getFragment()).toString());
+                    uri.getQuery(), uri.getFragment()).toString());
         } catch (URISyntaxException ex) {
             throw new IllegalStateException(ex);
         }

@@ -15,13 +15,13 @@ public class DatasourceConfig {
 
     public final static Map<String, DruidDataSource> DATA_SOURCES = new ConcurrentHashMap<>(); // key对应的数据源
 
-    private String                                   driver       = "com.mysql.jdbc.Driver";   // 默认为mysql jdbc驱动
-    private String                                   url;                                      // jdbc url
-    private String                                   database;                                 // jdbc database
-    private String                                   type         = "mysql";                   // 类型, 默认为mysql
-    private String                                   username;                                 // jdbc username
-    private String                                   password;                                 // jdbc password
-    private Integer                                  maxActive    = 3;                         // 连接池最大连接数,默认为3
+    private String driver = "com.mysql.jdbc.Driver"; // 默认为mysql jdbc驱动
+    private String url; // jdbc url
+    private String database; // jdbc database
+    private String type = "mysql"; // 类型, 默认为mysql
+    private String username; // jdbc username
+    private String password; // jdbc password
+    private Integer maxActive = Math.max(3, Runtime.getRuntime().availableProcessors()); // 连接池最大连接数, 最小为3
 
     public String getDriver() {
         return driver;

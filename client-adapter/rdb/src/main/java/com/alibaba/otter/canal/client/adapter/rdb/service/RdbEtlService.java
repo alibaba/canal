@@ -29,10 +29,10 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
  */
 public class RdbEtlService extends AbstractEtlService {
 
-    private DataSource    targetDS;
+    private DataSource targetDS;
     private MappingConfig config;
 
-    public RdbEtlService(DataSource targetDS, MappingConfig config){
+    public RdbEtlService(DataSource targetDS, MappingConfig config) {
         super("RDB", config);
         this.targetDS = targetDS;
         this.config = config;
@@ -43,20 +43,22 @@ public class RdbEtlService extends AbstractEtlService {
      */
     public EtlResult importData(List<String> params) {
         DbMapping dbMapping = config.getDbMapping();
-        String sql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable();
-        return importData(sql, params);
+        String tableFullName = dbMapping.getDatabase() + "." + dbMapping.getTable();
+        String sql = "SELECT * FROM " + tableFullName;
+        return importData(sql, params, tableFullName, dbMapping.getSequenceColumn());
     }
 
     /**
      * 执行导入
      */
     protected boolean executeSqlImport(DataSource srcDS, String sql, List<Object> values,
-                                       AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
+            AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
         try {
             DbMapping dbMapping = (DbMapping) mapping;
             Map<String, String> columnsMap = new LinkedHashMap<>();
             Map<String, Integer> columnType = new LinkedHashMap<>();
 
+            // 获取表结构
             Util.sqlRS(targetDS, "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping) + " LIMIT 1 ", rs -> {
                 try {
 
@@ -80,12 +82,12 @@ public class RdbEtlService extends AbstractEtlService {
                 int idx = 1;
 
                 try {
-                    boolean completed = false;
+                    // boolean completed = false;
 
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
-                    columnsMap
-                        .forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+                    columnsMap.forEach(
+                            (targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
 
                     int len = insertSql.length();
                     insertSql.delete(len - 1, len).append(") VALUES (");
@@ -95,19 +97,86 @@ public class RdbEtlService extends AbstractEtlService {
                     }
                     len = insertSql.length();
                     insertSql.delete(len - 1, len).append(")");
+
+                    // Marked by Wu Jian Ping, 取消事务，充分利用多线程
+                    // try (Connection connTarget = targetDS.getConnection();
+                    // PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString()))
+                    // {
+                    // connTarget.setAutoCommit(false);
+
+                    // while (rs.next()) {
+                    // completed = false;
+
+                    // pstmt.clearParameters();
+
+                    // // 删除数据
+                    // Map<String, Object> pkVal = new LinkedHashMap<>();
+                    // StringBuilder deleteSql = new StringBuilder(
+                    // "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
+                    // appendCondition(dbMapping, deleteSql, pkVal, rs);
+                    // try (PreparedStatement pstmt2 =
+                    // connTarget.prepareStatement(deleteSql.toString())) {
+                    // int k = 1;
+                    // for (Object val : pkVal.values()) {
+                    // pstmt2.setObject(k++, val);
+                    // }
+                    // pstmt2.execute();
+                    // }
+
+                    // int i = 1;
+                    // for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
+                    // String targetClolumnName = entry.getKey();
+                    // String srcColumnName = entry.getValue();
+                    // if (srcColumnName == null) {
+                    // srcColumnName = targetClolumnName;
+                    // }
+
+                    // Integer type = columnType.get(targetClolumnName.toLowerCase());
+
+                    // Object value = rs.getObject(srcColumnName);
+                    // if (value != null) {
+                    // SyncUtil.setPStmt(type, pstmt, value, i);
+                    // } else {
+                    // pstmt.setNull(i, type);
+                    // }
+
+                    // i++;
+                    // }
+
+                    // pstmt.execute();
+                    // if (logger.isTraceEnabled()) {
+                    // logger.trace("Insert into target table, sql: {}", insertSql);
+                    // }
+
+                    // if (idx % dbMapping.getCommitBatch() == 0) {
+                    // connTarget.commit();
+                    // completed = true;
+                    // }
+                    // idx++;
+                    // impCount.incrementAndGet();
+                    // if (logger.isDebugEnabled()) {
+                    // logger.debug("successful import count:" + impCount.get());
+                    // }
+                    // }
+                    // if (!completed) {
+                    // connTarget.commit();
+                    // }
+                    // }
+
+                    // Added by Wu Jian Ping
+                    // 取消事务，在多线程环境下，启用事务，会出现获取锁失败错误，导致整个批次失败
+                    // 并且3000一个批次，会使得目标表长期处于锁定状态
                     try (Connection connTarget = targetDS.getConnection();
                             PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
-                        connTarget.setAutoCommit(false);
+                        connTarget.setAutoCommit(true);
 
                         while (rs.next()) {
-                            completed = false;
-
                             pstmt.clearParameters();
 
                             // 删除数据
                             Map<String, Object> pkVal = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
-                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
+                                    "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
                             appendCondition(dbMapping, deleteSql, pkVal, rs);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
                                 int k = 1;
@@ -142,19 +211,13 @@ public class RdbEtlService extends AbstractEtlService {
                                 logger.trace("Insert into target table, sql: {}", insertSql);
                             }
 
-                            if (idx % dbMapping.getCommitBatch() == 0) {
-                                connTarget.commit();
-                                completed = true;
-                            }
                             idx++;
                             impCount.incrementAndGet();
                             if (logger.isDebugEnabled()) {
                                 logger.debug("successful import count:" + impCount.get());
                             }
                         }
-                        if (!completed) {
-                            connTarget.commit();
-                        }
+
                     }
 
                 } catch (Exception e) {
@@ -174,7 +237,7 @@ public class RdbEtlService extends AbstractEtlService {
      * 拼接目标表主键where条件
      */
     private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values,
-                                        ResultSet rs) throws SQLException {
+            ResultSet rs) throws SQLException {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();

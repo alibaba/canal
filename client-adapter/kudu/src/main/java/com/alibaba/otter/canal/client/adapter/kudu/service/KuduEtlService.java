@@ -28,10 +28,10 @@ import com.google.common.base.Joiner;
  */
 public class KuduEtlService extends AbstractEtlService {
 
-    private KuduTemplate      kuduTemplate;
+    private KuduTemplate kuduTemplate;
     private KuduMappingConfig config;
 
-    public KuduEtlService(KuduTemplate kuduTemplate, KuduMappingConfig config){
+    public KuduEtlService(KuduTemplate kuduTemplate, KuduMappingConfig config) {
         super("kudu", config);
         this.kuduTemplate = kuduTemplate;
         this.config = config;
@@ -51,13 +51,14 @@ public class KuduEtlService extends AbstractEtlService {
             return etlResult;
         }
         logger.info("{} etl is starting!", kuduMapping.getTargetTable());
-        String sql = "SELECT * FROM " + kuduMapping.getDatabase() + "." + kuduMapping.getTable();
-        return importData(sql, params);
+        String tableFullName = kuduMapping.getDatabase() + "." + kuduMapping.getTable();
+        String sql = "SELECT * FROM " + tableFullName;
+        return importData(sql, params, tableFullName, kuduMapping.getSequenceColumn());
     }
 
     @Override
     protected boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
-                                       AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
+            AdapterConfig.AdapterMapping mapping, AtomicLong impCount, List<String> errMsg) {
         KuduMappingConfig.KuduMapping kuduMapping = (KuduMappingConfig.KuduMapping) mapping;
         // 获取字段元数据
         Map<String, String> columnsMap = new LinkedHashMap<>();// 需要同步的字段

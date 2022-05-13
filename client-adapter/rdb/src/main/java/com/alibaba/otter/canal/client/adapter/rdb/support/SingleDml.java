@@ -10,10 +10,10 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 public class SingleDml {
 
-    private String              destination;
-    private String              database;
-    private String              table;
-    private String              type;
+    private String destination;
+    private String database;
+    private String table;
+    private String type;
     private Map<String, Object> data;
     private Map<String, Object> old;
 

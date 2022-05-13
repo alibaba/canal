@@ -1,13 +1,15 @@
 dataSourceKey: defaultDS
 destination: test_instance
-outerAdapterKey: kudu
 groupId: g1
+outerAdapterKey: example_kudu # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
+
 kuduMapping:
   database: test
   table: test
   targetTable: test
   targetPk:
     id: id
+  sequenceColumn: id # 源数据自增序列字段（有可以填写，用于提升全量同步性能）
   mapAll: true
   targetColumns:
     id:

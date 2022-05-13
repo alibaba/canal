@@ -4,13 +4,13 @@
     <parent>
         <groupId>com.alibaba.otter</groupId>
         <artifactId>canal</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.5</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal.connector</artifactId>
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.5</version>
     <packaging>pom</packaging>
     <name>canal connector module for otter ${project.version}</name>
 

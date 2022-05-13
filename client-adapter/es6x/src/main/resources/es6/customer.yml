@@ -1,18 +1,29 @@
 dataSourceKey: defaultDS
 destination: example
 groupId: g1
+outerAdapterKey: example_es6 # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
+
 esMapping:
   _index: customer
   _type: _doc
-  _id: id
+  _id: _id
+
+  sequenceColumn: id
+  
   relations:
     customer_order:
       name: customer
-  sql: "select t.id, t.name, t.email from customer t"
+
+  sql: "
+  select 
+    t.id as _id, 
+    t.name, 
+    t.email 
+  from customer t"
+
   etlCondition: "where t.c_time>={}"
+
   commitBatch: 3000
-
-
 #{
 #  "mappings":{
 #    "_doc":{
