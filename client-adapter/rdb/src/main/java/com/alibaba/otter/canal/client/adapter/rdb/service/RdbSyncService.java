@@ -15,12 +15,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
@@ -41,6 +40,7 @@ public class RdbSyncService {
 
     private static final Logger               logger  = LoggerFactory.getLogger(RdbSyncService.class);
 
+    private DruidDataSource                   dataSource;
     // 源库表字段类型缓存: instance.schema.table -> <columnName, jdbcType>
     private Map<String, Map<String, Integer>> columnsTypeCache;
 
@@ -59,13 +59,14 @@ public class RdbSyncService {
         return columnsTypeCache;
     }
 
-    public RdbSyncService(DataSource dataSource, Integer threads, boolean skipDupException){
+    public RdbSyncService(DruidDataSource dataSource, Integer threads, boolean skipDupException){
         this(dataSource, threads, new ConcurrentHashMap<>(), skipDupException);
     }
 
     @SuppressWarnings("unchecked")
-    public RdbSyncService(DataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
+    public RdbSyncService(DruidDataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
                           boolean skipDupException){
+        this.dataSource = dataSource;
         this.columnsTypeCache = columnsTypeCache;
         this.skipDupException = skipDupException;
         try {
@@ -251,15 +252,15 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
-
+        String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         StringBuilder insertSql = new StringBuilder();
-        insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
+        insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" (");
 
-        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append("`")
+        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(backtick)
             .append(targetColumnName)
-            .append("`")
+            .append(backtick)
             .append(","));
         int len = insertSql.length();
         insertSql.delete(len - 1, len).append(") VALUES (");
@@ -323,13 +324,13 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
-
+        String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
         StringBuilder updateSql = new StringBuilder();
-        updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
+        updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" SET ");
         List<Map<String, ?>> values = new ArrayList<>();
         boolean hasMatched = false;
         for (String srcColumnName : old.keySet()) {
@@ -342,7 +343,7 @@ public class RdbSyncService {
             if (!targetColumnNames.isEmpty()) {
                 hasMatched = true;
                 for (String targetColumnName : targetColumnNames) {
-                    updateSql.append("`").append(targetColumnName).append("`").append("=?, ");
+                    updateSql.append(backtick).append(targetColumnName).append(backtick).append("=?, ");
                     Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
                     if (type == null) {
                         throw new RuntimeException("Target column: " + targetColumnName + " not matched");
@@ -379,11 +380,10 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
-
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
         StringBuilder sql = new StringBuilder();
-        sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping)).append(" WHERE ");
+        sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" WHERE ");
 
         List<Map<String, ?>> values = new ArrayList<>();
         // 拼接主键
@@ -402,7 +402,7 @@ public class RdbSyncService {
     private void truncate(BatchExecutor batchExecutor, MappingConfig config) throws SQLException {
         DbMapping dbMapping = config.getDbMapping();
         StringBuilder sql = new StringBuilder();
-        sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping));
+        sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()));
         batchExecutor.execute(sql.toString(), new ArrayList<>());
         if (logger.isTraceEnabled()) {
             logger.trace("Truncate target table, sql: {}", sql);
@@ -426,7 +426,7 @@ public class RdbSyncService {
                 if (columnType == null) {
                     columnType = new LinkedHashMap<>();
                     final Map<String, Integer> columnTypeTmp = columnType;
-                    String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE 1=2";
+                    String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " WHERE 1=2";
                     Util.sqlRS(conn, sql, rs -> {
                         try {
                             ResultSetMetaData rsd = rs.getMetaData();
@@ -455,6 +455,8 @@ public class RdbSyncService {
 
     private void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
                                  List<Map<String, ?>> values, Map<String, Object> d, Map<String, Object> o) {
+        String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
+
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();
@@ -462,7 +464,7 @@ public class RdbSyncService {
             if (srcColumnName == null) {
                 srcColumnName = Util.cleanColumn(targetColumnName);
             }
-            sql.append("`").append(targetColumnName).append("`").append("=? AND ");
+            sql.append(backtick).append(targetColumnName).append(backtick).append("=? AND ");
             Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
             if (type == null) {
                 throw new RuntimeException("Target column: " + targetColumnName + " not matched");
