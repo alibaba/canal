@@ -283,6 +283,9 @@ public abstract class LogEvent {
     public static final int    MYSQL_TYPE_TIMESTAMP2                    = 17;
     public static final int    MYSQL_TYPE_DATETIME2                     = 18;
     public static final int    MYSQL_TYPE_TIME2                         = 19;
+    public static final int    MYSQL_TYPE_TYPED_ARRAY                   = 20;
+    public static final int    MYSQL_TYPE_INVALID                       = 243;
+    public static final int    MYSQL_TYPE_BOOL                          = 244;
     public static final int    MYSQL_TYPE_JSON                          = 245;
     public static final int    MYSQL_TYPE_NEWDECIMAL                    = 246;
     public static final int    MYSQL_TYPE_ENUM                          = 247;

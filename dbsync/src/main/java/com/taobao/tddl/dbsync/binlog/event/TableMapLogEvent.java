@@ -343,12 +343,13 @@ public final class TableMapLogEvent extends LogEvent {
         public int          geoType;
         public boolean      nullable;
         public boolean      visibility;
+        public boolean      array;
 
-        @Override
-        public String toString() {
-            return "ColumnInfo [type=" + type + ", meta=" + meta + ", name=" + name + ", unsigned=" + unsigned
-                   + ", pk=" + pk + ", set_enum_values=" + set_enum_values + ", charset=" + charset + ", geoType="
-                   + geoType + ", nullable=" + nullable + "]";
+        @Override public String toString() {
+            return "ColumnInfo{" + "type=" + type + ", meta=" + meta + ", name='" + name + '\'' + ", unsigned="
+                   + unsigned + ", pk=" + pk + ", set_enum_values=" + set_enum_values + ", charset=" + charset
+                   + ", geoType=" + geoType + ", nullable=" + nullable + ", visibility=" + visibility + ", array="
+                   + array + '}';
         }
     }
 
@@ -544,12 +545,16 @@ public final class TableMapLogEvent extends LogEvent {
      */
     private final void decodeFields(LogBuffer buffer, final int len) {
         final int limit = buffer.limit();
-
         buffer.limit(len + buffer.position());
         for (int i = 0; i < columnCnt; i++) {
             ColumnInfo info = columnInfo[i];
 
-            switch (info.type) {
+            int binlogType = info.type;
+            if (binlogType == MYSQL_TYPE_TYPED_ARRAY) {
+                binlogType = buffer.getUint8();
+            }
+
+            switch (binlogType) {
                 case MYSQL_TYPE_TINY_BLOB:
                 case MYSQL_TYPE_BLOB:
                 case MYSQL_TYPE_MEDIUM_BLOB:
@@ -557,6 +562,9 @@ public final class TableMapLogEvent extends LogEvent {
                 case MYSQL_TYPE_DOUBLE:
                 case MYSQL_TYPE_FLOAT:
                 case MYSQL_TYPE_GEOMETRY:
+                case MYSQL_TYPE_TIME2:
+                case MYSQL_TYPE_DATETIME2:
+                case MYSQL_TYPE_TIMESTAMP2:
                 case MYSQL_TYPE_JSON:
                     /*
                      * These types store a single byte.
@@ -565,14 +573,6 @@ public final class TableMapLogEvent extends LogEvent {
                     break;
                 case MYSQL_TYPE_SET:
                 case MYSQL_TYPE_ENUM:
-                    /*
-                     * log_event.h : MYSQL_TYPE_SET & MYSQL_TYPE_ENUM : This
-                     * enumeration value is only used internally and cannot
-                     * exist in a binlog.
-                     */
-                    logger.warn("This enumeration value is only used internally "
-                                + "and cannot exist in a binlog: type=" + info.type);
-                    break;
                 case MYSQL_TYPE_STRING: {
                     /*
                      * log_event.h : The first byte is always
@@ -598,12 +598,6 @@ public final class TableMapLogEvent extends LogEvent {
                     int x = buffer.getUint8() << 8; // precision
                     x += buffer.getUint8(); // decimals
                     info.meta = x;
-                    break;
-                }
-                case MYSQL_TYPE_TIME2:
-                case MYSQL_TYPE_DATETIME2:
-                case MYSQL_TYPE_TIMESTAMP2: {
-                    info.meta = buffer.getUint8();
                     break;
                 }
                 default:
