@@ -1,9 +1,25 @@
 package com.alibaba.otter.canal.client.adapter.hbase;
 
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfigLoader;
+import com.alibaba.otter.canal.client.adapter.hbase.monitor.HbaseConfigMonitor;
+import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
+import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
+import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.SPI;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -15,18 +31,6 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.alibaba.otter.canal.client.adapter.OuterAdapter;
-import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfigLoader;
-import com.alibaba.otter.canal.client.adapter.hbase.monitor.HbaseConfigMonitor;
-import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseEtlService;
-import com.alibaba.otter.canal.client.adapter.hbase.service.HbaseSyncService;
-import com.alibaba.otter.canal.client.adapter.hbase.support.HbaseTemplate;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
-import com.alibaba.otter.canal.client.adapter.support.SPI;
 
 /**
  * HBase外部适配器
@@ -49,6 +53,8 @@ public class HbaseAdapter implements OuterAdapter {
 
     private Properties                              envProperties;
 
+    private OuterAdapterConfig                      configuration;
+
     public Map<String, MappingConfig> getHbaseMapping() {
         return hbaseMapping;
     }
@@ -61,33 +67,12 @@ public class HbaseAdapter implements OuterAdapter {
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         try {
             this.envProperties = envProperties;
+            this.configuration = configuration;
             Map<String, MappingConfig> hbaseMappingTmp = MappingConfigLoader.load(envProperties);
             // 过滤不匹配的key的配置
-            hbaseMappingTmp.forEach((key, mappingConfig) -> {
-                if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (mappingConfig.getOuterAdapterKey() != null
-                        && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
-                    hbaseMapping.put(key, mappingConfig);
-                }
+            hbaseMappingTmp.forEach((key, config) -> {
+                addConfig(key, config);
             });
-            for (Map.Entry<String, MappingConfig> entry : hbaseMapping.entrySet()) {
-                String configName = entry.getKey();
-                MappingConfig mappingConfig = entry.getValue();
-                String k;
-                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                    k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                        + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                        + mappingConfig.getHbaseMapping().getDatabase() + "-"
-                        + mappingConfig.getHbaseMapping().getTable();
-                } else {
-                    k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                        + mappingConfig.getHbaseMapping().getDatabase() + "-"
-                        + mappingConfig.getHbaseMapping().getTable();
-                }
-                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
-                    k1 -> new ConcurrentHashMap<>());
-                configMap.put(configName, mappingConfig);
-            }
 
             Map<String, String> properties = configuration.getProperties();
 
@@ -222,5 +207,63 @@ public class HbaseAdapter implements OuterAdapter {
             return config.getDestination();
         }
         return null;
+    }
+
+    private void addSyncConfigToCache(String configName, MappingConfig mappingConfig) {
+        String k;
+        if (envProperties != null && !"tcp"
+                .equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+            k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-" + StringUtils
+                    .trimToEmpty(mappingConfig.getGroupId()) + "_" + mappingConfig.getHbaseMapping()
+                    .getDatabase() + "-" + mappingConfig.getHbaseMapping().getTable();
+        } else {
+            k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_" + mappingConfig
+                    .getHbaseMapping().getDatabase() + "-" + mappingConfig.getHbaseMapping()
+                    .getTable();
+        }
+        Map<String, MappingConfig> configMap = mappingConfigCache
+                .computeIfAbsent(k, k1 -> new ConcurrentHashMap<>());
+        configMap.put(configName, mappingConfig);
+    }
+
+    public boolean addConfig(String fileName, MappingConfig config) {
+        if (match(config)) {
+            hbaseMapping.put(fileName, config);
+            addSyncConfigToCache(fileName, config);
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), fileName,
+                    configuration.getKey());
+            return true;
+        }
+        return false;
+    }
+
+    public void updateConfig(String fileName, MappingConfig config) {
+        if (config.getOuterAdapterKey() != null && !config.getOuterAdapterKey()
+                .equals(configuration.getKey())) {
+            // 理论上不允许改这个 因为本身就是通过这个关联起Adapter和Config的
+            throw new RuntimeException("not allow to change outAdapterKey");
+        }
+        hbaseMapping.put(fileName, config);
+        addSyncConfigToCache(fileName, config);
+    }
+
+    public void deleteConfig(String fileName) {
+        hbaseMapping.remove(fileName);
+        for (Map<String, MappingConfig> configMap : mappingConfigCache.values()) {
+            if (configMap != null) {
+                configMap.remove(fileName);
+            }
+        }
+        FileName2KeyMapping.unregister(getClass().getAnnotation(SPI.class).value(), fileName);
+    }
+
+    private boolean match(MappingConfig config) {
+        boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                .equalsIgnoreCase(configuration.getKey());
+        boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                .startsWith(StringUtils
+                        .join(new String[]{Util.AUTO_GENERATED_PREFIX, config.getDestination(),
+                                config.getGroupId()}, '-'));
+        return sameMatch || prefixMatch;
     }
 }

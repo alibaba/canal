@@ -102,6 +102,7 @@
         <spring_version>5.0.5.RELEASE</spring_version>
         <logback_version>1.2.9</logback_version>
         <slf4j_version>1.7.12</slf4j_version>
+        <log4j_version>2.17.0</log4j_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
         <maven-surefire.version>2.22.1</maven-surefire.version>
         <argline>-server -Xms512m -Xmx1024m -Dfile.encoding=UTF-8
@@ -364,6 +365,21 @@
                 <groupId>com.oceanbase.logclient</groupId>
                 <artifactId>logproxy-client</artifactId>
                 <version>1.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j_version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -5,19 +5,14 @@ import com.alibaba.otter.canal.client.adapter.hbase.HbaseAdapter;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-
+import java.io.File;
+import java.util.Properties;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 public class HbaseConfigMonitor {
 
@@ -37,7 +32,7 @@ public class HbaseConfigMonitor {
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
-                FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
+                    FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
             FileListener listener = new FileListener();
             observer.addListener(listener);
             fileMonitor = new FileAlterationMonitor(3000, observer);
@@ -70,9 +65,11 @@ public class HbaseConfigMonitor {
                     return;
                 }
                 config.validate();
-                addConfigToCache(file, config);
-
-                logger.info("Add a new hbase mapping config: {} to canal adapter", file.getName());
+                boolean result = hbaseAdapter.addConfig(file.getName(), config);
+                if (result) {
+                    logger.info("Add a new hbase mapping config: {} to canal adapter",
+                            file.getName());
+                }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
@@ -97,10 +94,7 @@ public class HbaseConfigMonitor {
                         return;
                     }
                     config.validate();
-                    if (hbaseAdapter.getHbaseMapping().containsKey(file.getName())) {
-                        deleteConfigFromCache(file);
-                    }
-                    addConfigToCache(file, config);
+                    hbaseAdapter.updateConfig(file.getName(), config);
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -113,33 +107,12 @@ public class HbaseConfigMonitor {
 
             try {
                 if (hbaseAdapter.getHbaseMapping().containsKey(file.getName())) {
-                    deleteConfigFromCache(file);
-
+                    hbaseAdapter.deleteConfig(file.getName());
                     logger.info("Delete a hbase mapping config: {} of canal adapter", file.getName());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-        }
-
-        private void addConfigToCache(File file, MappingConfig config) {
-            hbaseAdapter.getHbaseMapping().put(file.getName(), config);
-            Map<String, MappingConfig> configMap = hbaseAdapter.getMappingConfigCache()
-                .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "_"
-                                 + config.getHbaseMapping().getDatabase() + "-" + config.getHbaseMapping().getTable(),
-                    k1 -> new HashMap<>());
-            configMap.put(file.getName(), config);
-        }
-
-        private void deleteConfigFromCache(File file) {
-
-            hbaseAdapter.getHbaseMapping().remove(file.getName());
-            for (Map<String, MappingConfig> configMap : hbaseAdapter.getMappingConfigCache().values()) {
-                if (configMap != null) {
-                    configMap.remove(file.getName());
-                }
-            }
-
         }
     }
 }
