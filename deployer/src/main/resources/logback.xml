@@ -62,11 +62,11 @@
 	</appender>
 
 	<appender name="RocketmqClientAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>../logs/rocketmq_client/rocketmq_client.log</file>
+		<file>../logs/canal/rocketmq_client.log</file>
 		<rollingPolicy
 				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover daily -->
-			<fileNamePattern>../logs/rocketmq_client/%d{yyyy-MM-dd}/rocketmq_client-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<fileNamePattern>../logs/canal/%d{yyyy-MM-dd}/rocketmq_client-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<!-- or whenever the file size reaches 100MB -->
 				<maxFileSize>512MB</maxFileSize>

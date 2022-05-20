@@ -78,4 +78,30 @@ public class FastsqlSchemaTest {
         System.out.println(table.getStatement().toString());
         Assert.assertTrue(table.findColumn("c1") != null);
     }
+
+    @Test
+    public void test_primaryKey() throws Throwable {
+        SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
+        {
+            String sql1 = "CREATE TABLE test ( id NOT NULL, name varchar(32) ) ENGINE=InnoDB; ";
+            String sql2 = " ALTER TABLE test add primary key(id);";
+            repository.console(sql1);
+            String rs = repository.console(sql2);
+            System.out.println(rs);
+            repository.setDefaultSchema("test");
+            SchemaObject table = repository.findTable("test");
+            Assert.assertTrue(table.findColumn("id").isOnlyPrimaryKey());
+        }
+
+        {
+            String sql1 = "CREATE TABLE test ( id NOT NULL, name varchar(32) ) ENGINE=InnoDB; ";
+            String sql2 = "ALTER TABLE test MODIFY id bigint AUTO_INCREMENT PRIMARY KEY; ";
+            repository.console(sql1);
+            repository.console(sql2);
+            repository.setDefaultSchema("test");
+            SchemaObject table = repository.findTable("test");
+            Assert.assertTrue(table.findColumn("id").isOnlyPrimaryKey());
+            Assert.assertTrue(table.findColumn("id").isAutoIncrement());
+        }
+    }
 }
