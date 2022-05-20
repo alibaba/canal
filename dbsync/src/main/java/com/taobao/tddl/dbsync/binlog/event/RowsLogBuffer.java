@@ -733,7 +733,7 @@ public final class RowsLogBuffer {
 
                 String second = null;
                 if (intpart == 0) {
-                    second = "00:00:00";
+                    second = frac < 0 ? "-00:00:00" : "00:00:00";
                 } else {
                     // 目前只记录秒，不处理us frac
                     // if (cal == null) cal = Calendar.getInstance();
