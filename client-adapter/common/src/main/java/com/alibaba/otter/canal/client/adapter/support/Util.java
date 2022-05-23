@@ -30,6 +30,8 @@ public class Util {
 
     private static final Logger logger = LoggerFactory.getLogger(Util.class);
 
+    public static final String AUTO_GENERATED_PREFIX = "AUTO_GENERATED_";
+
     /**
      * 通过DS执行sql
      */

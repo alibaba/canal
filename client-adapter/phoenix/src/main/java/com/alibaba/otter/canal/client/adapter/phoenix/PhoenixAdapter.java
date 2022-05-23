@@ -43,7 +43,7 @@ public class PhoenixAdapter implements OuterAdapter {
 
     private Properties envProperties;
 
-
+    private OuterAdapterConfig configuration;
 
     public Map<String, MappingConfig> getPhoenixMapping() {
         return phoenixMapping;
@@ -64,14 +64,11 @@ public class PhoenixAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         this.envProperties = envProperties;
+        this.configuration = configuration;
         Map<String, MappingConfig> phoenixMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
-        phoenixMappingTmp.forEach((key, mappingConfig) -> {
-            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (mappingConfig.getOuterAdapterKey() != null
-                    && mappingConfig.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
-                phoenixMapping.put(key, mappingConfig);
-            }
+        phoenixMappingTmp.forEach((key, config) -> {
+            addConfig(key, config);
         });
 
         if (phoenixMapping.isEmpty()) {
@@ -79,24 +76,6 @@ public class PhoenixAdapter implements OuterAdapter {
         } else {
             logger.info("[{}]phoenix config mapping: {}", this, phoenixMapping.keySet());
         }
-
-        for (Map.Entry<String, MappingConfig> entry : phoenixMapping.entrySet()) {
-            String configName = entry.getKey();
-            MappingConfig mappingConfig = entry.getValue();
-            String key;
-            if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                        + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                        + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable().toLowerCase();
-            } else {
-                key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                        + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable().toLowerCase();
-            }
-            Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
-                    k1 -> new ConcurrentHashMap<>());
-            configMap.put(configName, mappingConfig);
-        }
-
 
         Map<String, String> properties = configuration.getProperties();
 
@@ -287,5 +266,61 @@ public class PhoenixAdapter implements OuterAdapter {
         if (phoenixSyncService != null) {
             phoenixSyncService.close();
         }
+    }
+
+    private void addSyncConfigToCache(String configName, MappingConfig mappingConfig) {
+        String key;
+        if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+            key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                    + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                    + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable().toLowerCase();
+        } else {
+            key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                    + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable().toLowerCase();
+        }
+        Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
+                k1 -> new ConcurrentHashMap<>());
+        configMap.put(configName, mappingConfig);
+    }
+
+    public boolean addConfig(String fileName, MappingConfig config) {
+        if (match(config)) {
+            phoenixMapping.put(fileName, config);
+            addSyncConfigToCache(fileName, config);
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), fileName,
+                    configuration.getKey());
+            return true;
+        }
+        return false;
+    }
+
+    public void updateConfig(String fileName, MappingConfig config) {
+        if (config.getOuterAdapterKey() != null && !config.getOuterAdapterKey()
+                .equals(configuration.getKey())) {
+            // 理论上不允许改这个 因为本身就是通过这个关联起Adapter和Config的
+            throw new RuntimeException("not allow to change outAdapterKey");
+        }
+        phoenixMapping.put(fileName, config);
+        addSyncConfigToCache(fileName, config);
+    }
+
+    public void deleteConfig(String fileName) {
+        phoenixMapping.remove(fileName);
+        for (Map<String, MappingConfig> configMap : mappingConfigCache.values()) {
+            if (configMap != null) {
+                configMap.remove(fileName);
+            }
+        }
+        FileName2KeyMapping.unregister(getClass().getAnnotation(SPI.class).value(), fileName);
+    }
+
+    private boolean match(MappingConfig config) {
+        boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                .equalsIgnoreCase(configuration.getKey());
+        boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                .startsWith(StringUtils
+                        .join(new String[]{Util.AUTO_GENERATED_PREFIX, config.getDestination(),
+                                config.getGroupId()}, '-'));
+        return sameMatch || prefixMatch;
     }
 }
