@@ -175,6 +175,11 @@ public abstract class LogEvent {
      */
     public static final int    PARTIAL_UPDATE_ROWS_EVENT                = 39;
 
+    /* mysql 8.0.20 */
+    public static final int    TRANSACTION_PAYLOAD_EVENT                = 40;
+
+    public static final int    MYSQL_ENUM_END_EVENT                     = 41;
+
     // mariaDb 5.5.34
     /* New MySQL/Sun events are to be added right above this comment */
     public static final int    MYSQL_EVENTS_END                         = 49;
@@ -372,8 +377,16 @@ public abstract class LogEvent {
                 return "Previous_gtids";
             case PARTIAL_UPDATE_ROWS_EVENT:
                 return "Update_rows_partial";
+            case TRANSACTION_CONTEXT_EVENT :
+                return "Transaction_context";
+            case VIEW_CHANGE_EVENT :
+                return "view_change";
+            case XA_PREPARE_LOG_EVENT :
+                return "Xa_prepare";
+            case TRANSACTION_PAYLOAD_EVENT :
+                return "transaction_payload";
             default:
-                return "Unknown"; /* impossible */
+                return "Unknown type:" + type;
         }
     }
 
