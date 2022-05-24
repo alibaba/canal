@@ -63,13 +63,13 @@ public class LogEventTest {
     public void getTypeNameInputPositiveOutputNotNull4() {
 
         // Arrange
-        final int type = 36;
+        final int type = 80;
 
         // Act
         final String actual = LogEvent.getTypeName(type);
 
         // Assert result
-        Assert.assertEquals("Unknown", actual);
+        Assert.assertTrue(actual.startsWith("Unknown"));
     }
 
     // Test written by Diffblue Cover.
