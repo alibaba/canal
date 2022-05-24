@@ -418,7 +418,7 @@ public final class LogDecoder {
                 logPosition.position = header.getLogPos();
                 return event;
             }
-            com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService.lambda    default:
+            default:
                 /*
                  * Create an object of Ignorable_log_event for unrecognized
                  * sub-class. So that SLAVE SQL THREAD will only update the
