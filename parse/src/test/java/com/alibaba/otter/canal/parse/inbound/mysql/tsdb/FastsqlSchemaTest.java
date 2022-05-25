@@ -104,4 +104,37 @@ public class FastsqlSchemaTest {
             Assert.assertTrue(table.findColumn("id").isAutoIncrement());
         }
     }
+
+    @Test
+    public void test_partition_table() throws Throwable {
+        SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
+        String sql1 = "create table test (\n" + " id int not null AUTO_INCREMENT primary key,\n"
+                      + " name varchar(32) \n" + " )\n" + " partition by range(id) (\n"
+                      + " partition p1 values less than (10),\n" + " partition px values less than MAXVALUE\n"
+                      + " );";
+        String sql2 = "alter table test add partition ( partition 2 VALUES LESS THAN (738552) ENGINE = InnoDB, PARTITION pmax VALUES LESS THAN MAXVALUE ENGINE = InnoDB)";
+        repository.console(sql1);
+        repository.console(sql2);
+        repository.setDefaultSchema("test");
+        SchemaObject table = repository.findTable("test");
+        Assert.assertTrue(table != null);
+    }
+
+    @Test
+    public void test_mariadb_aria() throws Throwable {
+        SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
+        String sql1 = "CREATE TABLE test (\n" + "db_name varchar(64) COLLATE utf8_bin NOT NULL,\n"
+                      + "table_name varchar(64) COLLATE utf8_bin NOT NULL,\n"
+                      + "column_name varchar(64) COLLATE utf8_bin NOT NULL,\n"
+                      + "min_value varbinary(255) DEFAULT NULL,\n" + "max_value varbinary(255) DEFAULT NULL,\n"
+                      + "nulls_ratio decimal(12,4) DEFAULT NULL,\n" + "avg_length decimal(12,4) DEFAULT NULL,\n"
+                      + "avg_frequency decimal(12,4) DEFAULT NULL,\n" + "hist_size tinyint(3) unsigned DEFAULT NULL,\n"
+                      + "hist_type enum('SINGLE_PREC_HB','DOUBLE_PREC_HB') COLLATE utf8_bin DEFAULT NULL,\n"
+                      + "histogram varbinary(255) DEFAULT NULL,\n" + "PRIMARY KEY (db_name,table_name,column_name)\n"
+                      + ") ENGINE=Aria DEFAULT CHARSET=utf8 COLLATE=utf8_bin PAGE_CHECKSUM=1 TRANSACTIONAL=0";
+        repository.console(sql1);
+        repository.setDefaultSchema("test");
+        SchemaObject table = repository.findTable("test");
+        Assert.assertTrue(table != null);
+    }
 }

@@ -3,42 +3,11 @@ package com.taobao.tddl.dbsync.binlog;
 import java.io.IOException;
 import java.util.BitSet;
 
+import com.taobao.tddl.dbsync.binlog.event.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
-import com.taobao.tddl.dbsync.binlog.event.AppendBlockLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.BeginLoadQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.CreateFileLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteFileLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.HeartbeatLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IncidentLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.LoadLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.LogHeader;
-import com.taobao.tddl.dbsync.binlog.event.PreviousGtidsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RandLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.StartLogEventV3;
-import com.taobao.tddl.dbsync.binlog.event.StopLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TransactionContextLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ViewChangeEvent;
-import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XaPrepareLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
@@ -382,6 +351,12 @@ public final class LogDecoder {
             }
             case LogEvent.TRANSACTION_CONTEXT_EVENT: {
                 TransactionContextLogEvent event = new TransactionContextLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.TRANSACTION_PAYLOAD_EVENT: {
+                TransactionPayloadLogEvent event = new TransactionPayloadLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 return event;

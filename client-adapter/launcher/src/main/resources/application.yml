@@ -11,7 +11,7 @@ canal.conf:
   flatMessage: true
   zookeeperHosts:
   syncBatchSize: 1000
-  retries: 0
+  retries: -1
   timeout:
   accessKey:
   secretKey:
