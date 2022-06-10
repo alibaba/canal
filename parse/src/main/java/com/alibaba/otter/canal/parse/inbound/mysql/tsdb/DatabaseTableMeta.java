@@ -209,11 +209,10 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             for (String schema : schemas) {
                 // filter views
                 packet = connection.query("show full tables from `" + schema + "` where Table_type = 'BASE TABLE'");
+                int tableNameColumnIndex = 0; // default index is 0
                 List<String> tables = new ArrayList<>();
-                for (String table : packet.getFieldValues()) {
-                    if ("BASE TABLE".equalsIgnoreCase(table)) {
-                        continue;
-                    }
+                for (int line = 0; line < packet.getFieldValues().size() / columnSize; line++) {
+                    String table = packet.getFieldValues().get(line * columnSize + tableNameColumnIndex);
                     String fullName = schema + "." + table;
                     if (blackFilter == null || !blackFilter.filter(fullName)) {
                         if (filter == null || filter.filter(fullName)) {
