@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -190,8 +191,20 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private boolean dumpTableMeta(MysqlConnection connection, final CanalEventFilter filter) {
         try {
             ResultSetPacket packet = connection.query("show databases");
+            int columnSize = packet.getFieldDescriptors().size();
+            int columnIndex = 0;
+            for (; columnIndex < columnSize; columnIndex++) {
+                FieldPacket value = packet.getFieldDescriptors().get(columnIndex);
+                if (StringUtils.equalsIgnoreCase(value.getName(), "Database")) {
+                    break;
+                }
+            }
+
             List<String> schemas = new ArrayList<>();
-            schemas.addAll(packet.getFieldValues());
+            for (int line = 0; line < packet.getFieldValues().size() / columnSize; line++) {
+                String schema = packet.getFieldValues().get(line * columnSize + columnIndex);
+                schemas.add(schema);
+            }
 
             for (String schema : schemas) {
                 // filter views
