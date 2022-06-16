@@ -146,6 +146,12 @@ public class ESEtlService extends AbstractEtlService {
                         hit.getId()).setDoc(esFieldData);
                     esBulkRequest.add(esUpdateRequest);
                 }
+                if(response.getHits().getHits().length==0){
+                    ESConnection.ES6xIndexRequest esIndexRequest = this.esConnection.new ES6xIndexRequest(mapping.get_index(),
+                            mapping.get_type(), null)
+                            .setSource(esFieldData);
+                    esBulkRequest.add(esIndexRequest);
+                }
             }
 
             if (esBulkRequest.numberOfActions() % mapping.getCommitBatch() == 0 && esBulkRequest.numberOfActions() > 0) {
