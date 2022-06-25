@@ -14,6 +14,7 @@
 早期阿里巴巴因为杭州和美国双机房部署，存在跨机房同步的业务需求，实现方式主要是基于业务 trigger 获取增量变更。从 2010 年开始，业务逐步尝试数据库日志解析获取增量变更进行同步，由此衍生出了大量的数据库增量订阅和消费业务。
 
 基于日志增量订阅和消费的业务包括
+
 - 数据库镜像
 - 数据库实时备份
 - 索引构建和实时维护(拆分异构索引、倒排索引等)
@@ -25,6 +26,7 @@
 ## 工作原理
 
 #### MySQL主备复制原理
+
 ![](http://dl.iteye.com/upload/attachment/0080/3086/468c1a14-e7ad-3290-9d3d-44ac501a7227.jpg)
 
 - MySQL master 将数据变更写入二进制日志( binary log, 其中记录叫做二进制日志事件binary log events，可以通过 show binlog events 进行查看)
@@ -40,14 +42,16 @@
 ## 重要版本更新说明
 
 1. canal 1.1.x 版本（[release_note](https://github.com/alibaba/canal/releases)）,性能与功能层面有较大的突破,重要提升包括:
-
 - 整体性能测试&优化,提升了150%. #726 参考: [Performance](https://github.com/alibaba/canal/wiki/Performance)
-- 原生支持prometheus监控 #765 [Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)
-- 原生支持kafka消息投递 #695 [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
-- 原生支持aliyun rds的binlog订阅 (解决自动主备切换/oss binlog离线解析) 参考: [Aliyun RDS QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)
-- 原生支持docker镜像 #801 参考: [Docker QuickStart](https://github.com/alibaba/canal/wiki/Docker-QuickStart)
 
-2.  canal 1.1.4版本，迎来最重要的WebUI能力，引入canal-admin工程，支持面向WebUI的canal动态管理能力，支持配置、任务、日志等在线白屏运维能力，具体文档：[Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal-Admin-Guide)
+- 原生支持prometheus监控 #765 [Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)
+
+- 原生支持kafka消息投递 #695 [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
+
+- 原生支持aliyun rds的binlog订阅 (解决自动主备切换/oss binlog离线解析) 参考: [Aliyun RDS QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)
+
+- 原生支持docker镜像 #801 参考: [Docker QuickStart](https://github.com/alibaba/canal/wiki/Docker-QuickStart)
+2. canal 1.1.4版本，迎来最重要的WebUI能力，引入canal-admin工程，支持面向WebUI的canal动态管理能力，支持配置、任务、日志等在线白屏运维能力，具体文档：[Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal-Admin-Guide)
 
 ## 文档
 
@@ -78,13 +82,14 @@
 ## 多语言
 
 canal 特别设计了 client-server 模式，交互协议使用 protobuf 3.0 , client 端可采用不同语言实现不同的消费逻辑，欢迎大家提交 pull request 
-  
+
 - canal java 客户端: [https://github.com/alibaba/canal/wiki/ClientExample](https://github.com/alibaba/canal/wiki/ClientExample)
 - canal c# 客户端: [https://github.com/dotnetcore/CanalSharp](https://github.com/dotnetcore/CanalSharp)
 - canal go客户端: [https://github.com/CanalClient/canal-go](https://github.com/CanalClient/canal-go)
 - canal php客户端: [https://github.com/xingwenge/canal-php](https://github.com/xingwenge/canal-php)
 - canal Python客户端：[https://github.com/haozi3156666/canal-python](https://github.com/haozi3156666/canal-python)
 - canal Rust客户端：[https://github.com/laohanlinux/canal-rs](https://github.com/laohanlinux/canal-rs)
+- canal Nodejs客户端：[https://github.com/marmot-z/canal-nodejs](https://github.com/marmot-z/canal-nodejs)
 
 canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递到 MQ 系统中，比如 Kafka/RocketMQ，可以借助于 MQ 的多语言能力 
 
@@ -99,4 +104,5 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 - [阿里巴巴实时数据同步工具 DTS](https://www.aliyun.com/product/dts)
 
 ## 问题反馈
+
 - 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
