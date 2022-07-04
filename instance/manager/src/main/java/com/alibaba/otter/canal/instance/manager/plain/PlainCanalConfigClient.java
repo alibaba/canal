@@ -2,6 +2,8 @@ package com.alibaba.otter.canal.instance.manager.plain;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -84,7 +86,12 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/instance_polling/" + destination + "?md5=" + md5;
+        String url = null;
+        try {
+            url = configURL + "/api/v1/config/instance_polling/" + URLEncoder.encode(destination, "UTF-8") + "?md5=" + md5;
+        } catch (UnsupportedEncodingException e) {
+            throw new CanalException("encode destination failed", e);
+        }
         return queryConfig(url);
     }
 
