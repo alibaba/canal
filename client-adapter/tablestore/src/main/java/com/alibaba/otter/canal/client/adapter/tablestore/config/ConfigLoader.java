@@ -1,7 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.tablestore.config;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -32,8 +32,7 @@ public class ConfigLoader {
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("tablestore");
         configContentMap.forEach((fileName, content) -> {
-            MappingConfig config = YmlConfigBinder
-                .bindYmlToObj(null, content, MappingConfig.class, null, envProperties);
+            MappingConfig config = YamlUtils.ymlToObj(null, content, MappingConfig.class, null, envProperties);
             if (config == null) {
                 return;
             }
@@ -45,7 +44,8 @@ public class ConfigLoader {
             result.put(fileName, config);
         });
 
-        logger.info("## Tablestore mapping config loaded:" + StringUtils.collectionToCommaDelimitedString(result.keySet()));
+        logger.info(
+            "## Tablestore mapping config loaded:" + StringUtils.collectionToCommaDelimitedString(result.keySet()));
         return result;
     }
 }

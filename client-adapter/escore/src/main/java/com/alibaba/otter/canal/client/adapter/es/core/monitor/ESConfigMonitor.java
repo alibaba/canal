@@ -1,18 +1,22 @@
 package com.alibaba.otter.canal.client.adapter.es.core.monitor;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
-import com.alibaba.otter.canal.client.adapter.es.core.ESAdapter;
-import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
-import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
-import com.alibaba.otter.canal.client.adapter.support.Util;
 import java.io.File;
 import java.util.Properties;
+
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.client.adapter.es.core.ESAdapter;
+import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
+import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
+import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
+
+;
 
 public class ESConfigMonitor {
 
@@ -60,7 +64,7 @@ public class ESConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null,
+                ESSyncConfig config = YamlUtils.ymlToObj(null,
                     configContent,
                     ESSyncConfig.class,
                     null,
@@ -93,7 +97,7 @@ public class ESConfigMonitor {
                         onFileDelete(file);
                         return;
                     }
-                    ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null,
+                    ESSyncConfig config = YamlUtils.ymlToObj(null,
                         configContent,
                         ESSyncConfig.class,
                         null,
