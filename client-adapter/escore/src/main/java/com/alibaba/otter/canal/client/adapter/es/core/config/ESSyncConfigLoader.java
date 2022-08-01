@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.es.core.config;
 
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -7,7 +8,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
@@ -28,7 +28,7 @@ public class ESSyncConfigLoader {
         String esv = envProperties.getProperty("es.version");
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs(esv);
         configContentMap.forEach((fileName, content) -> {
-            ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null, content, ESSyncConfig.class, null, envProperties);
+            ESSyncConfig config = YamlUtils.ymlToObj(null, content, ESSyncConfig.class, null, envProperties);
             if (config == null) {
                 return;
             }
