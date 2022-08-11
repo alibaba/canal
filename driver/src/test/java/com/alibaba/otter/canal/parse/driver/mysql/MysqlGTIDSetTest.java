@@ -42,10 +42,9 @@ public class MysqlGTIDSetTest {
         MysqlGTIDSet mysqlGTIDSet1 = MysqlGTIDSet.parse(gtid1);
 
         String gtid2 = "726757ad-4455-11e8-ae04-0242ac110002:1-20304074";
-        MysqlGTIDSet mysqlGTIDSet2 = MysqlGTIDSet.parse(gtid2);
 
         mysqlGTIDSet1.update(gtid2);
-        assertEquals("726757ad-4455-11e8-ae04-0242ac110002:1-25536412", mysqlGTIDSet1.toString());
+        assertEquals("726757ad-4455-11e8-ae04-0242ac110002:1-20304074", mysqlGTIDSet1.toString());
     }
 
     @Test
