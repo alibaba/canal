@@ -2,7 +2,6 @@ package com.alibaba.otter.canal.parse.inbound.mysql.rds;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -12,11 +11,11 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 
 /**
  * aliyun rds的binlog parser支持
- * 
+ *
  * <pre>
  * 注意点：aliyun的binlog会有定期清理并备份到oss上, 这里实现了一份自动下载oss+rds binlog的机制
  * </pre>
- * 
+ *
  * @author chengjin.lyf on 2018/7/20 上午10:52
  * @since 1.0.25
  */
@@ -30,16 +29,12 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
     private int                       batchFileSize             = 4;                          // 最多下载的binlog文件数量
 
     private RdsLocalBinlogEventParser rdsLocalBinlogEventParser = null;
-    private ExecutorService           executorService           = Executors.newSingleThreadExecutor(new ThreadFactory() {
-
-                                                                    @Override
-                                                                    public Thread newThread(Runnable r) {
+    private ExecutorService           executorService           = Executors.newSingleThreadExecutor(r -> {
                                                                         Thread t = new Thread(r,
                                                                             "rds-binlog-daemon-thread");
                                                                         t.setDaemon(true);
                                                                         return t;
-                                                                    }
-                                                                });
+                                                                    });
 
     @Override
     public void start() {
@@ -55,7 +50,7 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
             rdsLocalBinlogEventParser.setLogPositionManager(this.getLogPositionManager());
             rdsLocalBinlogEventParser.setDestination(destination);
             rdsLocalBinlogEventParser.setAlarmHandler(this.getAlarmHandler());
-            rdsLocalBinlogEventParser.setConnectionCharset(this.connectionCharset);
+            rdsLocalBinlogEventParser.setConnectionCharsetStd(this.connectionCharset);
             rdsLocalBinlogEventParser.setConnectionCharsetNumber(this.connectionCharsetNumber);
             rdsLocalBinlogEventParser.setEnableTsdb(this.enableTsdb);
             rdsLocalBinlogEventParser.setEventBlackFilter(this.eventBlackFilter);
@@ -79,29 +74,17 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
             rdsLocalBinlogEventParser.setParallel(this.parallel);
             rdsLocalBinlogEventParser.setParallelBufferSize(this.parallelBufferSize);
             rdsLocalBinlogEventParser.setParallelThreadSize(this.parallelThreadSize);
-            rdsLocalBinlogEventParser.setFinishListener(new RdsLocalBinlogEventParser.ParseFinishListener() {
-
-                @Override
-                public void onFinish() {
-                    executorService.execute(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            rdsLocalBinlogEventParser.stop();
-                            RdsBinlogEventParserProxy.this.start();
-                        }
-                    });
-
-                }
-            });
-            this.setParserExceptionHandler(new ParserExceptionHandler() {
-
-                @Override
-                public void handle(Throwable e) {
-                    handleMysqlParserException(e);
-                    if (targetHandler != null) {
-                        targetHandler.handle(e);
-                    }
+            rdsLocalBinlogEventParser.setFinishListener(() -> executorService.execute(() -> {
+                rdsLocalBinlogEventParser.stop();
+                // empty the dump error count,or will go into local binlog mode again,with error
+                // position,never get out,fixed by bucketli
+                RdsBinlogEventParserProxy.this.setDumpErrorCount(0);
+                RdsBinlogEventParserProxy.this.start();
+            }));
+            this.setParserExceptionHandler(e -> {
+                handleMysqlParserException(e);
+                if (targetHandler != null) {
+                    targetHandler.handle(e);
                 }
             });
         }
@@ -112,29 +95,25 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
     private void handleMysqlParserException(Throwable throwable) {
         if (throwable instanceof PositionNotFoundException) {
             logger.info("remove rds not found position, try download rds binlog!");
-            executorService.execute(new Runnable() {
+            executorService.execute(() -> {
+                try {
+                    logger.info("stop mysql parser!");
+                    RdsBinlogEventParserProxy rdsBinlogEventParserProxy = RdsBinlogEventParserProxy.this;
+                    long serverId = rdsBinlogEventParserProxy.getServerId();
+                    rdsLocalBinlogEventParser.setServerId(serverId);
+                    rdsBinlogEventParserProxy.stop();
+                } catch (Throwable e) {
+                    logger.info("handle exception failed", e);
+                }
 
-                @Override
-                public void run() {
-                    try {
-                        logger.info("stop mysql parser!");
-                        RdsBinlogEventParserProxy rdsBinlogEventParserProxy = RdsBinlogEventParserProxy.this;
-                        long serverId = rdsBinlogEventParserProxy.getServerId();
-                        rdsLocalBinlogEventParser.setServerId(serverId);
-                        rdsBinlogEventParserProxy.stop();
-                    } catch (Throwable e) {
-                        logger.info("handle exception failed", e);
-                    }
-
-                    try {
-                        logger.info("start rds mysql binlog parser!");
-                        rdsLocalBinlogEventParser.start();
-                    } catch (Throwable e) {
-                        logger.info("handle exception failed", e);
-                        rdsLocalBinlogEventParser.stop();
-                        RdsBinlogEventParserProxy rdsBinlogEventParserProxy = RdsBinlogEventParserProxy.this;
-                        rdsBinlogEventParserProxy.start();// 继续重试
-                    }
+                try {
+                    logger.info("start rds mysql binlog parser!");
+                    rdsLocalBinlogEventParser.start();
+                } catch (Throwable e) {
+                    logger.info("handle exception failed", e);
+                    rdsLocalBinlogEventParser.stop();
+                    RdsBinlogEventParserProxy rdsBinlogEventParserProxy = RdsBinlogEventParserProxy.this;
+                    rdsBinlogEventParserProxy.start();// 继续重试
                 }
             });
         }

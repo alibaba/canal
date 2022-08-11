@@ -43,18 +43,19 @@
         <property name="testOnBorrow" value="false" />
         <property name="testOnReturn" value="false" />
         <property name="useUnfairLock" value="true" />
+        <property name="validationQuery" value="SELECT 1" />
 	</bean>
 
-    <bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="configLocation" value="classpath:spring/tsdb/sql-map/sqlmap-config.xml"/>
-    </bean>
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:spring/tsdb/sql-map/sqlmap-config.xml"/>
+	</bean>
 
     <bean id="metaHistoryDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDAO">
-        <property name="sqlMapClient" ref="sqlMapClient"/>
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
     </bean>
 
     <bean id="metaSnapshotDAO" class="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDAO">
-        <property name="sqlMapClient" ref="sqlMapClient"/>
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
     </bean>
 </beans>

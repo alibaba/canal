@@ -1,0 +1,1 @@
+rocketmq=com.alibaba.otter.canal.connector.rocketmq.producer.CanalRocketMQProducer

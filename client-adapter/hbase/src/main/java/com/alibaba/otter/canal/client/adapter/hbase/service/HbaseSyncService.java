@@ -6,8 +6,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.hbase.support.*;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
@@ -39,7 +39,7 @@ public class HbaseSyncService {
                 delete(config, dml);
             }
             if (logger.isDebugEnabled()) {
-                logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                logger.debug("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
             }
         }
     }
@@ -200,8 +200,7 @@ public class HbaseSyncService {
                 String rowKeyVale = getRowKeys(rowKeyColumns, r);
                 rowKeyBytes = Bytes.toBytes(rowKeyVale);
             } else if (rowKeyColumn == null) {
-                Map<String, Object> rowKey = data.get(0);
-                rowKeyBytes = typeConvert(null, hbaseMapping, rowKey.values().iterator().next());
+                rowKeyBytes = typeConvert(null, hbaseMapping, r.values().iterator().next());
             } else {
                 rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }
@@ -285,8 +284,7 @@ public class HbaseSyncService {
                 rowKeyBytes = Bytes.toBytes(rowKeyVale);
             } else if (rowKeyColumn == null) {
                 // 如果不需要类型转换
-                Map<String, Object> rowKey = data.get(0);
-                rowKeyBytes = typeConvert(null, hbaseMapping, rowKey.values().iterator().next());
+                rowKeyBytes = typeConvert(null, hbaseMapping, r.values().iterator().next());
             } else {
                 rowKeyBytes = getRowKeyBytes(hbaseMapping, rowKeyColumn, r);
             }

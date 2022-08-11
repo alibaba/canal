@@ -14,7 +14,7 @@ import org.apache.commons.lang.StringUtils;
 public class CharsetUtil {
 
     private static final String[]             INDEX_TO_CHARSET = new String[2048];
-    private static final Map<String, Integer> CHARSET_TO_INDEX = new HashMap<String, Integer>();
+    private static final Map<String, Integer> CHARSET_TO_INDEX = new HashMap<>();
     static {
         INDEX_TO_CHARSET[1] = "big5";
         INDEX_TO_CHARSET[84] = "big5";

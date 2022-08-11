@@ -1,0 +1,1 @@
+tablestore=com.alibaba.otter.canal.client.adapter.tablestore.TablestoreAdapter

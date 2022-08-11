@@ -1,11 +1,16 @@
 package com.alibaba.otter.canal.client.rocketmq;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.client.ConsumerBatchMessage;
 import org.apache.commons.lang.StringUtils;
+import org.apache.rocketmq.acl.common.AclClientRPCHook;
+import org.apache.rocketmq.acl.common.SessionCredentials;
+import org.apache.rocketmq.client.AccessChannel;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
@@ -17,15 +22,13 @@ import org.apache.rocketmq.remoting.RPCHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
-import com.aliyun.openservices.apache.api.impl.authority.SessionCredentials;
-import com.aliyun.openservices.apache.api.impl.rocketmq.ClientRPCHook;
 import com.google.common.collect.Lists;
 
 /**
@@ -40,7 +43,8 @@ import com.google.common.collect.Lists;
  */
 public class RocketMQCanalConnector implements CanalMQConnector {
 
-    private static final Logger                 logger              = LoggerFactory.getLogger(RocketMQCanalConnector.class);
+    private static final Logger                 logger               = LoggerFactory.getLogger(RocketMQCanalConnector.class);
+    private static final String                 CLOUD_ACCESS_CHANNEL = "cloud";
 
     private String                              nameServer;
     private String                              topic;
@@ -54,6 +58,26 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     private volatile ConsumerBatchMessage       lastGetBatchMessage = null;
     private String                              accessKey;
     private String                              secretKey;
+    private String                              customizedTraceTopic;
+    private boolean                             enableMessageTrace = false;
+    private String                              accessChannel;
+    private String                              namespace;
+
+    public RocketMQCanalConnector(String nameServer, String topic, String groupName, String accessKey,
+        String secretKey, Integer batchSize, boolean flatMessage, boolean enableMessageTrace,
+        String customizedTraceTopic, String accessChannel, String namespace) {
+        this(nameServer, topic, groupName, accessKey, secretKey, batchSize, flatMessage, enableMessageTrace, customizedTraceTopic, accessChannel);
+        this.namespace = namespace;
+    }
+
+    public RocketMQCanalConnector(String nameServer, String topic, String groupName, String accessKey,
+        String secretKey, Integer batchSize, boolean flatMessage, boolean enableMessageTrace,
+        String customizedTraceTopic, String accessChannel) {
+        this(nameServer, topic, groupName, accessKey, secretKey, batchSize, flatMessage);
+        this.enableMessageTrace = enableMessageTrace;
+        this.customizedTraceTopic = customizedTraceTopic;
+        this.accessChannel = accessChannel;
+    }
 
     public RocketMQCanalConnector(String nameServer, String topic, String groupName, Integer batchSize,
                                   boolean flatMessage){
@@ -73,16 +97,24 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     }
 
     public void connect() throws CanalClientException {
-
         RPCHook rpcHook = null;
         if (null != accessKey && accessKey.length() > 0 && null != secretKey && secretKey.length() > 0) {
             SessionCredentials sessionCredentials = new SessionCredentials();
             sessionCredentials.setAccessKey(accessKey);
             sessionCredentials.setSecretKey(secretKey);
-            rpcHook = new ClientRPCHook(sessionCredentials);
+            rpcHook = new AclClientRPCHook(sessionCredentials);
         }
-        rocketMQConsumer = new DefaultMQPushConsumer(groupName, rpcHook, new AllocateMessageQueueAveragely());
+
+        rocketMQConsumer = new DefaultMQPushConsumer(groupName, rpcHook, new AllocateMessageQueueAveragely(), enableMessageTrace, customizedTraceTopic);
         rocketMQConsumer.setVipChannelEnabled(false);
+        if (CLOUD_ACCESS_CHANNEL.equals(this.accessChannel)) {
+            rocketMQConsumer.setAccessChannel(AccessChannel.CLOUD);
+        }
+
+        if (!StringUtils.isEmpty(this.namespace)) {
+            rocketMQConsumer.setNamespace(this.namespace);
+        }
+
         if (!StringUtils.isBlank(nameServer)) {
             rocketMQConsumer.setNamesrvAddr(nameServer);
         }
@@ -131,8 +163,10 @@ public class RocketMQCanalConnector implements CanalMQConnector {
     }
 
     private boolean process(List<MessageExt> messageExts) {
-        logger.info("Get Message:{}", messageExts);
-        List messageList = Lists.newArrayList();
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get Message: {}", messageExts);
+        }
+        List messageList = new ArrayList<>();
         for (MessageExt messageExt : messageExts) {
             byte[] data = messageExt.getBody();
             if (data != null) {

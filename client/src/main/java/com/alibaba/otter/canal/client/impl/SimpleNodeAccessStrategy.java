@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.client.CanalNodeAccessStrategy;
  */
 public class SimpleNodeAccessStrategy implements CanalNodeAccessStrategy {
 
-    private List<SocketAddress> nodes = new ArrayList<SocketAddress>();
+    private List<SocketAddress> nodes = new ArrayList<>();
     private int                 index = 0;
 
     public SimpleNodeAccessStrategy(List<? extends SocketAddress> nodes){
@@ -24,6 +24,7 @@ public class SimpleNodeAccessStrategy implements CanalNodeAccessStrategy {
         this.nodes.addAll(nodes);
     }
 
+    @Override
     public SocketAddress nextNode() {
         try {
             return nodes.get(index);

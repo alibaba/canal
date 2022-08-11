@@ -2,13 +2,12 @@ package com.alibaba.otter.canal.instance.spring;
 
 import java.util.List;
 
-import com.alibaba.otter.canal.instance.core.CanalInstance;
-import com.alibaba.otter.canal.instance.core.CanalMQConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.instance.core.AbstractCanalInstance;
+import com.alibaba.otter.canal.instance.core.CanalMQConfig;
 import com.alibaba.otter.canal.meta.CanalMetaManager;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
@@ -58,7 +57,7 @@ public class CanalInstanceWithSpring extends AbstractCanalInstance {
         this.alarmHandler = alarmHandler;
     }
 
-    public void setMqConfig(CanalMQConfig mqConfig){
+    public void setMqConfig(CanalMQConfig mqConfig) {
         this.mqConfig = mqConfig;
     }
 

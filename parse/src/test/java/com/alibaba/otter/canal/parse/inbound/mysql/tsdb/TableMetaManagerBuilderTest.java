@@ -9,6 +9,7 @@ import org.springframework.util.Assert;
  * @since 1.0.25
  */
 public class TableMetaManagerBuilderTest {
+
     @Ignore
     @Test
     public void testSimple() {

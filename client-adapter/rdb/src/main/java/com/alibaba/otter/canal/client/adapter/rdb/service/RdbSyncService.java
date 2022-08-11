@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.rdb.service;
 import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,14 +16,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig.DbMapping;
 import com.alibaba.otter.canal.client.adapter.rdb.support.BatchExecutor;
@@ -41,6 +41,7 @@ public class RdbSyncService {
 
     private static final Logger               logger  = LoggerFactory.getLogger(RdbSyncService.class);
 
+    private DruidDataSource                   dataSource;
     // 源库表字段类型缓存: instance.schema.table -> <columnName, jdbcType>
     private Map<String, Map<String, Integer>> columnsTypeCache;
 
@@ -59,13 +60,14 @@ public class RdbSyncService {
         return columnsTypeCache;
     }
 
-    public RdbSyncService(DataSource dataSource, Integer threads, boolean skipDupException){
+    public RdbSyncService(DruidDataSource dataSource, Integer threads, boolean skipDupException){
         this(dataSource, threads, new ConcurrentHashMap<>(), skipDupException);
     }
 
     @SuppressWarnings("unchecked")
-    public RdbSyncService(DataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
+    public RdbSyncService(DruidDataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
                           boolean skipDupException){
+        this.dataSource = dataSource;
         this.columnsTypeCache = columnsTypeCache;
         this.skipDupException = skipDupException;
         try {
@@ -105,6 +107,11 @@ public class RdbSyncService {
                 List<Future<Boolean>> futures = new ArrayList<>();
                 for (int i = 0; i < threads; i++) {
                     int j = i;
+                    if (dmlsPartition[j].isEmpty()) {
+                        // bypass
+                        continue;
+                    }
+
                     futures.add(executorThreads[i].submit(() -> {
                         try {
                             dmlsPartition[j].forEach(syncItem -> sync(batchExecutors[j],
@@ -114,6 +121,7 @@ public class RdbSyncService {
                             batchExecutors[j].commit();
                             return true;
                         } catch (Throwable e) {
+                            dmlsPartition[j].clear();
                             batchExecutors[j].rollback();
                             throw new RuntimeException(e);
                         }
@@ -171,25 +179,36 @@ public class RdbSyncService {
             }
 
             for (MappingConfig config : configMap.values()) {
-                if (config.getConcurrent()) {
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                    singleDmls.forEach(singleDml -> {
-                        int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                        SyncItem syncItem = new SyncItem(config, singleDml);
-                        dmlsPartition[hash].add(syncItem);
-                    });
-                } else {
-                    int hash = 0;
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
-                    singleDmls.forEach(singleDml -> {
-                        SyncItem syncItem = new SyncItem(config, singleDml);
-                        dmlsPartition[hash].add(syncItem);
-                    });
-                }
+                appendDmlPartition(config, dml);
             }
             return true;
         }
     }   );
+    }
+
+    /**
+     * 将Dml加入 {@link #dmlsPartition}
+     *
+     * @param config 表映射配置
+     * @param dml    Dml对象
+     */
+    public void appendDmlPartition(MappingConfig config, Dml dml) {
+        boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
+        if (config.getConcurrent()) {
+            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+            singleDmls.forEach(singleDml -> {
+                int hash = pkHash(config.getDbMapping(), singleDml.getData());
+                SyncItem syncItem = new SyncItem(config, singleDml);
+                dmlsPartition[hash].add(syncItem);
+            });
+        } else {
+            int hash = 0;
+            List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+            singleDmls.forEach(singleDml -> {
+                SyncItem syncItem = new SyncItem(config, singleDml);
+                dmlsPartition[hash].add(syncItem);
+            });
+        }
     }
 
     /**
@@ -213,7 +232,7 @@ public class RdbSyncService {
                     truncate(batchExecutor, config);
                 }
                 if (logger.isDebugEnabled()) {
-                    logger.debug("DML: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
+                    logger.debug("DML: {}", JSON.toJSONString(dml, Feature.WriteNulls));
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -234,13 +253,16 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
-
+        String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         StringBuilder insertSql = new StringBuilder();
-        insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
+        insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" (");
 
-        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(backtick)
+            .append(targetColumnName)
+            .append(backtick)
+            .append(","));
         int len = insertSql.length();
         insertSql.delete(len - 1, len).append(") VALUES (");
         int mapLen = columnsMap.size();
@@ -272,7 +294,7 @@ public class RdbSyncService {
             batchExecutor.execute(insertSql.toString(), values);
         } catch (SQLException e) {
             if (skipDupException
-                && (e.getMessage().contains("Duplicate entry") || e.getMessage().startsWith("ORA-00001: 违反唯一约束条件"))) {
+                && (e.getMessage().contains("Duplicate entry") || e.getMessage().startsWith("ORA-00001:"))) {
                 // ignore
                 // TODO 增加更多关系数据库的主键冲突的错误码
             } else {
@@ -303,13 +325,13 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
-
+        String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
         StringBuilder updateSql = new StringBuilder();
-        updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping)).append(" SET ");
+        updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" SET ");
         List<Map<String, ?>> values = new ArrayList<>();
         boolean hasMatched = false;
         for (String srcColumnName : old.keySet()) {
@@ -322,7 +344,7 @@ public class RdbSyncService {
             if (!targetColumnNames.isEmpty()) {
                 hasMatched = true;
                 for (String targetColumnName : targetColumnNames) {
-                    updateSql.append(targetColumnName).append("=?, ");
+                    updateSql.append(backtick).append(targetColumnName).append(backtick).append("=?, ");
                     Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
                     if (type == null) {
                         throw new RuntimeException("Target column: " + targetColumnName + " not matched");
@@ -359,11 +381,10 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
-
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
         StringBuilder sql = new StringBuilder();
-        sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping)).append(" WHERE ");
+        sql.append("DELETE FROM ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" WHERE ");
 
         List<Map<String, ?>> values = new ArrayList<>();
         // 拼接主键
@@ -382,7 +403,7 @@ public class RdbSyncService {
     private void truncate(BatchExecutor batchExecutor, MappingConfig config) throws SQLException {
         DbMapping dbMapping = config.getDbMapping();
         StringBuilder sql = new StringBuilder();
-        sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping));
+        sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()));
         batchExecutor.execute(sql.toString(), new ArrayList<>());
         if (logger.isTraceEnabled()) {
             logger.trace("Truncate target table, sql: {}", sql);
@@ -406,13 +427,18 @@ public class RdbSyncService {
                 if (columnType == null) {
                     columnType = new LinkedHashMap<>();
                     final Map<String, Integer> columnTypeTmp = columnType;
-                    String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE 1=2";
+                    String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " WHERE 1=2";
                     Util.sqlRS(conn, sql, rs -> {
                         try {
                             ResultSetMetaData rsd = rs.getMetaData();
                             int columnCount = rsd.getColumnCount();
                             for (int i = 1; i <= columnCount; i++) {
-                                columnTypeTmp.put(rsd.getColumnName(i).toLowerCase(), rsd.getColumnType(i));
+                                int colType = rsd.getColumnType(i);
+                                // 修复year类型作为date处理时的data truncated问题
+                                if ("YEAR".equals(rsd.getColumnTypeName(i))) {
+                                    colType = Types.VARCHAR;
+                                }
+                                columnTypeTmp.put(rsd.getColumnName(i).toLowerCase(), colType);
                             }
                             columnsTypeCache.put(cacheKey, columnTypeTmp);
                         } catch (SQLException e) {
@@ -435,6 +461,8 @@ public class RdbSyncService {
 
     private void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
                                  List<Map<String, ?>> values, Map<String, Object> d, Map<String, Object> o) {
+        String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
+
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();
@@ -442,7 +470,7 @@ public class RdbSyncService {
             if (srcColumnName == null) {
                 srcColumnName = Util.cleanColumn(targetColumnName);
             }
-            sql.append(targetColumnName).append("=? AND ");
+            sql.append(backtick).append(targetColumnName).append(backtick).append("=? AND ");
             Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
             if (type == null) {
                 throw new RuntimeException("Target column: " + targetColumnName + " not matched");

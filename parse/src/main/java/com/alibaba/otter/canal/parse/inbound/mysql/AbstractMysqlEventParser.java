@@ -16,6 +16,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFact
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBFactory;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
+import org.apache.commons.lang.StringUtils;
 
 public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
@@ -37,6 +38,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean              filterRows                = false;
     protected boolean              filterTableError          = false;
     protected boolean              useDruidDdlFilter         = true;
+
+    protected boolean              filterDmlInsert           = false;
+    protected boolean              filterDmlUpdate           = false;
+    protected boolean              filterDmlDelete           = false;
     // instance received binlog bytes
     protected final AtomicLong     receivedBinlogBytes       = new AtomicLong(0L);
     private final AtomicLong       eventsPublishBlockingTime = new AtomicLong(0L);
@@ -50,6 +55,9 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         if (eventBlackFilter != null && eventBlackFilter instanceof AviaterRegexFilter) {
             convert.setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
+
+        convert.setFieldFilterMap(getFieldFilterMap());
+        convert.setFieldBlackFilterMap(getFieldBlackFilterMap());
 
         convert.setCharset(connectionCharset);
         convert.setFilterQueryDcl(filterQueryDcl);
@@ -88,6 +96,34 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
                 ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
             }
+        }
+    }
+
+    @Override
+    public void setFieldFilter(String fieldFilter) {
+        super.setFieldFilter(fieldFilter);
+
+        // 触发一下filter变更
+        if (binlogParser instanceof LogEventConvert) {
+            ((LogEventConvert) binlogParser).setFieldFilterMap(getFieldFilterMap());
+        }
+
+        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            ((DatabaseTableMeta) tableMetaTSDB).setFieldFilterMap(getFieldFilterMap());
+        }
+    }
+
+    @Override
+    public void setFieldBlackFilter(String fieldBlackFilter) {
+        super.setFieldBlackFilter(fieldBlackFilter);
+
+        // 触发一下filter变更
+        if (binlogParser instanceof LogEventConvert) {
+            ((LogEventConvert) binlogParser).setFieldBlackFilterMap(getFieldBlackFilterMap());
+        }
+
+        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            ((DatabaseTableMeta) tableMetaTSDB).setFieldBlackFilterMap(getFieldBlackFilterMap());
         }
     }
 
@@ -142,7 +178,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             parallelThreadSize,
             (LogEventConvert) binlogParser,
             transactionBuffer,
-            destination);
+            destination, filterDmlInsert, filterDmlUpdate, filterDmlDelete);
         mysqlMultiStageCoprocessor.setEventsPublishBlockingTime(eventsPublishBlockingTime);
         return mysqlMultiStageCoprocessor;
     }
@@ -153,11 +189,15 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         this.connectionCharsetNumber = connectionCharsetNumber;
     }
 
-    public void setConnectionCharset(Charset connectionCharset) {
+    public void setConnectionCharsetStd(Charset connectionCharset) {
         this.connectionCharset = connectionCharset;
     }
 
     public void setConnectionCharset(String connectionCharset) {
+        if ("UTF8MB4".equalsIgnoreCase(connectionCharset)) {
+            connectionCharset = "UTF-8";
+        }
+
         this.connectionCharset = Charset.forName(connectionCharset);
     }
 
@@ -187,6 +227,30 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setUseDruidDdlFilter(boolean useDruidDdlFilter) {
         this.useDruidDdlFilter = useDruidDdlFilter;
+    }
+
+    public boolean isFilterDmlInsert() {
+        return filterDmlInsert;
+    }
+
+    public void setFilterDmlInsert(boolean filterDmlInsert) {
+        this.filterDmlInsert = filterDmlInsert;
+    }
+
+    public boolean isFilterDmlUpdate() {
+        return filterDmlUpdate;
+    }
+
+    public void setFilterDmlUpdate(boolean filterDmlUpdate) {
+        this.filterDmlUpdate = filterDmlUpdate;
+    }
+
+    public boolean isFilterDmlDelete() {
+        return filterDmlDelete;
+    }
+
+    public void setFilterDmlDelete(boolean filterDmlDelete) {
+        this.filterDmlDelete = filterDmlDelete;
     }
 
     public void setEnableTsdb(boolean enableTsdb) {

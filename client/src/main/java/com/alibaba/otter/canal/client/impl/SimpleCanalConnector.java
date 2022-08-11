@@ -10,6 +10,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import com.alibaba.otter.canal.protocol.CanalPacket.Sub;
 import com.alibaba.otter.canal.protocol.CanalPacket.Unsub;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.Message;
+import com.alibaba.otter.canal.protocol.SecurityUtil;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.protobuf.ByteString;
 
@@ -62,7 +64,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private SocketChannel        channel;
     private ReadableByteChannel  readableChannel;
     private WritableByteChannel  writableChannel;
-    private List<Compression>    supportedCompressions = new ArrayList<Compression>();
+    private List<Compression>    supportedCompressions = new ArrayList<>();
     private ClientIdentity       clientIdentity;
     private ClientRunningMonitor runningMonitor;                                                             // 运行控制
     private ZkClientx            zkClientx;
@@ -96,6 +98,7 @@ public class SimpleCanalConnector implements CanalConnector {
         this.clientIdentity = new ClientIdentity(destination, (short) 1001);
     }
 
+    @Override
     public void connect() throws CanalClientException {
         if (connected) {
             return;
@@ -122,6 +125,7 @@ public class SimpleCanalConnector implements CanalConnector {
         connected = true;
     }
 
+    @Override
     public void disconnect() throws CanalClientException {
         if (rollbackOnDisConnect && channel.isConnected()) {
             rollback();
@@ -160,9 +164,16 @@ public class SimpleCanalConnector implements CanalConnector {
             Handshake handshake = Handshake.parseFrom(p.getBody());
             supportedCompressions.add(handshake.getSupportedCompressions());
             //
+            ByteString seed = handshake.getSeeds(); // seed for auth
+            String newPasswd = password;
+            if (password != null) {
+                // encode passwd
+                newPasswd = SecurityUtil.byte2HexStr(SecurityUtil.scramble411(password.getBytes(), seed.toByteArray()));
+            }
+
             ClientAuth ca = ClientAuth.newBuilder()
                 .setUsername(username != null ? username : "")
-                .setPassword(ByteString.copyFromUtf8(password != null ? password : ""))
+                .setPassword(ByteString.copyFromUtf8(newPasswd != null ? newPasswd : ""))
                 .setNetReadTimeout(idleTimeout)
                 .setNetWriteTimeout(idleTimeout)
                 .build();
@@ -185,7 +196,7 @@ public class SimpleCanalConnector implements CanalConnector {
 
             connected = true;
             return new InetSocketAddress(channel.socket().getLocalAddress(), channel.socket().getLocalPort());
-        } catch (IOException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             throw new CanalClientException(e);
         }
     }
@@ -213,10 +224,12 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void subscribe() throws CanalClientException {
         subscribe(""); // 传递空字符即可
     }
 
+    @Override
     public void subscribe(String filter) throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -246,6 +259,7 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void unsubscribe() throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -272,20 +286,24 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public Message get(int batchSize) throws CanalClientException {
         return get(batchSize, null, null);
     }
 
+    @Override
     public Message get(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         Message message = getWithoutAck(batchSize, timeout, unit);
         ack(message.getId());
         return message;
     }
 
+    @Override
     public Message getWithoutAck(int batchSize) throws CanalClientException {
         return getWithoutAck(batchSize, null, null);
     }
 
+    @Override
     public Message getWithoutAck(int batchSize, Long timeout, TimeUnit unit) throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -322,6 +340,7 @@ public class SimpleCanalConnector implements CanalConnector {
         return CanalMessageDeserializer.deserializer(data, lazyParseEntry);
     }
 
+    @Override
     public void ack(long batchId) throws CanalClientException {
         waitClientRunning();
         if (!running) {
@@ -343,6 +362,7 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void rollback(long batchId) throws CanalClientException {
         waitClientRunning();
         ClientRollback ca = ClientRollback.newBuilder()
@@ -361,9 +381,10 @@ public class SimpleCanalConnector implements CanalConnector {
         }
     }
 
+    @Override
     public void rollback() throws CanalClientException {
         waitClientRunning();
-        rollback(0);// 0代笔未设置
+        rollback(0); // 0 代表未设置
     }
 
     // ==================== helper method ====================

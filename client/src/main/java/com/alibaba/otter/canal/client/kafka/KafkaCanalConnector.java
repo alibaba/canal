@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
@@ -80,11 +80,11 @@ public class KafkaCanalConnector implements CanalMQConnector {
 
         connected = true;
         if (kafkaConsumer == null && !flatMessage) {
-            kafkaConsumer = new KafkaConsumer<String, Message>(properties);
+            kafkaConsumer = new KafkaConsumer<>(properties);
 
         }
         if (kafkaConsumer2 == null && flatMessage) {
-            kafkaConsumer2 = new KafkaConsumer<String, String>(properties);
+            kafkaConsumer2 = new KafkaConsumer<>(properties);
         }
     }
 

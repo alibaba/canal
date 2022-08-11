@@ -1,18 +1,15 @@
 package com.alibaba.otter.canal.example.rocketmq;
 
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.protocol.Message;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.example.kafka.AbstractKafkaTest;
-import com.alibaba.otter.canal.protocol.Message;
-
 /**
- * Kafka client example
+ * RocketMQ client example
  *
  * @author machengyuan @ 2018-6-12
  * @version 1.0.0
@@ -27,39 +24,42 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
 
     private Thread                          thread  = null;
 
-    private Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
+    private Thread.UncaughtExceptionHandler handler = (t, e) -> logger.error("parse events has an error", e);
 
-                                                        public void uncaughtException(Thread t, Throwable e) {
-                                                            logger.error("parse events has an error", e);
-                                                        }
-                                                    };
-
-    public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
+    public CanalRocketMQClientExample(String nameServers, String topic, String groupId) {
         connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, false);
+    }
+
+    public CanalRocketMQClientExample(String nameServers, String topic, String groupId, boolean enableMessageTrace,
+        String accessKey, String secretKey, String accessChannel, String namespace) {
+        connector = new RocketMQCanalConnector(nameServers, topic, groupId, accessKey,
+            secretKey, -1, false, enableMessageTrace,
+            null, accessChannel, namespace);
     }
 
     public static void main(String[] args) {
         try {
             final CanalRocketMQClientExample rocketMQClientExample = new CanalRocketMQClientExample(nameServers,
                 topic,
-                groupId);
-            logger.info("## Start the rocketmq consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
+                groupId,
+                enableMessageTrace,
+                accessKey,
+                secretKey,
+                accessChannel,
+                namespace);
+            logger.info("## Start the rocketmq consumer: {}-{}", topic, groupId);
             rocketMQClientExample.start();
             logger.info("## The canal rocketmq consumer is running now ......");
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-
-                public void run() {
-                    try {
-                        logger.info("## Stop the rocketmq consumer");
-                        rocketMQClientExample.stop();
-                    } catch (Throwable e) {
-                        logger.warn("## Something goes wrong when stopping rocketmq consumer:", e);
-                    } finally {
-                        logger.info("## Rocketmq consumer is down.");
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    logger.info("## Stop the rocketmq consumer");
+                    rocketMQClientExample.stop();
+                } catch (Throwable e) {
+                    logger.warn("## Something goes wrong when stopping rocketmq consumer:", e);
+                } finally {
+                    logger.info("## Rocketmq consumer is down.");
                 }
-
-            });
+            }));
             while (running)
                 ;
         } catch (Throwable e) {
@@ -70,12 +70,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
 
     public void start() {
         Assert.notNull(connector, "connector is null");
-        thread = new Thread(new Runnable() {
-
-            public void run() {
-                process();
-            }
-        });
+        thread = new Thread(this::process);
         thread.setUncaughtExceptionHandler(handler);
         thread.start();
         running = true;
@@ -108,7 +103,7 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
                 connector.connect();
                 connector.subscribe();
                 while (running) {
-                    List<Message> messages = connector.getListWithoutAck(100L, TimeUnit.MILLISECONDS); // 获取message
+                    List<Message> messages = connector.getListWithoutAck(1000L, TimeUnit.MILLISECONDS); // 获取message
                     for (Message message : messages) {
                         long batchId = message.getId();
                         int size = message.getEntries().size();

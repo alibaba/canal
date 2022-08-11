@@ -55,7 +55,7 @@ public class MappingConfigsLoader {
         }
         if (filePath.exists()) {
             String fileName = filePath.getName();
-            if (!fileName.endsWith(".yml")) {
+            if (!(fileName.endsWith(".yml") || fileName.endsWith(".yaml"))) {
                 return null;
             }
             try (InputStream in = new FileInputStream(filePath)) {

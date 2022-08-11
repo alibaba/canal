@@ -15,22 +15,22 @@
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
 		<property name="eventParser">
-			<ref local="eventParser" />
+			<ref bean="eventParser" />
 		</property>
 		<property name="eventSink">
-			<ref local="eventSink" />
+			<ref bean="eventSink" />
 		</property>
 		<property name="eventStore">
-			<ref local="eventStore" />
+			<ref bean="eventStore" />
 		</property>
 		<property name="metaManager">
-			<ref local="metaManager" />
+			<ref bean="metaManager" />
 		</property>
 		<property name="alarmHandler">
-			<ref local="alarmHandler" />
+			<ref bean="alarmHandler" />
 		</property>
         <property name="mqConfig">
-            <ref local="mqConfig" />
+            <ref bean="mqConfig" />
         </property>
 	</bean>
 
@@ -81,6 +81,10 @@
 				<constructor-arg index="1" value="false" />
 			</bean>
 		</property>
+		
+		<property name="fieldFilter" value="${canal.instance.filter.field}" />
+		<property name="fieldBlackFilter" value="${canal.instance.filter.black.field}" />
+		
 		<!-- 最大事务解析大小，超过该大小后事务将被切分为多个事务投递 -->
 		<property name="transactionSize" value="${canal.instance.transaction.size:1024}" />
 
@@ -144,6 +148,9 @@
 		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
 		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
 		<property name="useDruidDdlFilter" value="${canal.instance.filter.druid.ddl:true}" />
+		<property name="filterDmlInsert" value="${canal.instance.filter.dml.insert:false}" />
+		<property name="filterDmlUpdate" value="${canal.instance.filter.dml.update:false}" />
+		<property name="filterDmlDelete" value="${canal.instance.filter.dml.delete:false}" />
 		<property name="filterRows" value="${canal.instance.filter.rows:false}" />
 		<property name="filterTableError" value="${canal.instance.filter.table.error:false}" />
 		<property name="supportBinlogFormats" value="${canal.instance.binlog.format}" />
@@ -162,6 +169,8 @@
 		<property name="parallel" value="${canal.instance.parser.parallel:true}" />
 		<property name="parallelThreadSize" value="${canal.instance.parser.parallelThreadSize}" />
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
+
+		<property name="autoResetLatestPosMode" value="${canal.auto.reset.latest.pos.mode:false}" />
 	</bean>
 
 	<bean id="mqConfig" class="com.alibaba.otter.canal.instance.core.CanalMQConfig">
@@ -170,5 +179,7 @@
 		<property name="partition" value="${canal.mq.partition}" />
 		<property name="partitionsNum" value="${canal.mq.partitionsNum}" />
 		<property name="partitionHash" value="${canal.mq.partitionHash}" />
+		<property name="dynamicTopicPartitionNum" value="${canal.mq.dynamicTopicPartitionNum}" />
+		<property name="enableDynamicQueuePartition" value="${canal.mq.enableDynamicQueuePartition}" />
 	</bean>
 </beans>

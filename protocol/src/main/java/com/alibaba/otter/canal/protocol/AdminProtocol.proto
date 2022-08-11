@@ -1,0 +1,83 @@
+syntax = "proto3";
+package com.alibaba.otter.canal.protocol;
+
+option java_package = "com.alibaba.otter.canal.protocol";
+option java_outer_classname = "AdminPacket";
+option optimize_for = SPEED;
+
+enum PacketType {
+    //compatible
+    PACKAGETYPECOMPATIBLEPROTO2 = 0;
+    HANDSHAKE = 1;
+    CLIENTAUTHENTICATION = 2;
+    ACK = 3;
+    SERVER = 4;
+    INSTANCE = 5;
+    LOG = 6;
+}
+
+message Packet {
+     //[default = 17];
+     oneof magic_number_present {
+         int32 magic_number = 1;
+     }
+     // [default = 1]
+     oneof version_present {
+          int32 version = 2;
+     };
+     PacketType type = 3;
+     bytes body = 4;
+}
+
+message Ack {
+    // [default = 0]
+    oneof error_code_present {
+        int32 code = 1;
+    }
+    string message = 2; // if something like compression is not supported, erorr_message will tell about it.
+}
+
+message Handshake {
+    //  [default = "utf8"];
+    oneof communication_encoding_present {
+        string communication_encoding = 1;
+    }
+    bytes seeds = 2;
+}
+
+// client authentication
+message ClientAuth {
+    string username = 1;
+    bytes password = 2; // hashed password with seeds from Handshake message
+    // [default = 0]
+    oneof net_read_timeout_present {
+         int32 net_read_timeout = 3; // in seconds
+    }
+    // [default = 0];
+    oneof net_write_timeout_present {
+        int32 net_write_timeout = 4; // in seconds
+    }
+}
+
+message ServerAdmin {
+    string action = 1; // check/start/stop/restart/list
+}
+
+message InstanceAdmin {
+    string destination = 1;
+    string action = 2; // check/start/stop/reload
+}
+
+message LogAdmin {
+	string type = 1; // canal/instance
+	string action = 2;
+	oneof destination_present {
+		string destination = 3;
+	}
+	oneof file_present {
+		string file = 4;
+	}
+	oneof count_present {
+		int32 count = 5; // 默认tail 100行，最大不超过4MB
+	}
+}

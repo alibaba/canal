@@ -53,10 +53,14 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
                 // 处理group的模式
                 List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
                 for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
-                    ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
+                    if(singleEventParser instanceof AbstractEventParser) {
+                        ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
+                    }
                 }
             } else {
-                ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+                if(eventParser instanceof AbstractEventParser) {
+                    ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+                }
             }
 
         }

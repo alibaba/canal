@@ -32,7 +32,7 @@ public class MysqlDumpTest {
         final MysqlEventParser controller = new MysqlEventParser();
         final EntryPosition startPosition = new EntryPosition("mysql-bin.000001", 4L);
         // startPosition.setGtid("f1ceb61a-a5d5-11e7-bdee-107c3dbcf8a7:1-17");
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setConnectionCharsetStd(Charset.forName("UTF-8"));
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "root", "hello"));
@@ -59,15 +59,15 @@ public class MysqlDumpTest {
                         continue;
                     }
 
-                    RowChange rowChage = null;
+                    RowChange rowChange = null;
                     try {
-                        rowChage = RowChange.parseFrom(entry.getStoreValue());
+                        rowChange = RowChange.parseFrom(entry.getStoreValue());
                     } catch (Exception e) {
                         throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
                                                    + entry.toString(), e);
                     }
 
-                    EventType eventType = rowChage.getEventType();
+                    EventType eventType = rowChange.getEventType();
                     System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s] , eventType : %s",
                         entry.getHeader().getLogfileName(),
                         entry.getHeader().getLogfileOffset(),
@@ -75,12 +75,12 @@ public class MysqlDumpTest {
                         entry.getHeader().getTableName(),
                         eventType));
 
-                    if (eventType == EventType.QUERY || rowChage.getIsDdl()) {
-                        System.out.println(" sql ----> " + rowChage.getSql());
+                    if (eventType == EventType.QUERY || rowChange.getIsDdl()) {
+                        System.out.println(" sql ----> " + rowChange.getSql());
                     }
 
-                    printXAInfo(rowChage.getPropsList());
-                    for (RowData rowData : rowChage.getRowDatasList()) {
+                    printXAInfo(rowChange.getPropsList());
+                    for (RowData rowData : rowChange.getRowDatasList()) {
                         if (eventType == EventType.DELETE) {
                             print(rowData.getBeforeColumnsList());
                         } else if (eventType == EventType.INSERT) {

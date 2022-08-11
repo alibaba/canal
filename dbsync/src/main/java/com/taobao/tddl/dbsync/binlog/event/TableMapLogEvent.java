@@ -1,11 +1,10 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
+import com.taobao.tddl.dbsync.binlog.LogBuffer;
+import com.taobao.tddl.dbsync.binlog.LogEvent;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-
-import com.taobao.tddl.dbsync.binlog.LogBuffer;
-import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
  * In row-based mode, every row operation event is preceded by a
@@ -326,8 +325,8 @@ public final class TableMapLogEvent extends LogEvent {
      * </ul>
      * Source : http://forge.mysql.com/wiki/MySQL_Internals_Binary_Log
      */
-    protected final String dbname;
-    protected final String tblname;
+    protected String dbname;
+    protected String tblname;
 
     /**
      * Holding mysql column information.
@@ -343,12 +342,14 @@ public final class TableMapLogEvent extends LogEvent {
         public int          charset;        // 可以通过CharsetUtil进行转化
         public int          geoType;
         public boolean      nullable;
+        public boolean      visibility;
+        public boolean      array;
 
-        @Override
-        public String toString() {
-            return "ColumnInfo [type=" + type + ", meta=" + meta + ", name=" + name + ", unsigned=" + unsigned
-                   + ", pk=" + pk + ", set_enum_values=" + set_enum_values + ", charset=" + charset + ", geoType="
-                   + geoType + ", nullable=" + nullable + "]";
+        @Override public String toString() {
+            return "ColumnInfo{" + "type=" + type + ", meta=" + meta + ", name='" + name + '\'' + ", unsigned="
+                   + unsigned + ", pk=" + pk + ", set_enum_values=" + set_enum_values + ", charset=" + charset
+                   + ", geoType=" + geoType + ", nullable=" + nullable + ", visibility=" + visibility + ", array="
+                   + array + '}';
         }
     }
 
@@ -382,6 +383,12 @@ public final class TableMapLogEvent extends LogEvent {
     public static final int      SIMPLE_PRIMARY_KEY      = 8;
     // Primary key with prefix
     public static final int      PRIMARY_KEY_WITH_PREFIX = 9;
+    // Character set of enum and set columns, optimized to minimize space when many columns have the same charset.
+    public static final int      ENUM_AND_SET_DEFAULT_CHARSET = 10;
+    // Character set of enum and set columns, optimized to minimize space when many columns have the same charset.
+    public static final int      ENUM_AND_SET_COLUMN_CHARSET = 11;
+    // Flag to indicate column visibility attribute
+    public static final int      COLUMN_VISIBILITY       = 12;
 
     private int                  default_charset;
     private boolean              existOptionalMetaData   = false;
@@ -418,6 +425,7 @@ public final class TableMapLogEvent extends LogEvent {
         buffer.position(commonHeaderLen + postHeaderLen);
         dbname = buffer.getString();
         buffer.forward(1); /* termination null */
+        // fixed issue #2714
         tblname = buffer.getString();
         buffer.forward(1); /* termination null */
 
@@ -483,6 +491,15 @@ public final class TableMapLogEvent extends LogEvent {
                     case PRIMARY_KEY_WITH_PREFIX:
                         parse_pk_with_prefix(buffer, len);
                         break;
+                    case ENUM_AND_SET_DEFAULT_CHARSET:
+                        parse_default_charset(buffer, len);
+                        break;
+                    case ENUM_AND_SET_COLUMN_CHARSET:
+                        parse_column_charset(buffer, len);
+                        break;
+                    case COLUMN_VISIBILITY:
+                        parse_column_visibility(buffer, len);
+                        break;
                     default:
                         throw new IllegalArgumentException("unknow type : " + type);
                 }
@@ -528,12 +545,16 @@ public final class TableMapLogEvent extends LogEvent {
      */
     private final void decodeFields(LogBuffer buffer, final int len) {
         final int limit = buffer.limit();
-
         buffer.limit(len + buffer.position());
         for (int i = 0; i < columnCnt; i++) {
             ColumnInfo info = columnInfo[i];
 
-            switch (info.type) {
+            int binlogType = info.type;
+            if (binlogType == MYSQL_TYPE_TYPED_ARRAY) {
+                binlogType = buffer.getUint8();
+            }
+
+            switch (binlogType) {
                 case MYSQL_TYPE_TINY_BLOB:
                 case MYSQL_TYPE_BLOB:
                 case MYSQL_TYPE_MEDIUM_BLOB:
@@ -541,6 +562,9 @@ public final class TableMapLogEvent extends LogEvent {
                 case MYSQL_TYPE_DOUBLE:
                 case MYSQL_TYPE_FLOAT:
                 case MYSQL_TYPE_GEOMETRY:
+                case MYSQL_TYPE_TIME2:
+                case MYSQL_TYPE_DATETIME2:
+                case MYSQL_TYPE_TIMESTAMP2:
                 case MYSQL_TYPE_JSON:
                     /*
                      * These types store a single byte.
@@ -549,14 +573,6 @@ public final class TableMapLogEvent extends LogEvent {
                     break;
                 case MYSQL_TYPE_SET:
                 case MYSQL_TYPE_ENUM:
-                    /*
-                     * log_event.h : MYSQL_TYPE_SET & MYSQL_TYPE_ENUM : This
-                     * enumeration value is only used internally and cannot
-                     * exist in a binlog.
-                     */
-                    logger.warn("This enumeration value is only used internally "
-                                + "and cannot exist in a binlog: type=" + info.type);
-                    break;
                 case MYSQL_TYPE_STRING: {
                     /*
                      * log_event.h : The first byte is always
@@ -584,12 +600,6 @@ public final class TableMapLogEvent extends LogEvent {
                     info.meta = x;
                     break;
                 }
-                case MYSQL_TYPE_TIME2:
-                case MYSQL_TYPE_DATETIME2:
-                case MYSQL_TYPE_TIMESTAMP2: {
-                    info.meta = buffer.getUint8();
-                    break;
-                }
                 default:
                     info.meta = 0;
                     break;
@@ -600,7 +610,7 @@ public final class TableMapLogEvent extends LogEvent {
 
     private void parse_signedness(LogBuffer buffer, int length) {
         // stores the signedness flags extracted from field
-        List<Boolean> datas = new ArrayList<Boolean>();
+        List<Boolean> datas = new ArrayList<>();
         for (int i = 0; i < length; i++) {
             int ut = buffer.getUint8();
             for (int c = 0x80; c != 0; c >>= 1) {
@@ -621,7 +631,7 @@ public final class TableMapLogEvent extends LogEvent {
         // stores collation numbers extracted from field.
         int limit = buffer.position() + length;
         this.default_charset = (int) buffer.getPackedLong();
-        List<TableMapLogEvent.Pair> datas = new ArrayList<TableMapLogEvent.Pair>();
+        List<TableMapLogEvent.Pair> datas = new ArrayList<>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int col_index = (int) buffer.getPackedLong();
             int col_charset = (int) buffer.getPackedLong();
@@ -638,13 +648,27 @@ public final class TableMapLogEvent extends LogEvent {
     private List<Integer> parse_column_charset(LogBuffer buffer, int length) {
         // stores collation numbers extracted from field.
         int limit = buffer.position() + length;
-        List<Integer> datas = new ArrayList<Integer>();
+        List<Integer> datas = new ArrayList<>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int col_charset = (int) buffer.getPackedLong();
             datas.add(col_charset);
         }
 
         return datas;
+    }
+
+
+    private void parse_column_visibility(LogBuffer buffer, int length) {
+        List<Boolean> data = new ArrayList<>(columnInfo.length);
+        for (int i = 0; i < length; i++) {
+            int ut = buffer.getUint8();
+            for (int c = 0x80; c != 0; c >>= 1) {
+                data.add((ut & c) > 0);
+            }
+        }
+        for (int i = 0; i < columnCnt; i++) {
+            columnInfo[i].visibility = data.get(i);
+        }
     }
 
     private void parse_column_name(LogBuffer buffer, int length) {
@@ -663,10 +687,10 @@ public final class TableMapLogEvent extends LogEvent {
         // into a string separate vector. All of them are stored
         // in 'vec'.
         int limit = buffer.position() + length;
-        List<List<String>> datas = new ArrayList<List<String>>();
+        List<List<String>> datas = new ArrayList<>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int count = (int) buffer.getPackedLong();
-            List<String> data = new ArrayList<String>(count);
+            List<String> data = new ArrayList<>(count);
             for (int i = 0; i < count; i++) {
                 int len1 = (int) buffer.getPackedLong();
                 data.add(buffer.getFixString(len1));
@@ -693,7 +717,7 @@ public final class TableMapLogEvent extends LogEvent {
         // stores geometry column's types extracted from field.
         int limit = buffer.position() + length;
 
-        List<Integer> datas = new ArrayList<Integer>();
+        List<Integer> datas = new ArrayList<>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int col_type = (int) buffer.getPackedLong();
             datas.add(col_type);
@@ -790,6 +814,22 @@ public final class TableMapLogEvent extends LogEvent {
 
     public final String getTableName() {
         return tblname;
+    }
+
+    public String getDbname() {
+        return dbname;
+    }
+
+    public void setDbname(String dbname) {
+        this.dbname = dbname;
+    }
+
+    public String getTblname() {
+        return tblname;
+    }
+
+    public void setTblname(String tblname) {
+        this.tblname = tblname;
     }
 
     public final int getColumnCnt() {

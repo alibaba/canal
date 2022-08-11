@@ -1,10 +1,9 @@
 package com.alibaba.otter.canal.protocol;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author machengyuan 2018-9-13 下午10:31:14
@@ -66,7 +65,7 @@ public class FlatMessage implements Serializable {
 
     public void addPkName(String pkName) {
         if (this.pkNames == null) {
-            this.pkNames = Lists.newArrayList();
+            this.pkNames = new ArrayList<>();
         }
         this.pkNames.add(pkName);
     }

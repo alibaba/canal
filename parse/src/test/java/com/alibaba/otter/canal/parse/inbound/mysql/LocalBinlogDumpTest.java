@@ -31,7 +31,7 @@ public class LocalBinlogDumpTest {
         final EntryPosition startPosition = new EntryPosition("mysql-bin.000003", 123L);
 
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress("127.0.0.1", 3306), "canal", "canal"));
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setConnectionCharsetStd(Charset.forName("UTF-8"));
         controller.setDirectory(directory);
         controller.setMasterPosition(startPosition);
         controller.setEventSink(new AbstractCanalEventSinkTest<List<Entry>>() {
@@ -47,15 +47,15 @@ public class LocalBinlogDumpTest {
                     }
 
                     if (entry.getEntryType() == EntryType.ROWDATA) {
-                        RowChange rowChage = null;
+                        RowChange rowChange = null;
                         try {
-                            rowChage = RowChange.parseFrom(entry.getStoreValue());
+                            rowChange = RowChange.parseFrom(entry.getStoreValue());
                         } catch (Exception e) {
                             throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:"
                                                        + entry.toString(), e);
                         }
 
-                        EventType eventType = rowChage.getEventType();
+                        EventType eventType = rowChange.getEventType();
                         System.out.println(String.format("================> binlog[%s:%s] , name[%s,%s] , eventType : %s",
                             entry.getHeader().getLogfileName(),
                             entry.getHeader().getLogfileOffset(),
@@ -63,7 +63,7 @@ public class LocalBinlogDumpTest {
                             entry.getHeader().getTableName(),
                             eventType));
 
-                        for (RowData rowData : rowChage.getRowDatasList()) {
+                        for (RowData rowData : rowChange.getRowDatasList()) {
                             if (eventType == EventType.DELETE) {
                                 print(rowData.getBeforeColumnsList());
                             } else if (eventType == EventType.INSERT) {
