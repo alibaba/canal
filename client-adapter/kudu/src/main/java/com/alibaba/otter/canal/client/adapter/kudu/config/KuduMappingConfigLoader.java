@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.kudu.config;
 
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -7,7 +8,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
@@ -30,11 +30,7 @@ public class KuduMappingConfigLoader {
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("kudu");
         configContentMap.forEach((fileName, content) -> {
-            KuduMappingConfig config = YmlConfigBinder.bindYmlToObj(null,
-                content,
-                KuduMappingConfig.class,
-                null,
-                envProperties);
+            KuduMappingConfig config = YamlUtils.ymlToObj(null, content, KuduMappingConfig.class, null, envProperties);
             if (config == null) {
                 return;
             }

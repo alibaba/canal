@@ -80,7 +80,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create user")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "alter user")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "drop user")
-                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create database")) {
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create database")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "alter schema")) {
                     repository.console(ddl);
                 }
             } catch (Throwable e) {
