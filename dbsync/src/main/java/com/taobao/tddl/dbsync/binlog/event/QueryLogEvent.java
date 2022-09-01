@@ -603,6 +603,13 @@ public class QueryLogEvent extends LogEvent {
      */
     public static final int Q_HRNOW                           = 128;
 
+    /**
+     * Support MariaDB 10.10.1
+     */
+    public static final int Q_XID                             = 129;
+
+    public static final int Q_GTID_FLAGS3                     = 130;
+
     private final void unpackVariables(LogBuffer buffer, final int end) throws IOException {
         int code = -1;
         try {
@@ -613,7 +620,7 @@ public class QueryLogEvent extends LogEvent {
                         break;
                     case Q_SQL_MODE_CODE:
                         sql_mode = buffer.getLong64(); // QQ: Fix when sql_mode
-                                                       // is ulonglong
+                        // is ulonglong
                         break;
                     case Q_CATALOG_NZ_CODE:
                         catalog = buffer.getString();
@@ -701,6 +708,23 @@ public class QueryLogEvent extends LogEvent {
                         // int when_sec_part = buffer.getUint24();
                         buffer.forward(3);
                         break;
+                    case Q_XID:
+                        // xid= uint8korr(pos);
+                        buffer.forward(8);
+                    case Q_GTID_FLAGS3:
+                        // gtid_flags_extra= *pos++;
+                        // if (gtid_flags_extra & (Gtid_log_event::FL_COMMIT_ALTER_E1 |
+                        // Gtid_log_event::FL_ROLLBACK_ALTER_E1)) {
+                        // sa_seq_no = uint8korr(pos);
+                        // pos+= 8;
+                        // }
+
+                        int gtid_flags_extra = buffer.getUint8();
+                        final int FL_COMMIT_ALTER_E1= 4;
+                        final int FL_ROLLBACK_ALTER_E1= 8;
+                        if ((gtid_flags_extra & (FL_COMMIT_ALTER_E1 | FL_ROLLBACK_ALTER_E1))> 0) {
+                            buffer.forward(8);
+                        }
                     default:
                         /*
                          * That's why you must write status vars in growing
@@ -740,16 +764,22 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_TABLE_MAP_FOR_UPDATE_CODE";
             case Q_MASTER_DATA_WRITTEN_CODE:
                 return "Q_MASTER_DATA_WRITTEN_CODE";
-            case Q_UPDATED_DB_NAMES:
-                return "Q_UPDATED_DB_NAMES";
+            case Q_INVOKER:
+                return "case Q_INVOKER";
             case Q_MICROSECONDS:
                 return "Q_MICROSECONDS";
+            case Q_UPDATED_DB_NAMES:
+                return "Q_UPDATED_DB_NAMES";
+            case Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP:
+                return "Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP";
             case Q_DDL_LOGGED_WITH_XID:
                 return "Q_DDL_LOGGED_WITH_XID";
             case Q_DEFAULT_COLLATION_FOR_UTF8MB4:
                 return "Q_DEFAULT_COLLATION_FOR_UTF8MB4";
             case Q_SQL_REQUIRE_PRIMARY_KEY:
                 return "Q_SQL_REQUIRE_PRIMARY_KEY";
+            case Q_HRNOW:
+                return "Q_HRNOW";
         }
         return "CODE#" + code;
     }
