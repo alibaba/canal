@@ -213,6 +213,21 @@ public abstract class LogEvent {
 
     public static final int    START_ENCRYPTION_EVENT                   = 164;
 
+    // mariadb 10.10.1
+    /*
+     * Compressed binlog event. Note that the order between WRITE/UPDATE/DELETE
+     * events is significant; this is so that we can convert from the compressed to
+     * the uncompressed event type with (type-WRITE_ROWS_COMPRESSED_EVENT +
+     * WRITE_ROWS_EVENT) and similar for _V1.
+     */
+    public static final int    QUERY_COMPRESSED_EVENT                   = 165;
+    public static final int    WRITE_ROWS_COMPRESSED_EVENT_V1           = 166;
+    public static final int    UPDATE_ROWS_COMPRESSED_EVENT_V1          = 167;
+    public static final int    DELETE_ROWS_COMPRESSED_EVENT_V1          = 168;
+    public static final int    WRITE_ROWS_COMPRESSED_EVENT              = 169;
+    public static final int    UPDATE_ROWS_COMPRESSED_EVENT             = 170;
+    public static final int    DELETE_ROWS_COMPRESSED_EVENT             = 171;
+
     /** end marker */
     public static final int    ENUM_END_EVENT                           = 165;
 
