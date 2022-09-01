@@ -178,7 +178,10 @@ public abstract class LogEvent {
     /* mysql 8.0.20 */
     public static final int    TRANSACTION_PAYLOAD_EVENT                = 40;
 
-    public static final int    MYSQL_ENUM_END_EVENT                     = 41;
+    /* mysql 8.0.26 */
+    public static final int    HEARTBEAT_LOG_EVENT_V2                   = 41;
+
+    public static final int    MYSQL_ENUM_END_EVENT                     = 42;
 
     // mariaDb 5.5.34
     /* New MySQL/Sun events are to be added right above this comment */
@@ -358,6 +361,7 @@ public abstract class LogEvent {
             case INCIDENT_EVENT:
                 return "Incident";
             case HEARTBEAT_LOG_EVENT:
+            case HEARTBEAT_LOG_EVENT_V2:
                 return "Heartbeat";
             case IGNORABLE_LOG_EVENT:
                 return "Ignorable";

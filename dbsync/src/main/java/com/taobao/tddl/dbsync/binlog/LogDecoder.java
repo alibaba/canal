@@ -418,6 +418,12 @@ public final class LogDecoder {
                 logPosition.position = header.getLogPos();
                 return event;
             }
+            case LogEvent.HEARTBEAT_LOG_EVENT_V2: {
+                HeartbeatV2LogEvent event = new HeartbeatV2LogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
             default:
                 /*
                  * Create an object of Ignorable_log_event for unrecognized
