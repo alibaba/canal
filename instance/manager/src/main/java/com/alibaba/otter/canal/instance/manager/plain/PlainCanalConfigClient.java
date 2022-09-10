@@ -74,7 +74,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
             md5 = "";
         }
         String url = configURL + "/api/v1/config/server_polling?ip=" + localIp + "&port=" + adminPort + "&md5=" + md5
-                     + "&register=" + (autoRegister ? 1 : 0) + "&cluster=" + autoCluster + "&name=" + name;
+                     + "&register=" + (autoRegister ? 1 : 0) + "&cluster=" + StringUtils.stripToEmpty(autoCluster) + "&name=" + StringUtils.stripToEmpty(name);
         return queryConfig(url);
     }
 
