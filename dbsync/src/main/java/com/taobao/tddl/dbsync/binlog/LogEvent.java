@@ -229,7 +229,7 @@ public abstract class LogEvent {
     public static final int    DELETE_ROWS_COMPRESSED_EVENT             = 171;
 
     /** end marker */
-    public static final int    ENUM_END_EVENT                           = 165;
+    public static final int    ENUM_END_EVENT                           = 171;
 
     /**
      * 1 byte length, 1 byte format Length is total length in bytes, including 2

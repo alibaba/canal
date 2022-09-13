@@ -711,6 +711,7 @@ public class QueryLogEvent extends LogEvent {
                     case Q_XID:
                         // xid= uint8korr(pos);
                         buffer.forward(8);
+                        break;
                     case Q_GTID_FLAGS3:
                         // gtid_flags_extra= *pos++;
                         // if (gtid_flags_extra & (Gtid_log_event::FL_COMMIT_ALTER_E1 |
@@ -725,6 +726,7 @@ public class QueryLogEvent extends LogEvent {
                         if ((gtid_flags_extra & (FL_COMMIT_ALTER_E1 | FL_ROLLBACK_ALTER_E1))> 0) {
                             buffer.forward(8);
                         }
+                        break;
                     default:
                         /*
                          * That's why you must write status vars in growing
