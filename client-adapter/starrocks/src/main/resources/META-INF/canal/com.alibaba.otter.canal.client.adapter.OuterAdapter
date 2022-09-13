@@ -1,0 +1,1 @@
+starrocks=com.alibaba.otter.canal.client.adapter.starrocks.StarrocksAdapter
