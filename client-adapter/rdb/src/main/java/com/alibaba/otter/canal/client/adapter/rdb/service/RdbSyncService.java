@@ -253,6 +253,8 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
+        String dbName = dbMapping.getDatabase();
+        String tableName = dbMapping.getTable();
         String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
@@ -284,7 +286,7 @@ public class RdbSyncService {
 
             Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
             if (type == null) {
-                throw new RuntimeException("Target column: " + targetColumnName + " not matched");
+                throw new RuntimeException("Table " + dbName + "." + tableName + " ,Target column: " + targetColumnName + " not matched");
             }
             Object value = data.get(srcColumnName);
             BatchExecutor.setValue(values, type, value);
@@ -325,6 +327,8 @@ public class RdbSyncService {
         }
 
         DbMapping dbMapping = config.getDbMapping();
+        String dbName = dbMapping.getDatabase();
+        String tableName = dbMapping.getTable();
         String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
@@ -347,7 +351,7 @@ public class RdbSyncService {
                     updateSql.append(backtick).append(targetColumnName).append(backtick).append("=?, ");
                     Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
                     if (type == null) {
-                        throw new RuntimeException("Target column: " + targetColumnName + " not matched");
+                        throw new RuntimeException("Table " + dbName + "." + tableName + " ,Target column: " + targetColumnName + " not matched");
                     }
                     BatchExecutor.setValue(values, type, data.get(srcColumnName));
                 }
@@ -463,6 +467,8 @@ public class RdbSyncService {
                                  List<Map<String, ?>> values, Map<String, Object> d, Map<String, Object> o) {
         String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
 
+        String dbName = dbMapping.getDatabase();
+        String tableName = dbMapping.getTable();
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();
@@ -473,7 +479,7 @@ public class RdbSyncService {
             sql.append(backtick).append(targetColumnName).append(backtick).append("=? AND ");
             Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
             if (type == null) {
-                throw new RuntimeException("Target column: " + targetColumnName + " not matched");
+                throw new RuntimeException("Table " + dbName + "." + tableName + " ,Target column: " + targetColumnName + " not matched");
             }
             // 如果有修改主键的情况
             if (o != null && o.containsKey(srcColumnName)) {

@@ -1,0 +1,11 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+outerAdapterKey: mysql1
+srMapping:
+  database: mytest
+  table: user
+  srTable: mytest2.user
+  eventType: INSERT, UPDATE, DELETE
+  etlCondition: "where c_time>={}"
+  commitBatch: 3000 # 批量提交的大小

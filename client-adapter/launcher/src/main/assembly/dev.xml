@@ -72,6 +72,13 @@
             </excludes>
         </fileSet>
         <fileSet>
+            <directory>../starrocks/src/main/resources/</directory>
+            <outputDirectory>/conf</outputDirectory>
+            <excludes>
+                <exclude>META-INF/**</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
             <directory>target</directory>
             <outputDirectory>logs</outputDirectory>
             <excludes>
