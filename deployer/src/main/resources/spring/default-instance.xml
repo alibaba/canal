@@ -207,5 +207,6 @@
 		<property name="partitionHash" value="${canal.mq.partitionHash}" />
 		<property name="dynamicTopicPartitionNum" value="${canal.mq.dynamicTopicPartitionNum}" />
 		<property name="enableDynamicQueuePartition" value="${canal.mq.enableDynamicQueuePartition}" />
+		<property name="topicPrefix" value="${canal.mq.topic.prefix}" />
 	</bean>
 </beans>
