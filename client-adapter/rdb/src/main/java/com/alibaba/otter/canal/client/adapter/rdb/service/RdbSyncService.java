@@ -257,7 +257,9 @@ public class RdbSyncService {
         String tableName = dbMapping.getTable();
         String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
-
+        if(columnsMap == null) {
+            throw new RuntimeException("ColumnsMap is null, check table " + dbName + "." + tableName + " whether the parameter(mapAll or targetColumns) configuration is correct");
+        }
         StringBuilder insertSql = new StringBuilder();
         insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" (");
 
@@ -331,6 +333,9 @@ public class RdbSyncService {
         String tableName = dbMapping.getTable();
         String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
+        if(columnsMap == null) {
+            throw new RuntimeException("ColumnsMap is null, check table " + dbName + "." + tableName + " whether the parameter(mapAll or targetColumns) configuration is correct");
+        }
 
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
