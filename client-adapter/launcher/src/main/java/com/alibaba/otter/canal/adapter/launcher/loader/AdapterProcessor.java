@@ -91,7 +91,7 @@ public class AdapterProcessor {
         canalOuterAdapters.forEach(outerAdapters -> {
             futures.add(groupInnerExecutorService.submit(() -> {
                 try {
-                    // 组内适配器穿行运行，尽量不要配置组内适配器
+                    // 组内适配器串行运行，尽量不要配置组内适配器
                     outerAdapters.forEach(adapter -> {
                         long begin = System.currentTimeMillis();
                         List<Dml> dmls = MessageUtil.flatMessage2Dml(canalDestination, groupId, commonMessages);
