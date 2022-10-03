@@ -53,7 +53,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -63,7 +63,7 @@
         </repository>
         <repository>
             <id>java.net</id>
-            <url>http://download.java.net/maven/2/</url>
+            <url>https://download.java.net/maven/2/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -73,7 +73,7 @@
         </repository>
         <repository>
             <id>aliyun</id>
-            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
