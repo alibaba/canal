@@ -27,7 +27,7 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>6.8.22</version>
+            <version>7.14.0</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
@@ -85,7 +85,7 @@
                             <tasks>
                                 <copy todir="${project.basedir}/../launcher/target/classes/es6" overwrite="true">
                                     <fileset dir="${project.basedir}/target/classes/es6" erroronmissingdir="true">
-                                        <include name="*.yml" />
+                                        <include name="*.yml"/>
                                     </fileset>
                                 </copy>
                             </tasks>
