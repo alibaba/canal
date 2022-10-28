@@ -82,8 +82,8 @@ public class ExtensionLoader<T> {
 
         ExtensionLoader<T> loader = (ExtensionLoader<T>) EXTENSION_LOADERS.get(type);
         if (loader == null) {
-            EXTENSION_LOADERS.putIfAbsent(type, new ExtensionLoader<T>(type, classLoaderPolicy));
-            loader = (ExtensionLoader<T>) EXTENSION_LOADERS.get(type);
+            loader = new ExtensionLoader<T>(type, classLoaderPolicy);
+            EXTENSION_LOADERS.putIfAbsent(type, loader);
         }
         return loader;
     }
@@ -107,8 +107,8 @@ public class ExtensionLoader<T> {
         }
         Holder<Object> holder = cachedInstances.get(name);
         if (holder == null) {
-            cachedInstances.putIfAbsent(name, new Holder<>());
-            holder = cachedInstances.get(name);
+            holder = new Holder<>();
+            cachedInstances.putIfAbsent(name, holder);
         }
         Object instance = holder.get();
         if (instance == null) {
@@ -132,8 +132,8 @@ public class ExtensionLoader<T> {
         String extKey = name + "-" + StringUtils.trimToEmpty(key);
         Holder<Object> holder = cachedInstances.get(extKey);
         if (holder == null) {
-            cachedInstances.putIfAbsent(extKey, new Holder<>());
-            holder = cachedInstances.get(extKey);
+            holder = new Holder<>();
+            cachedInstances.putIfAbsent(extKey, holder);
         }
         Object instance = holder.get();
         if (instance == null) {
@@ -190,8 +190,8 @@ public class ExtensionLoader<T> {
         try {
             T instance = (T) EXTENSION_KEY_INSTANCE.get(name + "-" + key);
             if (instance == null) {
-                EXTENSION_KEY_INSTANCE.putIfAbsent(name + "-" + key, clazz.newInstance());
-                instance = (T) EXTENSION_KEY_INSTANCE.get(name + "-" + key);
+                instance =  (T) clazz.newInstance();
+                EXTENSION_KEY_INSTANCE.putIfAbsent(name + "-" + key, instance);
             }
             return instance;
         } catch (Throwable t) {
