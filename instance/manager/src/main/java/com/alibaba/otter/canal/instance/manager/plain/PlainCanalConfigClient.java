@@ -10,12 +10,13 @@ import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.TypeReference;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
+import com.google.common.net.UrlEscapers;
 
 /**
  * 远程配置获取
@@ -73,7 +74,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
             md5 = "";
         }
         String url = configURL + "/api/v1/config/server_polling?ip=" + localIp + "&port=" + adminPort + "&md5=" + md5
-                     + "&register=" + (autoRegister ? 1 : 0) + "&cluster=" + autoCluster + "&name=" + name;
+                     + "&register=" + (autoRegister ? 1 : 0) + "&cluster=" + StringUtils.stripToEmpty(autoCluster) + "&name=" + StringUtils.stripToEmpty(name);
         return queryConfig(url);
     }
 
@@ -84,7 +85,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/instance_polling/" + destination + "?md5=" + md5;
+        String url = configURL + "/api/v1/config/instance_polling/" + UrlEscapers.urlPathSegmentEscaper().escape(destination) + "?md5=" + md5;
         return queryConfig(url);
     }
 
@@ -119,7 +120,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         heads.put("user", user);
         heads.put("passwd", passwd);
         String response = httpHelper.get(url, heads, REQUEST_TIMEOUT);
-        ResponseModel<CanalConfig> resp = JSONObject.parseObject(response,
+        ResponseModel<CanalConfig> resp = JSON.parseObject(response,
             new TypeReference<ResponseModel<CanalConfig>>() {
             });
 

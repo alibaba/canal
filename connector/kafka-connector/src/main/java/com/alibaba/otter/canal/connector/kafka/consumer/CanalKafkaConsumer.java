@@ -9,13 +9,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
@@ -53,6 +54,8 @@ public class CanalKafkaConsumer implements CanalMsgConsumer {
             String k = (String) entry.getKey();
             Object v = entry.getValue();
             if (k.startsWith(PREFIX_KAFKA_CONFIG) && v != null) {
+                // check env config
+                v = PropertiesUtils.getProperty(properties, k);
                 kafkaProperties.put(k.substring(PREFIX_KAFKA_CONFIG.length()), v);
             }
         }

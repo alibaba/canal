@@ -4,12 +4,12 @@
     <parent>
         <groupId>com.alibaba.otter</groupId>
         <artifactId>canal</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal.client-adapter</artifactId>
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>canal client adapter module for otter ${project.version}</name>
 
@@ -20,6 +20,7 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
+        <log4j_version>2.17.0</log4j_version>
     </properties>
 
     <modules>
@@ -32,6 +33,8 @@
         <module>es7x</module>
         <module>escore</module>
         <module>kudu</module>
+        <module>phoenix</module>
+        <module>tablestore</module>
     </modules>
 
     <licenses>
@@ -110,35 +113,9 @@
                 <version>2.0.0.RELEASE</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jdbc</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-orm</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>5.0.5.RELEASE</version>
-                <scope>test</scope>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot</artifactId>
+                <version>2.0.1.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -180,9 +157,9 @@
                 <version>42.1.4</version>
             </dependency>
             <dependency>
-                <groupId>com.oracle</groupId>
+                <groupId>com.oracle.database.jdbc</groupId>
                 <artifactId>ojdbc6</artifactId>
-                <version>11.2.0.3</version>
+                <version>11.2.0.4</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.sqlserver</groupId>
@@ -209,6 +186,12 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>2.10.0</version>
+            </dependency>
+            <!-- 单独指定guava版本，兼容curator-client -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
@@ -249,6 +232,39 @@
                 <artifactId>deeptestutils</artifactId>
                 <version>1.9.0</version>
                 <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aliyun.openservices</groupId>
+                <artifactId>tablestore</artifactId>
+                <version>5.10.3</version>
+                <classifier>jar-with-dependencies</classifier>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpasyncclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j_version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

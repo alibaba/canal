@@ -59,7 +59,7 @@ export default {
       canalInstanceDetail(this.$route.query.id).then(response => {
         const data = response.data
         this.form.id = data.id
-        this.form.name = data.name + '/instance.propertios'
+        this.form.name = data.name + '/instance.properties'
         this.form.content = data.content
         this.form.clusterServerId = data.clusterServerId
       })

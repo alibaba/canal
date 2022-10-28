@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.deployer.monitor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -77,9 +78,9 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
         }
 
         final List<String> is = Lists.newArrayList(StringUtils.split(instances, ','));
-        List<String> start = Lists.newArrayList();
-        List<String> stop = Lists.newArrayList();
-        List<String> restart = Lists.newArrayList();
+        List<String> start = new ArrayList<>();
+        List<String> stop = new ArrayList<>();
+        List<String> restart = new ArrayList<>();
         for (String instance : is) {
             if (!configs.containsKey(instance)) {
                 PlainCanal newPlainCanal = configClient.findInstance(instance, null);

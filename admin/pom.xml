@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal.admin</artifactId>
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>canal admin module for otter ${project.version}</name>
     <modules>
@@ -18,6 +18,7 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
+        <log4j_version>2.17.0</log4j_version>
     </properties>
 
     <dependencyManagement>
@@ -90,6 +91,21 @@
                 <groupId>io.ebean</groupId>
                 <artifactId>ebean</artifactId>
                 <version>11.41.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j_version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

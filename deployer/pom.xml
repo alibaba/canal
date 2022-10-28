@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.alibaba.otter</groupId>
         <artifactId>canal</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.alibaba.otter</groupId>
@@ -54,6 +54,19 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>connector.rabbitmq</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>connector.pulsarmq</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

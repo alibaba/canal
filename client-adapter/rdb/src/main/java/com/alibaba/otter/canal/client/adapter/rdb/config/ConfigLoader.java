@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.rdb.config;
 
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -7,7 +8,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
@@ -32,8 +32,7 @@ public class ConfigLoader {
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("rdb");
         configContentMap.forEach((fileName, content) -> {
-            MappingConfig config = YmlConfigBinder
-                .bindYmlToObj(null, content, MappingConfig.class, null, envProperties);
+            MappingConfig config = YamlUtils.ymlToObj(null, content, MappingConfig.class, null, envProperties);
             if (config == null) {
                 return;
             }

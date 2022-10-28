@@ -194,7 +194,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             synchronized (destination.intern()) { // 基于destination控制一下并发更新
                 data.setDestination(destination);
 
-                List<FileMetaClientIdentityData> clientDatas = Lists.newArrayList();
+                List<FileMetaClientIdentityData> clientDatas = new ArrayList<>();
                 List<ClientIdentity> clientIdentitys = destinations.get(destination);
                 for (ClientIdentity clientIdentity : clientIdentitys) {
                     FileMetaClientIdentityData clientData = new FileMetaClientIdentityData();

@@ -34,6 +34,23 @@
 		</sift>
 	</appender>
 
+	<appender name="RocketmqClientAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>../logs/adapter/rocketmq_client.log</file>
+		<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>../logs/adapter/%d{yyyy-MM-dd}/rocketmq_client-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<!-- or whenever the file size reaches 100MB -->
+				<maxFileSize>512MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<maxHistory>60</maxHistory>
+		</rollingPolicy>
+		<encoder charset="UTF-8">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{56} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
 	<logger name="com.alibaba.otter.canal.client.adapter.hbase" additivity="false">
 		<level value="DEBUG" />
 		<appender-ref ref="STDOUT"/>
@@ -53,6 +70,10 @@
 		<level value="DEBUG" />
 		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+	<logger name="RocketmqClient" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="RocketmqClientAppender" />
 	</logger>
 
 	<root level="INFO">

@@ -733,7 +733,7 @@ public final class RowsLogBuffer {
 
                 String second = null;
                 if (intpart == 0) {
-                    second = "00:00:00";
+                    second = frac < 0 ? "-00:00:00" : "00:00:00";
                 } else {
                     // 目前只记录秒，不处理us frac
                     // if (cal == null) cal = Calendar.getInstance();
@@ -1133,6 +1133,8 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
+            case LogEvent.MYSQL_TYPE_BOOL :
+            case LogEvent.MYSQL_TYPE_INVALID :
             default:
                 logger.error(String.format("!! Don't know how to handle column type=%d meta=%d (%04X)",
                     type,
