@@ -14,3 +14,12 @@ jtester.properties
 .idea/
 *.iml
 .DS_Store
+*.tar.gz
+*.rpm
+client-adapter/example/
+*.dat
+conf/
+canal-admin/canal-admin-ui/dist/
+canal-admin/canal-admin-ui/node/
+canal-admin/canal-admin-ui/node_modules/
+canal-admin/canal-admin-server/src/main/resources/conf/

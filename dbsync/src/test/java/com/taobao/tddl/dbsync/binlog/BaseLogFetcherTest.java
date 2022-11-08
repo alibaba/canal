@@ -68,7 +68,7 @@ public class BaseLogFetcherTest {
                     // update需要处理before/after
                     System.out.println("-------> before");
                     parseOneRow(event, buffer, columns, false);
-                    if (!buffer.nextOneRow(changeColumns)) {
+                    if (!buffer.nextOneRow(changeColumns, true)) {
                         break;
                     }
                     System.out.println("-------> after");
@@ -97,7 +97,7 @@ public class BaseLogFetcherTest {
             }
 
             ColumnInfo info = columnInfo[i];
-            buffer.nextValue(info.type, info.meta);
+            buffer.nextValue(null , i ,info.type, info.meta);
 
             if (buffer.isNull()) {
                 //

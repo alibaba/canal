@@ -1,5 +1,11 @@
 package com.alibaba.otter.canal.instance.core;
 
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
@@ -16,30 +22,25 @@ import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.store.CanalEventStore;
 import com.alibaba.otter.canal.store.model.Event;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
- * Created with Intellig IDEA.
- * Author: yinxiu
- * Date: 2016-01-07
- * Time: 22:26
+ * Created with Intellig IDEA. Author: yinxiu Date: 2016-01-07 Time: 22:26
  */
 public class AbstractCanalInstance extends AbstractCanalLifeCycle implements CanalInstance {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractCanalInstance.class);
+    private static final Logger                      logger = LoggerFactory.getLogger(AbstractCanalInstance.class);
 
-    protected Long                                   canalId;                               // 和manager交互唯一标示
-    protected String                                 destination;                           // 队列名字
-    protected CanalEventStore<Event>                 eventStore;                            // 有序队列
+    protected Long                                   canalId;                                                      // 和manager交互唯一标示
+    protected String                                 destination;                                                  // 队列名字
+    protected CanalEventStore<Event>                 eventStore;                                                   // 有序队列
 
-    protected CanalEventParser                       eventParser;                           // 解析对应的数据信息
-    protected CanalEventSink<List<CanalEntry.Entry>> eventSink;                             // 链接parse和store的桥接器
-    protected CanalMetaManager                       metaManager;                           // 消费信息管理器
-    protected CanalAlarmHandler                      alarmHandler;                          // alarm报警机制
+    protected CanalEventParser                       eventParser;                                                  // 解析对应的数据信息
+    protected CanalEventSink<List<CanalEntry.Entry>> eventSink;                                                    // 链接parse和store的桥接器
+    protected CanalMetaManager                       metaManager;                                                  // 消费信息管理器
+    protected CanalAlarmHandler                      alarmHandler;                                                 // alarm报警机制
+    protected CanalMQConfig                          mqConfig;                                                     // mq的配置
+
+
 
     @Override
     public boolean subscribeChange(ClientIdentity identity) {
@@ -52,10 +53,14 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
                 // 处理group的模式
                 List<CanalEventParser> eventParsers = ((GroupEventParser) eventParser).getEventParsers();
                 for (CanalEventParser singleEventParser : eventParsers) {// 需要遍历启动
-                    ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
+                    if(singleEventParser instanceof AbstractEventParser) {
+                        ((AbstractEventParser) singleEventParser).setEventFilter(aviaterFilter);
+                    }
                 }
             } else {
-                ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+                if(eventParser instanceof AbstractEventParser) {
+                    ((AbstractEventParser) eventParser).setEventFilter(aviaterFilter);
+                }
             }
 
         }
@@ -120,7 +125,6 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
         if (alarmHandler.isStart()) {
             alarmHandler.stop();
         }
-
 
         logger.info("stop successful....");
     }
@@ -243,5 +247,10 @@ public class AbstractCanalInstance extends AbstractCanalLifeCycle implements Can
     @Override
     public CanalAlarmHandler getAlarmHandler() {
         return alarmHandler;
+    }
+
+    @Override
+    public CanalMQConfig getMqConfig() {
+        return mqConfig;
     }
 }

@@ -59,10 +59,15 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
     public static final int   HEARTBEAT_HEADER_LEN                = 0;
     public static final int   IGNORABLE_HEADER_LEN                = 0;
     public static final int   ROWS_HEADER_LEN_V2                  = 10;
+    public static final int   TRANSACTION_CONTEXT_HEADER_LEN      = 18;
+    public static final int   VIEW_CHANGE_HEADER_LEN              = 52;
+    public static final int   XA_PREPARE_HEADER_LEN               = 0;
+
     public static final int   ANNOTATE_ROWS_HEADER_LEN            = 0;
     public static final int   BINLOG_CHECKPOINT_HEADER_LEN        = 4;
     public static final int   GTID_HEADER_LEN                     = 19;
     public static final int   GTID_LIST_HEADER_LEN                = 4;
+    public static final int   START_ENCRYPTION_HEADER_LEN         = 0;
 
     public static final int   POST_HEADER_LENGTH                  = 11;
 
@@ -141,6 +146,11 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
         }
     }
 
+    public FormatDescriptionLogEvent(final int binlogVersion, int binlogChecksum){
+        this(binlogVersion);
+        this.header.checksumAlg = binlogChecksum;
+    }
+
     public FormatDescriptionLogEvent(final int binlogVersion){
         this.binlogVersion = binlogVersion;
 
@@ -197,11 +207,18 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 postHeaderLen[GTID_LOG_EVENT - 1] = POST_HEADER_LENGTH;
                 postHeaderLen[ANONYMOUS_GTID_LOG_EVENT - 1] = POST_HEADER_LENGTH;
                 postHeaderLen[PREVIOUS_GTIDS_LOG_EVENT - 1] = IGNORABLE_HEADER_LEN;
+
+                postHeaderLen[TRANSACTION_CONTEXT_EVENT - 1] = TRANSACTION_CONTEXT_HEADER_LEN;
+                postHeaderLen[VIEW_CHANGE_EVENT - 1] = VIEW_CHANGE_HEADER_LEN;
+                postHeaderLen[XA_PREPARE_LOG_EVENT - 1] = XA_PREPARE_HEADER_LEN;
+                postHeaderLen[PARTIAL_UPDATE_ROWS_EVENT - 1] = ROWS_HEADER_LEN_V2;
+
                 // mariadb 10
                 postHeaderLen[ANNOTATE_ROWS_EVENT - 1] = ANNOTATE_ROWS_HEADER_LEN;
                 postHeaderLen[BINLOG_CHECKPOINT_EVENT - 1] = BINLOG_CHECKPOINT_HEADER_LEN;
                 postHeaderLen[GTID_EVENT - 1] = GTID_HEADER_LEN;
                 postHeaderLen[GTID_LIST_EVENT - 1] = GTID_LIST_HEADER_LEN;
+                postHeaderLen[START_ENCRYPTION_EVENT - 1] = START_ENCRYPTION_HEADER_LEN;
                 break;
 
             case 3: /* 4.0.x x>=2 */

@@ -16,6 +16,7 @@ public class ServerRunningData implements Serializable {
 
     private static final long serialVersionUID = 92260481691855281L;
 
+    @Deprecated
     private Long              cid;
     private String            address;
     private boolean           active           = true;
@@ -23,8 +24,7 @@ public class ServerRunningData implements Serializable {
     public ServerRunningData(){
     }
 
-    public ServerRunningData(Long cid, String address){
-        this.cid = cid;
+    public ServerRunningData(String address){
         this.address = address;
     }
 

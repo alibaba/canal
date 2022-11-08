@@ -11,27 +11,25 @@ import org.I0Itec.zkclient.exception.ZkNodeExistsException;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
 import org.apache.zookeeper.CreateMode;
 
-import com.google.common.base.Function;
 import com.google.common.collect.MigrateMap;
 
 /**
  * 使用自定义的ZooKeeperx for zk connection
- * 
+ *
  * @author jianghang 2012-7-10 下午02:31:15
  * @version 1.0.0
  */
 public class ZkClientx extends ZkClient {
 
     // 对于zkclient进行一次缓存，避免一个jvm内部使用多个zk connection
-    private static Map<String, ZkClientx> clients = MigrateMap.makeComputingMap(new Function<String, ZkClientx>() {
-
-                                                      public ZkClientx apply(String servers) {
-                                                          return new ZkClientx(servers);
-                                                      }
-                                                  });
+    private static Map<String, ZkClientx> clients = MigrateMap.makeComputingMap(ZkClientx::new);
 
     public static ZkClientx getZkClient(String servers) {
         return clients.get(servers);
+    }
+
+    public static void clearClients() {
+        clients.clear();
     }
 
     public ZkClientx(String serverstring){
@@ -60,7 +58,7 @@ public class ZkClientx extends ZkClient {
 
     /**
      * Create a persistent Sequential node.
-     * 
+     *
      * @param path
      * @param createParents if true all parent dirs are created as well and no
      * {@link ZkNodeExistsException} is thrown in case the path already exists
@@ -88,7 +86,7 @@ public class ZkClientx extends ZkClient {
 
     /**
      * Create a persistent Sequential node.
-     * 
+     *
      * @param path
      * @param data
      * @param createParents if true all parent dirs are created as well and no
@@ -119,7 +117,7 @@ public class ZkClientx extends ZkClient {
 
     /**
      * Create a persistent Sequential node.
-     * 
+     *
      * @param path
      * @param data
      * @param createParents if true all parent dirs are created as well and no

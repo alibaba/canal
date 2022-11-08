@@ -1,0 +1,19 @@
+dataSourceKey: defaultDS
+destination: test_instance
+outerAdapterKey: kudu
+groupId: g1
+kuduMapping:
+  database: test
+  table: test
+  targetTable: test
+  targetPk:
+    id: id
+  mapAll: true
+  targetColumns:
+    id:
+    name:
+    role_id:
+    c_time:
+    test1:
+  etlCondition:
+  commitBatch: 3000 # 批量提交的大小

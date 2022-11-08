@@ -42,6 +42,10 @@
 				<exclude>**/*</exclude>
 			</excludes>
 		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/target/canal/plugin</directory>
+			<outputDirectory>/plugin/</outputDirectory>
+		</fileSet>
 	</fileSets>
 	<dependencySets>
 		<dependencySet>

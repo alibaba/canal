@@ -3,10 +3,10 @@ package com.alibaba.otter.canal.meta;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
@@ -14,7 +14,7 @@ import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
-
+@Ignore
 public class MixedMetaManagerTest extends AbstractMetaManagerTest {
 
     private ZkClientx zkclientx = new ZkClientx(cluster1 + ";" + cluster2);

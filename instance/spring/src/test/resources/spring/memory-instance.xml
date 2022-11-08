@@ -34,19 +34,19 @@
 	<bean id="instance" class="com.alibaba.otter.canal.instance.spring.CanalInstanceWithSpring">
 		<property name="destination" value="${canal.instance.destination}" />
 		<property name="eventParser">
-			<ref local="eventParser" />
+			<ref bean="eventParser" />
 		</property>
 		<property name="eventSink">
-			<ref local="eventSink" />
+			<ref bean="eventSink" />
 		</property>
 		<property name="eventStore">
-			<ref local="eventStore" />
+			<ref bean="eventStore" />
 		</property>
 		<property name="metaManager">
-			<ref local="metaManager" />
+			<ref bean="metaManager" />
 		</property>
 		<property name="alarmHandler">
-			<ref local="alarmHandler" />
+			<ref bean="alarmHandler" />
 		</property>
 	</bean>
 	
@@ -114,7 +114,7 @@
 				<property name="address" value="${canal.instance.master.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 		<property name="standbyInfo">
@@ -122,7 +122,7 @@
 				<property name="address" value="${canal.instance.standby.address}" />
 				<property name="username" value="${canal.instance.dbUsername:retl}" />
 				<property name="password" value="${canal.instance.dbPassword:retl}" />
-				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:retl}" />
+				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
 			</bean>
 		</property>
 		

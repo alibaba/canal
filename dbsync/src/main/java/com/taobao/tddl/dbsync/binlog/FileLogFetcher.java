@@ -75,7 +75,9 @@ public final class FileLogFetcher extends LogFetcher {
         fin = new FileInputStream(file);
 
         ensureCapacity(BIN_LOG_HEADER_SIZE);
-        if (BIN_LOG_HEADER_SIZE != fin.read(buffer, 0, BIN_LOG_HEADER_SIZE)) throw new IOException("No binlog file header");
+        if (BIN_LOG_HEADER_SIZE != fin.read(buffer, 0, BIN_LOG_HEADER_SIZE)) {
+            throw new IOException("No binlog file header");
+        }
 
         if (buffer[0] != BINLOG_MAGIC[0] || buffer[1] != BINLOG_MAGIC[1] || buffer[2] != BINLOG_MAGIC[2]
             || buffer[3] != BINLOG_MAGIC[3]) {
@@ -128,6 +130,19 @@ public final class FileLogFetcher extends LogFetcher {
                 return true;
             }
         } else if (limit > 0) {
+            if (limit >= FormatDescriptionLogEvent.LOG_EVENT_HEADER_LEN) {
+                int lenPosition = position + 4 + 1 + 4;
+                long eventLen = ((long) (0xff & buffer[lenPosition++])) | ((long) (0xff & buffer[lenPosition++]) << 8)
+                                | ((long) (0xff & buffer[lenPosition++]) << 16)
+                                | ((long) (0xff & buffer[lenPosition++]) << 24);
+
+                if (limit >= eventLen) {
+                    return true;
+                } else {
+                    ensureCapacity((int) eventLen);
+                }
+            }
+
             System.arraycopy(buffer, origin, buffer, 0, limit);
             position -= origin;
             origin = 0;
@@ -153,7 +168,9 @@ public final class FileLogFetcher extends LogFetcher {
      * @see com.taobao.tddl.dbsync.binlog.LogFetcher#close()
      */
     public void close() throws IOException {
-        if (fin != null) fin.close();
+        if (fin != null) {
+            fin.close();
+        }
 
         fin = null;
     }

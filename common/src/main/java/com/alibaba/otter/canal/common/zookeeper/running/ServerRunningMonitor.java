@@ -59,7 +59,6 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
                 }
 
                 if (!runningData.isActive() && isMine(runningData.getAddress())) { // 说明出现了主动释放的操作，并且本机之前是active
-                    release = true;
                     releaseRunning();// 彻底释放mainstem
                 }
 
@@ -74,12 +73,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
                     initRunning();
                 } else {
                     // 否则就是等待delayTime，避免因网络瞬端或者zk异常，导致出现频繁的切换操作
-                    delayExector.schedule(new Runnable() {
-
-                        public void run() {
-                            initRunning();
-                        }
-                    }, delayTime, TimeUnit.SECONDS);
+                    delayExector.schedule(() -> initRunning(), delayTime, TimeUnit.SECONDS);
                 }
             }
 
@@ -87,29 +81,42 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     }
 
-    public void start() {
-        super.start();
+    public void init() {
         processStart();
-        if (zkClient != null) {
-            // 如果需要尽可能释放instance资源，不需要监听running节点，不然即使stop了这台机器，另一台机器立马会start
-            String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
-            zkClient.subscribeDataChanges(path, dataListener);
-
-            initRunning();
-        } else {
-            processActiveEnter();// 没有zk，直接启动
-        }
     }
 
-    public void release() {
+    public synchronized void start() {
+        super.start();
+        try {
+            processStart();
+            if (zkClient != null) {
+                // 如果需要尽可能释放instance资源，不需要监听running节点，不然即使stop了这台机器，另一台机器立马会start
+                String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
+                zkClient.subscribeDataChanges(path, dataListener);
+
+                initRunning();
+            } else {
+                processActiveEnter();// 没有zk，直接启动
+            }
+        } catch (Exception e) {
+            logger.error("start failed", e);
+            // 没有正常启动，重置一下状态，避免干扰下一次start
+            stop();
+        }
+
+    }
+
+    public boolean release() {
         if (zkClient != null) {
             releaseRunning(); // 尝试一下release
+            return true;
         } else {
-            processActiveExit(); // 没有zk，直接启动
+            processActiveExit(); // 没有zk，直接退出
+            return false;
         }
     }
 
-    public void stop() {
+    public synchronized void stop() {
         super.stop();
 
         if (zkClient != null) {
@@ -137,6 +144,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             activeData = serverData;
             processActiveEnter();// 触发一下事件
             mutex.set(true);
+            release = false;
         } catch (ZkNodeExistsException e) {
             bytes = zkClient.readData(path, true);
             if (bytes == null) {// 如果不存在节点，立即尝试一次
@@ -173,8 +181,8 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
             boolean result = isMine(activeData.getAddress());
             if (!result) {
                 logger.warn("canal is running in node[{}] , but not in node[{}]",
-                    activeData.getCid(),
-                    serverData.getCid());
+                    activeData.getAddress(),
+                    serverData.getAddress());
             }
             return result;
         } catch (ZkNoNodeException e) {
@@ -192,6 +200,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     private boolean releaseRunning() {
         if (check()) {
+            release = true;
             String path = ZookeeperPathUtils.getDestinationServerRunning(destination);
             zkClient.delete(path);
             mutex.set(false);
@@ -230,11 +239,7 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
 
     private void processActiveEnter() {
         if (listener != null) {
-            try {
-                listener.processActiveEnter();
-            } catch (Exception e) {
-                logger.error("processActiveEnter failed", e);
-            }
+            listener.processActiveEnter();
         }
     }
 

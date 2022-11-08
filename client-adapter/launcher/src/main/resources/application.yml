@@ -1,0 +1,106 @@
+server:
+  port: 8081
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+canal.conf:
+  mode: tcp #tcp kafka rocketMQ rabbitMQ
+  flatMessage: true
+  zookeeperHosts:
+  syncBatchSize: 1000
+  retries: -1
+  timeout:
+  accessKey:
+  secretKey:
+  consumerProperties:
+    # canal tcp consumer
+    canal.tcp.server.host: 127.0.0.1:11111
+    canal.tcp.zookeeper.hosts:
+    canal.tcp.batch.size: 500
+    canal.tcp.username:
+    canal.tcp.password:
+    # kafka consumer
+    kafka.bootstrap.servers: 127.0.0.1:9092
+    kafka.enable.auto.commit: false
+    kafka.auto.commit.interval.ms: 1000
+    kafka.auto.offset.reset: latest
+    kafka.request.timeout.ms: 40000
+    kafka.session.timeout.ms: 30000
+    kafka.isolation.level: read_committed
+    kafka.max.poll.records: 1000
+    # rocketMQ consumer
+    rocketmq.namespace:
+    rocketmq.namesrv.addr: 127.0.0.1:9876
+    rocketmq.batch.size: 1000
+    rocketmq.enable.message.trace: false
+    rocketmq.customized.trace.topic:
+    rocketmq.access.channel:
+    rocketmq.subscribe.filter:
+    # rabbitMQ consumer
+    rabbitmq.host:
+    rabbitmq.virtual.host:
+    rabbitmq.username:
+    rabbitmq.password:
+    rabbitmq.resource.ownerId:
+
+#  srcDataSources:
+#    defaultDS:
+#      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
+#      username: root
+#      password: 121212
+  canalAdapters:
+  - instance: example # canal instance Name or mq topic name
+    groups:
+    - groupId: g1
+      outerAdapters:
+      - name: logger
+#      - name: rdb
+#        key: mysql1
+#        properties:
+#          jdbc.driverClassName: com.mysql.jdbc.Driver
+#          jdbc.url: jdbc:mysql://127.0.0.1:3306/mytest2?useUnicode=true
+#          jdbc.username: root
+#          jdbc.password: 121212
+#          druid.stat.enable: false
+#          druid.stat.slowSqlMillis: 1000
+#      - name: rdb
+#        key: oracle1
+#        properties:
+#          jdbc.driverClassName: oracle.jdbc.OracleDriver
+#          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
+#          jdbc.username: mytest
+#          jdbc.password: m121212
+#      - name: rdb
+#        key: postgres1
+#        properties:
+#          jdbc.driverClassName: org.postgresql.Driver
+#          jdbc.url: jdbc:postgresql://localhost:5432/postgres
+#          jdbc.username: postgres
+#          jdbc.password: 121212
+#          threads: 1
+#          commitSize: 3000
+#      - name: hbase
+#        properties:
+#          hbase.zookeeper.quorum: 127.0.0.1
+#          hbase.zookeeper.property.clientPort: 2181
+#          zookeeper.znode.parent: /hbase
+#      - name: es
+#        hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
+#        properties:
+#          mode: transport # or rest
+#          # security.auth: test:123456 #  only used for rest mode
+#          cluster.name: elasticsearch
+#      - name: kudu
+#        key: kudu
+#        properties:
+#          kudu.master.address: 127.0.0.1 # ',' split multi address
+#      - name: phoenix
+#        key: phoenix
+#        properties:
+#          jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
+#          jdbc.url: jdbc:phoenix:127.0.0.1:2181:/hbase/db
+#          jdbc.username:
+#          jdbc.password:

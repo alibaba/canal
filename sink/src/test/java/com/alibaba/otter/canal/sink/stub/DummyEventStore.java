@@ -15,6 +15,10 @@ public class DummyEventStore implements CanalEventStore<Event> {
 
     }
 
+    public void ack(Position position, Long seqId) throws CanalStoreException {
+
+    }
+
     public Events get(Position start, int batchSize) throws InterruptedException, CanalStoreException {
         return null;
     }
@@ -60,33 +64,33 @@ public class DummyEventStore implements CanalEventStore<Event> {
     }
 
     public void put(Event data) throws InterruptedException, CanalStoreException {
-        System.out.println("time:" + data.getEntry().getHeader().getExecuteTime());
+        System.out.println("time:" + data.getExecuteTime());
     }
 
     public boolean put(Event data, long timeout, TimeUnit unit) throws InterruptedException, CanalStoreException {
-        System.out.println("time:" + data.getEntry().getHeader().getExecuteTime());
+        System.out.println("time:" + data.getExecuteTime());
         return true;
     }
 
     public boolean tryPut(Event data) throws CanalStoreException {
-        System.out.println("time:" + data.getEntry().getHeader().getExecuteTime());
+        System.out.println("time:" + data.getExecuteTime());
         return true;
     }
 
     public void put(List<Event> datas) throws InterruptedException, CanalStoreException {
         Event data = datas.get(0);
-        System.out.println("time:" + data.getEntry().getHeader().getExecuteTime());
+        System.out.println("time:" + data.getExecuteTime());
     }
 
     public boolean put(List<Event> datas, long timeout, TimeUnit unit) throws InterruptedException, CanalStoreException {
         Event data = datas.get(0);
-        System.out.println("time:" + data.getEntry().getHeader().getExecuteTime());
+        System.out.println("time:" + data.getExecuteTime());
         return true;
     }
 
     public boolean tryPut(List<Event> datas) throws CanalStoreException {
         Event data = datas.get(0);
-        System.out.println("time:" + data.getEntry().getHeader().getExecuteTime());
+        System.out.println("time:" + data.getExecuteTime());
         return true;
     }
 

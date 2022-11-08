@@ -6,24 +6,27 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.helper.TimeoutChecker;
+import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.parse.stub.AbstractCanalEventSinkTest;
-import com.alibaba.otter.canal.parse.stub.AbstractCanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.Entry;
+import com.alibaba.otter.canal.protocol.CanalEntry.EntryType;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-
+@Ignore
 public class MysqlEventParserTest {
 
     private static final String DETECTING_SQL = "insert into retl.xdual values(1,now()) on duplicate key update x=now()";
     private static final String MYSQL_ADDRESS = "127.0.0.1";
-    private static final String USERNAME      = "xxxxx";
-    private static final String PASSWORD      = "xxxxx";
+    private static final String USERNAME      = "canal";
+    private static final String PASSWORD      = "canal";
 
     @Test
     public void test_position() throws InterruptedException {
@@ -32,7 +35,7 @@ public class MysqlEventParserTest {
         final EntryPosition entryPosition = new EntryPosition();
 
         final MysqlEventParser controller = new MysqlEventParser();
-        final EntryPosition defaultPosition = buildPosition("mysql-bin.000001", 6163L, 1322803601000L);
+        final EntryPosition defaultPosition = buildPosition("mysql-bin.000003", 4690L, 1505481064000L);
 
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(true);
@@ -45,33 +48,37 @@ public class MysqlEventParserTest {
             public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                         throws CanalSinkException {
                 for (Entry entry : entrys) {
-                    entryCount.incrementAndGet();
-                    String logfilename = entry.getHeader().getLogfileName();
-                    long logfileoffset = entry.getHeader().getLogfileOffset();
-                    long executeTime = entry.getHeader().getExecuteTime();
-                    entryPosition.setJournalName(logfilename);
-                    entryPosition.setPosition(logfileoffset);
-                    entryPosition.setTimestamp(executeTime);
-
-                    break;
+                    if (entry.getEntryType() != EntryType.HEARTBEAT) {
+                        entryCount.incrementAndGet();
+                        String logfilename = entry.getHeader().getLogfileName();
+                        long logfileoffset = entry.getHeader().getLogfileOffset();
+                        long executeTime = entry.getHeader().getExecuteTime();
+                        entryPosition.setJournalName(logfilename);
+                        entryPosition.setPosition(logfileoffset);
+                        entryPosition.setTimestamp(executeTime);
+                        break;
+                    }
                 }
 
-                controller.stop();
-                timeoutChecker.stop();
-                timeoutChecker.touch();
+                if (entryCount.get() > 0) {
+                    controller.stop();
+                    timeoutChecker.stop();
+                    timeoutChecker.touch();
+                }
                 return true;
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
-
-            public void persistLogPosition(String destination, LogPosition logPosition) {
-                System.out.println(logPosition);
-            }
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             @Override
             public LogPosition getLatestIndexBy(String destination) {
                 return null;
+            }
+
+            @Override
+            public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+                System.out.println(logPosition);
             }
         });
 
@@ -92,14 +99,14 @@ public class MysqlEventParserTest {
 
     @Test
     public void test_timestamp() throws InterruptedException {
-        final TimeoutChecker timeoutChecker = new TimeoutChecker(30 * 1000);
+        final TimeoutChecker timeoutChecker = new TimeoutChecker(3000 * 1000);
         final AtomicLong entryCount = new AtomicLong(0);
         final EntryPosition entryPosition = new EntryPosition();
 
         final MysqlEventParser controller = new MysqlEventParser();
-        final EntryPosition defaultPosition = buildPosition(null, null, 1322803601000L);
+        final EntryPosition defaultPosition = buildPosition(null, null, 1475116855000L);
         controller.setSlaveId(3344L);
-        controller.setDetectingEnable(true);
+        controller.setDetectingEnable(false);
         controller.setDetectingSQL(DETECTING_SQL);
         controller.setMasterInfo(buildAuthentication());
         controller.setMasterPosition(defaultPosition);
@@ -109,27 +116,30 @@ public class MysqlEventParserTest {
             public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                         throws CanalSinkException {
                 for (Entry entry : entrys) {
-                    entryCount.incrementAndGet();
+                    if (entry.getEntryType() != EntryType.HEARTBEAT) {
+                        entryCount.incrementAndGet();
 
-                    String logfilename = entry.getHeader().getLogfileName();
-                    long logfileoffset = entry.getHeader().getLogfileOffset();
-                    long executeTime = entry.getHeader().getExecuteTime();
+                        String logfilename = entry.getHeader().getLogfileName();
+                        long logfileoffset = entry.getHeader().getLogfileOffset();
+                        long executeTime = entry.getHeader().getExecuteTime();
 
-                    entryPosition.setJournalName(logfilename);
-                    entryPosition.setPosition(logfileoffset);
-                    entryPosition.setTimestamp(executeTime);
-
-                    break;
+                        entryPosition.setJournalName(logfilename);
+                        entryPosition.setPosition(logfileoffset);
+                        entryPosition.setTimestamp(executeTime);
+                        break;
+                    }
                 }
 
-                controller.stop();
-                timeoutChecker.stop();
-                timeoutChecker.touch();
+                if (entryCount.get() > 0) {
+                    controller.stop();
+                    timeoutChecker.stop();
+                    timeoutChecker.touch();
+                }
                 return true;
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -174,26 +184,31 @@ public class MysqlEventParserTest {
             public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                         throws CanalSinkException {
                 for (Entry entry : entrys) {
-                    entryCount.incrementAndGet();
+                    if (entry.getEntryType() != EntryType.HEARTBEAT) {
 
-                    String logfilename = entry.getHeader().getLogfileName();
-                    long logfileoffset = entry.getHeader().getLogfileOffset();
-                    long executeTime = entry.getHeader().getExecuteTime();
+                        entryCount.incrementAndGet();
 
-                    entryPosition.setJournalName(logfilename);
-                    entryPosition.setPosition(logfileoffset);
-                    entryPosition.setTimestamp(executeTime);
-                    break;
+                        String logfilename = entry.getHeader().getLogfileName();
+                        long logfileoffset = entry.getHeader().getLogfileOffset();
+                        long executeTime = entry.getHeader().getExecuteTime();
+
+                        entryPosition.setJournalName(logfilename);
+                        entryPosition.setPosition(logfileoffset);
+                        entryPosition.setTimestamp(executeTime);
+                        break;
+                    }
                 }
 
-                controller.stop();
-                timeoutChecker.stop();
-                timeoutChecker.touch();
+                if (entryCount.get() > 0) {
+                    controller.stop();
+                    timeoutChecker.stop();
+                    timeoutChecker.touch();
+                }
                 return true;
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);
@@ -244,27 +259,32 @@ public class MysqlEventParserTest {
             public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination)
                                                                                                         throws CanalSinkException {
                 for (Entry entry : entrys) {
-                    entryCount.incrementAndGet();
+                    if (entry.getEntryType() != EntryType.HEARTBEAT) {
+                        entryCount.incrementAndGet();
 
-                    // String logfilename = entry.getHeader().getLogfileName();
-                    // long logfileoffset =
-                    // entry.getHeader().getLogfileOffset();
-                    long executeTime = entry.getHeader().getExecuteTime();
+                        // String logfilename =
+                        // entry.getHeader().getLogfileName();
+                        // long logfileoffset =
+                        // entry.getHeader().getLogfileOffset();
+                        long executeTime = entry.getHeader().getExecuteTime();
 
-                    // entryPosition.setJournalName(logfilename);
-                    // entryPosition.setPosition(logfileoffset);
-                    entryPosition.setTimestamp(executeTime);
-                    break;
+                        // entryPosition.setJournalName(logfilename);
+                        // entryPosition.setPosition(logfileoffset);
+                        entryPosition.setTimestamp(executeTime);
+                        break;
+                    }
                 }
 
-                controller.stop();
-                timeoutChecker.stop();
-                timeoutChecker.touch();
+                if (entryCount.get() > 0) {
+                    controller.stop();
+                    timeoutChecker.stop();
+                    timeoutChecker.touch();
+                }
                 return true;
             }
         });
 
-        controller.setLogPositionManager(new AbstractCanalLogPositionManager() {
+        controller.setLogPositionManager(new AbstractLogPositionManager() {
 
             public void persistLogPosition(String destination, LogPosition logPosition) {
                 System.out.println(logPosition);

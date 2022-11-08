@@ -6,6 +6,7 @@ import java.net.URL;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
@@ -16,7 +17,7 @@ import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
-
+@Ignore
 public class FileLogFetcherTest extends BaseLogFetcherTest {
 
     private String directory;
@@ -53,6 +54,7 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
                             parseRowsEvent((WriteRowsLogEvent) event);
                             break;
                         case LogEvent.UPDATE_ROWS_EVENT_V1:
+                        case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                         case LogEvent.UPDATE_ROWS_EVENT:
                             parseRowsEvent((UpdateRowsLogEvent) event);
                             break;

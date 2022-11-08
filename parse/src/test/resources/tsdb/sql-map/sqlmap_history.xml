@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryMapper">
+    <sql id="allColumns">
+        <![CDATA[
+		gmt_create,gmt_modified,destination,binlog_file,binlog_offest,binlog_master_id,binlog_timestamp,use_schema,sql_schema,sql_table,sql_text,sql_type,extra
+        ]]>
+    </sql>
+    <sql id="allVOColumns">
+        <![CDATA[
+		a.id as id,a.gmt_create as gmtCreate,a.gmt_modified as gmtModified,
+		a.destination as destination,a.binlog_file as binlogFile,a.binlog_offest as binlogOffest,a.binlog_master_id as binlogMasterId,a.binlog_timestamp as binlogTimestamp,
+		a.use_schema as useSchema,a.sql_schema as sqlSchema,a.sql_table as sqlTable,a.sql_text as sqlText,a.sql_type as sqlType,a.extra as extra
+        ]]>
+    </sql>
+
+    <select id="findByTimestamp" parameterType="java.util.Map" resultType="metaHistoryDO">
+        select
+        <include refid="allVOColumns"/>
+        from meta_history a
+        <![CDATA[
+        where destination = #{destination} and binlog_timestamp >= #{snapshotTimestamp} and binlog_timestamp <= #{timestamp}
+        order by binlog_timestamp asc,id asc
+        ]]>
+    </select>
+
+    <insert id="insert" parameterType="metaHistoryDO">
+        insert into meta_history (<include refid="allColumns"/>)
+        values(CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,#{destination},#{binlogFile},#{binlogOffest},#{binlogMasterId},#{binlogTimestamp},#{useSchema},#{sqlSchema},#{sqlTable},#{sqlText},#{sqlType},#{extra})
+    </insert>
+
+    <delete id="deleteByName" parameterType="java.util.Map">
+        delete from meta_history
+        where destination=#{destination}
+    </delete>
+
+
+    <delete id="deleteByTimestamp" parameterType="java.util.Map">
+        <![CDATA[
+		delete from meta_history
+		where destination=#{destination} and binlog_timestamp < #{timestamp}
+        ]]>
+    </delete>
+</mapper>

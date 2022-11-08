@@ -1,5 +1,9 @@
 package com.taobao.tddl.dbsync.binlog;
 
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber2;
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber4;
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.usecondsToStr;
+
 /**
  * 处理下MySQL json二进制转化为可读的字符串
  * 
@@ -52,23 +56,24 @@ public class JsonConversion {
     public static final int  VALUE_ENTRY_SIZE_SMALL  = (1 + SMALL_OFFSET_SIZE);
     public static final int  VALUE_ENTRY_SIZE_LARGE  = (1 + LARGE_OFFSET_SIZE);
 
-    public static Json_Value parse_value(int type, LogBuffer buffer, long len) {
+    public static Json_Value parse_value(int type, LogBuffer buffer, long len, String charsetName) {
         buffer = buffer.duplicate(buffer.position(), (int) len);
         switch (type) {
             case JSONB_TYPE_SMALL_OBJECT:
-                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, false);
+                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, false, charsetName);
             case JSONB_TYPE_LARGE_OBJECT:
-                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, true);
+                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, true, charsetName);
             case JSONB_TYPE_SMALL_ARRAY:
-                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, false);
+                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, false, charsetName);
             case JSONB_TYPE_LARGE_ARRAY:
-                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, true);
+                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, true, charsetName);
             default:
-                return parse_scalar(type, buffer, len);
+                return parse_scalar(type, buffer, len, charsetName);
         }
     }
 
-    private static Json_Value parse_array_or_object(Json_enum_type type, LogBuffer buffer, long len, boolean large) {
+    private static Json_Value parse_array_or_object(Json_enum_type type, LogBuffer buffer, long len, boolean large,
+                                                    String charsetName) {
         long offset_size = large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
         if (len < 2 * offset_size) {
             throw new IllegalArgumentException("illegal json data");
@@ -95,7 +100,7 @@ public class JsonConversion {
         return large ? buffer.getUint32() : buffer.getUint16();
     }
 
-    private static Json_Value parse_scalar(int type, LogBuffer buffer, long len) {
+    private static Json_Value parse_scalar(int type, LogBuffer buffer, long len, String charsetName) {
         switch (type) {
             case JSONB_TYPE_LITERAL:
                 /* purecov: inspected */
@@ -146,12 +151,12 @@ public class JsonConversion {
                     }
                 }
 
-                if (str_len == 0 || len < n + str_len) {
+                if (len < n + str_len) {
                     throw new IllegalArgumentException("illegal json data");
                 }
                 return new Json_Value(Json_enum_type.STRING, buffer.rewind()
                     .forward((int) n)
-                    .getFixString((int) str_len));
+                    .getFixString((int) str_len, charsetName));
             case JSONB_TYPE_OPAQUE:
                 /*
                  * There should always be at least one byte, which tells the
@@ -162,7 +167,7 @@ public class JsonConversion {
                 int type_byte = buffer.getUint8();
                 int position = buffer.position();
                 // Then there's the length of the value.
-                int q_max_bytes = (int) Math.min(len, 5);
+                int q_max_bytes = (int) Math.min(len - 1, 5);
                 long q_tlen = 0;
                 long q_str_len = 0;
                 long q_n = 0;
@@ -237,7 +242,7 @@ public class JsonConversion {
             this.m_large = large;
         }
 
-        public String key(int i) {
+        public String key(int i, String charsetName) {
             m_data.rewind();
             int offset_size = m_large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
             int key_entry_size = m_large ? KEY_ENTRY_SIZE_LARGE : KEY_ENTRY_SIZE_SMALL;
@@ -250,10 +255,10 @@ public class JsonConversion {
             // entry, always two
             // bytes.
             long key_length = m_data.getUint16();
-            return m_data.rewind().forward((int) key_offset).getFixString((int) key_length);
+            return m_data.rewind().forward((int) key_offset).getFixString((int) key_length, charsetName);
         }
 
-        public Json_Value element(int i) {
+        public Json_Value element(int i, String charsetName) {
             m_data.rewind();
             int offset_size = m_large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
             int key_entry_size = m_large ? KEY_ENTRY_SIZE_LARGE : KEY_ENTRY_SIZE_SMALL;
@@ -266,13 +271,13 @@ public class JsonConversion {
             int type = m_data.forward(entry_offset).getUint8();
             if (type == JSONB_TYPE_INT16 || type == JSONB_TYPE_UINT16 || type == JSONB_TYPE_LITERAL
                 || (m_large && (type == JSONB_TYPE_INT32 || type == JSONB_TYPE_UINT32))) {
-                return parse_scalar(type, m_data, value_entry_size - 1);
+                return parse_scalar(type, m_data, value_entry_size - 1, charsetName);
             }
             int value_offset = (int) read_offset_or_size(m_data, m_large);
-            return parse_value(type, m_data.rewind().forward(value_offset), (int) m_length - value_offset);
+            return parse_value(type, m_data.rewind().forward(value_offset), (int) m_length - value_offset, charsetName);
         }
 
-        public StringBuilder toJsonString(StringBuilder buf) {
+        public StringBuilder toJsonString(StringBuilder buf, String charsetName) {
             switch (m_type) {
                 case OBJECT:
                     buf.append("{");
@@ -280,9 +285,9 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        buf.append('"').append(key(i)).append('"');
-                        buf.append(" :");
-                        element(i).toJsonString(buf);
+                        buf.append('"').append(key(i, charsetName)).append('"');
+                        buf.append(": ");
+                        element(i, charsetName).toJsonString(buf, charsetName);
                     }
                     buf.append("}");
                     break;
@@ -292,7 +297,7 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        element(i).toJsonString(buf);
+                        element(i, charsetName).toJsonString(buf, charsetName);
                     }
                     buf.append("]");
                     break;
@@ -312,7 +317,7 @@ public class JsonConversion {
                     buf.append("true");
                     break;
                 case LITERAL_NULL:
-                    buf.append("NULL");
+                    buf.append("null");
                     break;
                 case OPAQUE:
                     String text = null;
@@ -329,12 +334,30 @@ public class JsonConversion {
                             long ultime = Math.abs(packed_value);
                             long intpart = ultime >> 24;
                             int frac = (int) (ultime % (1L << 24));
-                            text = String.format("%s%02d:%02d:%02d",
-                                packed_value >= 0 ? "" : "-",
-                                (int) ((intpart >> 12) % (1 << 10)),
-                                (int) ((intpart >> 6) % (1 << 6)),
-                                (int) (intpart % (1 << 6)));
-                            text = text + "." + usecondsToStr(frac, 6);
+                            // text = String.format("%s%02d:%02d:%02d",
+                            // packed_value >= 0 ? "" : "-",
+                            // (int) ((intpart >> 12) % (1 << 10)),
+                            // (int) ((intpart >> 6) % (1 << 6)),
+                            // (int) (intpart % (1 << 6)));
+                            // text = text + "." + usecondsToStr(frac, 6);
+                            StringBuilder builder = new StringBuilder(17);
+                            if (packed_value < 0) {
+                                builder.append('-');
+                            }
+
+                            int d = (int) ((intpart >> 12) % (1 << 10));
+                            if (d > 100) {
+                                builder.append(String.valueOf(d));
+                            } else {
+                                appendNumber2(builder, d);
+                            }
+                            builder.append(':');
+                            appendNumber2(builder, (int) ((intpart >> 6) % (1 << 6)));
+                            builder.append(':');
+                            appendNumber2(builder, (int) (intpart % (1 << 6)));
+
+                            builder.append('.').append(usecondsToStr(frac, 6));
+                            text = builder.toString();
                         }
                         buf.append('"').append(text).append('"');
                     } else if (m_field_type == LogEvent.MYSQL_TYPE_DATE || m_field_type == LogEvent.MYSQL_TYPE_DATETIME
@@ -350,24 +373,38 @@ public class JsonConversion {
                             long ymd = intpart >> 17;
                             long ym = ymd >> 5;
                             long hms = intpart % (1 << 17);
-                            text = String.format("%04d-%02d-%02d %02d:%02d:%02d",
-                                (int) (ym / 13),
-                                (int) (ym % 13),
-                                (int) (ymd % (1 << 5)),
-                                (int) (hms >> 12),
-                                (int) ((hms >> 6) % (1 << 6)),
-                                (int) (hms % (1 << 6)));
-                            text = text + "." + usecondsToStr(frac, 6);
+                            // text =
+                            // String.format("%04d-%02d-%02d %02d:%02d:%02d",
+                            // (int) (ym / 13),
+                            // (int) (ym % 13),
+                            // (int) (ymd % (1 << 5)),
+                            // (int) (hms >> 12),
+                            // (int) ((hms >> 6) % (1 << 6)),
+                            // (int) (hms % (1 << 6)));
+                            StringBuilder builder = new StringBuilder(26);
+                            appendNumber4(builder, (int) (ym / 13));
+                            builder.append('-');
+                            appendNumber2(builder, (int) (ym % 13));
+                            builder.append('-');
+                            appendNumber2(builder, (int) (ymd % (1 << 5)));
+                            builder.append(' ');
+                            appendNumber2(builder, (int) (hms >> 12));
+                            builder.append(':');
+                            appendNumber2(builder, (int) ((hms >> 6) % (1 << 6)));
+                            builder.append(':');
+                            appendNumber2(builder, (int) (hms % (1 << 6)));
+                            builder.append('.').append(usecondsToStr(frac, 6));
+                            text = builder.toString();
                         }
                         buf.append('"').append(text).append('"');
                     } else {
-                        text = m_data.getFixString((int) m_length);
-                        buf.append('"').append(text).append('"');
+                        text = m_data.getFixString((int) m_length, charsetName);
+                        buf.append('"').append(escapse(text)).append('"');
                     }
 
                     break;
                 case STRING:
-                    buf.append('"').append(m_string_value).append('"');
+                    buf.append('"').append(escapse(m_string_value)).append('"');
                     break;
                 case ERROR:
                     throw new IllegalArgumentException("illegal json data");
@@ -377,26 +414,39 @@ public class JsonConversion {
         }
     }
 
+    private static StringBuilder escapse(String data) {
+        StringBuilder sb = new StringBuilder(data.length());
+        int endIndex = data.length();
+        for (int i = 0; i < endIndex; ++i) {
+            char c = data.charAt(i);
+            if (c == '"') {
+                sb.append("\\\"");
+            } else if (c == '\n') {
+                sb.append("\\n");
+            } else if (c == '\r') {
+                sb.append("\\r");
+            } else if (c == '\\') {
+                sb.append("\\\\");
+            } else if (c == '\t') {
+                sb.append("\\t");
+            } else if (c < 16) {
+                sb.append("\\u000");
+                sb.append(Integer.toHexString(c));
+            } else if (c < 32) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else if (c >= 0x7f && c <= 0xA0) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb;
+    }
+
     public static enum Json_enum_type {
         OBJECT, ARRAY, STRING, INT, UINT, DOUBLE, LITERAL_NULL, LITERAL_TRUE, LITERAL_FALSE, OPAQUE, ERROR
     }
 
-    private static String usecondsToStr(int frac, int meta) {
-        String sec = String.valueOf(frac);
-        if (meta > 6) {
-            throw new IllegalArgumentException("unknow useconds meta : " + meta);
-        }
-
-        if (sec.length() < 6) {
-            StringBuilder result = new StringBuilder(6);
-            int len = 6 - sec.length();
-            for (; len > 0; len--) {
-                result.append('0');
-            }
-            result.append(sec);
-            sec = result.toString();
-        }
-
-        return sec.substring(0, meta);
-    }
 }

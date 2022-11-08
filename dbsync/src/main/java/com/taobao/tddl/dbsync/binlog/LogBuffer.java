@@ -20,6 +20,7 @@ public class LogBuffer {
 
     protected int    origin, limit;
     protected int    position;
+    protected int    semival;
 
     protected LogBuffer(){
     }
@@ -168,8 +169,8 @@ public class LogBuffer {
      * @param newLimit The new limit value; must be non-negative and no larger
      * than this buffer's capacity
      * @return This buffer
-     * @throws IllegalArgumentException If the preconditions on <tt>newLimit</tt>
-     * do not hold
+     * @throws IllegalArgumentException If the preconditions on
+     * <tt>newLimit</tt> do not hold
      */
     public final LogBuffer limit(int newLimit) {
         if (origin + newLimit > buffer.length || newLimit < 0) throw new IllegalArgumentException("capacity excceed: "
@@ -1483,7 +1484,9 @@ public class LogBuffer {
 
         for (int bit = 0; bit < len; bit += 8) {
             int flag = ((int) buf[pos++]) & 0xff;
-            if (flag == 0) continue;
+            if (flag == 0) {
+                continue;
+            }
             if ((flag & 0x01) != 0) bitmap.set(bit);
             if ((flag & 0x02) != 0) bitmap.set(bit + 1);
             if ((flag & 0x04) != 0) bitmap.set(bit + 2);

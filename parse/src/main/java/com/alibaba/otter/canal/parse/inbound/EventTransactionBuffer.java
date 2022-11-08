@@ -80,6 +80,11 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
                     flush();
                 }
                 break;
+            case HEARTBEAT:
+                // master过来的heartbeat，说明binlog已经读完了，是idle状态
+                put(entry);
+                flush();
+                break;
             default:
                 break;
         }
@@ -110,7 +115,7 @@ public class EventTransactionBuffer extends AbstractCanalLifeCycle {
         long end = this.putSequence.get();
 
         if (start <= end) {
-            List<CanalEntry.Entry> transaction = new ArrayList<CanalEntry.Entry>();
+            List<CanalEntry.Entry> transaction = new ArrayList<>();
             for (long next = start; next <= end; next++) {
                 transaction.add(this.entries[getIndex(next)]);
             }

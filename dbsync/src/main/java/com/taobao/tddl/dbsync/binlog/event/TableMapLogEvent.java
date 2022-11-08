@@ -1,9 +1,10 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
-import java.util.BitSet;
-
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
 
 /**
  * In row-based mode, every row operation event is preceded by a
@@ -87,6 +88,17 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
  * the first byte, the second is in the second least significant bit of the
  * first byte, the ninth is in the least significant bit of the second byte, and
  * so on.</td>
+ * </tr>
+ * <tr>
+ * <td>optional metadata fields</td>
+ * <td>optional metadata fields are stored in Type, Length, Value(TLV) format.
+ * Type takes 1 byte. Length is a packed integer value. Values takes Length
+ * bytes.</td>
+ * <td>There are some optional metadata defined. They are listed in the table
+ * 
+ * @ref Table_table_map_event_optional_metadata. Optional metadata fields follow
+ * null_bits. Whether binlogging an optional metadata is decided by the server.
+ * The order is not defined, so they can be binlogged in any order. </td>
  * </tr>
  * </table>
  * The table below lists all column types, along with the numerical identifier
@@ -284,7 +296,6 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
  * of the geometry: 1, 2, 3, or 4.</td>
  * </tr>
  * </table>
- * 
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
@@ -314,28 +325,79 @@ public final class TableMapLogEvent extends LogEvent {
      * </ul>
      * Source : http://forge.mysql.com/wiki/MySQL_Internals_Binary_Log
      */
-    protected final String dbname;
-    protected final String tblname;
+    protected String dbname;
+    protected String tblname;
 
     /**
      * Holding mysql column information.
      */
     public static final class ColumnInfo {
 
-        public int type;
-        public int meta;
+        public int          type;
+        public int          meta;
+        public String       name;
+        public boolean      unsigned;
+        public boolean      pk;
+        public List<String> set_enum_values;
+        public int          charset;        // 可以通过CharsetUtil进行转化
+        public int          geoType;
+        public boolean      nullable;
+        public boolean      visibility;
+        public boolean      array;
+
+        @Override public String toString() {
+            return "ColumnInfo{" + "type=" + type + ", meta=" + meta + ", name='" + name + '\'' + ", unsigned="
+                   + unsigned + ", pk=" + pk + ", set_enum_values=" + set_enum_values + ", charset=" + charset
+                   + ", geoType=" + geoType + ", nullable=" + nullable + ", visibility=" + visibility + ", array="
+                   + array + '}';
+        }
     }
 
     protected final int          columnCnt;
-    protected final ColumnInfo[] columnInfo;         // buffer for field
-                                                      // metadata
+    protected final ColumnInfo[] columnInfo;                     // buffer
+                                                                  // for
+                                                                  // field
+                                                                  // metadata
 
     protected final long         tableId;
     protected BitSet             nullBits;
 
     /** TM = "Table Map" */
-    public static final int      TM_MAPID_OFFSET = 0;
-    public static final int      TM_FLAGS_OFFSET = 6;
+    public static final int      TM_MAPID_OFFSET         = 0;
+    public static final int      TM_FLAGS_OFFSET         = 6;
+
+    // UNSIGNED flag of numeric columns
+    public static final int      SIGNEDNESS              = 1;
+    // Default character set of string columns
+    public static final int      DEFAULT_CHARSET         = 2;
+    // Character set of string columns
+    public static final int      COLUMN_CHARSET          = 3;
+    public static final int      COLUMN_NAME             = 4;
+    // String value of SET columns
+    public static final int      SET_STR_VALUE           = 5;
+    // String value of ENUM columns
+    public static final int      ENUM_STR_VALUE          = 6;
+    // Real type of geometry columns
+    public static final int      GEOMETRY_TYPE           = 7;
+    // Primary key without prefix
+    public static final int      SIMPLE_PRIMARY_KEY      = 8;
+    // Primary key with prefix
+    public static final int      PRIMARY_KEY_WITH_PREFIX = 9;
+    // Character set of enum and set columns, optimized to minimize space when many columns have the same charset.
+    public static final int      ENUM_AND_SET_DEFAULT_CHARSET = 10;
+    // Character set of enum and set columns, optimized to minimize space when many columns have the same charset.
+    public static final int      ENUM_AND_SET_COLUMN_CHARSET = 11;
+    // Flag to indicate column visibility attribute
+    public static final int      COLUMN_VISIBILITY       = 12;
+
+    private int                  default_charset;
+    private boolean              existOptionalMetaData   = false;
+
+    private static final class Pair {
+
+        public int col_index;
+        public int col_charset;
+    }
 
     /**
      * Constructor used by slave to read the event from the binary log.
@@ -363,6 +425,7 @@ public final class TableMapLogEvent extends LogEvent {
         buffer.position(commonHeaderLen + postHeaderLen);
         dbname = buffer.getString();
         buffer.forward(1); /* termination null */
+        // fixed issue #2714
         tblname = buffer.getString();
         buffer.forward(1); /* termination null */
 
@@ -379,7 +442,100 @@ public final class TableMapLogEvent extends LogEvent {
             final int fieldSize = (int) buffer.getPackedLong();
             decodeFields(buffer, fieldSize);
             nullBits = buffer.getBitmap(columnCnt);
+
+            for (int i = 0; i < columnCnt; i++) {
+                if (nullBits.get(i)) {
+                    columnInfo[i].nullable = true;
+                }
+            }
+            /*
+             * After null_bits field, there are some new fields for extra
+             * metadata.
+             */
+            existOptionalMetaData = false;
+            List<TableMapLogEvent.Pair> defaultCharsetPairs = null;
+            List<Integer> columnCharsets = null;
+            while (buffer.hasRemaining()) {
+                // optional metadata fields
+                int type = buffer.getUint8();
+                int len = (int) buffer.getPackedLong();
+
+                switch (type) {
+                    case SIGNEDNESS:
+                        parse_signedness(buffer, len);
+                        break;
+                    case DEFAULT_CHARSET:
+                        defaultCharsetPairs = parse_default_charset(buffer, len);
+                        break;
+                    case COLUMN_CHARSET:
+                        columnCharsets = parse_column_charset(buffer, len);
+                        break;
+                    case COLUMN_NAME:
+                        // set @@global.binlog_row_metadata='FULL'
+                        // 主要是补充列名相关信息
+                        existOptionalMetaData = true;
+                        parse_column_name(buffer, len);
+                        break;
+                    case SET_STR_VALUE:
+                        parse_set_str_value(buffer, len, true);
+                        break;
+                    case ENUM_STR_VALUE:
+                        parse_set_str_value(buffer, len, false);
+                        break;
+                    case GEOMETRY_TYPE:
+                        parse_geometry_type(buffer, len);
+                        break;
+                    case SIMPLE_PRIMARY_KEY:
+                        parse_simple_pk(buffer, len);
+                        break;
+                    case PRIMARY_KEY_WITH_PREFIX:
+                        parse_pk_with_prefix(buffer, len);
+                        break;
+                    case ENUM_AND_SET_DEFAULT_CHARSET:
+                        parse_default_charset(buffer, len);
+                        break;
+                    case ENUM_AND_SET_COLUMN_CHARSET:
+                        parse_column_charset(buffer, len);
+                        break;
+                    case COLUMN_VISIBILITY:
+                        parse_column_visibility(buffer, len);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("unknow type : " + type);
+                }
+            }
+
+            if (existOptionalMetaData) {
+                int index = 0;
+                int char_col_index = 0;
+                for (int i = 0; i < columnCnt; i++) {
+                    int cs = -1;
+                    int type = getRealType(columnInfo[i].type, columnInfo[i].meta);
+                    if (is_character_type(type)) {
+                        if (defaultCharsetPairs != null && !defaultCharsetPairs.isEmpty()) {
+                            if (index < defaultCharsetPairs.size()
+                                && char_col_index == defaultCharsetPairs.get(index).col_index) {
+                                cs = defaultCharsetPairs.get(index).col_charset;
+                                index++;
+                            } else {
+                                cs = default_charset;
+                            }
+
+                            char_col_index++;
+                        } else if (columnCharsets != null) {
+                            cs = columnCharsets.get(index);
+                            index++;
+                        }
+
+                        columnInfo[i].charset = cs;
+                    }
+                }
+            }
         }
+
+        // for (int i = 0; i < columnCnt; i++) {
+        // System.out.println(columnInfo[i]);
+        // }
     }
 
     /**
@@ -389,12 +545,16 @@ public final class TableMapLogEvent extends LogEvent {
      */
     private final void decodeFields(LogBuffer buffer, final int len) {
         final int limit = buffer.limit();
-
         buffer.limit(len + buffer.position());
         for (int i = 0; i < columnCnt; i++) {
             ColumnInfo info = columnInfo[i];
 
-            switch (info.type) {
+            int binlogType = info.type;
+            if (binlogType == MYSQL_TYPE_TYPED_ARRAY) {
+                binlogType = buffer.getUint8();
+            }
+
+            switch (binlogType) {
                 case MYSQL_TYPE_TINY_BLOB:
                 case MYSQL_TYPE_BLOB:
                 case MYSQL_TYPE_MEDIUM_BLOB:
@@ -402,6 +562,9 @@ public final class TableMapLogEvent extends LogEvent {
                 case MYSQL_TYPE_DOUBLE:
                 case MYSQL_TYPE_FLOAT:
                 case MYSQL_TYPE_GEOMETRY:
+                case MYSQL_TYPE_TIME2:
+                case MYSQL_TYPE_DATETIME2:
+                case MYSQL_TYPE_TIMESTAMP2:
                 case MYSQL_TYPE_JSON:
                     /*
                      * These types store a single byte.
@@ -410,14 +573,6 @@ public final class TableMapLogEvent extends LogEvent {
                     break;
                 case MYSQL_TYPE_SET:
                 case MYSQL_TYPE_ENUM:
-                    /*
-                     * log_event.h : MYSQL_TYPE_SET & MYSQL_TYPE_ENUM : This
-                     * enumeration value is only used internally and cannot
-                     * exist in a binlog.
-                     */
-                    logger.warn("This enumeration value is only used internally "
-                                + "and cannot exist in a binlog: type=" + info.type);
-                    break;
                 case MYSQL_TYPE_STRING: {
                     /*
                      * log_event.h : The first byte is always
@@ -445,12 +600,6 @@ public final class TableMapLogEvent extends LogEvent {
                     info.meta = x;
                     break;
                 }
-                case MYSQL_TYPE_TIME2:
-                case MYSQL_TYPE_DATETIME2:
-                case MYSQL_TYPE_TIMESTAMP2: {
-                    info.meta = buffer.getUint8();
-                    break;
-                }
                 default:
                     info.meta = 0;
                     break;
@@ -459,12 +608,228 @@ public final class TableMapLogEvent extends LogEvent {
         buffer.limit(limit);
     }
 
+    private void parse_signedness(LogBuffer buffer, int length) {
+        // stores the signedness flags extracted from field
+        List<Boolean> datas = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            int ut = buffer.getUint8();
+            for (int c = 0x80; c != 0; c >>= 1) {
+                datas.add((ut & c) > 0);
+            }
+        }
+
+        int index = 0;
+        for (int i = 0; i < columnCnt; i++) {
+            if (is_numeric_type(columnInfo[i].type)) {
+                columnInfo[i].unsigned = datas.get(index);
+                index++;
+            }
+        }
+    }
+
+    private List<TableMapLogEvent.Pair> parse_default_charset(LogBuffer buffer, int length) {
+        // stores collation numbers extracted from field.
+        int limit = buffer.position() + length;
+        this.default_charset = (int) buffer.getPackedLong();
+        List<TableMapLogEvent.Pair> datas = new ArrayList<>();
+        while (buffer.hasRemaining() && buffer.position() < limit) {
+            int col_index = (int) buffer.getPackedLong();
+            int col_charset = (int) buffer.getPackedLong();
+
+            Pair pair = new Pair();
+            pair.col_index = col_index;
+            pair.col_charset = col_charset;
+            datas.add(pair);
+        }
+
+        return datas;
+    }
+
+    private List<Integer> parse_column_charset(LogBuffer buffer, int length) {
+        // stores collation numbers extracted from field.
+        int limit = buffer.position() + length;
+        List<Integer> datas = new ArrayList<>();
+        while (buffer.hasRemaining() && buffer.position() < limit) {
+            int col_charset = (int) buffer.getPackedLong();
+            datas.add(col_charset);
+        }
+
+        return datas;
+    }
+
+
+    private void parse_column_visibility(LogBuffer buffer, int length) {
+        List<Boolean> data = new ArrayList<>(columnInfo.length);
+        for (int i = 0; i < length; i++) {
+            int ut = buffer.getUint8();
+            for (int c = 0x80; c != 0; c >>= 1) {
+                data.add((ut & c) > 0);
+            }
+        }
+        for (int i = 0; i < columnCnt; i++) {
+            columnInfo[i].visibility = data.get(i);
+        }
+    }
+
+    private void parse_column_name(LogBuffer buffer, int length) {
+        // stores column names extracted from field
+        int limit = buffer.position() + length;
+        int index = 0;
+        while (buffer.hasRemaining() && buffer.position() < limit) {
+            int len = (int) buffer.getPackedLong();
+            columnInfo[index++].name = buffer.getFixString(len);
+        }
+    }
+
+    private void parse_set_str_value(LogBuffer buffer, int length, boolean set) {
+        // stores SET/ENUM column's string values extracted from
+        // field. Each SET/ENUM column's string values are stored
+        // into a string separate vector. All of them are stored
+        // in 'vec'.
+        int limit = buffer.position() + length;
+        List<List<String>> datas = new ArrayList<>();
+        while (buffer.hasRemaining() && buffer.position() < limit) {
+            int count = (int) buffer.getPackedLong();
+            List<String> data = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                int len1 = (int) buffer.getPackedLong();
+                data.add(buffer.getFixString(len1));
+            }
+
+            datas.add(data);
+        }
+
+        int index = 0;
+        for (int i = 0; i < columnCnt; i++) {
+            if (set && getRealType(columnInfo[i].type, columnInfo[i].meta) == LogEvent.MYSQL_TYPE_SET) {
+                columnInfo[i].set_enum_values = datas.get(index);
+                index++;
+            }
+
+            if (!set && getRealType(columnInfo[i].type, columnInfo[i].meta) == LogEvent.MYSQL_TYPE_ENUM) {
+                columnInfo[i].set_enum_values = datas.get(index);
+                index++;
+            }
+        }
+    }
+
+    private void parse_geometry_type(LogBuffer buffer, int length) {
+        // stores geometry column's types extracted from field.
+        int limit = buffer.position() + length;
+
+        List<Integer> datas = new ArrayList<>();
+        while (buffer.hasRemaining() && buffer.position() < limit) {
+            int col_type = (int) buffer.getPackedLong();
+            datas.add(col_type);
+        }
+
+        int index = 0;
+        for (int i = 0; i < columnCnt; i++) {
+            if (columnInfo[i].type == LogEvent.MYSQL_TYPE_GEOMETRY) {
+                columnInfo[i].geoType = datas.get(index);
+                index++;
+            }
+        }
+    }
+
+    private void parse_simple_pk(LogBuffer buffer, int length) {
+        // stores primary key's column information extracted from
+        // field. Each column has an index and a prefix which are
+        // stored as a unit_pair. prefix is always 0 for
+        // SIMPLE_PRIMARY_KEY field.
+
+        int limit = buffer.position() + length;
+        while (buffer.hasRemaining() && buffer.position() < limit) {
+            int col_index = (int) buffer.getPackedLong();
+            columnInfo[col_index].pk = true;
+        }
+    }
+
+    private void parse_pk_with_prefix(LogBuffer buffer, int length) {
+        // stores primary key's column information extracted from
+        // field. Each column has an index and a prefix which are
+        // stored as a unit_pair.
+        int limit = buffer.position() + length;
+        while (buffer.hasRemaining() && buffer.position() < limit) {
+            int col_index = (int) buffer.getPackedLong();
+            // prefix length, 比如 char(32)
+            @SuppressWarnings("unused")
+            int col_prefix = (int) buffer.getPackedLong();
+            columnInfo[col_index].pk = true;
+        }
+    }
+
+    private boolean is_numeric_type(int type) {
+        switch (type) {
+            case MYSQL_TYPE_TINY:
+            case MYSQL_TYPE_SHORT:
+            case MYSQL_TYPE_INT24:
+            case MYSQL_TYPE_LONG:
+            case MYSQL_TYPE_LONGLONG:
+            case MYSQL_TYPE_NEWDECIMAL:
+            case MYSQL_TYPE_FLOAT:
+            case MYSQL_TYPE_DOUBLE:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private boolean is_character_type(int type) {
+        switch (type) {
+            case MYSQL_TYPE_STRING:
+            case MYSQL_TYPE_VAR_STRING:
+            case MYSQL_TYPE_VARCHAR:
+            case MYSQL_TYPE_BLOB:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private int getRealType(int type, int meta) {
+        if (type == LogEvent.MYSQL_TYPE_STRING) {
+            if (meta >= 256) {
+                int byte0 = meta >> 8;
+                if ((byte0 & 0x30) != 0x30) {
+                    /* a long CHAR() field: see #37426 */
+                    type = byte0 | 0x30;
+                } else {
+                    switch (byte0) {
+                        case LogEvent.MYSQL_TYPE_SET:
+                        case LogEvent.MYSQL_TYPE_ENUM:
+                        case LogEvent.MYSQL_TYPE_STRING:
+                            type = byte0;
+                    }
+                }
+            }
+        }
+
+        return type;
+    }
+
     public final String getDbName() {
         return dbname;
     }
 
     public final String getTableName() {
         return tblname;
+    }
+
+    public String getDbname() {
+        return dbname;
+    }
+
+    public void setDbname(String dbname) {
+        this.dbname = dbname;
+    }
+
+    public String getTblname() {
+        return tblname;
+    }
+
+    public void setTblname(String tblname) {
+        this.tblname = tblname;
     }
 
     public final int getColumnCnt() {
@@ -478,4 +843,13 @@ public final class TableMapLogEvent extends LogEvent {
     public final long getTableId() {
         return tableId;
     }
+
+    public boolean isExistOptionalMetaData() {
+        return existOptionalMetaData;
+    }
+
+    public void setExistOptionalMetaData(boolean existOptional) {
+        this.existOptionalMetaData = existOptional;
+    }
+
 }

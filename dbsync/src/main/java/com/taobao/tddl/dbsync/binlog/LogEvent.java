@@ -161,9 +161,31 @@ public abstract class LogEvent {
 
     public static final int    PREVIOUS_GTIDS_LOG_EVENT                 = 35;
 
+    /* MySQL 5.7 events */
+    public static final int    TRANSACTION_CONTEXT_EVENT                = 36;
+
+    public static final int    VIEW_CHANGE_EVENT                        = 37;
+
+    /* Prepared XA transaction terminal event similar to Xid */
+    public static final int    XA_PREPARE_LOG_EVENT                     = 38;
+
+    /**
+     * Extension of UPDATE_ROWS_EVENT, allowing partial values according to
+     * binlog_row_value_options.
+     */
+    public static final int    PARTIAL_UPDATE_ROWS_EVENT                = 39;
+
+    /* mysql 8.0.20 */
+    public static final int    TRANSACTION_PAYLOAD_EVENT                = 40;
+
+    /* mysql 8.0.26 */
+    public static final int    HEARTBEAT_LOG_EVENT_V2                   = 41;
+
+    public static final int    MYSQL_ENUM_END_EVENT                     = 42;
+
     // mariaDb 5.5.34
     /* New MySQL/Sun events are to be added right above this comment */
-    public static final int    MYSQL_EVENTS_END                         = 36;
+    public static final int    MYSQL_EVENTS_END                         = 49;
 
     public static final int    MARIA_EVENTS_BEGIN                       = 160;
     /* New Maria event numbers start from here */
@@ -189,8 +211,25 @@ public abstract class LogEvent {
      */
     public static final int    GTID_LIST_EVENT                          = 163;
 
+    public static final int    START_ENCRYPTION_EVENT                   = 164;
+
+    // mariadb 10.10.1
+    /*
+     * Compressed binlog event. Note that the order between WRITE/UPDATE/DELETE
+     * events is significant; this is so that we can convert from the compressed to
+     * the uncompressed event type with (type-WRITE_ROWS_COMPRESSED_EVENT +
+     * WRITE_ROWS_EVENT) and similar for _V1.
+     */
+    public static final int    QUERY_COMPRESSED_EVENT                   = 165;
+    public static final int    WRITE_ROWS_COMPRESSED_EVENT_V1           = 166;
+    public static final int    UPDATE_ROWS_COMPRESSED_EVENT_V1          = 167;
+    public static final int    DELETE_ROWS_COMPRESSED_EVENT_V1          = 168;
+    public static final int    WRITE_ROWS_COMPRESSED_EVENT              = 169;
+    public static final int    UPDATE_ROWS_COMPRESSED_EVENT             = 170;
+    public static final int    DELETE_ROWS_COMPRESSED_EVENT             = 171;
+
     /** end marker */
-    public static final int    ENUM_END_EVENT                           = 164;
+    public static final int    ENUM_END_EVENT                           = 171;
 
     /**
      * 1 byte length, 1 byte format Length is total length in bytes, including 2
@@ -267,6 +306,9 @@ public abstract class LogEvent {
     public static final int    MYSQL_TYPE_TIMESTAMP2                    = 17;
     public static final int    MYSQL_TYPE_DATETIME2                     = 18;
     public static final int    MYSQL_TYPE_TIME2                         = 19;
+    public static final int    MYSQL_TYPE_TYPED_ARRAY                   = 20;
+    public static final int    MYSQL_TYPE_INVALID                       = 243;
+    public static final int    MYSQL_TYPE_BOOL                          = 244;
     public static final int    MYSQL_TYPE_JSON                          = 245;
     public static final int    MYSQL_TYPE_NEWDECIMAL                    = 246;
     public static final int    MYSQL_TYPE_ENUM                          = 247;
@@ -334,6 +376,7 @@ public abstract class LogEvent {
             case INCIDENT_EVENT:
                 return "Incident";
             case HEARTBEAT_LOG_EVENT:
+            case HEARTBEAT_LOG_EVENT_V2:
                 return "Heartbeat";
             case IGNORABLE_LOG_EVENT:
                 return "Ignorable";
@@ -351,14 +394,42 @@ public abstract class LogEvent {
                 return "Anonymous_Gtid";
             case PREVIOUS_GTIDS_LOG_EVENT:
                 return "Previous_gtids";
+            case PARTIAL_UPDATE_ROWS_EVENT:
+                return "Update_rows_partial";
+            case TRANSACTION_CONTEXT_EVENT :
+                return "Transaction_context";
+            case VIEW_CHANGE_EVENT :
+                return "view_change";
+            case XA_PREPARE_LOG_EVENT :
+                return "Xa_prepare";
+            case TRANSACTION_PAYLOAD_EVENT :
+                return "transaction_payload";
             default:
-                return "Unknown"; /* impossible */
+                return "Unknown type:" + type;
         }
     }
 
     protected static final Log logger = LogFactory.getLog(LogEvent.class);
 
     protected final LogHeader  header;
+
+    /**
+     * mysql半同步semi标识
+     * 
+     * <pre>
+     * 0不需要semi ack 给mysql
+     * 1需要semi ack给mysql
+     * </pre>
+     */
+    protected int              semival;
+
+    public int getSemival() {
+        return semival;
+    }
+
+    public void setSemival(int semival) {
+        this.semival = semival;
+    }
 
     protected LogEvent(LogHeader header){
         this.header = header;

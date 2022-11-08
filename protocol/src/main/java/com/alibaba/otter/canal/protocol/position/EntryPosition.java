@@ -17,6 +17,7 @@ public class EntryPosition extends TimePosition {
     private Long              position;
     // add by agapple at 2016-06-28
     private Long              serverId              = null;              // 记录一下位点对应的serverId
+    private String            gtid                  = null;
 
     public EntryPosition(){
         super(null);
@@ -73,6 +74,14 @@ public class EntryPosition extends TimePosition {
         this.serverId = serverId;
     }
 
+    public String getGtid() {
+        return gtid;
+    }
+
+    public void setGtid(String gtid) {
+        this.gtid = gtid;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -119,6 +128,20 @@ public class EntryPosition extends TimePosition {
             return false;
         }
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(EntryPosition o) {
+        final int val = journalName.compareTo(o.journalName);
+
+        if (val == 0) {
+            return (int) (position - o.position);
+        }
+        return val;
     }
 
 }

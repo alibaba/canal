@@ -3,46 +3,20 @@ package com.taobao.tddl.dbsync.binlog;
 import java.io.IOException;
 import java.util.BitSet;
 
+import com.taobao.tddl.dbsync.binlog.event.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.taobao.tddl.dbsync.binlog.event.AppendBlockLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.BeginLoadQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.CreateFileLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteFileLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.HeartbeatLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IncidentLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.LoadLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.LogHeader;
-import com.taobao.tddl.dbsync.binlog.event.PreviousGtidsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RandLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.StartLogEventV3;
-import com.taobao.tddl.dbsync.binlog.event.StopLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.StartEncryptionLogEvent;
 
 /**
  * Implements a binary-log decoder.
- * 
+ *
  * <pre>
  * LogDecoder decoder = new LogDecoder();
  * decoder.handle(...);
@@ -57,7 +31,7 @@ import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
  * while (event != null);
  * // no more events in buffer.
  * </pre>
- * 
+ *
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
@@ -84,7 +58,7 @@ public final class LogDecoder {
 
     /**
      * Decoding an event from binary-log buffer.
-     * 
+     *
      * @return <code>UknownLogEvent</code> if event type is unknown or skipped,
      * <code>null</code> if buffer is not including a full event.
      */
@@ -105,8 +79,10 @@ public final class LogDecoder {
                         /* Decoding binary-log to event */
                         event = decode(buffer, header, context);
                     } catch (IOException e) {
-                        if (logger.isWarnEnabled()) logger.warn("Decoding " + LogEvent.getTypeName(header.getType())
-                                                                + " failed from: " + context.getLogPosition(), e);
+                        if (logger.isWarnEnabled()) {
+                            logger.warn("Decoding " + LogEvent.getTypeName(header.getType()) + " failed from: "
+                                        + context.getLogPosition(), e);
+                        }
                         throw e;
                     } finally {
                         buffer.limit(limit); /* Restore limit */
@@ -114,6 +90,12 @@ public final class LogDecoder {
                 } else {
                     /* Ignore unsupported binary-log. */
                     event = new UnknownLogEvent(header);
+                }
+
+                if (event != null) {
+                    // set logFileName
+                    event.getHeader().setLogFileName(context.getLogPosition().getFileName());
+                    event.setSemival(buffer.semival);
                 }
 
                 /* consume this binary-log. */
@@ -129,7 +111,7 @@ public final class LogDecoder {
 
     /**
      * Deserialize an event from buffer.
-     * 
+     *
      * @return <code>UknownLogEvent</code> if event type is unknown or skipped.
      */
     public static LogEvent decode(LogBuffer buffer, LogHeader header, LogContext context) throws IOException {
@@ -148,18 +130,21 @@ public final class LogDecoder {
             // remove checksum bytes
             buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
         }
-
+        GTIDSet gtidSet = context.getGtidSet();
+        LogEvent gtidLogEvent = context.getGtidLogEvent();
         switch (header.getType()) {
             case LogEvent.QUERY_EVENT: {
                 QueryLogEvent event = new QueryLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             case LogEvent.XID_EVENT: {
                 XidLogEvent event = new XidLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             case LogEvent.TABLE_MAP_EVENT: {
@@ -169,25 +154,31 @@ public final class LogDecoder {
                 context.putTable(mapEvent);
                 return mapEvent;
             }
-            case LogEvent.WRITE_ROWS_EVENT_V1: {
+            case LogEvent.WRITE_ROWS_EVENT_V1:
+            case LogEvent.WRITE_ROWS_EVENT: {
                 RowsLogEvent event = new WriteRowsLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
-            case LogEvent.UPDATE_ROWS_EVENT_V1: {
+            case LogEvent.UPDATE_ROWS_EVENT_V1:
+            case LogEvent.UPDATE_ROWS_EVENT: {
                 RowsLogEvent event = new UpdateRowsLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
-            case LogEvent.DELETE_ROWS_EVENT_V1: {
+            case LogEvent.DELETE_ROWS_EVENT_V1:
+            case LogEvent.DELETE_ROWS_EVENT: {
                 RowsLogEvent event = new DeleteRowsLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             case LogEvent.ROTATE_EVENT: {
@@ -206,8 +197,9 @@ public final class LogDecoder {
             }
             case LogEvent.SLAVE_EVENT: /* can never happen (unused event) */
             {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported SLAVE_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported SLAVE_EVENT from: " + context.getLogPosition());
+                }
                 break;
             }
             case LogEvent.CREATE_FILE_EVENT: {
@@ -257,12 +249,14 @@ public final class LogDecoder {
                 RandLogEvent event = new RandLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             case LogEvent.USER_VAR_EVENT: {
                 UserVarLogEvent event = new UserVarLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             case LogEvent.FORMAT_DESCRIPTION_EVENT: {
@@ -271,22 +265,25 @@ public final class LogDecoder {
                 return descriptionEvent;
             }
             case LogEvent.PRE_GA_WRITE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: " + context.getLogPosition());
+                }
                 // ev = new Write_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_UPDATE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: " + context.getLogPosition());
+                }
                 // ev = new Update_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_DELETE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: " + context.getLogPosition());
+                }
                 // ev = new Delete_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
@@ -325,27 +322,15 @@ public final class LogDecoder {
                 RowsQueryLogEvent event = new RowsQueryLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
-            case LogEvent.WRITE_ROWS_EVENT: {
-                RowsLogEvent event = new WriteRowsLogEvent(header, buffer, descriptionEvent);
+            case LogEvent.PARTIAL_UPDATE_ROWS_EVENT: {
+                RowsLogEvent event = new UpdateRowsLogEvent(header, buffer, descriptionEvent, true);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 event.fillTable(context);
-                return event;
-            }
-            case LogEvent.UPDATE_ROWS_EVENT: {
-                RowsLogEvent event = new UpdateRowsLogEvent(header, buffer, descriptionEvent);
-                /* updating position in context */
-                logPosition.position = header.getLogPos();
-                event.fillTable(context);
-                return event;
-            }
-            case LogEvent.DELETE_ROWS_EVENT: {
-                RowsLogEvent event = new DeleteRowsLogEvent(header, buffer, descriptionEvent);
-                /* updating position in context */
-                logPosition.position = header.getLogPos();
-                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             case LogEvent.GTID_LOG_EVENT:
@@ -353,6 +338,13 @@ public final class LogDecoder {
                 GtidLogEvent event = new GtidLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                if (gtidSet != null) {
+                    gtidSet.update(event.getGtidStr());
+                    // update latest gtid
+                    header.putGtid(gtidSet, event);
+                }
+                // update current gtid event to context
+                context.setGtidLogEvent(event);
                 return event;
             }
             case LogEvent.PREVIOUS_GTIDS_LOG_EVENT: {
@@ -361,10 +353,41 @@ public final class LogDecoder {
                 logPosition.position = header.getLogPos();
                 return event;
             }
+            case LogEvent.TRANSACTION_CONTEXT_EVENT: {
+                TransactionContextLogEvent event = new TransactionContextLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.TRANSACTION_PAYLOAD_EVENT: {
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported MySQL TRANSACTION_PAYLOAD_EVENT from: " + context.getLogPosition());
+                }
+                break;
+
+                // TransactionPayloadLogEvent event = new TransactionPayloadLogEvent(header,
+                // buffer, descriptionEvent);
+                // /* updating position in context */
+                // logPosition.position = header.getLogPos();
+                // return event;
+            }
+            case LogEvent.VIEW_CHANGE_EVENT: {
+                ViewChangeEvent event = new ViewChangeEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.XA_PREPARE_LOG_EVENT: {
+                XaPrepareLogEvent event = new XaPrepareLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
             case LogEvent.ANNOTATE_ROWS_EVENT: {
                 AnnotateRowsEvent event = new AnnotateRowsEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             case LogEvent.BINLOG_CHECKPOINT_EVENT: {
@@ -377,13 +400,66 @@ public final class LogDecoder {
                 MariaGtidLogEvent event = new MariaGtidLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                if (gtidSet != null) {
+                    gtidSet.update(event.getGtidStr());
+                    // update latest gtid
+                    header.putGtid(gtidSet, event);
+                }
+                // update current gtid event to context
+                context.setGtidLogEvent(event);
                 return event;
             }
             case LogEvent.GTID_LIST_EVENT: {
                 MariaGtidListLogEvent event = new MariaGtidListLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                if (gtidSet != null) {
+                    gtidSet.update(event.getGtidStr());
+                    // update latest gtid
+                    header.putGtid(gtidSet, event);
+                }
+                // update current gtid event to context
+                context.setGtidLogEvent(event);
                 return event;
+            }
+            case LogEvent.START_ENCRYPTION_EVENT: {
+                StartEncryptionLogEvent event = new StartEncryptionLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.HEARTBEAT_LOG_EVENT_V2: {
+                HeartbeatV2LogEvent event = new HeartbeatV2LogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.QUERY_COMPRESSED_EVENT: {
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported MaraiDB QUERY_COMPRESSED_EVENT from: " + context.getLogPosition());
+                }
+                break;
+            }
+            case LogEvent.WRITE_ROWS_COMPRESSED_EVENT_V1:
+            case LogEvent.WRITE_ROWS_COMPRESSED_EVENT: {
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported MaraiDB WRITE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
+                }
+                break;
+            }
+            case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT_V1:
+            case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT: {
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported MaraiDB UPDATE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
+                }
+                break;
+            }
+            case LogEvent.DELETE_ROWS_COMPRESSED_EVENT_V1:
+            case LogEvent.DELETE_ROWS_COMPRESSED_EVENT: {
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported MaraiDB DELETE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
+                }
+                break;
             }
             default:
                 /*
@@ -397,9 +473,10 @@ public final class LogDecoder {
                     logPosition.position = header.getLogPos();
                     return event;
                 } else {
-                    if (logger.isWarnEnabled()) logger.warn("Skipping unrecognized binlog event "
-                                                            + LogEvent.getTypeName(header.getType()) + " from: "
-                                                            + context.getLogPosition());
+                    if (logger.isWarnEnabled()) {
+                        logger.warn("Skipping unrecognized binlog event " + LogEvent.getTypeName(header.getType())
+                                    + " from: " + context.getLogPosition());
+                    }
                 }
         }
 

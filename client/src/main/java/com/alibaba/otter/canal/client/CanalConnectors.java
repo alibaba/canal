@@ -29,7 +29,8 @@ public class CanalConnectors {
     public static CanalConnector newSingleConnector(SocketAddress address, String destination, String username,
                                                     String password) {
         SimpleCanalConnector canalConnector = new SimpleCanalConnector(address, username, password, destination);
-        canalConnector.setSoTimeout(30 * 1000);
+        canalConnector.setSoTimeout(60 * 1000);
+        canalConnector.setIdleTimeout(60 * 60 * 1000);
         return canalConnector;
     }
 
@@ -48,7 +49,8 @@ public class CanalConnectors {
             password,
             destination,
             new SimpleNodeAccessStrategy(addresses));
-        canalConnector.setSoTimeout(30 * 1000);
+        canalConnector.setSoTimeout(60 * 1000);
+        canalConnector.setIdleTimeout(60 * 60 * 1000);
         return canalConnector;
     }
 
@@ -67,7 +69,8 @@ public class CanalConnectors {
             password,
             destination,
             new ClusterNodeAccessStrategy(destination, ZkClientx.getZkClient(zkServers)));
-        canalConnector.setSoTimeout(30 * 1000);
+        canalConnector.setSoTimeout(60 * 1000);
+        canalConnector.setIdleTimeout(60 * 60 * 1000);
         return canalConnector;
     }
 }

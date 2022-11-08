@@ -90,6 +90,7 @@ public final class RotateLogEvent extends LogEvent {
         int filenameLen = buffer.limit() - filenameOffset;
         if (filenameLen > FN_REFLEN - 1) filenameLen = FN_REFLEN - 1;
         buffer.position(filenameOffset);
+
         filename = buffer.getFixString(filenameLen);
     }
 

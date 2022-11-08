@@ -3,7 +3,9 @@ package com.taobao.tddl.dbsync.binlog;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 
 /**
@@ -14,11 +16,15 @@ import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
  */
 public final class LogContext {
 
-    private final Map<Long, TableMapLogEvent> mapOfTable = new HashMap<Long, TableMapLogEvent>();
+    private final Map<Long, TableMapLogEvent> mapOfTable = new HashMap<>();
 
     private FormatDescriptionLogEvent         formatDescription;
 
     private LogPosition                       logPosition;
+
+    private GTIDSet                           gtidSet;
+
+    private LogEvent                          gtidLogEvent; // save current gtid log event
 
     public LogContext(){
         this.formatDescription = FormatDescriptionLogEvent.FORMAT_DESCRIPTION_EVENT_5_x;
@@ -58,7 +64,22 @@ public final class LogContext {
 
     public void reset() {
         formatDescription = FormatDescriptionLogEvent.FORMAT_DESCRIPTION_EVENT_5_x;
-
         mapOfTable.clear();
+    }
+
+    public GTIDSet getGtidSet() {
+        return gtidSet;
+    }
+
+    public void setGtidSet(GTIDSet gtidSet) {
+        this.gtidSet = gtidSet;
+    }
+
+    public LogEvent getGtidLogEvent() {
+        return gtidLogEvent;
+    }
+
+    public void setGtidLogEvent(LogEvent gtidLogEvent) {
+        this.gtidLogEvent = gtidLogEvent;
     }
 }

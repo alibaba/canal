@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <typeAliases>
+        <typeAlias alias="metaHistoryDO" type="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaHistoryDO"/>
+        <typeAlias alias="metaSnapshotDO" type="com.alibaba.otter.canal.parse.inbound.mysql.tsdb.dao.MetaSnapshotDO"/>
+    </typeAliases>
+
+    <mappers>
+        <mapper resource="tsdb/sql-map/sqlmap_history.xml"/>
+        <mapper resource="tsdb/sql-map/sqlmap_snapshot.xml"/>
+    </mappers>
+</configuration>

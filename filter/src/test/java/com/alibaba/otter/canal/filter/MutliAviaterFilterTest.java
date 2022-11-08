@@ -5,9 +5,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
-
 import org.apache.commons.lang.RandomStringUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
@@ -22,22 +21,19 @@ public class MutliAviaterFilterTest {
         final CountDownLatch countDown = new CountDownLatch(count);
         final AtomicInteger successed = new AtomicInteger(0);
         for (int i = 0; i < count; i++) {
-            executor.submit(new Runnable() {
-
-                public void run() {
-                    try {
-                        for (int i = 0; i < 100; i++) {
-                            doRegexTest();
-                            // try {
-                            // Thread.sleep(10);
-                            // } catch (InterruptedException e) {
-                            // }
-                        }
-
-                        successed.incrementAndGet();
-                    } finally {
-                        countDown.countDown();
+            executor.submit(() -> {
+                try {
+                    for (int i1 = 0; i1 < 100; i1++) {
+                        doRegexTest();
+                        // try {
+                        // Thread.sleep(10);
+                        // } catch (InterruptedException e) {
+                        // }
                     }
+
+                    successed.incrementAndGet();
+                } finally {
+                    countDown.countDown();
                 }
             });
         }

@@ -1,0 +1,62 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+hbaseMapping:
+  mode: STRING  #NATIVE   #PHOENIX
+  database: mytest  # 数据库名
+  table: person2     # 数据库表名
+  hbaseTable: MYTEST.PERSON2   # HBase表名
+  family: CF  # 默认统一Family名称
+  uppercaseQualifier: true  # 字段名转大写, 默认为true
+  etlCondition: "where c_time>={}"
+  commitBatch: 3000 # 批量提交的大小
+  #rowKey: id,type  # 复合字段rowKey不能和columns中的rowKey重复
+  columns:
+    # 数据库字段:HBase对应字段
+    id: ROWKEY LEN:15
+    name: NAME
+    email: EMAIL
+    type:
+    c_time: C_TIME
+    birthday: BIRTHDAY
+#  excludeColumns:
+#    - lat   # 忽略字段
+
+# -- NATIVE类型
+# $DEFAULT
+# $STRING
+# $INTEGER
+# $LONG
+# $SHORT
+# $BOOLEAN
+# $FLOAT
+# $DOUBLE
+# $BIGDECIMAL
+# $DATE
+# $BYTE
+# $BYTES
+
+# -- PHOENIX类型
+# $DEFAULT                  对应PHOENIX里的VARCHAR
+# $UNSIGNED_INT             对应PHOENIX里的UNSIGNED_INT           4字节
+# $UNSIGNED_LONG            对应PHOENIX里的UNSIGNED_LONG          8字节
+# $UNSIGNED_TINYINT         对应PHOENIX里的UNSIGNED_TINYINT       1字节
+# $UNSIGNED_SMALLINT        对应PHOENIX里的UNSIGNED_SMALLINT      2字节
+# $UNSIGNED_FLOAT           对应PHOENIX里的UNSIGNED_FLOAT         4字节
+# $UNSIGNED_DOUBLE          对应PHOENIX里的UNSIGNED_DOUBLE        8字节
+# $INTEGER                  对应PHOENIX里的INTEGER                4字节
+# $BIGINT                   对应PHOENIX里的BIGINT                 8字节
+# $TINYINT                  对应PHOENIX里的TINYINT                1字节
+# $SMALLINT                 对应PHOENIX里的SMALLINT               2字节
+# $FLOAT                    对应PHOENIX里的FLOAT                  4字节
+# $DOUBLE                    对应PHOENIX里的DOUBLE                 8字节
+# $BOOLEAN                  对应PHOENIX里的BOOLEAN                1字节
+# $TIME                     对应PHOENIX里的TIME                   8字节
+# $DATE                     对应PHOENIX里的DATE                   8字节
+# $TIMESTAMP                对应PHOENIX里的TIMESTAMP              12字节
+# $UNSIGNED_TIME            对应PHOENIX里的UNSIGNED_TIME          8字节
+# $UNSIGNED_DATE            对应PHOENIX里的UNSIGNED_DATE          8字节
+# $UNSIGNED_TIMESTAMP       对应PHOENIX里的UNSIGNED_TIMESTAMP     12字节
+# $VARCHAR                  对应PHOENIX里的VARCHAR                动态长度
+# $VARBINARY                对应PHOENIX里的VARBINARY              动态长度
+# $DECIMAL                  对应PHOENIX里的DECIMAL                动态长度
