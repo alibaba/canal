@@ -58,6 +58,7 @@ public class RdbEtlService extends AbstractEtlService {
             Map<String, String> columnsMap = new LinkedHashMap<>();
             Map<String, Integer> columnType = new LinkedHashMap<>();
             DruidDataSource dataSource = (DruidDataSource) srcDS;
+            String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
 
             Util.sqlRS(targetDS,
                 "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " LIMIT 1 ",
@@ -90,8 +91,10 @@ public class RdbEtlService extends AbstractEtlService {
                     insertSql.append("INSERT INTO ")
                         .append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()))
                         .append(" (");
-                    columnsMap
-                        .forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+                    columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(backtick)
+                            .append(targetColumnName)
+                            .append(backtick)
+                            .append(","));
 
                     int len = insertSql.length();
                     insertSql.delete(len - 1, len).append(") VALUES (");
@@ -101,6 +104,7 @@ public class RdbEtlService extends AbstractEtlService {
                     }
                     len = insertSql.length();
                     insertSql.delete(len - 1, len).append(")");
+                    logger.info("executeSqlImport sql:{}",insertSql.toString());
                     try (Connection connTarget = targetDS.getConnection();
                             PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
                         connTarget.setAutoCommit(false);

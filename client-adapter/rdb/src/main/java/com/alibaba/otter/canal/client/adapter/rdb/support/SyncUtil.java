@@ -281,6 +281,7 @@ public class SyncUtil {
         // 只有当dbType为MySQL/MariaDB或OceanBase时返回反引号
         switch (dbType) {
             case mysql:
+                return "`";
             case mariadb:
             case oceanbase:
                 return "`";
