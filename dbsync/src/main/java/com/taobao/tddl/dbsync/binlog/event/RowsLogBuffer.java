@@ -1,6 +1,7 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.BitSet;
@@ -33,7 +34,7 @@ public final class RowsLogBuffer {
     private final LogBuffer    buffer;
     private final int          columnLen;
     private final int          jsonColumnCount;
-    private final String       charsetName;
+    private final Charset      charset;
 
     private final BitSet       nullBits;
     private int                nullBitIndex;
@@ -47,10 +48,10 @@ public final class RowsLogBuffer {
     private int                length;
     private Serializable       value;
 
-    public RowsLogBuffer(LogBuffer buffer, final int columnLen, String charsetName, int jsonColumnCount, boolean partial){
+    public RowsLogBuffer(LogBuffer buffer, final int columnLen, Charset charset, int jsonColumnCount, boolean partial){
         this.buffer = buffer;
         this.columnLen = columnLen;
-        this.charsetName = charsetName;
+        this.charset = charset;
         this.partial = partial;
         this.jsonColumnCount = jsonColumnCount;
         this.nullBits = new BitSet(columnLen);
@@ -1017,7 +1018,7 @@ public final class RowsLogBuffer {
                     javaType = Types.VARBINARY;
                     value = binary;
                 } else {
-                    value = buffer.getFullString(len, charsetName);
+                    value = buffer.getFullString(len, charset);
                     javaType = Types.VARCHAR;
                 }
 
@@ -1039,7 +1040,7 @@ public final class RowsLogBuffer {
                     javaType = Types.BINARY;
                     value = binary;
                 } else {
-                    value = buffer.getFullString(len, charsetName);
+                    value = buffer.getFullString(len, charset);
                     javaType = Types.CHAR; // Types.VARCHAR;
                 }
                 length = len;
@@ -1074,7 +1075,7 @@ public final class RowsLogBuffer {
                         len,
                         columnName,
                         columnIndex,
-                        charsetName);
+                            charset);
                     value = builder.toString();
                     buffer.position(position + len);
                 } else {
@@ -1088,9 +1089,9 @@ public final class RowsLogBuffer {
                         Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(),
                             buffer,
                             len - 1,
-                            charsetName);
+                                charset);
                         StringBuilder builder = new StringBuilder();
-                        jsonValue.toJsonString(builder, charsetName);
+                        jsonValue.toJsonString(builder, charset);
                         value = builder.toString();
                         buffer.position(position + len);
                     }

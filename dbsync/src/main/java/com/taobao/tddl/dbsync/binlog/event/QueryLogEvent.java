@@ -433,7 +433,7 @@ public class QueryLogEvent extends LogEvent {
     private int             serverCollation           = -1;
     private int             tvSec                     = -1;
     private BigInteger      ddlXid                    = BigInteger.valueOf(-1L);
-    private String          charsetName;
+    private Charset         charset;
 
     private String          timezone;
 
@@ -498,12 +498,12 @@ public class QueryLogEvent extends LogEvent {
 
         /* A 2nd variable part; this is common to all versions */
         final int queryLen = dataLen - dbLen - 1;
-        dbname = buffer.getFixString(dbLen + 1);
+        dbname = buffer.getFixName(dbLen + 1);
         if (clientCharset >= 0) {
-            charsetName = CharsetConversion.getJavaCharset(clientCharset);
+            charset = CharsetConversion.getNioCharset(clientCharset);
 
-            if ((charsetName != null) && (Charset.isSupported(charsetName))) {
-                query = buffer.getFixString(queryLen, charsetName);
+            if (charset != null) {
+                query = buffer.getFixString(queryLen, charset);
             } else {
                 logger.warn("unsupported character set in query log: " + "\n    ID = " + clientCharset + ", Charset = "
                             + CharsetConversion.getCharset(clientCharset) + ", Collation = "
@@ -623,7 +623,7 @@ public class QueryLogEvent extends LogEvent {
                         // is ulonglong
                         break;
                     case Q_CATALOG_NZ_CODE:
-                        catalog = buffer.getString();
+                        catalog = buffer.getName();
                         break;
                     case Q_AUTO_INCREMENT:
                         autoIncrementIncrement = buffer.getUint16();
@@ -639,7 +639,7 @@ public class QueryLogEvent extends LogEvent {
                         serverCollation = buffer.getUint16();
                         break;
                     case Q_TIME_ZONE_CODE:
-                        timezone = buffer.getString();
+                        timezone = buffer.getName();
                         break;
                     case Q_CATALOG_CODE: /* for 5.0.x where 0<=x<=3 masters */
                         final int len = buffer.getUint8();
@@ -663,8 +663,8 @@ public class QueryLogEvent extends LogEvent {
                         buffer.forward(4);
                         break;
                     case Q_INVOKER:
-                        user = buffer.getString();
-                        host = buffer.getString();
+                        user = buffer.getName();
+                        host = buffer.getName();
                         break;
                     case Q_MICROSECONDS:
                         // when.tv_usec= uint3korr(pos);
@@ -685,7 +685,7 @@ public class QueryLogEvent extends LogEvent {
                         String mtsAccessedDbNames[] = new String[mtsAccessedDbs];
                         for (int i = 0; i < mtsAccessedDbs && buffer.position() < end; i++) {
                             int length = end - buffer.position();
-                            mtsAccessedDbNames[i] = buffer.getFixString(length < NAME_LEN ? length : NAME_LEN);
+                            mtsAccessedDbNames[i] = buffer.getFixName(length < NAME_LEN ? length : NAME_LEN);
                         }
                         break;
                     case Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP:
@@ -829,8 +829,8 @@ public class QueryLogEvent extends LogEvent {
         return autoIncrementOffset;
     }
 
-    public final String getCharsetName() {
-        return charsetName;
+    public final Charset getCharset() {
+        return charset;
     }
 
     public final String getTimezone() {

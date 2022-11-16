@@ -5,6 +5,8 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.BitSet;
 
@@ -1040,29 +1042,27 @@ public class LogBuffer {
         }
     }
 
-    /* default ANSI charset */
-    public static final String ISO_8859_1 = "ISO-8859-1";
-
     /**
      * Return fix length string from buffer.
      */
     public final String getFixString(final int pos, final int len) {
-        return getFixString(pos, len, ISO_8859_1);
+        return getFixString(pos, len, StandardCharsets.ISO_8859_1);
     }
 
     /**
      * Return next fix length string from buffer.
      */
     public final String getFixString(final int len) {
-        return getFixString(len, ISO_8859_1);
+        return getFixString(len, StandardCharsets.ISO_8859_1);
     }
 
     /**
      * Return fix length string from buffer.
      */
-    public final String getFixString(final int pos, final int len, String charsetName) {
-        if (pos + len > limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                             + (pos < 0 ? pos : (pos + len)));
+    public final String getFixString(final int pos, final int len, Charset charset) {
+        if (pos + len > limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + len)));
+        }
 
         final int from = origin + pos;
         final int end = from + len;
@@ -1071,19 +1071,16 @@ public class LogBuffer {
         for (; (found < end) && buf[found] != '\0'; found++)
             /* empty loop */;
 
-        try {
-            return new String(buf, from, found - from, charsetName);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
-        }
+        return new String(buf, from, found - from, charset);
     }
 
     /**
      * Return next fix length string from buffer.
      */
-    public final String getFixString(final int len, String charsetName) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
+    public final String getFixString(final int len, Charset charset) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
 
         final int from = position;
         final int end = from + len;
@@ -1092,97 +1089,141 @@ public class LogBuffer {
         for (; (found < end) && buf[found] != '\0'; found++)
             /* empty loop */;
 
-        try {
-            String string = new String(buf, from, found - from, charsetName);
-            position += len;
-            return string;
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        String string = new String(buf, from, found - from, charset);
+        position += len;
+        return string;
+    }
+
+    public final String getFixName(final int len, Charset charset) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
         }
+
+        final int from = position;
+        final int end = from + len;
+        byte[] buf = buffer;
+        int found = from;
+        for (; (found < end) && buf[found] != '\0'; found++)
+            /* empty loop */;
+
+        int length = found - from;
+        String string = null;
+        if (length <= 16) {
+            string = NameCache.name(buf, from, length, charset);
+        }
+        if (string == null) {
+            string = new String(buf, from, length, charset);
+        }
+        position += len;
+        return string;
+    }
+
+    public final String getFixName(final int len) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
+
+        final int from = position;
+        final int end = from + len;
+        byte[] buf = buffer;
+        int found = from;
+        for (; (found < end) && buf[found] != '\0'; found++)
+            /* empty loop */;
+
+        int length = found - from;
+        String string = null;
+        if (length <= 16) {
+            string = NameCache.name(buf, from, length, StandardCharsets.ISO_8859_1);
+        }
+        if (string == null) {
+            string = new String(buf, from, length, StandardCharsets.ISO_8859_1);
+        }
+        position += len;
+        return string;
     }
 
     /**
-     * Return fix-length string from buffer without null-terminate checking. Fix
-     * bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
+     * Return fix-length string from buffer without null-terminate checking.
+     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
      */
-    public final String getFullString(final int pos, final int len, String charsetName) {
-        if (pos + len > limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                             + (pos < 0 ? pos : (pos + len)));
-
-        try {
-            return new String(buffer, origin + pos, len, charsetName);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+    public final String getFullString(final int pos, final int len, Charset charset) {
+        if (pos + len > limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + len)));
         }
+
+        return new String(buffer, origin + pos, len, charset);
     }
 
     /**
      * Return next fix-length string from buffer without null-terminate
-     * checking. Fix bug #17 {@link https
-     * ://github.com/AlibabaTech/canal/issues/17 }
+     * checking.
+     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
      */
-    public final String getFullString(final int len, String charsetName) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
-
-        try {
-            String string = new String(buffer, position, len, charsetName);
-            position += len;
-            return string;
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+    public final String getFullString(final int len, Charset charset) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
         }
+
+        String string = new String(buffer, position, len, charset);
+        position += len;
+        return string;
     }
+
 
     /**
      * Return dynamic length string from buffer.
      */
     public final String getString(final int pos) {
-        return getString(pos, ISO_8859_1);
+        if (pos >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + pos);
+        }
+
+        byte[] buf = buffer;
+        final int len = (0xff & buf[origin + pos]);
+        if (pos + len + 1 > limit) {
+            throw new IllegalArgumentException("limit excceed: " + (pos + len + 1));
+        }
+
+        return new String(buf, origin + pos + 1, len, StandardCharsets.ISO_8859_1);
     }
 
     /**
      * Return next dynamic length string from buffer.
      */
     public final String getString() {
-        return getString(ISO_8859_1);
-    }
-
-    /**
-     * Return dynamic length string from buffer.
-     */
-    public final String getString(final int pos, String charsetName) {
-        if (pos >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: " + pos);
-
-        byte[] buf = buffer;
-        final int len = (0xff & buf[origin + pos]);
-        if (pos + len + 1 > limit) throw new IllegalArgumentException("limit excceed: " + (pos + len + 1));
-
-        try {
-            return new String(buf, origin + pos + 1, len, charsetName);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        if (position >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + position);
         }
-    }
-
-    /**
-     * Return next dynamic length string from buffer.
-     */
-    public final String getString(String charsetName) {
-        if (position >= origin + limit) throw new IllegalArgumentException("limit excceed: " + position);
 
         byte[] buf = buffer;
         final int len = (0xff & buf[position]);
-        if (position + len + 1 > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                    + (position + len + 1 - origin));
-
-        try {
-            String string = new String(buf, position + 1, len, charsetName);
-            position += len + 1;
-            return string;
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        if (position + len + 1 > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: "
+                                               + (position + len + 1 - origin));
         }
+
+        String string = new String(buf, position + 1, len, StandardCharsets.ISO_8859_1);
+        position += len + 1;
+        return string;
+    }
+
+    public final String getName() {
+        if (position >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + position);
+        }
+
+        byte[] buf = buffer;
+        final int len = (0xff & buf[position]);
+        if (position + len + 1 > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len + 1 - origin));
+        }
+
+        String string = NameCache.name(buf, position + 1, len, StandardCharsets.ISO_8859_1);
+        if (string == null) {
+            string = new String(buf, position + 1, len, StandardCharsets.ISO_8859_1);
+        }
+        position += len + 1;
+        return string;
     }
 
     /**

@@ -171,7 +171,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                 return null;
             }
 
-            String json = FileUtils.readFileToString(dataFile, charset.name());
+            String json = FileUtils.readFileToString(dataFile, charset);
             return JsonUtils.unmarshalFromString(json, FileMetaInstanceData.class);
         } catch (IOException e) {
             throw new CanalMetaManagerException(e);
