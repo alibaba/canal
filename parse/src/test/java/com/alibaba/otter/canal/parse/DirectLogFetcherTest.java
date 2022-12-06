@@ -302,7 +302,7 @@ public class DirectLogFetcherTest {
                 event.getHeader().getLogPos() - event.getHeader().getEventLen(),
                 event.getTable().getDbName(),
                 event.getTable().getTableName()));
-            RowsLogBuffer buffer = event.getRowsBuf(charset.name());
+            RowsLogBuffer buffer = event.getRowsBuf(charset);
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
             while (buffer.nextOneRow(columns)) {
