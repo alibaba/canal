@@ -1,5 +1,7 @@
 package com.taobao.tddl.dbsync.binlog;
 
+import java.nio.charset.Charset;
+
 import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber2;
 import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber4;
 import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.usecondsToStr;
@@ -57,23 +59,27 @@ public class JsonConversion {
     public static final int  VALUE_ENTRY_SIZE_LARGE  = (1 + LARGE_OFFSET_SIZE);
 
     public static Json_Value parse_value(int type, LogBuffer buffer, long len, String charsetName) {
+        return parse_value(type, buffer, len, Charset.forName(charsetName));
+    }
+
+    public static Json_Value parse_value(int type, LogBuffer buffer, long len, Charset charset) {
         buffer = buffer.duplicate(buffer.position(), (int) len);
         switch (type) {
             case JSONB_TYPE_SMALL_OBJECT:
-                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, false, charsetName);
+                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, false, charset);
             case JSONB_TYPE_LARGE_OBJECT:
-                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, true, charsetName);
+                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, true, charset);
             case JSONB_TYPE_SMALL_ARRAY:
-                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, false, charsetName);
+                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, false, charset);
             case JSONB_TYPE_LARGE_ARRAY:
-                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, true, charsetName);
+                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, true, charset);
             default:
-                return parse_scalar(type, buffer, len, charsetName);
+                return parse_scalar(type, buffer, len, charset);
         }
     }
 
     private static Json_Value parse_array_or_object(Json_enum_type type, LogBuffer buffer, long len, boolean large,
-                                                    String charsetName) {
+                                                    Charset charset) {
         long offset_size = large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
         if (len < 2 * offset_size) {
             throw new IllegalArgumentException("illegal json data");
@@ -100,7 +106,7 @@ public class JsonConversion {
         return large ? buffer.getUint32() : buffer.getUint16();
     }
 
-    private static Json_Value parse_scalar(int type, LogBuffer buffer, long len, String charsetName) {
+    private static Json_Value parse_scalar(int type, LogBuffer buffer, long len, Charset charset) {
         switch (type) {
             case JSONB_TYPE_LITERAL:
                 /* purecov: inspected */
@@ -156,7 +162,7 @@ public class JsonConversion {
                 }
                 return new Json_Value(Json_enum_type.STRING, buffer.rewind()
                     .forward((int) n)
-                    .getFixString((int) str_len, charsetName));
+                    .getFixString((int) str_len, charset));
             case JSONB_TYPE_OPAQUE:
                 /*
                  * There should always be at least one byte, which tells the
@@ -242,7 +248,7 @@ public class JsonConversion {
             this.m_large = large;
         }
 
-        public String key(int i, String charsetName) {
+        public String key(int i, Charset charset) {
             m_data.rewind();
             int offset_size = m_large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
             int key_entry_size = m_large ? KEY_ENTRY_SIZE_LARGE : KEY_ENTRY_SIZE_SMALL;
@@ -255,10 +261,10 @@ public class JsonConversion {
             // entry, always two
             // bytes.
             long key_length = m_data.getUint16();
-            return m_data.rewind().forward((int) key_offset).getFixString((int) key_length, charsetName);
+            return m_data.rewind().forward((int) key_offset).getFixString((int) key_length, charset);
         }
 
-        public Json_Value element(int i, String charsetName) {
+        public Json_Value element(int i, Charset charset) {
             m_data.rewind();
             int offset_size = m_large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
             int key_entry_size = m_large ? KEY_ENTRY_SIZE_LARGE : KEY_ENTRY_SIZE_SMALL;
@@ -271,13 +277,13 @@ public class JsonConversion {
             int type = m_data.forward(entry_offset).getUint8();
             if (type == JSONB_TYPE_INT16 || type == JSONB_TYPE_UINT16 || type == JSONB_TYPE_LITERAL
                 || (m_large && (type == JSONB_TYPE_INT32 || type == JSONB_TYPE_UINT32))) {
-                return parse_scalar(type, m_data, value_entry_size - 1, charsetName);
+                return parse_scalar(type, m_data, value_entry_size - 1, charset);
             }
             int value_offset = (int) read_offset_or_size(m_data, m_large);
-            return parse_value(type, m_data.rewind().forward(value_offset), (int) m_length - value_offset, charsetName);
+            return parse_value(type, m_data.rewind().forward(value_offset), (int) m_length - value_offset, charset);
         }
 
-        public StringBuilder toJsonString(StringBuilder buf, String charsetName) {
+        public StringBuilder toJsonString(StringBuilder buf, Charset charset) {
             switch (m_type) {
                 case OBJECT:
                     buf.append("{");
@@ -285,9 +291,9 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        buf.append('"').append(key(i, charsetName)).append('"');
+                        buf.append('"').append(key(i, charset)).append('"');
                         buf.append(": ");
-                        element(i, charsetName).toJsonString(buf, charsetName);
+                        element(i, charset).toJsonString(buf, charset);
                     }
                     buf.append("}");
                     break;
@@ -297,7 +303,7 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        element(i, charsetName).toJsonString(buf, charsetName);
+                        element(i, charset).toJsonString(buf, charset);
                     }
                     buf.append("]");
                     break;
@@ -398,7 +404,7 @@ public class JsonConversion {
                         }
                         buf.append('"').append(text).append('"');
                     } else {
-                        text = m_data.getFixString((int) m_length, charsetName);
+                        text = m_data.getFixString((int) m_length, charset);
                         buf.append('"').append(escapse(text)).append('"');
                     }
 
