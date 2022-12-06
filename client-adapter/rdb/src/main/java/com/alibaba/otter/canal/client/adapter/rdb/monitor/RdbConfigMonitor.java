@@ -1,10 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.rdb.monitor;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.rdb.RdbAdapter;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import java.io.File;
 import java.util.Properties;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -35,7 +35,7 @@ public class RdbConfigMonitor {
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
-                FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
+                    FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
             FileListener listener = new FileListener();
             observer.addListener(listener);
             fileMonitor = new FileAlterationMonitor(3000, observer);
@@ -62,15 +62,16 @@ public class RdbConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                MappingConfig config = YamlUtils
-                    .ymlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                MappingConfig config = YmlConfigBinder
+                        .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
                 if (config == null) {
                     return;
                 }
                 config.validate();
                 boolean result = rdbAdapter.addConfig(file.getName(), config);
                 if (result) {
-                    logger.info("Add a new rdb mapping config: {} to canal adapter", file.getName());
+                    logger.info("Add a new rdb mapping config: {} to canal adapter",
+                            file.getName());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -84,14 +85,14 @@ public class RdbConfigMonitor {
             try {
                 if (rdbAdapter.getRdbMapping().containsKey(file.getName())) {
                     // 加载配置文件
-                    String configContent = MappingConfigsLoader
-                        .loadConfig(adapterName + File.separator + file.getName());
+                    String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
                     if (configContent == null) {
                         onFileDelete(file);
                         return;
                     }
-                    MappingConfig config = YamlUtils
-                        .ymlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                    MappingConfig config = YmlConfigBinder
+                            .bindYmlToObj(null, configContent, MappingConfig.class, null,
+                                    envProperties);
                     if (config == null) {
                         return;
                     }

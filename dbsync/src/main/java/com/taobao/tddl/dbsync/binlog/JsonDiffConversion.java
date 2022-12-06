@@ -1,6 +1,5 @@
 package com.taobao.tddl.dbsync.binlog;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +36,6 @@ public class JsonDiffConversion {
 
     public static StringBuilder print_json_diff(LogBuffer buffer, long len, String columnName, int columnIndex,
                                                 String charsetName) {
-        return print_json_diff(buffer, len, columnName, columnIndex, Charset.forName(charsetName));
-    }
-
-    public static StringBuilder print_json_diff(LogBuffer buffer, long len, String columnName, int columnIndex,
-                                                Charset charset) {
         int position = buffer.position();
         List<String> operation_names = new ArrayList<>();
         while (buffer.hasRemaining()) {
@@ -117,14 +111,14 @@ public class JsonDiffConversion {
                 Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(),
                     buffer,
                     value_length - 1,
-                    charset);
+                    charsetName);
                 buffer.forward((int) value_length - 1);
                 // Read value
                 if (jsonValue.m_type == Json_enum_type.ERROR) {
                     throw new IllegalArgumentException("parsing json value");
                 }
                 StringBuilder jsonBuilder = new StringBuilder();
-                jsonValue.toJsonString(jsonBuilder, charset);
+                jsonValue.toJsonString(jsonBuilder, charsetName);
                 builder.append(jsonBuilder);
             }
 

@@ -67,7 +67,7 @@ public final class IncidentLogEvent extends LogEvent {
         incident = incidentNumber;
 
         buffer.position(commonHeaderLen + postHeaderLen);
-        message = buffer.getName();
+        message = buffer.getString();
     }
 
     public final int getIncident() {

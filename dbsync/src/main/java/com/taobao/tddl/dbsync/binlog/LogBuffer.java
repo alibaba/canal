@@ -5,8 +5,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.BitSet;
 
@@ -18,8 +16,6 @@ import java.util.BitSet;
  */
 public class LogBuffer {
 
-    static final BigDecimal DECIMAL_ZERO_1_SCALE = BigDecimal.valueOf(0, 1);
-    static final BigDecimal DECIMAL_ONE_1_SCALE = BigDecimal.valueOf(10, 1);
     protected byte[] buffer;
 
     protected int    origin, limit;
@@ -1042,27 +1038,29 @@ public class LogBuffer {
         }
     }
 
+    /* default ANSI charset */
+    public static final String ISO_8859_1 = "ISO-8859-1";
+
     /**
      * Return fix length string from buffer.
      */
     public final String getFixString(final int pos, final int len) {
-        return getFixString(pos, len, StandardCharsets.ISO_8859_1);
+        return getFixString(pos, len, ISO_8859_1);
     }
 
     /**
      * Return next fix length string from buffer.
      */
     public final String getFixString(final int len) {
-        return getFixString(len, StandardCharsets.ISO_8859_1);
+        return getFixString(len, ISO_8859_1);
     }
 
     /**
      * Return fix length string from buffer.
      */
-    public final String getFixString(final int pos, final int len, Charset charset) {
-        if (pos + len > limit || pos < 0) {
-            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + len)));
-        }
+    public final String getFixString(final int pos, final int len, String charsetName) {
+        if (pos + len > limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
+                                                                             + (pos < 0 ? pos : (pos + len)));
 
         final int from = origin + pos;
         final int end = from + len;
@@ -1071,16 +1069,19 @@ public class LogBuffer {
         for (; (found < end) && buf[found] != '\0'; found++)
             /* empty loop */;
 
-        return new String(buf, from, found - from, charset);
+        try {
+            return new String(buf, from, found - from, charsetName);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        }
     }
 
     /**
      * Return next fix length string from buffer.
      */
-    public final String getFixString(final int len, Charset charset) {
-        if (position + len > origin + limit) {
-            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
-        }
+    public final String getFixString(final int len, String charsetName) {
+        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
+                                                                                + (position + len - origin));
 
         final int from = position;
         final int end = from + len;
@@ -1089,141 +1090,97 @@ public class LogBuffer {
         for (; (found < end) && buf[found] != '\0'; found++)
             /* empty loop */;
 
-        String string = new String(buf, from, found - from, charset);
-        position += len;
-        return string;
-    }
-
-    public final String getFixName(final int len, Charset charset) {
-        if (position + len > origin + limit) {
-            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        try {
+            String string = new String(buf, from, found - from, charsetName);
+            position += len;
+            return string;
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
         }
-
-        final int from = position;
-        final int end = from + len;
-        byte[] buf = buffer;
-        int found = from;
-        for (; (found < end) && buf[found] != '\0'; found++)
-            /* empty loop */;
-
-        int length = found - from;
-        String string = null;
-        if (length <= 16) {
-            string = NameCache.name(buf, from, length, charset);
-        }
-        if (string == null) {
-            string = new String(buf, from, length, charset);
-        }
-        position += len;
-        return string;
-    }
-
-    public final String getFixName(final int len) {
-        if (position + len > origin + limit) {
-            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
-        }
-
-        final int from = position;
-        final int end = from + len;
-        byte[] buf = buffer;
-        int found = from;
-        for (; (found < end) && buf[found] != '\0'; found++)
-            /* empty loop */;
-
-        int length = found - from;
-        String string = null;
-        if (length <= 16) {
-            string = NameCache.name(buf, from, length, StandardCharsets.ISO_8859_1);
-        }
-        if (string == null) {
-            string = new String(buf, from, length, StandardCharsets.ISO_8859_1);
-        }
-        position += len;
-        return string;
     }
 
     /**
-     * Return fix-length string from buffer without null-terminate checking.
-     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
+     * Return fix-length string from buffer without null-terminate checking. Fix
+     * bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
      */
-    public final String getFullString(final int pos, final int len, Charset charset) {
-        if (pos + len > limit || pos < 0) {
-            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + len)));
-        }
+    public final String getFullString(final int pos, final int len, String charsetName) {
+        if (pos + len > limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
+                                                                             + (pos < 0 ? pos : (pos + len)));
 
-        return new String(buffer, origin + pos, len, charset);
+        try {
+            return new String(buffer, origin + pos, len, charsetName);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        }
     }
 
     /**
      * Return next fix-length string from buffer without null-terminate
-     * checking.
-     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
+     * checking. Fix bug #17 {@link https
+     * ://github.com/AlibabaTech/canal/issues/17 }
      */
-    public final String getFullString(final int len, Charset charset) {
-        if (position + len > origin + limit) {
-            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+    public final String getFullString(final int len, String charsetName) {
+        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
+                                                                                + (position + len - origin));
+
+        try {
+            String string = new String(buffer, position, len, charsetName);
+            position += len;
+            return string;
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
         }
-
-        String string = new String(buffer, position, len, charset);
-        position += len;
-        return string;
     }
-
 
     /**
      * Return dynamic length string from buffer.
      */
     public final String getString(final int pos) {
-        if (pos >= limit || pos < 0) {
-            throw new IllegalArgumentException("limit excceed: " + pos);
-        }
-
-        byte[] buf = buffer;
-        final int len = (0xff & buf[origin + pos]);
-        if (pos + len + 1 > limit) {
-            throw new IllegalArgumentException("limit excceed: " + (pos + len + 1));
-        }
-
-        return new String(buf, origin + pos + 1, len, StandardCharsets.ISO_8859_1);
+        return getString(pos, ISO_8859_1);
     }
 
     /**
      * Return next dynamic length string from buffer.
      */
     public final String getString() {
-        if (position >= origin + limit) {
-            throw new IllegalArgumentException("limit excceed: " + position);
-        }
-
-        byte[] buf = buffer;
-        final int len = (0xff & buf[position]);
-        if (position + len + 1 > origin + limit) {
-            throw new IllegalArgumentException("limit excceed: "
-                                               + (position + len + 1 - origin));
-        }
-
-        String string = new String(buf, position + 1, len, StandardCharsets.ISO_8859_1);
-        position += len + 1;
-        return string;
+        return getString(ISO_8859_1);
     }
 
-    public final String getName() {
-        if (position >= origin + limit) {
-            throw new IllegalArgumentException("limit excceed: " + position);
+    /**
+     * Return dynamic length string from buffer.
+     */
+    public final String getString(final int pos, String charsetName) {
+        if (pos >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: " + pos);
+
+        byte[] buf = buffer;
+        final int len = (0xff & buf[origin + pos]);
+        if (pos + len + 1 > limit) throw new IllegalArgumentException("limit excceed: " + (pos + len + 1));
+
+        try {
+            return new String(buf, origin + pos + 1, len, charsetName);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
         }
+    }
+
+    /**
+     * Return next dynamic length string from buffer.
+     */
+    public final String getString(String charsetName) {
+        if (position >= origin + limit) throw new IllegalArgumentException("limit excceed: " + position);
 
         byte[] buf = buffer;
         final int len = (0xff & buf[position]);
-        if (position + len + 1 > origin + limit) {
-            throw new IllegalArgumentException("limit excceed: " + (position + len + 1 - origin));
-        }
+        if (position + len + 1 > origin + limit) throw new IllegalArgumentException("limit excceed: "
+                                                                                    + (position + len + 1 - origin));
 
-        String string = NameCache.name(buf, position + 1, len, StandardCharsets.ISO_8859_1);
-        if (string == null) {
-            string = new String(buf, position + 1, len, StandardCharsets.ISO_8859_1);
+        try {
+            String string = new String(buf, position + 1, len, charsetName);
+            position += len + 1;
+            return string;
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
         }
-        position += len + 1;
-        return string;
     }
 
     /**
@@ -1306,15 +1263,6 @@ public class LogBuffer {
             throw new IllegalArgumentException("limit excceed: " + (position + binSize - origin));
         }
 
-        if (precision <= 20 && intg <= 18 && frac <= 9) {
-            // use compact BigDecimal
-            BigDecimal compactDecimal = getBigDecimalCompact(precision, scale, intg, frac, intg0x);
-            if (compactDecimal != null) {
-                position += binSize;
-                return compactDecimal;
-            }
-        }
-
         BigDecimal decimal = getDecimal0(position, intg, frac, // NL
             intg0,
             frac0,
@@ -1322,162 +1270,6 @@ public class LogBuffer {
             frac0x);
         position += binSize;
         return decimal;
-    }
-
-    /**
-     * use compact BigDecimal
-     */
-    private BigDecimal getBigDecimalCompact(int precision, int scale, int intg, int frac, int intg0x) {
-        if (precision > 20 || intg > 18 && frac > 9) {
-            return null;
-        }
-
-        BigDecimal compactDecimal = null;
-        long longValue = 0;
-        int small = 0;
-        int pos = position;
-        byte b0 = buffer[position];
-        final int mask = ((b0 & 0x80) == 0x80) ? 0 : -1;
-        b0 ^= 0x80;
-
-        switch (intg0x) {
-            case 0:
-                if (intg == 0) {
-                    longValue = 0;
-                } else {
-                    longValue = (b0 << 24)
-                                | ((0xff & buffer[pos + 1]) << 16)
-                                | ((0xff & buffer[pos + 2]) << 8)
-                                | (0xff & buffer[pos + 3]);
-                    longValue ^= mask;
-                    pos += 4;
-                }
-                break;
-            case 1:
-            case 2:
-                longValue = b0;
-                longValue ^= mask;
-                pos += 1;
-                break;
-            case 3:
-            case 4:
-                longValue = (b0 << 8) | (0xff & buffer[pos + 1]);
-                longValue ^= mask;
-                pos += 2;
-                break;
-            case 5:
-            case 6:
-                longValue = (b0 << 16) | ((0xff & buffer[pos + 1]) << 8) | (0xff & buffer[pos + 2]);
-                longValue ^= mask;
-                pos += 3;
-                break;
-            case 7:
-            case 8:
-                longValue = (b0 << 24)
-                            | ((0xff & buffer[pos + 1]) << 16)
-                            | ((0xff & buffer[pos + 2]) << 8)
-                            | (0xff & buffer[pos + 3]);
-                longValue ^= mask;
-                pos += 4;
-                break;
-            default:
-                break;
-        }
-
-        if (intg > 9) {
-            int value = getInt32BE(buffer, pos);
-            value ^= mask;
-            longValue *= 1_000_000_000;
-            longValue += value;
-            pos += 4;
-        }
-
-        int power = 1;
-        if (pos != position) {
-            b0 = buffer[pos];
-        }
-        switch (frac) {
-            case 0:
-                small = 0;
-                break;
-            case 1:
-            case 2:
-                power = frac == 1 ? 10 : 100;
-                small = b0;
-                small ^= mask;
-                break;
-            case 3:
-            case 4:
-                power = frac == 3 ? 1_000 : 10_000;
-                small = (b0 << 8) | (0xff & buffer[pos + 1]);
-                small ^= mask;
-                break;
-            case 5:
-            case 6:
-                power = frac == 5 ? 100_000 : 1_000_000;
-                small = (b0 << 16) | ((0xff & buffer[pos + 1]) << 8) | (0xff & buffer[pos + 2]);
-                small ^= mask;
-                break;
-            case 7:
-            case 8:
-            case 9:
-                power = frac == 7 ? 10_000_000 : frac == 8 ? 100_000_000 : 1_000_000_000;
-                small = (b0 << 24)
-                        | ((0xff & buffer[pos + 1]) << 16)
-                        | ((0xff & buffer[pos + 2]) << 8)
-                        | (0xff & buffer[pos + 3]);
-                small ^= mask;
-                break;
-            default:
-                break;
-        }
-
-        if (small == 0) {
-            if (frac == 0) {
-                if (mask != 0) {
-                    longValue = -longValue;
-                }
-                compactDecimal = BigDecimal.valueOf(longValue, 0);
-            } else if (longValue == 0) {
-                if (scale < 9) {
-                    compactDecimal = DECIMAL_ZERO_1_SCALE;
-                } else {
-                    compactDecimal = BigDecimal.valueOf(longValue, scale);
-                }
-            } else {
-                if (scale < 9) {
-                    long unscaleValue = longValue * 10;
-                    if (unscaleValue >= longValue) {
-                        if (mask != 0) {
-                            unscaleValue = -unscaleValue;
-                        }
-                        if (unscaleValue == 10) {
-                            compactDecimal = DECIMAL_ONE_1_SCALE;
-                        } else {
-                            compactDecimal = BigDecimal.valueOf(unscaleValue, 1);
-                        }
-                    }
-                } else {
-                    long unscaleValue = longValue * power;
-                    if (unscaleValue >= longValue) {
-                        if (mask != 0) {
-                            unscaleValue = -unscaleValue;
-                        }
-                        compactDecimal = BigDecimal.valueOf(unscaleValue, scale);
-                    }
-                }
-            }
-        } else {
-            long unscaleValue = longValue * power + small;
-            if (unscaleValue >= longValue) {
-                if (mask != 0) {
-                    unscaleValue = -unscaleValue;
-                }
-                compactDecimal = BigDecimal.valueOf(unscaleValue, scale);
-            }
-        }
-
-        return compactDecimal;
     }
 
     /**
@@ -1653,9 +1445,8 @@ public class LogBuffer {
         }
 
         d_copy[begin] ^= 0x80; /* restore sign */
-        // String decimal = String.valueOf(buf, 0, pos);
-        // return new BigDecimal(decimal);
-        return new BigDecimal(buf, 0, pos);
+        String decimal = String.valueOf(buf, 0, pos);
+        return new BigDecimal(decimal);
     }
 
     /**

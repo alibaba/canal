@@ -16,7 +16,6 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.alibaba.otter.canal.protocol.SecurityUtil;
-import com.google.common.net.UrlEscapers;
 
 /**
  * 远程配置获取
@@ -74,7 +73,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
             md5 = "";
         }
         String url = configURL + "/api/v1/config/server_polling?ip=" + localIp + "&port=" + adminPort + "&md5=" + md5
-                     + "&register=" + (autoRegister ? 1 : 0) + "&cluster=" + StringUtils.stripToEmpty(autoCluster) + "&name=" + StringUtils.stripToEmpty(name);
+                     + "&register=" + (autoRegister ? 1 : 0) + "&cluster=" + autoCluster + "&name=" + name;
         return queryConfig(url);
     }
 
@@ -85,7 +84,7 @@ public class PlainCanalConfigClient extends AbstractCanalLifeCycle implements Ca
         if (StringUtils.isEmpty(md5)) {
             md5 = "";
         }
-        String url = configURL + "/api/v1/config/instance_polling/" + UrlEscapers.urlPathSegmentEscaper().escape(destination) + "?md5=" + md5;
+        String url = configURL + "/api/v1/config/instance_polling/" + destination + "?md5=" + md5;
         return queryConfig(url);
     }
 

@@ -423,10 +423,10 @@ public final class TableMapLogEvent extends LogEvent {
 
         /* Read the variable part of the event */
         buffer.position(commonHeaderLen + postHeaderLen);
-        dbname = buffer.getName();
+        dbname = buffer.getString();
         buffer.forward(1); /* termination null */
         // fixed issue #2714
-        tblname = buffer.getName();
+        tblname = buffer.getString();
         buffer.forward(1); /* termination null */
 
         // Read column information from buffer

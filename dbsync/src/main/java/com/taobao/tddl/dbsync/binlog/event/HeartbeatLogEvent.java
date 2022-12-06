@@ -3,8 +3,6 @@ package com.taobao.tddl.dbsync.binlog.event;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * <pre>
  * Replication event to ensure to slave that master is alive.
@@ -37,7 +35,7 @@ public class HeartbeatLogEvent extends LogEvent {
             identLen = FN_REFLEN - 1;
         }
 
-        logIdent = buffer.getFullString(commonHeaderLen, identLen, StandardCharsets.ISO_8859_1);
+        logIdent = buffer.getFullString(commonHeaderLen, identLen, LogBuffer.ISO_8859_1);
     }
 
     public int getIdentLen() {

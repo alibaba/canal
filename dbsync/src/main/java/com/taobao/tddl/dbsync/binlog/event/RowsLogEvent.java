@@ -1,6 +1,5 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
-import java.nio.charset.Charset;
 import java.util.BitSet;
 
 import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
@@ -220,8 +219,8 @@ public abstract class RowsLogEvent extends LogEvent {
         return changeColumns;
     }
 
-    public final RowsLogBuffer getRowsBuf(Charset charset) {
-        return new RowsLogBuffer(rowsBuf, columnLen, charset, jsonColumnCount, partial);
+    public final RowsLogBuffer getRowsBuf(String charsetName) {
+        return new RowsLogBuffer(rowsBuf, columnLen, charsetName, jsonColumnCount, partial);
     }
 
     public final int getFlags(final int flags) {

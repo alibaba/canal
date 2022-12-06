@@ -1,10 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.phoenix.monitor;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.phoenix.PhoenixAdapter;
 import com.alibaba.otter.canal.client.adapter.phoenix.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import java.io.File;
 import java.util.Properties;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -19,15 +19,15 @@ import org.slf4j.LoggerFactory;
  */
 public class PhoenixConfigMonitor {
 
-    private static final Logger   logger      = LoggerFactory.getLogger(PhoenixConfigMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(PhoenixConfigMonitor.class);
 
-    private static final String   adapterName = "phoenix";                                          // 相应组件名字
+    private static final String adapterName = "phoenix";  //相应组件名字
 
-    private String                key;
+    private String key;
 
-    private PhoenixAdapter        phoenixAdapter;                                                   // 相应适配器名实现类
+    private PhoenixAdapter phoenixAdapter;   //相应适配器名实现类
 
-    private Properties            envProperties;
+    private Properties envProperties;
 
     private FileAlterationMonitor fileMonitor;
 
@@ -38,7 +38,7 @@ public class PhoenixConfigMonitor {
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
-                FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
+                    FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
             FileListener listener = new FileListener();
             observer.addListener(listener);
             fileMonitor = new FileAlterationMonitor(3000, observer);
@@ -65,15 +65,16 @@ public class PhoenixConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                MappingConfig config = YamlUtils
-                    .ymlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                MappingConfig config = YmlConfigBinder
+                        .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
                 if (config == null) {
                     return;
                 }
                 config.validate();
                 boolean result = phoenixAdapter.addConfig(file.getName(), config);
                 if (result) {
-                    logger.info("Add a new phoenix mapping config: {} to canal adapter", file.getName());
+                    logger.info("Add a new phoenix mapping config: {} to canal adapter",
+                            file.getName());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -88,13 +89,13 @@ public class PhoenixConfigMonitor {
                 if (phoenixAdapter.getPhoenixMapping().containsKey(file.getName())) {
                     // 加载配置文件
                     String configContent = MappingConfigsLoader
-                        .loadConfig(adapterName + File.separator + file.getName());
+                            .loadConfig(adapterName + File.separator + file.getName());
                     if (configContent == null) {
                         onFileDelete(file);
                         return;
                     }
-                    MappingConfig config = YamlUtils
-                        .ymlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                    MappingConfig config = YmlConfigBinder
+                            .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
                     if (config == null) {
                         return;
                     }

@@ -1,10 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.hbase.monitor;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.hbase.HbaseAdapter;
 import com.alibaba.otter.canal.client.adapter.hbase.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import java.io.File;
 import java.util.Properties;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -59,7 +59,8 @@ public class HbaseConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                MappingConfig config = YamlUtils.ymlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                MappingConfig config = YmlConfigBinder
+                    .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
                 if (config == null) {
                     return;
                 }
@@ -87,7 +88,8 @@ public class HbaseConfigMonitor {
                         onFileDelete(file);
                         return;
                     }
-                    MappingConfig config = YamlUtils.ymlToObj(null, configContent, MappingConfig.class, null, envProperties);
+                    MappingConfig config = YmlConfigBinder
+                        .bindYmlToObj(null, configContent, MappingConfig.class, null, envProperties);
                     if (config == null) {
                         return;
                     }

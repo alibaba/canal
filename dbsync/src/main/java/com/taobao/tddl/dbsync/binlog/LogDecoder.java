@@ -197,9 +197,8 @@ public final class LogDecoder {
             }
             case LogEvent.SLAVE_EVENT: /* can never happen (unused event) */
             {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported SLAVE_EVENT from: " + context.getLogPosition());
-                }
+                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported SLAVE_EVENT from: "
+                                                        + context.getLogPosition());
                 break;
             }
             case LogEvent.CREATE_FILE_EVENT: {
@@ -265,25 +264,22 @@ public final class LogDecoder {
                 return descriptionEvent;
             }
             case LogEvent.PRE_GA_WRITE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: " + context.getLogPosition());
-                }
+                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: "
+                                                        + context.getLogPosition());
                 // ev = new Write_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_UPDATE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: " + context.getLogPosition());
-                }
+                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: "
+                                                        + context.getLogPosition());
                 // ev = new Update_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_DELETE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: " + context.getLogPosition());
-                }
+                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: "
+                                                        + context.getLogPosition());
                 // ev = new Delete_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
@@ -360,16 +356,10 @@ public final class LogDecoder {
                 return event;
             }
             case LogEvent.TRANSACTION_PAYLOAD_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MySQL TRANSACTION_PAYLOAD_EVENT from: " + context.getLogPosition());
-                }
-                break;
-
-                // TransactionPayloadLogEvent event = new TransactionPayloadLogEvent(header,
-                // buffer, descriptionEvent);
-                // /* updating position in context */
-                // logPosition.position = header.getLogPos();
-                // return event;
+                TransactionPayloadLogEvent event = new TransactionPayloadLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
             }
             case LogEvent.VIEW_CHANGE_EVENT: {
                 ViewChangeEvent event = new ViewChangeEvent(header, buffer, descriptionEvent);
@@ -427,39 +417,6 @@ public final class LogDecoder {
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 return event;
-            }
-            case LogEvent.HEARTBEAT_LOG_EVENT_V2: {
-                HeartbeatV2LogEvent event = new HeartbeatV2LogEvent(header, buffer, descriptionEvent);
-                /* updating position in context */
-                logPosition.position = header.getLogPos();
-                return event;
-            }
-            case LogEvent.QUERY_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB QUERY_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
-            }
-            case LogEvent.WRITE_ROWS_COMPRESSED_EVENT_V1:
-            case LogEvent.WRITE_ROWS_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB WRITE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
-            }
-            case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT_V1:
-            case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB UPDATE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
-            }
-            case LogEvent.DELETE_ROWS_COMPRESSED_EVENT_V1:
-            case LogEvent.DELETE_ROWS_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB DELETE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
             }
             default:
                 /*

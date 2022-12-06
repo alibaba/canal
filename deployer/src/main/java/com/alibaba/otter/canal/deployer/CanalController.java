@@ -558,11 +558,6 @@ public class CanalController {
         }
 
         ZkClientx.clearClients();
-
-        // 需要释放 CanalServerWithEmbedded 否则主线程退出后，进程无法自动完整退出...
-        if (embededCanalServer != null) {
-            embededCanalServer.stop();
-        }
     }
 
     private void initCid(String path) {
