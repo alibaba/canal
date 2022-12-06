@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
+import com.alibaba.otter.canal.client.adapter.ProxyOuterAdapter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,11 +88,8 @@ public class CanalAdapterLoader {
     private void loadAdapter(OuterAdapterConfig config, List<OuterAdapter> canalOutConnectors) {
         try {
             OuterAdapter adapter;
-            adapter = loader.getExtension(config.getName(), config.getKey());
+            adapter = new ProxyOuterAdapter(loader.getExtension(config.getName(), config.getKey()));
 
-            ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            // 替换ClassLoader
-            Thread.currentThread().setContextClassLoader(adapter.getClass().getClassLoader());
             Environment env = (Environment) SpringContext.getBean(Environment.class);
             Properties evnProperties = null;
             if (env instanceof StandardEnvironment) {
@@ -109,7 +107,6 @@ public class CanalAdapterLoader {
                 }
             }
             adapter.init(config, evnProperties);
-            Thread.currentThread().setContextClassLoader(cl);
             canalOutConnectors.add(adapter);
             logger.info("Load canal adapter: {} succeed", config.getName());
         } catch (Exception e) {
