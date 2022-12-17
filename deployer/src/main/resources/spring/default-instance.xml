@@ -174,24 +174,21 @@
 		<property name="filterQueryDcl" value="${canal.instance.filter.query.dcl:false}" />
 		<property name="filterQueryDdl" value="${canal.instance.filter.query.ddl:false}" />
 		<property name="useDruidDdlFilter" value="${canal.instance.filter.druid.ddl:true}" />
-		<property name="filterDmlInsert" value="${canal.instance.filter.dml.insert:false}" />
 		<property name="dmlInsertTableFilter">
 			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
-				<constructor-arg index="0" value="${canal.instance.filter.dml.insert.regex:.*\..*}" />
+				<constructor-arg index="0" value="${canal.instance.filter.dml.insert.regex:}" />
 				<constructor-arg index="1" value="false" />
 			</bean>
 		</property>
-		<property name="filterDmlUpdate" value="${canal.instance.filter.dml.update:false}" />
 		<property name="dmlUpdateTableFilter">
 			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
-				<constructor-arg index="0" value="${canal.instance.filter.dml.update:.*\..*}" />
+				<constructor-arg index="0" value="${canal.instance.filter.dml.update.regex:}" />
 				<constructor-arg index="1" value="false" />
 			</bean>
 		</property>
-		<property name="filterDmlDelete" value="${canal.instance.filter.dml.delete:false}" />
 		<property name="dmlDeleteTableFilter">
 			<bean class="com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter" >
-				<constructor-arg index="0" value="${canal.instance.filter.dml.delete:.*\..*}" />
+				<constructor-arg index="0" value="${canal.instance.filter.dml.delete.regex:}" />
 				<constructor-arg index="1" value="false" />
 			</bean>
 		</property>

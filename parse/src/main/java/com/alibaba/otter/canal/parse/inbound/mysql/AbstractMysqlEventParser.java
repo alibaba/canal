@@ -39,11 +39,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected boolean              filterTableError          = false;
     protected boolean              useDruidDdlFilter         = true;
 
-    protected boolean              filterDmlInsert           = false;
     protected CanalEventFilter     dmlInsertTableFilter      = null;
-    protected boolean              filterDmlUpdate           = false;
     protected CanalEventFilter     dmlUpdateTableFilter      = null;
-    protected boolean              filterDmlDelete           = false;
     protected CanalEventFilter     dmlDeleteTableFilter      = null;
     // instance received binlog bytes
     protected final AtomicLong     receivedBinlogBytes       = new AtomicLong(0L);
@@ -182,9 +179,9 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             (LogEventConvert) binlogParser,
             transactionBuffer,
             destination,
-            filterDmlInsert, (AviaterRegexFilter)dmlInsertTableFilter,
-            filterDmlUpdate, (AviaterRegexFilter)dmlUpdateTableFilter,
-            filterDmlDelete, (AviaterRegexFilter)dmlDeleteTableFilter);
+            (AviaterRegexFilter)dmlInsertTableFilter,
+            (AviaterRegexFilter)dmlUpdateTableFilter,
+            (AviaterRegexFilter)dmlDeleteTableFilter);
         mysqlMultiStageCoprocessor.setEventsPublishBlockingTime(eventsPublishBlockingTime);
         return mysqlMultiStageCoprocessor;
     }
@@ -235,36 +232,11 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         this.useDruidDdlFilter = useDruidDdlFilter;
     }
 
-    public boolean isFilterDmlInsert() {
-        return filterDmlInsert;
-    }
-
-    public void setFilterDmlInsert(boolean filterDmlInsert) {
-        this.filterDmlInsert = filterDmlInsert;
-    }
-
     public void setDmlInsertTableFilter(CanalEventFilter dmlInsertTableFilter) {
         this.dmlInsertTableFilter = dmlInsertTableFilter;
     }
-
-    public boolean isFilterDmlUpdate() {
-        return filterDmlUpdate;
-    }
-
-    public void setFilterDmlUpdate(boolean filterDmlUpdate) {
-        this.filterDmlUpdate = filterDmlUpdate;
-    }
-
     public void setDmlUpdateTableFilter(CanalEventFilter dmlUpdateTableFilter) {
         this.dmlUpdateTableFilter = dmlUpdateTableFilter;
-    }
-
-    public boolean isFilterDmlDelete() {
-        return filterDmlDelete;
-    }
-
-    public void setFilterDmlDelete(boolean filterDmlDelete) {
-        this.filterDmlDelete = filterDmlDelete;
     }
 
     public void setDmlDeleteTableFilter(CanalEventFilter dmlDeleteTableFilter) {
