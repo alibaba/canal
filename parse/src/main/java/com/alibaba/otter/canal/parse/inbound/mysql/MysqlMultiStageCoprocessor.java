@@ -37,6 +37,7 @@ import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 
 /**
  * 针对解析器提供一个多阶段协同的处理
@@ -71,21 +72,29 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
     private BatchEventProcessor<MessageEvent> simpleParserStage;
     private BatchEventProcessor<MessageEvent> sinkStoreStage;
     private LogContext                        logContext;
-    protected boolean                         filterDmlInsert = false;
-    protected boolean                         filterDmlUpdate = false;
-    protected boolean                         filterDmlDelete = false;
+    protected boolean              filterDmlInsert           = false;
+    protected volatile AviaterRegexFilter   dmlInsertTableNameFilter      = null;
+    protected boolean              filterDmlUpdate           = false;
+    protected volatile AviaterRegexFilter   dmlUpdateTableNameFilter      = null;
+    protected boolean              filterDmlDelete           = false;
+    protected volatile AviaterRegexFilter   dmlDeleteTableNameFilter      = null;
 
     public MysqlMultiStageCoprocessor(int ringBufferSize, int parserThreadCount, LogEventConvert logEventConvert,
                                       EventTransactionBuffer transactionBuffer, String destination,
-                                      boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
+                                      boolean filterDmlInsert, AviaterRegexFilter dmlInsertTableNameFilter,
+                                      boolean filterDmlUpdate, AviaterRegexFilter dmlUpdateTableNameFilter,
+                                      boolean filterDmlDelete, AviaterRegexFilter dmlDeleteTableNameFilter){
         this.ringBufferSize = ringBufferSize;
         this.parserThreadCount = parserThreadCount;
         this.logEventConvert = logEventConvert;
         this.transactionBuffer = transactionBuffer;
         this.destination = destination;
         this.filterDmlInsert = filterDmlInsert;
+        this.dmlInsertTableNameFilter = dmlInsertTableNameFilter;
         this.filterDmlUpdate = filterDmlUpdate;
+        this.dmlUpdateTableNameFilter = dmlUpdateTableNameFilter;
         this.filterDmlDelete = filterDmlDelete;
+        this.dmlDeleteTableNameFilter = dmlDeleteTableNameFilter;
     }
 
     @Override
@@ -261,6 +270,16 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             }
         }
 
+        private Boolean isDmlFilterTable(AviaterRegexFilter nameFilter, LogEvent logEvent){
+            TableMapLogEvent table = event.getTable();
+            if (table == null) {
+                // tableId对应的记录不存在
+                throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
+            }
+            String fullname = table.getDbName() + "." + table.getTableName();
+            return nameFilter.filter(fullname);
+        }
+
         public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
             try {
                 LogEvent logEvent = event.getEvent();
@@ -276,7 +295,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                 switch (eventType) {
                     case LogEvent.WRITE_ROWS_EVENT_V1:
                     case LogEvent.WRITE_ROWS_EVENT:
-                        if (!filterDmlInsert) {
+                        if (!filterDmlInsert || (filterDmlInsert && !isDmlFilterTable(dmlInsertTableNameFilter, (WriteRowsLogEvent) logEvent))) {
                             tableMeta = logEventConvert.parseRowsEventForTableMeta((WriteRowsLogEvent) logEvent);
                             needDmlParse = true;
                         }
@@ -284,14 +303,14 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     case LogEvent.UPDATE_ROWS_EVENT_V1:
                     case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
                     case LogEvent.UPDATE_ROWS_EVENT:
-                        if (!filterDmlUpdate) {
+                        if (!filterDmlUpdate || (filterDmlUpdate && !isDmlFilterTable(dmlUpdateTableNameFilter, (UpdateRowsLogEvent) logEvent))) {
                             tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
                             needDmlParse = true;
                         }
                         break;
                     case LogEvent.DELETE_ROWS_EVENT_V1:
                     case LogEvent.DELETE_ROWS_EVENT:
-                        if (!filterDmlDelete) {
+                        if (!filterDmlDelete || (filterDmlDelete && !isDmlFilterTable(dmlDeleteTableNameFilter, (DeleteRowsLogEvent) logEvent))) {
                             tableMeta = logEventConvert.parseRowsEventForTableMeta((DeleteRowsLogEvent) logEvent);
                             needDmlParse = true;
                         }
