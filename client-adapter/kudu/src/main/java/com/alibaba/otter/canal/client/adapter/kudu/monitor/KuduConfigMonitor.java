@@ -1,23 +1,18 @@
 package com.alibaba.otter.canal.client.adapter.kudu.monitor;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
-import org.apache.commons.io.monitor.FileAlterationMonitor;
-import org.apache.commons.io.monitor.FileAlterationObserver;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.kudu.KuduAdapter;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
+import java.io.File;
+import java.util.Properties;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author liuyadong
@@ -74,18 +69,16 @@ public class KuduConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                KuduMappingConfig config = YmlConfigBinder.bindYmlToObj(null,
-                    configContent,
-                    KuduMappingConfig.class,
-                    null,
-                    envProperties);
+                KuduMappingConfig config = YamlUtils
+                    .ymlToObj(null, configContent, KuduMappingConfig.class, null, envProperties);
                 if (config == null) {
                     return;
                 }
                 config.validate();
-                addConfigToCache(file, config);
-
-                logger.info("Add a new kudu mapping config: {} to canal adapter", file.getName());
+                boolean result = kuduAdapter.addConfig(file.getName(), config);
+                if (result) {
+                    logger.info("Add a new kudu mapping config: {} to canal adapter", file.getName());
+                }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
@@ -98,25 +91,19 @@ public class KuduConfigMonitor {
             try {
                 if (kuduAdapter.getKuduMapping().containsKey(file.getName())) {
                     // 加载配置文件
-                    String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator
-                                                                           + file.getName());
+                    String configContent = MappingConfigsLoader
+                        .loadConfig(adapterName + File.separator + file.getName());
                     if (configContent == null) {
                         onFileDelete(file);
                         return;
                     }
-                    KuduMappingConfig config = YmlConfigBinder.bindYmlToObj(null,
-                        configContent,
-                        KuduMappingConfig.class,
-                        null,
-                        envProperties);
+                    KuduMappingConfig config = YamlUtils
+                        .ymlToObj(null, configContent, KuduMappingConfig.class, null, envProperties);
                     if (config == null) {
                         return;
                     }
                     config.validate();
-                    if (kuduAdapter.getKuduMapping().containsKey(file.getName())) {
-                        deleteConfigFromCache(file);
-                    }
-                    addConfigToCache(file, config);
+                    kuduAdapter.updateConfig(file.getName(), config);
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -129,42 +116,12 @@ public class KuduConfigMonitor {
 
             try {
                 if (kuduAdapter.getKuduMapping().containsKey(file.getName())) {
-                    deleteConfigFromCache(file);
+                    kuduAdapter.deleteConfig(file.getName());
                     logger.info("Delete a hbase mapping config: {} of canal adapter", file.getName());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
-
-        /**
-         * 添加配置文件信息到缓存
-         *
-         * @param file
-         * @param config
-         */
-        private void addConfigToCache(File file, KuduMappingConfig config) {
-            kuduAdapter.getKuduMapping().put(file.getName(), config);
-            Map<String, KuduMappingConfig> configMap = kuduAdapter.getMappingConfigCache()
-                .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "."
-                                 + config.getKuduMapping().getDatabase() + "." + config.getKuduMapping().getTable(),
-                    k1 -> new HashMap<>());
-            configMap.put(file.getName(), config);
-        }
-
-        /**
-         * 从缓存中删除配置
-         *
-         * @param file 文件
-         */
-        private void deleteConfigFromCache(File file) {
-            kuduAdapter.getKuduMapping().remove(file.getName());
-            for (Map<String, KuduMappingConfig> configMap : kuduAdapter.getMappingConfigCache().values()) {
-                if (configMap != null) {
-                    configMap.remove(file.getName());
-                }
-            }
-        }
-
     }
 }

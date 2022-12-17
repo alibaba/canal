@@ -4,13 +4,13 @@
     <parent>
         <groupId>com.alibaba.otter</groupId>
         <artifactId>canal</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal.connector</artifactId>
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>canal connector module for otter ${project.version}</name>
 
@@ -39,7 +39,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -49,7 +49,7 @@
         </repository>
         <repository>
             <id>java.net</id>
-            <url>http://download.java.net/maven/2/</url>
+            <url>https://download.java.net/maven/2/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -59,7 +59,7 @@
         </repository>
         <repository>
             <id>aliyun</id>
-            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -92,10 +92,11 @@
     </repositories>
 
     <modules>
-        <module>kafka-connector</module>
         <module>core</module>
+        <module>kafka-connector</module>
         <module>rocketmq-connector</module>
         <module>rabbitmq-connector</module>
+        <module>pulsarmq-connector</module>
         <module>tcp-connector</module>
     </modules>
 

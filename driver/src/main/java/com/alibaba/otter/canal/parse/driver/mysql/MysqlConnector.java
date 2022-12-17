@@ -46,7 +46,7 @@ public class MysqlConnector {
 
     private SocketChannel       channel;
     private volatile boolean    dumping           = false;
-    // mysql connectinnId
+    // mysql connectionId
     private long                connectionId      = -1;
     private AtomicBoolean       connected         = new AtomicBoolean(false);
     // serverVersion
@@ -169,7 +169,7 @@ public class MysqlConnector {
             } else if (body[0] == -2) {
                 throw new IOException("Unexpected EOF packet at handshake phase.");
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
@@ -273,7 +273,7 @@ public class MysqlConnector {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
     }
@@ -304,7 +304,7 @@ public class MysqlConnector {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Client Authentication:" + err.toString());
             default:
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
         }
     }
 

@@ -1,6 +1,6 @@
 package com.alibaba.otter.canal.client.rabbitmq;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.client.ConsumerBatchMessage;
@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -239,7 +240,7 @@ public class RabbitMQCanalConnector implements CanalMQConnector {
         if (logger.isDebugEnabled()) {
             logger.debug("Get Message: {}", new String(messageData));
         }
-        List messageList = Lists.newArrayList();
+        List messageList = new ArrayList<>();
         if (!flatMessage) {
             Message message = CanalMessageDeserializer.deserializer(messageData);
             messageList.add(message);

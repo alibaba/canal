@@ -1,16 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.kudu;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfigLoader;
@@ -20,8 +9,19 @@ import com.alibaba.otter.canal.client.adapter.kudu.service.KuduSyncService;
 import com.alibaba.otter.canal.client.adapter.kudu.support.KuduTemplate;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
+import com.alibaba.otter.canal.client.adapter.support.Util;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author liuyadong
@@ -35,8 +35,6 @@ public class KuduAdapter implements OuterAdapter {
     private Map<String, KuduMappingConfig>              kuduMapping        = new ConcurrentHashMap<>();                 // 文件名对应配置
     private Map<String, Map<String, KuduMappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();                 // 库名-表名对应配置
 
-    private String                                      dataSourceKey;
-
     private KuduTemplate                                kuduTemplate;
 
     private KuduSyncService                             kuduSyncService;
@@ -44,6 +42,8 @@ public class KuduAdapter implements OuterAdapter {
     private KuduConfigMonitor                           kuduConfigMonitor;
 
     private Properties                                  envProperties;
+
+    private OuterAdapterConfig                          configuration;
 
     public Map<String, KuduMappingConfig> getKuduMapping() {
         return kuduMapping;
@@ -56,36 +56,17 @@ public class KuduAdapter implements OuterAdapter {
     @Override
     public void init(OuterAdapterConfig configuration, Properties envProperties) {
         this.envProperties = envProperties;
+        this.configuration = configuration;
         Map<String, KuduMappingConfig> kuduMappingTmp = KuduMappingConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置,获取连接key，key为配置文件名称
-        kuduMappingTmp.forEach((key, mappingConfig) -> {
-            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
-                    .equalsIgnoreCase(configuration.getKey()))) {
-                kuduMapping.put(key, mappingConfig);
-                dataSourceKey = mappingConfig.getDataSourceKey();
-            }
+        kuduMappingTmp.forEach((key, config) -> {
+            addConfig(key, config);
         });
         // 判断目标字段是否为空
         if (kuduMapping.isEmpty()) {
             throw new RuntimeException("No kudu adapter found for config key: " + configuration.getKey());
         }
-        for (Map.Entry<String, KuduMappingConfig> entry : kuduMapping.entrySet()) {
-            String configName = entry.getKey();
-            KuduMappingConfig mappingConfig = entry.getValue();
-            String k;
-            if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                    + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                    + mappingConfig.getKuduMapping().getDatabase() + "-" + mappingConfig.getKuduMapping().getTable();
-            } else {
-                k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                    + mappingConfig.getKuduMapping().getDatabase() + "-" + mappingConfig.getKuduMapping().getTable();
-            }
-            Map<String, KuduMappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
-                k1 -> new ConcurrentHashMap<>());
-            configMap.put(configName, mappingConfig);
-        }
+
         Map<String, String> properties = configuration.getProperties();
 
         String kudu_master = properties.get("kudu.master.address");
@@ -202,5 +183,61 @@ public class KuduAdapter implements OuterAdapter {
             return config.getDestination();
         }
         return null;
+    }
+
+    private void addSyncConfigToCache(String configName, KuduMappingConfig mappingConfig) {
+        String k;
+        if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+            k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                    + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                    + mappingConfig.getKuduMapping().getDatabase() + "-" + mappingConfig.getKuduMapping().getTable();
+        } else {
+            k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                    + mappingConfig.getKuduMapping().getDatabase() + "-" + mappingConfig.getKuduMapping().getTable();
+        }
+        Map<String, KuduMappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
+                k1 -> new ConcurrentHashMap<>());
+        configMap.put(configName, mappingConfig);
+    }
+
+    public boolean addConfig(String fileName, KuduMappingConfig config) {
+        if (match(config)) {
+            kuduMapping.put(fileName, config);
+            addSyncConfigToCache(fileName, config);
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), fileName,
+                    configuration.getKey());
+            return true;
+        }
+        return false;
+    }
+
+    public void updateConfig(String fileName, KuduMappingConfig config) {
+        if (config.getOuterAdapterKey() != null && !config.getOuterAdapterKey()
+                .equals(configuration.getKey())) {
+            // 理论上不允许改这个 因为本身就是通过这个关联起Adapter和Config的
+            throw new RuntimeException("not allow to change outAdapterKey");
+        }
+        kuduMapping.put(fileName, config);
+        addSyncConfigToCache(fileName, config);
+    }
+
+    public void deleteConfig(String fileName) {
+        kuduMapping.remove(fileName);
+        for (Map<String, KuduMappingConfig> configMap : mappingConfigCache.values()) {
+            if (configMap != null) {
+                configMap.remove(fileName);
+            }
+        }
+        FileName2KeyMapping.unregister(getClass().getAnnotation(SPI.class).value(), fileName);
+    }
+
+    private boolean match(KuduMappingConfig config) {
+        boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                .equalsIgnoreCase(configuration.getKey());
+        boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                .startsWith(StringUtils
+                        .join(new String[]{Util.AUTO_GENERATED_PREFIX, config.getDestination(),
+                                config.getGroupId()}, '-'));
+        return sameMatch || prefixMatch;
     }
 }

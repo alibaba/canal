@@ -80,7 +80,8 @@ public class MemoryTableMeta implements TableMetaTSDB {
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create user")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "alter user")
                     && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "drop user")
-                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create database")) {
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "create database")
+                    && !StringUtils.startsWithIgnoreCase(StringUtils.trim(ddl), "alter schema")) {
                     repository.console(ddl);
                 }
             } catch (Throwable e) {
@@ -145,7 +146,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
     public Map<String, String> snapshot() {
         Map<String, String> schemaDdls = new HashMap<>();
         for (Schema schema : repository.getSchemas()) {
-            StringBuffer data = new StringBuffer(4 * 1024);
+            StringBuilder data = new StringBuilder(4 * 1024);
             for (String table : schema.showTables()) {
                 SchemaObject schemaObject = schema.findTable(table);
                 schemaObject.getStatement().output(data);

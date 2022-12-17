@@ -123,7 +123,7 @@ public class BinlogDownloadQueue {
     public boolean isLastFile(String fileName) {
         String needCompareName = lastDownload;
         if (StringUtils.isNotEmpty(needCompareName) && StringUtils.endsWith(needCompareName, "tar")) {
-            needCompareName = needCompareName.substring(0, needCompareName.indexOf("."));
+            needCompareName = needCompareName.substring(0, needCompareName.lastIndexOf("."));
         }
         return (needCompareName == null || fileName.equalsIgnoreCase(needCompareName)) && binlogList.isEmpty();
     }

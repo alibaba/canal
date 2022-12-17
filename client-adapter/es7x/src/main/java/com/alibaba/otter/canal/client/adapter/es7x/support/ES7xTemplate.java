@@ -287,8 +287,7 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     @Override
-    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData,
-                                       Map<String, Object> esFieldData) {
+    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
@@ -312,13 +311,17 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     @Override
-    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> dmlOld,
+    public Object getESDataFromDmlData(ESMapping mapping,String owner, Map<String, Object> dmlData, Map<String, Object> dmlOld,
                                        Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
         String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
-            String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
+            ColumnItem columnItem = fieldItem.getColumnItems().iterator().next();
+            if (!columnItem.getOwner().equals(owner)) {
+                continue;
+            }
+            String columnName = columnItem.getColumnName();
 
             if (fieldItem.getFieldName().equals(idFieldName)) {
                 resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);

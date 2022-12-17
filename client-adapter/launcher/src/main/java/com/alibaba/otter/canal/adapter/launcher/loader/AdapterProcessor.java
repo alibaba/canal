@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
+import com.alibaba.otter.canal.connector.core.spi.ProxyCanalMsgConsumer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -7,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,33 +27,33 @@ import com.alibaba.otter.canal.connector.core.spi.ExtensionLoader;
 
 /**
  * 适配处理器
- * 
+ *
  * @author rewerma 2020-02-01
  * @version 1.0.0
  */
 public class AdapterProcessor {
 
-    private static final Logger             logger                    = LoggerFactory.getLogger(AdapterProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(AdapterProcessor.class);
 
-    private static final String             CONNECTOR_SPI_DIR         = "/plugin";
-    private static final String             CONNECTOR_STANDBY_SPI_DIR = "/canal-adapter/plugin";
+    private static final String CONNECTOR_SPI_DIR = "/plugin";
+    private static final String CONNECTOR_STANDBY_SPI_DIR = "/canal-adapter/plugin";
 
-    private CanalMsgConsumer                canalMsgConsumer;
+    private CanalMsgConsumer canalMsgConsumer;
 
-    private String                          canalDestination;                                                           // canal实例
-    private String                          groupId                   = null;                                           // groupId
-    private List<List<OuterAdapter>>        canalOuterAdapters;                                                         // 外部适配器
-    private CanalClientConfig               canalClientConfig;                                                          // 配置
-    private ExecutorService                 groupInnerExecutorService;                                                  // 组内工作线程池
-    private volatile boolean                running                   = false;                                          // 是否运行中
-    private Thread                          thread                    = null;
-    private Thread.UncaughtExceptionHandler handler                   = (t, e) -> logger
+    private String canalDestination;                                                           // canal实例
+    private String groupId = null;                                           // groupId
+    private List<List<OuterAdapter>> canalOuterAdapters;                                                         // 外部适配器
+    private CanalClientConfig canalClientConfig;                                                          // 配置
+    private ExecutorService groupInnerExecutorService;                                                  // 组内工作线程池
+    private volatile boolean running = false;                                          // 是否运行中
+    private Thread thread = null;
+    private Thread.UncaughtExceptionHandler handler = (t, e) -> logger
         .error("parse events has an error", e);
 
-    private SyncSwitch                      syncSwitch;
+    private SyncSwitch syncSwitch;
 
     public AdapterProcessor(CanalClientConfig canalClientConfig, String destination, String groupId,
-                            List<List<OuterAdapter>> canalOuterAdapters){
+        List<List<OuterAdapter>> canalOuterAdapters) {
         this.canalClientConfig = canalClientConfig;
         this.canalDestination = destination;
         this.groupId = groupId;
@@ -62,17 +64,15 @@ public class AdapterProcessor {
 
         // load connector consumer
         ExtensionLoader<CanalMsgConsumer> loader = new ExtensionLoader<>(CanalMsgConsumer.class);
-        canalMsgConsumer = loader
-            .getExtension(canalClientConfig.getMode().toLowerCase(), CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
+        canalMsgConsumer = new ProxyCanalMsgConsumer(loader
+            .getExtension(canalClientConfig.getMode().toLowerCase(), destination, CONNECTOR_SPI_DIR,
+                CONNECTOR_STANDBY_SPI_DIR));
 
         Properties properties = canalClientConfig.getConsumerProperties();
         properties.put(CanalConstants.CANAL_MQ_FLAT_MESSAGE, canalClientConfig.getFlatMessage());
         properties.put(CanalConstants.CANAL_ALIYUN_ACCESS_KEY, canalClientConfig.getAccessKey());
         properties.put(CanalConstants.CANAL_ALIYUN_SECRET_KEY, canalClientConfig.getSecretKey());
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(canalMsgConsumer.getClass().getClassLoader());
         canalMsgConsumer.init(properties, canalDestination, groupId);
-        Thread.currentThread().setContextClassLoader(cl);
     }
 
     public void start() {
@@ -170,7 +170,7 @@ public class AdapterProcessor {
         }
 
         int retry = canalClientConfig.getRetries() == null
-                    || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
+            || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         if (retry == -1) {
             // 重试次数-1代表异常时一直阻塞重试
             retry = Integer.MAX_VALUE;
@@ -217,8 +217,15 @@ public class AdapterProcessor {
                                 canalMsgConsumer.rollback(); // 处理失败, 回滚数据
                                 logger.error(e.getMessage() + " Error sync and rollback, execute times: " + (i + 1));
                             } else {
-                                canalMsgConsumer.ack();
-                                logger.error(e.getMessage() + " Error sync but ACK!");
+                                if (canalClientConfig.getTerminateOnException()) {
+                                    canalMsgConsumer.rollback();
+                                    logger.error("Retry fail, turn switch off and abort data transfer.");
+                                    syncSwitch.off(canalDestination);
+                                    logger.error("finish turn off switch of destination:" + canalDestination);
+                                } else {
+                                    canalMsgConsumer.ack();
+                                    logger.error(e.getMessage() + " Error sync but ACK!");
+                                }
                             }
                             Thread.sleep(500);
                         }

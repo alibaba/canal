@@ -107,11 +107,11 @@ public class AviaterRegexFilter {
     private List<String> completionPattern(List<String> patterns) {
         List<String> result = new ArrayList<>();
         for (String pattern : patterns) {
-            StringBuffer stringBuffer = new StringBuffer();
-            stringBuffer.append("^");
-            stringBuffer.append(pattern);
-            stringBuffer.append("$");
-            result.add(stringBuffer.toString());
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("^");
+            stringBuilder.append(pattern);
+            stringBuilder.append("$");
+            result.add(stringBuilder.toString());
         }
         return result;
     }

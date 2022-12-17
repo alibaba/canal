@@ -31,14 +31,15 @@ import com.google.common.cache.LoadingCache;
  */
 public class TableMetaCache {
 
-    public static final String              COLUMN_NAME    = "COLUMN_NAME";
-    public static final String              COLUMN_TYPE    = "COLUMN_TYPE";
-    public static final String              IS_NULLABLE    = "IS_NULLABLE";
-    public static final String              COLUMN_KEY     = "COLUMN_KEY";
-    public static final String              COLUMN_DEFAULT = "COLUMN_DEFAULT";
-    public static final String              EXTRA          = "EXTRA";
+    public static final String              COLUMN_NAME    = "Field";
+    public static final String              COLUMN_TYPE    = "Type";
+    public static final String              IS_NULLABLE    = "Null";
+    public static final String              COLUMN_KEY     = "Key";
+    public static final String              COLUMN_DEFAULT = "Default";
+    public static final String              EXTRA          = "Extra";
     private MysqlConnection                 connection;
     private boolean                         isOnRDS        = false;
+    private boolean                         isOnPolarX     = false;
     private boolean                         isOnTSDB       = false;
 
     private TableMetaTSDB                   tableMetaTSDB;
@@ -79,6 +80,14 @@ public class TableMetaCache {
             }
         } catch (IOException e) {
         }
+
+        try {
+            ResultSetPacket packet = connection.query("show global variables  like 'polarx\\_%'");
+            if (packet.getFieldValues().size() > 0) {
+                isOnPolarX = true;
+            }
+        } catch (IOException e) {
+        }
     }
 
     private synchronized TableMeta getTableMetaByDB(String fullname) throws IOException {
@@ -116,7 +125,7 @@ public class TableMetaCache {
         Map<String, Integer> nameMaps = new HashMap<>(6, 1f);
         int index = 0;
         for (FieldPacket fieldPacket : packet.getFieldDescriptors()) {
-            nameMaps.put(fieldPacket.getOriginalName(), index++);
+            nameMaps.put(fieldPacket.getName(), index++);
         }
 
         int size = packet.getFieldDescriptors().size();
@@ -254,7 +263,6 @@ public class TableMetaCache {
             .toString();
     }
 
-
     public boolean isOnTSDB() {
         return isOnTSDB;
     }
@@ -269,6 +277,14 @@ public class TableMetaCache {
 
     public void setOnRDS(boolean isOnRDS) {
         this.isOnRDS = isOnRDS;
+    }
+
+    public boolean isOnPolarX() {
+        return isOnPolarX;
+    }
+
+    public void setOnPolarX(boolean isOnPolarX) {
+        this.isOnPolarX = isOnPolarX;
     }
 
 }

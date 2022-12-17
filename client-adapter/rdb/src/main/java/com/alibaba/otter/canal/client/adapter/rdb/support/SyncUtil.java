@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.rdb.support;
 
+import com.alibaba.druid.DbType;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.Util;
 import org.apache.commons.lang.StringUtils;
@@ -255,12 +256,36 @@ public class SyncUtil {
         }
     }
 
-    public static String getDbTableName(MappingConfig.DbMapping dbMapping) {
+    public static String getDbTableName(MappingConfig.DbMapping dbMapping, String dbType) {
         String result = "";
+        String backtick = getBacktickByDbType(dbType);
         if (StringUtils.isNotEmpty(dbMapping.getTargetDb())) {
-            result += ("`" + dbMapping.getTargetDb() + "`.");
+            result += (backtick + dbMapping.getTargetDb() + backtick + ".");
         }
-        result += ("`" + dbMapping.getTargetTable() + "`");
+        result += (backtick + dbMapping.getTargetTable() + backtick);
         return result;
+    }
+
+    /**
+     * 根据DbType返回反引号或空字符串
+     *
+     * @param dbTypeName DbType名称
+     * @return 反引号或空字符串
+     */
+    public static String getBacktickByDbType(String dbTypeName) {
+        DbType dbType = DbType.of(dbTypeName);
+        if (dbType == null) {
+            dbType = DbType.other;
+        }
+
+        // 只有当dbType为MySQL/MariaDB或OceanBase时返回反引号
+        switch (dbType) {
+            case mysql:
+            case mariadb:
+            case oceanbase:
+                return "`";
+            default:
+                return "";
+        }
     }
 }

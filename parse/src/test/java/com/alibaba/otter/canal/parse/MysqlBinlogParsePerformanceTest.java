@@ -134,7 +134,7 @@ public class MysqlBinlogParsePerformanceTest {
 
     public static void parseRowsEvent(RowsLogEvent event, AtomicLong sum) {
         try {
-            RowsLogBuffer buffer = event.getRowsBuf(charset.name());
+            RowsLogBuffer buffer = event.getRowsBuf(charset);
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
             while (buffer.nextOneRow(columns)) {
