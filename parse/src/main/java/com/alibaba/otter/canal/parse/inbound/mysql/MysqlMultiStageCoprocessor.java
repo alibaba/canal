@@ -38,6 +38,7 @@ import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 
 /**
  * 针对解析器提供一个多阶段协同的处理
@@ -264,7 +265,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             }
         }
 
-        private Boolean isDmlFilterTable(AviaterRegexFilter nameFilter, LogEvent logEvent){
+        private Boolean isDmlFilterTable(AviaterRegexFilter nameFilter, RowsLogEvent event){
             if (event.getTable() == null) {
                 // tableId对应的记录不存在
                 throw new TableIdNotFoundException("not found tableId:" + event.getTableId());
