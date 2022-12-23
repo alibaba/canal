@@ -433,9 +433,7 @@ public class MQMessageUtils {
                             }
                         }
                         // update操作将记录修改前的值
-                        if (!rowOld.isEmpty()) {
-                            old.add(rowOld);
-                        }
+                        old.add(rowOld);
                     }
                 }
                 if (!sqlType.isEmpty()) {
