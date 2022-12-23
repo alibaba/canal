@@ -374,6 +374,7 @@ public class MQMessageUtils {
             flatMessage.setEs(entry.getHeader().getExecuteTime());
             flatMessage.setTs(System.currentTimeMillis());
             flatMessage.setSql(rowChange.getSql());
+            flatMessage.setGtid(entry.getHeader().getGtid());
 
             if (!rowChange.getIsDdl()) {
                 Map<String, Integer> sqlType = new LinkedHashMap<>();
@@ -526,6 +527,7 @@ public class MQMessageUtils {
                             flatMessageTmp.setEs(flatMessage.getEs());
                             flatMessageTmp.setTs(flatMessage.getTs());
                             flatMessageTmp.setPkNames(flatMessage.getPkNames());
+                            flatMessageTmp.setGtid(flatMessage.getGtid());
                         }
                         List<Map<String, String>> data = flatMessageTmp.getData();
                         if (data == null) {
