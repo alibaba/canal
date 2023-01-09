@@ -90,6 +90,8 @@ public class TablestoreSyncService {
         Map<String, String> columnMap = config.getDbMapping().getTargetColumnsParsed();
         Map<String, MappingConfig.ColumnItem> typeMap = SyncUtil.getTypeMap(config);
         MappingConfig.DbMapping dbMapping = config.getDbMapping();
+        Map<String, String> constantParsed = config.getDbMapping().getConstantTargetColumnsParsed();
+
 
         if (isColumnUpdate) {
             // 列更新
@@ -123,7 +125,7 @@ public class TablestoreSyncService {
                     primaryKey = buildPrimaryKey(map, typeMap, columnMap, dbMapping.getTargetPk());
                     change.setPrimaryKey(primaryKey);
 
-                    List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap);
+                    List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap, constantParsed);
                     if (!CollectionUtils.isEmpty(columnList)) {
                         change.put(columnList);
                         changeList.add(change);
@@ -175,7 +177,7 @@ public class TablestoreSyncService {
                 PrimaryKey primaryKey = buildPrimaryKey(map, typeMap, columnMap, dbMapping.getTargetPk());
                 change.setPrimaryKey(primaryKey);
 
-                List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap);
+                List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap, constantParsed);
                 if (!CollectionUtils.isEmpty(columnList)) {
                     change.addColumns(columnList);
                     changeList.add(change);
@@ -265,6 +267,8 @@ public class TablestoreSyncService {
         Map<String, String> columnMap = config.getDbMapping().getTargetColumnsParsed();
         Map<String, MappingConfig.ColumnItem> typeMap = SyncUtil.getTypeMap(config);
         MappingConfig.DbMapping dbMapping = config.getDbMapping();
+        Map<String, String> constantParsed = config.getDbMapping().getConstantTargetColumnsParsed();
+
         if (isColumnUpdate) {
             // 列更新
             for (Map<String, Object> map : dml.getData()) {
@@ -272,7 +276,7 @@ public class TablestoreSyncService {
                 PrimaryKey primaryKey = buildPrimaryKey(map, typeMap, columnMap, dbMapping.getTargetPk());
                 change.setPrimaryKey(primaryKey);
 
-                List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap);
+                List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap, constantParsed);
                 if (!CollectionUtils.isEmpty(columnList)) {
                     change.put(columnList);
                     changeList.add(change);
@@ -286,7 +290,7 @@ public class TablestoreSyncService {
                 PrimaryKey primaryKey = buildPrimaryKey(map, typeMap, columnMap, dbMapping.getTargetPk());
                 change.setPrimaryKey(primaryKey);
 
-                List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap);
+                List<Column> columnList = getColumnsWhenPut(columnMap, dbMapping, map, typeMap, constantParsed);
                 if (!CollectionUtils.isEmpty(columnList)) {
                     change.addColumns(columnList);
                 }
@@ -351,7 +355,8 @@ public class TablestoreSyncService {
     private List<Column> getColumnsWhenPut(Map<String, String> columnMap,
                                            MappingConfig.DbMapping dbMapping,
                                            Map<String, Object> map,
-                                           Map<String, MappingConfig.ColumnItem> typeMap) {
+                                           Map<String, MappingConfig.ColumnItem> typeMap,
+                                           Map<String, String> constantParsed) {
         List<Column> columnList = new ArrayList<>();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             if (dbMapping.getTargetPk().containsKey(entry.getKey())) {
@@ -372,6 +377,20 @@ public class TablestoreSyncService {
             TablestoreFieldType type = typeMap.get(entry.getKey()).getType();
             ColumnValue columnValue = SyncUtil.getColumnValue(value, type);
             columnList.add(new Column(targetColumn, columnValue));
+        }
+
+
+        //默认列处理添加
+        if (!CollectionUtils.isEmpty(dbMapping.getConstantTargetColumns())) {
+            dbMapping.getConstantTargetColumns().entrySet().forEach(mp -> {
+                int index = mp.getValue().indexOf("$");
+                if (index <= -1) {
+                    throw new RuntimeException("the constant value must be have type!");
+                }
+                TablestoreFieldType type = SyncUtil.getTablestoreType(mp.getValue().substring(index + 1));
+                ColumnValue columnValue = SyncUtil.getColumnValue(constantParsed.get(mp.getKey()), type);
+                columnList.add(new Column(mp.getKey(), columnValue));
+            });
         }
         return columnList;
     }

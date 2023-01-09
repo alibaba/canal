@@ -38,6 +38,7 @@ public class ConfigLoader {
             }
             try {
                 config.validate();
+                config.getDbMapping().init(config);
             } catch (Exception e) {
                 throw new RuntimeException("ERROR Config: " + fileName + " " + e.getMessage(), e);
             }
