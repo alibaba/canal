@@ -6,6 +6,9 @@ import java.sql.SQLException;
 
 public class TestConstant {
 
+    /**
+     * db配置
+     */
     public final static String    jdbcUrl      = "jdbc:mysql://xxxxxxxxx";
     public final static String    jdbcUser     = "xxxxxx";
     public final static String    jdbcPassword = "xxxxxx";
