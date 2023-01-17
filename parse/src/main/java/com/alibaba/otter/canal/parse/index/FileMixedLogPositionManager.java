@@ -188,4 +188,9 @@ public class FileMixedLogPositionManager extends AbstractLogPositionManager {
             throw new CanalMetaManagerException(e);
         }
     }
+
+    @Override
+    public void removeLogPositionCache(String destination) {
+        memoryLogPositionManager.removeLogPositionCache(destination);
+    }
 }

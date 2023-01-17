@@ -113,6 +113,11 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
         batches.get(clientIdentity).clearPositionRanges();
     }
 
+    @Override
+    public void removeCursorsCache(ClientIdentity clientIdentity) throws CanalMetaManagerException {
+        cursors.remove(clientIdentity);
+    }
+
     // ============================
 
     public static class MemoryClientIdentityBatch {
