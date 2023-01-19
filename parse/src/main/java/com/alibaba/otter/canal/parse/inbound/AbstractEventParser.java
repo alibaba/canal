@@ -479,7 +479,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
      * @param destination
      */
     protected void removeLogPositionCacheWhenError(String destination) {
-        logPositionManager.removeLogPositionCache(destination);
+        // do nothing
     }
 
     protected void startHeartBeat(ErosaConnection connection) {
