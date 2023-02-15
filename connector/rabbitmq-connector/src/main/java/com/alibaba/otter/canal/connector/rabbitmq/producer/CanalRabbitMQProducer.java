@@ -75,6 +75,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
             channel.queueDeclare(rabbitMQProperties.getQueue(), true, false, false, null);
             channel.exchangeDeclare(rabbitMQProperties.getExchange(), rabbitMQProperties.getDeliveryMode(), true, false, false, null);
             channel.queueBind(rabbitMQProperties.getQueue(), rabbitMQProperties.getExchange(), rabbitMQProperties.getRoutingKey());
+
         } catch (IOException | TimeoutException ex) {
             throw new CanalException("Start RabbitMQ producer error", ex);
         }
