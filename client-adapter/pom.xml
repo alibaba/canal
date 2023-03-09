@@ -31,6 +31,7 @@
         <module>rdb</module>
         <module>es6x</module>
         <module>es7x</module>
+        <module>es8x</module>
         <module>escore</module>
         <module>kudu</module>
         <module>phoenix</module>
