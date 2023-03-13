@@ -84,8 +84,7 @@ public class YamlUtils {
             }
 
             if (baseProperties != null) {
-                baseProperties.putAll(properties);
-                properties = baseProperties;
+                properties.putAll(baseProperties);
             }
 
             ConfigurationPropertySource sources = new MapConfigurationPropertySource(properties);
