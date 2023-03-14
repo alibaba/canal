@@ -27,6 +27,7 @@ public class FlatMessage implements Serializable {
     private Map<String, String>       mysqlType;
     private List<Map<String, String>> data;
     private List<Map<String, String>> old;
+    private String                    gtid;
 
     public FlatMessage() {
     }
@@ -146,10 +147,18 @@ public class FlatMessage implements Serializable {
         this.es = es;
     }
 
+    public String getGtid() {
+        return gtid;
+    }
+
+    public void setGtid(String gtid) {
+        this.gtid = gtid;
+    }
+
     @Override
     public String toString() {
         return "FlatMessage [id=" + id + ", database=" + database + ", table=" + table + ", isDdl=" + isDdl + ", type="
                + type + ", es=" + es + ", ts=" + ts + ", sql=" + sql + ", sqlType=" + sqlType + ", mysqlType="
-               + mysqlType + ", data=" + data + ", old=" + old + "]";
+               + mysqlType + ", data=" + data + ", old=" + old + ", gtid=" + gtid +"]";
     }
 }

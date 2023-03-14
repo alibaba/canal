@@ -1,17 +1,13 @@
 package com.alibaba.otter.canal.common.utils;
 
 import java.lang.reflect.Type;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONFactory;
-import com.alibaba.fastjson2.TypeReference;
+import com.alibaba.fastjson2.*;
+import com.alibaba.fastjson2.filter.Filter;
 import com.alibaba.fastjson2.filter.PropertyFilter;
-import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.fastjson2.writer.ObjectWriter;
 
 
@@ -21,22 +17,18 @@ import com.alibaba.fastjson2.writer.ObjectWriter;
  * @author jianghang
  */
 public class JsonUtils {
-
-    static {
-        JSON.register(InetAddress.class, InetAddressWriter.instance);
-        JSON.register(Inet4Address.class, InetAddressWriter.instance);
-        JSON.register(Inet6Address.class, InetAddressWriter.instance);
-
-        JSONFactory.getDefaultObjectReaderProvider().addAutoTypeAccept("com.alibaba.otter.");
-        JSONFactory.getDefaultObjectReaderProvider().addAutoTypeAccept("com.taobao.tddl.dbsync.");
-    }
+    static final Filter AUTO_TYPE_FILTER = JSONReader.autoTypeFilter(
+            "com.alibaba.otter.",
+            "com.taobao.tddl.dbsync."
+    );
 
     public static <T> T unmarshalFromByte(byte[] bytes, Class<T> targetClass) {
-        return (T) JSON.parseObject(bytes, targetClass);// 默认为UTF-8
+        return (T) JSON.parseObject(bytes, targetClass, AUTO_TYPE_FILTER);// 默认为UTF-8
     }
 
     public static <T> T unmarshalFromByte(byte[] bytes, TypeReference<T> type) {
-        return (T) JSON.parseObject(bytes, type.getType());
+
+        return (T) JSON.parseObject(bytes, type.getType(), AUTO_TYPE_FILTER);
     }
 
     public static byte[] marshalToByte(Object obj) {
@@ -48,11 +40,11 @@ public class JsonUtils {
     }
 
     public static <T> T unmarshalFromString(String json, Class<T> targetClass) {
-        return (T) JSON.parseObject(json, targetClass);// 默认为UTF-8
+        return (T) JSON.parseObject(json, targetClass, AUTO_TYPE_FILTER);// 默认为UTF-8
     }
 
     public static <T> T unmarshalFromString(String json, TypeReference<T> type) {
-        return (T) JSON.parseObject(json, type);// 默认为UTF-8
+        return (T) JSON.parseObject(json, type.getType(), AUTO_TYPE_FILTER);// 默认为UTF-8
     }
 
     public static String marshalToString(Object obj) {
@@ -71,7 +63,7 @@ public class JsonUtils {
 
         return JSON.toJSONString(obj, new PropertyFilter() {
             @Override
-            public boolean process(Object object, String name, Object value) {
+            public boolean apply(Object object, String name, Object value) {
                 return !propertyFliters.contains(name);
             }
         });

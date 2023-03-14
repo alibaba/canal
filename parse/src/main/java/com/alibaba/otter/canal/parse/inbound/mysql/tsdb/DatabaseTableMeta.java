@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -190,17 +191,29 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private boolean dumpTableMeta(MysqlConnection connection, final CanalEventFilter filter) {
         try {
             ResultSetPacket packet = connection.query("show databases");
+            int columnSize = packet.getFieldDescriptors().size();
+            int columnIndex = 0;
+            for (; columnIndex < columnSize; columnIndex++) {
+                FieldPacket value = packet.getFieldDescriptors().get(columnIndex);
+                if (StringUtils.equalsIgnoreCase(value.getName(), "Database")) {
+                    break;
+                }
+            }
+
             List<String> schemas = new ArrayList<>();
-            schemas.addAll(packet.getFieldValues());
+            for (int line = 0; line < packet.getFieldValues().size() / columnSize; line++) {
+                String schema = packet.getFieldValues().get(line * columnSize + columnIndex);
+                schemas.add(schema);
+            }
 
             for (String schema : schemas) {
                 // filter views
                 packet = connection.query("show full tables from `" + schema + "` where Table_type = 'BASE TABLE'");
+                columnSize = packet.getFieldDescriptors().size();
+                int tableNameColumnIndex = 0; // default index is 0
                 List<String> tables = new ArrayList<>();
-                for (String table : packet.getFieldValues()) {
-                    if ("BASE TABLE".equalsIgnoreCase(table)) {
-                        continue;
-                    }
+                for (int line = 0; line < packet.getFieldValues().size() / columnSize; line++) {
+                    String table = packet.getFieldValues().get(line * columnSize + tableNameColumnIndex);
                     String fullName = schema + "." + table;
                     if (blackFilter == null || !blackFilter.filter(fullName)) {
                         if (filter == null || filter.filter(fullName)) {

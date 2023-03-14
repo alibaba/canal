@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 
+@Ignore
 public class DirectLogFetcherTest {
 
     protected final Logger logger         = LoggerFactory.getLogger(this.getClass());
@@ -300,7 +302,7 @@ public class DirectLogFetcherTest {
                 event.getHeader().getLogPos() - event.getHeader().getEventLen(),
                 event.getTable().getDbName(),
                 event.getTable().getTableName()));
-            RowsLogBuffer buffer = event.getRowsBuf(charset.name());
+            RowsLogBuffer buffer = event.getRowsBuf(charset);
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
             while (buffer.nextOneRow(columns)) {

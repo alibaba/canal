@@ -21,6 +21,7 @@ public final class CharsetConversion {
         protected final String mysqlCharset;
         protected final String mysqlCollation;
         protected final String javaCharset;
+        protected final Charset charset;
 
         Entry(final int id, String mysqlCharset, // NL
               String mysqlCollation, String javaCharset){
@@ -28,6 +29,7 @@ public final class CharsetConversion {
             this.mysqlCharset = mysqlCharset;
             this.mysqlCollation = mysqlCollation;
             this.javaCharset = javaCharset;
+            this.charset = Charset.isSupported(javaCharset) ? Charset.forName(javaCharset) : null;
         }
     }
 
@@ -379,6 +381,23 @@ public final class CharsetConversion {
         if (entry != null) {
             if (entry.javaCharset != null) {
                 return entry.javaCharset;
+            } else {
+                logger.warn("Unknown java charset for: id = " + id + ", name = " + entry.mysqlCharset + ", coll = "
+                            + entry.mysqlCollation);
+                return null;
+            }
+        } else {
+            logger.warn("Unexpect mysql charset: " + id);
+            return null;
+        }
+    }
+
+    public static Charset getNioCharset(final int id) {
+        Entry entry = getEntry(id);
+
+        if (entry != null) {
+            if (entry.charset != null) {
+                return entry.charset;
             } else {
                 logger.warn("Unknown java charset for: id = " + id + ", name = " + entry.mysqlCharset + ", coll = "
                             + entry.mysqlCollation);

@@ -1,10 +1,10 @@
 package com.alibaba.otter.canal.client.adapter.kudu.monitor;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.kudu.KuduAdapter;
 import com.alibaba.otter.canal.client.adapter.kudu.config.KuduMappingConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import java.io.File;
 import java.util.Properties;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -36,7 +36,7 @@ public class KuduConfigMonitor {
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
-                    FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
+                FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
             FileListener listener = new FileListener();
             observer.addListener(listener);
             fileMonitor = new FileAlterationMonitor(3000, observer);
@@ -69,19 +69,15 @@ public class KuduConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                KuduMappingConfig config = YmlConfigBinder.bindYmlToObj(null,
-                    configContent,
-                    KuduMappingConfig.class,
-                    null,
-                    envProperties);
+                KuduMappingConfig config = YamlUtils
+                    .ymlToObj(null, configContent, KuduMappingConfig.class, null, envProperties);
                 if (config == null) {
                     return;
                 }
                 config.validate();
                 boolean result = kuduAdapter.addConfig(file.getName(), config);
                 if (result) {
-                    logger.info("Add a new kudu mapping config: {} to canal adapter",
-                            file.getName());
+                    logger.info("Add a new kudu mapping config: {} to canal adapter", file.getName());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -95,17 +91,14 @@ public class KuduConfigMonitor {
             try {
                 if (kuduAdapter.getKuduMapping().containsKey(file.getName())) {
                     // 加载配置文件
-                    String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator
-                                                                           + file.getName());
+                    String configContent = MappingConfigsLoader
+                        .loadConfig(adapterName + File.separator + file.getName());
                     if (configContent == null) {
                         onFileDelete(file);
                         return;
                     }
-                    KuduMappingConfig config = YmlConfigBinder.bindYmlToObj(null,
-                        configContent,
-                        KuduMappingConfig.class,
-                        null,
-                        envProperties);
+                    KuduMappingConfig config = YamlUtils
+                        .ymlToObj(null, configContent, KuduMappingConfig.class, null, envProperties);
                     if (config == null) {
                         return;
                     }

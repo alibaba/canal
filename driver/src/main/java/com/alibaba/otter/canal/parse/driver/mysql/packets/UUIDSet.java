@@ -181,9 +181,7 @@ public class UUIDSet {
             int j;
             for (j = i + 1; j < len; j++) {
                 if (intervals.get(i).stop >= intervals.get(j).start) {
-                    if (intervals.get(i).stop < intervals.get(j).stop) {
-                        intervals.get(i).stop = intervals.get(j).stop;
-                    }
+                    intervals.get(i).stop = intervals.get(j).stop;
                 } else {
                     break;
                 }

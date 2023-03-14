@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -41,50 +39,42 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.12</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
-            <version>1.1.9</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
-            <version>2.0.2</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.48</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -123,19 +113,19 @@
 <!--                            <tasks>-->
 <!--                                <copy todir="${project.basedir}/../launcher/target/classes/phoenix" overwrite="true">-->
 <!--                                    <fileset dir="${project.basedir}/target/classes/phoenix" erroronmissingdir="true">-->
-<!--                                        <include name="*.yml"/>-->
+<!--                                        <include name="*.yml" />-->
 <!--                                    </fileset>-->
 <!--                                </copy>-->
 <!--                            </tasks>-->
                             <tasks>
                                 <copy todir="${project.basedir}/../launcher/target/canal-adapter/conf/phoenix" overwrite="true">
                                     <fileset dir="${project.basedir}/target/classes/phoenix" erroronmissingdir="true">
-                                        <include name="*.yml"/>
+                                        <include name="*.yml" />
                                     </fileset>
                                 </copy>
                                 <copy todir="${project.basedir}/../launcher/target/canal-adapter/plugin" overwrite="true">
                                     <fileset dir="${project.basedir}/target/" erroronmissingdir="true">
-                                        <include name="*with-dependencies.jar"/>
+                                        <include name="*with-dependencies.jar" />
                                     </fileset>
                                 </copy>
                                 <copy todir="${project.basedir}/../launcher/target/classes/phoenix" overwrite="true">

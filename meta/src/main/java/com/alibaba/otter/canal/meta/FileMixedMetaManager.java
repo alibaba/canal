@@ -171,7 +171,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                 return null;
             }
 
-            String json = FileUtils.readFileToString(dataFile, charset.name());
+            String json = FileUtils.readFileToString(dataFile, charset);
             return JsonUtils.unmarshalFromString(json, FileMetaInstanceData.class);
         } catch (IOException e) {
             throw new CanalMetaManagerException(e);
@@ -209,7 +209,11 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
 
                 data.setClientDatas(clientDatas);
             }
-
+            //fixed issue https://github.com/alibaba/canal/issues/4312
+            //客户端数据为空时不覆盖文件内容 （适合单客户端）
+            if(data.getClientDatas().isEmpty()){
+                return;
+            }
             String json = JsonUtils.marshalToString(data);
             try {
                 FileUtils.writeStringToFile(dataFile, json);

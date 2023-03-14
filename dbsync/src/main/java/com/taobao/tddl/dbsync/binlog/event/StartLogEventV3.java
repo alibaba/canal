@@ -36,7 +36,7 @@ public class StartLogEventV3 extends LogEvent {
 
         buffer.position(descriptionEvent.commonHeaderLen);
         binlogVersion = buffer.getUint16(); // ST_BINLOG_VER_OFFSET
-        serverVersion = buffer.getFixString(ST_SERVER_VER_LEN); // ST_SERVER_VER_OFFSET
+        serverVersion = buffer.getFixName(ST_SERVER_VER_LEN); // ST_SERVER_VER_OFFSET
     }
 
     public StartLogEventV3(){
