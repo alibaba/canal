@@ -95,9 +95,26 @@ function start_canal() {
         fi
 
         destination=`perl -le 'print $ENV{"canal.destinations"}'`
-        if [[ "$destination" =~ ',' ]]; then
-            echo "multi destination:$destination is not support"
-            exit 1;
+        multistream=`perl -le 'print $ENV{"canal.instance.multi.stream.on"}'`
+        if [[ "$destination" =~ ',' ]] ; then
+            if [[ "$multistream" = 'true' ]] ; then
+                holdExample="false"
+                array=(${destination//,/ })
+                for var in ${array[@]}
+                do
+                    cp -r /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$var
+                    chown admin:admin -R /home/admin/canal-server/conf/$var
+                    if [[ "$var" = 'example' ]] ; then
+                        holdExample="true"
+                    fi
+                done
+                if [[ "$holdExample" != 'true' ]] ; then
+                    rm -rf /home/admin/canal-server/conf/example
+                fi
+            else
+                echo "multi destination:$destination is not support"
+                exit 1;
+            fi
         else
             if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
                 if [ -d /home/admin/canal-server/conf/example ]; then
