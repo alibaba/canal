@@ -224,13 +224,15 @@ public class MysqlConnector {
 
             boolean isSha2Password = false;
             byte[] encryptedPassword = null;
-            if (pluginName != null && "mysql_native_password".equals(pluginName)) {
+            if ("mysql_clear_password".equals(pluginName)) {
+                encryptedPassword = getPassword().getBytes();
+            } else if ("mysql_native_password".equals(pluginName)) {
                 try {
                     encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), authData);
                 } catch (NoSuchAlgorithmException e) {
                     throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
                 }
-            } else if (pluginName != null && "caching_sha2_password".equals(pluginName)) {
+            } else if ("caching_sha2_password".equals(pluginName)) {
                 isSha2Password = true;
                 try {
                     encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(), authData);
