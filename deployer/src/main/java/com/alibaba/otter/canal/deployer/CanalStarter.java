@@ -102,7 +102,7 @@ public class CanalStarter {
 
         if (canalMQProducer != null) {
             canalMQStarter = new CanalMQStarter(canalMQProducer);
-            String destinations = CanalController.getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
+            String destinations = CanalController.getDestinations(properties);
             canalMQStarter.start(destinations);
             controller.setCanalMQStarter(canalMQStarter);
         }

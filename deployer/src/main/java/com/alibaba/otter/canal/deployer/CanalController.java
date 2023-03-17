@@ -1,18 +1,5 @@
 package com.alibaba.otter.canal.deployer;
 
-import java.util.Map;
-import java.util.Properties;
-
-import org.I0Itec.zkclient.IZkStateListener;
-import org.I0Itec.zkclient.exception.ZkNoNodeException;
-import org.I0Itec.zkclient.exception.ZkNodeExistsException;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
@@ -36,6 +23,26 @@ import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.MigrateMap;
+import org.I0Itec.zkclient.IZkStateListener;
+import org.I0Itec.zkclient.exception.ZkNoNodeException;
+import org.I0Itec.zkclient.exception.ZkNodeExistsException;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.alibaba.otter.canal.deployer.CanalConstants.CANAL_DESTINATIONS;
+import static com.alibaba.otter.canal.deployer.CanalConstants.CANAL_DESTINATIONS_EXPR;
 
 /**
  * canal调度控制器
@@ -390,7 +397,7 @@ public class CanalController {
     }
 
     private void initInstanceConfig(Properties properties) {
-        String destinationStr = getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
+        String destinationStr = getDestinations(properties);
         String[] destinations = StringUtils.split(destinationStr, CanalConstants.CANAL_DESTINATION_SPLIT);
 
         for (String destination : destinations) {
@@ -459,6 +466,40 @@ public class CanalController {
         }
 
         return StringUtils.trim(value);
+    }
+
+    public static String getDestinations(Properties properties) {
+        String expr = getProperty(properties, CANAL_DESTINATIONS_EXPR);
+        if (StringUtils.isNotBlank(expr)) {
+            return parseExpr(expr);
+        } else {
+            return getProperty(properties, CANAL_DESTINATIONS);
+        }
+    }
+
+    private static String parseExpr(String expr) {
+        String prefix = StringUtils.substringBefore(expr, "{");
+        String range = StringUtils.substringAfter(expr, "{");
+        range = StringUtils.substringBefore(range, "}");
+
+        String regex = "(\\d+)-(\\d+)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(range);
+        if (matcher.find()) {
+            String head = matcher.group(1);
+            String tail = matcher.group(2);
+            int start = Integer.parseInt(head);
+            int end = Integer.parseInt(tail);
+
+            List<String> list = new ArrayList<>();
+            for (int i = start; i <= end; i++) {
+                String d = prefix + i;
+                list.add(d);
+            }
+            return list.stream().map(Object::toString).collect(Collectors.joining(","));
+        } else {
+            throw new CanalServerException("invalid destinations expr " + expr);
+        }
     }
 
     public void start() throws Throwable {
