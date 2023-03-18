@@ -754,6 +754,23 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
+                
+                // 处理各种类型
+                switch (javaType) {
+                    case Types.BINARY:
+                    case Types.VARBINARY:
+                    case Types.LONGVARBINARY:
+
+                        // https://github.com/alibaba/canal/issues/4652
+                        // mysql binlog中blob/text都处理为blob类型，需要反查table
+                        // meta，按编码解析text
+                        if (fieldMeta != null && isText(fieldMeta.getColumnType())) {
+                            javaType = Types.CLOB;
+                        } else {
+                            javaType = Types.BLOB;
+                        }
+                        break;
+                }
             } else {
                 final Serializable value = buffer.getValue();
                 // 处理各种类型
