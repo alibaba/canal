@@ -30,6 +30,7 @@ public class CanalConstants {
     public static final String CANAL_WITHOUT_NETTY                  = ROOT + "." + "withoutNetty";
 
     public static final String CANAL_DESTINATIONS                   = ROOT + "." + "destinations";
+    public static final String CANAL_DESTINATIONS_EXPR              = ROOT + "." + "destinations.expr";
     public static final String CANAL_AUTO_SCAN                      = ROOT + "." + "auto.scan";
     public static final String CANAL_AUTO_SCAN_INTERVAL             = ROOT + "." + "auto.scan.interval";
     public static final String CANAL_CONF_DIR                       = ROOT + "." + "conf.dir";
