@@ -52,7 +52,7 @@ public class SessionHandler extends SimpleChannelHandler {
 
     @SuppressWarnings({ "deprecation" })
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-        logger.info("message receives in session handler...");
+        // logger.info("message receives in session handler...");
         long start = System.nanoTime();
         ChannelBuffer buffer = (ChannelBuffer) e.getMessage();
         Packet packet = Packet.parseFrom(buffer.readBytes(buffer.readableBytes()).array());

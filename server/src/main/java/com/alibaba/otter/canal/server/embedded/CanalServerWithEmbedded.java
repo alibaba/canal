@@ -355,14 +355,14 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 } else {
                     entrys = events.getEvents().stream().map(Event::getEntry).collect(Collectors.toList());
                 }
-                if (logger.isInfoEnabled()) {
-                    logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
-                        clientIdentity.getClientId(),
-                        batchSize,
-                        entrys.size(),
-                        batchId,
-                        events.getPositionRange());
-                }
+                // if (logger.isInfoEnabled()) {
+                //     logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",
+                //         clientIdentity.getClientId(),
+                //         batchSize,
+                //         entrys.size(),
+                //         batchId,
+                //         events.getPositionRange());
+                // }
                 return new Message(batchId, raw, entrys);
             }
 
@@ -424,12 +424,12 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         // 更新cursor
         if (positionRanges.getAck() != null) {
             canalInstance.getMetaManager().updateCursor(clientIdentity, positionRanges.getAck());
-            if (logger.isInfoEnabled()) {
-                logger.info("ack successfully, clientId:{} batchId:{} position:{}",
-                    clientIdentity.getClientId(),
-                    batchId,
-                    positionRanges);
-            }
+            // if (logger.isInfoEnabled()) {
+            //     logger.info("ack successfully, clientId:{} batchId:{} position:{}",
+            //         clientIdentity.getClientId(),
+            //         batchId,
+            //         positionRanges);
+            // }
         }
 
         // 可定时清理数据
