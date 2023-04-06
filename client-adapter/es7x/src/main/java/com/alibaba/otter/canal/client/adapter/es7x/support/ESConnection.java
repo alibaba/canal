@@ -34,7 +34,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.GetMappingsRequest;
 import org.elasticsearch.client.indices.GetMappingsResponse;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -106,8 +106,8 @@ public class ESConnection {
         }
     }
 
-    public MappingMetaData getMapping(String index) {
-        MappingMetaData mappingMetaData = null;
+    public MappingMetadata getMapping(String index) {
+        MappingMetadata mappingMetaData = null;
         if (mode == ESClientMode.TRANSPORT) {
             try {
                 mappingMetaData = transportClient.admin()
@@ -124,7 +124,7 @@ public class ESConnection {
                 throw new IllegalArgumentException("Not found the mapping info of index: " + index);
             }
         } else {
-            Map<String, MappingMetaData> mappings;
+            Map<String, MappingMetadata> mappings;
             try {
                 GetMappingsRequest request = new GetMappingsRequest();
                 request.indices(index);

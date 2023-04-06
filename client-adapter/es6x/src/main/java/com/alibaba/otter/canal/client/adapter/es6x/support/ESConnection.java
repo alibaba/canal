@@ -35,7 +35,7 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.RestHighLevelClientExt;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
@@ -107,10 +107,10 @@ public class ESConnection {
         }
     }
 
-    public MappingMetaData getMapping(String index, String type) {
-        MappingMetaData mappingMetaData = null;
+    public MappingMetadata getMapping(String index, String type) {
+        MappingMetadata mappingMetaData = null;
         if (mode == ESClientMode.TRANSPORT) {
-            ImmutableOpenMap<String, MappingMetaData> mappings;
+            ImmutableOpenMap<String, MappingMetadata> mappings;
             try {
                 mappings = transportClient.admin()
                     .cluster()
@@ -128,7 +128,7 @@ public class ESConnection {
             mappingMetaData = mappings.get(type);
 
         } else {
-            ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings;
+            ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetadata>> mappings;
             try {
                 GetMappingsRequest request = new GetMappingsRequest();
                 request.indices(index);
@@ -152,7 +152,7 @@ public class ESConnection {
             }
 
             //通过别名查询mapping返回的是真实索引名称，mappings.get(index)返回null，为兼容别名情况修改如下：
-            ImmutableOpenMap<String, MappingMetaData> esIndex = mappings.get(index);
+            ImmutableOpenMap<String, MappingMetadata> esIndex = mappings.get(index);
             if(esIndex == null){
                 esIndex = mappings.valuesIt().next();
             }

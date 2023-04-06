@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.sql.DataSource;
-
+import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.action.search.SearchResponse;
 
 import com.alibaba.otter.canal.client.adapter.es.core.ESAdapter;
@@ -61,7 +61,8 @@ public class ES7xAdapter extends ESAdapter {
         ESSyncConfig.ESMapping mapping = config.getEsMapping();
         SearchResponse response = this.esConnection.new ESSearchRequest(mapping.get_index()).size(0).getResponse();
 
-        long rowCount = response.getHits().getTotalHits().value;
+        // long rowCount = response.getHits().getTotalHits().value;
+        TotalHits rowCount = response.getHits().getTotalHits().value;
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("esIndex", mapping.get_index());
         res.put("count", rowCount);

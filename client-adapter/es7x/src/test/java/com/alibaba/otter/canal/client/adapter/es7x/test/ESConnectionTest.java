@@ -4,7 +4,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,7 +27,7 @@ public class ESConnectionTest {
 
     @Test
     public void test01() {
-        MappingMetaData mappingMetaData = esConnection.getMapping("mytest_user");
+        MappingMetadata mappingMetaData = esConnection.getMapping("mytest_user");
 
         Map<String, Object> sourceMap = mappingMetaData.getSourceAsMap();
         Map<String, Object> esMapping = (Map<String, Object>) sourceMap.get("properties");

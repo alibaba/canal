@@ -84,7 +84,7 @@
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.8.2</version>
+			<version>1.9.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
-			<version>3.2</version>
+			<version>3.2.2</version>
 		</dependency>
 
 		<!-- test dependency -->

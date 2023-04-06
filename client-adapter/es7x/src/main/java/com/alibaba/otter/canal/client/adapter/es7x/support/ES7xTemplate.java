@@ -14,7 +14,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -392,7 +392,7 @@ public class ES7xTemplate implements ESTemplate {
         if (fieldType != null) {
             return fieldType.get(fieldName);
         } else {
-            MappingMetaData mappingMetaData = esConnection.getMapping(mapping.get_index());
+            MappingMetadata mappingMetaData = esConnection.getMapping(mapping.get_index());
 
             if (mappingMetaData == null) {
                 throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());

@@ -59,5 +59,10 @@
             <artifactId>deeptestutils</artifactId>
             <scope>test</scope>
         </dependency>
+		<dependency>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.2.10.Final</version>
+        </dependency>
 	</dependencies>
 </project>
