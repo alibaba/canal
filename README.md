@@ -6,6 +6,7 @@
 [![percentage of issues still open](http://isitmaintained.com/badge/open/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "percentage of issues still open")
 [![Leaderboard](https://img.shields.io/badge/Canal-%E6%9F%A5%E7%9C%8B%E8%B4%A1%E7%8C%AE%E6%8E%92%E8%A1%8C%E6%A6%9C-orange)](https://opensource.alibaba.com/contribution_leaderboard/details?projectValue=canal)
 
+
 ## 简介
 
 ![](https://img-blog.csdnimg.cn/20191104101735947.png)
@@ -102,3 +103,5 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 
 ## 问题反馈
 - 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
+
+本项目的Issues会被同步沉淀至[阿里云开发者社区](https://developer.aliyun.com/ask)
