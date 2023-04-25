@@ -1,7 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.phoenix.config;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +28,7 @@ public class ConfigLoader {
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("phoenix");
         configContentMap.forEach((fileName, content) -> {
-            MappingConfig config = YmlConfigBinder
-                    .bindYmlToObj(null, content, MappingConfig.class, null, envProperties);
+            MappingConfig config = YamlUtils.ymlToObj(null, content, MappingConfig.class, null, envProperties);
             if (config == null) {
                 return;
             }

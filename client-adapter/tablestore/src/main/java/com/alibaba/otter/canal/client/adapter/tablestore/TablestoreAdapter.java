@@ -1,6 +1,8 @@
 package com.alibaba.otter.canal.client.adapter.tablestore;
 
 
+import com.alibaba.otter.canal.client.adapter.support.FileName2KeyMapping;
+import com.alibaba.otter.canal.client.adapter.support.Util;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -55,60 +57,12 @@ public class TablestoreAdapter implements OuterAdapter {
         this.configuration = configuration;
         Map<String, MappingConfig> tablestoreMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
-        tablestoreMappingTmp.forEach((key, mappingConfig) -> {
-            if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                    || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
-                    .equalsIgnoreCase(configuration.getKey()))) {
-                tablestoreMapping.put(key, mappingConfig);
-                mappingConfig.getDbMapping().init(mappingConfig);
-            }
+        tablestoreMappingTmp.forEach((key, config) -> {
+            addConfig(key, config);
         });
 
         if (tablestoreMapping.isEmpty()) {
             throw new RuntimeException("No tablestore adapter found for config key: " + configuration.getKey());
-        }
-
-        Map<String, String> properties = configuration.getProperties();
-
-        for (Map.Entry<String, MappingConfig> entry : tablestoreMapping.entrySet()) {
-            String configName = entry.getKey();
-            MappingConfig mappingConfig = entry.getValue();
-            String key;
-            if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
-                key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                        + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                        + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
-            } else {
-                key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                        + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
-            }
-            Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
-                    k1 -> new ConcurrentHashMap<>());
-            configMap.put(configName, mappingConfig);
-
-
-            // 构建对应的 TableStoreWriter
-            ServiceCredentials credentials = new DefaultCredentials(
-                    properties.get(PropertyConstants.TABLESTORE_ACCESSSECRETID),
-                    properties.get(PropertyConstants.TABLESTORE_ACCESSSECRETKEY)
-            );
-
-
-            WriterConfig config = getWriterConfig(mappingConfig);
-
-            TableStoreWriter writer = new DefaultTableStoreWriter(
-                    properties.get(PropertyConstants.TABLESTORE_ENDPOINT),
-                    credentials,
-                    properties.get(PropertyConstants.TABLESTORE_INSTANCENAME),
-                    mappingConfig.getDbMapping().getTargetTable(),
-                    config,
-                    null
-            );
-
-            Map<String, TableStoreWriter> config2writerMap = writerCache.computeIfAbsent(key,
-                    k1 -> new ConcurrentHashMap<>());
-            config2writerMap.put(configName, writer);
-
         }
 
         tablestoreSyncService = new TablestoreSyncService();
@@ -314,5 +268,85 @@ public class TablestoreAdapter implements OuterAdapter {
                 }
             }
         }
+    }
+
+    private void addSyncConfigToCache(String configName, MappingConfig mappingConfig) {
+        Map<String, String> properties = configuration.getProperties();
+        String key;
+        if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+            key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                    + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                    + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+        } else {
+            key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
+                    + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+        }
+        Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
+                k1 -> new ConcurrentHashMap<>());
+        configMap.put(configName, mappingConfig);
+
+
+        // 构建对应的 TableStoreWriter
+        ServiceCredentials credentials = new DefaultCredentials(
+                properties.get(PropertyConstants.TABLESTORE_ACCESSSECRETID),
+                properties.get(PropertyConstants.TABLESTORE_ACCESSSECRETKEY)
+        );
+
+
+        WriterConfig config = getWriterConfig(mappingConfig);
+
+        TableStoreWriter writer = new DefaultTableStoreWriter(
+                properties.get(PropertyConstants.TABLESTORE_ENDPOINT),
+                credentials,
+                properties.get(PropertyConstants.TABLESTORE_INSTANCENAME),
+                mappingConfig.getDbMapping().getTargetTable(),
+                config,
+                null
+        );
+
+        Map<String, TableStoreWriter> config2writerMap = writerCache.computeIfAbsent(key,
+                k1 -> new ConcurrentHashMap<>());
+        config2writerMap.put(configName, writer);
+    }
+
+    public boolean addConfig(String fileName, MappingConfig config) {
+        if (match(config)) {
+            tablestoreMapping.put(fileName, config);
+            addSyncConfigToCache(fileName, config);
+            FileName2KeyMapping.register(getClass().getAnnotation(SPI.class).value(), fileName,
+                    configuration.getKey());
+            return true;
+        }
+        return false;
+    }
+
+    public void updateConfig(String fileName, MappingConfig config) {
+        if (config.getOuterAdapterKey() != null && !config.getOuterAdapterKey()
+                .equals(configuration.getKey())) {
+            // 理论上不允许改这个 因为本身就是通过这个关联起Adapter和Config的
+            throw new RuntimeException("not allow to change outAdapterKey");
+        }
+        tablestoreMapping.put(fileName, config);
+        addSyncConfigToCache(fileName, config);
+    }
+
+    public void deleteConfig(String fileName) {
+        tablestoreMapping.remove(fileName);
+        for (Map<String, MappingConfig> configMap : mappingConfigCache.values()) {
+            if (configMap != null) {
+                configMap.remove(fileName);
+            }
+        }
+        FileName2KeyMapping.unregister(getClass().getAnnotation(SPI.class).value(), fileName);
+    }
+
+    private boolean match(MappingConfig config) {
+        boolean sameMatch = config.getOuterAdapterKey() != null && config.getOuterAdapterKey()
+                .equalsIgnoreCase(configuration.getKey());
+        boolean prefixMatch = config.getOuterAdapterKey() == null && configuration.getKey()
+                .startsWith(StringUtils
+                        .join(new String[]{Util.AUTO_GENERATED_PREFIX, config.getDestination(),
+                                config.getGroupId()}, '-'));
+        return sameMatch || prefixMatch;
     }
 }

@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.deployer;
 
+import com.alibaba.otter.canal.connector.core.spi.ProxyCanalMQProducer;
 import java.util.Properties;
 
 import com.alibaba.otter.canal.connector.core.config.MQProperties;
@@ -21,21 +22,21 @@ import com.alibaba.otter.canal.server.CanalMQStarter;
  */
 public class CanalStarter {
 
-    private static final Logger logger                    = LoggerFactory.getLogger(CanalStarter.class);
+    private static final Logger logger = LoggerFactory.getLogger(CanalStarter.class);
 
-    private static final String CONNECTOR_SPI_DIR         = "/plugin";
+    private static final String CONNECTOR_SPI_DIR = "/plugin";
     private static final String CONNECTOR_STANDBY_SPI_DIR = "/canal/plugin";
 
-    private CanalController     controller                = null;
-    private CanalMQProducer     canalMQProducer           = null;
-    private Thread              shutdownThread            = null;
-    private CanalMQStarter      canalMQStarter            = null;
+    private CanalController controller = null;
+    private CanalMQProducer canalMQProducer = null;
+    private Thread shutdownThread = null;
+    private CanalMQStarter canalMQStarter = null;
     private volatile Properties properties;
-    private volatile boolean    running                   = false;
+    private volatile boolean running = false;
 
     private CanalAdminWithNetty canalAdmin;
 
-    public CanalStarter(Properties properties){
+    public CanalStarter(Properties properties) {
         this.properties = properties;
     }
 
@@ -67,10 +68,8 @@ public class CanalStarter {
             canalMQProducer = loader
                 .getExtension(serverMode.toLowerCase(), CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
             if (canalMQProducer != null) {
-                ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(canalMQProducer.getClass().getClassLoader());
+                canalMQProducer =  new ProxyCanalMQProducer(canalMQProducer);
                 canalMQProducer.init(properties);
-                Thread.currentThread().setContextClassLoader(cl);
             }
         }
 
@@ -103,7 +102,7 @@ public class CanalStarter {
 
         if (canalMQProducer != null) {
             canalMQStarter = new CanalMQStarter(canalMQProducer);
-            String destinations = CanalController.getProperty(properties, CanalConstants.CANAL_DESTINATIONS);
+            String destinations = CanalController.getDestinations(properties);
             canalMQStarter.start(destinations);
             controller.setCanalMQStarter(canalMQStarter);
         }

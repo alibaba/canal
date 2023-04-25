@@ -31,12 +31,12 @@ import com.google.common.cache.LoadingCache;
  */
 public class TableMetaCache {
 
-    public static final String              COLUMN_NAME    = "COLUMN_NAME";
-    public static final String              COLUMN_TYPE    = "COLUMN_TYPE";
-    public static final String              IS_NULLABLE    = "IS_NULLABLE";
-    public static final String              COLUMN_KEY     = "COLUMN_KEY";
-    public static final String              COLUMN_DEFAULT = "COLUMN_DEFAULT";
-    public static final String              EXTRA          = "EXTRA";
+    public static final String              COLUMN_NAME    = "field";
+    public static final String              COLUMN_TYPE    = "type";
+    public static final String              IS_NULLABLE    = "null";
+    public static final String              COLUMN_KEY     = "key";
+    public static final String              COLUMN_DEFAULT = "default";
+    public static final String              EXTRA          = "extra";
     private MysqlConnection                 connection;
     private boolean                         isOnRDS        = false;
     private boolean                         isOnPolarX     = false;
@@ -125,7 +125,7 @@ public class TableMetaCache {
         Map<String, Integer> nameMaps = new HashMap<>(6, 1f);
         int index = 0;
         for (FieldPacket fieldPacket : packet.getFieldDescriptors()) {
-            nameMaps.put(fieldPacket.getOriginalName(), index++);
+            nameMaps.put(StringUtils.lowerCase(fieldPacket.getName()), index++);
         }
 
         int size = packet.getFieldDescriptors().size();

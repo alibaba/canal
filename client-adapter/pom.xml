@@ -4,12 +4,12 @@
     <parent>
         <groupId>com.alibaba.otter</groupId>
         <artifactId>canal</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal.client-adapter</artifactId>
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>canal client adapter module for otter ${project.version}</name>
 
@@ -20,6 +20,7 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
+        <log4j_version>2.17.0</log4j_version>
     </properties>
 
     <modules>
@@ -52,7 +53,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -62,7 +63,7 @@
         </repository>
         <repository>
             <id>java.net</id>
-            <url>http://download.java.net/maven/2/</url>
+            <url>https://download.java.net/maven/2/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -72,7 +73,7 @@
         </repository>
         <repository>
             <id>aliyun</id>
-            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -112,35 +113,9 @@
                 <version>2.0.0.RELEASE</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jdbc</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-orm</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>5.0.5.RELEASE</version>
-                <scope>test</scope>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot</artifactId>
+                <version>2.0.1.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -182,9 +157,9 @@
                 <version>42.1.4</version>
             </dependency>
             <dependency>
-                <groupId>com.oracle</groupId>
+                <groupId>com.oracle.database.jdbc</groupId>
                 <artifactId>ojdbc6</artifactId>
-                <version>11.2.0.3</version>
+                <version>11.2.0.4</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.sqlserver</groupId>
@@ -211,6 +186,12 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>2.10.0</version>
+            </dependency>
+            <!-- 单独指定guava版本，兼容curator-client -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
@@ -270,7 +251,21 @@
                 </exclusions>
             </dependency>
 
-
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

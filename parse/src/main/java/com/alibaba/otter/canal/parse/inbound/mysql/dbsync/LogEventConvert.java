@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.taobao.tddl.dbsync.binlog.event.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -40,23 +41,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry.Type;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.google.protobuf.ByteString;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.HeartbeatLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.LogHeader;
-import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RandLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
-import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
@@ -147,6 +132,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 return parseGTIDLogEvent((GtidLogEvent) logEvent);
             case LogEvent.HEARTBEAT_LOG_EVENT:
                 return parseHeartbeatLogEvent((HeartbeatLogEvent) logEvent);
+            case LogEvent.HEARTBEAT_LOG_EVENT_V2:
+                return parseHeartbeatV2LogEvent((HeartbeatV2LogEvent) logEvent);
             case LogEvent.GTID_EVENT:
             case LogEvent.GTID_LIST_EVENT:
                 return parseMariaGTIDLogEvent(logEvent);
@@ -173,13 +160,22 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         return entryBuilder.build();
     }
 
+    private Entry parseHeartbeatV2LogEvent(HeartbeatV2LogEvent logEvent) {
+        Header.Builder headerBuilder = Header.newBuilder();
+        headerBuilder.setEventType(EventType.MHEARTBEAT);
+        Entry.Builder entryBuilder = Entry.newBuilder();
+        entryBuilder.setHeader(headerBuilder.build());
+        entryBuilder.setEntryType(EntryType.HEARTBEAT);
+        return entryBuilder.build();
+    }
+
     private Entry parseGTIDLogEvent(GtidLogEvent logEvent) {
         LogHeader logHeader = logEvent.getHeader();
         Pair.Builder builder = Pair.newBuilder();
         builder.setKey("gtid");
         builder.setValue(logEvent.getGtidStr());
 
-        if (logEvent.getLastCommitted() != null) {
+        if (logEvent.getLastCommitted() != -1) {
             builder.setKey("lastCommitted");
             builder.setValue(String.valueOf(logEvent.getLastCommitted()));
             builder.setKey("sequenceNumber");
@@ -286,10 +282,16 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             boolean isDml = (type == EventType.INSERT || type == EventType.UPDATE || type == EventType.DELETE);
 
+            // filterQueryDdl=true的情况下,也得更新tablemeta
             if (!isSeek && !isDml) {
                 // 使用新的表结构元数据管理方式
                 EntryPosition position = createPosition(event.getHeader());
                 tableMetaCache.apply(position, event.getDbName(), queryString, null);
+            }
+
+            if (filterQueryDdl) {
+                // 全部DDL过滤,那就忽略事件生成
+                return null;
             }
 
             Header header = createHeader(event.getHeader(), schemaName, tableName, type);
@@ -335,12 +337,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             || result.getType() == EventType.RENAME || result.getType() == EventType.CINDEX
             || result.getType() == EventType.DINDEX) { // 针对DDL类型
 
-            if (filterQueryDdl) {
-                return true;
-            }
-
-            if (StringUtils.isEmpty(tableName)
-                || (result.getType() == EventType.RENAME && StringUtils.isEmpty(result.getOriTableName()))) {
+            if (!filterQueryDdl && (StringUtils.isEmpty(tableName)
+                || (result.getType() == EventType.RENAME && StringUtils.isEmpty(result.getOriTableName())))) {
                 // 如果解析不出tableName,记录一下日志，方便bugfix，目前直接抛出异常，中断解析
                 throw new CanalParseException("SimpleDdlParser process query failed. pls submit issue with this queryString: "
                                               + queryString + " , and DdlResult: " + result.toString());
@@ -394,7 +392,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         // mysql5.6支持，需要设置binlog-rows-query-log-events=1，可详细打印原始DML语句
         String queryString = null;
         try {
-            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset);
             String tableName = null;
             if (useDruidDdlFilter) {
                 List<DdlResult> results = DruidDdlParser.parse(queryString, null);
@@ -416,7 +414,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         // mariaDb支持，需要设置binlog_annotate_row_events=true，可详细打印原始DML语句
         String queryString = null;
         try {
-            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset);
             return buildQueryEntry(queryString, event.getHeader());
         } catch (UnsupportedEncodingException e) {
             throw new CanalParseException(e);
@@ -510,10 +508,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void parseTableMapEvent(TableMapLogEvent event) {
         try {
-            String charsetDbName = new String(event.getDbName().getBytes(ISO_8859_1), charset.name());
+            String charsetDbName = new String(event.getDbName().getBytes(ISO_8859_1), charset);
             event.setDbname(charsetDbName);
 
-            String charsetTbName = new String(event.getTableName().getBytes(ISO_8859_1), charset.name());
+            String charsetTbName = new String(event.getTableName().getBytes(ISO_8859_1), charset);
             event.setTblname(charsetTbName);
         } catch (UnsupportedEncodingException e) {
             throw new CanalParseException(e);
@@ -552,7 +550,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setIsDdl(false);
 
             rowChangeBuider.setEventType(eventType);
-            RowsLogBuffer buffer = event.getRowsBuf(charset.name());
+            RowsLogBuffer buffer = event.getRowsBuf(charset);
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
 
@@ -756,6 +754,23 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
+                
+                // 处理各种类型
+                switch (javaType) {
+                    case Types.BINARY:
+                    case Types.VARBINARY:
+                    case Types.LONGVARBINARY:
+
+                        // https://github.com/alibaba/canal/issues/4652
+                        // mysql binlog中blob/text都处理为blob类型，需要反查table
+                        // meta，按编码解析text
+                        if (fieldMeta != null && isText(fieldMeta.getColumnType())) {
+                            javaType = Types.CLOB;
+                        } else {
+                            javaType = Types.BLOB;
+                        }
+                        break;
+                }
             } else {
                 final Serializable value = buffer.getValue();
                 // 处理各种类型

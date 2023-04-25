@@ -11,7 +11,7 @@ canal.conf:
   flatMessage: true
   zookeeperHosts:
   syncBatchSize: 1000
-  retries: 0
+  retries: -1
   timeout:
   accessKey:
   secretKey:
@@ -64,6 +64,8 @@ canal.conf:
 #          jdbc.url: jdbc:mysql://127.0.0.1:3306/mytest2?useUnicode=true
 #          jdbc.username: root
 #          jdbc.password: 121212
+#          druid.stat.enable: false
+#          druid.stat.slowSqlMillis: 1000
 #      - name: rdb
 #        key: oracle1
 #        properties:
@@ -91,14 +93,14 @@ canal.conf:
 #          mode: transport # or rest
 #          # security.auth: test:123456 #  only used for rest mode
 #          cluster.name: elasticsearch
-#        - name: kudu
-#          key: kudu
-#          properties:
-#            kudu.master.address: 127.0.0.1 # ',' split multi address
-#        - name: phoenix
-#            key: phoenix
-#            properties:
-#              jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
-#              jdbc.url: jdbc:phoenix:127.0.0.1:2181:/hbase/db
-#              jdbc.username:
-#              jdbc.password:
+#      - name: kudu
+#        key: kudu
+#        properties:
+#          kudu.master.address: 127.0.0.1 # ',' split multi address
+#      - name: phoenix
+#        key: phoenix
+#        properties:
+#          jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
+#          jdbc.url: jdbc:phoenix:127.0.0.1:2181:/hbase/db
+#          jdbc.username:
+#          jdbc.password:

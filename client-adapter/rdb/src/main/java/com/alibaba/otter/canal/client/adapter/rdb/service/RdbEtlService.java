@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.sql.DataSource;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig.DbMapping;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
@@ -56,8 +57,12 @@ public class RdbEtlService extends AbstractEtlService {
             DbMapping dbMapping = (DbMapping) mapping;
             Map<String, String> columnsMap = new LinkedHashMap<>();
             Map<String, Integer> columnType = new LinkedHashMap<>();
+            DruidDataSource dataSource = (DruidDataSource) srcDS;
+            String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
 
-            Util.sqlRS(targetDS, "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping) + " LIMIT 1 ", rs -> {
+            Util.sqlRS(targetDS,
+                "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " LIMIT 1 ",
+                rs -> {
                 try {
 
                     ResultSetMetaData rsd = rs.getMetaData();
@@ -83,9 +88,11 @@ public class RdbEtlService extends AbstractEtlService {
                     boolean completed = false;
 
                     StringBuilder insertSql = new StringBuilder();
-                    insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
+                    insertSql.append("INSERT INTO ")
+                        .append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()))
+                        .append(" (");
                     columnsMap
-                        .forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
+                        .forEach((targetColumnName, srcColumnName) -> insertSql.append(backtick).append(targetColumnName).append(backtick).append(","));
 
                     int len = insertSql.length();
                     insertSql.delete(len - 1, len).append(") VALUES (");
@@ -95,6 +102,7 @@ public class RdbEtlService extends AbstractEtlService {
                     }
                     len = insertSql.length();
                     insertSql.delete(len - 1, len).append(")");
+                    logger.info("executeSqlImport sql:{}",insertSql.toString());
                     try (Connection connTarget = targetDS.getConnection();
                             PreparedStatement pstmt = connTarget.prepareStatement(insertSql.toString())) {
                         connTarget.setAutoCommit(false);
@@ -107,8 +115,8 @@ public class RdbEtlService extends AbstractEtlService {
                             // 删除数据
                             Map<String, Object> pkVal = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
-                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
-                            appendCondition(dbMapping, deleteSql, pkVal, rs);
+                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " WHERE ");
+                            appendCondition(dbMapping, deleteSql, pkVal, rs, backtick);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
                                 int k = 1;
                                 for (Object val : pkVal.values()) {
@@ -126,7 +134,6 @@ public class RdbEtlService extends AbstractEtlService {
                                 }
 
                                 Integer type = columnType.get(targetClolumnName.toLowerCase());
-
                                 Object value = rs.getObject(srcColumnName);
                                 if (value != null) {
                                     SyncUtil.setPStmt(type, pstmt, value, i);
@@ -174,7 +181,7 @@ public class RdbEtlService extends AbstractEtlService {
      * 拼接目标表主键where条件
      */
     private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values,
-                                        ResultSet rs) throws SQLException {
+                                        ResultSet rs, String backtick) throws SQLException {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
             String targetColumnName = entry.getKey();
@@ -182,7 +189,7 @@ public class RdbEtlService extends AbstractEtlService {
             if (srcColumnName == null) {
                 srcColumnName = targetColumnName;
             }
-            sql.append(targetColumnName).append("=? AND ");
+            sql.append(backtick).append(targetColumnName).append(backtick).append("=? AND ");
             values.put(targetColumnName, rs.getObject(srcColumnName));
         }
         int len = sql.length();

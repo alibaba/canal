@@ -1,8 +1,11 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.ZoneId;
+import java.time.zone.ZoneRules;
 import java.util.BitSet;
 
 import org.apache.commons.logging.Log;
@@ -23,7 +26,11 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
  */
 public final class RowsLogBuffer {
 
-    protected static final Log logger            = LogFactory.getLog(RowsLogBuffer.class);
+    protected static final Log    logger            = LogFactory.getLog(RowsLogBuffer.class);
+    public static final Long[]    longCache         = new Long[1024 * 128];
+    public static final int       longCacheLimit    = longCache.length + 127;
+    public static final Integer[] integerCache      = new Integer[1024 * 128];
+    public static final int       integerCacheLimit = longCache.length + 127;
 
     public static final long   DATETIMEF_INT_OFS = 0x8000000000L;
     public static final long   TIMEF_INT_OFS     = 0x800000L;
@@ -33,7 +40,7 @@ public final class RowsLogBuffer {
     private final LogBuffer    buffer;
     private final int          columnLen;
     private final int          jsonColumnCount;
-    private final String       charsetName;
+    private final Charset      charset;
 
     private final BitSet       nullBits;
     private int                nullBitIndex;
@@ -47,10 +54,10 @@ public final class RowsLogBuffer {
     private int                length;
     private Serializable       value;
 
-    public RowsLogBuffer(LogBuffer buffer, final int columnLen, String charsetName, int jsonColumnCount, boolean partial){
+    public RowsLogBuffer(LogBuffer buffer, final int columnLen, Charset charset, int jsonColumnCount, boolean partial){
         this.buffer = buffer;
         this.columnLen = columnLen;
-        this.charsetName = charsetName;
+        this.charset = charset;
         this.partial = partial;
         this.jsonColumnCount = jsonColumnCount;
         this.nullBits = new BitSet(columnLen);
@@ -309,7 +316,7 @@ public final class RowsLogBuffer {
                 // XXX: How to check signed / unsigned?
                 // value = unsigned ? Long.valueOf(buffer.getUint32()) :
                 // Integer.valueOf(buffer.getInt32());
-                value = Integer.valueOf(buffer.getInt32());
+                value = valueOf(buffer.getInt32());
                 javaType = Types.INTEGER;
                 length = 4;
                 break;
@@ -318,7 +325,7 @@ public final class RowsLogBuffer {
                 // XXX: How to check signed / unsigned?
                 // value = Integer.valueOf(unsigned ? buffer.getUint8() :
                 // buffer.getInt8());
-                value = Integer.valueOf(buffer.getInt8());
+                value = valueOf(buffer.getInt8());
                 javaType = Types.TINYINT; // java.sql.Types.INTEGER;
                 length = 1;
                 break;
@@ -327,7 +334,7 @@ public final class RowsLogBuffer {
                 // XXX: How to check signed / unsigned?
                 // value = Integer.valueOf(unsigned ? buffer.getUint16() :
                 // buffer.getInt16());
-                value = Integer.valueOf((short) buffer.getInt16());
+                value = valueOf((short) buffer.getInt16());
                 javaType = Types.SMALLINT; // java.sql.Types.INTEGER;
                 length = 2;
                 break;
@@ -336,7 +343,7 @@ public final class RowsLogBuffer {
                 // XXX: How to check signed / unsigned?
                 // value = Integer.valueOf(unsigned ? buffer.getUint24() :
                 // buffer.getInt24());
-                value = Integer.valueOf(buffer.getInt24());
+                value = valueOf(buffer.getInt24());
                 javaType = Types.INTEGER;
                 length = 3;
                 break;
@@ -345,7 +352,7 @@ public final class RowsLogBuffer {
                 // XXX: How to check signed / unsigned?
                 // value = unsigned ? buffer.getUlong64()) :
                 // Long.valueOf(buffer.getLong64());
-                value = Long.valueOf(buffer.getLong64());
+                value = valueOf(buffer.getLong64());
                 javaType = Types.BIGINT; // Types.INTEGER;
                 length = 8;
                 break;
@@ -733,7 +740,7 @@ public final class RowsLogBuffer {
 
                 String second = null;
                 if (intpart == 0) {
-                    second = "00:00:00";
+                    second = frac < 0 ? "-00:00:00" : "00:00:00";
                 } else {
                     // 目前只记录秒，不处理us frac
                     // if (cal == null) cal = Calendar.getInstance();
@@ -870,7 +877,7 @@ public final class RowsLogBuffer {
                 }
                 // logger.warn("MYSQL_TYPE_ENUM : This enumeration value is "
                 // + "only used internally and cannot exist in a binlog!");
-                value = Integer.valueOf(int32);
+                value = valueOf(int32);
                 javaType = Types.INTEGER;
                 length = len;
                 break;
@@ -1017,7 +1024,7 @@ public final class RowsLogBuffer {
                     javaType = Types.VARBINARY;
                     value = binary;
                 } else {
-                    value = buffer.getFullString(len, charsetName);
+                    value = buffer.getFullString(len, charset);
                     javaType = Types.VARCHAR;
                 }
 
@@ -1039,7 +1046,7 @@ public final class RowsLogBuffer {
                     javaType = Types.BINARY;
                     value = binary;
                 } else {
-                    value = buffer.getFullString(len, charsetName);
+                    value = buffer.getFullString(len, charset);
                     javaType = Types.CHAR; // Types.VARCHAR;
                 }
                 length = len;
@@ -1074,7 +1081,7 @@ public final class RowsLogBuffer {
                         len,
                         columnName,
                         columnIndex,
-                        charsetName);
+                            charset);
                     value = builder.toString();
                     buffer.position(position + len);
                 } else {
@@ -1088,9 +1095,9 @@ public final class RowsLogBuffer {
                         Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(),
                             buffer,
                             len - 1,
-                            charsetName);
+                                charset);
                         StringBuilder builder = new StringBuilder();
-                        jsonValue.toJsonString(builder, charsetName);
+                        jsonValue.toJsonString(builder, charset);
                         value = builder.toString();
                         buffer.position(position + len);
                     }
@@ -1133,6 +1140,8 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
+            case LogEvent.MYSQL_TYPE_BOOL :
+            case LogEvent.MYSQL_TYPE_INVALID :
             default:
                 logger.error(String.format("!! Don't know how to handle column type=%d meta=%d (%04X)",
                     type,
@@ -1208,5 +1217,39 @@ public final class RowsLogBuffer {
         } else {
             builder.append('0').append(digits[d]);
         }
+    }
+
+    public static Long valueOf(long value) {
+        if (value >= -128 & value <= 127) {
+            // if (l >= -128 && l <= 127) {
+            return Long.valueOf(value);
+        }
+        if (value > 127 && value < longCacheLimit) {
+            int cacheIndex = (int) value - 127;
+            Long cacheValue = longCache[cacheIndex];
+            if (cacheValue == null) {
+                cacheValue = new Long(value);
+                longCache[cacheIndex] = cacheValue;
+            }
+            return cacheValue;
+        }
+        return new Long(value);
+    }
+
+    public static Integer valueOf(int value) {
+        if (value >= -128 & value <= 127) {
+            // if (l >= -128 && l <= 127) {
+            return Integer.valueOf(value);
+        }
+        if (value > 127 && value < integerCacheLimit) {
+            int cacheIndex = (int) value - 127;
+            Integer cacheValue = integerCache[cacheIndex];
+            if (cacheValue == null) {
+                cacheValue = new Integer(value);
+                integerCache[cacheIndex] = cacheValue;
+            }
+            return cacheValue;
+        }
+        return new Integer(value);
     }
 }
