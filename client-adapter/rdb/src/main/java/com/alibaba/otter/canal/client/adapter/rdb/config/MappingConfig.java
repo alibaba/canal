@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client.adapter.rdb.config;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -106,6 +107,8 @@ public class MappingConfig implements AdapterConfig {
 
         private String              etlCondition;                            // etl条件sql
 
+        private List<Map<String, String>> fieldFilters;                      // 字段过滤
+
         private int                 readBatch       = 5000;
         private int                 commitBatch     = 5000;                  // etl等批量提交大小
 
@@ -196,6 +199,14 @@ public class MappingConfig implements AdapterConfig {
 
         public void setEtlCondition(String etlCondition) {
             this.etlCondition = etlCondition;
+        }
+
+        public List<Map<String, String>> getFieldFilters() {
+            return fieldFilters;
+        }
+
+        public void setFieldFilters(List<Map<String, String>> fieldFilters) {
+            this.fieldFilters = fieldFilters;
         }
 
         public int getReadBatch() {
