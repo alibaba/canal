@@ -176,9 +176,7 @@ public class RdbSyncService {
             }
 
             for (MappingConfig config : configMap.values()) {
-                if (fieldFilterProcess(config, dml)) {
-                    appendDmlPartition(config, dml);
-                }
+                appendDmlPartition(config, dml);
             }
             return true;
         }
@@ -197,22 +195,26 @@ public class RdbSyncService {
             List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
             singleDmls.forEach(singleDml -> {
                 int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                SyncItem syncItem = new SyncItem(config, singleDml);
-                dmlsPartition[hash].add(syncItem);
+                if (fieldFilterProcess(config, singleDml)) {
+                    SyncItem syncItem = new SyncItem(config, singleDml);
+                    dmlsPartition[hash].add(syncItem);
+                }
             });
         } else {
             int hash = 0;
             List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
             singleDmls.forEach(singleDml -> {
-                SyncItem syncItem = new SyncItem(config, singleDml);
-                dmlsPartition[hash].add(syncItem);
+                if (fieldFilterProcess(config, singleDml)) {
+                    SyncItem syncItem = new SyncItem(config, singleDml);
+                    dmlsPartition[hash].add(syncItem);
+                }
             });
         }
     }
 
-    private boolean fieldFilterProcess(MappingConfig mappingConfig, Dml dml) {
+    private boolean fieldFilterProcess(MappingConfig mappingConfig, SingleDml singleDml) {
         // 过滤表
-        if (!dml.getTable().equalsIgnoreCase(mappingConfig.getDbMapping().getTable())) {
+        if (!singleDml.getTable().equalsIgnoreCase(mappingConfig.getDbMapping().getTable())) {
             return false;
         }
         // 过滤字段
@@ -227,47 +229,45 @@ public class RdbSyncService {
             if (StringUtils.isEmpty(field) || StringUtils.isEmpty(value) || StringUtils.isEmpty(operator)) {
                 continue;
             }
-            List<Map<String, Object>> data = dml.getData();
+            Map<String, Object> data = singleDml.getData();
             if (CollectionUtils.isEmpty(data)) {
                 continue;
             }
-            for (Map<String, Object> row : data) {
-                Object fieldValue = row.get(field);
-                if (Objects.isNull(fieldValue)) {
-                    continue;
-                }
-                boolean match = false;
-                switch (operator) {
-                    case "=":
-                        match = fieldValue.toString().equals(value);
-                        break;
-                    case "!=":
-                        match = !fieldValue.toString().equals(value);
-                        break;
-                    case ">":
-                        match = Double.parseDouble(fieldValue.toString()) > Double.parseDouble(value);
-                        break;
-                    case ">=":
-                        match = Double.parseDouble(fieldValue.toString()) >= Double.parseDouble(value);
-                        break;
-                    case "<":
-                        match = Double.parseDouble(fieldValue.toString()) < Double.parseDouble(value);
-                        break;
-                    case "<=":
-                        match = Double.parseDouble(fieldValue.toString()) <= Double.parseDouble(value);
-                        break;
-                    case "like":
-                        match = fieldValue.toString().contains(value);
-                        break;
-                    case "not like":
-                        match = !fieldValue.toString().contains(value);
-                        break;
-                    default:
-                        break;
-                }
-                if (match) {
-                    return true;
-                }
+            Object fieldValue = data.get(field);
+            if (Objects.isNull(fieldValue)) {
+                continue;
+            }
+            boolean match = false;
+            switch (operator) {
+                case "=":
+                    match = fieldValue.toString().equals(value);
+                    break;
+                case "!=":
+                    match = !fieldValue.toString().equals(value);
+                    break;
+                case ">":
+                    match = Double.parseDouble(fieldValue.toString()) > Double.parseDouble(value);
+                    break;
+                case ">=":
+                    match = Double.parseDouble(fieldValue.toString()) >= Double.parseDouble(value);
+                    break;
+                case "<":
+                    match = Double.parseDouble(fieldValue.toString()) < Double.parseDouble(value);
+                    break;
+                case "<=":
+                    match = Double.parseDouble(fieldValue.toString()) <= Double.parseDouble(value);
+                    break;
+                case "like":
+                    match = fieldValue.toString().contains(value);
+                    break;
+                case "not like":
+                    match = !fieldValue.toString().contains(value);
+                    break;
+                default:
+                    break;
+            }
+            if (match) {
+                return true;
             }
         }
         return false;
