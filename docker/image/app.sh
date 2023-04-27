@@ -95,9 +95,20 @@ function start_canal() {
         fi
 
         destination=`perl -le 'print $ENV{"canal.destinations"}'`
-        if [[ "$destination" =~ ',' ]]; then
-            echo "multi destination:$destination is not support"
-            exit 1;
+        destinationExpr=`perl -le 'print $ENV{"canal.destinations.expr"}'`
+        multistream=`perl -le 'print $ENV{"canal.instance.multi.stream.on"}'`
+
+        if [[ "$destination" =~ ',' ]] || [[ -n "$destinationExpr" ]]; then
+            if [[ "$multistream" = 'true' ]] ; then
+                if [[ -n "$destinationExpr" ]] ; then
+                    splitDestinations '1' $destinationExpr
+                else
+                    splitDestinations '2' $destination
+                fi
+            else
+                echo "multi destination is not support, destinationExpr:$destinationExpr, destinations:$destination"
+                exit 1;
+            fi
         else
             if [ "$destination" != "" ] && [ "$destination" != "example" ] ; then
                 if [ -d /home/admin/canal-server/conf/example ]; then
@@ -111,6 +122,34 @@ function start_canal() {
         #check start
         checkStart "canal" "nc 127.0.0.1 $metricsPort -w 1 -z | wc -l" 30
     fi  
+}
+
+function splitDestinations() {
+    holdExample="false"
+    prefix=''
+    array=()
+
+    if [[  "$1" == '1' ]] ; then
+        echo "split destinations expr "$2
+        prefix=$(echo $2 | sed 's/{.*//')
+        num=$(echo $2 | sed 's/.*{//;s/}//;s/-/ /')
+        array=($(seq $num))
+    else
+        echo "split destinations "$2
+        array=(${2//,/ })
+    fi
+
+    for var in ${array[@]}
+    do
+        cp -r /home/admin/canal-server/conf/example /home/admin/canal-server/conf/$prefix$var
+        chown admin:admin -R /home/admin/canal-server/conf/$prefix$var
+        if [[ "$prefix$var" = 'example' ]] ; then
+            holdExample="true"
+        fi
+    done
+    if [[ "$holdExample" != 'true' ]] ; then
+        rm -rf /home/admin/canal-server/conf/example
+    fi
 }
 
 function stop_canal() {

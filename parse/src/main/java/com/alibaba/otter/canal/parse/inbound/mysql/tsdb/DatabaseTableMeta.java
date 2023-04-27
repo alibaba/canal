@@ -209,6 +209,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             for (String schema : schemas) {
                 // filter views
                 packet = connection.query("show full tables from `" + schema + "` where Table_type = 'BASE TABLE'");
+                columnSize = packet.getFieldDescriptors().size();
                 int tableNameColumnIndex = 0; // default index is 0
                 List<String> tables = new ArrayList<>();
                 for (int line = 0; line < packet.getFieldValues().size() / columnSize; line++) {

@@ -2,6 +2,7 @@ package com.taobao.tddl.dbsync.binlog.event;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 
 import com.taobao.tddl.dbsync.binlog.CharsetConversion;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
@@ -100,8 +101,8 @@ public final class UserVarLogEvent extends LogEvent {
                     value = buffer.getDecimal(precision, scale); // bin2decimal
                     break;
                 case STRING_RESULT:
-                    String charsetName = CharsetConversion.getJavaCharset(charsetNumber);
-                    value = buffer.getFixString(valueLen, charsetName);
+                    Charset charset = CharsetConversion.getNioCharset(charsetNumber);
+                    value = buffer.getFixString(valueLen, charset);
                     break;
                 case ROW_RESULT:
                     // this seems to be banned in MySQL altogether

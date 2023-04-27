@@ -2,6 +2,8 @@ package com.taobao.tddl.dbsync.binlog.event;
 
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * @author jianghang 2013-4-8 上午12:36:29
  * @version 1.0.3
@@ -23,7 +25,7 @@ public class RowsQueryLogEvent extends IgnorableLogEvent {
          */
         int offset = commonHeaderLen + postHeaderLen + 1;
         int len = buffer.limit() - offset;
-        rowsQuery = buffer.getFullString(offset, len, LogBuffer.ISO_8859_1);
+        rowsQuery = buffer.getFullString(offset, len, StandardCharsets.ISO_8859_1);
     }
 
     public String getRowsQuery() {

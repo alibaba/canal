@@ -170,6 +170,7 @@
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 
 		<property name="autoResetLatestPosMode" value="${canal.auto.reset.latest.pos.mode:false}" />
+		<property name="multiStreamEnable" value="${canal.instance.multi.stream.on:false}"/>
 	</bean>
 
 	<bean id="eventParser2" parent="baseEventParser">
@@ -278,6 +279,7 @@
 		<property name="parallelBufferSize" value="${canal.instance.parser.parallelBufferSize:256}" />
 
 		<property name="autoResetLatestPosMode" value="${canal.auto.reset.latest.pos.mode:false}" />
+		<property name="multiStreamEnable" value="${canal.instance.multi.stream.on:false}"/>
 	</bean>
 
     <bean id="mqConfig" class="com.alibaba.otter.canal.instance.core.CanalMQConfig">
