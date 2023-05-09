@@ -5,6 +5,8 @@ import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.LogHeader;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * mariadb的ANNOTATE_ROWS_EVENT类型
  * 
@@ -23,7 +25,7 @@ public class AnnotateRowsEvent extends IgnorableLogEvent {
 
         int offset = commonHeaderLen + postHeaderLen;
         int len = buffer.limit() - offset;
-        rowsQuery = buffer.getFullString(offset, len, LogBuffer.ISO_8859_1);
+        rowsQuery = buffer.getFullString(offset, len, StandardCharsets.ISO_8859_1);
     }
 
     public String getRowsQuery() {

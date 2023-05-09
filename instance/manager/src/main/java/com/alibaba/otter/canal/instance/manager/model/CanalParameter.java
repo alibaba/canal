@@ -124,6 +124,8 @@ public class CanalParameter implements Serializable {
     private String                   alarmHandlerClass                  = null;
     //自定义alarmHandler插件文件夹路径
     private String                   alarmHandlerPluginDir              = null;
+    //是否支持多流消费
+    private Boolean                  multiStreamEnable                  = Boolean.FALSE;
 
     public static enum RunMode {
 
@@ -1010,6 +1012,14 @@ public class CanalParameter implements Serializable {
 
     public void setAlarmHandlerPluginDir(String alarmHandlerPluginDir) {
         this.alarmHandlerPluginDir = alarmHandlerPluginDir;
+    }
+
+    public Boolean getMultiStreamEnable() {
+        return multiStreamEnable;
+    }
+
+    public void setMultiStreamEnable(Boolean multiStreamEnable) {
+        this.multiStreamEnable = multiStreamEnable;
     }
 
     public String toString() {

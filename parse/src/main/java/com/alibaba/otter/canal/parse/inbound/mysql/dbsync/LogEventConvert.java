@@ -175,7 +175,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         builder.setKey("gtid");
         builder.setValue(logEvent.getGtidStr());
 
-        if (logEvent.getLastCommitted() != null) {
+        if (logEvent.getLastCommitted() != -1) {
             builder.setKey("lastCommitted");
             builder.setValue(String.valueOf(logEvent.getLastCommitted()));
             builder.setKey("sequenceNumber");
@@ -392,7 +392,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         // mysql5.6支持，需要设置binlog-rows-query-log-events=1，可详细打印原始DML语句
         String queryString = null;
         try {
-            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset);
             String tableName = null;
             if (useDruidDdlFilter) {
                 List<DdlResult> results = DruidDdlParser.parse(queryString, null);
@@ -414,7 +414,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         // mariaDb支持，需要设置binlog_annotate_row_events=true，可详细打印原始DML语句
         String queryString = null;
         try {
-            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset.name());
+            queryString = new String(event.getRowsQuery().getBytes(ISO_8859_1), charset);
             return buildQueryEntry(queryString, event.getHeader());
         } catch (UnsupportedEncodingException e) {
             throw new CanalParseException(e);
@@ -508,10 +508,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     public void parseTableMapEvent(TableMapLogEvent event) {
         try {
-            String charsetDbName = new String(event.getDbName().getBytes(ISO_8859_1), charset.name());
+            String charsetDbName = new String(event.getDbName().getBytes(ISO_8859_1), charset);
             event.setDbname(charsetDbName);
 
-            String charsetTbName = new String(event.getTableName().getBytes(ISO_8859_1), charset.name());
+            String charsetTbName = new String(event.getTableName().getBytes(ISO_8859_1), charset);
             event.setTblname(charsetTbName);
         } catch (UnsupportedEncodingException e) {
             throw new CanalParseException(e);
@@ -550,7 +550,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             rowChangeBuider.setIsDdl(false);
 
             rowChangeBuider.setEventType(eventType);
-            RowsLogBuffer buffer = event.getRowsBuf(charset.name());
+            RowsLogBuffer buffer = event.getRowsBuf(charset);
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
 
@@ -754,6 +754,23 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
+                
+                // 处理各种类型
+                switch (javaType) {
+                    case Types.BINARY:
+                    case Types.VARBINARY:
+                    case Types.LONGVARBINARY:
+
+                        // https://github.com/alibaba/canal/issues/4652
+                        // mysql binlog中blob/text都处理为blob类型，需要反查table
+                        // meta，按编码解析text
+                        if (fieldMeta != null && isText(fieldMeta.getColumnType())) {
+                            javaType = Types.CLOB;
+                        } else {
+                            javaType = Types.BLOB;
+                        }
+                        break;
+                }
             } else {
                 final Serializable value = buffer.getValue();
                 // 处理各种类型
