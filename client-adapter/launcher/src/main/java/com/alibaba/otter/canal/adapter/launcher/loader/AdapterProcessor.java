@@ -87,6 +87,7 @@ public class AdapterProcessor {
     public void writeOut(final List<CommonMessage> commonMessages) {
         List<Future<Boolean>> futures = new ArrayList<>();
         // 组间适配器并行运行
+        // 当 canalOuterAdapters 初始化失败时，消息将会全部丢失
         canalOuterAdapters.forEach(outerAdapters -> {
             futures.add(groupInnerExecutorService.submit(() -> {
                 try {
