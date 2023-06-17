@@ -26,7 +26,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 
 /**
  * 基于mysql socket协议的链接实现
- * 
+ *
  * @author jianghang 2013-2-18 下午09:22:30
  * @version 1.0.1
  */
@@ -220,55 +220,45 @@ public class MysqlConnector {
                 packet.fromBytes(body);
                 authData = packet.authData;
                 pluginName = packet.authName;
+                logger.info("auth switch pluginName is {}.", pluginName);
             }
 
-            boolean isSha2Password = false;
             byte[] encryptedPassword = null;
             if ("mysql_clear_password".equals(pluginName)) {
                 encryptedPassword = getPassword().getBytes();
+                header = authSwitchAfterAuth(encryptedPassword, header);
+                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
             } else if ("mysql_native_password".equals(pluginName)) {
                 try {
                     encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), authData);
                 } catch (NoSuchAlgorithmException e) {
                     throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
                 }
+                header = authSwitchAfterAuth(encryptedPassword, header);
+                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
             } else if ("caching_sha2_password".equals(pluginName)) {
-                isSha2Password = true;
+                byte[] scramble = authData;
                 try {
-                    encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(), authData);
+                    encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(), scramble);
                 } catch (DigestException e) {
                     throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
                 }
-            }
-            assert encryptedPassword != null;
-            AuthSwitchResponsePacket responsePacket = new AuthSwitchResponsePacket();
-            responsePacket.authData = encryptedPassword;
-            byte[] auth = responsePacket.toBytes();
-
-            h = new HeaderPacket();
-            h.setPacketBodyLength(auth.length);
-            h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
-            PacketManager.writePkg(channel, h.toBytes(), auth);
-            logger.info("auth switch response packet is sent out.");
-
-            header = null;
-            header = PacketManager.readHeader(channel, 4);
-            body = null;
-            body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
-            assert body != null;
-            if (isSha2Password) {
+                header = authSwitchAfterAuth(encryptedPassword, header);
+                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                assert body != null;
                 if (body[0] == 0x01 && body[1] == 0x04) {
-                    // password auth failed
-                    throw new IOException("caching_sha2_password Auth failed");
+                    header = cachingSha2PasswordFullAuth(channel, header, getPassword().getBytes(), scramble);
+                    body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                } else {
+                    header = PacketManager.readHeader(channel, 4);
+                    body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
                 }
-
-                header = null;
-                header = PacketManager.readHeader(channel, 4);
-                body = null;
+            } else {
+                header = authSwitchAfterAuth(encryptedPassword, header);
                 body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
             }
         }
-
+        assert body != null;
         if (body[0] < 0) {
             if (body[0] == -1) {
                 ErrorPacket err = new ErrorPacket();
@@ -278,6 +268,62 @@ public class MysqlConnector {
                 throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
+    }
+
+    private HeaderPacket cachingSha2PasswordFullAuth(SocketChannel channel, HeaderPacket header, byte[] pass,
+                                                     byte[] seed) throws IOException {
+        AuthSwitchResponsePacket responsePacket = new AuthSwitchResponsePacket();
+        responsePacket.authData = new byte[] { 2 };
+        byte[] auth = responsePacket.toBytes();
+        HeaderPacket h = new HeaderPacket();
+        h.setPacketBodyLength(auth.length);
+        h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
+        PacketManager.writePkg(channel, h.toBytes(), auth);
+        logger.info("caching sha2 password fullAuth request public key packet is sent out.");
+
+        header = PacketManager.readHeader(channel, 4);
+        byte[] body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+        AuthSwitchRequestMoreData packet = new AuthSwitchRequestMoreData();
+        packet.fromBytes(body);
+        if (packet.status != 0x01) {
+            throw new IOException("caching_sha2_password get public key failed");
+        }
+        logger.info("caching sha2 password fullAuth get server public key succeed.");
+        byte[] publicKeyBytes = packet.authData;
+
+        byte[] encryptedPassword = null;
+        try {
+            encryptedPassword = MySQLPasswordEncrypter.scrambleRsa(publicKeyBytes, pass, seed);
+        } catch (Exception e) {
+            logger.error("rsa encrypt failed {}", publicKeyBytes);
+            throw new IOException("caching_sha2_password auth failed", e);
+        }
+
+        // send auth
+        responsePacket = new AuthSwitchResponsePacket();
+        responsePacket.authData = encryptedPassword;
+        auth = responsePacket.toBytes();
+        h = new HeaderPacket();
+        h.setPacketBodyLength(auth.length);
+        h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
+        PacketManager.writePkg(channel, h.toBytes(), auth);
+        logger.info("caching sha2 password fullAuth response auth data packet is sent out.");
+        return PacketManager.readHeader(channel, 4);
+    }
+
+    private HeaderPacket authSwitchAfterAuth(byte[] encryptedPassword, HeaderPacket header) throws IOException {
+        assert encryptedPassword != null;
+        AuthSwitchResponsePacket responsePacket = new AuthSwitchResponsePacket();
+        responsePacket.authData = encryptedPassword;
+        byte[] auth = responsePacket.toBytes();
+
+        HeaderPacket h = new HeaderPacket();
+        h.setPacketBodyLength(auth.length);
+        h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
+        PacketManager.writePkg(channel, h.toBytes(), auth);
+        logger.info("auth switch response packet is sent out.");
+        header = PacketManager.readHeader(channel, 4);
+        return header;
     }
 
     private void auth323(SocketChannel channel, byte packetSequenceNumber, byte[] seed) throws IOException {
