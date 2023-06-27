@@ -1,6 +1,6 @@
 FROM canal/osbase:v2
 
-MAINTAINER agapple (jianghang115@gmail.com)
+LABEL agapple (jianghang115@gmail.com)
 
 # install canal
 COPY image/ /tmp/docker/
