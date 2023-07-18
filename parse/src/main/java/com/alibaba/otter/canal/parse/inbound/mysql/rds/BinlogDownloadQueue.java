@@ -22,6 +22,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -209,7 +210,9 @@ public class BinlogDownloadQueue {
 
     private static void saveFile(File parentFile, String fileName, HttpResponse response) throws IOException {
         InputStream is = response.getEntity().getContent();
-        long totalSize = Long.parseLong(response.getFirstHeader("Content-Length").getValue());
+        boolean isChunked = response.getEntity().isChunked();
+        Header contentLengthHeader = response.getFirstHeader("Content-Length");
+        long totalSize = isChunked || contentLengthHeader == null ? 0 : Long.parseLong(contentLengthHeader.getValue());
         if (response.getFirstHeader("Content-Disposition") != null) {
             fileName = response.getFirstHeader("Content-Disposition").getValue();
             fileName = StringUtils.substringAfter(fileName, "filename=");
@@ -262,11 +265,13 @@ public class BinlogDownloadQueue {
                     while ((len = is.read(buffer)) != -1) {
                         fos.write(buffer, 0, len);
                         copySize += len;
-                        long progress = copySize * 100 / totalSize;
-                        if (progress >= nextPrintProgress) {
-                            logger.info("download " + file.getName() + " progress : " + progress
+                        if (totalSize > 0){
+                            long progress = copySize * 100 / totalSize;
+                            if (progress >= nextPrintProgress) {
+                                logger.info("download " + file.getName() + " progress : " + progress
                                         + "% , download size : " + copySize + ", total size : " + totalSize);
-                            nextPrintProgress += 10;
+                                nextPrintProgress += 10;
+                            }
                         }
                     }
                     logger.info("download file " + file.getName() + " end!");
