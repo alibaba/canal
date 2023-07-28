@@ -9,11 +9,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
@@ -24,13 +24,7 @@ import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQConstants;
 import com.alibaba.otter.canal.connector.rabbitmq.producer.AliyunCredentialsProvider;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.*;
 
 /**
  * RabbitMQ consumer SPI 实现
@@ -41,7 +35,8 @@ import com.rabbitmq.client.Envelope;
 @SPI("rabbitmq")
 public class CanalRabbitMQConsumer implements CanalMsgConsumer {
 
-    private static final Logger                                logger              = LoggerFactory.getLogger(CanalRabbitMQConsumer.class);
+    private static final Logger                                logger              = LoggerFactory
+        .getLogger(CanalRabbitMQConsumer.class);
 
     // 链接地址
     private String                                             nameServer;
@@ -91,7 +86,7 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
             factory.setUsername(username);
             factory.setPassword(password);
         }
-        //解析出端口 modified by 16075140
+        // 解析出端口 modified by 16075140
         if (nameServer != null && nameServer.contains(":")) {
             String[] serverHostAndPort = nameServer.split(":");
             factory.setHost(serverHostAndPort[0]);
