@@ -22,10 +22,8 @@ public class SimpleCanalClientPermanceTest {
         long end = 0;
         final ArrayBlockingQueue<Long> queue = new ArrayBlockingQueue<>(100);
         try {
-            final CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
-                destination,
-                "canal",
-                "canal");
+            final CanalConnector connector = CanalConnectors
+                .newSingleConnector(new InetSocketAddress(ip, 11111), destination, "canal", "canal");
 
             Thread ackThread = new Thread(() -> {
                 while (true) {

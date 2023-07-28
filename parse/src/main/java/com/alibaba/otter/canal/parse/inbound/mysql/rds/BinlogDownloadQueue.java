@@ -1,12 +1,6 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.rds;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -40,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
+
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
  * @author chengjin.lyf on 2018/8/7 下午3:10
@@ -212,7 +208,7 @@ public class BinlogDownloadQueue {
         InputStream is = response.getEntity().getContent();
         boolean isChunked = response.getEntity().isChunked();
         Header contentLengthHeader = response.getFirstHeader("Content-Length");
-        long totalSize = isChunked || contentLengthHeader == null ? 0 : Long.parseLong(contentLengthHeader.getValue());
+        long totalSize = (isChunked || contentLengthHeader == null) ? 0 : Long.parseLong(contentLengthHeader.getValue());
         if (response.getFirstHeader("Content-Disposition") != null) {
             fileName = response.getFirstHeader("Content-Disposition").getValue();
             fileName = StringUtils.substringAfter(fileName, "filename=");

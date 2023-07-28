@@ -13,11 +13,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.AuthSwitchResponsePacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QuitCommandPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.server.AuthSwitchRequestMoreData;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.server.AuthSwitchRequestPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.server.HandshakeInitializationPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.server.Reply323Packet;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.*;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannelPool;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MSC;
@@ -247,6 +243,7 @@ public class MysqlConnector {
                 body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
                 assert body != null;
                 if (body[0] == 0x01 && body[1] == 0x04) {
+                    // fixed issue https://github.com/alibaba/canal/pull/4767, support mysql 8.0.30+
                     header = cachingSha2PasswordFullAuth(channel, header, getPassword().getBytes(), scramble);
                     body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
                 } else {

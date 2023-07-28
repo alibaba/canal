@@ -43,7 +43,8 @@ public class CanalKafkaOffsetClientExample {
 
     public static void main(String[] args) {
         try {
-            final CanalKafkaOffsetClientExample kafkaCanalClientExample = new CanalKafkaOffsetClientExample(AbstractKafkaTest.servers,
+            final CanalKafkaOffsetClientExample kafkaCanalClientExample = new CanalKafkaOffsetClientExample(
+                AbstractKafkaTest.servers,
                 AbstractKafkaTest.topic,
                 AbstractKafkaTest.partition,
                 AbstractKafkaTest.groupId);
