@@ -23,8 +23,8 @@ public class GtidLogEvent extends LogEvent {
     private boolean         commitFlag;
     private UUID            sid;
     private long            gno;
-    private Long            lastCommitted;
-    private Long            sequenceNumber;
+    private long            lastCommitted;
+    private long            sequenceNumber;
 
     public GtidLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
         super(header);
