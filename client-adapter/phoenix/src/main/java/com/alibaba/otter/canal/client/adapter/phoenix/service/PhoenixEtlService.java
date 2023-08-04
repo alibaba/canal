@@ -49,10 +49,20 @@ public class PhoenixEtlService {
     }
 
     private static boolean syncSchema(DataSource srcDS,Connection targetDSConnection, MappingConfig config) {
+        Connection connection = null;
         try {
-            return syncSchema(srcDS.getConnection(),targetDSConnection, config);
+            connection = srcDS.getConnection();
+            return syncSchema(connection,targetDSConnection, config);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (null != connection) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
