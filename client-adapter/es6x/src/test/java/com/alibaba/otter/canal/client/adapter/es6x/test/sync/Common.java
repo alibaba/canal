@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.sql.DataSource;
 
@@ -26,7 +27,7 @@ public class Common {
         outerAdapterConfig.setProperties(properties);
 
         ES6xAdapter esAdapter = new ES6xAdapter();
-        esAdapter.init(outerAdapterConfig, null);
+        esAdapter.init(outerAdapterConfig, new Properties());
         return esAdapter;
     }
 
