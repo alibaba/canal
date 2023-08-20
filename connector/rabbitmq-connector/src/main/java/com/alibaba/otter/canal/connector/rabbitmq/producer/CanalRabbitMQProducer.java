@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
+import com.alibaba.otter.canal.common.utils.CommonUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         ConnectionFactory factory = new ConnectionFactory();
         String servers = rabbitMQProperties.getHost();
         if (servers.contains(":")) {
-            String[] serverHostAndPort = servers.split(":");
+            String[] serverHostAndPort = CommonUtils.splitIPAndPort(servers);
             factory.setHost(serverHostAndPort[0]);
             factory.setPort(Integer.parseInt(serverHostAndPort[1]));
         } else {

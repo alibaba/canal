@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.common.utils;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import java.io.File;
 
 /**
@@ -49,5 +51,25 @@ public class CommonUtils {
         }
 
         return dirFile.delete();
+    }
+
+
+    /**
+     * 拆分IP地址和端口号
+     *
+     * @param text ip地址和端口号，ip和端口号以英文冒号(:)分隔;
+     *             ipv4 127.0.0.1:3306
+     *             ipv6 [::1]:3306
+     * @return
+     */
+    public static String[] splitIPAndPort(String text) {
+        text = text.replace("[", "").replace("]", "");
+        int idx = text.lastIndexOf(':');
+        if (idx > 0) {
+            String ip = text.substring(0, idx);
+            String port = text.substring(idx + 1);
+            return new String[]{ip, port};
+        }
+        return ArrayUtils.EMPTY_STRING_ARRAY;
     }
 }
