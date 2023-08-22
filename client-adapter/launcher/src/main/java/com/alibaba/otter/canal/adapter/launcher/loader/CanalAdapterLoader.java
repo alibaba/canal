@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
-import com.alibaba.otter.canal.client.adapter.ProxyOuterAdapter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,14 +16,15 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.ProxyOuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-import org.springframework.util.CollectionUtils;
 
 /**
  * 外部适配器的加载器
@@ -74,7 +74,7 @@ public class CanalAdapterLoader {
                 // canalOuterAdapters 存在初始化失败的情况，导致canalOuterAdapters的数量，可能小于group.getOuterAdapters
                 // 由于group下的 所有OuterAdapter实例都会重复消费同一批消息，因此不允许部分adapter初始化成功，必须全部初始化成功才允许消费
                 if(CollectionUtils.isEmpty(canalOuterAdapters) || canalOuterAdapters.size() != group.getOuterAdapters().size() ){
-                        String msg = String.format("instance=%s,groupId=%s 下的canalOuterAdapters未加载成功，请检查rdb.yml文件格式是否正确",
+                    String msg = String.format("instance=%s,groupId=%s Load OuterAdapters is Empty，pls check rdb.yml",
                                 canalAdapter.getInstance(),group.getGroupId());
                         throw new RuntimeException(msg);
                  }
