@@ -84,6 +84,7 @@ public class RdbAdapter implements OuterAdapter {
         // 从jdbc url获取db类型
         Map<String, String> properties = configuration.getProperties();
         String dbType = JdbcUtils.getDbType(properties.get("jdbc.url"), null);
+        // 当.yml文件编码格式存在问题，此处rdb yml文件构建 可能会抛出异常
         Map<String, MappingConfig> rdbMappingTmp = ConfigLoader.load(envProperties);
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, config) -> {
