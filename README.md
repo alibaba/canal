@@ -101,7 +101,7 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 - [阿里巴巴数据库连接池开源项目 Druid](https://github.com/alibaba/druid)
 - [阿里巴巴实时数据同步工具 DTS](https://www.aliyun.com/product/dts)
 
-## 问题反馈
+## 问题反馈 
 - 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
 
 本项目的Issues会被同步沉淀至[阿里云开发者社区](https://developer.aliyun.com/ask)
