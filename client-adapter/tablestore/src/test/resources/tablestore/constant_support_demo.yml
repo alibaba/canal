@@ -1,0 +1,35 @@
+dataSourceKey: defaultDS
+destination: tablestore
+groupId: g1
+outerAdapterKey: tablestore
+threads: 8
+updateChangeColumns: false
+dbMapping:
+  database: mgs_im_message
+  table: im_cmn_msg_send
+  targetTable: im_timeline_store_table
+  targetPk:
+    channel_id: timeline_id$string
+#    AUTO: sequence_id$int
+
+  targetColumns:
+    msg_id: msg_id$string
+    user_id: sender$string
+    channel_id: conversation$string
+    type: msg_type$int
+    seq: seq$int
+    act_type: is_act$int
+    action: act_msg_id$string
+    cipher_content: msg_content$binary
+    mark: msg_state$int
+    operate_uid: operate_uid$int
+    create_time: send_time$int
+### 支持静态列配置,强制显式标准类型
+  constantTargetColumns:
+    conversation_type: GROUP$string
+    sender_type: 0$int
+    msg_biz_type: 0$int
+  etlCondition:
+  commitBatch: 5000
+
+
