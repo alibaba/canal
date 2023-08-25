@@ -2,7 +2,6 @@ package com.taobao.tddl.dbsync.binlog;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -30,7 +29,9 @@ public class LogBuffer {
     }
 
     public LogBuffer(byte[] buffer, final int origin, final int limit){
-        if (origin + limit > buffer.length) throw new IllegalArgumentException("capacity excceed: " + (origin + limit));
+        if (origin + limit > buffer.length) {
+            throw new IllegalArgumentException("capacity excceed: " + (origin + limit));
+        }
 
         this.buffer = buffer;
         this.origin = origin;
@@ -42,7 +43,9 @@ public class LogBuffer {
      * Return n bytes in this buffer.
      */
     public final LogBuffer duplicate(final int pos, final int len) {
-        if (pos + len > limit) throw new IllegalArgumentException("limit excceed: " + (pos + len));
+        if (pos + len > limit) {
+            throw new IllegalArgumentException("limit excceed: " + (pos + len));
+        }
 
         // XXX: Do momery copy avoid buffer modified.
         final int off = origin + pos;
@@ -54,8 +57,9 @@ public class LogBuffer {
      * Return next n bytes in this buffer.
      */
     public final LogBuffer duplicate(final int len) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
 
         // XXX: Do momery copy avoid buffer modified.
         final int end = position + len;
@@ -103,7 +107,9 @@ public class LogBuffer {
      * <tt>newPosition</tt> do not hold
      */
     public final LogBuffer position(final int newPosition) {
-        if (newPosition > limit || newPosition < 0) throw new IllegalArgumentException("limit excceed: " + newPosition);
+        if (newPosition > limit || newPosition < 0) {
+            throw new IllegalArgumentException("limit excceed: " + newPosition);
+        }
 
         this.position = origin + newPosition;
         return this;
@@ -116,8 +122,9 @@ public class LogBuffer {
      * @return This buffer
      */
     public final LogBuffer forward(final int len) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
 
         this.position += len;
         return this;
@@ -1675,4 +1682,5 @@ public class LogBuffer {
         }
         return "";
     }
+
 }

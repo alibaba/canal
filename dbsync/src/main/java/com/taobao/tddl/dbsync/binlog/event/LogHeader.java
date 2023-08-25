@@ -293,6 +293,12 @@ public final class LogHeader {
     public void setLogFileName(String logFileName) {
         this.logFileName = logFileName;
     }
+    public void setLogPos(long logPos) {
+        this.logPos = logPos;
+    }
+    public void setEventLen(int eventLen) {
+        this.eventLen = eventLen;
+    }
 
     private void processCheckSum(LogBuffer buffer) {
         if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {

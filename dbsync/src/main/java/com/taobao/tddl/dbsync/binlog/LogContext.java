@@ -26,6 +26,8 @@ public final class LogContext {
 
     private LogEvent                          gtidLogEvent; // save current gtid log event
 
+    private boolean                           iterateDecode = false;
+
     public LogContext(){
         this.formatDescription = FormatDescriptionLogEvent.FORMAT_DESCRIPTION_EVENT_5_x;
     }
@@ -81,5 +83,13 @@ public final class LogContext {
 
     public void setGtidLogEvent(LogEvent gtidLogEvent) {
         this.gtidLogEvent = gtidLogEvent;
+    }
+
+    public boolean isIterateDecode() {
+        return iterateDecode;
+    }
+
+    public void setIterateDecode(boolean iterateDecode) {
+        this.iterateDecode = iterateDecode;
     }
 }
