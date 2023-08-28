@@ -100,7 +100,7 @@ public class TableMeta {
     @Override
     public String toString() {
         StringBuilder data = new StringBuilder();
-        data.append("TableMeta [schema=" + schema + ", table=" + table + ", fileds=");
+        data.append("TableMeta [schema=").append(schema).append(", table=").append(table).append(", fileds=");
         for (FieldMeta field : fields) {
             data.append("\n\t").append(field.toString());
         }

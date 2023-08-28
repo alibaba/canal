@@ -84,7 +84,9 @@ public class DruidDdlParser {
                         processName(ddlResult, schmeaName, alterTable.getName(), false);
                         ddlResult.setType(EventType.CINDEX);
                         ddlResults.add(ddlResult);
-                    } else if (item instanceof SQLAlterTableDropIndex || item instanceof SQLAlterTableDropKey) {
+                    } else if (item instanceof SQLAlterTableDropIndex
+                        || item instanceof SQLAlterTableDropKey
+                        || item instanceof SQLAlterTableDropConstraint) {
                         DdlResult ddlResult = new DdlResult();
                         processName(ddlResult, schmeaName, alterTable.getName(), false);
                         ddlResult.setType(EventType.DINDEX);
@@ -97,11 +99,6 @@ public class DruidDdlParser {
                             ddlResult.setType(EventType.CINDEX);
                             ddlResults.add(ddlResult);
                         }
-                    } else if (item instanceof SQLAlterTableDropConstraint) {
-                        DdlResult ddlResult = new DdlResult();
-                        processName(ddlResult, schmeaName, alterTable.getName(), false);
-                        ddlResult.setType(EventType.DINDEX);
-                        ddlResults.add(ddlResult);
                     } else {
                         DdlResult ddlResult = new DdlResult();
                         processName(ddlResult, schmeaName, alterTable.getName(), false);

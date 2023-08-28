@@ -83,7 +83,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             throw new CanalParseException("Unsupported connection type : " + connection.getClass().getSimpleName());
         }
 
-        if (binlogParser != null && binlogParser instanceof LogEventConvert) {
+        if (binlogParser instanceof LogEventConvert) {
             metaConnection = (MysqlConnection) connection.fork();
             try {
                 metaConnection.connect();
@@ -121,7 +121,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 }
             }
 
-            if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+            if (tableMetaTSDB instanceof DatabaseTableMeta) {
                 ((DatabaseTableMeta) tableMetaTSDB).setConnection(metaConnection);
                 ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
                 ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
@@ -198,7 +198,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     protected void stopHeartBeat() {
         TimerTask heartBeatTimerTask = this.heartBeatTimerTask;
         super.stopHeartBeat();
-        if (heartBeatTimerTask != null && heartBeatTimerTask instanceof MysqlDetectingTimeTask) {
+        if (heartBeatTimerTask instanceof MysqlDetectingTimeTask) {
             MysqlConnection mysqlConnection = ((MysqlDetectingTimeTask) heartBeatTimerTask).getMysqlConnection();
             try {
                 mysqlConnection.disconnect();
@@ -245,11 +245,11 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 }
 
                 long costTime = System.currentTimeMillis() - startTime;
-                if (haController != null && haController instanceof HeartBeatCallback) {
+                if (haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onSuccess(costTime);
                 }
             } catch (Throwable e) {
-                if (haController != null && haController instanceof HeartBeatCallback) {
+                if (haController instanceof HeartBeatCallback) {
                     ((HeartBeatCallback) haController).onFailed(e);
                 }
                 reconnect = true;
@@ -394,11 +394,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     }
 
     protected EntryPosition findPositionWithMasterIdAndTimestamp(MysqlConnection connection, EntryPosition fixedPosition) {
-        MysqlConnection mysqlConnection = (MysqlConnection) connection;
         if (tableMetaTSDB != null && (fixedPosition.getTimestamp() == null || fixedPosition.getTimestamp() <= 0)) {
             // 使用一个未来极大的时间，基于位点进行定位
             long startTimestamp = System.currentTimeMillis() + 102L * 365 * 24 * 3600 * 1000; // 当前时间的未来102年
-            EntryPosition entryPosition = findAsPerTimestampInSpecificLogFile(mysqlConnection,
+            EntryPosition entryPosition = findAsPerTimestampInSpecificLogFile((MysqlConnection) connection,
                 startTimestamp,
                 fixedPosition,
                 fixedPosition.getJournalName(),
@@ -433,8 +432,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             if (StringUtils.isEmpty(entryPosition.getJournalName())) {
                 // 如果没有指定binlogName，尝试按照timestamp进行查找
                 if (entryPosition.getTimestamp() != null && entryPosition.getTimestamp() > 0L) {
-                    logger.warn("prepare to find start position {}:{}:{}",
-                        new Object[] { "", "", entryPosition.getTimestamp() });
+                    logger.warn("prepare to find start position {}:{}:{}", "", "", entryPosition.getTimestamp());
                     return findByStartTimeStamp(mysqlConnection, entryPosition.getTimestamp());
                 } else {
                     logger.warn("prepare to find start position just show master status");
@@ -444,9 +442,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 if (entryPosition.getPosition() != null && entryPosition.getPosition() > 0L) {
                     // 如果指定binlogName + offest，直接返回
                     entryPosition = findPositionWithMasterIdAndTimestamp(mysqlConnection, entryPosition);
-                    logger.warn("prepare to find start position {}:{}:{}",
-                        new Object[] { entryPosition.getJournalName(), entryPosition.getPosition(),
-                                entryPosition.getTimestamp() });
+                    logger.warn("prepare to find start position {}:{}:{}", entryPosition.getJournalName(), entryPosition.getPosition(),
+                        entryPosition.getTimestamp());
                     return entryPosition;
                 } else {
                     EntryPosition specificLogFilePosition = null;
@@ -455,8 +452,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         // timestamp，但没有指定对应的offest，尝试根据时间找一下offest
                         EntryPosition endPosition = findEndPosition(mysqlConnection);
                         if (endPosition != null) {
-                            logger.warn("prepare to find start position {}:{}:{}",
-                                new Object[] { entryPosition.getJournalName(), "", entryPosition.getTimestamp() });
+                            logger.warn("prepare to find start position {}:{}:{}", entryPosition.getJournalName(), "",
+                                entryPosition.getTimestamp());
                             specificLogFilePosition = findAsPerTimestampInSpecificLogFile(mysqlConnection,
                                 entryPosition.getTimestamp(),
                                 endPosition,
@@ -516,8 +513,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             } else {
                 // 针对切换的情况，考虑回退时间
                 long newStartTimestamp = logPosition.getPostion().getTimestamp() - fallbackIntervalInSeconds * 1000;
-                logger.warn("prepare to find start position by switch {}:{}:{}", new Object[] { "", "",
-                        logPosition.getPostion().getTimestamp() });
+                logger.warn("prepare to find start position by switch {}:{}:{}", "", "",
+                    logPosition.getPostion().getTimestamp());
                 return findByStartTimeStamp(mysqlConnection, newStartTimestamp);
             }
         }
@@ -533,8 +530,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     protected EntryPosition fallbackFindByStartTimestamp(LogPosition logPosition, MysqlConnection mysqlConnection) {
         long timestamp = logPosition.getPostion().getTimestamp();
         long newStartTimestamp = timestamp - fallbackIntervalInSeconds * 1000;
-        logger.warn("prepare to find start position by last position {}:{}:{}", new Object[] { "", "",
-                logPosition.getPostion().getTimestamp() });
+        logger.warn("prepare to find start position by last position {}:{}:{}", "", "",
+            logPosition.getPostion().getTimestamp());
         return findByStartTimeStamp(mysqlConnection, newStartTimestamp);
     }
 
@@ -683,7 +680,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             if (mysqlConnection.isMariaDB() && isGTIDMode()) {
                 ResultSetPacket gtidPacket = mysqlConnection.query("SELECT @@global.gtid_binlog_pos");
                 List<String> gtidFields = gtidPacket.getFieldValues();
-                if (!CollectionUtils.isEmpty(gtidFields) && gtidFields.size() > 0) {
+                if (!CollectionUtils.isEmpty(gtidFields)) {
                     endPosition.setGtid(gtidFields.get(0));
                 }
             }
@@ -749,7 +746,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             String masterPort = maps.get("Master_Port");
             String binlog = maps.get("Master_Log_File");
             String position = maps.get("Exec_Master_Log_Pos");
-            return new SlaveEntryPosition(binlog, Long.valueOf(position), masterHost, masterPort);
+            return new SlaveEntryPosition(binlog, Long.parseLong(position), masterHost, masterPort);
         } catch (IOException e) {
             logger.error("find slave position error", e);
         }

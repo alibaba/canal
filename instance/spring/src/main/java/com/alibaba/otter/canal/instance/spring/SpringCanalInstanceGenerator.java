@@ -44,8 +44,7 @@ public class SpringCanalInstanceGenerator implements CanalInstanceGenerator {
     }
 
     private BeanFactory getBeanFactory(String springXml) {
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
-        return applicationContext;
+        return new ClassPathXmlApplicationContext(springXml);
     }
 
     public void setSpringXml(String springXml) {

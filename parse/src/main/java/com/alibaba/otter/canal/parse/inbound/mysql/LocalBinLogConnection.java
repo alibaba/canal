@@ -214,10 +214,8 @@ public class LocalBinLogConnection implements ErosaConnection {
                                 lastXidLogFilename = current.getName();
                                 lastXidLogFileOffset = event.getLogPos();
                             }
-                        } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
-                            lastXidLogFilename = current.getName();
-                            lastXidLogFileOffset = event.getLogPos();
-                        } else if (LogEvent.FORMAT_DESCRIPTION_EVENT == event.getHeader().getType()) {
+                        } else if (LogEvent.XID_EVENT == event.getHeader().getType()
+                            || LogEvent.FORMAT_DESCRIPTION_EVENT == event.getHeader().getType()) {
                             lastXidLogFilename = current.getName();
                             lastXidLogFileOffset = event.getLogPos();
                         }
@@ -240,9 +238,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                 }
             }
         } finally {
-            if (fetcher != null) {
-                fetcher.close();
-            }
+            fetcher.close();
         }
 
         dump(binlogFilename, binlogFileOffset, func);
@@ -356,10 +352,8 @@ public class LocalBinLogConnection implements ErosaConnection {
                                 lastXidLogFilename = current.getName();
                                 lastXidLogFileOffset = event.getLogPos();
                             }
-                        } else if (LogEvent.XID_EVENT == event.getHeader().getType()) {
-                            lastXidLogFilename = current.getName();
-                            lastXidLogFileOffset = event.getLogPos();
-                        } else if (LogEvent.FORMAT_DESCRIPTION_EVENT == event.getHeader().getType()) {
+                        } else if (LogEvent.XID_EVENT == event.getHeader().getType()
+                            || LogEvent.FORMAT_DESCRIPTION_EVENT == event.getHeader().getType()) {
                             lastXidLogFilename = current.getName();
                             lastXidLogFileOffset = event.getLogPos();
                         }
@@ -382,9 +376,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                 }
             }
         } finally {
-            if (fetcher != null) {
-                fetcher.close();
-            }
+            fetcher.close();
         }
 
         dump(binlogFilename, binlogFileOffset, coprocessor);
