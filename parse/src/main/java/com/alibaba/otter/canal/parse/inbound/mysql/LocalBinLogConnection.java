@@ -114,17 +114,26 @@ public class LocalBinLogConnection implements ErosaConnection {
                         continue;
                     }
                     checkServerId(event);
-
-                    if (!func.sink(event)) {
-                        needContinue = false;
-                        break;
+                    List<LogEvent> iterateEvents = decoder.processIterateDecode(event, context);
+                    if (!iterateEvents.isEmpty()) {
+                        // 处理compress event
+                        for(LogEvent itEvent : iterateEvents) {
+                            if (!func.sink(event)) {
+                                needContinue = false;
+                                break;
+                            }
+                        }
+                    } else {
+                        if (!func.sink(event)) {
+                            needContinue = false;
+                            break;
+                        }
                     }
                 }
 
                 fetcher.close(); // 关闭上一个文件
                 parserFinish(current.getName());
                 if (needContinue) {// 读取下一个
-
                     File nextFile;
                     if (needWait) {
                         nextFile = binlogs.waitForNextFile(current);

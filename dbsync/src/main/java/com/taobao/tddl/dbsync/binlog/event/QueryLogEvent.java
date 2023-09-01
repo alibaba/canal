@@ -438,9 +438,13 @@ public class QueryLogEvent extends LogEvent {
     private String          timezone;
 
     public QueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent)
-                                                                                                        throws IOException{
-        super(header);
+                                                                                                         throws IOException{
+        this(header, buffer, descriptionEvent, false);
+    }
 
+    public QueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent,
+                         boolean compress) throws IOException{
+        super(header);
         final int commonHeaderLen = descriptionEvent.commonHeaderLen;
         final int postHeaderLen = descriptionEvent.postHeaderLen[header.type - 1];
         /*
@@ -495,10 +499,15 @@ public class QueryLogEvent extends LogEvent {
         unpackVariables(buffer, end);
         buffer.position(end);
         buffer.limit(limit);
-
         /* A 2nd variable part; this is common to all versions */
-        final int queryLen = dataLen - dbLen - 1;
         dbname = buffer.getFixName(dbLen + 1);
+        int queryLen = dataLen - dbLen - 1;
+        if (compress) {
+            // mariadb compress log event
+            // see https://github.com/alibaba/canal/issues/4388
+            buffer = buffer.uncompressBuf();
+            queryLen = buffer.limit();
+        }
         if (clientCharset >= 0) {
             charset = CharsetConversion.getNioCharset(clientCharset);
 

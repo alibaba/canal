@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.List;
 
+import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,12 +20,12 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
         DirectLogFetcher fecther = new DirectLogFetcher();
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306", "root", "hello");
+            Connection connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306", "root", "123456");
             Statement statement = connection.createStatement();
             statement.execute("SET @master_binlog_checksum='@@global.binlog_checksum'");
             statement.execute("SET @mariadb_slave_capability='" + LogEvent.MARIA_SLAVE_CAPABILITY_MINE + "'");
 
-            fecther.open(connection, "binlog.000002", 4L, 1);
+            fecther.open(connection, "mysql-bin.000002", 4L, 1);
 
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
@@ -50,6 +51,9 @@ public class DirectLogFetcherTest extends BaseLogFetcherTest {
         switch (eventType) {
             case LogEvent.ROTATE_EVENT:
                 binlogFileName = ((RotateLogEvent) event).getFilename();
+                break;
+            case LogEvent.BINLOG_CHECKPOINT_EVENT:
+                binlogFileName = ((BinlogCheckPointLogEvent) event).getFilename();
                 break;
             case LogEvent.WRITE_ROWS_EVENT_V1:
             case LogEvent.WRITE_ROWS_EVENT:

@@ -221,6 +221,15 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 postHeaderLen[GTID_EVENT - 1] = GTID_HEADER_LEN;
                 postHeaderLen[GTID_LIST_EVENT - 1] = GTID_LIST_HEADER_LEN;
                 postHeaderLen[START_ENCRYPTION_EVENT - 1] = START_ENCRYPTION_HEADER_LEN;
+
+                // mariadb compress
+                postHeaderLen[QUERY_COMPRESSED_EVENT - 1] = QUERY_COMPRESSED_EVENT;
+                postHeaderLen[WRITE_ROWS_COMPRESSED_EVENT - 1] = ROWS_HEADER_LEN_V2;
+                postHeaderLen[UPDATE_ROWS_COMPRESSED_EVENT - 1] = ROWS_HEADER_LEN_V2;
+                postHeaderLen[DELETE_ROWS_COMPRESSED_EVENT - 1] = ROWS_HEADER_LEN_V2;
+                postHeaderLen[WRITE_ROWS_COMPRESSED_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
+                postHeaderLen[UPDATE_ROWS_COMPRESSED_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
+                postHeaderLen[DELETE_ROWS_COMPRESSED_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
                 break;
 
             case 3: /* 4.0.x x>=2 */

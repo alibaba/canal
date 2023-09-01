@@ -13,9 +13,20 @@ import com.taobao.tddl.dbsync.binlog.event.LogHeader;
  */
 public class BinlogCheckPointLogEvent extends IgnorableLogEvent {
 
+    private final String filename;
+
     public BinlogCheckPointLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
         super(header, buffer, descriptionEvent);
-        // do nothing , just mariadb binlog checkpoint
+        // mariadb binlog checkpoint
+        final int headerSize = descriptionEvent.getCommonHeaderLen();
+        final int postHeaderLen = descriptionEvent.getPostHeaderLen()[getHeader().getType() - 1];
+
+        buffer.position(headerSize);
+        long binlogFileLen = buffer.getUint32();
+        filename = buffer.getFixString((int) binlogFileLen);
     }
 
+    public String getFilename() {
+        return filename;
+    }
 }

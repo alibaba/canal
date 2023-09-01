@@ -126,14 +126,15 @@ public final class LogDecoder {
             TransactionPayloadLogEvent compressEvent = ((TransactionPayloadLogEvent) event);
             LogBuffer iterateBuffer = null;
             if (compressEvent.isCompressByZstd()) {
-                ZstdCompressorInputStream in = new ZstdCompressorInputStream(
-                    new ByteArrayInputStream(compressEvent.getPayload()));
-                byte[] decodeBytes = IOUtils.toByteArray(in);
-                iterateBuffer = new LogBuffer(decodeBytes, 0, decodeBytes.length);
+                try (ZstdCompressorInputStream in = new ZstdCompressorInputStream(
+                    new ByteArrayInputStream(compressEvent.getPayload()))) {
+                    byte[] decodeBytes = IOUtils.toByteArray(in);
+                    iterateBuffer = new LogBuffer(decodeBytes, 0, decodeBytes.length);
+                }
             } else if (compressEvent.isCompressByNone()) {
                 iterateBuffer = new LogBuffer(compressEvent.getPayload(), 0, compressEvent.getPayload().length);
             } else {
-                throw new IllegalArgumentException("unkonow compresstype for " + event.getHeader().getLogFileName()
+                throw new IllegalArgumentException("unknow compress type for " + event.getHeader().getLogFileName()
                                                    + ":" + event.getHeader().getLogPos());
             }
 
@@ -446,6 +447,7 @@ public final class LogDecoder {
                 BinlogCheckPointLogEvent event = new BinlogCheckPointLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                logPosition.fileName = event.getFilename();
                 return event;
             }
             case LogEvent.GTID_EVENT: {
@@ -487,31 +489,37 @@ public final class LogDecoder {
                 return event;
             }
             case LogEvent.QUERY_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB QUERY_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
+                QueryCompressedLogEvent event = new QueryCompressedLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
             }
             case LogEvent.WRITE_ROWS_COMPRESSED_EVENT_V1:
             case LogEvent.WRITE_ROWS_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB WRITE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
+                WriteRowsCompressLogEvent event = new WriteRowsCompressLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
+                return event;
             }
             case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT_V1:
             case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB UPDATE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
+                UpdateRowsCompressLogEvent event = new UpdateRowsCompressLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
+                return event;
             }
             case LogEvent.DELETE_ROWS_COMPRESSED_EVENT_V1:
             case LogEvent.DELETE_ROWS_COMPRESSED_EVENT: {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skipping unsupported MaraiDB DELETE_ROWS_COMPRESSED_EVENT from: " + context.getLogPosition());
-                }
-                break;
+                DeleteRowsCompressLogEvent event = new DeleteRowsCompressLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
+                return event;
             }
             default:
                 /*

@@ -1,11 +1,11 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The Common-Header, documented in the table @ref Table_common_header "below",
@@ -66,7 +66,7 @@ import java.util.Map;
  */
 public final class LogHeader {
 
-    protected final int type;
+    protected int                 type;
 
     /**
      * The offset in the log where this event originally appeared (it is

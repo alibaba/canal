@@ -213,8 +213,18 @@ public class MysqlConnection implements ErosaConnection {
                     throw new CanalParseException("parse failed");
                 }
 
-                if (!func.sink(event)) {
-                    break;
+                List<LogEvent> iterateEvents = decoder.processIterateDecode(event, context);
+                if (!iterateEvents.isEmpty()) {
+                    // 处理compress event
+                    for(LogEvent itEvent : iterateEvents) {
+                        if (!func.sink(event)) {
+                            break;
+                        }
+                    }
+                } else {
+                    if (!func.sink(event)) {
+                        break;
+                    }
                 }
             }
         }
