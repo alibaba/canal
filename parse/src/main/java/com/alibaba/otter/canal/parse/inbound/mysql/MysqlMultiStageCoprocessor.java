@@ -426,6 +426,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                 event.setEntry(null);
                 // clear compress binlog events
                 event.setNeedDmlParse(false);
+                event.setNeedIterate(false);
                 event.setIterateEntrys(null);
                 event.setIterateTables(null);
                 event.setIterateEvents(null);
