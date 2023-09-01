@@ -1,6 +1,12 @@
 package com.alibaba.otter.canal.client.adapter.es8x.support;
 
-import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -30,12 +36,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Map;
+import com.alibaba.otter.canal.client.adapter.es.core.support.ESBulkRequest;
 
 /**
  * ES 连接器, 只支持 Rest 方式
@@ -47,20 +48,22 @@ public class ESConnection {
 
     private static final Logger logger = LoggerFactory.getLogger(ESConnection.class);
 
-
     private RestHighLevelClient restHighLevelClient;
 
-    public ESConnection(String[] hosts, Map<String, String> properties) throws UnknownHostException {
+    public ESConnection(String[] hosts, Map<String, String> properties) throws UnknownHostException{
         HttpHost[] httpHosts = Arrays.stream(hosts).map(this::createHttpHost).toArray(HttpHost[]::new);
         RestClientBuilder restClientBuilder = RestClient.builder(httpHosts);
         String nameAndPwd = properties.get("security.auth");
         if (StringUtils.isNotEmpty(nameAndPwd) && nameAndPwd.contains(":")) {
             String[] nameAndPwdArr = nameAndPwd.split(":");
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
-            restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
+            restClientBuilder.setHttpClientConfigCallback(
+                httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
         }
-        restHighLevelClient = new RestHighLevelClientBuilder(restClientBuilder.build()).setApiCompatibilityMode(true).build();
+        restHighLevelClient = new RestHighLevelClientBuilder(restClientBuilder.build()).setApiCompatibilityMode(true)
+            .build();
     }
 
     public void close() {
@@ -96,9 +99,9 @@ public class ESConnection {
 
         private IndexRequestBuilder indexRequestBuilder;
 
-        private IndexRequest indexRequest;
+        private IndexRequest        indexRequest;
 
-        public ES8xIndexRequest(String index, String id) {
+        public ES8xIndexRequest(String index, String id){
             indexRequest = new IndexRequest(index);
             indexRequest.id(id);
 
@@ -139,9 +142,9 @@ public class ESConnection {
 
         private UpdateRequestBuilder updateRequestBuilder;
 
-        private UpdateRequest updateRequest;
+        private UpdateRequest        updateRequest;
 
-        public ES8xUpdateRequest(String index, String id) {
+        public ES8xUpdateRequest(String index, String id){
 
             updateRequest = new UpdateRequest(index, id);
         }
@@ -188,9 +191,9 @@ public class ESConnection {
 
         private DeleteRequestBuilder deleteRequestBuilder;
 
-        private DeleteRequest deleteRequest;
+        private DeleteRequest        deleteRequest;
 
-        public ES8xDeleteRequest(String index, String id) {
+        public ES8xDeleteRequest(String index, String id){
 
             deleteRequest = new DeleteRequest(index, id);
 
@@ -217,11 +220,11 @@ public class ESConnection {
 
         private SearchRequestBuilder searchRequestBuilder;
 
-        private SearchRequest searchRequest;
+        private SearchRequest        searchRequest;
 
-        private SearchSourceBuilder sourceBuilder;
+        private SearchSourceBuilder  sourceBuilder;
 
-        public ESSearchRequest(String index) {
+        public ESSearchRequest(String index){
 
             searchRequest = new SearchRequest(index);
             sourceBuilder = new SearchSourceBuilder();
@@ -274,9 +277,9 @@ public class ESConnection {
 
         private BulkRequestBuilder bulkRequestBuilder;
 
-        private BulkRequest bulkRequest;
+        private BulkRequest        bulkRequest;
 
-        public ES8xBulkRequest() {
+        public ES8xBulkRequest(){
 
             bulkRequest = new BulkRequest();
 
@@ -347,7 +350,7 @@ public class ESConnection {
 
         private BulkResponse bulkResponse;
 
-        public ES8xBulkResponse(BulkResponse bulkResponse) {
+        public ES8xBulkResponse(BulkResponse bulkResponse){
             this.bulkResponse = bulkResponse;
         }
 
@@ -372,7 +375,6 @@ public class ESConnection {
         }
     }
 
-
     public RestHighLevelClient getRestHighLevelClient() {
         return restHighLevelClient;
     }
@@ -387,7 +389,9 @@ public class ESConnection {
             return HttpHost.create(uri.toString());
         }
         try {
-            return HttpHost.create(new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment()).toString());
+            return HttpHost.create(new URI(uri
+                .getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment())
+                    .toString());
         } catch (URISyntaxException ex) {
             throw new IllegalStateException(ex);
         }

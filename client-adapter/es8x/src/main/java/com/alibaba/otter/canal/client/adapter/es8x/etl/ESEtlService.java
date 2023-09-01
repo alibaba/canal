@@ -1,5 +1,19 @@
 package com.alibaba.otter.canal.client.adapter.es8x.etl;
 
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.sql.DataSource;
+
+import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.FieldItem;
@@ -15,18 +29,6 @@ import com.alibaba.otter.canal.client.adapter.support.AbstractEtlService;
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-import org.apache.commons.lang.StringUtils;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ES ETL Service
@@ -37,10 +39,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ESEtlService extends AbstractEtlService {
 
     private ESConnection esConnection;
-    private ESTemplate esTemplate;
+    private ESTemplate   esTemplate;
     private ESSyncConfig config;
 
-    public ESEtlService(ESConnection esConnection, ESSyncConfig config) {
+    public ESEtlService(ESConnection esConnection, ESSyncConfig config){
         super("ES", config);
         this.esConnection = esConnection;
         this.esTemplate = new ES8xTemplate(esConnection);
@@ -91,14 +93,14 @@ public class ESEtlService extends AbstractEtlService {
                                 relations.put("name", relationMapping.getName());
                                 if (StringUtils.isNotEmpty(relationMapping.getParent())) {
                                     FieldItem parentFieldItem = mapping.getSchemaItem()
-                                            .getSelectFields()
-                                            .get(relationMapping.getParent());
+                                        .getSelectFields()
+                                        .get(relationMapping.getParent());
                                     Object parentVal;
                                     try {
                                         parentVal = esTemplate.getValFromRS(mapping,
-                                                rs,
-                                                parentFieldItem.getFieldName(),
-                                                parentFieldItem.getFieldName());
+                                            rs,
+                                            parentFieldItem.getFieldName(),
+                                            parentFieldItem.getFieldName());
                                     } catch (SQLException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -116,8 +118,8 @@ public class ESEtlService extends AbstractEtlService {
                             String parentVal = (String) esFieldData.remove("$parent_routing");
                             if (mapping.isUpsert()) {
                                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES8xUpdateRequest(
-                                        mapping.get_index(),
-                                        idVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
+                                    mapping.get_index(),
+                                    idVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
 
                                 if (StringUtils.isNotEmpty(parentVal)) {
                                     esUpdateRequest.setRouting(parentVal);
@@ -126,8 +128,8 @@ public class ESEtlService extends AbstractEtlService {
                                 esBulkRequest.add(esUpdateRequest);
                             } else {
                                 ESIndexRequest esIndexRequest = this.esConnection.new ES8xIndexRequest(
-                                        mapping.get_index(),
-                                        idVal.toString()).setSource(esFieldData);
+                                    mapping.get_index(),
+                                    idVal.toString()).setSource(esFieldData);
                                 if (StringUtils.isNotEmpty(parentVal)) {
                                     esIndexRequest.setRouting(parentVal);
                                 }
@@ -136,19 +138,19 @@ public class ESEtlService extends AbstractEtlService {
                         } else {
                             idVal = esFieldData.get(mapping.getPk());
                             ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index())
-                                    .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
-                                    .size(10000);
+                                .setQuery(QueryBuilders.termQuery(mapping.getPk(), idVal))
+                                .size(10000);
                             SearchResponse response = esSearchRequest.getResponse();
                             for (SearchHit hit : response.getHits()) {
                                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES8xUpdateRequest(
-                                        mapping.get_index(),
-                                        hit.getId()).setDoc(esFieldData);
+                                    mapping.get_index(),
+                                    hit.getId()).setDoc(esFieldData);
                                 esBulkRequest.add(esUpdateRequest);
                             }
                         }
 
                         if (esBulkRequest.numberOfActions() % mapping.getCommitBatch() == 0
-                                && esBulkRequest.numberOfActions() > 0) {
+                            && esBulkRequest.numberOfActions() > 0) {
                             long esBatchBegin = System.currentTimeMillis();
                             ESBulkResponse rp = esBulkRequest.bulk();
                             if (rp.hasFailures()) {
@@ -157,10 +159,10 @@ public class ESEtlService extends AbstractEtlService {
 
                             if (logger.isTraceEnabled()) {
                                 logger.trace("全量数据批量导入批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                        (System.currentTimeMillis() - batchBegin),
-                                        (System.currentTimeMillis() - esBatchBegin),
-                                        esBulkRequest.numberOfActions(),
-                                        mapping.get_index());
+                                    (System.currentTimeMillis() - batchBegin),
+                                    (System.currentTimeMillis() - esBatchBegin),
+                                    esBulkRequest.numberOfActions(),
+                                    mapping.get_index());
                             }
                             batchBegin = System.currentTimeMillis();
                             esBulkRequest.resetBulk();
@@ -177,10 +179,10 @@ public class ESEtlService extends AbstractEtlService {
                         }
                         if (logger.isTraceEnabled()) {
                             logger.trace("全量数据批量导入最后批次耗时: {}, es执行时间: {}, 批次大小: {}, index; {}",
-                                    (System.currentTimeMillis() - batchBegin),
-                                    (System.currentTimeMillis() - esBatchBegin),
-                                    esBulkRequest.numberOfActions(),
-                                    mapping.get_index());
+                                (System.currentTimeMillis() - batchBegin),
+                                (System.currentTimeMillis() - esBatchBegin),
+                                esBulkRequest.numberOfActions(),
+                                mapping.get_index());
                         }
                     }
                 } catch (Exception e) {
