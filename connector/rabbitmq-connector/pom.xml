@@ -29,12 +29,12 @@
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>5.5.0</version>
+            <version>${rabbitmq_version}</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.mq-amqp</groupId>
             <artifactId>mq-amqp-client</artifactId>
-            <version>1.0.3</version>
+            <version>${mq_amqp_client}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

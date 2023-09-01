@@ -126,35 +126,35 @@
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-client</artifactId>
-            <version>4.5.1</version>
+            <version>${rocketmq_version}</version>
             </dependency>
             <!-- 单独引入kafka依赖 -->
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
-                <version>1.1.1</version>
+                <version>${kafka_version}</version>
             </dependency>
-
+            <!-- rabbotmq -->
             <dependency>
                 <groupId>com.rabbitmq</groupId>
                 <artifactId>amqp-client</artifactId>
-                <version>5.5.0</version>
+                <version>${rabbitmq_version}</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba.mq-amqp</groupId>
                 <artifactId>mq-amqp-client</artifactId>
-                <version>1.0.3</version>
+                <version>${mq_amqp_client}</version>
             </dependency>
             <!-- jdbc -->
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.48</version>
+                <version>${mysql_driver_version}</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.1.4</version>
+                <version>42.3.3</version>
             </dependency>
             <dependency>
                 <groupId>com.oracle.database.jdbc</groupId>
@@ -166,7 +166,6 @@
                 <artifactId>mssql-jdbc</artifactId>
                 <version>7.0.0.jre8</version>
             </dependency>
-
             <dependency>
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-shaded-client</artifactId>
@@ -181,6 +180,37 @@
                         <artifactId>jdk.tools</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.phoenix</groupId>
+                <artifactId>phoenix-core</artifactId>
+                <version>4.14.1-HBase-1.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-client</artifactId>
+                <version>1.4.8</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun.openservices</groupId>
+                <artifactId>tablestore</artifactId>
+                <version>5.10.3</version>
+                <classifier>jar-with-dependencies</classifier>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpasyncclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kudu</groupId>
+                <artifactId>kudu-client</artifactId>
+                <version>1.6.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
@@ -201,8 +231,9 @@
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
-                <version>1.19</version>
+                <version>1.29</version>
             </dependency>
+            <!-- test -->
             <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito</artifactId>
@@ -232,39 +263,6 @@
                 <artifactId>deeptestutils</artifactId>
                 <version>1.9.0</version>
                 <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.aliyun.openservices</groupId>
-                <artifactId>tablestore</artifactId>
-                <version>5.10.3</version>
-                <classifier>jar-with-dependencies</classifier>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.protobuf</groupId>
-                        <artifactId>protobuf-java</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.httpcomponents</groupId>
-                        <artifactId>httpasyncclient</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>${log4j_version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-api</artifactId>
-                <version>${log4j_version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-to-slf4j</artifactId>
-                <version>${log4j_version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

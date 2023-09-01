@@ -13,10 +13,6 @@
     <packaging>jar</packaging>
     <name>canal connector rocketMQ module for otter ${project.version}</name>
 
-    <properties>
-        <rocketmq_version>4.8.0</rocketmq_version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.alibaba.otter</groupId>

@@ -30,7 +30,6 @@
         <dependency>
             <groupId>com.aliyun.openservices</groupId>
             <artifactId>tablestore</artifactId>
-            <version>5.10.3</version>
             <classifier>jar-with-dependencies</classifier>
             <exclusions>
                 <exclusion>
@@ -43,8 +42,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
     </dependencies>
 
     <build>

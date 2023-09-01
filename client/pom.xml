@@ -101,42 +101,44 @@
 		<dependency>
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
-			<version>4.5.2</version>
+			<version>${rocketmq_version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-acl</artifactId>
-			<version>4.5.2</version>
+			<version>${rocketmq_version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
-			<version>5.5.0</version>
+			<version>${rabbitmq_version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.alibaba.mq-amqp</groupId>
 			<artifactId>mq-amqp-client</artifactId>
-			<version>1.0.3</version>
+			<version>${mq_amqp_client}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
-			<version>1.1.1</version>
+			<version>${kafka_version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<!-- Pulsar -->
 		<dependency>
 			<groupId>org.apache.pulsar</groupId>
 			<artifactId>pulsar-client</artifactId>
+			<version>${pulsar_version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pulsar</groupId>
 			<artifactId>pulsar-client-admin</artifactId>
+			<version>${pulsar_version}</version>
 			<scope>provided</scope>
 		</dependency>
 
