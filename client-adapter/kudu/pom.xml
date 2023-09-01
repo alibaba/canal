@@ -32,7 +32,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.48</version>
+            <version>8.0.28</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -71,7 +71,7 @@
                             <tasks>
                                 <copy todir="${project.basedir}/../launcher/target/classes/kudu" overwrite="true">
                                     <fileset dir="${project.basedir}/target/classes/kudu" erroronmissingdir="true">
-                                        <include name="*.yml" />
+                                        <include name="*.yml"/>
                                     </fileset>
                                 </copy>
                             </tasks>
