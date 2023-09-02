@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
 
     private static byte[] seeds = "canal is best!".getBytes();
 
-    private static final Integer PASSWORD_LENGTH = 6;
+    private static final Integer PASSWORD_LENGTH = 5;
 
     public User find4Login(String username, String password) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
