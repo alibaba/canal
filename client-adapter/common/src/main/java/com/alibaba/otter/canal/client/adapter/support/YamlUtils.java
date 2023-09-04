@@ -73,6 +73,9 @@ public class YamlUtils {
             PropertySource<?> propertySource = propertySources.get(0);
 
             Properties properties = new Properties();
+            if (baseProperties != null) {
+                properties.putAll(baseProperties);
+            }
 
             properties.putAll((Map<?, ?>) propertySource.getSource());
 
@@ -82,12 +85,7 @@ public class YamlUtils {
                     entry.setValue(((OriginTrackedValue) value).getValue());
                 }
             }
-
-            if (baseProperties != null) {
-                baseProperties.putAll(properties);
-                properties = baseProperties;
-            }
-
+            
             ConfigurationPropertySource sources = new MapConfigurationPropertySource(properties);
             Binder binder = new Binder(sources);
             return binder.bind(prefix, Bindable.of(clazz)).get();
