@@ -350,9 +350,9 @@ public class MysqlConnection implements ErosaConnection {
     private void sendBinlogDumpGTID(GTIDSet gtidSet) throws IOException {
         if (isMariaDB()) {
             sendMariaBinlogDumpGTID(gtidSet);
-            return;
+        } else {
+            sendMySQLBinlogDumpGTID(gtidSet);
         }
-        sendMySQLBinlogDumpGTID(gtidSet);
     }
 
     private void sendMySQLBinlogDumpGTID(GTIDSet gtidSet) throws IOException {
