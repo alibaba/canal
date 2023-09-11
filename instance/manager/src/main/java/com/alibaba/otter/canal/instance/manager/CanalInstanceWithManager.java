@@ -24,13 +24,7 @@ import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.instance.core.AbstractCanalInstance;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.DataSourcing;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.HAMode;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.IndexMode;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.MetaMode;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.SourcingType;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageMode;
-import com.alibaba.otter.canal.instance.manager.model.CanalParameter.StorageScavengeMode;
+import com.alibaba.otter.canal.instance.manager.model.CanalParameter.*;
 import com.alibaba.otter.canal.meta.FileMixedMetaManager;
 import com.alibaba.otter.canal.meta.MemoryMetaManager;
 import com.alibaba.otter.canal.meta.PeriodMixedMetaManager;
@@ -46,12 +40,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.rds.RdsBinlogEventParserProxy
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFactory;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBBuilder;
-import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
-import com.alibaba.otter.canal.parse.index.FailbackLogPositionManager;
-import com.alibaba.otter.canal.parse.index.MemoryLogPositionManager;
-import com.alibaba.otter.canal.parse.index.MetaLogPositionManager;
-import com.alibaba.otter.canal.parse.index.PeriodMixedLogPositionManager;
-import com.alibaba.otter.canal.parse.index.ZooKeeperLogPositionManager;
+import com.alibaba.otter.canal.parse.index.*;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.sink.entry.EntryEventSink;
@@ -338,6 +327,8 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                 mysqlEventParser.setTsdbSnapshotExpire(parameters.getTsdbSnapshotExpire());
             }
             boolean tsdbEnable = BooleanUtils.toBoolean(parameters.getTsdbEnable());
+            // manager启动模式默认使用mysql tsdb机制
+            final String tsdbSpringXml = "classpath:spring/tsdb/mysql-tsdb.xml";
             if (tsdbEnable) {
                 mysqlEventParser.setTableMetaTSDBFactory(new DefaultTableMetaTSDBFactory() {
 
@@ -353,9 +344,12 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                                 System.setProperty("canal.instance.tsdb.url", parameters.getTsdbJdbcUrl());
                                 System.setProperty("canal.instance.tsdb.dbUsername", parameters.getTsdbJdbcUserName());
                                 System.setProperty("canal.instance.tsdb.dbPassword", parameters.getTsdbJdbcPassword());
+                                System.setProperty("canal.instance.destination", destination);
 
-                                return TableMetaTSDBBuilder.build(destination, "classpath:spring/tsdb/mysql-tsdb.xml");
+                                return TableMetaTSDBBuilder.build(destination, tsdbSpringXml);
                             } finally {
+                                // reset
+                                System.setProperty("canal.instance.destination", "");
                                 System.setProperty("canal.instance.tsdb.url", "");
                                 System.setProperty("canal.instance.tsdb.dbUsername", "");
                                 System.setProperty("canal.instance.tsdb.dbPassword", "");
@@ -363,6 +357,10 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                         }
                     }
                 });
+                mysqlEventParser.setTsdbJdbcUrl(parameters.getTsdbJdbcUrl());
+                mysqlEventParser.setTsdbJdbcUserName(parameters.getTsdbJdbcUserName());
+                mysqlEventParser.setTsdbJdbcPassword(parameters.getTsdbJdbcPassword());
+                mysqlEventParser.setTsdbSpringXml(tsdbSpringXml);
                 mysqlEventParser.setEnableTsdb(tsdbEnable);
             }
             eventParser = mysqlEventParser;

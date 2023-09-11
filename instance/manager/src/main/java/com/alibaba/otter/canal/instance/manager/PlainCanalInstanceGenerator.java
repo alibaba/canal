@@ -61,6 +61,7 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
                 throw new CanalException(e);
             } finally {
                 System.setProperty("canal.instance.destination", "");
+                com.alibaba.otter.canal.instance.spring.support.PropertyPlaceholderConfigurer.propertiesLocal.remove();
             }
         }
     }
