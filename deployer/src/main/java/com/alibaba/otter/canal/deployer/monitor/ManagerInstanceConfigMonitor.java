@@ -7,6 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.instance.core.CanalInstance;
+import com.alibaba.otter.canal.server.embedded.CanalServerWithEmbedded;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +93,9 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
             } else {
                 PlainCanal plainCanal = configs.get(instance);
                 PlainCanal newPlainCanal = configClient.findInstance(instance, plainCanal.getMd5());
-                if (newPlainCanal != null) {
+
+                CanalInstance canalInstance = CanalServerWithEmbedded.instance().getCanalInstances().get(instance);
+                if (newPlainCanal != null || canalInstance == null) {
                     // 配置有变化
                     restart.add(instance);
                     configs.put(instance, newPlainCanal);
@@ -105,17 +109,11 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
             }
         });
 
-        stop.forEach(instance -> {
-            notifyStop(instance);
-        });
+        stop.forEach(this::notifyStop);
 
-        restart.forEach(instance -> {
-            notifyReload(instance);
-        });
+        restart.forEach(this::notifyReload);
 
-        start.forEach(instance -> {
-            notifyStart(instance);
-        });
+        start.forEach(this::notifyStart);
 
     }
 
