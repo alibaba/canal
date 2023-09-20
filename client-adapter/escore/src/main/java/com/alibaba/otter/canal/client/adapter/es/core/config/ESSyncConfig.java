@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * ES 映射配置
@@ -96,8 +97,13 @@ public class ESSyncConfig implements AdapterConfig {
 
     public static class ESMapping implements AdapterMapping {
 
+        @Value("${_index}")
         private String index;
+
+        @Value("${_type}")
         private String type;
+
+        @Value("${_id}")
         private String id;
         private boolean                      upsert          = false;
         private String                       pk;
