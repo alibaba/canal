@@ -1,13 +1,16 @@
 package com.alibaba.otter.canal.client.adapter.support;
 
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 public class YamlUtilsTest {
+
+
 
     @Test
     public void testLoadConfigToYml() {
@@ -17,6 +20,7 @@ public class YamlUtilsTest {
             + "outerAdapterKey: mysql1\n"
             + "concurrent: true\n"
             + "dbMapping:\n"
+            + "  _id: _id\n"
             + "  database: mytest\n"
             + "  table: user\n"
             + "  targetTable: mytest2.user\n"
@@ -35,6 +39,7 @@ public class YamlUtilsTest {
         MappingConfig config = YamlUtils.ymlToObj(null, configStr, MappingConfig.class, null, new Properties());
 
         Assert.assertNotNull(config);
+        Assert.assertEquals(config.getDbMapping().getId(), "_id");
         Assert.assertEquals(config.getDestination(), "example");
         Assert.assertEquals(config.getOuterAdapterKey(), "mysql1");
         Assert.assertEquals(config.getDbMapping().getDatabase(), "mytest");
@@ -104,6 +109,9 @@ public class YamlUtilsTest {
     }
 
     private static class DbMapping {
+
+        @Value("${_id}")
+        private String id ;
         private boolean             mirrorDb        = false;                 // 是否镜像库
         private String              database;                                // 数据库名或schema名
         private String              table;                                   // 表名
@@ -224,6 +232,14 @@ public class YamlUtilsTest {
 
         public void setAllMapColumns(Map<String, String> allMapColumns) {
             this.allMapColumns = allMapColumns;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
         }
     }
 }
