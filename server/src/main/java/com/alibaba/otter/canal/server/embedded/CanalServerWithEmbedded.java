@@ -73,7 +73,7 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         if (!isStart()) {
             super.start();
             // 如果存在provider,则启动metrics service
-            if(metricsPort < 0) {
+            if(metricsPort > 0) {
                 loadCanalMetrics();
                 metrics.setServerPort(metricsPort);
                 metrics.initialize();
