@@ -168,7 +168,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         super.stop();
     }
 
-    protected void buildTableMetaTSDB(String tsdbSpringXml) {
+    protected synchronized void buildTableMetaTSDB(String tsdbSpringXml) {
         if (tableMetaTSDB != null) {
             return;
         }
@@ -178,12 +178,13 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             System.setProperty("canal.instance.tsdb.url", tsdbJdbcUrl);
             System.setProperty("canal.instance.tsdb.dbUsername", tsdbJdbcUserName);
             System.setProperty("canal.instance.tsdb.dbPassword", tsdbJdbcPassword);
-            System.setProperty("canal.instance.destination", destination);
             // 初始化
             this.tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
+        } catch (Throwable e) {
+            logger.warn("failed to build TableMetaTSDB ",e);
+            throw new CanalParseException(e);
         } finally {
             // reset
-            System.setProperty("canal.instance.destination", "");
             System.setProperty("canal.instance.tsdb.url", "");
             System.setProperty("canal.instance.tsdb.dbUsername", "");
             System.setProperty("canal.instance.tsdb.dbPassword", "");
@@ -272,16 +273,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setEnableTsdb(boolean enableTsdb) {
         this.enableTsdb = enableTsdb;
-        if (this.enableTsdb) {
-            buildTableMetaTSDB(tsdbSpringXml);
-        }
     }
 
     public void setTsdbSpringXml(String tsdbSpringXml) {
         this.tsdbSpringXml = tsdbSpringXml;
-        if (this.enableTsdb) {
-            buildTableMetaTSDB(tsdbSpringXml);
-        }
     }
 
     public void setTableMetaTSDBFactory(TableMetaTSDBFactory tableMetaTSDBFactory) {
