@@ -12,8 +12,8 @@ for e in $(ls /alidata/init/*) ; do
 done
 
 echo "==> INIT DEFAULT"
-service sshd start
-service crond start
+systemctl start sshd
+systemctl start crond
 
 #echo "check hostname -i: `hostname -i`"
 #hti_num=`hostname -i|awk '{print NF}'`
