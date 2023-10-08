@@ -1,7 +1,5 @@
 # amd64
 FROM centos:centos7.9.2009@sha256:dead07b4d8ed7e29e98de0f4504d87e8880d4347859d839686a31da35a3b532f
-# arm64
-#FROM centos:centos7.9.2009@sha256:73f11afcbb50d8bc70eab9f0850b3fa30e61a419bc48cf426e63527d14a8373b
 
 ARG jdk_rpm
 ARG platform_env

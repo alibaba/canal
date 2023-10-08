@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set +e
 
 source /etc/profile
 export JAVA_HOME=/usr/java/latest
