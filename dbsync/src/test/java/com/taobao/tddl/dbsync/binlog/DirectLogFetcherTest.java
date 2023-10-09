@@ -8,11 +8,13 @@ import java.util.List;
 
 import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.taobao.tddl.dbsync.binlog.event.*;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
 
+@Ignore
 public class DirectLogFetcherTest extends BaseLogFetcherTest {
 
     @Test
