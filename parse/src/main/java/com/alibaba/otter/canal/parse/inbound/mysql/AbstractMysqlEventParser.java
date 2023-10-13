@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.nio.charset.Charset;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.otter.canal.filter.CanalEventFilter;
@@ -185,9 +186,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             throw new CanalParseException(e);
         } finally {
             // reset
-            System.setProperty("canal.instance.tsdb.url", "");
-            System.setProperty("canal.instance.tsdb.dbUsername", "");
-            System.setProperty("canal.instance.tsdb.dbPassword", "");
+            Properties props = System.getProperties();
+            props.remove("canal.instance.tsdb.url");
+            props.remove("canal.instance.tsdb.dbUsername");
+            props.remove("canal.instance.tsdb.dbPassword");
         }
     }
 
