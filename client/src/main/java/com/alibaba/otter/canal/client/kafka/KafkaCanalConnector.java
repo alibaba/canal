@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.client.kafka;
 
-import com.alibaba.fastjson2.JSON;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +10,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
@@ -43,7 +43,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
     private Map<Integer, Long>               currentOffsets = new ConcurrentHashMap<>();
 
     public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, Integer batchSize,
-        boolean flatMessage){
+                               boolean flatMessage){
         this.topic = topic;
         this.partition = partition;
         this.flatMessage = flatMessage;
@@ -324,4 +324,3 @@ public class KafkaCanalConnector implements CanalMQConnector {
     }
 
 }
-
