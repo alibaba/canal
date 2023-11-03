@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
@@ -330,7 +331,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
             try {
                 MessageId msgResultId = producer.newMessage()
                     .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partition))
-                    .value(JSON.toJSONBytes(f, Feature.WriteNulls))
+                    .value(JSON.toJSONBytes(f, Feature.WriteNulls, JSONWriter.Feature.LargeObject))
                     .send()
                 //
                 ;

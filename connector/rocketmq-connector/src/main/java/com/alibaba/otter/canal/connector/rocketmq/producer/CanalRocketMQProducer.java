@@ -263,7 +263,7 @@ import java.util.stream.Collectors;
                             List<Message> messages = flatMessagePart.stream()
                                     .map(flatMessage -> new Message(topicName,
                                             ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                                            JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls)))
+                                            JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject)))
                                     .collect(Collectors.toList());
                             // 批量发送
                             sendMessage(messages, index);
@@ -278,7 +278,7 @@ import java.util.stream.Collectors;
                 List<Message> messages = flatMessages.stream()
                         .map(flatMessage -> new Message(topicName,
                                 ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                                JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls)))
+                                JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls,JSONWriter.Feature.LargeObject)))
                         .collect(Collectors.toList());
                 // 批量发送
                 sendMessage(messages, partition);

@@ -165,7 +165,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, messageSub.getId());
             for (FlatMessage flatMessage : flatMessages) {
-                byte[] message = JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls);
+                byte[] message = JSON
+                    .toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject);
                 if (logger.isDebugEnabled()) {
                     logger.debug("send message:{} to destination:{}", message, canalDestination.getCanalDestination());
                 }
