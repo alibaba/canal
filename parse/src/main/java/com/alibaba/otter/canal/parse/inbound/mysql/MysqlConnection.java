@@ -57,6 +57,7 @@ public class MysqlConnection implements ErosaConnection {
     private int                 binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
     // dump binlog bytes, 暂不包括meta与TSDB
     private AtomicLong          receivedBinlogBytes;
+    private boolean             compatiablePercona = false;
 
     public MysqlConnection(){
     }
@@ -122,6 +123,7 @@ public class MysqlConnection implements ErosaConnection {
     public void seek(String binlogfilename, Long binlogPosition, String gtid, SinkFunction func) throws IOException {
         updateSettings();
         loadBinlogChecksum();
+        loadVersionComment();
         sendBinlogDump(binlogfilename, binlogPosition);
         DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize());
         fetcher.start(connector.getChannel());
@@ -146,6 +148,7 @@ public class MysqlConnection implements ErosaConnection {
             }
             context.setGtidSet(gtidSet);
         }
+        context.setCompatiablePercona(compatiablePercona);
         context.setFormatDescription(new FormatDescriptionLogEvent(4, binlogChecksum));
         while (fetcher.fetch()) {
             accumulateReceivedBytes(fetcher.limit());
@@ -165,12 +168,14 @@ public class MysqlConnection implements ErosaConnection {
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         updateSettings();
         loadBinlogChecksum();
+        loadVersionComment();
         sendRegisterSlave();
         sendBinlogDump(binlogfilename, binlogPosition);
         DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize());
         fetcher.start(connector.getChannel());
         LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
         LogContext context = new LogContext();
+        context.setCompatiablePercona(compatiablePercona);
         context.setFormatDescription(new FormatDescriptionLogEvent(4, binlogChecksum));
         while (fetcher.fetch()) {
             accumulateReceivedBytes(fetcher.limit());
@@ -195,12 +200,14 @@ public class MysqlConnection implements ErosaConnection {
     public void dump(GTIDSet gtidSet, SinkFunction func) throws IOException {
         updateSettings();
         loadBinlogChecksum();
+        loadVersionComment();
         sendBinlogDumpGTID(gtidSet);
 
         try (DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize())) {
             fetcher.start(connector.getChannel());
             LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
             LogContext context = new LogContext();
+            context.setCompatiablePercona(compatiablePercona);
             context.setFormatDescription(new FormatDescriptionLogEvent(4, binlogChecksum));
             // fix bug: #890 将gtid传输至context中，供decode使用
             context.setGtidSet(gtidSet);
@@ -238,10 +245,12 @@ public class MysqlConnection implements ErosaConnection {
     public void dump(String binlogfilename, Long binlogPosition, MultiStageCoprocessor coprocessor) throws IOException {
         updateSettings();
         loadBinlogChecksum();
+        loadVersionComment();
         sendRegisterSlave();
         sendBinlogDump(binlogfilename, binlogPosition);
         ((MysqlMultiStageCoprocessor) coprocessor).setConnection(this);
         ((MysqlMultiStageCoprocessor) coprocessor).setBinlogChecksum(binlogChecksum);
+        ((MysqlMultiStageCoprocessor) coprocessor).setCompatiablePercona(compatiablePercona);
         try (DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize())) {
             fetcher.start(connector.getChannel());
             while (fetcher.fetch()) {
@@ -264,9 +273,11 @@ public class MysqlConnection implements ErosaConnection {
     public void dump(GTIDSet gtidSet, MultiStageCoprocessor coprocessor) throws IOException {
         updateSettings();
         loadBinlogChecksum();
+        loadVersionComment();
         sendBinlogDumpGTID(gtidSet);
         ((MysqlMultiStageCoprocessor) coprocessor).setConnection(this);
         ((MysqlMultiStageCoprocessor) coprocessor).setBinlogChecksum(binlogChecksum);
+        ((MysqlMultiStageCoprocessor) coprocessor).setCompatiablePercona(compatiablePercona);
         try (DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize())) {
             fetcher.start(connector.getChannel());
             while (fetcher.fetch()) {
@@ -555,6 +566,24 @@ public class MysqlConnection implements ErosaConnection {
         } catch (Throwable e) {
             // logger.error("", e);
             binlogChecksum = LogEvent.BINLOG_CHECKSUM_ALG_OFF;
+        }
+    }
+
+    /**
+     * 识别下mysql的几种生态版本 (percona / mariadb / mysql)
+     */
+    private void loadVersionComment() {
+        ResultSetPacket rs = null;
+        try {
+            rs = query("select @@version_comment");
+            List<String> columnValues = rs.getFieldValues();
+            if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0) != null){
+                if(StringUtils.containsIgnoreCase(columnValues.get(0),"Percona")){
+                    compatiablePercona = true;
+                }
+            }
+        } catch (Throwable e) {
+            compatiablePercona = false;
         }
     }
 

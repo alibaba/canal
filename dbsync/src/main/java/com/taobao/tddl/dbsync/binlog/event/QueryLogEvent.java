@@ -434,8 +434,8 @@ public class QueryLogEvent extends LogEvent {
     private int             tvSec                     = -1;
     private BigInteger      ddlXid                    = BigInteger.valueOf(-1L);
     private Charset         charset;
-
     private String          timezone;
+    private boolean         compatiablePercona        = false;
 
     public QueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent)
                                                                                                          throws IOException{
@@ -443,8 +443,15 @@ public class QueryLogEvent extends LogEvent {
     }
 
     public QueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent,
+                         boolean compatiablePercona) throws IOException{
+        this(header, buffer, descriptionEvent, compatiablePercona, false);
+    }
+
+    public QueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent,
+                         boolean compatiablePercona,
                          boolean compress) throws IOException{
         super(header);
+        this.compatiablePercona = compatiablePercona;
         final int commonHeaderLen = descriptionEvent.commonHeaderLen;
         final int postHeaderLen = descriptionEvent.postHeaderLen[header.type - 1];
         /*
@@ -608,6 +615,21 @@ public class QueryLogEvent extends LogEvent {
     public static final int Q_SQL_REQUIRE_PRIMARY_KEY         = 19;
 
     /**
+     * Replicate default_table_encryption.
+     */
+    public static final int Q_DEFAULT_TABLE_ENCRYPTION        = 20;
+
+    /**
+     * @since percona 8.0.31 Replicate ddl_skip_rewrite.
+     */
+    public static final int Q_DDL_SKIP_REWRITE                = 21;
+
+    /**
+     * @since percona 8.0.31 Replicate Q_WSREP_SKIP_READONLY_CHECKS.
+     */
+    public static final int Q_WSREP_SKIP_READONLY_CHECKS      = 128;
+
+    /**
      * FROM MariaDB 5.5.34
      */
     public static final int Q_HRNOW                           = 128;
@@ -713,9 +735,24 @@ public class QueryLogEvent extends LogEvent {
                         // *start++ = thd->variables.sql_require_primary_key;
                         buffer.forward(1);
                         break;
+                    case Q_DEFAULT_TABLE_ENCRYPTION:
+                        // *start++ = thd->variables.default_table_encryption;
+                        buffer.forward(1);
+                    case Q_DDL_SKIP_REWRITE:
+                        // *start++ = thd->variables.binlog_ddl_skip_rewrite;
+                        buffer.forward(1);
                     case Q_HRNOW:
-                        // int when_sec_part = buffer.getUint24();
-                        buffer.forward(3);
+                        // https://github.com/alibaba/canal/issues/4940
+                        // percona 和 mariadb各自扩展mysql binlog的格式后有冲突
+                        // 需要精确识别一下数据库类型做兼容处理
+                        if (compatiablePercona) {
+                            // percona 8.0.31
+                            // Q_WSREP_SKIP_READONLY_CHECKS *start++ = 1;
+                            buffer.forward(1);
+                        } else {
+                            // int when_sec_part = buffer.getUint24();
+                            buffer.forward(3);
+                        }
                         break;
                     case Q_XID:
                         // xid= uint8korr(pos);
@@ -728,7 +765,6 @@ public class QueryLogEvent extends LogEvent {
                         // sa_seq_no = uint8korr(pos);
                         // pos+= 8;
                         // }
-
                         int gtid_flags_extra = buffer.getUint8();
                         final int FL_COMMIT_ALTER_E1= 4;
                         final int FL_ROLLBACK_ALTER_E1= 8;
@@ -789,8 +825,16 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_DEFAULT_COLLATION_FOR_UTF8MB4";
             case Q_SQL_REQUIRE_PRIMARY_KEY:
                 return "Q_SQL_REQUIRE_PRIMARY_KEY";
+            case Q_DEFAULT_TABLE_ENCRYPTION:
+                return "Q_DEFAULT_TABLE_ENCRYPTION";
+            case Q_DDL_SKIP_REWRITE:
+                return "Q_DDL_SKIP_REWRITE";
             case Q_HRNOW:
                 return "Q_HRNOW";
+            case Q_XID:
+                return "Q_XID";
+            case Q_GTID_FLAGS3:
+                return "Q_GTID_FLAGS3";
         }
         return "CODE#" + code;
     }
