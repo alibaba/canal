@@ -117,8 +117,14 @@ public class CanalController {
 
         this.adminUser = getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
         this.adminPasswd = getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
-        embeddedCanalServer.setUser(getProperty(properties, CanalConstants.CANAL_USER));
-        embeddedCanalServer.setPasswd(getProperty(properties, CanalConstants.CANAL_PASSWD));
+        String user = getProperty(properties, CanalConstants.CANAL_USER);
+        String passwd = getProperty(properties, CanalConstants.CANAL_PASSWD);
+        if (StringUtils.isNotEmpty(user) && StringUtils.isEmpty(passwd)) {
+            throw new IllegalArgumentException(
+                "canal.user = " + user + " , but canal.passwd is empty , pls check https://github.com/alibaba/canal/issues/4941");
+        }
+        embeddedCanalServer.setUser(user);
+        embeddedCanalServer.setPasswd(passwd);
 
         String canalWithoutNetty = getProperty(properties, CanalConstants.CANAL_WITHOUT_NETTY);
         if (canalWithoutNetty == null || "false".equals(canalWithoutNetty)) {
