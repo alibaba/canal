@@ -130,6 +130,10 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
         }
     }
 
+    public void setCompatiablePercona(boolean compatiablePercona) {
+        logContext.setCompatiablePercona(compatiablePercona);
+    }
+
     @Override
     public void stop() {
         // fix bug #968，对于pool与

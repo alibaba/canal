@@ -158,8 +158,6 @@ public final class LogDecoder {
             } finally {
                 context.setIterateDecode(false);
             }
-        } else {
-            // TODO support mariadb compress binlog
         }
         return events;
     }
@@ -193,7 +191,10 @@ public final class LogDecoder {
         LogEvent gtidLogEvent = context.getGtidLogEvent();
         switch (header.getType()) {
             case LogEvent.QUERY_EVENT: {
-                QueryLogEvent event = new QueryLogEvent(header, buffer, descriptionEvent);
+                QueryLogEvent event = new QueryLogEvent(header,
+                    buffer,
+                    descriptionEvent,
+                    context.isCompatiablePercona());
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 header.putGtid(context.getGtidSet(), gtidLogEvent);
@@ -354,7 +355,10 @@ public final class LogDecoder {
                 return event;
             }
             case LogEvent.EXECUTE_LOAD_QUERY_EVENT: {
-                ExecuteLoadQueryLogEvent event = new ExecuteLoadQueryLogEvent(header, buffer, descriptionEvent);
+                ExecuteLoadQueryLogEvent event = new ExecuteLoadQueryLogEvent(header,
+                    buffer,
+                    descriptionEvent,
+                    context.isCompatiablePercona());
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 return event;
