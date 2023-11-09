@@ -578,8 +578,10 @@ public class MysqlConnection implements ErosaConnection {
             rs = query("select @@version_comment");
             List<String> columnValues = rs.getFieldValues();
             if (columnValues != null && columnValues.size() >= 1 && columnValues.get(0) != null){
+                logger.warn("--> loadVersionComment(), select @@version_comment : " + columnValues.get(0));
                 if(StringUtils.containsIgnoreCase(columnValues.get(0),"Percona")){
                     compatiablePercona = true;
+                    logger.warn("--> loadVersionComment(), set compatiablePercona = true");
                 }
             }
         } catch (Throwable e) {
