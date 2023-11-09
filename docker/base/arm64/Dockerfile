@@ -22,7 +22,7 @@ RUN \
     yum clean all && yum makecache
 
 RUN \
-    /bin/cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    /usr/bin/ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'root:Hello1234' | chpasswd && \
     groupadd -r admin && useradd -g admin admin && \
     yum install -y man && \
