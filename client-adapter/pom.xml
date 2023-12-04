@@ -36,6 +36,7 @@
         <module>kudu</module>
         <module>phoenix</module>
         <module>tablestore</module>
+        <module>clickhouse</module>
     </modules>
 
     <licenses>
@@ -191,6 +192,11 @@
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-client</artifactId>
                 <version>1.4.8</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.yandex.clickhouse</groupId>
+                <artifactId>clickhouse-jdbc</artifactId>
+                <version>0.3.1</version>
             </dependency>
             <dependency>
                 <groupId>com.aliyun.openservices</groupId>
