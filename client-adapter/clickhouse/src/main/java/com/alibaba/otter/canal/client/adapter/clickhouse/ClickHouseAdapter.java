@@ -1,5 +1,15 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.druid.filter.stat.StatFilter;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.util.JdbcUtils;
@@ -13,15 +23,6 @@ import com.alibaba.otter.canal.client.adapter.clickhouse.service.ClickHouseEtlSe
 import com.alibaba.otter.canal.client.adapter.clickhouse.service.ClickHouseMirrorDbBatchSyncService;
 import com.alibaba.otter.canal.client.adapter.clickhouse.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.*;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ClickHouse Adapter implementation
@@ -35,11 +36,15 @@ public class ClickHouseAdapter implements OuterAdapter {
 
     private static final Logger                         logger = LoggerFactory.getLogger(ClickHouseAdapter.class);
 
-    private Map<String, MappingConfig>                  clickHouseMapping = new ConcurrentHashMap<>();        // Store the mapping of filename and configuration, load yml files below resource path
+    // Store the mapping of filename and configuration, load yml files below
+    // resource path
+    private Map<String, MappingConfig>              clickHouseMapping   = new ConcurrentHashMap<>();
 
-    private Map<String, Map<String, MappingConfig>>     mappingConfigCache = new ConcurrentHashMap<>();       // Schema -> Table -> MappingConfig
+    // Schema -> Table -> MappingConfig
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache  = new ConcurrentHashMap<>();
 
-    private Map<String, MirrorDbConfig>                 mirrorDbConfigCache = new ConcurrentHashMap<>();      // Mirror DB Configuration, don't need to load column mapping
+    // Mirror DB Configuration, don't need to load column mapping
+    private Map<String, MirrorDbConfig>             mirrorDbConfigCache = new ConcurrentHashMap<>();
 
     private DruidDataSource                             dataSource;
 
@@ -49,7 +54,8 @@ public class ClickHouseAdapter implements OuterAdapter {
 
     private Properties                                  envProperties;
 
-    private OuterAdapterConfig                          configuration;                                        // Launch configuration
+    // Launch configuration
+    private OuterAdapterConfig                      configuration;
 
     private ClickHouseConfigMonitor clickHouseConfigMonitor;
 

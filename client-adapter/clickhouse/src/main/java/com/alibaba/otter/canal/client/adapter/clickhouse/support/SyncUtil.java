@@ -1,12 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.support;
 
-import com.alibaba.druid.DbType;
-import com.alibaba.otter.canal.client.adapter.clickhouse.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.support.Util;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -16,8 +9,17 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.druid.DbType;
+import com.alibaba.otter.canal.client.adapter.clickhouse.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.support.Util;
+
 public class SyncUtil {
-    private static final Logger logger  = LoggerFactory.getLogger(SyncUtil.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(SyncUtil.class);
 
     public static Map<String, String> getColumnsMap(MappingConfig.DbMapping dbMapping, Map<String, Object> data) {
         return getColumnsMap(dbMapping, data.keySet());

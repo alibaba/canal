@@ -1,11 +1,12 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.support;
 
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import org.springframework.util.LinkedCaseInsensitiveMap;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.util.LinkedCaseInsensitiveMap;
+
+import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 public class SingleDml {
 

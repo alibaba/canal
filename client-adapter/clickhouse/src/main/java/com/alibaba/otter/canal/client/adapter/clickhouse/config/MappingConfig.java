@@ -1,16 +1,19 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.config;
 
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
-import org.apache.commons.lang.StringUtils;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
 
 /**
  * CLICKHOUSE表映射配置
  *
- * @author rewerma 2018-11-07 下午02:41:34
- * @version 1.0.0
+ * @author: Xander
+ * @date: Created in 2023/11/10 22:23
+ * @email: zhrunxin33@gmail.com
+ * @version 1.1.8
  */
 public class MappingConfig implements AdapterConfig {
 

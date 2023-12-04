@@ -1,19 +1,22 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.config;
 
-import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
-import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
+
 /**
  * CLICKHOUSE表映射配置加载器
  *
- * @author rewerma 2018-11-07 下午02:41:34
- * @version 1.0.0
+ * @author: Xander
+ * @date: Created in 2023/11/10 22:23
+ * @email: zhrunxin33@gmail.com
+ * @version 1.1.8
  */
 public class ConfigLoader {
 

@@ -1,16 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.service;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONWriter.Feature;
-import com.alibaba.otter.canal.client.adapter.clickhouse.config.MappingConfig;
-import com.alibaba.otter.canal.client.adapter.clickhouse.config.MirrorDbConfig;
-import com.alibaba.otter.canal.client.adapter.clickhouse.support.SyncUtil;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -18,26 +7,48 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter.Feature;
+import com.alibaba.otter.canal.client.adapter.clickhouse.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.clickhouse.config.MirrorDbConfig;
+import com.alibaba.otter.canal.client.adapter.clickhouse.support.SyncUtil;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+
 /**
  * CLICKHOUSE镜像库同步操作业务
  *
- * @author rewerma 2018-12-12 下午011:23
- * @version 1.0.0
+ * @author: Xander
+ * @date: Created in 2023/11/10 22:23
+ * @email: zhrunxin33@gmail.com
+ * @version 1.1.8
  */
 public class ClickHouseMirrorDbBatchSyncService {
 
     private static final Logger         logger = LoggerFactory.getLogger(ClickHouseMirrorDbBatchSyncService.class);
 
-    private Map<String, MirrorDbConfig> mirrorDbConfigCache;                                           // 镜像库配置
+    // 镜像库配置
+    private Map<String, MirrorDbConfig> mirrorDbConfigCache;
     private DruidDataSource             dataSource;
-    private ClickHouseBatchSyncService clickHouseBatchSyncService;                                     // clickhouseSyncService代理
+    // clickhouseSyncService代理
+    private ClickHouseBatchSyncService  clickHouseBatchSyncService;
 
-    public ClickHouseMirrorDbBatchSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DruidDataSource dataSource,
-                                              Integer threads, Integer batchSize, Long scheduleTime, Map<String, Map<String, Integer>> columnsTypeCache,
+    public ClickHouseMirrorDbBatchSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache,
+                                              DruidDataSource dataSource, Integer threads, Integer batchSize,
+                                              Long scheduleTime, Map<String, Map<String, Integer>> columnsTypeCache,
                                               boolean skipDupException){
         this.mirrorDbConfigCache = mirrorDbConfigCache;
         this.dataSource = dataSource;
-        this.clickHouseBatchSyncService = new ClickHouseBatchSyncService(dataSource, threads, batchSize, scheduleTime, columnsTypeCache, skipDupException);
+        this.clickHouseBatchSyncService = new ClickHouseBatchSyncService(dataSource,
+            threads,
+            batchSize,
+            scheduleTime,
+            columnsTypeCache,
+            skipDupException);
     }
 
     /**
@@ -73,7 +84,8 @@ public class ClickHouseMirrorDbBatchSyncService {
                     logger.debug("DDL: {}", JSON.toJSONString(dml, Feature.WriteNulls));
                 }
                 executeDdl(mirrorDbConfig, dml);
-                clickHouseBatchSyncService.getColumnsTypeCache().remove(destination + "." + database + "." + dml.getTable());
+                clickHouseBatchSyncService.getColumnsTypeCache()
+                    .remove(destination + "." + database + "." + dml.getTable());
                 mirrorDbConfig.getTableConfig().remove(dml.getTable()); // 删除对应库表配置
             } else {
                 // DML

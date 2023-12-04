@@ -1,13 +1,13 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse;
 
+import java.util.*;
 
-import com.alibaba.otter.canal.client.adapter.clickhouse.sync.Common;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.*;
+import com.alibaba.otter.canal.client.adapter.clickhouse.sync.Common;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
 
 @Ignore
 public class ClickHouseBatchSyncServiceTest {

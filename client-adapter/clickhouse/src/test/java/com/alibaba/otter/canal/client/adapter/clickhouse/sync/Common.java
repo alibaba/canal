@@ -1,21 +1,22 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.sync;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.otter.canal.client.adapter.clickhouse.ClickHouseAdapter;
 import com.alibaba.otter.canal.client.adapter.clickhouse.TestConstant;
 import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
-import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 
 /**
  * @author: Xander
  * @date: Created in 2023/11/13 0:16
- * @email: zhrunxin33@gmail.com
- * @description：
+ * @email: zhrunxin33@gmail.com @description：
  */
 public class Common {
 
@@ -43,7 +44,8 @@ public class Common {
      * @param logLevel
      */
     public static void setLogLevel(Level logLevel) {
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
+            .getLogger(Logger.ROOT_LOGGER_NAME);
         logger.setLevel(logLevel);
     }
 }

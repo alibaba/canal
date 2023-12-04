@@ -1,19 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse;
 
-/**
- * @author: Xander
- * @date: Created in 2023/11/13 22:27
- * @email: zhrunxin33@gmail.com
- * @description: Testing thread safe
- */
-
-import ch.qos.logback.classic.Level;
-import com.alibaba.otter.canal.client.adapter.clickhouse.sync.Common;
-import com.alibaba.otter.canal.client.adapter.support.Dml;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -21,16 +7,32 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import com.alibaba.otter.canal.client.adapter.clickhouse.sync.Common;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+
+import ch.qos.logback.classic.Level;
+
+/**
+ * @author: Xander
+ * @date: Created in 2023/11/13 22:27
+ * @email: zhrunxin33@gmail.com
+ * @description: Testing thread safe
+ */
+
 @Ignore
 public class ClickHouseBatchSyncThreadSafeTest {
 
     private ClickHouseAdapter clickHouseAdapter;
 
-    private ExecutorService executorService;
+    private ExecutorService   executorService;
 
-    private String[] operations = new String[]{"INSERT", "UPDATE"};
+    private String[]          operations = new String[] { "INSERT", "UPDATE" };
 
-    private String[] tables = new String[]{"user", "customer"};
+    private String[]          tables     = new String[] { "user", "customer" };
 
     @Before
     public void init() {
@@ -55,12 +57,12 @@ public class ClickHouseBatchSyncThreadSafeTest {
                     dml.setTs(new Date().getTime());
                     dml.setType(dmlType);
                     dml.setDatabase("mytest");
-                    dml.setTable(tables[(int)Math.round(Math.random())]);
+                    dml.setTable(tables[(int) Math.round(Math.random())]);
                     List<Map<String, Object>> dataList = new ArrayList<>();
                     Map<String, Object> data = new LinkedHashMap<>();
                     dataList.add(data);
                     data.put("id", cou);
-                    data.put("name", "Eric"+cou);
+                    data.put("name", "Eric" + cou);
                     data.put("role_id", cou);
                     data.put("c_time", new Date());
                     data.put("test1", "sdfasdfawe中国asfwef");
@@ -73,7 +75,7 @@ public class ClickHouseBatchSyncThreadSafeTest {
         for (Future future : list) {
             future.get();
         }
-        Thread.sleep(10000L);   // waiting multiple threads execute successfully.
+        Thread.sleep(10000L); // waiting multiple threads execute successfully.
     }
 
 }

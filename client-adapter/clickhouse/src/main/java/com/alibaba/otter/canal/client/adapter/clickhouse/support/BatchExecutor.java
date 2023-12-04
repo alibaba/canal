@@ -1,9 +1,5 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.support;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.sql.DataSource;
 import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * sql批量执行器
@@ -64,7 +65,7 @@ public class BatchExecutor implements Closeable {
         pstmt.close();
     }
 
-    public void batchExecute(String sql, List<List<Map<String,?>>> batchValues) throws SQLException {
+    public void batchExecute(String sql, List<List<Map<String, ?>>> batchValues) throws SQLException {
         PreparedStatement pstmt = getConn().prepareStatement(sql);
         for (int i = 0; i < batchValues.size(); i++) {
             List<Map<String, ?>> values = batchValues.get(i);

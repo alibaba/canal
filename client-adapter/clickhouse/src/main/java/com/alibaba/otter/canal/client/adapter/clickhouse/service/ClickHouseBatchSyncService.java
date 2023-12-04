@@ -1,5 +1,18 @@
 package com.alibaba.otter.canal.client.adapter.clickhouse.service;
 
+import java.sql.Connection;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter.Feature;
@@ -10,18 +23,6 @@ import com.alibaba.otter.canal.client.adapter.clickhouse.support.SingleDml;
 import com.alibaba.otter.canal.client.adapter.clickhouse.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.Util;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.Connection;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * ClickHouse batch synchronize
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * @author: Xander
  * @date: Created in 2023/11/10 22:23
  * @email: zhrunxin33@gmail.com
+ * @version 1.1.8
  */
 public class ClickHouseBatchSyncService {
 
@@ -45,7 +47,7 @@ public class ClickHouseBatchSyncService {
     private BatchExecutor                               alterExecutors;       // Alter Single Executor(update/delete/truncate)
 
     private ExecutorService[]                           executorThreads;      // Be initialized once
-    
+
     private ScheduledExecutorService[]                  scheduledExecutors;
 
     private int                                         threads = 3;          // Default parallel thread count
