@@ -158,7 +158,9 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                     .messageTopics(message, destination.getTopic(), destination.getDynamicTopic());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
-                    String topicName = entry.getKey().replace('.', '_');
+                    // 与默认topic匹配直接返回默认topic
+                    String topicName = destination.getTopic().equals(entry.getKey()) ?
+                            entry.getKey() : entry.getKey().replace('.', '_');
                     com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
                     template.submit(() -> {
                         try {
