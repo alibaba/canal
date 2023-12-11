@@ -424,7 +424,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected LogPosition buildLastTransactionPosition(List<CanalEntry.Entry> entries) { // 初始化一下
         for (int i = entries.size() - 1; i > 0; i--) {
             CanalEntry.Entry entry = entries.get(i);
-            if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {// 尽量记录一个事务做为position
+            if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND || entry.getEntryType() == EntryType.HEARTBEAT) {// 尽量记录一个事务做为position
                 return buildLastPosition(entry);
             }
         }
