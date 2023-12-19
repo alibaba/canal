@@ -780,13 +780,16 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     EntryPosition entryPosition = null;
                     try {
                         CanalEntry.Entry entry = parseAndProfilingIfNecessary(event, true);
-                        if (justForPositionTimestamp && logPosition.getPostion() == null && event.getWhen() > 0) {
+                        if (logPosition.getPostion() == null && event.getWhen() > 0) {
                             // 初始位点
                             entryPosition = new EntryPosition(searchBinlogFile,
                                 event.getLogPos() - event.getEventLen(),
                                 event.getWhen() * 1000,
                                 event.getServerId());
                             entryPosition.setGtid(event.getHeader().getGtidSetStr());
+                        }
+
+                        if (justForPositionTimestamp) {
                             logPosition.setPostion(entryPosition);
                         }
 
@@ -805,6 +808,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
                             && endPosition.getPosition() <= logfileoffset) {
+                            if (logPosition.getPostion() == null) {
+                                logPosition.setPostion(entryPosition);
+                            }
                             return false;
                         }
 
