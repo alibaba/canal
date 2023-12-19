@@ -787,8 +787,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                                 event.getWhen() * 1000,
                                 event.getServerId());
                             entryPosition.setGtid(event.getHeader().getGtidSetStr());
+
                         }
-                        if (justForPositionTimestamp) {
+
+                        if(justForPositionTimestamp) {
                             logPosition.setPostion(entryPosition);
                         }
 
@@ -807,7 +809,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
                         if (StringUtils.equals(endPosition.getJournalName(), logfilename)
                             && endPosition.getPosition() <= logfileoffset) {
-                            if (logPosition.getPostion() == null) {
+                            if(logPosition.getPostion() == null) {
                                 logPosition.setPostion(entryPosition);
                             }
                             return false;
