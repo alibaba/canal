@@ -311,7 +311,19 @@ public class ESSyncUtil {
     }
 
     public static String appendCondition(String sql, String condition) {
-        return sql + " WHERE " + condition + " ";
+        sql = sql.replaceAll("group\\s+by","GROUP BY");
+        int groupByIndex = sql.lastIndexOf("GROUP BY");
+        if(groupByIndex > -1){
+            if(sql.substring(groupByIndex).indexOf(")") > -1){
+                sql = sql + " WHERE " + condition + " ";
+            }else{
+                //当主sql存在group by时，condition正确拼接
+                sql = sql.substring(0,groupByIndex) + " WHERE " + condition + " "+sql.substring(groupByIndex);
+            }
+        }else{
+            sql = sql + " WHERE " + condition + " ";
+        }
+        return sql;
     }
 
     public static void appendCondition(StringBuilder sql, Object value, String owner, String columnName) {

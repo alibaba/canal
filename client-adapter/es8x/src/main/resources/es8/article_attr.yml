@@ -1,0 +1,15 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esMapping:
+  _index: article
+  _id: id
+  #外表(仅部分字段),只执行更新操作(为索引更新部分字段，delete改update————非整个索引文档,不进行delete)
+  joinTable:
+    enabled: true
+    defaultValue:
+      #delete时默认值
+      click: 0
+    sql: "select article_id as id,click from article_attr"
+    etlCondition: "where id={}"
+    commitBatch: 3000

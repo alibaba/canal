@@ -68,7 +68,7 @@ public class ES6xTemplate implements ESTemplate {
     public void insert(ESSyncConfig.ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
-            if (mapping.isUpsert()) {
+            if (mapping.getJoinTable().isEnabled() || mapping.isUpsert()) {
                 ESUpdateRequest updateRequest = esConnection.new ES6xUpdateRequest(mapping.getIndex(),
                     mapping.getType(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
@@ -355,7 +355,7 @@ public class ES6xTemplate implements ESTemplate {
     private void append4Update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
-            if (mapping.isUpsert()) {
+            if (!mapping.getJoinTable().isEnabled() && mapping.isUpsert()) {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES6xUpdateRequest(mapping.getIndex(),
                     mapping.getType(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
