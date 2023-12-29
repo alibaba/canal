@@ -641,6 +641,8 @@ public class QueryLogEvent extends LogEvent {
 
     public static final int Q_GTID_FLAGS3                     = 130;
 
+    public static final int Q_CHARACTER_SET_COLLATIONS        = 131;
+
     private final void unpackVariables(LogBuffer buffer, final int end) throws IOException {
         int code = -1;
         try {
@@ -772,6 +774,11 @@ public class QueryLogEvent extends LogEvent {
                             buffer.forward(8);
                         }
                         break;
+                    case Q_CHARACTER_SET_COLLATIONS :
+                        // mariadb
+                        int count = buffer.getUint8();
+                        // character_set_collations= Lex_cstring((const char *) pos0 , (const char *) pos);
+                        buffer.forward(count * 4);
                     default:
                         /*
                          * That's why you must write status vars in growing
@@ -835,6 +842,8 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_XID";
             case Q_GTID_FLAGS3:
                 return "Q_GTID_FLAGS3";
+            case Q_CHARACTER_SET_COLLATIONS :
+                return "Q_CHARACTER_SET_COLLATIONS";
         }
         return "CODE#" + code;
     }
