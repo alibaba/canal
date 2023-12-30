@@ -1086,6 +1086,7 @@ public final class RowsLogBuffer {
                         value = builder.toString();
                         buffer.position(position + len);
                     } catch (IllegalArgumentException e) {
+                        buffer.position(position);
                         // print_json_diff failed, fallback to parse_value
                         parseJsonFromFullValue(len);
                     }
