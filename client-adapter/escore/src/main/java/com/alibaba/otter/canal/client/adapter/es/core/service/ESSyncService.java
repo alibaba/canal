@@ -881,6 +881,17 @@ public class ESSyncService {
                         Map<String, Object> esFieldData = new LinkedHashMap<>();
                         Object idVal = esTemplate.getESDataFromRS(mapping, rs, old, esFieldData);
 
+                        if(idVal == null){
+                        //聚合函数会导致rs.next()=true(无数据情况),此时idVal=null
+                            if(mapping.getJoinTable().isEnabled()){
+                                //外表(部分字段索引完全删除时，对字段进行设置初始值/null)
+                                esFieldData = new LinkedHashMap<>();
+                                idVal = esTemplate.getESDataFromDmlData(mapping, data,esFieldData);
+                                esTemplate.update(mapping,idVal,esFieldData);
+                            }
+                            continue;
+                        }
+
                         if (logger.isTraceEnabled()) {
                             logger.trace(
                                     "Main table update to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
