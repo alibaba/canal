@@ -50,7 +50,7 @@ public abstract class AbstractEtlService {
                     values.add(param);
                 }
 
-                sql += " " + etlCondition;
+                sql = setCondition(sql, etlCondition);
             }
 
             if (logger.isDebugEnabled()) {
@@ -117,6 +117,22 @@ public abstract class AbstractEtlService {
             etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
         }
         return etlResult;
+    }
+
+    public static String setCondition(String sql, String condition) {
+        sql = sql.replaceAll("group\\s+by","GROUP BY");
+        int groupByIndex = sql.lastIndexOf("GROUP BY");
+        if(groupByIndex > -1){
+            if(sql.substring(groupByIndex).indexOf(")") > -1){
+                sql += " " + condition;
+            }else{
+                //当主sql存在group by时，condition正确拼接
+                sql = sql.substring(0,groupByIndex) + " " + condition + " "+sql.substring(groupByIndex);
+            }
+        }else{
+            sql += " " + condition;
+        }
+        return sql;
     }
 
     protected abstract boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
