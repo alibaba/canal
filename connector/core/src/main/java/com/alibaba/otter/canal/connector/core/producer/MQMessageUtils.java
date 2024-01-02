@@ -445,9 +445,7 @@ public class MQMessageUtils {
                 if (!data.isEmpty()) {
                     flatMessage.setData(data);
                 }
-                if (!old.isEmpty()) {
-                    flatMessage.setOld(old);
-                }
+                flatMessage.setOld(old); 
             }
         }
         return flatMessages;
