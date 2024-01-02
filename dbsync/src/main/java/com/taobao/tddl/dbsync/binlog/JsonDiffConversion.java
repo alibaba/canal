@@ -73,12 +73,13 @@ public class JsonDiffConversion {
                 buffer.forward((int) value_length);
             }
 
-            if (buffer.position - position >= len) {
+            // see https://github.com/alibaba/canal/pull/5018
+            if (buffer.position() - position >= len) {
                 break;
             }
         }
 
-        if (buffer.position - position != len) {
+        if (buffer.position() - position != len) {
             throw new IllegalArgumentException("reading json diff");
         }
 
@@ -137,7 +138,8 @@ public class JsonDiffConversion {
                 builder.append(jsonBuilder);
             }
 
-            if (buffer.position - position >= len) {
+            // see https://github.com/alibaba/canal/pull/5018
+            if (buffer.position() - position >= len) {
                 builder.append(")");
                 break;
             }
@@ -153,7 +155,7 @@ public class JsonDiffConversion {
             diff_i++;
         }
 
-        if (buffer.position - position != len) {
+        if (buffer.position() - position != len) {
             throw new IllegalArgumentException("reading json diff");
         }
 
