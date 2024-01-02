@@ -19,7 +19,7 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 
 /**
  * Extracting JDBC type & value information from packed rows-buffer.
- * 
+ *
  * @see mysql-5.1.60/sql/log_event.cc - Rows_log_event::print_verbose_one_row
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
@@ -70,7 +70,7 @@ public final class RowsLogBuffer {
 
     /**
      * Extracting next row from packed buffer.
-     * 
+     *
      * @see mysql-5.1.60/sql/log_event.cc -
      * Rows_log_event::print_verbose_one_row
      */
@@ -104,7 +104,7 @@ public final class RowsLogBuffer {
 
     /**
      * Extracting next field value from packed buffer.
-     * 
+     *
      * @see mysql-5.1.60/sql/log_event.cc -
      * Rows_log_event::print_verbose_one_row
      */
@@ -114,7 +114,7 @@ public final class RowsLogBuffer {
 
     /**
      * Extracting next field value from packed buffer.
-     * 
+     *
      * @see mysql-5.1.60/sql/log_event.cc -
      * Rows_log_event::print_verbose_one_row
      */
@@ -277,7 +277,7 @@ public final class RowsLogBuffer {
 
     /**
      * Extracting next field value from packed buffer.
-     * 
+     *
      * @see mysql-5.1.60/sql/log_event.cc - log_event_print_value
      */
     final Serializable fetchValue(String columnName, int columnIndex, int type, final int meta, boolean isBinary) {
@@ -1077,30 +1077,21 @@ public final class RowsLogBuffer {
                 if (partialBits.get(1)) {
                     // print_json_diff
                     int position = buffer.position();
-                    StringBuilder builder = JsonDiffConversion.print_json_diff(buffer,
-                        len,
-                        columnName,
-                        columnIndex,
-                            charset);
-                    value = builder.toString();
-                    buffer.position(position + len);
-                } else {
-                    if (0 == len) {
-                        // fixed issue #1 by lava, json column of zero length
-                        // has no
-                        // value, value parsing should be skipped
-                        value = "";
-                    } else {
-                        int position = buffer.position();
-                        Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(),
-                            buffer,
-                            len - 1,
+                    try {
+                        StringBuilder builder = JsonDiffConversion.print_json_diff(buffer,
+                                len,
+                                columnName,
+                                columnIndex,
                                 charset);
-                        StringBuilder builder = new StringBuilder();
-                        jsonValue.toJsonString(builder, charset);
                         value = builder.toString();
                         buffer.position(position + len);
+                    } catch (IllegalArgumentException e) {
+                        buffer.position(position);
+                        // print_json_diff failed, fallback to parse_value
+                        parseJsonFromFullValue(len);
                     }
+                } else {
+                    parseJsonFromFullValue(len);
                 }
                 javaType = Types.VARCHAR;
                 length = len;
@@ -1153,6 +1144,25 @@ public final class RowsLogBuffer {
         }
 
         return value;
+    }
+
+    private void parseJsonFromFullValue(int len) {
+        if (0 == len) {
+            // fixed issue #1 by lava, json column of zero length
+            // has no
+            // value, value parsing should be skipped
+            value = "";
+        } else {
+            int position = buffer.position();
+            Json_Value jsonValue = JsonConversion.parse_value(buffer.getUint8(),
+                buffer,
+                len - 1,
+                    charset);
+            StringBuilder builder = new StringBuilder();
+            jsonValue.toJsonString(builder, charset);
+            value = builder.toString();
+            buffer.position(position + len);
+        }
     }
 
     public final boolean isNull() {

@@ -3,13 +3,14 @@ package com.taobao.tddl.dbsync.binlog;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.taobao.tddl.dbsync.binlog.JsonConversion.Json_Value;
 import com.taobao.tddl.dbsync.binlog.JsonConversion.Json_enum_type;
 
 /**
  * 处理mysql8.0 parital json diff解析
- * 
+ *
  * @author agapple 2018年11月4日 下午3:53:46
  * @since 1.1.2
  */
@@ -71,12 +72,20 @@ public class JsonDiffConversion {
 
                 buffer.forward((int) value_length);
             }
+
+            if (buffer.position - position >= len) {
+                break;
+            }
+        }
+
+        if (buffer.position - position != len) {
+            throw new IllegalArgumentException("reading json diff");
         }
 
         // Print function names in reverse order.
         StringBuilder builder = new StringBuilder();
         for (int i = operation_names.size() - 1; i >= 0; i--) {
-            if (i == 0 || operation_names.get(i - 1) != operation_names.get(i)) {
+            if (i == 0 || !Objects.equals(operation_names.get(i - 1), operation_names.get(i))) {
                 builder.append(operation_names.get(i)).append("(");
             }
         }
@@ -90,7 +99,7 @@ public class JsonDiffConversion {
 
         // In case this vector is empty (a no-op), make an early return
         // after printing only the column name
-        if (operation_names.size() == 0) {
+        if (operation_names.isEmpty()) {
             return builder;
         }
 
@@ -128,8 +137,13 @@ public class JsonDiffConversion {
                 builder.append(jsonBuilder);
             }
 
+            if (buffer.position - position >= len) {
+                builder.append(")");
+                break;
+            }
+
             // Print closing parenthesis
-            if (!buffer.hasRemaining() || operation_names.get(diff_i + 1) != operation_names.get(diff_i)) {
+            if (!buffer.hasRemaining() || !Objects.equals(operation_names.get(diff_i + 1), operation_names.get(diff_i))) {
                 builder.append(")");
             }
 
@@ -137,6 +151,10 @@ public class JsonDiffConversion {
                 builder.append(", ");
             }
             diff_i++;
+        }
+
+        if (buffer.position - position != len) {
+            throw new IllegalArgumentException("reading json diff");
         }
 
         return builder;
