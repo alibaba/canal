@@ -93,6 +93,10 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 
 - 参考文档: [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
 
+## 基于canal开发的工具
+
+-  canal2sql(基于binlog生成SQL) : [https://github.com/zhuchao941/canal2sql]
+
 ## 相关开源&产品
 
 - [canal 消费端开源项目: Otter](http://github.com/alibaba/otter)
