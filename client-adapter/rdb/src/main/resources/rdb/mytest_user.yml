@@ -17,6 +17,8 @@ dbMapping:
     c_time:
     test1:
   etlCondition: "where c_time>={}"
+  fieldFilters: # 字段过滤器,匹配成功才会同步,多个字段是或的关系, operator支持"=,!=,>,>=,<,<=,like,not like"
+    - { field: 'region_code',value: '410101', operator: 'like' }
   commitBatch: 3000 # 批量提交的大小
 
 

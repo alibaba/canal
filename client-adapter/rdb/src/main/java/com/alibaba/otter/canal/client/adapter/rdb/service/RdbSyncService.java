@@ -4,11 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +26,7 @@ import com.alibaba.otter.canal.client.adapter.rdb.support.SingleDml;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+import org.springframework.util.CollectionUtils;
 
 /**
  * RDB同步操作业务
@@ -198,17 +195,82 @@ public class RdbSyncService {
             List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
             singleDmls.forEach(singleDml -> {
                 int hash = pkHash(config.getDbMapping(), singleDml.getData());
-                SyncItem syncItem = new SyncItem(config, singleDml);
-                dmlsPartition[hash].add(syncItem);
+                if (fieldFilterProcess(config, singleDml)) {
+                    SyncItem syncItem = new SyncItem(config, singleDml);
+                    dmlsPartition[hash].add(syncItem);
+                }
             });
         } else {
             int hash = 0;
             List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
             singleDmls.forEach(singleDml -> {
-                SyncItem syncItem = new SyncItem(config, singleDml);
-                dmlsPartition[hash].add(syncItem);
+                if (fieldFilterProcess(config, singleDml)) {
+                    SyncItem syncItem = new SyncItem(config, singleDml);
+                    dmlsPartition[hash].add(syncItem);
+                }
             });
         }
+    }
+
+    private boolean fieldFilterProcess(MappingConfig mappingConfig, SingleDml singleDml) {
+        // 过滤表
+        if (!singleDml.getTable().equalsIgnoreCase(mappingConfig.getDbMapping().getTable())) {
+            return false;
+        }
+        // 过滤字段
+        List<Map<String, String>> fieldFilters = mappingConfig.getDbMapping().getFieldFilters();
+        if (CollectionUtils.isEmpty(fieldFilters)) {
+            return true;
+        }
+        for (Map<String, String> fieldFilter : fieldFilters) {
+            String field = fieldFilter.get("field");
+            String value = fieldFilter.get("value");
+            String operator = fieldFilter.get("operator");
+            if (StringUtils.isEmpty(field) || StringUtils.isEmpty(value) || StringUtils.isEmpty(operator)) {
+                continue;
+            }
+            Map<String, Object> data = singleDml.getData();
+            if (CollectionUtils.isEmpty(data)) {
+                continue;
+            }
+            Object fieldValue = data.get(field);
+            if (Objects.isNull(fieldValue)) {
+                continue;
+            }
+            boolean match = false;
+            switch (operator) {
+                case "=":
+                    match = fieldValue.toString().equals(value);
+                    break;
+                case "!=":
+                    match = !fieldValue.toString().equals(value);
+                    break;
+                case ">":
+                    match = Double.parseDouble(fieldValue.toString()) > Double.parseDouble(value);
+                    break;
+                case ">=":
+                    match = Double.parseDouble(fieldValue.toString()) >= Double.parseDouble(value);
+                    break;
+                case "<":
+                    match = Double.parseDouble(fieldValue.toString()) < Double.parseDouble(value);
+                    break;
+                case "<=":
+                    match = Double.parseDouble(fieldValue.toString()) <= Double.parseDouble(value);
+                    break;
+                case "like":
+                    match = fieldValue.toString().contains(value);
+                    break;
+                case "not like":
+                    match = !fieldValue.toString().contains(value);
+                    break;
+                default:
+                    break;
+            }
+            if (match) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
