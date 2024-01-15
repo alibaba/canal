@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.alibaba.druid.DbType;
+import com.alibaba.druid.sql.SQLUtils;
+import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
+import com.alibaba.druid.sql.visitor.VisitorFeature;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,7 +153,14 @@ public class MemoryTableMeta implements TableMetaTSDB {
             StringBuilder data = new StringBuilder(4 * 1024);
             for (String table : schema.showTables()) {
                 SchemaObject schemaObject = schema.findTable(table);
-                schemaObject.getStatement().output(data);
+                // fixed issue #4899
+                // snapshot输出的DDL语句未正确处理mysql keyword
+                // 导致canal重启回滚时会出现ddl解析失败的问题
+                // schemaObject.getStatement().output(data);
+                SQLASTOutputVisitor visitor = SQLUtils.createOutputVisitor(data, DbType.mysql);
+                visitor.config(VisitorFeature.OutputNameQuote, true);
+                schemaObject.getStatement().accept(visitor);
+
                 data.append("; \n");
             }
             schemaDdls.put(schema.getName(), data.toString());
