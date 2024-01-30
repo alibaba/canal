@@ -17,10 +17,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig.DbMapping;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
-import com.alibaba.otter.canal.client.adapter.support.AbstractEtlService;
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.*;
 
 /**
  * RDB ETL 操作业务类
@@ -44,7 +41,9 @@ public class RdbEtlService extends AbstractEtlService {
      */
     public EtlResult importData(List<String> params) {
         DbMapping dbMapping = config.getDbMapping();
-        String sql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable();
+        // 获取源数据源，根据数据库类型拼装数据库名和表名
+        DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType());
         return importData(sql, params);
     }
 
