@@ -799,20 +799,7 @@ public class ESSyncService {
                         }
                     }
 
-                    Map<String, Object> paramsTmp = new LinkedHashMap<>();
-                    for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
-                        for (FieldItem fieldItem : entry.getValue()) {
-                            Object value = esTemplate
-                                .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
-                            String fieldName = fieldItem.getFieldName();
-                            // 判断是否是主键
-                            if (fieldName.equals(mapping.getId())) {
-                                fieldName = "_id";
-                            }
-                            paramsTmp.put(fieldName, value);
-                        }
-                    }
-
+                    Object idVal = esTemplate.getIdValFromRS(mapping, rs);
                     if (logger.isDebugEnabled()) {
                         logger.trace(
                             "Join table update es index by query whole sql, destination:{}, table: {}, index: {}",
@@ -820,7 +807,7 @@ public class ESSyncService {
                             dml.getTable(),
                             mapping.getIndex());
                     }
-                    esTemplate.updateByQuery(config, paramsTmp, esFieldData);
+                    esTemplate.update(mapping,idVal,esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
