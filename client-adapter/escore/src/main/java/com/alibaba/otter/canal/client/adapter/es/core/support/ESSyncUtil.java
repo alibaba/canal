@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
@@ -310,18 +311,16 @@ public class ESSyncUtil {
         return condition.toString();
     }
 
+
+
+    private static final Pattern endGroupByPattern = Pattern.compile("GROUP\\ BY(?!(.*)ON)",Pattern.CASE_INSENSITIVE);
     public static String appendCondition(String sql, String condition) {
-        sql = sql.replaceAll("group\\s+by","GROUP BY");
-        int groupByIndex = sql.lastIndexOf("GROUP BY");
-        if(groupByIndex > -1){
-            if(sql.substring(groupByIndex).indexOf(")") > -1){
-                sql = sql + " WHERE " + condition + " ";
-            }else{
-                //当主sql存在group by时，condition正确拼接
-                sql = sql.substring(0,groupByIndex) + " WHERE " + condition + " "+sql.substring(groupByIndex);
-            }
+        String[] split = endGroupByPattern.split(sql);
+        if(split.length > 1){
+            //当主sql存在group by时，condition正确拼接
+            sql = split[0] + " WHERE " + condition + " GROUP BY "+split[1];
         }else{
-            sql = sql + " WHERE " + condition + " ";
+            sql = split[0] + " WHERE " + condition + " ";
         }
         return sql;
     }
