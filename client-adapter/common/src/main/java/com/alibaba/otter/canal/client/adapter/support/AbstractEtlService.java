@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
@@ -119,18 +120,14 @@ public abstract class AbstractEtlService {
         return etlResult;
     }
 
+    private static final Pattern endGroupByPattern = Pattern.compile("GROUP\\ BY(?!(.*)ON)",Pattern.CASE_INSENSITIVE);
     public static String setCondition(String sql, String condition) {
-        sql = sql.replaceAll("group\\s+by","GROUP BY");
-        int groupByIndex = sql.lastIndexOf("GROUP BY");
-        if(groupByIndex > -1){
-            if(sql.substring(groupByIndex).indexOf(")") > -1){
-                sql += " " + condition;
-            }else{
-                //当主sql存在group by时，condition正确拼接
-                sql = sql.substring(0,groupByIndex) + " " + condition + " "+sql.substring(groupByIndex);
-            }
+        String[] split = endGroupByPattern.split(sql);
+        if(split.length > 1){
+            //当主sql存在group by时，condition正确拼接
+            sql = split[0] + " " + condition + " GROUP BY "+split[1];
         }else{
-            sql += " " + condition;
+            sql = split[0] + " " + condition;
         }
         return sql;
     }
