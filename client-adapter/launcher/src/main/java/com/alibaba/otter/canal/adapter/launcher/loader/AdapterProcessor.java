@@ -224,7 +224,7 @@ public class AdapterProcessor {
                                     logger.error("finish turn off switch of destination:" + canalDestination);
                                 } else {
                                     canalMsgConsumer.ack();
-                                    logger.error(e.getMessage() + " Error sync but ACK!");
+                                    logger.error(e.getMessage() + " Error sync but ACK!", e);
                                 }
                             }
                             Thread.sleep(500);
