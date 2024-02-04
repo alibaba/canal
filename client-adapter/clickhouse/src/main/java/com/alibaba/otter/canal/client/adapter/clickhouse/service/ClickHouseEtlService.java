@@ -13,10 +13,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.otter.canal.client.adapter.clickhouse.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.clickhouse.config.MappingConfig.DbMapping;
 import com.alibaba.otter.canal.client.adapter.clickhouse.support.SyncUtil;
-import com.alibaba.otter.canal.client.adapter.support.AbstractEtlService;
-import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
-import com.alibaba.otter.canal.client.adapter.support.EtlResult;
-import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.*;
 
 /**
  * ClickHouse ETL 操作业务类
@@ -42,7 +39,8 @@ public class ClickHouseEtlService extends AbstractEtlService {
      */
     public EtlResult importData(List<String> params) {
         DbMapping dbMapping = config.getDbMapping();
-        String sql = "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable();
+        DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
+        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType());
         return importData(sql, params);
     }
 
