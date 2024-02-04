@@ -1,5 +1,13 @@
 package com.alibaba.otter.canal.client.pulsarmq;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.pulsar.client.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.CanalMQConnector;
 import com.alibaba.otter.canal.client.CanalMessageDeserializer;
@@ -9,13 +17,6 @@ import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
-import org.apache.pulsar.client.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * PulsarMQ的连接
@@ -256,10 +257,10 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
 
         try {
             this.consumer = builder.subscribe();
+            connected = true;
         } catch (PulsarClientException e) {
             throw new RuntimeException(e);
         }
-        connected = true;
     }
 
 

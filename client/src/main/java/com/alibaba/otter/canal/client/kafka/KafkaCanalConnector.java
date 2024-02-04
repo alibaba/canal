@@ -78,14 +78,15 @@ public class KafkaCanalConnector implements CanalMQConnector {
             return;
         }
 
-        connected = true;
         if (kafkaConsumer == null && !flatMessage) {
             kafkaConsumer = new KafkaConsumer<>(properties);
-
         }
+
         if (kafkaConsumer2 == null && flatMessage) {
             kafkaConsumer2 = new KafkaConsumer<>(properties);
         }
+
+        connected = true;
     }
 
     /**
