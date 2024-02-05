@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.common.utils.AddressUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.alibaba.otter.canal.client.CanalConnector;
@@ -47,7 +48,7 @@ public class CanalTCPConsumer implements CanalMsgConsumer {
             batchSize = Integer.parseInt(batchSizePro);
         }
         if (StringUtils.isNotBlank(host)) {
-            String[] ipPort = host.split(":");
+            String[] ipPort =  AddressUtils.splitIPAndPort(host);
             SocketAddress sa = new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1]));
             this.canalConnector = new SimpleCanalConnector(sa, username, password, destination);
         } else {

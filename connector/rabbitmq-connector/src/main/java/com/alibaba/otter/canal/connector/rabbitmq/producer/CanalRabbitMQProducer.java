@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.CanalException;
+import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
@@ -61,7 +62,7 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
                 throw new CanalException("failed to parse host", ex);
             }
         } else if (servers.contains(":")) {
-            String[] serverHostAndPort = servers.split(":");
+            String[] serverHostAndPort = AddressUtils.splitIPAndPort(servers);
             factory.setHost(serverHostAndPort[0]);
             factory.setPort(Integer.parseInt(serverHostAndPort[1]));
         } else {
