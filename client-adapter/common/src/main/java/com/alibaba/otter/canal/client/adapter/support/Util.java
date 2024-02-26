@@ -329,7 +329,7 @@ public class Util {
     }
 
     /**
-     * Check if the datetime string has millisecond or microsecond units
+     * Check if the time string has millisecond or microsecond units
      * @param timeStr time string
      * @return boolean
      */
@@ -352,7 +352,7 @@ public class Util {
             return false;
         }
         String[] times = StringUtils.split(datetimeStr, ".");
-        return times.length > 1 && times[times.length - 1].length() >= 4;
+        return times.length > 1 && times[times.length - 1].length() > 3;
     }
 
 
