@@ -329,11 +329,25 @@ public class Util {
     }
 
     /**
+     * Check if the datetime string has millisecond or microsecond units
+     * @param timeStr time string
+     * @return boolean
+     */
+    public static boolean isAccuracyOverSecond(String timeStr){
+        if (StringUtils.isEmpty(timeStr)) {
+            return false;
+        }
+        String[] times = StringUtils.split(timeStr, ".");
+        return times.length > 1 && !times[times.length - 1].isEmpty();
+    }
+
+
+    /**
      * Check if the datetime string has microsecond or nanosecond units
      * @param datetimeStr datetime string
      * @return boolean
      */
-    public static boolean isMoreThanMilliSecond(String datetimeStr){
+    public static boolean isAccuracyOverMillisecond(String datetimeStr){
         if (StringUtils.isEmpty(datetimeStr)) {
             return false;
         }

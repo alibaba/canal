@@ -221,8 +221,7 @@ public class SyncUtil {
                     pstmt.setTime(i, new java.sql.Time(((java.util.Date) value).getTime()));
                 } else if (value instanceof String) {
                     String v = (String) value;
-                    //Check if the time string has microsecond or nanosecond units
-                    if(Util.isMoreThanMilliSecond(v)) {
+                    if(Util.isAccuracyOverSecond(v)) {
                         //the java.sql.time doesn't support for even millisecond, only setObject works here.
                         pstmt.setObject(i, v);
                     }else {
@@ -245,8 +244,7 @@ public class SyncUtil {
                 } else if (value instanceof String) {
                     String v = (String) value;
                     if (!v.startsWith("0000-00-00")) {
-                        //Check if the datetime string has microsecond or nanosecond units
-                        if(Util.isMoreThanMilliSecond(v)){
+                        if(Util.isAccuracyOverMillisecond(v)){
                             //convert to ISO-8601 standard format, with up to nanoseconds (9 digits) precision
                             LocalDateTime isoDatetime = Util.parseISOLocalDateTime(v);
                             if (isoDatetime != null) {
