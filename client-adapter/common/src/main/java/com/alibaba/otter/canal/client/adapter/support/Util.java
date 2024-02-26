@@ -327,4 +327,39 @@ public class Util {
 
         return null;
     }
+
+    /**
+     * Check if the datetime string has microsecond or nanosecond units
+     * @param datetimeStr datetime string
+     * @return boolean
+     */
+    public static boolean isMoreThanMilliSecond(String datetimeStr){
+        if (StringUtils.isEmpty(datetimeStr)) {
+            return false;
+        }
+        String[] times = StringUtils.split(datetimeStr, ".");
+        return times.length > 1 && times[times.length - 1].length() >= 4;
+    }
+
+
+    /**
+     * MySQL has fractional seconds support for TIME, DATETIME, and TIMESTAMP values, with up to microseconds (6 digits) precision.
+     * ISO-8601 standard format is with up to nanoseconds (9 digits) precision, which is sufficient for storing MySQL time-related data.
+     * @param datetimeStr datetime string
+     * @return LocalDateTime
+     */
+    public static LocalDateTime parseISOLocalDateTime(String datetimeStr) {
+        if (StringUtils.isEmpty(datetimeStr)) {
+            return null;
+        }
+        datetimeStr = datetimeStr.trim();
+        try {
+            //Replace SPACE in middle with `T` to comply with ISO-8601 standard format
+            return LocalDateTime.parse(datetimeStr.replace(" ", "T"));
+        }catch (Exception e){
+            logger.error("Convert datetime string to ISOLocalDateTime fail:{}", datetimeStr, e);
+        }
+        return null;
+    }
+
 }
