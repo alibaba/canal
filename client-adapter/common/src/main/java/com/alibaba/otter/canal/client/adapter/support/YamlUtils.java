@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -18,6 +19,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.PropertyPlaceholderHelper;
 
 public class YamlUtils {
 
@@ -87,7 +89,13 @@ public class YamlUtils {
             }
             
             ConfigurationPropertySource sources = new MapConfigurationPropertySource(properties);
-            Binder binder = new Binder(sources);
+            PropertyPlaceholderHelper propertyPlaceholderHelper = new PropertyPlaceholderHelper("${", "}");
+            Binder binder = new Binder(Arrays.asList(sources), value -> {
+                if (value instanceof String) {
+                    return propertyPlaceholderHelper.replacePlaceholders((String)value, baseProperties);
+                }
+                return value;
+            });
             return binder.bind(prefix, Bindable.of(clazz)).get();
         } catch (Exception e) {
             throw new RuntimeException(e);
