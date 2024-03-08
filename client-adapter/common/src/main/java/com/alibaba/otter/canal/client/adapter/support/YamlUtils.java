@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -87,12 +88,12 @@ public class YamlUtils {
                     entry.setValue(((OriginTrackedValue) value).getValue());
                 }
             }
-            
+
             ConfigurationPropertySource sources = new MapConfigurationPropertySource(properties);
             PropertyPlaceholderHelper propertyPlaceholderHelper = new PropertyPlaceholderHelper("${", "}");
             Binder binder = new Binder(Arrays.asList(sources), value -> {
                 if (value instanceof String) {
-                    return propertyPlaceholderHelper.replacePlaceholders((String)value, baseProperties);
+                    return propertyPlaceholderHelper.replacePlaceholders((String) value, baseProperties);
                 }
                 return value;
             });

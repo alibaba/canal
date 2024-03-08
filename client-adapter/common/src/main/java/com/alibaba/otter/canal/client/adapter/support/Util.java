@@ -28,9 +28,9 @@ import com.google.common.cache.LoadingCache;
 
 public class Util {
 
-    private static final Logger logger = LoggerFactory.getLogger(Util.class);
+    private static final Logger logger                = LoggerFactory.getLogger(Util.class);
 
-    public static final String AUTO_GENERATED_PREFIX = "AUTO_GENERATED_";
+    public static final String  AUTO_GENERATED_PREFIX = "AUTO_GENERATED_";
 
     /**
      * 通过DS执行sql
@@ -165,39 +165,38 @@ public class Util {
 
     public static ThreadPoolExecutor newFixedDaemonThreadPool(int nThreads, long keepAliveTime) {
         return new ThreadPoolExecutor(nThreads,
-                nThreads,
-                keepAliveTime,
-                TimeUnit.MILLISECONDS,
-                new SynchronousQueue<>(),
-                DaemonThreadFactory.daemonThreadFactory,
-                (r, exe) -> {
-                    if (!exe.isShutdown()) {
-                        try {
-                            exe.getQueue().put(r);
-                        } catch (InterruptedException e) {
-                            // ignore
-                        }
+            nThreads,
+            keepAliveTime,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue<>(),
+            DaemonThreadFactory.daemonThreadFactory,
+            (r, exe) -> {
+                if (!exe.isShutdown()) {
+                    try {
+                        exe.getQueue().put(r);
+                    } catch (InterruptedException e) {
+                        // ignore
                     }
                 }
-        );
+            });
     }
 
     public static ThreadPoolExecutor newSingleDaemonThreadExecutor(long keepAliveTime) {
         return new ThreadPoolExecutor(1,
-                1,
-                keepAliveTime,
-                TimeUnit.MILLISECONDS,
-                new SynchronousQueue<>(),
-                DaemonThreadFactory.daemonThreadFactory,
-                (r, exe) -> {
-                    if (!exe.isShutdown()) {
-                        try {
-                            exe.getQueue().put(r);
-                        } catch (InterruptedException e) {
-                            // ignore
-                        }
+            1,
+            keepAliveTime,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue<>(),
+            DaemonThreadFactory.daemonThreadFactory,
+            (r, exe) -> {
+                if (!exe.isShutdown()) {
+                    try {
+                        exe.getQueue().put(r);
+                    } catch (InterruptedException e) {
+                        // ignore
                     }
-                });
+                }
+            });
     }
 
     public final static String  timeZone;    // 当前时区
@@ -330,10 +329,11 @@ public class Util {
 
     /**
      * Check if the time string has millisecond or microsecond units
+     * 
      * @param timeStr time string
      * @return boolean
      */
-    public static boolean isAccuracyOverSecond(String timeStr){
+    public static boolean isAccuracyOverSecond(String timeStr) {
         if (StringUtils.isEmpty(timeStr)) {
             return false;
         }
@@ -341,13 +341,13 @@ public class Util {
         return times.length > 1 && !times[times.length - 1].isEmpty();
     }
 
-
     /**
      * Check if the datetime string has microsecond or nanosecond units
+     * 
      * @param datetimeStr datetime string
      * @return boolean
      */
-    public static boolean isAccuracyOverMillisecond(String datetimeStr){
+    public static boolean isAccuracyOverMillisecond(String datetimeStr) {
         if (StringUtils.isEmpty(datetimeStr)) {
             return false;
         }
@@ -355,10 +355,12 @@ public class Util {
         return times.length > 1 && times[times.length - 1].length() > 3;
     }
 
-
     /**
-     * MySQL has fractional seconds support for TIME, DATETIME, and TIMESTAMP values, with up to microseconds (6 digits) precision.
-     * ISO-8601 standard format is with up to nanoseconds (9 digits) precision, which is sufficient for storing MySQL time-related data.
+     * MySQL has fractional seconds support for TIME, DATETIME, and TIMESTAMP
+     * values, with up to microseconds (6 digits) precision. ISO-8601 standard
+     * format is with up to nanoseconds (9 digits) precision, which is sufficient
+     * for storing MySQL time-related data.
+     * 
      * @param datetimeStr datetime string
      * @return LocalDateTime
      */
@@ -368,9 +370,9 @@ public class Util {
         }
         datetimeStr = datetimeStr.trim();
         try {
-            //Replace SPACE in middle with `T` to comply with ISO-8601 standard format
+            // Replace SPACE in middle with `T` to comply with ISO-8601 standard format
             return LocalDateTime.parse(datetimeStr.replace(" ", "T"));
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("Convert datetime string to ISOLocalDateTime fail:{}", datetimeStr, e);
         }
         return null;
