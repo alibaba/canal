@@ -1,0 +1,9 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esMapping:
+  _index: article
+  _id: id
+  sql: "select id,user_id,title,avatar,body,create_time from article"
+  etlCondition: "where id ={}"
+  commitBatch: 3000

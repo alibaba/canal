@@ -105,6 +105,7 @@ public class ESSyncConfig implements AdapterConfig {
 
         @Value("${_id}")
         private String id;
+        private JoinTable                    joinTable    = new JoinTable();
         private boolean                      upsert          = false;
         private String                       pk;
         private Map<String, RelationMapping> relations       = new LinkedHashMap<>();
@@ -142,6 +143,14 @@ public class ESSyncConfig implements AdapterConfig {
 
         public void setId(String id) {
             this.id = id;
+        }
+
+        public JoinTable getJoinTable() {
+            return joinTable;
+        }
+
+        public void setJoinTable(JoinTable joinTable) {
+            this.joinTable = joinTable;
         }
 
         public boolean isUpsert() {
@@ -230,6 +239,34 @@ public class ESSyncConfig implements AdapterConfig {
 
         public void setSchemaItem(SchemaItem schemaItem) {
             this.schemaItem = schemaItem;
+        }
+
+        /**
+         * 外表(仅部分字段),只执行更新操作(为索引更新部分字段，delete改update————非整个索引文档,不进行delete)
+         * delete改update:更新索引值且不进行upsert
+         * insert:固定进行upsert
+         *
+         */
+        public static class JoinTable{
+            private boolean enabled = false;
+            //delete改update时设置defaultValue
+            private Map<String, String> defaultValue = new LinkedHashMap<>();
+
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public Map<String, String> getDefaultValue() {
+                return defaultValue;
+            }
+
+            public void setDefaultValue(Map<String, String> defaultValue) {
+                this.defaultValue = defaultValue;
+            }
         }
     }
 

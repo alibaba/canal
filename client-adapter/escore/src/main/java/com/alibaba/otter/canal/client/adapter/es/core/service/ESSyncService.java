@@ -1,9 +1,11 @@
 package com.alibaba.otter.canal.client.adapter.es.core.service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +92,7 @@ public class ESSyncService {
 
             long begin = System.currentTimeMillis();
 
+            delete2update(config, dml);
             String type = dml.getType();
             if (type != null && type.equalsIgnoreCase("INSERT")) {
                 insert(config, dml);
@@ -110,6 +113,34 @@ public class ESSyncService {
         } catch (Throwable e) {
             logger.error("sync error, es index: {}, DML : {}", config.getEsMapping().getIndex(), dml);
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 外表(仅部分字段),只执行更新操作(为索引更新部分字段，delete改update————非整个索引文档,不进行delete)
+     * @param config
+     * @param dml
+     */
+    public void delete2update(ESSyncConfig config,Dml dml){
+        if(!config.getEsMapping().getJoinTable().isEnabled()) return;
+
+        if(dml.getType().equalsIgnoreCase("DELETE")){
+            dml.setType("UPDATE");
+            List<Map<String, Object>> old = new ArrayList<>();
+            Map<String, String> defaultValue = config.getEsMapping().getJoinTable().getDefaultValue();
+            List<String> idColumns = config.getMapping().getSchemaItem().getIdFieldItem(config.getMapping()).getColumnItems().stream().map(ColumnItem::getColumnName).collect(Collectors.toList());
+            for (Map<String, Object> item : dml.getData()) {
+                Map<String, Object> clone = (Map<String, Object>) ObjectUtils.clone(item);
+                old.add(clone);
+                item.entrySet().forEach(entry->{
+                    if(!idColumns.contains(entry.getKey()) && !entry.getKey().equals("id")){
+                        entry.setValue(defaultValue.getOrDefault(entry.getKey(),null));
+                    }else{
+                        clone.remove(entry.getKey());
+                    }
+                });
+            }
+            dml.setOld(old);
         }
     }
 
@@ -768,20 +799,7 @@ public class ESSyncService {
                         }
                     }
 
-                    Map<String, Object> paramsTmp = new LinkedHashMap<>();
-                    for (Map.Entry<FieldItem, List<FieldItem>> entry : tableItem.getRelationTableFields().entrySet()) {
-                        for (FieldItem fieldItem : entry.getValue()) {
-                            Object value = esTemplate
-                                .getValFromRS(mapping, rs, fieldItem.getFieldName(), fieldItem.getFieldName());
-                            String fieldName = fieldItem.getFieldName();
-                            // 判断是否是主键
-                            if (fieldName.equals(mapping.getId())) {
-                                fieldName = "_id";
-                            }
-                            paramsTmp.put(fieldName, value);
-                        }
-                    }
-
+                    Object idVal = esTemplate.getIdValFromRS(mapping, rs);
                     if (logger.isDebugEnabled()) {
                         logger.trace(
                             "Join table update es index by query whole sql, destination:{}, table: {}, index: {}",
@@ -789,7 +807,7 @@ public class ESSyncService {
                             dml.getTable(),
                             mapping.getIndex());
                     }
-                    esTemplate.updateByQuery(config, paramsTmp, esFieldData);
+                    esTemplate.update(mapping,idVal,esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -845,19 +863,37 @@ public class ESSyncService {
         }
         Util.sqlRS(ds, sql, rs -> {
             try {
-                while (rs.next()) {
-                    Map<String, Object> esFieldData = new LinkedHashMap<>();
-                    Object idVal = esTemplate.getESDataFromRS(mapping, rs, old, esFieldData);
+                if(rs.next()){
+                    do{
+                        Map<String, Object> esFieldData = new LinkedHashMap<>();
+                        Object idVal = esTemplate.getESDataFromRS(mapping, rs, old, esFieldData);
 
-                    if (logger.isTraceEnabled()) {
-                        logger.trace(
-                            "Main table update to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
-                            config.getDestination(),
-                            dml.getTable(),
-                            mapping.getIndex(),
-                            idVal);
-                    }
-                    esTemplate.update(mapping, idVal, esFieldData);
+                        if(idVal == null){
+                        //聚合函数会导致rs.next()=true(无数据情况),此时idVal=null
+                            if(mapping.getJoinTable().isEnabled()){
+                                //外表(部分字段索引完全删除时，对字段进行设置初始值/null)
+                                esFieldData = new LinkedHashMap<>();
+                                idVal = esTemplate.getESDataFromDmlData(mapping, data,esFieldData);
+                                esTemplate.update(mapping,idVal,esFieldData);
+                            }
+                            continue;
+                        }
+
+                        if (logger.isTraceEnabled()) {
+                            logger.trace(
+                                    "Main table update to es index by query sql, destination:{}, table: {}, index: {}, id: {}",
+                                    config.getDestination(),
+                                    dml.getTable(),
+                                    mapping.getIndex(),
+                                    idVal);
+                        }
+                        esTemplate.update(mapping, idVal, esFieldData);
+                    }while (rs.next());
+                }else if(mapping.getJoinTable().isEnabled()){
+                    //外表(部分字段索引完全删除时，对字段进行设置初始值/null)
+                    Map<String, Object> esFieldData = new LinkedHashMap<>();
+                    Object idVal = esTemplate.getESDataFromDmlData(mapping, data,esFieldData);
+                    esTemplate.update(mapping,idVal,esFieldData);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);

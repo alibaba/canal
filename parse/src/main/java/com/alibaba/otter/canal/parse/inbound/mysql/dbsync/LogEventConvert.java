@@ -49,7 +49,7 @@ import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 
 /**
  * 基于{@linkplain LogEvent}转化为Entry对象的处理
- * 
+ *
  * @author jianghang 2013-1-17 下午02:41:14
  * @version 1.0.0
  */
@@ -561,19 +561,23 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 RowData.Builder rowDataBuilder = RowData.newBuilder();
                 if (EventType.INSERT == eventType) {
                     // insert的记录放在before字段中
-                    tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, true, tableMeta);
+                    tableError |= parseOneRow(EventType.INSERT,rowDataBuilder, event, buffer, columns, true, tableMeta);
                 } else if (EventType.DELETE == eventType) {
                     // delete的记录放在before字段中
-                    tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
+                    tableError |= parseOneRow(EventType.DELETE,rowDataBuilder, event, buffer, columns, false, tableMeta);
                 } else {
                     // update需要处理before/after
-                    tableError |= parseOneRow(rowDataBuilder, event, buffer, columns, false, tableMeta);
+                    tableError |= parseOneRow(EventType.UPDATE,rowDataBuilder, event, buffer, columns, false, tableMeta);
                     if (!buffer.nextOneRow(changeColumns, true)) {
                         rowChangeBuider.addRowDatas(rowDataBuilder.build());
                         break;
                     }
 
-                    tableError |= parseOneRow(rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
+                    tableError |= parseOneRow(EventType.UPDATE,rowDataBuilder, event, buffer, changeColumns, true, tableMeta);
+                    if(rowDataBuilder.getAfterColumnsList().stream().filter(Column::getUpdated).count() == 0){
+                        //因过滤黑名单字段canal.instance.filter.black.field 可能出现不需要修改的情况
+                        continue;
+                    }
                 }
 
                 rowsCount++;
@@ -592,6 +596,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 logger.warn("table parser error : {}storeValue: {}", entry.toString(), rowChange.toString());
                 return null;
             } else {
+                if(rowChange.getRowDatasCount() == 0){
+                    //不需要投递到canal.adapter
+                    return null;
+                }
                 Entry entry = createEntry(header, EntryType.ROWDATA, rowChange.toByteString());
                 return entry;
             }
@@ -606,7 +614,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             logHeader.getServerId()); // 记录到秒
     }
 
-    private boolean parseOneRow(RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
+    private boolean parseOneRow(EventType eventType,RowData.Builder rowDataBuilder, RowsLogEvent event, RowsLogBuffer buffer, BitSet cols,
                                 boolean isAfter, TableMeta tableMeta) throws UnsupportedEncodingException {
         int columnCnt = event.getTable().getColumnCnt();
         ColumnInfo[] columnInfo = event.getTable().getColumnInfo();
@@ -693,7 +701,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 columnBuilder.setSqlType(Types.BIGINT);
                 columnBuilder.setUpdated(false);
 
-                if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
+                if (needField(eventType,fieldList, blackFieldList, columnBuilder.getName())) {
                     if (isAfter) {
                         rowDataBuilder.addAfterColumns(columnBuilder.build());
                     } else {
@@ -754,7 +762,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);
-                
+
                 // 处理各种类型
                 switch (javaType) {
                     case Types.BINARY:
@@ -875,7 +883,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                      && isUpdate(rowDataBuilder.getBeforeColumnsList(),
                                          columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
                                          i));
-            if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
+            if (needField(eventType,fieldList, blackFieldList, columnBuilder.getName())) {
                 if (isAfter) {
                     rowDataBuilder.addAfterColumns(columnBuilder.build());
                 } else {
@@ -1023,6 +1031,24 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         if (fieldList == null || fieldList.isEmpty()) {
             return blackFieldList == null || blackFieldList.isEmpty()
                    || !blackFieldList.contains(columnName.toUpperCase());
+        } else {
+            return fieldList.contains(columnName.toUpperCase());
+        }
+    }
+
+    /**
+     * 字段过滤判断
+     */
+    private boolean needField(EventType eventType,List<String> fieldList, List<String> blackFieldList, String columnName) {
+        if (fieldList == null || fieldList.isEmpty()) {
+            if(blackFieldList == null || blackFieldList.isEmpty()){
+                return true;
+            }else{
+                if(blackFieldList.contains(columnName.toUpperCase()) || blackFieldList.contains(columnName.toUpperCase()+"^"+eventType.name())){
+                    return false;
+                }
+                return true;
+            }
         } else {
             return fieldList.contains(columnName.toUpperCase());
         }

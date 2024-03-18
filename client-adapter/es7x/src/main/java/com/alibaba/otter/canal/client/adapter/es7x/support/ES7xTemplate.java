@@ -64,7 +64,7 @@ public class ES7xTemplate implements ESTemplate {
     public void insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
-            if (mapping.isUpsert()) {
+            if (mapping.getJoinTable().isEnabled() || mapping.isUpsert()) {
                 ESUpdateRequest updateRequest = esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
@@ -350,7 +350,7 @@ public class ES7xTemplate implements ESTemplate {
     private void append4Update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
-            if (mapping.isUpsert()) {
+            if (!mapping.getJoinTable().isEnabled() && mapping.isUpsert()) {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {

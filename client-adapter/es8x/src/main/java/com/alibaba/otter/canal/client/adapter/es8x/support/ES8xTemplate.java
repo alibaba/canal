@@ -64,7 +64,7 @@ public class ES8xTemplate implements ESTemplate {
     public void insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
-            if (mapping.isUpsert()) {
+            if (mapping.getJoinTable().isEnabled() || mapping.isUpsert()) {
                 ESUpdateRequest updateRequest = esConnection.new ES8xUpdateRequest(mapping.getIndex(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
@@ -315,7 +315,7 @@ public class ES8xTemplate implements ESTemplate {
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             ColumnItem columnItem = fieldItem.getColumnItems().iterator().next();
-            if (!columnItem.getOwner().equals(owner)) {
+            if (columnItem.getOwner() != null && !columnItem.getOwner().equals(owner)) {
                 continue;
             }
             String columnName = columnItem.getColumnName();
@@ -347,7 +347,7 @@ public class ES8xTemplate implements ESTemplate {
     private void append4Update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
-            if (mapping.isUpsert()) {
+            if (!mapping.getJoinTable().isEnabled() && mapping.isUpsert()) {
                 ESUpdateRequest esUpdateRequest = this.esConnection.new ES8xUpdateRequest(mapping.getIndex(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {

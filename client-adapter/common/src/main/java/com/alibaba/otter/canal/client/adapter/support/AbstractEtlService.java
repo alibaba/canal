@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
@@ -50,7 +51,7 @@ public abstract class AbstractEtlService {
                     values.add(param);
                 }
 
-                sql += " " + etlCondition;
+                sql = setCondition(sql, etlCondition);
             }
 
             if (logger.isDebugEnabled()) {
@@ -117,6 +118,18 @@ public abstract class AbstractEtlService {
             etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
         }
         return etlResult;
+    }
+
+    private static final Pattern endGroupByPattern = Pattern.compile("GROUP\\ BY(?!(.*)ON)",Pattern.CASE_INSENSITIVE);
+    public static String setCondition(String sql, String condition) {
+        String[] split = endGroupByPattern.split(sql);
+        if(split.length > 1){
+            //当主sql存在group by时，condition正确拼接
+            sql = split[0] + " " + condition + " GROUP BY "+split[1];
+        }else{
+            sql = split[0] + " " + condition;
+        }
+        return sql;
     }
 
     protected abstract boolean executeSqlImport(DataSource ds, String sql, List<Object> values,
