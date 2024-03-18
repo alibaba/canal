@@ -867,6 +867,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         super.processDumpError(e);
     }
 
+    @Override
+    protected void removeLogPositionCacheWhenError(String destination) {
+        if (dumpErrorCount > dumpErrorCountThreshold + 1) {
+            // 这里+1 是允许主从切换的时候重试一下再清缓存
+            logPositionManager.removeLogPositionCache(destination);
+        }
+    }
+
     public void setSupportBinlogFormats(String formatStrs) {
         String[] formats = StringUtils.split(formatStrs, ',');
         if (formats != null) {
