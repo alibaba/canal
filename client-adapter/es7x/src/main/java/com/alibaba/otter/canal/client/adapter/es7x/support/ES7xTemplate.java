@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
@@ -46,6 +48,10 @@ public class ES7xTemplate implements ESTemplate {
 
     // es 字段类型本地缓存
     private static ConcurrentMap<String, Map<String, String>> esFieldTypes   = new ConcurrentHashMap<>();
+
+    private Pattern specialCharacterPattern = Pattern.compile("\\t|\r|\n|\\s+");
+
+    private Pattern selectAndFromPattern = Pattern.compile("(^select)(.*?)( from .*)", Pattern.CASE_INSENSITIVE);
 
     public ES7xTemplate(ESConnection esConnection){
         this.esConnection = esConnection;
@@ -113,14 +119,32 @@ public class ES7xTemplate implements ESTemplate {
         paramsTmp.forEach((fieldName, value) -> queryBuilder.must(QueryBuilders.termsQuery(fieldName, value)));
 
         // 查询sql批量更新
+        Map<String, FieldItem> selectFields = mapping.getSchemaItem().getSelectFields();
+
+        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        FieldItem idFieldItem = selectFields.get(idFieldName);
+
+        String selectSql = mapping.getSql();
+        String selectSqlTemp = specialCharacterPattern.matcher(selectSql).replaceAll(" ");
+        Matcher selectSqlTempMatcher = selectAndFromPattern.matcher(selectSqlTemp);
+        if (selectSqlTempMatcher.find() && selectSqlTempMatcher.groupCount() == 3) {
+            selectSql = selectSqlTempMatcher.group(1) + " " + idFieldItem.getExpr() + " " + selectSqlTempMatcher.group(3);
+        }
+
         DataSource ds = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        StringBuilder sql = new StringBuilder("SELECT * FROM (" + mapping.getSql() + ") _v WHERE ");
+        StringBuilder sql = new StringBuilder(selectSql + " WHERE ");
         List<Object> values = new ArrayList<>();
         paramsTmp.forEach((fieldName, value) -> {
-            sql.append("_v.").append(fieldName).append("=? AND ");
+            FieldItem fieldItemParamsTmp = selectFields.get(fieldName);
+            ColumnItem columnItem = fieldItemParamsTmp.getColumn();
+            if (StringUtils.isNotEmpty(columnItem.getOwner())) {
+                sql.append(columnItem.getOwner()).append(".");
+            }
+            sql.append(columnItem.getColumnName());
+            sql.append("=? AND ");
             values.add(value);
         });
-        // TODO 直接外部包裹sql会导致全表扫描性能低, 待优化拼接内部where条件
+
         int len = sql.length();
         sql.delete(len - 4, len);
         Integer syncCount = (Integer) Util.sqlRS(ds, sql.toString(), values, rs -> {
