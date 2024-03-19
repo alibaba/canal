@@ -61,7 +61,7 @@ public class CommonRest {
      * @param task 任务名对应配置文件名 mytest_user.yml
      * @param params etl where条件参数, 为空全部导入
      */
-    @PostMapping("/etl/{type}/{key}/{task}")
+    @PostMapping("/etl/{type}/{key}/{task:.+}")
     public EtlResult etl(@PathVariable String type, @PathVariable String key, @PathVariable String task,
                          @RequestParam(name = "params", required = false) String params) {
         if (key == null) {
@@ -118,7 +118,7 @@ public class CommonRest {
      * @param task 任务名对应配置文件名 mytest_person2.yml
      * @param params etl where条件参数, 为空全部导入
      */
-    @PostMapping("/etl/{type}/{task}")
+    @PostMapping("/etl/{type}/{task:.+}")
     public EtlResult etl(@PathVariable String type, @PathVariable String task,
                          @RequestParam(name = "params", required = false) String params) {
         return etl(type, null, task, params);
