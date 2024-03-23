@@ -389,6 +389,11 @@
                 <artifactId>log4j-to-slf4j</artifactId>
                 <version>${log4j_version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.alibaba.polardbx</groupId>
+                <artifactId>polardbx-parser</artifactId>
+                <version>5.4.19-SNAPSHOT</version>
+            </dependency>
 
             <!-- test dependency -->
             <dependency>
@@ -527,6 +532,30 @@
                   <charset>${file_encoding}</charset>
                   <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>install-external</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <file>${basedir}/lib/polardbx-parser-5.4.19-SNAPSHOT.jar</file>
+                            <repositoryLayout>default</repositoryLayout>
+                            <groupId>com.alibaba.polardbx</groupId>
+                            <artifactId>polardbx-parser</artifactId>
+                            <version>5.4.19-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <inherited>false</inherited>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <pluginManagement>

@@ -3,14 +3,14 @@ package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.alibaba.druid.DbType;
-import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.repository.Schema;
-import com.alibaba.druid.sql.repository.SchemaObject;
-import com.alibaba.druid.sql.repository.SchemaRepository;
-import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
-import com.alibaba.druid.sql.visitor.VisitorFeature;
-import com.alibaba.druid.util.JdbcConstants;
+import com.alibaba.polardbx.druid.DbType;
+import com.alibaba.polardbx.druid.sql.SQLUtils;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
+import com.alibaba.polardbx.druid.sql.repository.SchemaObject;
+import com.alibaba.polardbx.druid.sql.repository.SchemaRepository;
+import com.alibaba.polardbx.druid.sql.visitor.SQLASTOutputVisitor;
+import com.alibaba.polardbx.druid.sql.visitor.VisitorFeature;
+import com.alibaba.polardbx.druid.util.JdbcConstants;
 
 public class FastsqlSchemaTest {
 

@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.alibaba.druid.sql.repository.Schema;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 
 /**
