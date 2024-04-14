@@ -91,6 +91,7 @@ canal.conf:
 #        hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
 #        properties:
 #          mode: transport # or rest
+#          # security.ca.path: /etc/es8/ca.crt
 #          # security.auth: test:123456 #  only used for rest mode
 #          cluster.name: elasticsearch
 #      - name: kudu
