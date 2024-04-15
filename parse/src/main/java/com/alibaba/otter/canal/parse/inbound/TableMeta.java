@@ -24,7 +24,7 @@ public class TableMeta {
     private String          schema;
     private String          table;
     private List<FieldMeta> fields = new ArrayList<>();
-    private String          ddl;                                          // 表结构的DDL语句
+    private String          ddl;                       // 表结构的DDL语句
 
     public TableMeta(){
 
@@ -72,6 +72,22 @@ public class TableMeta {
         }
 
         throw new RuntimeException("unknow column : " + name);
+    }
+
+    /**
+     * 尝试基于列名查找一下Filed信息,找不到时返回为null
+     * 
+     * @param name
+     * @return
+     */
+    public FieldMeta tryGetFieldMetaByName(String name) {
+        for (FieldMeta meta : fields) {
+            if (meta.getColumnName().equalsIgnoreCase(name)) {
+                return meta;
+            }
+        }
+
+        return null;
     }
 
     public List<FieldMeta> getPrimaryFields() {
