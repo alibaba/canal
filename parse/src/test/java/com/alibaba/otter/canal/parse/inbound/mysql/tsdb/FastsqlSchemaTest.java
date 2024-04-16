@@ -327,4 +327,17 @@ public class FastsqlSchemaTest {
         System.out.println(data.toString());
     }
 
+
+    @Test
+    public void test_function_index () throws Throwable {
+        SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
+        repository.setDefaultSchema("test");
+        String sql = "CREATE TABLE test1 (\n" + "    id INT AUTO_INCREMENT PRIMARY KEY,\n"
+                     + "    owner_id INT NOT NULL,\n" + "    code VARCHAR(100) NOT NULL,\n"
+                     + "    UNIQUE KEY uk_owner_id_upper_code (owner_id, (upper(code)))\n" + ");";
+        repository.console(sql);
+        SchemaObject table = repository.findTable("test1");
+        Assert.assertTrue(table != null);
+    }
+
 }
