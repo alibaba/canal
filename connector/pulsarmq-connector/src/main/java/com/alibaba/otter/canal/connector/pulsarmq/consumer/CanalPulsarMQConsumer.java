@@ -54,6 +54,12 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
      * 角色认证token
      */
     private String                    roleToken;
+
+    /**
+     *  listener name
+     */
+    private String                    listenerName;
+
     /**
      * 订阅客户端名称
      */
@@ -110,6 +116,7 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
         }
         this.serviceUrl = properties.getProperty(PulsarMQConstants.PULSARMQ_SERVER_URL);
         this.roleToken = properties.getProperty(PulsarMQConstants.PULSARMQ_ROLE_TOKEN);
+        this.listenerName = properties.getProperty(PulsarMQConstants.PULSARMQ_LISTENER_NAME);
         this.subscriptName = properties.getProperty(PulsarMQConstants.PULSARMQ_SUBSCRIPT_NAME);
         // 采用groupId作为subscriptName，避免所有的都是同一个订阅者名称
         if (StringUtils.isEmpty(this.subscriptName)) {
@@ -164,6 +171,9 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
             ClientBuilder builder = PulsarClient.builder().serviceUrl(serviceUrl);
             if (StringUtils.isNotEmpty(roleToken)) {
                 builder.authentication(AuthenticationFactory.token(roleToken));
+            }
+            if (StringUtils.isNotEmpty(listenerName)) {
+                builder.authentication(AuthenticationFactory.token(listenerName));
             }
             pulsarClient = builder.build();
         } catch (PulsarClientException e) {
