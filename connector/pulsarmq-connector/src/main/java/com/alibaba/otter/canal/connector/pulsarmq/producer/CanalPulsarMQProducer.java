@@ -73,6 +73,11 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                 // 角色权限认证的token
                 builder.authentication(AuthenticationFactory.token(pulsarMQProducerConfig.getRoleToken()));
             }
+            if (StringUtils.isNotEmpty(pulsarMQProducerConfig.getListenerName())) {
+                //listener name
+                builder.listenerName(pulsarMQProducerConfig.getListenerName());
+            }
+
             client = builder.build();
         } catch (PulsarClientException e) {
             throw new RuntimeException(e);
@@ -127,6 +132,11 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         if (!StringUtils.isEmpty(adminServerUrl)) {
             tmpProperties.setAdminServerUrl(adminServerUrl);
         }
+        String listenerName = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_LISTENER_NAME);
+        if (!StringUtils.isEmpty(listenerName)) {
+            tmpProperties.setListenerName(listenerName);
+        }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Load pulsar properties ==> {}", JSON.toJSON(this.mqProperties));
         }

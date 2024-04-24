@@ -59,6 +59,12 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
      * 角色认证token
      */
     private String roleToken;
+
+    /**
+     * listener name
+     */
+    private String listenerName;
+
     /**
      * 订阅客户端名称
      */
@@ -129,6 +135,11 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
      */
     public PulsarMQCanalConnector(boolean isFlatMessage, String serviceUrl, String roleToken, String topic
             , String subscriptName) {
+        this(isFlatMessage, serviceUrl, roleToken, topic, subscriptName,null);
+    }
+
+    public PulsarMQCanalConnector(boolean isFlatMessage, String serviceUrl, String roleToken, String topic
+            , String subscriptName, String listenerName) {
         this.isFlatMessage = isFlatMessage;
         this.serviceUrl = serviceUrl;
         this.roleToken = roleToken;
@@ -137,6 +148,7 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
         if (StringUtils.isEmpty(this.subscriptName)) {
             throw new RuntimeException("Pulsar Consumer subscriptName required");
         }
+        this.listenerName = listenerName;
     }
 
     /**
@@ -150,6 +162,15 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
             , String subscriptName, int batchSize, int getBatchTimeoutSeconds, int batchProcessTimeoutSeconds
             , int redeliveryDelaySeconds, int ackTimeoutSeconds, boolean isRetry, boolean isRetryDLQUpperCase
             , int maxRedeliveryCount) {
+        this(isFlatMessage, serviceUrl, roleToken, topic, subscriptName, batchSize, getBatchTimeoutSeconds
+                , batchProcessTimeoutSeconds, redeliveryDelaySeconds, ackTimeoutSeconds, isRetry, isRetryDLQUpperCase
+                , maxRedeliveryCount, null);
+    }
+
+    public PulsarMQCanalConnector(boolean isFlatMessage, String serviceUrl, String roleToken, String topic
+            , String subscriptName, int batchSize, int getBatchTimeoutSeconds, int batchProcessTimeoutSeconds
+            , int redeliveryDelaySeconds, int ackTimeoutSeconds, boolean isRetry, boolean isRetryDLQUpperCase
+            , int maxRedeliveryCount, String listenerName) {
         this.isFlatMessage = isFlatMessage;
         this.serviceUrl = serviceUrl;
         this.roleToken = roleToken;
@@ -166,15 +187,20 @@ public class PulsarMQCanalConnector implements CanalMQConnector {
         this.isRetry = isRetry;
         this.isRetryDLQUpperCase = isRetryDLQUpperCase;
         this.maxRedeliveryCount = maxRedeliveryCount;
+        this.listenerName = listenerName;
     }
 
     @Override
     public void connect() throws CanalClientException {
         // 连接创建客户端
         try {
-            pulsarClient = PulsarClient.builder()
+            ClientBuilder builder = PulsarClient.builder()
                     .serviceUrl(serviceUrl)
-                    .authentication(AuthenticationFactory.token(roleToken))
+                    .authentication(AuthenticationFactory.token(roleToken));
+            if (StringUtils.isNotEmpty(listenerName)) {
+                builder.listenerName(listenerName);
+            }
+            pulsarClient = builder
                     .build();
         } catch (PulsarClientException e) {
             throw new RuntimeException(e);
