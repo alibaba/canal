@@ -37,6 +37,11 @@ public class PulsarMQProducerConfig extends MQProperties {
      */
     private String adminServerUrl;
 
+    /**
+     * listener name
+     */
+    private String listenerName;
+
     public String getServerUrl() {
         return serverUrl;
     }
@@ -67,5 +72,13 @@ public class PulsarMQProducerConfig extends MQProperties {
 
     public void setAdminServerUrl(String adminServerUrl) {
         this.adminServerUrl = adminServerUrl;
+    }
+
+    public String getListenerName() {
+        return listenerName;
+    }
+
+    public void setListenerName(String listenerName) {
+        this.listenerName = listenerName;
     }
 }
