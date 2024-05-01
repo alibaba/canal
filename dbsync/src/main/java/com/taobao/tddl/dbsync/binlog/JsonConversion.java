@@ -291,7 +291,7 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        buf.append('"').append(key(i, charset)).append('"');
+                        buf.append('"').append(escapse(key(i, charset))).append('"');
                         buf.append(": ");
                         element(i, charset).toJsonString(buf, charset);
                     }
