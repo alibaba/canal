@@ -1,11 +1,20 @@
 package com.alibaba.otter.canal.client.adapter.es8x.support;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.Map;
+
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
@@ -13,6 +22,8 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -51,6 +62,47 @@ public class ESConnection {
     private RestHighLevelClient restHighLevelClient;
 
     public ESConnection(String[] hosts, Map<String, String> properties) throws UnknownHostException{
+        String caPath = properties.get("security.ca.path");
+        if (StringUtils.isNotEmpty(caPath)) {
+            connectEsWithCa(hosts, properties, caPath);
+        } else {
+            connectEsWithoutCa(hosts, properties);
+        }
+    }
+
+    private void connectEsWithCa(String[] hosts, Map<String, String> properties, String caPath) {
+        Path caCertificatePath = Paths.get(caPath);
+        try (InputStream is = Files.newInputStream(caCertificatePath)) {
+            CertificateFactory factory = CertificateFactory.getInstance("X.509");
+            Certificate trustedCa = factory.generateCertificate(is);
+            KeyStore trustStore = KeyStore.getInstance("pkcs12");
+            trustStore.load(null, null);
+            trustStore.setCertificateEntry("ca", trustedCa);
+            SSLContextBuilder sslContextBuilder = SSLContexts.custom().loadTrustMaterial(trustStore, null);
+            final SSLContext sslContext = sslContextBuilder.build();
+
+            HttpHost[] httpHosts = Arrays.stream(hosts).map(this::createHttpHost).toArray(HttpHost[]::new);
+            RestClientBuilder restClientBuilder = RestClient.builder(httpHosts);
+            String nameAndPwd = properties.get("security.auth");
+            if (StringUtils.isNotEmpty(nameAndPwd) && nameAndPwd.contains(":")) {
+                String[] nameAndPwdArr = nameAndPwd.split(":");
+                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(nameAndPwdArr[0], nameAndPwdArr[1]));
+                restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> {
+                    httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+                    return httpClientBuilder.setSSLContext(sslContext);
+                });
+            }
+            restHighLevelClient = new RestHighLevelClientBuilder(restClientBuilder.build())
+                .setApiCompatibilityMode(true)
+                .build();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void connectEsWithoutCa(String[] hosts, Map<String, String> properties) {
         HttpHost[] httpHosts = Arrays.stream(hosts).map(this::createHttpHost).toArray(HttpHost[]::new);
         RestClientBuilder restClientBuilder = RestClient.builder(httpHosts);
         String nameAndPwd = properties.get("security.auth");
@@ -280,9 +332,7 @@ public class ESConnection {
         private BulkRequest        bulkRequest;
 
         public ES8xBulkRequest(){
-
             bulkRequest = new BulkRequest();
-
         }
 
         public void resetBulk() {
