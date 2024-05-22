@@ -74,7 +74,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                 builder.authentication(AuthenticationFactory.token(pulsarMQProducerConfig.getRoleToken()));
             }
             if (StringUtils.isNotEmpty(pulsarMQProducerConfig.getListenerName())) {
-                //listener name
+                // listener name
                 builder.listenerName(pulsarMQProducerConfig.getListenerName());
             }
 

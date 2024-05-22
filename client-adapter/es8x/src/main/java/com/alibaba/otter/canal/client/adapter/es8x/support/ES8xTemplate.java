@@ -65,8 +65,9 @@ public class ES8xTemplate implements ESTemplate {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
-                ESUpdateRequest updateRequest = esConnection.new ES8xUpdateRequest(mapping.getIndex(),
-                    pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
+                ESUpdateRequest updateRequest = esConnection.new ES8xUpdateRequest(mapping.getIndex(), pkVal.toString())
+                    .setDoc(esFieldData)
+                    .setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     updateRequest.setRouting(parentVal);
                 }
