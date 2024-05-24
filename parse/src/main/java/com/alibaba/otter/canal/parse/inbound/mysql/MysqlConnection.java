@@ -27,6 +27,7 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.client.RegisterSlaveCo
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.SemiAckCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ErrorPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
@@ -81,6 +82,20 @@ public class MysqlConnection implements ErosaConnection {
         authInfo.setPassword(password);
         authInfo.setDefaultDatabaseName(defaultSchema);
         connector = new MysqlConnector(address, username, password, charsetNumber, defaultSchema);
+        // 将connection里面的参数透传下
+        connector.setSoTimeout(soTimeout);
+        connector.setConnTimeout(connTimeout);
+    }
+
+    public MysqlConnection(InetSocketAddress address, String username, String password, byte charsetNumber,
+                           String defaultSchema, SslInfo sslInfo){
+        authInfo = new AuthenticationInfo();
+        authInfo.setAddress(address);
+        authInfo.setUsername(username);
+        authInfo.setPassword(password);
+        authInfo.setDefaultDatabaseName(defaultSchema);
+        authInfo.setSslInfo(sslInfo);
+        connector = new MysqlConnector(address, username, password, charsetNumber, defaultSchema, sslInfo);
         // 将connection里面的参数透传下
         connector.setSoTimeout(soTimeout);
         connector.setConnTimeout(connTimeout);

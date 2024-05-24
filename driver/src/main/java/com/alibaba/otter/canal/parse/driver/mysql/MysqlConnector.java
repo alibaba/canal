@@ -13,12 +13,16 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.AuthSwitchResponsePacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QuitCommandPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.SslRequestCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.*;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannelPool;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslMode;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MSC;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MySQLPasswordEncrypter;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
+import static com.alibaba.otter.canal.parse.driver.mysql.packets.Capability.CLIENT_SSL;
 
 /**
  * 基于mysql socket协议的链接实现
@@ -32,6 +36,7 @@ public class MysqlConnector {
     private InetSocketAddress   address;
     private String              username;
     private String              password;
+    private SslInfo  sslInfo;
 
     private byte                charsetNumber     = 33;
     private String              defaultSchema;
@@ -70,18 +75,42 @@ public class MysqlConnector {
         this.defaultSchema = defaultSchema;
     }
 
+    public MysqlConnector(InetSocketAddress address, String username, String password, byte charsetNumber,
+        String defaultSchema, SslInfo sslInfo) {
+        this(address, username, password, charsetNumber, defaultSchema);
+        this.sslInfo = sslInfo;
+    }
     public void connect() throws IOException {
         if (connected.compareAndSet(false, true)) {
             try {
                 channel = SocketChannelPool.open(address);
                 logger.info("connect MysqlConnection to {}...", address);
                 negotiate(channel);
+                printSslStatus();
             } catch (Exception e) {
                 disconnect();
                 throw new IOException("connect " + this.address + " failure", e);
             }
         } else {
             logger.error("the channel can't be connected twice.");
+        }
+    }
+    private void printSslStatus() {
+        try {
+            MysqlQueryExecutor executor = new MysqlQueryExecutor(this);
+            ResultSetPacket result = executor.query("SHOW_STATUS_LIKE 'Ssl_version'");
+            String sslVersion = "";
+            if (result.getFieldValues() != null && result.getFieldValues().size() >= 2) {
+                sslVersion = result.getFieldValues().get(1);
+            }
+            result = executor.query("SHOW_STATUS_LIKE 'Ssl_cipher'");
+            String sslCipher = "";
+            if (result.getFieldValues() != null && result.getFieldValues().size() >= 2) {
+                sslCipher = result.getFieldValues().get(1);
+            }
+            logger.info("connect MysqlConnection in sslMode {}, Ssl_version:{}, Ssl_cipher:{}",
+                (sslInfo != null ? sslInfo.getSslMode() : SslMode.DISABLED), sslVersion, sslCipher);
+        } catch (Exception ignore) {
         }
     }
 
@@ -140,6 +169,7 @@ public class MysqlConnector {
         connector.setSendBufferSize(getSendBufferSize());
         connector.setSoTimeout(getSoTimeout());
         connector.setConnTimeout(connTimeout);
+        connector.setSslInfo(getSslInfo());
         return connector;
     }
 
@@ -170,6 +200,22 @@ public class MysqlConnector {
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
         handshakePacket.fromBytes(body);
+        SslMode sslMode = sslInfo != null ? sslInfo.getSslMode() : SslMode.DISABLED;
+        if (sslMode != SslMode.DISABLED) {
+            boolean serverSupportSsl = (handshakePacket.serverCapabilities & CLIENT_SSL) > 0;
+            if (!serverSupportSsl) {
+                throw new IOException("MySQL Server does not support SSL: " + address
+                    + " serverCapabilities: " + handshakePacket.serverCapabilities);
+            }
+            byte[] sslPacket = new SslRequestCommandPacket(handshakePacket.serverCharsetNumber).toBytes();
+            HeaderPacket sslHeader = new HeaderPacket();
+            sslHeader.setPacketBodyLength(sslPacket.length);
+            sslHeader.setPacketSequenceNumber((byte)(header.getPacketSequenceNumber() + 1));
+            header.setPacketSequenceNumber((byte)(header.getPacketSequenceNumber() + 1));
+            PacketManager.writePkg(channel, sslHeader.toBytes(), sslPacket);
+            channel = SocketChannelPool.connectSsl(channel, sslInfo);
+            this.channel = channel;
+        }
         if (handshakePacket.protocolVersion != MSC.DEFAULT_PROTOCOL_VERSION) {
             // HandshakeV9
             auth323(channel, (byte) (header.getPacketSequenceNumber() + 1), handshakePacket.seed);
@@ -464,4 +510,10 @@ public class MysqlConnector {
         return serverVersion;
     }
 
+    public SslInfo getSslInfo() {
+        return sslInfo;
+    }
+    public void setSslInfo(SslInfo sslInfo) {
+        this.sslInfo = sslInfo;
+    }
 }

@@ -291,13 +291,15 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                 mysqlEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
                     parameters.getDbUsername(),
                     parameters.getDbPassword(),
-                    parameters.getDefaultDatabaseName()));
+                    parameters.getDefaultDatabaseName(),
+                    parameters.getSslInfo()));
 
                 if (dbAddresses.size() > 1) {
                     mysqlEventParser.setStandbyInfo(new AuthenticationInfo(dbAddresses.get(1),
                         parameters.getDbUsername(),
                         parameters.getDbPassword(),
-                        parameters.getDefaultDatabaseName()));
+                        parameters.getDefaultDatabaseName(),
+                        parameters.getSslInfo()));
                 }
             }
 
@@ -381,7 +383,8 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
                 localBinlogEventParser.setMasterInfo(new AuthenticationInfo(dbAddresses.get(0),
                     parameters.getDbUsername(),
                     parameters.getDbPassword(),
-                    parameters.getDefaultDatabaseName()));
+                    parameters.getDefaultDatabaseName(),
+                    parameters.getSslInfo()));
             }
 
             eventParser = localBinlogEventParser;

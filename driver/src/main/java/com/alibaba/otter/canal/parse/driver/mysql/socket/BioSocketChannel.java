@@ -10,6 +10,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.channels.ClosedByInterruptException;
 
+import javax.net.ssl.SSLSocket;
+
 /**
  * 使用BIO进行dump
  *
@@ -22,11 +24,13 @@ public class BioSocketChannel implements SocketChannel {
     private Socket       socket;
     private InputStream  input;
     private OutputStream output;
+    private final boolean ssl;
 
     BioSocketChannel(Socket socket) throws IOException{
         this.socket = socket;
         this.input = new BufferedInputStream(socket.getInputStream(), 16384);
         this.output = socket.getOutputStream();
+        this.ssl = (socket instanceof SSLSocket);
     }
 
     public void write(byte[]... buf) throws IOException {
@@ -132,6 +136,12 @@ public class BioSocketChannel implements SocketChannel {
             return socket.isConnected();
         }
         return false;
+    }
+    public boolean isSsl() {
+        return ssl;
+    }
+    public Socket getSocket() {
+        return socket;
     }
 
     public SocketAddress getRemoteSocketAddress() {
