@@ -364,7 +364,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             snapshotDO.setBinlogOffest(position.getPosition());
             snapshotDO.setBinlogMasterId(String.valueOf(position.getServerId()));
             snapshotDO.setBinlogTimestamp(position.getTimestamp());
-            snapshotDO.setExtra(JSON.toJSONString(schemaDdls));
+            snapshotDO.setData(JSON.toJSONString(schemaDdls));
             try {
                 metaSnapshotDAO.insert(snapshotDO);
             } catch (Throwable e) {
