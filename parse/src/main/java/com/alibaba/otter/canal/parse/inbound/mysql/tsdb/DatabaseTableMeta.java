@@ -13,14 +13,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
-
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
@@ -227,7 +228,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
                 StringBuilder sql = new StringBuilder();
                 for (String table : tables) {
-                    sql.append("show create table `" + schema + "`.`" + table + "`;");
+                    sql.append("show create table `" + schema + "`.`" + StringUtils.replace(table,"`","``") + "`;");
                 }
 
                 List<ResultSetPacket> packets = connection.queryMulti(sql.toString());
@@ -363,7 +364,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             snapshotDO.setBinlogOffest(position.getPosition());
             snapshotDO.setBinlogMasterId(String.valueOf(position.getServerId()));
             snapshotDO.setBinlogTimestamp(position.getTimestamp());
-            snapshotDO.setExtra(JSON.toJSONString(schemaDdls));
+            snapshotDO.setData(JSON.toJSONString(schemaDdls));
             try {
                 metaSnapshotDAO.insert(snapshotDO);
             } catch (Throwable e) {
@@ -508,7 +509,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder();
-        return builder.append(structureSchema(schema)).append('.').append('`').append(table).append('`').toString();
+        return builder.append(structureSchema(schema)).append('.').append('`').append(StringUtils.replace(table,"`","``")).append('`').toString();
     }
 
     public static boolean compareTableMeta(TableMeta source, TableMeta target) {

@@ -2,7 +2,7 @@ package com.alibaba.otter.canal.parse.support;
 
 import java.net.InetSocketAddress;
 
-import com.alibaba.druid.filter.config.ConfigTools;
+import com.alibaba.otter.canal.common.utils.CommonUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
@@ -25,7 +25,7 @@ public class AuthenticationInfo {
 
     public void initPwd() throws Exception{
         if (enableDruid) {
-            this.password = ConfigTools.decrypt(pwdPublicKey, password);
+            this.password = CommonUtils.decryptDruidPassword(pwdPublicKey, password);
         }
     }
 
