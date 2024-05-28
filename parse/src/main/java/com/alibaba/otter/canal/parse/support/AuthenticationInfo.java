@@ -3,6 +3,8 @@ package com.alibaba.otter.canal.parse.support;
 import java.net.InetSocketAddress;
 
 import com.alibaba.otter.canal.common.utils.CommonUtils;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
@@ -44,6 +46,7 @@ public class AuthenticationInfo {
         this.password = password;
         this.defaultDatabaseName = defaultDatabaseName;
     }
+
     public AuthenticationInfo(InetSocketAddress address, String username, String password,
         String defaultDatabaseName, SslInfo sslInfo) {
         this(address, username, password, defaultDatabaseName);
