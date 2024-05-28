@@ -258,7 +258,7 @@ public class TableMetaCache {
             .append('`')
             .append('.')
             .append('`')
-            .append(table)
+            .append(StringUtils.replace(table,"`","``"))
             .append('`')
             .toString();
     }
