@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.AuthSwitchResponsePacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationSHA2Packet;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QuitCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.client.SslRequestCommandPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.*;
@@ -38,7 +39,6 @@ public class MysqlConnector {
     private String              password;
     private SslInfo  sslInfo;
 
-    private byte                charsetNumber     = 33;
     private String              defaultSchema;
     private int                 soTimeout         = 30 * 1000;
     private int                 connTimeout       = 5 * 1000;
@@ -67,17 +67,16 @@ public class MysqlConnector {
         this.password = password;
     }
 
-    public MysqlConnector(InetSocketAddress address, String username, String password, byte charsetNumber,
+    public MysqlConnector(InetSocketAddress address, String username, String password,
                           String defaultSchema){
         this(address, username, password);
 
-        this.charsetNumber = charsetNumber;
         this.defaultSchema = defaultSchema;
     }
 
-    public MysqlConnector(InetSocketAddress address, String username, String password, byte charsetNumber,
+    public MysqlConnector(InetSocketAddress address, String username, String password,
         String defaultSchema, SslInfo sslInfo) {
-        this(address, username, password, charsetNumber, defaultSchema);
+        this(address, username, password, defaultSchema);
         this.sslInfo = sslInfo;
     }
     public void connect() throws IOException {
@@ -160,7 +159,6 @@ public class MysqlConnector {
 
     public MysqlConnector fork() {
         MysqlConnector connector = new MysqlConnector();
-        connector.setCharsetNumber(getCharsetNumber());
         connector.setDefaultSchema(getDefaultSchema());
         connector.setAddress(getAddress());
         connector.setPassword(password);
@@ -218,27 +216,34 @@ public class MysqlConnector {
         }
         if (handshakePacket.protocolVersion != MSC.DEFAULT_PROTOCOL_VERSION) {
             // HandshakeV9
-            auth323(channel, (byte) (header.getPacketSequenceNumber() + 1), handshakePacket.seed);
+            auth323(channel, (byte)(header.getPacketSequenceNumber() + 1), handshakePacket.seed);
             return;
         }
 
         connectionId = handshakePacket.threadId; // 记录一下connection
         serverVersion = handshakePacket.serverVersion; // 记录serverVersion
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
-        ClientAuthenticationPacket clientAuth = new ClientAuthenticationPacket();
-        clientAuth.setCharsetNumber(charsetNumber);
+        boolean isSha2Password = false;
+        ClientAuthenticationPacket clientAuth;
+        if ("caching_sha2_password".equals(new String(handshakePacket.authPluginName))) {
+            clientAuth = new ClientAuthenticationSHA2Packet();
+            isSha2Password = true;
+        } else {
+            clientAuth = new ClientAuthenticationPacket();
+        }
+        clientAuth.setCharsetNumber(handshakePacket.serverCharsetNumber);
 
         clientAuth.setUsername(username);
         clientAuth.setPassword(password);
         clientAuth.setServerCapabilities(handshakePacket.serverCapabilities);
         clientAuth.setDatabaseName(defaultSchema);
         clientAuth.setScrumbleBuff(joinAndCreateScrumbleBuff(handshakePacket));
-        clientAuth.setAuthPluginName("mysql_native_password".getBytes());
+        clientAuth.setAuthPluginName(handshakePacket.authPluginName);
 
         byte[] clientAuthPkgBody = clientAuth.toBytes();
         HeaderPacket h = new HeaderPacket();
         h.setPacketBodyLength(clientAuthPkgBody.length);
-        h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
+        h.setPacketSequenceNumber((byte)(header.getPacketSequenceNumber() + 1));
 
         PacketManager.writePkg(channel, h.toBytes(), clientAuthPkgBody);
         logger.info("client authentication packet is sent out.");
@@ -251,57 +256,61 @@ public class MysqlConnector {
         assert body != null;
         byte marker = body[0];
         if (marker == -2 || marker == 1) {
-            byte[] authData = null;
-            String pluginName = null;
-            if (marker == 1) {
-                AuthSwitchRequestMoreData packet = new AuthSwitchRequestMoreData();
-                packet.fromBytes(body);
-                authData = packet.authData;
+            if (isSha2Password && body[1] == 3) {
+                logger.info("caching_sha2_password auth success.");
             } else {
-                AuthSwitchRequestPacket packet = new AuthSwitchRequestPacket();
-                packet.fromBytes(body);
-                authData = packet.authData;
-                pluginName = packet.authName;
-                logger.info("auth switch pluginName is {}.", pluginName);
-            }
-
-            byte[] encryptedPassword = null;
-            if ("mysql_clear_password".equals(pluginName)) {
-                encryptedPassword = getPassword().getBytes();
-                header = authSwitchAfterAuth(encryptedPassword, header);
-                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
-            } else if ("mysql_native_password".equals(pluginName)) {
-                try {
-                    encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), authData);
-                } catch (NoSuchAlgorithmException e) {
-                    throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
-                }
-                header = authSwitchAfterAuth(encryptedPassword, header);
-                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
-            } else if ("caching_sha2_password".equals(pluginName)) {
-                byte[] scramble = authData;
-                try {
-                    encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(), scramble);
-                } catch (DigestException e) {
-                    throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
-                }
-                header = authSwitchAfterAuth(encryptedPassword, header);
-                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
-                assert body != null;
-                if (body[0] == 0x01 && body[1] == 0x04) {
-                    // fixed issue https://github.com/alibaba/canal/pull/4767, support mysql 8.0.30+
-                    header = cachingSha2PasswordFullAuth(channel, header, getPassword().getBytes(), scramble);
-                    body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                byte[] authData = null;
+                String pluginName = null;
+                if (marker == 1) {
+                    AuthSwitchRequestMoreData packet = new AuthSwitchRequestMoreData();
+                    packet.fromBytes(body);
+                    authData = packet.authData;
                 } else {
-                    header = PacketManager.readHeader(channel, 4);
+                    AuthSwitchRequestPacket packet = new AuthSwitchRequestPacket();
+                    packet.fromBytes(body);
+                    authData = packet.authData;
+                    pluginName = packet.authName;
+                    logger.info("auth switch pluginName is {}.", pluginName);
+                }
+
+                byte[] encryptedPassword = null;
+                if ("mysql_clear_password".equals(pluginName)) {
+                    encryptedPassword = getPassword().getBytes();
+                    header = authSwitchAfterAuth(encryptedPassword, header);
+                    body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                } else if ("mysql_native_password".equals(pluginName)) {
+                    try {
+                        encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), authData);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
+                    }
+                    header = authSwitchAfterAuth(encryptedPassword, header);
+                    body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                } else if ("caching_sha2_password".equals(pluginName)) {
+                    byte[] scramble = authData;
+                    try {
+                        encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(),
+                            scramble);
+                    } catch (DigestException e) {
+                        throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
+                    }
+                    header = authSwitchAfterAuth(encryptedPassword, header);
+                    body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                    assert body != null;
+                    if (body[0] == 0x01 && body[1] == 0x04) {
+                        // fixed issue https://github.com/alibaba/canal/pull/4767, support mysql 8.0.30+
+                        header = cachingSha2PasswordFullAuth(channel, header, getPassword().getBytes(), scramble);
+                        body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                    } else {
+                        header = PacketManager.readHeader(channel, 4);
+                        body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                    }
+                } else {
+                    header = authSwitchAfterAuth(encryptedPassword, header);
                     body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
                 }
-            } else {
-                header = authSwitchAfterAuth(encryptedPassword, header);
-                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
             }
         }
-        assert body != null;
         if (body[0] < 0) {
             if (body[0] == -1) {
                 ErrorPacket err = new ErrorPacket();
@@ -424,14 +433,6 @@ public class MysqlConnector {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public byte getCharsetNumber() {
-        return charsetNumber;
-    }
-
-    public void setCharsetNumber(byte charsetNumber) {
-        this.charsetNumber = charsetNumber;
     }
 
     public String getDefaultSchema() {

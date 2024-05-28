@@ -276,8 +276,7 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             mysqlEventParser.setDestination(destination);
             // 编码参数
             mysqlEventParser.setConnectionCharset(parameters.getConnectionCharset());
-            mysqlEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
-            // 网络相关参数
+            // 网络相关参数1
             mysqlEventParser.setDefaultConnectionTimeoutInSeconds(parameters.getDefaultConnectionTimeoutInSeconds());
             mysqlEventParser.setSendBufferSize(parameters.getSendBufferSize());
             mysqlEventParser.setReceiveBufferSize(parameters.getReceiveBufferSize());
@@ -371,7 +370,6 @@ public class CanalInstanceWithManager extends AbstractCanalInstance {
             localBinlogEventParser.setDestination(destination);
             localBinlogEventParser.setBufferSize(parameters.getReceiveBufferSize());
             localBinlogEventParser.setConnectionCharset(parameters.getConnectionCharset());
-            localBinlogEventParser.setConnectionCharsetNumber(parameters.getConnectionCharsetNumber());
             localBinlogEventParser.setDirectory(parameters.getLocalBinlogDirectory());
             localBinlogEventParser.setProfilingEnabled(false);
             localBinlogEventParser.setDetectingEnable(parameters.getDetectingEnable());

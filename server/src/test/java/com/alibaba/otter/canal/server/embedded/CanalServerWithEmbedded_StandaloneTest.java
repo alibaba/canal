@@ -43,7 +43,6 @@ public class CanalServerWithEmbedded_StandaloneTest extends BaseCanalServerWithE
 
         parameter.setDefaultConnectionTimeoutInSeconds(30);
         parameter.setConnectionCharset("UTF-8");
-        parameter.setConnectionCharsetNumber((byte) 33);
         parameter.setReceiveBufferSize(8 * 1024);
         parameter.setSendBufferSize(8 * 1024);
 

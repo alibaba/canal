@@ -97,7 +97,6 @@
 		<property name="defaultConnectionTimeoutInSeconds" value="${canal.instance.network.soTimeout:30}" />
 
 		<!-- 解析编码 -->
-		<!-- property name="connectionCharsetNumber" value="${canal.instance.connectionCharsetNumber:33}" /-->
 		<property name="connectionCharset" value="${canal.instance.connectionCharset:UTF-8}" />
 
 		<!-- 解析位点记录 -->

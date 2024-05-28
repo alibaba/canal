@@ -305,7 +305,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         MysqlConnection connection = new MysqlConnection(runningInfo.getAddress(),
             runningInfo.getUsername(),
             runningInfo.getPassword(),
-            connectionCharsetNumber,
             runningInfo.getDefaultDatabaseName(),
             runningInfo.getSslInfo());
         connection.getConnector().setReceiveBufferSize(receiveBufferSize);

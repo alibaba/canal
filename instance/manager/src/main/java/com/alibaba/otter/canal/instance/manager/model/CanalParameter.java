@@ -58,8 +58,6 @@ public class CanalParameter implements Serializable {
     private Integer                  defaultConnectionTimeoutInSeconds  = 30;                        // sotimeout
     private Integer                  receiveBufferSize                  = 64 * 1024;
     private Integer                  sendBufferSize                     = 64 * 1024;
-    // 编码信息
-    private Byte                     connectionCharsetNumber            = (byte) 33;
     private String                   connectionCharset                  = "UTF-8";
 
     // 数据库信息
@@ -559,14 +557,6 @@ public class CanalParameter implements Serializable {
 
     public void setSendBufferSize(Integer sendBufferSize) {
         this.sendBufferSize = sendBufferSize;
-    }
-
-    public Byte getConnectionCharsetNumber() {
-        return connectionCharsetNumber;
-    }
-
-    public void setConnectionCharsetNumber(Byte connectionCharsetNumber) {
-        this.connectionCharsetNumber = connectionCharsetNumber;
     }
 
     public String getConnectionCharset() {
