@@ -79,6 +79,7 @@ public class MysqlConnector {
         this(address, username, password, defaultSchema);
         this.sslInfo = sslInfo;
     }
+
     public void connect() throws IOException {
         if (connected.compareAndSet(false, true)) {
             try {
@@ -94,22 +95,25 @@ public class MysqlConnector {
             logger.error("the channel can't be connected twice.");
         }
     }
+
     private void printSslStatus() {
         try {
             MysqlQueryExecutor executor = new MysqlQueryExecutor(this);
-            ResultSetPacket result = executor.query("SHOW_STATUS_LIKE 'Ssl_version'");
+            ResultSetPacket result = executor.query("SHOW STATUS LIKE 'Ssl_version'");
             String sslVersion = "";
             if (result.getFieldValues() != null && result.getFieldValues().size() >= 2) {
                 sslVersion = result.getFieldValues().get(1);
             }
-            result = executor.query("SHOW_STATUS_LIKE 'Ssl_cipher'");
+            result = executor.query("SHOW STATUS LIKE 'Ssl_cipher'");
             String sslCipher = "";
             if (result.getFieldValues() != null && result.getFieldValues().size() >= 2) {
                 sslCipher = result.getFieldValues().get(1);
             }
             logger.info("connect MysqlConnection in sslMode {}, Ssl_version:{}, Ssl_cipher:{}",
                 (sslInfo != null ? sslInfo.getSslMode() : SslMode.DISABLED), sslVersion, sslCipher);
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            logger.info("Can't show SSL status, server may not standard MySQL server: {}", e.toString());
+            logger.debug("show SSL status exception", e);
         }
     }
 
@@ -223,6 +227,7 @@ public class MysqlConnector {
         connectionId = handshakePacket.threadId; // 记录一下connection
         serverVersion = handshakePacket.serverVersion; // 记录serverVersion
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
+        logger.info("auth plugin: {}", new String(handshakePacket.authPluginName));
         boolean isSha2Password = false;
         ClientAuthenticationPacket clientAuth;
         if ("caching_sha2_password".equals(new String(handshakePacket.authPluginName))) {
@@ -258,6 +263,8 @@ public class MysqlConnector {
         if (marker == -2 || marker == 1) {
             if (isSha2Password && body[1] == 3) {
                 logger.info("caching_sha2_password auth success.");
+                header = PacketManager.readHeader(channel, 4);
+                body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
             } else {
                 byte[] authData = null;
                 String pluginName = null;
