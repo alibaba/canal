@@ -9,23 +9,23 @@ public class SslInfo {
     private SslMode sslMode = SslMode.DISABLED;
     private String tlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
     private String trustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String trustCertificateKeyStorePath; // trustStore 证书路径
+    private String trustCertificateKeyStoreUrl; // trustStore 证书
     private String trustCertificateKeyStorePassword; // trustStore 证书密码
     private String clientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String clientCertificateKeyStorePath; // client 证书路径
+    private String clientCertificateKeyStoreUrl; // client 证书
     private String clientCertificateKeyStorePassword; // client 证书密码
 
     public SslInfo(SslMode sslMode, String tlsVersions, String trustCertificateKeyStoreType,
-        String trustCertificateKeyStorePath, String trustCertificateKeyStorePassword,
+        String trustCertificateKeyStoreUrl, String trustCertificateKeyStorePassword,
         String clientCertificateKeyStoreType,
-        String clientCertificateKeyStorePath, String clientCertificateKeyStorePassword) {
+        String clientCertificateKeyStoreUrl, String clientCertificateKeyStorePassword) {
         this.sslMode = sslMode;
         this.tlsVersions = tlsVersions;
         this.trustCertificateKeyStoreType = trustCertificateKeyStoreType;
-        this.trustCertificateKeyStorePath = trustCertificateKeyStorePath;
+        this.trustCertificateKeyStoreUrl = trustCertificateKeyStoreUrl;
         this.trustCertificateKeyStorePassword = trustCertificateKeyStorePassword;
         this.clientCertificateKeyStoreType = clientCertificateKeyStoreType;
-        this.clientCertificateKeyStorePath = clientCertificateKeyStorePath;
+        this.clientCertificateKeyStoreUrl = clientCertificateKeyStoreUrl;
         this.clientCertificateKeyStorePassword = clientCertificateKeyStorePassword;
     }
 
@@ -56,12 +56,12 @@ public class SslInfo {
         this.trustCertificateKeyStoreType = trustCertificateKeyStoreType;
     }
 
-    public String getTrustCertificateKeyStorePath() {
-        return trustCertificateKeyStorePath;
+    public String getTrustCertificateKeyStoreUrl() {
+        return trustCertificateKeyStoreUrl;
     }
 
-    public void setTrustCertificateKeyStorePath(String trustCertificateKeyStorePath) {
-        this.trustCertificateKeyStorePath = trustCertificateKeyStorePath;
+    public void setTrustCertificateKeyStoreUrl(String trustCertificateKeyStoreUrl) {
+        this.trustCertificateKeyStoreUrl = trustCertificateKeyStoreUrl;
     }
 
     public String getTrustCertificateKeyStorePassword() {
@@ -80,12 +80,12 @@ public class SslInfo {
         this.clientCertificateKeyStoreType = clientCertificateKeyStoreType;
     }
 
-    public String getClientCertificateKeyStorePath() {
-        return clientCertificateKeyStorePath;
+    public String getClientCertificateKeyStoreUrl() {
+        return clientCertificateKeyStoreUrl;
     }
 
-    public void setClientCertificateKeyStorePath(String clientCertificateKeyStorePath) {
-        this.clientCertificateKeyStorePath = clientCertificateKeyStorePath;
+    public void setClientCertificateKeyStoreUrl(String clientCertificateKeyStoreUrl) {
+        this.clientCertificateKeyStoreUrl = clientCertificateKeyStoreUrl;
     }
 
     public String getClientCertificateKeyStorePassword() {

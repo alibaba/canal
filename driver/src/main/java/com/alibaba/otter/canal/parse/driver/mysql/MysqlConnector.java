@@ -262,6 +262,7 @@ public class MysqlConnector {
         byte marker = body[0];
         if (marker == -2 || marker == 1) {
             if (isSha2Password && body[1] == 3) {
+                // sha2 auth ok
                 logger.info("caching_sha2_password auth success.");
                 header = PacketManager.readHeader(channel, 4);
                 body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
@@ -521,6 +522,7 @@ public class MysqlConnector {
     public SslInfo getSslInfo() {
         return sslInfo;
     }
+
     public void setSslInfo(SslInfo sslInfo) {
         this.sslInfo = sslInfo;
     }

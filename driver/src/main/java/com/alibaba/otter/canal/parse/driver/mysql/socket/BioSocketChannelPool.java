@@ -81,16 +81,12 @@ public abstract class BioSocketChannelPool {
         SslMode sslMode = sslInfo.getSslMode();
         boolean verifyServerCert = sslMode == SslMode.VERIFY_CA || sslMode == SslMode.VERIFY_IDENTITY;
 
-        String clientCertificateKeyStoreUrl = sslInfo.getClientCertificateKeyStorePath() != null
-            ? "file://" + sslInfo.getClientCertificateKeyStorePath()
-            : null;
+        String clientCertificateKeyStoreUrl = sslInfo.getClientCertificateKeyStoreUrl();
         String clientCertificateKeyStoreType = sslInfo.getClientCertificateKeyStoreType() != null
             ? sslInfo.getClientCertificateKeyStoreType()
             : "JKS";
         String clientCertificateKeyStorePassword = sslInfo.getClientCertificateKeyStorePassword();
-        String trustCertificateKeyStoreUrl = sslInfo.getTrustCertificateKeyStorePath() != null
-            ? "file://" + sslInfo.getTrustCertificateKeyStorePath()
-            : null;
+        String trustCertificateKeyStoreUrl = sslInfo.getTrustCertificateKeyStoreUrl();
         String trustCertificateKeyStoreType = sslInfo.getTrustCertificateKeyStoreType() != null
             ? sslInfo.getTrustCertificateKeyStoreType()
             : "JKS";

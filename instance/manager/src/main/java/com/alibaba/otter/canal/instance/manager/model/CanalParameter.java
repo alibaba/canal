@@ -69,10 +69,10 @@ public class CanalParameter implements Serializable {
     private String sslMode = SslMode.DISABLED.name();
     private String tlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
     private String trustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String trustCertificateKeyStorePath; // trustStore 证书路径
+    private String trustCertificateKeyStoreUrl; // trustStore 证书路径
     private String trustCertificateKeyStorePassword; // trustStore 证书密码
     private String clientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String clientCertificateKeyStorePath; // client 证书路径
+    private String clientCertificateKeyStoreUrl; // client 证书路径
     private String clientCertificateKeyStorePassword; // client 证书密码
 
     // binlog链接信息
@@ -120,10 +120,10 @@ public class CanalParameter implements Serializable {
     private String masterSslMode = SslMode.DISABLED.name();
     private String masterTlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
     private String masterTrustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String masterTrustCertificateKeyStorePath; // trustStore 证书路径
+    private String masterTrustCertificateKeyStoreUrl; // trustStore 证书路径
     private String masterTrustCertificateKeyStorePassword; // trustStore 证书密码
     private String masterClientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String masterClientCertificateKeyStorePath; // client 证书路径
+    private String masterClientCertificateKeyStoreUrl; // client 证书路径
     private String masterClientCertificateKeyStorePassword; // client 证书密码
 
     private InetSocketAddress        standbyAddress;                                                 // 备库信息
@@ -132,10 +132,10 @@ public class CanalParameter implements Serializable {
     private String standbySslMode = SslMode.DISABLED.name();
     private String standbyTlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
     private String standbyTrustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String standbyTrustCertificateKeyStorePath; // trustStore 证书路径
+    private String standbyTrustCertificateKeyStoreUrl; // trustStore 证书路径
     private String standbyTrustCertificateKeyStorePassword; // trustStore 证书密码
     private String standbyClientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String standbyClientCertificateKeyStorePath; // client 证书路径
+    private String standbyClientCertificateKeyStoreUrl; // client 证书路径
     private String standbyClientCertificateKeyStorePassword; // client 证书密码
 
     private String                   masterLogfileName                  = null;                      // master起始位置
@@ -755,29 +755,29 @@ public class CanalParameter implements Serializable {
                 return new SslInfo(SslMode.valueOf(masterSslMode),
                     masterTlsVersions,
                     masterTrustCertificateKeyStoreType,
-                    masterTrustCertificateKeyStorePath,
+                    masterTrustCertificateKeyStoreUrl,
                     masterTrustCertificateKeyStorePassword,
                     masterClientCertificateKeyStoreType,
-                    masterClientCertificateKeyStorePath,
+                    masterClientCertificateKeyStoreUrl,
                     masterClientCertificateKeyStorePassword);
             } else {
                 return new SslInfo(SslMode.valueOf(standbySslMode),
                     standbyTlsVersions,
                     standbyTrustCertificateKeyStoreType,
-                    standbyTrustCertificateKeyStorePath,
+                    standbyTrustCertificateKeyStoreUrl,
                     standbyTrustCertificateKeyStorePassword,
                     standbyClientCertificateKeyStoreType,
-                    standbyClientCertificateKeyStorePath,
+                    standbyClientCertificateKeyStoreUrl,
                     standbyClientCertificateKeyStorePassword);
             }
         }
         return new SslInfo(SslMode.valueOf(sslMode),
             tlsVersions,
             trustCertificateKeyStoreType,
-            trustCertificateKeyStorePath,
+            trustCertificateKeyStoreUrl,
             trustCertificateKeyStorePassword,
             clientCertificateKeyStoreType,
-            clientCertificateKeyStorePath,
+            clientCertificateKeyStoreUrl,
             clientCertificateKeyStorePassword);
     }
 
@@ -793,8 +793,8 @@ public class CanalParameter implements Serializable {
         this.trustCertificateKeyStoreType = trustCertificateKeyStoreType;
     }
 
-    public void setTrustCertificateKeyStorePath(String trustCertificateKeyStorePath) {
-        this.trustCertificateKeyStorePath = trustCertificateKeyStorePath;
+    public void setTrustCertificateKeyStoreUrl(String trustCertificateKeyStoreUrl) {
+        this.trustCertificateKeyStoreUrl = trustCertificateKeyStoreUrl;
     }
 
     public void setTrustCertificateKeyStorePassword(String trustCertificateKeyStorePassword) {
@@ -805,8 +805,8 @@ public class CanalParameter implements Serializable {
         this.clientCertificateKeyStoreType = clientCertificateKeyStoreType;
     }
 
-    public void setClientCertificateKeyStorePath(String clientCertificateKeyStorePath) {
-        this.clientCertificateKeyStorePath = clientCertificateKeyStorePath;
+    public void setClientCertificateKeyStoreUrl(String clientCertificateKeyStoreUrl) {
+        this.clientCertificateKeyStoreUrl = clientCertificateKeyStoreUrl;
     }
 
     public void setClientCertificateKeyStorePassword(String clientCertificateKeyStorePassword) {
@@ -825,8 +825,8 @@ public class CanalParameter implements Serializable {
         this.masterTrustCertificateKeyStoreType = masterTrustCertificateKeyStoreType;
     }
 
-    public void setMasterTrustCertificateKeyStorePath(String masterTrustCertificateKeyStorePath) {
-        this.masterTrustCertificateKeyStorePath = masterTrustCertificateKeyStorePath;
+    public void setMasterTrustCertificateKeyStoreUrl(String masterTrustCertificateKeyStoreUrl) {
+        this.masterTrustCertificateKeyStoreUrl = masterTrustCertificateKeyStoreUrl;
     }
 
     public void setMasterTrustCertificateKeyStorePassword(String masterTrustCertificateKeyStorePassword) {
@@ -837,8 +837,8 @@ public class CanalParameter implements Serializable {
         this.masterClientCertificateKeyStoreType = masterClientCertificateKeyStoreType;
     }
 
-    public void setMasterClientCertificateKeyStorePath(String masterClientCertificateKeyStorePath) {
-        this.masterClientCertificateKeyStorePath = masterClientCertificateKeyStorePath;
+    public void setMasterClientCertificateKeyStoreUrl(String masterClientCertificateKeyStoreUrl) {
+        this.masterClientCertificateKeyStoreUrl = masterClientCertificateKeyStoreUrl;
     }
 
     public void setMasterClientCertificateKeyStorePassword(String masterClientCertificateKeyStorePassword) {
@@ -857,8 +857,8 @@ public class CanalParameter implements Serializable {
         this.standbyTrustCertificateKeyStoreType = standbyTrustCertificateKeyStoreType;
     }
 
-    public void setStandbyTrustCertificateKeyStorePath(String standbyTrustCertificateKeyStorePath) {
-        this.standbyTrustCertificateKeyStorePath = standbyTrustCertificateKeyStorePath;
+    public void setStandbyTrustCertificateKeyStoreUrl(String standbyTrustCertificateKeyStoreUrl) {
+        this.standbyTrustCertificateKeyStoreUrl = standbyTrustCertificateKeyStoreUrl;
     }
 
     public void setStandbyTrustCertificateKeyStorePassword(String standbyTrustCertificateKeyStorePassword) {
@@ -869,8 +869,8 @@ public class CanalParameter implements Serializable {
         this.standbyClientCertificateKeyStoreType = standbyClientCertificateKeyStoreType;
     }
 
-    public void setStandbyClientCertificateKeyStorePath(String standbyClientCertificateKeyStorePath) {
-        this.standbyClientCertificateKeyStorePath = standbyClientCertificateKeyStorePath;
+    public void setStandbyClientCertificateKeyStoreUrl(String standbyClientCertificateKeyStoreUrl) {
+        this.standbyClientCertificateKeyStoreUrl = standbyClientCertificateKeyStoreUrl;
     }
 
     public void setStandbyClientCertificateKeyStorePassword(String standbyClientCertificateKeyStorePassword) {

@@ -118,10 +118,10 @@
 						<property name="sslMode" value="${canal.instance.master.sslMode:DISABLED}"/>
 						<property name="tlsVersions" value="${canal.instance.master.tlsVersions:}"/>
 						<property name="trustCertificateKeyStoreType" value="${canal.instance.master.trustCertificateKeyStoreType:}"/>
-						<property name="trustCertificateKeyStorePath" value="${canal.instance.master.trustCertificateKeyStorePath:}"/>
+						<property name="trustCertificateKeyStoreUrl" value="${canal.instance.master.trustCertificateKeyStoreUrl:}"/>
 						<property name="trustCertificateKeyStorePassword" value="${canal.instance.master.trustCertificateKeyStorePassword:}"/>
 						<property name="clientCertificateKeyStoreType" value="${canal.instance.master.clientCertificateKeyStoreType:}"/>
-						<property name="clientCertificateKeyStorePath" value="${canal.instance.master.clientCertificateKeyStorePath:}"/>
+						<property name="clientCertificateKeyStoreUrl" value="${canal.instance.master.clientCertificateKeyStoreUrl:}"/>
 						<property name="clientCertificateKeyStorePassword" value="${canal.instance.master.clientCertificateKeyStorePassword:}"/>
 					</bean>
 				</property>
@@ -140,10 +140,10 @@
 						<property name="sslMode" value="${canal.instance.standby.sslMode:DISABLED}"/>
 						<property name="tlsVersions" value="${canal.instance.standby.tlsVersions:}"/>
 						<property name="trustCertificateKeyStoreType" value="${canal.instance.standby.trustCertificateKeyStoreType:}"/>
-						<property name="trustCertificateKeyStorePath" value="${canal.instance.standby.trustCertificateKeyStorePath:}"/>
+						<property name="trustCertificateKeyStoreUrl" value="${canal.instance.standby.trustCertificateKeyStoreUrl:}"/>
 						<property name="trustCertificateKeyStorePassword" value="${canal.instance.standby.trustCertificateKeyStorePassword:}"/>
 						<property name="clientCertificateKeyStoreType" value="${canal.instance.standby.clientCertificateKeyStoreType:}"/>
-						<property name="clientCertificateKeyStorePath" value="${canal.instance.standby.clientCertificateKeyStorePath:}"/>
+						<property name="clientCertificateKeyStoreUrl" value="${canal.instance.standby.clientCertificateKeyStoreUrl:}"/>
 						<property name="clientCertificateKeyStorePassword" value="${canal.instance.standby.clientCertificateKeyStorePassword:}"/>
 					</bean>
 				</property>
