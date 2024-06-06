@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.instance.manager;
 
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -69,6 +70,9 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
     // ================ setter / getter ================
 
     private BeanFactory getBeanFactory(String springXml) {
+        if (!StringUtils.startsWithIgnoreCase("classpath:", springXml)) {
+            springXml = "classpath:" + springXml;
+        }
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
         return applicationContext;
     }

@@ -25,6 +25,9 @@ import org.springframework.util.PropertyPlaceholderHelper;
 public class YamlUtils {
 
     public static <T> T resourceYmlToObj(String resource, String prefix, Class<T> clazz) {
+        if (!StringUtils.startsWithIgnoreCase("classpath:", resource)) {
+            resource = "classpath:" + resource;
+        }
         ClassPathResource classPathResource = new ClassPathResource(resource);
 
         String content;
