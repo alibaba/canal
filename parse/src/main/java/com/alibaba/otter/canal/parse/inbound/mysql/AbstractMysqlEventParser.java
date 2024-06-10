@@ -61,6 +61,8 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
         convert.setFieldFilterMap(getFieldFilterMap());
         convert.setFieldBlackFilterMap(getFieldBlackFilterMap());
+        convert.setNeedOnlyChangedField(needOnlyChangedField);
+        convert.setFieldNecessaryMap(getFieldNecessaryMap());
 
         convert.setCharset(connectionCharset);
         convert.setFilterQueryDcl(filterQueryDcl);
