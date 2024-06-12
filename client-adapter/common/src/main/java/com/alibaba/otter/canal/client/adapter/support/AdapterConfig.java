@@ -7,5 +7,8 @@ public interface AdapterConfig {
 
     interface AdapterMapping {
         String getEtlCondition();
+        String getPrimaryKey();
+        Boolean isSimpleTable();
+        String getTable();
     }
 }
