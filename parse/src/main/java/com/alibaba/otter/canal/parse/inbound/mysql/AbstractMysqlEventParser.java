@@ -59,8 +59,13 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
             convert.setNameBlackFilter((AviaterRegexFilter) eventBlackFilter);
         }
 
-        convert.setFieldFilterMap(getFieldFilterMap());
-        convert.setFieldBlackFilterMap(getFieldBlackFilterMap());
+        if (fieldFilter != null && fieldFilter instanceof AviaterRegexFilter) {
+            convert.setFieldFilter((AviaterRegexFilter) fieldFilter);
+        }
+
+        if (fieldBlackFilter != null && fieldBlackFilter instanceof AviaterRegexFilter) {
+            convert.setFieldBlackFilter((AviaterRegexFilter) fieldBlackFilter);
+        }
 
         convert.setCharset(connectionCharset);
         convert.setFilterQueryDcl(filterQueryDcl);
@@ -103,30 +108,22 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     }
 
     @Override
-    public void setFieldFilter(String fieldFilter) {
+    public void setFieldFilter(CanalEventFilter fieldFilter) {
         super.setFieldFilter(fieldFilter);
 
         // 触发一下filter变更
-        if (binlogParser instanceof LogEventConvert) {
-            ((LogEventConvert) binlogParser).setFieldFilterMap(getFieldFilterMap());
-        }
-
-        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
-            ((DatabaseTableMeta) tableMetaTSDB).setFieldFilterMap(getFieldFilterMap());
+        if (binlogParser instanceof LogEventConvert && fieldFilter instanceof AviaterRegexFilter) {
+            ((LogEventConvert) binlogParser).setFieldFilter((AviaterRegexFilter) fieldFilter);
         }
     }
 
     @Override
-    public void setFieldBlackFilter(String fieldBlackFilter) {
+    public void setFieldBlackFilter(CanalEventFilter fieldBlackFilter) {
         super.setFieldBlackFilter(fieldBlackFilter);
 
         // 触发一下filter变更
-        if (binlogParser instanceof LogEventConvert) {
-            ((LogEventConvert) binlogParser).setFieldBlackFilterMap(getFieldBlackFilterMap());
-        }
-
-        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
-            ((DatabaseTableMeta) tableMetaTSDB).setFieldBlackFilterMap(getFieldBlackFilterMap());
+        if (binlogParser instanceof LogEventConvert && fieldBlackFilter instanceof AviaterRegexFilter) {
+            ((LogEventConvert) binlogParser).setFieldBlackFilter((AviaterRegexFilter)fieldBlackFilter);
         }
     }
 
