@@ -5,6 +5,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
+import com.alibaba.otter.canal.common.utils.JsonUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,7 +274,7 @@ public class RdbSyncService {
         len = insertSql.length();
         insertSql.delete(len - 1, len).append(")");
 
-        Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
+        Map<String, Integer> ctype = getTargetColumnTypeByColSize(batchExecutor.getConn(), config, columnsMap);
 
         List<Map<String, ?>> values = new ArrayList<>();
         for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
@@ -328,7 +330,7 @@ public class RdbSyncService {
         String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, data);
 
-        Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
+        Map<String, Integer> ctype = getTargetColumnTypeByColSize(batchExecutor.getConn(), config, columnsMap);
 
         StringBuilder updateSql = new StringBuilder();
         updateSql.append("UPDATE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" SET ");
@@ -410,6 +412,24 @@ public class RdbSyncService {
         }
     }
 
+
+    private Map<String, Integer> getTargetColumnTypeByColSize(Connection conn, MappingConfig config,
+                                                              Map<String, String> columnsMap) {
+        DbMapping dbMapping = config.getDbMapping();
+        String cacheKey = config.getDestination() + "." + dbMapping.getDatabase() + "." + dbMapping.getTable();
+        Map<String, Integer> columnType = getTargetColumnType(conn, config);
+        if(null != columnsMap && columnsMap.size() != columnType.size()){
+            logger.info("col size not match, reload the column meta data from db. key:{}", cacheKey);
+            columnsTypeCache.remove(cacheKey);
+            columnType = getTargetColumnType(conn, config);
+            if(null != columnsMap && columnsMap.size() != columnType.size()) {
+                logger.info("the column meta data from db still not match. dbdata:",
+                        JsonUtils.marshalToString(columnsMap.keySet()));
+                columnType = new HashMap<>();
+                }
+            }
+        return columnType;
+    }
     /**
      * 获取目标字段类型
      *
