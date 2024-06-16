@@ -45,7 +45,7 @@ public class SpringCanalInstanceGenerator implements CanalInstanceGenerator {
     }
 
     private BeanFactory getBeanFactory(String springXml) {
-        if (!StringUtils.startsWithIgnoreCase("classpath:", springXml)) {
+        if (!StringUtils.startsWithIgnoreCase(springXml, "classpath:")) {
             springXml = "classpath:" + springXml;
         }
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
