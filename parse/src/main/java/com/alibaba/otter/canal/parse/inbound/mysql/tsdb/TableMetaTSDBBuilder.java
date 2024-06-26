@@ -30,7 +30,7 @@ public class TableMetaTSDBBuilder {
             if (applicationContext == null) {
                 synchronized (contexts) {
                     if (applicationContext == null) {
-                        if (!StringUtils.startsWithIgnoreCase("classpath:", springXml)) {
+                        if (!StringUtils.startsWithIgnoreCase(springXml, "classpath:")) {
                             springXml = "classpath:" + springXml;
                         }
                         applicationContext = new ClassPathXmlApplicationContext(springXml);

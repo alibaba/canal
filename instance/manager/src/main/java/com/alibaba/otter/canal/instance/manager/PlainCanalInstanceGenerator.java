@@ -18,7 +18,7 @@ import com.alibaba.otter.canal.parse.CanalEventParser;
 
 /**
  * 基于manager生成对应的{@linkplain CanalInstance}
- * 
+ *
  * @author jianghang 2012-7-12 下午05:37:09
  * @version 1.0.0
  */
@@ -70,7 +70,7 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
     // ================ setter / getter ================
 
     private BeanFactory getBeanFactory(String springXml) {
-        if (!StringUtils.startsWithIgnoreCase("classpath:", springXml)) {
+        if (!StringUtils.startsWithIgnoreCase(springXml, "classpath:")) {
             springXml = "classpath:" + springXml;
         }
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
