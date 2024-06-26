@@ -74,8 +74,7 @@ public class MysqlConnection implements ErosaConnection {
         connector.setConnTimeout(connTimeout);
     }
 
-    public MysqlConnection(InetSocketAddress address, String username, String password,
-        String defaultSchema){
+    public MysqlConnection(InetSocketAddress address, String username, String password, String defaultSchema){
         authInfo = new AuthenticationInfo();
         authInfo.setAddress(address);
         authInfo.setUsername(username);
@@ -87,8 +86,8 @@ public class MysqlConnection implements ErosaConnection {
         connector.setConnTimeout(connTimeout);
     }
 
-    public MysqlConnection(InetSocketAddress address, String username, String password,
-                           String defaultSchema, SslInfo sslInfo){
+    public MysqlConnection(InetSocketAddress address, String username, String password, String defaultSchema,
+                           SslInfo sslInfo){
         authInfo = new AuthenticationInfo();
         authInfo.setAddress(address);
         authInfo.setUsername(username);

@@ -15,7 +15,9 @@ public class SslRequestCommandPacket implements IPacket {
 
     private final int serverCharsetNumber;
 
-    public SslRequestCommandPacket(int serverCharsetNumber) {this.serverCharsetNumber = serverCharsetNumber;}
+    public SslRequestCommandPacket(int serverCharsetNumber){
+        this.serverCharsetNumber = serverCharsetNumber;
+    }
 
     @Override
     public void fromBytes(byte[] data) throws IOException {
@@ -25,11 +27,9 @@ public class SslRequestCommandPacket implements IPacket {
     @Override
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int clientCapabilities = Capability.CLIENT_LONG_FLAG
-            | Capability.CLIENT_PROTOCOL_41
-            | Capability.CLIENT_SECURE_CONNECTION
-            | Capability.CLIENT_PLUGIN_AUTH
-            | Capability.CLIENT_SSL;
+        int clientCapabilities = Capability.CLIENT_LONG_FLAG | Capability.CLIENT_PROTOCOL_41
+                                 | Capability.CLIENT_SECURE_CONNECTION | Capability.CLIENT_PLUGIN_AUTH
+                                 | Capability.CLIENT_SSL;
         ByteHelper.writeUnsignedIntLittleEndian(clientCapabilities, out);
         ByteHelper.writeUnsignedIntLittleEndian(0, out);
         out.write(serverCharsetNumber);

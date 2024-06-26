@@ -2,11 +2,11 @@ package com.alibaba.otter.canal.parse.support;
 
 import java.net.InetSocketAddress;
 
-import com.alibaba.otter.canal.common.utils.CommonUtils;
-import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
-
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+
+import com.alibaba.otter.canal.common.utils.CommonUtils;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
 
 /**
  * 数据库认证信息
@@ -16,17 +16,15 @@ import org.apache.commons.lang.builder.ToStringStyle;
  */
 public class AuthenticationInfo {
 
-
-
     private InetSocketAddress address;            // 主库信息
     private String            username;           // 帐号
     private String            password;           // 密码
     private String            defaultDatabaseName;// 默认链接的数据库
-    private String            pwdPublicKey;       //公钥
-    private boolean           enableDruid;        //是否使用druid加密解密数据库密码
-    private SslInfo sslInfo;
+    private String            pwdPublicKey;       // 公钥
+    private boolean           enableDruid;        // 是否使用druid加密解密数据库密码
+    private SslInfo           sslInfo;
 
-    public void initPwd() throws Exception{
+    public void initPwd() throws Exception {
         if (enableDruid) {
             this.password = CommonUtils.decryptDruidPassword(pwdPublicKey, password);
         }
@@ -47,8 +45,8 @@ public class AuthenticationInfo {
         this.defaultDatabaseName = defaultDatabaseName;
     }
 
-    public AuthenticationInfo(InetSocketAddress address, String username, String password,
-        String defaultDatabaseName, SslInfo sslInfo) {
+    public AuthenticationInfo(InetSocketAddress address, String username, String password, String defaultDatabaseName,
+                              SslInfo sslInfo){
         this(address, username, password, defaultDatabaseName);
         this.sslInfo = sslInfo;
     }

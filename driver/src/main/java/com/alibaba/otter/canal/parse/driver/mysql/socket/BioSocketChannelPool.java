@@ -8,11 +8,7 @@ import java.net.URL;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.cert.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.naming.InvalidNameException;
@@ -21,18 +17,19 @@ import javax.naming.ldap.Rdn;
 import javax.net.ssl.*;
 import javax.security.auth.x500.X500Principal;
 
-import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
-import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslMode;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslMode;
 
 /**
  * @author luoyaogui 实现channel的管理（监听连接、读数据、回收） 2016-12-28
  * @author chuanyi 2018-3-3 保留<code>open</code>减少文件变更数量
  */
 public abstract class BioSocketChannelPool {
+
     private static final Logger logger = LoggerFactory.getLogger(BioSocketChannelPool.class);
 
     public static BioSocketChannel open(SocketAddress address) throws Exception {
@@ -42,7 +39,6 @@ public abstract class BioSocketChannelPool {
 
     public static BioSocketChannel openSsl(Socket socket, SslInfo sslInfo) throws Exception {
         SslMode sslMode = sslInfo.getSslMode();
-
         switch (sslMode) {
             case REQUIRED:
             case PREFERRED:
@@ -67,9 +63,7 @@ public abstract class BioSocketChannelPool {
     }
 
     /**
-     * from JDBC driver
-     *
-     * com.mysql.cj.protocol.ExportControlled#performTlsHandshake
+     * from JDBC driver com.mysql.cj.protocol.ExportControlled#performTlsHandshake
      * com.mysql.cj.protocol.ExportControlled#getSSLContext
      *
      * @param socket
@@ -82,14 +76,12 @@ public abstract class BioSocketChannelPool {
         boolean verifyServerCert = sslMode == SslMode.VERIFY_CA || sslMode == SslMode.VERIFY_IDENTITY;
 
         String clientCertificateKeyStoreUrl = sslInfo.getClientCertificateKeyStoreUrl();
-        String clientCertificateKeyStoreType = sslInfo.getClientCertificateKeyStoreType() != null
-            ? sslInfo.getClientCertificateKeyStoreType()
-            : "JKS";
+        String clientCertificateKeyStoreType = sslInfo.getClientCertificateKeyStoreType() != null ? sslInfo
+            .getClientCertificateKeyStoreType() : "JKS";
         String clientCertificateKeyStorePassword = sslInfo.getClientCertificateKeyStorePassword();
         String trustCertificateKeyStoreUrl = sslInfo.getTrustCertificateKeyStoreUrl();
-        String trustCertificateKeyStoreType = sslInfo.getTrustCertificateKeyStoreType() != null
-            ? sslInfo.getTrustCertificateKeyStoreType()
-            : "JKS";
+        String trustCertificateKeyStoreType = sslInfo.getTrustCertificateKeyStoreType() != null ? sslInfo
+            .getTrustCertificateKeyStoreType() : "JKS";
         String trustCertificateKeyStorePassword = sslInfo.getTrustCertificateKeyStorePassword();
         boolean fallbackToDefaultTrustStore = true;
         String hostName = sslMode == SslMode.VERIFY_IDENTITY ? socket.getInetAddress().getHostName() : null;
@@ -97,36 +89,38 @@ public abstract class BioSocketChannelPool {
         SSLContext sslContext = getSSLContext(clientCertificateKeyStoreUrl,
             clientCertificateKeyStoreType,
             clientCertificateKeyStorePassword,
-            trustCertificateKeyStoreUrl, trustCertificateKeyStoreType,
+            trustCertificateKeyStoreUrl,
+            trustCertificateKeyStoreType,
             trustCertificateKeyStorePassword,
             fallbackToDefaultTrustStore,
-            verifyServerCert, hostName);
+            verifyServerCert,
+            hostName);
         SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 
-        SSLSocket sslSocket = (SSLSocket)socketFactory.createSocket(
-            socket, socket.getInetAddress().getHostName(), socket.getPort(), true);
+        SSLSocket sslSocket = (SSLSocket) socketFactory
+            .createSocket(socket, socket.getInetAddress().getHostName(), socket.getPort(), true);
 
         String[] protocolArr = null;
         if (StringUtils.isNotEmpty(sslInfo.getTlsVersions())) {
             protocolArr = StringUtils.split(sslInfo.getTlsVersions(), ",");
         }
         if (protocolArr == null || protocolArr.length == 0) {
-            protocolArr = new String[] {"TLSv1.2", "TLSv1.3"};
+            protocolArr = new String[] { "TLSv1.2", "TLSv1.3" };
         }
         logger.info("SSL protocol: {}", StringUtils.join(protocolArr, ","));
         sslSocket.setEnabledProtocols(protocolArr);
-        //sslSocket.setEnabledCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384,TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_DSS_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_DSS_WITH_AES_128_CBC_SHA".split(","));
+        // sslSocket.setEnabledCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384,TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_DSS_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_DSS_WITH_AES_128_CBC_SHA".split(","));
         sslSocket.startHandshake();
         logger.info("SSL socket handshake success.");
         return sslSocket;
     }
 
     private static SSLContext getSSLContext(String clientCertificateKeyStoreUrl, String clientCertificateKeyStoreType,
-        String clientCertificateKeyStorePassword,
-        String trustCertificateKeyStoreUrl, String trustCertificateKeyStoreType,
-        String trustCertificateKeyStorePassword,
-        boolean fallbackToDefaultTrustStore, boolean verifyServerCert, String hostName)
-        throws Exception {
+                                            String clientCertificateKeyStorePassword,
+                                            String trustCertificateKeyStoreUrl, String trustCertificateKeyStoreType,
+                                            String trustCertificateKeyStorePassword,
+                                            boolean fallbackToDefaultTrustStore, boolean verifyServerCert,
+                                            String hostName) throws Exception {
 
         KeyManager[] kms = null;
         List<TrustManager> tms = new ArrayList<>();
@@ -140,8 +134,8 @@ public abstract class BioSocketChannelPool {
                 if (StringUtils.isNotEmpty(clientCertificateKeyStoreType)) {
                     KeyStore clientKeyStore = KeyStore.getInstance(clientCertificateKeyStoreType);
                     URL ksURL = new URL(clientCertificateKeyStoreUrl);
-                    char[] password = (clientCertificateKeyStorePassword == null) ? new char[0]
-                        : clientCertificateKeyStorePassword.toCharArray();
+                    char[] password = (clientCertificateKeyStorePassword == null) ? new char[0] : clientCertificateKeyStorePassword
+                        .toCharArray();
                     ksIS = ksURL.openStream();
                     clientKeyStore.load(ksIS, password);
                     kmf.init(clientKeyStore, password);
@@ -152,7 +146,8 @@ public abstract class BioSocketChannelPool {
                     try {
                         ksIS.close();
                     } catch (IOException e) {
-                        // can't close input stream, but keystore can be properly initialized so we shouldn't throw
+                        // can't close input stream, but keystore can be properly initialized so we
+                        // shouldn't throw
                         // this exception
                     }
                 }
@@ -165,11 +160,11 @@ public abstract class BioSocketChannelPool {
             char[] trustStorePassword = null;
             KeyStore trustKeyStore = null;
 
-            if (StringUtils.isNotEmpty(trustCertificateKeyStoreUrl) && StringUtils.isNotEmpty(
-                trustCertificateKeyStoreType)) {
+            if (StringUtils.isNotEmpty(trustCertificateKeyStoreUrl)
+                && StringUtils.isNotEmpty(trustCertificateKeyStoreType)) {
                 trustStoreType = trustCertificateKeyStoreType;
-                trustStorePassword = (trustCertificateKeyStorePassword == null) ? new char[0]
-                    : trustCertificateKeyStorePassword.toCharArray();
+                trustStorePassword = (trustCertificateKeyStorePassword == null) ? new char[0] : trustCertificateKeyStorePassword
+                    .toCharArray();
                 trustStoreIS = new URL(trustCertificateKeyStoreUrl).openStream();
 
                 trustKeyStore = KeyStore.getInstance(trustStoreType);
@@ -178,15 +173,18 @@ public abstract class BioSocketChannelPool {
 
             if (trustKeyStore != null || fallbackToDefaultTrustStore) {
                 tmf.init(trustKeyStore);
-                // (trustKeyStore == null) initializes the TrustManagerFactory with the default truststore.
+                // (trustKeyStore == null) initializes the TrustManagerFactory with the default
+                // truststore.
 
-                // building the customized list of TrustManagers from original one if it's available
+                // building the customized list of TrustManagers from original one if it's
+                // available
                 TrustManager[] origTms = tmf.getTrustManagers();
 
                 for (TrustManager tm : origTms) {
                     // wrap X509TrustManager or put original if non-X509 TrustManager
-                    tms.add(tm instanceof X509TrustManager ? new X509TrustManagerWrapper((X509TrustManager)tm,
-                        verifyServerCert, hostName) : tm);
+                    tms.add(tm instanceof X509TrustManager ? new X509TrustManagerWrapper((X509TrustManager) tm,
+                        verifyServerCert,
+                        hostName) : tm);
                 }
             }
 
@@ -195,13 +193,15 @@ public abstract class BioSocketChannelPool {
                 try {
                     trustStoreIS.close();
                 } catch (IOException e) {
-                    // can't close input stream, but keystore can be properly initialized so we shouldn't throw this
+                    // can't close input stream, but keystore can be properly initialized so we
+                    // shouldn't throw this
                     // exception
                 }
             }
         }
 
-        // if original TrustManagers are not available then putting one X509TrustManagerWrapper which take care only
+        // if original TrustManagers are not available then putting one
+        // X509TrustManagerWrapper which take care only
         // about expiration check
         if (tms.size() == 0) {
             tms.add(new X509TrustManagerWrapper(verifyServerCert, hostName));
@@ -214,24 +214,24 @@ public abstract class BioSocketChannelPool {
 
     public static class X509TrustManagerWrapper implements X509TrustManager {
 
-        private X509TrustManager origTm = null;
-        private boolean verifyServerCert = false;
-        private String hostName = null;
-        private CertificateFactory certFactory = null;
-        private PKIXParameters validatorParams = null;
-        private CertPathValidator validator = null;
+        private X509TrustManager   origTm           = null;
+        private boolean            verifyServerCert = false;
+        private String             hostName         = null;
+        private CertificateFactory certFactory      = null;
+        private PKIXParameters     validatorParams  = null;
+        private CertPathValidator  validator        = null;
 
-        public X509TrustManagerWrapper(X509TrustManager tm, boolean verifyServerCertificate, String hostName)
-            throws CertificateException {
+        public X509TrustManagerWrapper(X509TrustManager tm, boolean verifyServerCertificate,
+                                       String hostName) throws CertificateException{
             this.origTm = tm;
             this.verifyServerCert = verifyServerCertificate;
             this.hostName = hostName;
 
             if (verifyServerCertificate) {
                 try {
-                    Set<TrustAnchor> anch = Arrays.stream(tm.getAcceptedIssuers()).map(c -> new TrustAnchor(c, null))
-                        .collect(
-                            Collectors.toSet());
+                    Set<TrustAnchor> anch = Arrays.stream(tm.getAcceptedIssuers())
+                        .map(c -> new TrustAnchor(c, null))
+                        .collect(Collectors.toSet());
                     this.validatorParams = new PKIXParameters(anch);
                     this.validatorParams.setRevocationEnabled(false);
                     this.validator = CertPathValidator.getInstance("PKIX");
@@ -243,7 +243,7 @@ public abstract class BioSocketChannelPool {
 
         }
 
-        public X509TrustManagerWrapper(boolean verifyServerCertificate, String hostName) {
+        public X509TrustManagerWrapper(boolean verifyServerCertificate, String hostName){
             this.verifyServerCert = verifyServerCertificate;
             this.hostName = hostName;
         }
@@ -266,7 +266,7 @@ public abstract class BioSocketChannelPool {
                     // Validate against truststore
                     CertPathValidatorResult result = this.validator.validate(certPath, this.validatorParams);
                     // Check expiration for the CA used to validate this path
-                    ((PKIXCertPathValidatorResult)result).getTrustAnchor().getTrustedCert().checkValidity();
+                    ((PKIXCertPathValidatorResult) result).getTrustAnchor().getTrustedCert().checkValidity();
 
                 } catch (InvalidAlgorithmParameterException e) {
                     throw new CertificateException(e);
@@ -308,8 +308,10 @@ public abstract class BioSocketChannelPool {
                     if (!expectHostNames.contains(this.hostName)) {
                         throw new CertificateException(
                             "Server certificate identity check failed. The certificate Common Name "
-                                + expectHostNames.stream().map(h -> "'" + h + "'").collect(Collectors.joining(", "))
-                                + " does not match with '" + this.hostName + "'.");
+                                                       + expectHostNames.stream()
+                                                           .map(h -> "'" + h + "'")
+                                                           .collect(Collectors.joining(", "))
+                                                       + " does not match with '" + this.hostName + "'.");
                     }
 
                 }

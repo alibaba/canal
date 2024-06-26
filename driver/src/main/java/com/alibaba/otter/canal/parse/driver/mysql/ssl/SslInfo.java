@@ -7,18 +7,18 @@ package com.alibaba.otter.canal.parse.driver.mysql.ssl;
 public class SslInfo {
 
     private SslMode sslMode = SslMode.DISABLED;
-    private String tlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
-    private String trustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String trustCertificateKeyStoreUrl; // trustStore 证书
-    private String trustCertificateKeyStorePassword; // trustStore 证书密码
-    private String clientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String clientCertificateKeyStoreUrl; // client 证书
-    private String clientCertificateKeyStorePassword; // client 证书密码
+    private String  tlsVersions;                       // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
+    private String  trustCertificateKeyStoreType;      // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
+    private String  trustCertificateKeyStoreUrl;       // trustStore 证书
+    private String  trustCertificateKeyStorePassword;  // trustStore 证书密码
+    private String  clientCertificateKeyStoreType;     // client 证书类型，支持 JKS (默认) 和 PKCS12
+    private String  clientCertificateKeyStoreUrl;      // client 证书
+    private String  clientCertificateKeyStorePassword; // client 证书密码
 
     public SslInfo(SslMode sslMode, String tlsVersions, String trustCertificateKeyStoreType,
-        String trustCertificateKeyStoreUrl, String trustCertificateKeyStorePassword,
-        String clientCertificateKeyStoreType,
-        String clientCertificateKeyStoreUrl, String clientCertificateKeyStorePassword) {
+                   String trustCertificateKeyStoreUrl, String trustCertificateKeyStorePassword,
+                   String clientCertificateKeyStoreType, String clientCertificateKeyStoreUrl,
+                   String clientCertificateKeyStorePassword) {
         this.sslMode = sslMode;
         this.tlsVersions = tlsVersions;
         this.trustCertificateKeyStoreType = trustCertificateKeyStoreType;

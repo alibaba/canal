@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.parse.driver.mysql;
 
+import static com.alibaba.otter.canal.parse.driver.mysql.packets.Capability.CLIENT_SSL;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.DigestException;
@@ -10,11 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.HeaderPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.client.AuthSwitchResponsePacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.client.ClientAuthenticationSHA2Packet;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.client.QuitCommandPacket;
-import com.alibaba.otter.canal.parse.driver.mysql.packets.client.SslRequestCommandPacket;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.client.*;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.*;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannelPool;
@@ -23,7 +21,6 @@ import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslMode;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MSC;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MySQLPasswordEncrypter;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
-import static com.alibaba.otter.canal.parse.driver.mysql.packets.Capability.CLIENT_SSL;
 
 /**
  * 基于mysql socket协议的链接实现
@@ -37,7 +34,7 @@ public class MysqlConnector {
     private InetSocketAddress   address;
     private String              username;
     private String              password;
-    private SslInfo  sslInfo;
+    private SslInfo             sslInfo;
 
     private String              defaultSchema;
     private int                 soTimeout         = 30 * 1000;
@@ -67,15 +64,14 @@ public class MysqlConnector {
         this.password = password;
     }
 
-    public MysqlConnector(InetSocketAddress address, String username, String password,
-                          String defaultSchema){
+    public MysqlConnector(InetSocketAddress address, String username, String password, String defaultSchema){
         this(address, username, password);
 
         this.defaultSchema = defaultSchema;
     }
 
-    public MysqlConnector(InetSocketAddress address, String username, String password,
-        String defaultSchema, SslInfo sslInfo) {
+    public MysqlConnector(InetSocketAddress address, String username, String password, String defaultSchema,
+                          SslInfo sslInfo){
         this(address, username, password, defaultSchema);
         this.sslInfo = sslInfo;
     }
@@ -110,7 +106,9 @@ public class MysqlConnector {
                 sslCipher = result.getFieldValues().get(1);
             }
             logger.info("connect MysqlConnection in sslMode {}, Ssl_version:{}, Ssl_cipher:{}",
-                (sslInfo != null ? sslInfo.getSslMode() : SslMode.DISABLED), sslVersion, sslCipher);
+                (sslInfo != null ? sslInfo.getSslMode() : SslMode.DISABLED),
+                sslVersion,
+                sslCipher);
         } catch (Exception e) {
             logger.info("Can't show SSL status, server may not standard MySQL server: {}", e.toString());
             logger.debug("show SSL status exception", e);
@@ -206,21 +204,21 @@ public class MysqlConnector {
         if (sslMode != SslMode.DISABLED) {
             boolean serverSupportSsl = (handshakePacket.serverCapabilities & CLIENT_SSL) > 0;
             if (!serverSupportSsl) {
-                throw new IOException("MySQL Server does not support SSL: " + address
-                    + " serverCapabilities: " + handshakePacket.serverCapabilities);
+                throw new IOException("MySQL Server does not support SSL: " + address + " serverCapabilities: "
+                                      + handshakePacket.serverCapabilities);
             }
             byte[] sslPacket = new SslRequestCommandPacket(handshakePacket.serverCharsetNumber).toBytes();
             HeaderPacket sslHeader = new HeaderPacket();
             sslHeader.setPacketBodyLength(sslPacket.length);
-            sslHeader.setPacketSequenceNumber((byte)(header.getPacketSequenceNumber() + 1));
-            header.setPacketSequenceNumber((byte)(header.getPacketSequenceNumber() + 1));
+            sslHeader.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
+            header.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
             PacketManager.writePkg(channel, sslHeader.toBytes(), sslPacket);
             channel = SocketChannelPool.connectSsl(channel, sslInfo);
             this.channel = channel;
         }
         if (handshakePacket.protocolVersion != MSC.DEFAULT_PROTOCOL_VERSION) {
             // HandshakeV9
-            auth323(channel, (byte)(header.getPacketSequenceNumber() + 1), handshakePacket.seed);
+            auth323(channel, (byte) (header.getPacketSequenceNumber() + 1), handshakePacket.seed);
             return;
         }
 
@@ -248,7 +246,7 @@ public class MysqlConnector {
         byte[] clientAuthPkgBody = clientAuth.toBytes();
         HeaderPacket h = new HeaderPacket();
         h.setPacketBodyLength(clientAuthPkgBody.length);
-        h.setPacketSequenceNumber((byte)(header.getPacketSequenceNumber() + 1));
+        h.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
 
         PacketManager.writePkg(channel, h.toBytes(), clientAuthPkgBody);
         logger.info("client authentication packet is sent out.");

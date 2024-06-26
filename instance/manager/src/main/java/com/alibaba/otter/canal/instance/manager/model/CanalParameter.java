@@ -66,14 +66,20 @@ public class CanalParameter implements Serializable {
     private String                   dbUsername;                                                     // 数据库用户
     private String                   dbPassword;                                                     // 数据库密码
 
-    private String sslMode = SslMode.DISABLED.name();
-    private String tlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
-    private String trustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String trustCertificateKeyStoreUrl; // trustStore 证书路径
-    private String trustCertificateKeyStorePassword; // trustStore 证书密码
-    private String clientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String clientCertificateKeyStoreUrl; // client 证书路径
-    private String clientCertificateKeyStorePassword; // client 证书密码
+    private String                   sslMode                            = SslMode.DISABLED.name();
+    private String                   tlsVersions;                                                    // 和
+                                                                                                     // enabledTLSProtocols
+                                                                                                     // 同含义，TLSv1.2,TLSv1.3
+    private String                   trustCertificateKeyStoreType;                                   // trustStore
+                                                                                                     // 证书类型，支持 JKS (默认)
+                                                                                                     // 和 PKCS12
+    private String                   trustCertificateKeyStoreUrl;                                    // trustStore 证书路径
+    private String                   trustCertificateKeyStorePassword;                               // trustStore 证书密码
+    private String                   clientCertificateKeyStoreType;                                  // client 证书类型，支持
+                                                                                                     // JKS (默认) 和
+                                                                                                     // PKCS12
+    private String                   clientCertificateKeyStoreUrl;                                   // client 证书路径
+    private String                   clientCertificateKeyStorePassword;                              // client 证书密码
 
     // binlog链接信息
     private IndexMode                indexMode;
@@ -117,26 +123,38 @@ public class CanalParameter implements Serializable {
     private InetSocketAddress        masterAddress;                                                  // 主库信息
     private String                   masterUsername;                                                 // 帐号
     private String                   masterPassword;                                                 // 密码
-    private String masterSslMode = SslMode.DISABLED.name();
-    private String masterTlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
-    private String masterTrustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String masterTrustCertificateKeyStoreUrl; // trustStore 证书路径
-    private String masterTrustCertificateKeyStorePassword; // trustStore 证书密码
-    private String masterClientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String masterClientCertificateKeyStoreUrl; // client 证书路径
-    private String masterClientCertificateKeyStorePassword; // client 证书密码
+    private String                   masterSslMode                      = SslMode.DISABLED.name();
+    private String                   masterTlsVersions;                                              // 和
+                                                                                                     // enabledTLSProtocols
+                                                                                                     // 同含义，TLSv1.2,TLSv1.3
+    private String                   masterTrustCertificateKeyStoreType;                             // trustStore
+                                                                                                     // 证书类型，支持 JKS (默认)
+                                                                                                     // 和 PKCS12
+    private String                   masterTrustCertificateKeyStoreUrl;                              // trustStore 证书路径
+    private String                   masterTrustCertificateKeyStorePassword;                         // trustStore 证书密码
+    private String                   masterClientCertificateKeyStoreType;                            // client 证书类型，支持
+                                                                                                     // JKS (默认) 和
+                                                                                                     // PKCS12
+    private String                   masterClientCertificateKeyStoreUrl;                             // client 证书路径
+    private String                   masterClientCertificateKeyStorePassword;                        // client 证书密码
 
     private InetSocketAddress        standbyAddress;                                                 // 备库信息
     private String                   standbyUsername;                                                // 帐号
     private String                   standbyPassword;
-    private String standbySslMode = SslMode.DISABLED.name();
-    private String standbyTlsVersions; // 和 enabledTLSProtocols 同含义，TLSv1.2,TLSv1.3
-    private String standbyTrustCertificateKeyStoreType; // trustStore 证书类型，支持 JKS (默认) 和 PKCS12
-    private String standbyTrustCertificateKeyStoreUrl; // trustStore 证书路径
-    private String standbyTrustCertificateKeyStorePassword; // trustStore 证书密码
-    private String standbyClientCertificateKeyStoreType; // client 证书类型，支持 JKS (默认) 和 PKCS12
-    private String standbyClientCertificateKeyStoreUrl; // client 证书路径
-    private String standbyClientCertificateKeyStorePassword; // client 证书密码
+    private String                   standbySslMode                     = SslMode.DISABLED.name();
+    private String                   standbyTlsVersions;                                             // 和
+                                                                                                     // enabledTLSProtocols
+                                                                                                     // 同含义，TLSv1.2,TLSv1.3
+    private String                   standbyTrustCertificateKeyStoreType;                            // trustStore
+                                                                                                     // 证书类型，支持 JKS (默认)
+                                                                                                     // 和 PKCS12
+    private String                   standbyTrustCertificateKeyStoreUrl;                             // trustStore 证书路径
+    private String                   standbyTrustCertificateKeyStorePassword;                        // trustStore 证书密码
+    private String                   standbyClientCertificateKeyStoreType;                           // client 证书类型，支持
+                                                                                                     // JKS (默认) 和
+                                                                                                     // PKCS12
+    private String                   standbyClientCertificateKeyStoreUrl;                            // client 证书路径
+    private String                   standbyClientCertificateKeyStorePassword;                       // client 证书密码
 
     private String                   masterLogfileName                  = null;                      // master起始位置
     private Long                     masterLogfileOffest                = null;
@@ -146,11 +164,11 @@ public class CanalParameter implements Serializable {
     private Long                     standbyTimestamp                   = null;
     private Boolean                  parallel                           = Boolean.FALSE;
 
-    //自定义alarmHandler类全路径
+    // 自定义alarmHandler类全路径
     private String                   alarmHandlerClass                  = null;
-    //自定义alarmHandler插件文件夹路径
+    // 自定义alarmHandler插件文件夹路径
     private String                   alarmHandlerPluginDir              = null;
-    //是否支持多流消费
+    // 是否支持多流消费
     private Boolean                  multiStreamEnable                  = Boolean.FALSE;
 
     public static enum RunMode {
@@ -209,6 +227,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum StorageMode {
+
         /** 内存存储模式 */
         MEMORY,
         /** 文件存储模式 */
@@ -231,6 +250,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum StorageScavengeMode {
+
         /** 在存储满的时候触发 */
         ON_FULL,
         /** 在每次有ack请求时触发 */
@@ -258,6 +278,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum SourcingType {
+
         /** mysql DB */
         MYSQL,
         /** localBinLog */
@@ -285,6 +306,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum MetaMode {
+
         /** 内存存储模式 */
         MEMORY,
         /** 文件存储模式 */
@@ -312,6 +334,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum IndexMode {
+
         /** 内存存储模式 */
         MEMORY,
         /** 文件存储模式 */
@@ -345,6 +368,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum BatchMode {
+
         /** 对象数量 */
         ITEMSIZE,
 
@@ -703,16 +727,16 @@ public class CanalParameter implements Serializable {
                     groupDbAddresses.add(groupAddresses);
                 }
             } else {
-            if (masterAddress != null) {
-                List<DataSourcing> groupAddresses = new ArrayList<>();
+                if (masterAddress != null) {
+                    List<DataSourcing> groupAddresses = new ArrayList<>();
                     groupAddresses.add(new DataSourcing(sourcingType, masterAddress));
-                groupDbAddresses.add(groupAddresses);
-            }
+                    groupDbAddresses.add(groupAddresses);
+                }
 
-            if (standbyAddress != null) {
-                List<DataSourcing> groupAddresses = new ArrayList<>();
+                if (standbyAddress != null) {
+                    List<DataSourcing> groupAddresses = new ArrayList<>();
                     groupAddresses.add(new DataSourcing(sourcingType, standbyAddress));
-                groupDbAddresses.add(groupAddresses);
+                    groupDbAddresses.add(groupAddresses);
                 }
             }
         }

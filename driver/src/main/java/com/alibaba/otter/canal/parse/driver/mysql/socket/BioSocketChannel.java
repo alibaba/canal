@@ -19,11 +19,11 @@ import javax.net.ssl.SSLSocket;
  */
 public class BioSocketChannel implements SocketChannel {
 
-    static final int     DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
-    static final int     SO_TIMEOUT              = 1000;
-    private Socket       socket;
-    private InputStream  input;
-    private OutputStream output;
+    static final int      DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
+    static final int      SO_TIMEOUT              = 1000;
+    private Socket        socket;
+    private InputStream   input;
+    private OutputStream  output;
     private final boolean ssl;
 
     BioSocketChannel(Socket socket) throws IOException{
@@ -92,9 +92,9 @@ public class BioSocketChannel implements SocketChannel {
             }
         }
         if (remain > 0 && accTimeout >= timeout) {
-            throw new SocketTimeoutException("Timeout occurred, failed to read total " + readSize + " bytes in "
-                                             + timeout + " milliseconds, actual read only " + (readSize - remain)
-                                             + " bytes");
+            throw new SocketTimeoutException(
+                "Timeout occurred, failed to read total " + readSize + " bytes in " + timeout
+                                             + " milliseconds, actual read only " + (readSize - remain) + " bytes");
         }
         return data;
     }
@@ -137,9 +137,11 @@ public class BioSocketChannel implements SocketChannel {
         }
         return false;
     }
+
     public boolean isSsl() {
         return ssl;
     }
+
     public Socket getSocket() {
         return socket;
     }

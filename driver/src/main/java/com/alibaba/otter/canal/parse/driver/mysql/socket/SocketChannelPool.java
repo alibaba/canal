@@ -3,18 +3,19 @@ package com.alibaba.otter.canal.parse.driver.mysql.socket;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
-import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslMode;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslMode;
 
 /**
  * @author agapple 2018年3月12日 下午10:46:22
  * @since 1.0.26
  */
 public abstract class SocketChannelPool {
+
     private static final Logger logger = LoggerFactory.getLogger(SocketChannelPool.class);
 
     public static SocketChannel open(SocketAddress address) throws Exception {
@@ -35,8 +36,7 @@ public abstract class SocketChannelPool {
         } else {
             SocketAddress remoteSocketAddress = channel.getRemoteSocketAddress();
             try {
-                return BioSocketChannelPool.openSsl(
-                    ((BioSocketChannel)channel).getSocket(), sslInfo);
+                return BioSocketChannelPool.openSsl(((BioSocketChannel) channel).getSocket(), sslInfo);
             } catch (Exception e) {
                 if (sslMode == SslMode.PREFERRED) {
                     // still use non ssl channel
@@ -45,7 +45,7 @@ public abstract class SocketChannelPool {
                 }
                 IOException ioe;
                 if (e instanceof IOException) {
-                    ioe = (IOException)e;
+                    ioe = (IOException) e;
                 } else {
                     ioe = new IOException(e);
                 }
