@@ -104,7 +104,7 @@
         <rocketmq_version>4.8.0</rocketmq_version>
         <rabbitmq_version>5.18.0</rabbitmq_version>
         <mq_amqp_client>1.0.3</mq_amqp_client>
-        <kafka_version>2.4.0</kafka_version>
+        <kafka_version>3.4.0</kafka_version>
         <pulsar_version>2.8.1</pulsar_version>
         <mysql_driver_version>5.1.48</mysql_driver_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
