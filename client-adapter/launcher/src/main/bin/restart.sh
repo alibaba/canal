@@ -1,5 +1,7 @@
 #!/bin/bash
 
+args=$@
+
 case $(uname) in
 Linux)
   bin_abs_path=$(readlink -f $(dirname $0))
@@ -9,5 +11,5 @@ Linux)
   ;;
 esac
 
-sh "$bin_abs_path"/stop.sh
-sh "$bin_abs_path"/startup.sh
+sh "$bin_abs_path"/stop.sh $args
+sh "$bin_abs_path"/startup.sh $args
