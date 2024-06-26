@@ -26,7 +26,7 @@ public class SyncUtil {
     public static Map<String, String> getColumnsMap(MappingConfig.DbMapping dbMapping, Collection<String> columns) {
         Map<String, String> columnsMap;
         if (dbMapping.getMapAll()) {
-            if (dbMapping.getAllMapColumns() != null) {
+            if (dbMapping.getAllMapColumns() != null && columns.size() == dbMapping.getAllMapColumns().size() ) {
                 return dbMapping.getAllMapColumns();
             }
             columnsMap = new LinkedHashMap<>();
