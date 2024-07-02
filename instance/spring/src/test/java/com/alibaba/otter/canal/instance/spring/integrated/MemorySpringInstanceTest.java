@@ -24,7 +24,7 @@ public class MemorySpringInstanceTest {
     @Before
     public void start() {
         System.setProperty("canal.instance.destination", "retl");
-        context = new ClassPathXmlApplicationContext(new String[] { "spring/memory-instance.xml" });
+        context = new ClassPathXmlApplicationContext(new String[] { "classpath:spring/memory-instance.xml" });
     }
 
     @After

@@ -9,6 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.alibaba.otter.canal.common.utils.CanalToStringStyle;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo;
+import com.alibaba.otter.canal.parse.driver.mysql.ssl.SslMode;
 
 /**
  * canal运行相关参数
@@ -56,8 +58,6 @@ public class CanalParameter implements Serializable {
     private Integer                  defaultConnectionTimeoutInSeconds  = 30;                        // sotimeout
     private Integer                  receiveBufferSize                  = 64 * 1024;
     private Integer                  sendBufferSize                     = 64 * 1024;
-    // 编码信息
-    private Byte                     connectionCharsetNumber            = (byte) 33;
     private String                   connectionCharset                  = "UTF-8";
 
     // 数据库信息
@@ -65,6 +65,21 @@ public class CanalParameter implements Serializable {
     private List<List<DataSourcing>> groupDbAddresses;                                               // 数据库链接信息，包含多组信息
     private String                   dbUsername;                                                     // 数据库用户
     private String                   dbPassword;                                                     // 数据库密码
+
+    private String                   sslMode                            = SslMode.DISABLED.name();
+    private String                   tlsVersions;                                                    // 和
+                                                                                                     // enabledTLSProtocols
+                                                                                                     // 同含义，TLSv1.2,TLSv1.3
+    private String                   trustCertificateKeyStoreType;                                   // trustStore
+                                                                                                     // 证书类型，支持 JKS (默认)
+                                                                                                     // 和 PKCS12
+    private String                   trustCertificateKeyStoreUrl;                                    // trustStore 证书路径
+    private String                   trustCertificateKeyStorePassword;                               // trustStore 证书密码
+    private String                   clientCertificateKeyStoreType;                                  // client 证书类型，支持
+                                                                                                     // JKS (默认) 和
+                                                                                                     // PKCS12
+    private String                   clientCertificateKeyStoreUrl;                                   // client 证书路径
+    private String                   clientCertificateKeyStorePassword;                              // client 证书密码
 
     // binlog链接信息
     private IndexMode                indexMode;
@@ -108,10 +123,39 @@ public class CanalParameter implements Serializable {
     private InetSocketAddress        masterAddress;                                                  // 主库信息
     private String                   masterUsername;                                                 // 帐号
     private String                   masterPassword;                                                 // 密码
+    private String                   masterSslMode                      = SslMode.DISABLED.name();
+    private String                   masterTlsVersions;                                              // 和
+                                                                                                     // enabledTLSProtocols
+                                                                                                     // 同含义，TLSv1.2,TLSv1.3
+    private String                   masterTrustCertificateKeyStoreType;                             // trustStore
+                                                                                                     // 证书类型，支持 JKS (默认)
+                                                                                                     // 和 PKCS12
+    private String                   masterTrustCertificateKeyStoreUrl;                              // trustStore 证书路径
+    private String                   masterTrustCertificateKeyStorePassword;                         // trustStore 证书密码
+    private String                   masterClientCertificateKeyStoreType;                            // client 证书类型，支持
+                                                                                                     // JKS (默认) 和
+                                                                                                     // PKCS12
+    private String                   masterClientCertificateKeyStoreUrl;                             // client 证书路径
+    private String                   masterClientCertificateKeyStorePassword;                        // client 证书密码
 
     private InetSocketAddress        standbyAddress;                                                 // 备库信息
     private String                   standbyUsername;                                                // 帐号
     private String                   standbyPassword;
+    private String                   standbySslMode                     = SslMode.DISABLED.name();
+    private String                   standbyTlsVersions;                                             // 和
+                                                                                                     // enabledTLSProtocols
+                                                                                                     // 同含义，TLSv1.2,TLSv1.3
+    private String                   standbyTrustCertificateKeyStoreType;                            // trustStore
+                                                                                                     // 证书类型，支持 JKS (默认)
+                                                                                                     // 和 PKCS12
+    private String                   standbyTrustCertificateKeyStoreUrl;                             // trustStore 证书路径
+    private String                   standbyTrustCertificateKeyStorePassword;                        // trustStore 证书密码
+    private String                   standbyClientCertificateKeyStoreType;                           // client 证书类型，支持
+                                                                                                     // JKS (默认) 和
+                                                                                                     // PKCS12
+    private String                   standbyClientCertificateKeyStoreUrl;                            // client 证书路径
+    private String                   standbyClientCertificateKeyStorePassword;                       // client 证书密码
+
     private String                   masterLogfileName                  = null;                      // master起始位置
     private Long                     masterLogfileOffest                = null;
     private Long                     masterTimestamp                    = null;
@@ -120,11 +164,11 @@ public class CanalParameter implements Serializable {
     private Long                     standbyTimestamp                   = null;
     private Boolean                  parallel                           = Boolean.FALSE;
 
-    //自定义alarmHandler类全路径
+    // 自定义alarmHandler类全路径
     private String                   alarmHandlerClass                  = null;
-    //自定义alarmHandler插件文件夹路径
+    // 自定义alarmHandler插件文件夹路径
     private String                   alarmHandlerPluginDir              = null;
-    //是否支持多流消费
+    // 是否支持多流消费
     private Boolean                  multiStreamEnable                  = Boolean.FALSE;
 
     public static enum RunMode {
@@ -183,6 +227,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum StorageMode {
+
         /** 内存存储模式 */
         MEMORY,
         /** 文件存储模式 */
@@ -205,6 +250,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum StorageScavengeMode {
+
         /** 在存储满的时候触发 */
         ON_FULL,
         /** 在每次有ack请求时触发 */
@@ -232,6 +278,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum SourcingType {
+
         /** mysql DB */
         MYSQL,
         /** localBinLog */
@@ -259,6 +306,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum MetaMode {
+
         /** 内存存储模式 */
         MEMORY,
         /** 文件存储模式 */
@@ -286,6 +334,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum IndexMode {
+
         /** 内存存储模式 */
         MEMORY,
         /** 文件存储模式 */
@@ -319,6 +368,7 @@ public class CanalParameter implements Serializable {
     }
 
     public static enum BatchMode {
+
         /** 对象数量 */
         ITEMSIZE,
 
@@ -533,14 +583,6 @@ public class CanalParameter implements Serializable {
         this.sendBufferSize = sendBufferSize;
     }
 
-    public Byte getConnectionCharsetNumber() {
-        return connectionCharsetNumber;
-    }
-
-    public void setConnectionCharsetNumber(Byte connectionCharsetNumber) {
-        this.connectionCharsetNumber = connectionCharsetNumber;
-    }
-
     public String getConnectionCharset() {
         return connectionCharset;
     }
@@ -729,6 +771,134 @@ public class CanalParameter implements Serializable {
 
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
+    }
+
+    public SslInfo getSslInfo() {
+        if (dbUsername == null) {
+            if (masterUsername != null) {
+                return new SslInfo(SslMode.valueOf(masterSslMode),
+                    masterTlsVersions,
+                    masterTrustCertificateKeyStoreType,
+                    masterTrustCertificateKeyStoreUrl,
+                    masterTrustCertificateKeyStorePassword,
+                    masterClientCertificateKeyStoreType,
+                    masterClientCertificateKeyStoreUrl,
+                    masterClientCertificateKeyStorePassword);
+            } else {
+                return new SslInfo(SslMode.valueOf(standbySslMode),
+                    standbyTlsVersions,
+                    standbyTrustCertificateKeyStoreType,
+                    standbyTrustCertificateKeyStoreUrl,
+                    standbyTrustCertificateKeyStorePassword,
+                    standbyClientCertificateKeyStoreType,
+                    standbyClientCertificateKeyStoreUrl,
+                    standbyClientCertificateKeyStorePassword);
+            }
+        }
+        return new SslInfo(SslMode.valueOf(sslMode),
+            tlsVersions,
+            trustCertificateKeyStoreType,
+            trustCertificateKeyStoreUrl,
+            trustCertificateKeyStorePassword,
+            clientCertificateKeyStoreType,
+            clientCertificateKeyStoreUrl,
+            clientCertificateKeyStorePassword);
+    }
+
+    public void setSslMode(String sslMode) {
+        this.sslMode = sslMode;
+    }
+
+    public void setTlsVersions(String tlsVersions) {
+        this.tlsVersions = tlsVersions;
+    }
+
+    public void setTrustCertificateKeyStoreType(String trustCertificateKeyStoreType) {
+        this.trustCertificateKeyStoreType = trustCertificateKeyStoreType;
+    }
+
+    public void setTrustCertificateKeyStoreUrl(String trustCertificateKeyStoreUrl) {
+        this.trustCertificateKeyStoreUrl = trustCertificateKeyStoreUrl;
+    }
+
+    public void setTrustCertificateKeyStorePassword(String trustCertificateKeyStorePassword) {
+        this.trustCertificateKeyStorePassword = trustCertificateKeyStorePassword;
+    }
+
+    public void setClientCertificateKeyStoreType(String clientCertificateKeyStoreType) {
+        this.clientCertificateKeyStoreType = clientCertificateKeyStoreType;
+    }
+
+    public void setClientCertificateKeyStoreUrl(String clientCertificateKeyStoreUrl) {
+        this.clientCertificateKeyStoreUrl = clientCertificateKeyStoreUrl;
+    }
+
+    public void setClientCertificateKeyStorePassword(String clientCertificateKeyStorePassword) {
+        this.clientCertificateKeyStorePassword = clientCertificateKeyStorePassword;
+    }
+
+    public void setMasterSslMode(String masterSslMode) {
+        this.masterSslMode = masterSslMode;
+    }
+
+    public void setMasterTlsVersions(String masterTlsVersions) {
+        this.masterTlsVersions = masterTlsVersions;
+    }
+
+    public void setMasterTrustCertificateKeyStoreType(String masterTrustCertificateKeyStoreType) {
+        this.masterTrustCertificateKeyStoreType = masterTrustCertificateKeyStoreType;
+    }
+
+    public void setMasterTrustCertificateKeyStoreUrl(String masterTrustCertificateKeyStoreUrl) {
+        this.masterTrustCertificateKeyStoreUrl = masterTrustCertificateKeyStoreUrl;
+    }
+
+    public void setMasterTrustCertificateKeyStorePassword(String masterTrustCertificateKeyStorePassword) {
+        this.masterTrustCertificateKeyStorePassword = masterTrustCertificateKeyStorePassword;
+    }
+
+    public void setMasterClientCertificateKeyStoreType(String masterClientCertificateKeyStoreType) {
+        this.masterClientCertificateKeyStoreType = masterClientCertificateKeyStoreType;
+    }
+
+    public void setMasterClientCertificateKeyStoreUrl(String masterClientCertificateKeyStoreUrl) {
+        this.masterClientCertificateKeyStoreUrl = masterClientCertificateKeyStoreUrl;
+    }
+
+    public void setMasterClientCertificateKeyStorePassword(String masterClientCertificateKeyStorePassword) {
+        this.masterClientCertificateKeyStorePassword = masterClientCertificateKeyStorePassword;
+    }
+
+    public void setStandbySslMode(String standbySslMode) {
+        this.standbySslMode = standbySslMode;
+    }
+
+    public void setStandbyTlsVersions(String standbyTlsVersions) {
+        this.standbyTlsVersions = standbyTlsVersions;
+    }
+
+    public void setStandbyTrustCertificateKeyStoreType(String standbyTrustCertificateKeyStoreType) {
+        this.standbyTrustCertificateKeyStoreType = standbyTrustCertificateKeyStoreType;
+    }
+
+    public void setStandbyTrustCertificateKeyStoreUrl(String standbyTrustCertificateKeyStoreUrl) {
+        this.standbyTrustCertificateKeyStoreUrl = standbyTrustCertificateKeyStoreUrl;
+    }
+
+    public void setStandbyTrustCertificateKeyStorePassword(String standbyTrustCertificateKeyStorePassword) {
+        this.standbyTrustCertificateKeyStorePassword = standbyTrustCertificateKeyStorePassword;
+    }
+
+    public void setStandbyClientCertificateKeyStoreType(String standbyClientCertificateKeyStoreType) {
+        this.standbyClientCertificateKeyStoreType = standbyClientCertificateKeyStoreType;
+    }
+
+    public void setStandbyClientCertificateKeyStoreUrl(String standbyClientCertificateKeyStoreUrl) {
+        this.standbyClientCertificateKeyStoreUrl = standbyClientCertificateKeyStoreUrl;
+    }
+
+    public void setStandbyClientCertificateKeyStorePassword(String standbyClientCertificateKeyStorePassword) {
+        this.standbyClientCertificateKeyStorePassword = standbyClientCertificateKeyStorePassword;
     }
 
     public List<String> getPositions() {

@@ -389,6 +389,11 @@
                 <artifactId>log4j-to-slf4j</artifactId>
                 <version>${log4j_version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.alibaba.polardbx</groupId>
+                <artifactId>polardbx-parser</artifactId>
+                <version>5.4.19</version>
+            </dependency>
 
             <!-- test dependency -->
             <dependency>

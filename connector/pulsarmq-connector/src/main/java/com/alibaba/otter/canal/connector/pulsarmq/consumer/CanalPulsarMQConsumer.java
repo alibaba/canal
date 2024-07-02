@@ -56,7 +56,7 @@ public class CanalPulsarMQConsumer implements CanalMsgConsumer {
     private String                    roleToken;
 
     /**
-     *  listener name
+     * listener name
      */
     private String                    listenerName;
 

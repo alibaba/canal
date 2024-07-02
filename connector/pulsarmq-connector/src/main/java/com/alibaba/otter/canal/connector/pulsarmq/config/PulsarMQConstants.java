@@ -64,6 +64,6 @@ public class PulsarMQConstants {
     /**
      * Pulsar admin服务器地址
      */
-    public static final String PULSARMQ_LISTENER_NAME          = ROOT + "." + "listenerName";
+    public static final String PULSARMQ_LISTENER_NAME             = ROOT + "." + "listenerName";
 
 }
