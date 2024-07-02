@@ -137,6 +137,11 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
             tmpProperties.setListenerName(listenerName);
         }
 
+        String enableChunkingStr = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_ENABLE_CHUNKING);
+        if (!StringUtils.isEmpty(enableChunkingStr)) {
+            tmpProperties.setEnableChunking(Boolean.parseBoolean(enableChunkingStr));
+        }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Load pulsar properties ==> {}", JSON.toJSON(this.mqProperties));
         }
@@ -408,11 +413,16 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                     }
 
                     // 创建指定topic的生产者
-                    producer = client.newProducer()
-                        .topic(fullTopic)
+                    ProducerBuilder producerBuilder = client.newProducer();
+                    if(pulsarMQProperties.getEnableChunking()){
+                        producerBuilder.enableChunking(true);
+                        producerBuilder.enableBatching(false);
+                    }
+                    producerBuilder.topic(fullTopic)
                         // 指定路由器
                         .messageRouter(new MessageRouterImpl(topic))
                         .create();
+
                     // 放入缓存
                     PRODUCERS.put(topic, producer);
                 }

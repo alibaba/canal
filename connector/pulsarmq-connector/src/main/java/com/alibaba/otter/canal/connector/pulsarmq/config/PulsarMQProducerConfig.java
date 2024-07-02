@@ -42,6 +42,11 @@ public class PulsarMQProducerConfig extends MQProperties {
      */
     private String listenerName;
 
+    /**
+     * enableChunking
+     */
+    private boolean enableChunking;
+
     public String getServerUrl() {
         return serverUrl;
     }
@@ -80,5 +85,12 @@ public class PulsarMQProducerConfig extends MQProperties {
 
     public void setListenerName(String listenerName) {
         this.listenerName = listenerName;
+    }
+
+    public void setEnableChunking(boolean enableChunking) {
+        this.enableChunking = enableChunking;
+    }
+    public boolean getEnableChunking() {
+        return this.enableChunking;
     }
 }
