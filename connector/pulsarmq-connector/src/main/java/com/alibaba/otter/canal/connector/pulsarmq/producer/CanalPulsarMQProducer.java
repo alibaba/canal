@@ -418,7 +418,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                         producerBuilder.enableChunking(true);
                         producerBuilder.enableBatching(false);
                     }
-                    producerBuilder.topic(fullTopic)
+                    producer = producerBuilder.topic(fullTopic)
                         // 指定路由器
                         .messageRouter(new MessageRouterImpl(topic))
                         .create();
