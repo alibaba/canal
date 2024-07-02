@@ -47,6 +47,11 @@ public class PulsarMQProducerConfig extends MQProperties {
      */
     private boolean enableChunking;
 
+    /**
+     * compressionType
+     */
+    private String compressionType;
+
     public String getServerUrl() {
         return serverUrl;
     }
@@ -92,5 +97,12 @@ public class PulsarMQProducerConfig extends MQProperties {
     }
     public boolean getEnableChunking() {
         return this.enableChunking;
+    }
+
+    public void setCompressionType(String compressionType) {
+        this.compressionType = compressionType;
+    }
+    public String getCompressionType() {
+        return this.compressionType;
     }
 }

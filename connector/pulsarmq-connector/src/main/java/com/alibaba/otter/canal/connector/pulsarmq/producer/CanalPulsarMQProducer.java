@@ -142,6 +142,12 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
             tmpProperties.setEnableChunking(Boolean.parseBoolean(enableChunkingStr));
         }
 
+        String compressionType = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_COMPRESSION_TYPE);
+        if (!StringUtils.isEmpty(compressionType)) {
+            tmpProperties.setCompressionType(compressionType);
+        }
+
+
         if (logger.isDebugEnabled()) {
             logger.debug("Load pulsar properties ==> {}", JSON.toJSON(this.mqProperties));
         }
@@ -418,6 +424,24 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                         producerBuilder.enableChunking(true);
                         producerBuilder.enableBatching(false);
                     }
+
+                    if(!StringUtils.isEmpty(pulsarMQProperties.getCompressionType())) {
+                        switch(pulsarMQProperties.getCompressionType().toLowerCase()) {
+                            case "lz4":
+                                producerBuilder.compressionType(CompressionType.LZ4);
+                                break;
+                            case "zlib":
+                                producerBuilder.compressionType(CompressionType.ZLIB);
+                                break;
+                            case "zstd":
+                                producerBuilder.compressionType(CompressionType.ZSTD);
+                                break;
+                            case "snappy":
+                                producerBuilder.compressionType(CompressionType.SNAPPY);
+                                break;
+                        }
+                    }
+
                     producer = producerBuilder.topic(fullTopic)
                         // 指定路由器
                         .messageRouter(new MessageRouterImpl(topic))
