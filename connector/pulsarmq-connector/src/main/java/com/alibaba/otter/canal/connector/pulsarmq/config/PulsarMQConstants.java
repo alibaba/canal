@@ -62,8 +62,18 @@ public class PulsarMQConstants {
     public static final String PULSARMQ_ADMIN_SERVER_URL          = ROOT + "." + "adminServerUrl";
 
     /**
-     * Pulsar admin服务器地址
+     * Pulsar 监听器名字
      */
     public static final String PULSARMQ_LISTENER_NAME             = ROOT + "." + "listenerName";
 
+
+    /**
+     * Pulsar 开启chunking
+     */
+    public static final String PULSARMQ_ENABLE_CHUNKING             = ROOT + "." + "enableChunking";
+
+    /**
+     * Pulsar 压缩算法
+     */
+    public static final String PULSARMQ_COMPRESSION_TYPE             = ROOT + "." + "compressionType";
 }
