@@ -394,7 +394,11 @@
                 <artifactId>polardbx-parser</artifactId>
                 <version>5.4.19</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.83</version>
+            </dependency>
             <!-- test dependency -->
             <dependency>
                 <groupId>junit</groupId>
