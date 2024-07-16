@@ -147,7 +147,6 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
             tmpProperties.setCompressionType(compressionType);
         }
 
-
         if (logger.isDebugEnabled()) {
             logger.debug("Load pulsar properties ==> {}", JSON.toJSON(this.mqProperties));
         }
@@ -420,13 +419,13 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
 
                     // 创建指定topic的生产者
                     ProducerBuilder producerBuilder = client.newProducer();
-                    if(pulsarMQProperties.getEnableChunking()){
+                    if (pulsarMQProperties.getEnableChunking()) {
                         producerBuilder.enableChunking(true);
                         producerBuilder.enableBatching(false);
                     }
 
-                    if(!StringUtils.isEmpty(pulsarMQProperties.getCompressionType())) {
-                        switch(pulsarMQProperties.getCompressionType().toLowerCase()) {
+                    if (!StringUtils.isEmpty(pulsarMQProperties.getCompressionType())) {
+                        switch (pulsarMQProperties.getCompressionType().toLowerCase()) {
                             case "lz4":
                                 producerBuilder.compressionType(CompressionType.LZ4);
                                 break;

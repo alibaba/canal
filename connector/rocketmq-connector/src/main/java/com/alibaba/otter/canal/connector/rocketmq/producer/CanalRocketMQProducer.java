@@ -1,5 +1,29 @@
 package com.alibaba.otter.canal.connector.rocketmq.producer;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.rocketmq.acl.common.AclClientRPCHook;
+import org.apache.rocketmq.acl.common.SessionCredentials;
+import org.apache.rocketmq.client.AccessChannel;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl;
+import org.apache.rocketmq.client.impl.producer.TopicPublishInfo;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.remoting.RPCHook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.CanalException;
@@ -16,29 +40,6 @@ import com.alibaba.otter.canal.connector.core.util.CanalMessageSerializerUtil;
 import com.alibaba.otter.canal.connector.rocketmq.config.RocketMQConstants;
 import com.alibaba.otter.canal.connector.rocketmq.config.RocketMQProducerConfig;
 import com.alibaba.otter.canal.protocol.FlatMessage;
-import org.apache.commons.lang.StringUtils;
-import org.apache.rocketmq.acl.common.AclClientRPCHook;
-import org.apache.rocketmq.acl.common.SessionCredentials;
-import org.apache.rocketmq.client.AccessChannel;
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl;
-import org.apache.rocketmq.client.impl.producer.TopicPublishInfo;
-import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.remoting.RPCHook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * RocketMQ Producer SPI 实现
@@ -46,15 +47,18 @@ import java.util.stream.Collectors;
  * @author rewerma 2020-01-27
  * @version 1.0.0
  */
-@SPI("rocketmq") public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQProducer {
+@SPI("rocketmq")
+public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQProducer {
 
-    private static final Logger logger = LoggerFactory.getLogger(CanalRocketMQProducer.class);
+    private static final Logger  logger               = LoggerFactory.getLogger(CanalRocketMQProducer.class);
 
-    private              DefaultMQProducer  defaultMQProducer;
-    private static final String             CLOUD_ACCESS_CHANNEL = "cloud";
-    protected            ThreadPoolExecutor sendPartitionExecutor;
+    private DefaultMQProducer    defaultMQProducer;
+    private static final String  CLOUD_ACCESS_CHANNEL = "cloud";
+    private static final String  NAMESPACE_SEPARATOR  = "%";
+    protected ThreadPoolExecutor sendPartitionExecutor;
 
-    @Override public void init(Properties properties) {
+    @Override
+    public void init(Properties properties) {
         RocketMQProducerConfig rocketMQProperties = new RocketMQProducerConfig();
         this.mqProperties = rocketMQProperties;
         super.init(properties);
@@ -69,9 +73,9 @@ import java.util.stream.Collectors;
         }
 
         defaultMQProducer = new DefaultMQProducer(rocketMQProperties.getProducerGroup(),
-                rpcHook,
-                rocketMQProperties.isEnableMessageTrace(),
-                rocketMQProperties.getCustomizedTraceTopic());
+            rpcHook,
+            rocketMQProperties.isEnableMessageTrace(),
+            rocketMQProperties.getCustomizedTraceTopic());
         if (CLOUD_ACCESS_CHANNEL.equals(rocketMQProperties.getAccessChannel())) {
             defaultMQProducer.setAccessChannel(AccessChannel.CLOUD);
         }
@@ -90,12 +94,12 @@ import java.util.stream.Collectors;
 
         int parallelPartitionSendThreadSize = mqProperties.getParallelSendThreadSize();
         sendPartitionExecutor = new ThreadPoolExecutor(parallelPartitionSendThreadSize,
-                parallelPartitionSendThreadSize,
-                0,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(parallelPartitionSendThreadSize * 2),
-                new NamedThreadFactory("MQ-Parallel-Sender-Partition"),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+            parallelPartitionSendThreadSize,
+            0,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(parallelPartitionSendThreadSize * 2),
+            new NamedThreadFactory("MQ-Parallel-Sender-Partition"),
+            new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     private void loadRocketMQProperties(Properties properties) {
@@ -111,12 +115,12 @@ import java.util.stream.Collectors;
             rocketMQProperties.setProducerGroup(producerGroup);
         }
         String enableMessageTrace = PropertiesUtils.getProperty(properties,
-                RocketMQConstants.ROCKETMQ_ENABLE_MESSAGE_TRACE);
+            RocketMQConstants.ROCKETMQ_ENABLE_MESSAGE_TRACE);
         if (!StringUtils.isEmpty(enableMessageTrace)) {
             rocketMQProperties.setEnableMessageTrace(Boolean.parseBoolean(enableMessageTrace));
         }
         String customizedTraceTopic = PropertiesUtils.getProperty(properties,
-                RocketMQConstants.ROCKETMQ_CUSTOMIZED_TRACE_TOPIC);
+            RocketMQConstants.ROCKETMQ_CUSTOMIZED_TRACE_TOPIC);
         if (!StringUtils.isEmpty(customizedTraceTopic)) {
             rocketMQProperties.setCustomizedTraceTopic(customizedTraceTopic);
         }
@@ -133,7 +137,7 @@ import java.util.stream.Collectors;
             rocketMQProperties.setRetryTimesWhenSendFailed(Integer.parseInt(retry));
         }
         String vipChannelEnabled = PropertiesUtils.getProperty(properties,
-                RocketMQConstants.ROCKETMQ_VIP_CHANNEL_ENABLED);
+            RocketMQConstants.ROCKETMQ_VIP_CHANNEL_ENABLED);
         if (!StringUtils.isEmpty(vipChannelEnabled)) {
             rocketMQProperties.setVipChannelEnabled(Boolean.parseBoolean(vipChannelEnabled));
         }
@@ -143,15 +147,14 @@ import java.util.stream.Collectors;
         }
     }
 
-    @Override public void send(MQDestination destination, com.alibaba.otter.canal.protocol.Message message,
-                               Callback callback) {
+    @Override
+    public void send(MQDestination destination, com.alibaba.otter.canal.protocol.Message message, Callback callback) {
         ExecutorTemplate template = new ExecutorTemplate(sendExecutor);
         try {
             if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
                 // 动态topic
-                Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils.messageTopics(message,
-                        destination.getTopic(),
-                        destination.getDynamicTopic());
+                Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils
+                    .messageTopics(message, destination.getTopic(), destination.getDynamicTopic());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
                     String topicName = entry.getKey().replace('.', '_');
@@ -183,7 +186,7 @@ import java.util.stream.Collectors;
                      com.alibaba.otter.canal.protocol.Message message) {
         // 获取当前topic的分区数
         Integer partitionNum = MQMessageUtils.parseDynamicTopicPartition(topicName,
-                destination.getDynamicTopicPartitionNum());
+            destination.getDynamicTopicPartitionNum());
 
         // 获取topic的队列数为分区数
         if (partitionNum == null) {
@@ -199,10 +202,10 @@ import java.util.stream.Collectors;
                 MQMessageUtils.EntryRowData[] datas = MQMessageUtils.buildMessageData(message, buildExecutor);
                 // 串行分区
                 com.alibaba.otter.canal.protocol.Message[] messages = MQMessageUtils.messagePartition(datas,
-                        message.getId(),
-                        partitionNum,
-                        destination.getPartitionHash(),
-                        mqProperties.isDatabaseHash());
+                    message.getId(),
+                    partitionNum,
+                    destination.getPartitionHash(),
+                    mqProperties.isDatabaseHash());
                 int length = messages.length;
 
                 ExecutorTemplate template = new ExecutorTemplate(sendPartitionExecutor);
@@ -212,9 +215,9 @@ import java.util.stream.Collectors;
                         final int index = i;
                         template.submit(() -> {
                             Message data = new Message(topicName,
-                                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                                    CanalMessageSerializerUtil.serializer(dataPartition,
-                                            mqProperties.isFilterTransactionEntry()));
+                                ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                                CanalMessageSerializerUtil.serializer(dataPartition,
+                                    mqProperties.isFilterTransactionEntry()));
                             sendMessage(data, index);
                         });
                     }
@@ -224,8 +227,8 @@ import java.util.stream.Collectors;
             } else {
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
                 Message data = new Message(topicName,
-                        ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                        CanalMessageSerializerUtil.serializer(message, mqProperties.isFilterTransactionEntry()));
+                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                    CanalMessageSerializerUtil.serializer(message, mqProperties.isFilterTransactionEntry()));
                 sendMessage(data, partition);
             }
         } else {
@@ -242,9 +245,9 @@ import java.util.stream.Collectors;
 
                 for (FlatMessage flatMessage : flatMessages) {
                     FlatMessage[] partitionFlatMessage = MQMessageUtils.messagePartition(flatMessage,
-                            partitionNum,
-                            destination.getPartitionHash(),
-                            mqProperties.isDatabaseHash());
+                        partitionNum,
+                        destination.getPartitionHash(),
+                        mqProperties.isDatabaseHash());
                     int length = partitionFlatMessage.length;
                     for (int i = 0; i < length; i++) {
                         // 增加null判断,issue #3267
@@ -261,10 +264,12 @@ import java.util.stream.Collectors;
                         final int index = i;
                         template.submit(() -> {
                             List<Message> messages = flatMessagePart.stream()
-                                    .map(flatMessage -> new Message(topicName,
-                                            ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                                            JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject)))
-                                    .collect(Collectors.toList());
+                                .map(flatMessage -> new Message(topicName,
+                                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                                    JSON.toJSONBytes(flatMessage,
+                                        JSONWriter.Feature.WriteNulls,
+                                        JSONWriter.Feature.LargeObject)))
+                                .collect(Collectors.toList());
                             // 批量发送
                             sendMessage(messages, index);
                         });
@@ -276,10 +281,10 @@ import java.util.stream.Collectors;
             } else {
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
                 List<Message> messages = flatMessages.stream()
-                        .map(flatMessage -> new Message(topicName,
-                                ((RocketMQProducerConfig) this.mqProperties).getTag(),
-                                JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls,JSONWriter.Feature.LargeObject)))
-                        .collect(Collectors.toList());
+                    .map(flatMessage -> new Message(topicName,
+                        ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                        JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject)))
+                    .collect(Collectors.toList());
                 // 批量发送
                 sendMessage(messages, partition);
             }
@@ -304,14 +309,19 @@ import java.util.stream.Collectors;
         }
     }
 
-    @SuppressWarnings("deprecation") private void sendMessage(List<Message> messages, int partition) {
+    @SuppressWarnings("deprecation")
+    private void sendMessage(List<Message> messages, int partition) {
         if (messages.isEmpty()) {
             return;
         }
 
         // 获取一下messageQueue
         DefaultMQProducerImpl innerProducer = this.defaultMQProducer.getDefaultMQProducerImpl();
-        TopicPublishInfo topicInfo = innerProducer.getTopicPublishInfoTable().get(messages.get(0).getTopic());
+        String topic = messages.get(0).getTopic();
+        if (StringUtils.isNotBlank(this.defaultMQProducer.getNamespace())) {
+            topic = this.defaultMQProducer.getNamespace() + NAMESPACE_SEPARATOR + topic;
+        }
+        TopicPublishInfo topicInfo = innerProducer.getTopicPublishInfoTable().get(topic);
         if (topicInfo == null) {
             for (Message message : messages) {
                 sendMessage(message, partition);
@@ -346,7 +356,8 @@ import java.util.stream.Collectors;
         }
     }
 
-    @Override public void stop() {
+    @Override
+    public void stop() {
         logger.info("## Stop RocketMQ producer##");
         this.defaultMQProducer.shutdown();
         if (sendPartitionExecutor != null) {
