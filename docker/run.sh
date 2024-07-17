@@ -97,6 +97,6 @@ fi
 
 MEMORY="-m 4096m"
 LOCALHOST=`getMyIp`
-cmd="docker run -d -it -h $LOCALHOST $CONFIG --name=canal-server $VOLUMNS $NET_MODE $PORTS $MEMORY canal/canal-server"
+cmd="docker run -d --privileged=true -it -h $LOCALHOST $CONFIG --name=canal-server $VOLUMNS $NET_MODE $PORTS $MEMORY canal/canal-server"
 echo $cmd
 eval $cmd

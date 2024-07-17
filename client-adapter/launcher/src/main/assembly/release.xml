@@ -45,6 +45,13 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>../es8x/src/main/resources/es8</directory>
+            <outputDirectory>/conf/es8</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>../hbase/src/main/resources/hbase</directory>
             <outputDirectory>/conf/hbase</outputDirectory>
             <includes>

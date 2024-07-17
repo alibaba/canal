@@ -24,7 +24,7 @@ public class GroupSpringInstanceTest {
     @Before
     public void start() {
         System.setProperty("canal.instance.destination", "retl");
-        context = new ClassPathXmlApplicationContext(new String[] { "spring/group-instance.xml" });
+        context = new ClassPathXmlApplicationContext(new String[] { "classpath:spring/group-instance.xml" });
     }
 
     @After

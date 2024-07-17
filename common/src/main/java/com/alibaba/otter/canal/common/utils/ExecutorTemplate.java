@@ -44,7 +44,7 @@ public class ExecutorTemplate {
         check(future);
     }
 
-    public void submit(Callable<Exception> task) {
+    public void submit(Callable task) {
         Future future = executor.submit(task);
         futures.add(future);
         check(future);

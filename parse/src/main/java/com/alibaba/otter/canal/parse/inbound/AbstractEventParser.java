@@ -1,16 +1,12 @@
 package com.alibaba.otter.canal.parse.inbound;
 
+import static com.alibaba.otter.canal.parse.driver.mysql.utils.GtidUtil.parseGtidSet;
+
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -25,7 +21,7 @@ import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
-import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlMultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
@@ -38,8 +34,7 @@ import com.alibaba.otter.canal.protocol.position.LogIdentity;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.CanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-
-import static com.alibaba.otter.canal.parse.driver.mysql.utils.GtidUtil.parseGtidSet;
+import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 
 /**
  * 抽象的EventParser, 最大化共用mysql/oracle版本的实现
@@ -183,7 +178,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                         }
 
                         if (erosaConnection instanceof MysqlConnection) {
-                            isMariaDB = ((MysqlConnection)erosaConnection).isMariaDB();
+                            isMariaDB = ((MysqlConnection) erosaConnection).isMariaDB();
                         }
                         // 4. 获取最后的位置信息
                         long start = System.currentTimeMillis();
@@ -249,7 +244,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                             multiStageCoprocessor = buildMultiStageCoprocessor();
                             if (isGTIDMode() && StringUtils.isNotEmpty(startPosition.getGtid())) {
                                 // 判断所属instance是否启用GTID模式，是的话调用ErosaConnection中GTID对应方法dump数据
-                                GTIDSet gtidSet = parseGtidSet(startPosition.getGtid(),isMariaDB);
+                                GTIDSet gtidSet = parseGtidSet(startPosition.getGtid(), isMariaDB);
                                 ((MysqlMultiStageCoprocessor) multiStageCoprocessor).setGtidSet(gtidSet);
                                 multiStageCoprocessor.start();
                                 erosaConnection.dump(gtidSet, multiStageCoprocessor);

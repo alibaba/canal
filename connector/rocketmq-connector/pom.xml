@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.connector</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.7-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -12,10 +12,6 @@
     <artifactId>connector.rocketmq</artifactId>
     <packaging>jar</packaging>
     <name>canal connector rocketMQ module for otter ${project.version}</name>
-
-    <properties>
-        <rocketmq_version>4.8.0</rocketmq_version>
-    </properties>
 
     <dependencies>
         <dependency>

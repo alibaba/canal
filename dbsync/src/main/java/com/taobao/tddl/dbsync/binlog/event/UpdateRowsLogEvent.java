@@ -11,14 +11,19 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public final class UpdateRowsLogEvent extends RowsLogEvent {
+public class UpdateRowsLogEvent extends RowsLogEvent {
 
     public UpdateRowsLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
-        super(header, buffer, descriptionEvent, false);
+        super(header, buffer, descriptionEvent, false , false);
     }
 
     public UpdateRowsLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent,
                               boolean partial){
-        super(header, buffer, descriptionEvent, partial);
+        super(header, buffer, descriptionEvent, partial ,false);
+    }
+
+    public UpdateRowsLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent,
+                              boolean partial , boolean compress){
+        super(header, buffer, descriptionEvent, partial , compress);
     }
 }

@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.admin</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.7-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>canal.admin-web</artifactId>
@@ -30,6 +30,8 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <!-- 支持arm64需要mysql 8.0,升级为8.0的新版驱动 -->
+            <version>8.0.33</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

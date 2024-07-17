@@ -1,10 +1,15 @@
-FROM centos:centos6.10
+# arm64
+FROM centos:centos7.9.2009@sha256:73f11afcbb50d8bc70eab9f0850b3fa30e61a419bc48cf426e63527d14a8373b
+
+ARG jdk_rpm
+ARG platform_env
 
 MAINTAINER agapple (jianghang115@gmail.com)
+# env DOWNLOAD_AMD_LINK="https://download.oracle.com/otn/java/jdk/8u361-b09/0ae14417abb444ebb02b9815e2103550/jdk-8u361-linux-x64.rpm"
+# env DOWNLOAD_ARM_LINK="https://download.oracle.com/otn/java/jdk/8u361-b09/0ae14417abb444ebb02b9815e2103550/jdk-8u361-linux-aarch64.rpm"
+env NODE_EPORTER_LINK="https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-arm64.tar.gz"
 
-env DOWNLOAD_LINK="https://download.oracle.com/otn-pub/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.rpm"
 # install system
-
 # update yum config, fix "centos6.x yum install failure && Determining fastest mirrors slow" problems
 COPY yum/ /tmp/
 RUN \
@@ -17,7 +22,7 @@ RUN \
     yum clean all && yum makecache
 
 RUN \
-    /bin/cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    /usr/bin/ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'root:Hello1234' | chpasswd && \
     groupadd -r admin && useradd -g admin admin && \
     yum install -y man && \
@@ -39,13 +44,14 @@ RUN \
     sed -i '/session required pam_loginuid.so/d' /etc/pam.d/crond && \
     true
 
+COPY ${jdk_rpm} /tmp/
 RUN \
-    touch /var/lib/rpm/* && \ 
-    wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie" "$DOWNLOAD_LINK" -O /tmp/jdk-8-linux-x64.rpm && \
-    yum -y install /tmp/jdk-8-linux-x64.rpm && \
-    /bin/rm -f /tmp/jdk-8-linux-x64.rpm && \
+    touch /var/lib/rpm/* && \
+    yum -y install /tmp/jdk-*.rpm && \
+    /bin/rm -f /tmp/jdk-*.rpm && \
     echo "export JAVA_HOME=/usr/java/latest" >> /etc/profile && \
     echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile && \
+    wget "$NODE_EPORTER_LINK" -O /tmp/node_exporter.tar.gz && \
     yum clean all && \
     true
 

@@ -1,12 +1,14 @@
 package com.alibaba.otter.canal.connector.rabbitmq.producer;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
-import com.rabbitmq.client.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.CanalException;
+import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
 import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
@@ -27,6 +30,7 @@ import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQConstants;
 import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQProducerConfig;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
+import com.rabbitmq.client.*;
 
 /**
  * RabbitMQ Producer SPI 实现
@@ -51,8 +55,14 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
 
         ConnectionFactory factory = new ConnectionFactory();
         String servers = rabbitMQProperties.getHost();
-        if (servers.contains(":")) {
-            String[] serverHostAndPort = servers.split(":");
+        if (servers.startsWith("amqp")) {
+            try {
+                factory.setUri(servers);
+            } catch (URISyntaxException | NoSuchAlgorithmException | KeyManagementException ex) {
+                throw new CanalException("failed to parse host", ex);
+            }
+        } else if (servers.contains(":")) {
+            String[] serverHostAndPort = AddressUtils.splitIPAndPort(servers);
             factory.setHost(serverHostAndPort[0]);
             factory.setPort(Integer.parseInt(serverHostAndPort[1]));
         } else {
@@ -72,10 +82,18 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         try {
             connect = factory.newConnection();
             channel = connect.createChannel();
-            channel.queueDeclare(rabbitMQProperties.getQueue(), true, false, false, null);
-            channel.exchangeDeclare(rabbitMQProperties.getExchange(), rabbitMQProperties.getDeliveryMode(), true, false, false, null);
-            channel.queueBind(rabbitMQProperties.getQueue(), rabbitMQProperties.getExchange(), rabbitMQProperties.getRoutingKey());
-
+            String queue = rabbitMQProperties.getQueue();
+            String exchange = rabbitMQProperties.getExchange();
+            String deliveryMode = rabbitMQProperties.getDeliveryMode();
+            String routingKey = rabbitMQProperties.getRoutingKey();
+            if (!StringUtils.isEmpty(queue)) {
+                channel.queueDeclare(queue, true, false, false, null);
+            }
+            if (!StringUtils.isEmpty(queue) && !StringUtils.isEmpty(exchange) && !StringUtils.isEmpty(deliveryMode)
+                && !StringUtils.isEmpty(routingKey)) {
+                channel.exchangeDeclare(exchange, deliveryMode, true, false, false, null);
+                channel.queueBind(queue, exchange, routingKey);
+            }
         } catch (IOException | TimeoutException ex) {
             throw new CanalException("Start RabbitMQ producer error", ex);
         }
@@ -126,9 +144,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         try {
             if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
                 // 动态topic
-                Map<String, Message> messageMap = MQMessageUtils.messageTopics(message,
-                    destination.getTopic(),
-                    destination.getDynamicTopic());
+                Map<String, Message> messageMap = MQMessageUtils
+                    .messageTopics(message, destination.getTopic(), destination.getDynamicTopic());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
                     final String topicName = entry.getKey().replace('.', '_');
@@ -163,7 +180,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, messageSub.getId());
             for (FlatMessage flatMessage : flatMessages) {
-                byte[] message = JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls);
+                byte[] message = JSON
+                    .toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject);
                 if (logger.isDebugEnabled()) {
                     logger.debug("send message:{} to destination:{}", message, canalDestination.getCanalDestination());
                 }
@@ -177,7 +195,10 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         // tips: 目前逻辑中暂不处理对exchange处理，请在Console后台绑定 才可使用routekey
         try {
             RabbitMQProducerConfig rabbitMQProperties = (RabbitMQProducerConfig) this.mqProperties;
-            channel.basicPublish(rabbitMQProperties.getExchange(), queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, message);
+            channel.basicPublish(rabbitMQProperties.getExchange(),
+                queueName,
+                MessageProperties.PERSISTENT_TEXT_PLAIN,
+                message);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

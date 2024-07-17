@@ -34,7 +34,8 @@ public class CanalKafkaClientExample {
 
     public static void main(String[] args) {
         try {
-            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(AbstractKafkaTest.zkServers,
+            final CanalKafkaClientExample kafkaCanalClientExample = new CanalKafkaClientExample(
+                AbstractKafkaTest.zkServers,
                 AbstractKafkaTest.servers,
                 AbstractKafkaTest.topic,
                 AbstractKafkaTest.partition,

@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.connector</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.7-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -28,8 +28,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
-            <version>1.1.1</version>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka_version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

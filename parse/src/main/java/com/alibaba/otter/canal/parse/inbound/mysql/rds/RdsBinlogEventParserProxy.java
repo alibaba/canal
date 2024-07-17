@@ -51,7 +51,6 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
             rdsLocalBinlogEventParser.setDestination(destination);
             rdsLocalBinlogEventParser.setAlarmHandler(this.getAlarmHandler());
             rdsLocalBinlogEventParser.setConnectionCharsetStd(this.connectionCharset);
-            rdsLocalBinlogEventParser.setConnectionCharsetNumber(this.connectionCharsetNumber);
             rdsLocalBinlogEventParser.setEnableTsdb(this.enableTsdb);
             rdsLocalBinlogEventParser.setEventBlackFilter(this.eventBlackFilter);
             rdsLocalBinlogEventParser.setFilterQueryDcl(this.filterQueryDcl);

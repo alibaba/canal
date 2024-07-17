@@ -1,0 +1,1 @@
+clickhouse=com.alibaba.otter.canal.client.adapter.clickhouse.ClickHouseAdapter

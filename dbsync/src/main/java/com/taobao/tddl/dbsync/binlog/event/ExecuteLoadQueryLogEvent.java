@@ -52,9 +52,9 @@ public final class ExecuteLoadQueryLogEvent extends QueryLogEvent {
     public static final int ELQ_FN_POS_END_OFFSET   = ELQ_FILE_ID_OFFSET + 8;
     public static final int ELQ_DUP_HANDLING_OFFSET = ELQ_FILE_ID_OFFSET + 12;
 
-    public ExecuteLoadQueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent)
-                                                                                                                   throws IOException{
-        super(header, buffer, descriptionEvent);
+    public ExecuteLoadQueryLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent,
+                                    boolean compatiablePercona) throws IOException{
+        super(header, buffer, descriptionEvent, compatiablePercona);
 
         buffer.position(descriptionEvent.commonHeaderLen + ELQ_FILE_ID_OFFSET);
 

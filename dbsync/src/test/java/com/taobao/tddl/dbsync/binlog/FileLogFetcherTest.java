@@ -3,6 +3,7 @@ package com.taobao.tddl.dbsync.binlog;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,43 +44,9 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
             while (fetcher.fetch()) {
                 LogEvent event = null;
                 event = decoder.decode(fetcher, context);
-                if (event != null) {
-                    int eventType = event.getHeader().getType();
-                    switch (eventType) {
-                        case LogEvent.ROTATE_EVENT:
-                            binlogFileName = ((RotateLogEvent) event).getFilename();
-                            break;
-                        case LogEvent.WRITE_ROWS_EVENT_V1:
-                        case LogEvent.WRITE_ROWS_EVENT:
-                            parseRowsEvent((WriteRowsLogEvent) event);
-                            break;
-                        case LogEvent.UPDATE_ROWS_EVENT_V1:
-                        case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
-                        case LogEvent.UPDATE_ROWS_EVENT:
-                            parseRowsEvent((UpdateRowsLogEvent) event);
-                            break;
-                        case LogEvent.DELETE_ROWS_EVENT_V1:
-                        case LogEvent.DELETE_ROWS_EVENT:
-                            parseRowsEvent((DeleteRowsLogEvent) event);
-                            break;
-                        case LogEvent.QUERY_EVENT:
-                            parseQueryEvent((QueryLogEvent) event);
-                            break;
-                        case LogEvent.ROWS_QUERY_LOG_EVENT:
-                            parseRowsQueryEvent((RowsQueryLogEvent) event);
-                            break;
-                        case LogEvent.ANNOTATE_ROWS_EVENT:
-                            parseAnnotateRowsEvent((AnnotateRowsEvent) event);
-                            break;
-                        case LogEvent.XID_EVENT:
-                            parseXidEvent((XidLogEvent) event);
-                            break;
-                        default:
-                            break;
-                    }
-                }
+                processEvent(event, decoder, context);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             Assert.fail(e.getMessage());
         } finally {
             try {
@@ -87,6 +54,48 @@ public class FileLogFetcherTest extends BaseLogFetcherTest {
             } catch (IOException e) {
                 Assert.fail(e.getMessage());
             }
+        }
+    }
+
+    public void processEvent(LogEvent event, LogDecoder decoder, LogContext context) throws Throwable {
+        int eventType = event.getHeader().getType();
+        switch (eventType) {
+            case LogEvent.ROTATE_EVENT:
+                binlogFileName = ((RotateLogEvent) event).getFilename();
+                break;
+            case LogEvent.WRITE_ROWS_EVENT_V1:
+            case LogEvent.WRITE_ROWS_EVENT:
+                parseRowsEvent((WriteRowsLogEvent) event);
+                break;
+            case LogEvent.UPDATE_ROWS_EVENT_V1:
+            case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
+            case LogEvent.UPDATE_ROWS_EVENT:
+                parseRowsEvent((UpdateRowsLogEvent) event);
+                break;
+            case LogEvent.DELETE_ROWS_EVENT_V1:
+            case LogEvent.DELETE_ROWS_EVENT:
+                parseRowsEvent((DeleteRowsLogEvent) event);
+                break;
+            case LogEvent.QUERY_EVENT:
+                parseQueryEvent((QueryLogEvent) event);
+                break;
+            case LogEvent.ROWS_QUERY_LOG_EVENT:
+                parseRowsQueryEvent((RowsQueryLogEvent) event);
+                break;
+            case LogEvent.ANNOTATE_ROWS_EVENT:
+                parseAnnotateRowsEvent((AnnotateRowsEvent) event);
+                break;
+            case LogEvent.XID_EVENT:
+                parseXidEvent((XidLogEvent) event);
+                break;
+            case LogEvent.TRANSACTION_PAYLOAD_EVENT:
+                List<LogEvent> events = decoder.processIterateDecode(event, context);
+                for (LogEvent deEvent : events) {
+                    processEvent(deEvent, decoder, context);
+                }
+                break;
+            default:
+                break;
         }
     }
 }

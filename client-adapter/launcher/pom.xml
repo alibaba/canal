@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.7-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -17,7 +17,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>2.0.1.RELEASE</version>
+                <version>2.5.15</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -73,6 +73,10 @@
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-shaded-client</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.yandex.clickhouse</groupId>
+            <artifactId>clickhouse-jdbc</artifactId>
         </dependency>
 
         <!-- outer adapter jar with dependencies-->
@@ -130,6 +134,19 @@
         </dependency>
         <dependency>
             <groupId>com.alibaba.otter</groupId>
+            <artifactId>client-adapter.es8x</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
             <artifactId>client-adapter.rdb</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -144,6 +161,19 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>client-adapter.tablestore</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
+            <classifier>jar-with-dependencies</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>client-adapter.clickhouse</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

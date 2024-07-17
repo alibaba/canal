@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.parse.inbound.mysql;
 
 import java.nio.charset.Charset;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.otter.canal.filter.CanalEventFilter;
@@ -16,7 +17,6 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DefaultTableMetaTSDBFact
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDB;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.TableMetaTSDBFactory;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
-import org.apache.commons.lang.StringUtils;
 
 public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
@@ -24,13 +24,15 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     protected TableMetaTSDBFactory tableMetaTSDBFactory      = new DefaultTableMetaTSDBFactory();
     protected boolean              enableTsdb                = false;
+    protected String               tsdbJdbcUrl;
+    protected String               tsdbJdbcUserName;
+    protected String               tsdbJdbcPassword;
     protected int                  tsdbSnapshotInterval      = 24;
     protected int                  tsdbSnapshotExpire        = 360;
     protected String               tsdbSpringXml;
     protected TableMetaTSDB        tableMetaTSDB;
 
     // 编码信息
-    protected byte                 connectionCharsetNumber   = (byte) 33;
     protected Charset              connectionCharset         = Charset.forName("UTF-8");
     protected boolean              filterQueryDcl            = false;
     protected boolean              filterQueryDml            = false;
@@ -149,14 +151,7 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         if (enableTsdb) {
             if (tableMetaTSDB == null) {
                 synchronized (CanalEventParser.class) {
-                    try {
-                        // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
-                        System.setProperty("canal.instance.destination", destination);
-                        // 初始化
-                        tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
-                    } finally {
-                        System.setProperty("canal.instance.destination", "");
-                    }
+                    buildTableMetaTSDB(tsdbSpringXml);
                 }
             }
         }
@@ -173,6 +168,30 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         super.stop();
     }
 
+    protected synchronized void buildTableMetaTSDB(String tsdbSpringXml) {
+        if (tableMetaTSDB != null) {
+            return;
+        }
+
+        try {
+            // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
+            System.setProperty("canal.instance.tsdb.url", tsdbJdbcUrl);
+            System.setProperty("canal.instance.tsdb.dbUsername", tsdbJdbcUserName);
+            System.setProperty("canal.instance.tsdb.dbPassword", tsdbJdbcPassword);
+            // 初始化
+            this.tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
+        } catch (Throwable e) {
+            logger.warn("failed to build TableMetaTSDB ",e);
+            throw new CanalParseException(e);
+        } finally {
+            // reset
+            Properties props = System.getProperties();
+            props.remove("canal.instance.tsdb.url");
+            props.remove("canal.instance.tsdb.dbUsername");
+            props.remove("canal.instance.tsdb.dbPassword");
+        }
+    }
+
     protected MultiStageCoprocessor buildMultiStageCoprocessor() {
         MysqlMultiStageCoprocessor mysqlMultiStageCoprocessor = new MysqlMultiStageCoprocessor(parallelBufferSize,
             parallelThreadSize,
@@ -184,10 +203,6 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     }
 
     // ============================ setter / getter =========================
-
-    public void setConnectionCharsetNumber(byte connectionCharsetNumber) {
-        this.connectionCharsetNumber = connectionCharsetNumber;
-    }
 
     public void setConnectionCharsetStd(Charset connectionCharset) {
         this.connectionCharset = connectionCharset;
@@ -255,22 +270,10 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
 
     public void setEnableTsdb(boolean enableTsdb) {
         this.enableTsdb = enableTsdb;
-        if (this.enableTsdb) {
-            if (tableMetaTSDB == null) {
-                // 初始化
-                tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
-            }
-        }
     }
 
     public void setTsdbSpringXml(String tsdbSpringXml) {
         this.tsdbSpringXml = tsdbSpringXml;
-        if (this.enableTsdb) {
-            if (tableMetaTSDB == null) {
-                // 初始化
-                tableMetaTSDB = tableMetaTSDBFactory.build(destination, tsdbSpringXml);
-            }
-        }
     }
 
     public void setTableMetaTSDBFactory(TableMetaTSDBFactory tableMetaTSDBFactory) {
@@ -301,4 +304,15 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
         this.tsdbSnapshotExpire = tsdbSnapshotExpire;
     }
 
+    public void setTsdbJdbcUrl(String tsdbJdbcUrl) {
+        this.tsdbJdbcUrl = tsdbJdbcUrl;
+    }
+
+    public void setTsdbJdbcUserName(String tsdbJdbcUserName) {
+        this.tsdbJdbcUserName = tsdbJdbcUserName;
+    }
+
+    public void setTsdbJdbcPassword(String tsdbJdbcPassword) {
+        this.tsdbJdbcPassword = tsdbJdbcPassword;
+    }
 }

@@ -62,6 +62,7 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
     public static final int   TRANSACTION_CONTEXT_HEADER_LEN      = 18;
     public static final int   VIEW_CHANGE_HEADER_LEN              = 52;
     public static final int   XA_PREPARE_HEADER_LEN               = 0;
+    public static final int   TRANSACTION_PAYLOAD_HEADER_LEN      = 0;
 
     public static final int   ANNOTATE_ROWS_HEADER_LEN            = 0;
     public static final int   BINLOG_CHECKPOINT_HEADER_LEN        = 4;
@@ -113,14 +114,14 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
         long calc = getVersionProduct();
         if (calc >= checksumVersionProduct) {
             /*
-             * the last bytes are the checksum alg desc and value (or value's
-             * room)
+             * the last bytes are the checksum alg desc and value (or value's room)
              */
             numberOfEventTypes -= BINLOG_CHECKSUM_ALG_DESC_LEN;
         }
 
-        if (logger.isInfoEnabled()) logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= "
-                                                + numberOfEventTypes);
+        if (logger.isInfoEnabled()) {
+            logger.info("common_header_len= " + commonHeaderLen + ", number_of_event_types= " + numberOfEventTypes);
+        }
     }
 
     /** MySQL 5.0 format descriptions. */
@@ -212,6 +213,7 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 postHeaderLen[VIEW_CHANGE_EVENT - 1] = VIEW_CHANGE_HEADER_LEN;
                 postHeaderLen[XA_PREPARE_LOG_EVENT - 1] = XA_PREPARE_HEADER_LEN;
                 postHeaderLen[PARTIAL_UPDATE_ROWS_EVENT - 1] = ROWS_HEADER_LEN_V2;
+                postHeaderLen[TRANSACTION_PAYLOAD_EVENT - 1] = TRANSACTION_PAYLOAD_HEADER_LEN;
 
                 // mariadb 10
                 postHeaderLen[ANNOTATE_ROWS_EVENT - 1] = ANNOTATE_ROWS_HEADER_LEN;
@@ -219,6 +221,15 @@ public final class FormatDescriptionLogEvent extends StartLogEventV3 {
                 postHeaderLen[GTID_EVENT - 1] = GTID_HEADER_LEN;
                 postHeaderLen[GTID_LIST_EVENT - 1] = GTID_LIST_HEADER_LEN;
                 postHeaderLen[START_ENCRYPTION_EVENT - 1] = START_ENCRYPTION_HEADER_LEN;
+
+                // mariadb compress
+                postHeaderLen[QUERY_COMPRESSED_EVENT - 1] = QUERY_COMPRESSED_EVENT;
+                postHeaderLen[WRITE_ROWS_COMPRESSED_EVENT - 1] = ROWS_HEADER_LEN_V2;
+                postHeaderLen[UPDATE_ROWS_COMPRESSED_EVENT - 1] = ROWS_HEADER_LEN_V2;
+                postHeaderLen[DELETE_ROWS_COMPRESSED_EVENT - 1] = ROWS_HEADER_LEN_V2;
+                postHeaderLen[WRITE_ROWS_COMPRESSED_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
+                postHeaderLen[UPDATE_ROWS_COMPRESSED_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
+                postHeaderLen[DELETE_ROWS_COMPRESSED_EVENT_V1 - 1] = ROWS_HEADER_LEN_V1;
                 break;
 
             case 3: /* 4.0.x x>=2 */

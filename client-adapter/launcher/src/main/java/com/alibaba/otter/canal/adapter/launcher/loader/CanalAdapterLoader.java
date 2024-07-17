@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
-import com.alibaba.otter.canal.client.adapter.ProxyOuterAdapter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +16,11 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.otter.canal.adapter.launcher.config.SpringContext;
 import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.ProxyOuterAdapter;
 import com.alibaba.otter.canal.client.adapter.support.CanalClientConfig;
 import com.alibaba.otter.canal.client.adapter.support.ExtensionLoader;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
@@ -70,7 +71,13 @@ public class CanalAdapterLoader {
                     loadAdapter(config, canalOuterAdapters);
                 }
                 canalOuterAdapterGroups.add(canalOuterAdapters);
-
+                // canalOuterAdapters 存在初始化失败的情况，导致canalOuterAdapters的数量，可能小于group.getOuterAdapters
+                // 由于group下的 所有OuterAdapter实例都会重复消费同一批消息，因此不允许部分adapter初始化成功，必须全部初始化成功才允许消费
+                if(CollectionUtils.isEmpty(canalOuterAdapters) || canalOuterAdapters.size() != group.getOuterAdapters().size() ){
+                    String msg = String.format("instance=%s,groupId=%s Load OuterAdapters is Empty，pls check rdb.yml",
+                                canalAdapter.getInstance(),group.getGroupId());
+                        throw new RuntimeException(msg);
+                 }
                 AdapterProcessor adapterProcessor = canalAdapterProcessors.computeIfAbsent(
                     canalAdapter.getInstance() + "|" + StringUtils.trimToEmpty(group.getGroupId()),
                     f -> new AdapterProcessor(canalClientConfig,
@@ -78,7 +85,6 @@ public class CanalAdapterLoader {
                         group.getGroupId(),
                         canalOuterAdapterGroups));
                 adapterProcessor.start();
-
                 logger.info("Start adapter for canal-client mq topic: {} succeed",
                     canalAdapter.getInstance() + "-" + group.getGroupId());
             }
@@ -107,6 +113,7 @@ public class CanalAdapterLoader {
                 }
             }
             adapter.init(config, evnProperties);
+            // rdb文件解析异常时，canalOuterAdapters 无法正常加载
             canalOutConnectors.add(adapter);
             logger.info("Load canal adapter: {} succeed", config.getName());
         } catch (Exception e) {

@@ -37,7 +37,7 @@ public class JsonDiffConversionTest {
         final long len = 71L;
         final String columnName = "foo";
         final int columnIndex = 0;
-        final String charsetName = "foo";
+        final String charsetName = "gbk";
         try {
 
             // Act
@@ -78,7 +78,7 @@ public class JsonDiffConversionTest {
         final long len = 0L;
         final String columnName = "foo";
         final int columnIndex = 0;
-        final String charsetName = "foo";
+        final String charsetName = "gbk";
         try {
 
             // Act
@@ -119,7 +119,7 @@ public class JsonDiffConversionTest {
         final long len = 0L;
         final String columnName = "foo";
         final int columnIndex = 0;
-        final String charsetName = "foo";
+        final String charsetName = "gbk";
         try {
 
             // Act
@@ -160,7 +160,7 @@ public class JsonDiffConversionTest {
         final long len = 0L;
         final String columnName = "foo";
         final int columnIndex = 0;
-        final String charsetName = "foo";
+        final String charsetName = "gbk";
         try {
 
             // Act
@@ -191,7 +191,7 @@ public class JsonDiffConversionTest {
         final long len = 0L;
         final String columnName = ",";
         final int columnIndex = 0;
-        final String charsetName = "1a 2b 3c";
+        final String charsetName = "gbk";
 
         // Act
         final StringBuilder actual = JsonDiffConversion.print_json_diff(buffer,

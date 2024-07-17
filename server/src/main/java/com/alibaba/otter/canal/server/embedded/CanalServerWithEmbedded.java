@@ -73,11 +73,12 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         if (!isStart()) {
             super.start();
             // 如果存在provider,则启动metrics service
-            loadCanalMetrics();
-            metrics.setServerPort(metricsPort);
-            metrics.initialize();
+            if(metricsPort > 0) {
+                loadCanalMetrics();
+                metrics.setServerPort(metricsPort);
+                metrics.initialize();
+            }
             canalInstances = MigrateMap.makeComputingMap(destination -> canalInstanceGenerator.generate(destination));
-
             // lastRollbackPostions = new MapMaker().makeMap();
         }
     }

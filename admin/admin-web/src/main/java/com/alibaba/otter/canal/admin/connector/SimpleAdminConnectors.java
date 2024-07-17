@@ -38,12 +38,12 @@ public class SimpleAdminConnectors {
     }
 
     private static String getDesensitizationPassword(String password) {
-        String defaultPassword = "******";
+        String defaultPassword = "*****";
 
-        if (Strings.isNullOrEmpty(password) || password.length() < 6) {
+        if (Strings.isNullOrEmpty(password) || password.length() < 5) {
             return defaultPassword;
         } else {
-            return String.format("%s******", password.substring(0, 3));
+            return String.format("%s*****", password.substring(0, 3));
         }
     }
 }

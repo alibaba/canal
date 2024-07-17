@@ -1,6 +1,5 @@
 package com.alibaba.otter.canal.adapter.launcher.loader;
 
-import com.alibaba.otter.canal.connector.core.spi.ProxyCanalMsgConsumer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -8,7 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +22,7 @@ import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
 import com.alibaba.otter.canal.connector.core.spi.ExtensionLoader;
+import com.alibaba.otter.canal.connector.core.spi.ProxyCanalMsgConsumer;
 
 /**
  * 适配处理器
@@ -33,27 +32,27 @@ import com.alibaba.otter.canal.connector.core.spi.ExtensionLoader;
  */
 public class AdapterProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AdapterProcessor.class);
+    private static final Logger             logger                    = LoggerFactory.getLogger(AdapterProcessor.class);
 
-    private static final String CONNECTOR_SPI_DIR = "/plugin";
-    private static final String CONNECTOR_STANDBY_SPI_DIR = "/canal-adapter/plugin";
+    private static final String             CONNECTOR_SPI_DIR         = "/plugin";
+    private static final String             CONNECTOR_STANDBY_SPI_DIR = "/canal-adapter/plugin";
 
-    private CanalMsgConsumer canalMsgConsumer;
+    private CanalMsgConsumer                canalMsgConsumer;
 
-    private String canalDestination;                                                           // canal实例
-    private String groupId = null;                                           // groupId
-    private List<List<OuterAdapter>> canalOuterAdapters;                                                         // 外部适配器
-    private CanalClientConfig canalClientConfig;                                                          // 配置
-    private ExecutorService groupInnerExecutorService;                                                  // 组内工作线程池
-    private volatile boolean running = false;                                          // 是否运行中
-    private Thread thread = null;
-    private Thread.UncaughtExceptionHandler handler = (t, e) -> logger
+    private String                          canalDestination;                                                           // canal实例
+    private String                          groupId                   = null;                                           // groupId
+    private List<List<OuterAdapter>>        canalOuterAdapters;                                                         // 外部适配器
+    private CanalClientConfig               canalClientConfig;                                                          // 配置
+    private ExecutorService                 groupInnerExecutorService;                                                  // 组内工作线程池
+    private volatile boolean                running                   = false;                                          // 是否运行中
+    private Thread                          thread                    = null;
+    private Thread.UncaughtExceptionHandler handler                   = (t, e) -> logger
         .error("parse events has an error", e);
 
-    private SyncSwitch syncSwitch;
+    private SyncSwitch                      syncSwitch;
 
     public AdapterProcessor(CanalClientConfig canalClientConfig, String destination, String groupId,
-        List<List<OuterAdapter>> canalOuterAdapters) {
+                            List<List<OuterAdapter>> canalOuterAdapters){
         this.canalClientConfig = canalClientConfig;
         this.canalDestination = destination;
         this.groupId = groupId;
@@ -64,9 +63,12 @@ public class AdapterProcessor {
 
         // load connector consumer
         ExtensionLoader<CanalMsgConsumer> loader = new ExtensionLoader<>(CanalMsgConsumer.class);
-        canalMsgConsumer = new ProxyCanalMsgConsumer(loader
-            .getExtension(canalClientConfig.getMode().toLowerCase(), destination, CONNECTOR_SPI_DIR,
-                CONNECTOR_STANDBY_SPI_DIR));
+        // see https://github.com/alibaba/canal/pull/5175
+        String key = destination + "_" + groupId;
+        canalMsgConsumer = new ProxyCanalMsgConsumer(loader.getExtension(canalClientConfig.getMode().toLowerCase(),
+            key,
+            CONNECTOR_SPI_DIR,
+            CONNECTOR_STANDBY_SPI_DIR));
 
         Properties properties = canalClientConfig.getConsumerProperties();
         properties.put(CanalConstants.CANAL_MQ_FLAT_MESSAGE, canalClientConfig.getFlatMessage());
@@ -87,6 +89,7 @@ public class AdapterProcessor {
     public void writeOut(final List<CommonMessage> commonMessages) {
         List<Future<Boolean>> futures = new ArrayList<>();
         // 组间适配器并行运行
+        // 当 canalOuterAdapters 初始化失败时，消息将会全部丢失
         canalOuterAdapters.forEach(outerAdapters -> {
             futures.add(groupInnerExecutorService.submit(() -> {
                 try {
@@ -170,7 +173,7 @@ public class AdapterProcessor {
         }
 
         int retry = canalClientConfig.getRetries() == null
-            || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
+                    || canalClientConfig.getRetries() == 0 ? 1 : canalClientConfig.getRetries();
         if (retry == -1) {
             // 重试次数-1代表异常时一直阻塞重试
             retry = Integer.MAX_VALUE;
@@ -224,7 +227,7 @@ public class AdapterProcessor {
                                     logger.error("finish turn off switch of destination:" + canalDestination);
                                 } else {
                                     canalMsgConsumer.ack();
-                                    logger.error(e.getMessage() + " Error sync but ACK!");
+                                    logger.error(e.getMessage() + " Error sync but ACK!", e);
                                 }
                             }
                             Thread.sleep(500);

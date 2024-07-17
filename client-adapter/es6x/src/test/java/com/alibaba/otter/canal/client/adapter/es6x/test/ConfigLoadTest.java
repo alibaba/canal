@@ -29,9 +29,9 @@ public class ConfigLoadTest {
         Assert.assertNotNull(config);
         Assert.assertEquals("defaultDS", config.getDataSourceKey());
         ESSyncConfig.ESMapping esMapping = config.getEsMapping();
-        Assert.assertEquals("mytest_user", esMapping.get_index());
-        Assert.assertEquals("_doc", esMapping.get_type());
-        Assert.assertEquals("id", esMapping.get_id());
+        Assert.assertEquals("mytest_user", esMapping.getIndex());
+        Assert.assertEquals("_doc", esMapping.getType());
+        Assert.assertEquals("id", esMapping.getId());
         Assert.assertNotNull(esMapping.getSql());
 
         // Map<String, List<ESSyncConfig>> dbTableEsSyncConfig =

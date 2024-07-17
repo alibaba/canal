@@ -22,10 +22,8 @@ public class SimpleCanalClientTest extends AbstractCanalClientTest {
         // 根据ip，直接创建链接，无HA的功能
         String destination = "example";
         String ip = AddressUtils.getHostIp();
-        CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
-            destination,
-            "canal",
-            "canal");
+        CanalConnector connector = CanalConnectors
+            .newSingleConnector(new InetSocketAddress(ip, 11111), destination, "canal", "canal");
 
         final SimpleCanalClientTest clientTest = new SimpleCanalClientTest(destination);
         clientTest.setConnector(connector);

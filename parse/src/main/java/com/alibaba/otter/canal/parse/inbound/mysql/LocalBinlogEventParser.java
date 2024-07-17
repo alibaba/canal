@@ -116,7 +116,6 @@ public class LocalBinlogEventParser extends AbstractMysqlEventParser implements 
         MysqlConnection connection = new MysqlConnection(runningInfo.getAddress(),
             runningInfo.getUsername(),
             runningInfo.getPassword(),
-            connectionCharsetNumber,
             runningInfo.getDefaultDatabaseName());
         connection.getConnector().setReceiveBufferSize(64 * 1024);
         connection.getConnector().setSendBufferSize(64 * 1024);

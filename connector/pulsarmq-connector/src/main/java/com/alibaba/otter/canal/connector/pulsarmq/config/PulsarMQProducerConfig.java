@@ -18,7 +18,7 @@ public class PulsarMQProducerConfig extends MQProperties {
      * httpUrl: http://localhost:8080
      * </p>
      */
-    private String serverUrl;
+    private String  serverUrl;
     /**
      * pulsar topic前缀
      * <p>
@@ -27,15 +27,30 @@ public class PulsarMQProducerConfig extends MQProperties {
      * 在发送消息时会自动拼接上
      * </p>
      */
-    private String topicTenantPrefix;
+    private String  topicTenantPrefix;
     /**
      * 生产者角色权限，请确保该角色有canal使用的所有topic生产者权限（最低要求）
      */
-    private String roleToken;
+    private String  roleToken;
     /**
      * admin服务器地址
      */
-    private String adminServerUrl;
+    private String  adminServerUrl;
+
+    /**
+     * listener name
+     */
+    private String  listenerName;
+
+    /**
+     * enableChunking
+     */
+    private boolean enableChunking;
+
+    /**
+     * compressionType
+     */
+    private String  compressionType;
 
     public String getServerUrl() {
         return serverUrl;
@@ -67,5 +82,29 @@ public class PulsarMQProducerConfig extends MQProperties {
 
     public void setAdminServerUrl(String adminServerUrl) {
         this.adminServerUrl = adminServerUrl;
+    }
+
+    public String getListenerName() {
+        return listenerName;
+    }
+
+    public void setListenerName(String listenerName) {
+        this.listenerName = listenerName;
+    }
+
+    public void setEnableChunking(boolean enableChunking) {
+        this.enableChunking = enableChunking;
+    }
+
+    public boolean getEnableChunking() {
+        return this.enableChunking;
+    }
+
+    public void setCompressionType(String compressionType) {
+        this.compressionType = compressionType;
+    }
+
+    public String getCompressionType() {
+        return this.compressionType;
     }
 }

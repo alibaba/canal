@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.connector</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.7-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -35,10 +35,12 @@
         <dependency>
             <groupId>org.apache.pulsar</groupId>
             <artifactId>pulsar-client</artifactId>
+            <version>${pulsar_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pulsar</groupId>
             <artifactId>pulsar-client-admin</artifactId>
+            <version>${pulsar_version}</version>
         </dependency>
     </dependencies>
 

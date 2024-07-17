@@ -1,10 +1,8 @@
 package com.taobao.tddl.dbsync.binlog;
 
-import java.nio.charset.Charset;
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.*;
 
-import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber2;
-import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber4;
-import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.usecondsToStr;
+import java.nio.charset.Charset;
 
 /**
  * 处理下MySQL json二进制转化为可读的字符串
@@ -34,26 +32,25 @@ public class JsonConversion {
     public static final char JSONB_FALSE_LITERAL     = '\2';
 
     /*
-     * The size of offset or size fields in the small and the large storage
-     * format for JSON objects and JSON arrays.
+     * The size of offset or size fields in the small and the large storage format
+     * for JSON objects and JSON arrays.
      */
     public static final int  SMALL_OFFSET_SIZE       = 2;
     public static final int  LARGE_OFFSET_SIZE       = 4;
 
     /*
-     * The size of key entries for objects when using the small storage format
-     * or the large storage format. In the small format it is 4 bytes (2 bytes
-     * for key length and 2 bytes for key offset). In the large format it is 6
-     * (2 bytes for length, 4 bytes for offset).
+     * The size of key entries for objects when using the small storage format or
+     * the large storage format. In the small format it is 4 bytes (2 bytes for key
+     * length and 2 bytes for key offset). In the large format it is 6 (2 bytes for
+     * length, 4 bytes for offset).
      */
     public static final int  KEY_ENTRY_SIZE_SMALL    = (2 + SMALL_OFFSET_SIZE);
     public static final int  KEY_ENTRY_SIZE_LARGE    = (2 + LARGE_OFFSET_SIZE);
 
     /*
-     * The size of value entries for objects or arrays. When using the small
-     * storage format, the entry size is 3 (1 byte for type, 2 bytes for
-     * offset). When using the large storage format, it is 5 (1 byte for type, 4
-     * bytes for offset).
+     * The size of value entries for objects or arrays. When using the small storage
+     * format, the entry size is 3 (1 byte for type, 2 bytes for offset). When using
+     * the large storage format, it is 5 (1 byte for type, 4 bytes for offset).
      */
     public static final int  VALUE_ENTRY_SIZE_SMALL  = (1 + SMALL_OFFSET_SIZE);
     public static final int  VALUE_ENTRY_SIZE_LARGE  = (1 + LARGE_OFFSET_SIZE);
@@ -160,13 +157,12 @@ public class JsonConversion {
                 if (len < n + str_len) {
                     throw new IllegalArgumentException("illegal json data");
                 }
-                return new Json_Value(Json_enum_type.STRING, buffer.rewind()
-                    .forward((int) n)
-                    .getFixString((int) str_len, charset));
+                return new Json_Value(Json_enum_type.STRING,
+                    buffer.rewind().forward((int) n).getFixString((int) str_len, charset));
             case JSONB_TYPE_OPAQUE:
                 /*
-                 * There should always be at least one byte, which tells the
-                 * field type of the opaque value.
+                 * There should always be at least one byte, which tells the field type of the
+                 * opaque value.
                  */
                 // The type is encoded as a uint8 that maps to an
                 // enum_field_types.
@@ -291,7 +287,7 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        buf.append('"').append(key(i, charset)).append('"');
+                        buf.append('"').append(escapse(key(i, charset))).append('"');
                         buf.append(": ");
                         element(i, charset).toJsonString(buf, charset);
                     }
@@ -368,45 +364,45 @@ public class JsonConversion {
                         buf.append('"').append(text).append('"');
                     } else if (m_field_type == LogEvent.MYSQL_TYPE_DATE || m_field_type == LogEvent.MYSQL_TYPE_DATETIME
                                || m_field_type == LogEvent.MYSQL_TYPE_TIMESTAMP) {
-                        long packed_value = m_data.getLong64();
-                        if (packed_value == 0) {
-                            text = "0000-00-00 00:00:00";
-                        } else {
-                            // 构造TimeStamp只处理到秒
-                            long ultime = Math.abs(packed_value);
-                            long intpart = ultime >> 24;
-                            int frac = (int) (ultime % (1L << 24));
-                            long ymd = intpart >> 17;
-                            long ym = ymd >> 5;
-                            long hms = intpart % (1 << 17);
-                            // text =
-                            // String.format("%04d-%02d-%02d %02d:%02d:%02d",
-                            // (int) (ym / 13),
-                            // (int) (ym % 13),
-                            // (int) (ymd % (1 << 5)),
-                            // (int) (hms >> 12),
-                            // (int) ((hms >> 6) % (1 << 6)),
-                            // (int) (hms % (1 << 6)));
-                            StringBuilder builder = new StringBuilder(26);
-                            appendNumber4(builder, (int) (ym / 13));
-                            builder.append('-');
-                            appendNumber2(builder, (int) (ym % 13));
-                            builder.append('-');
-                            appendNumber2(builder, (int) (ymd % (1 << 5)));
-                            builder.append(' ');
-                            appendNumber2(builder, (int) (hms >> 12));
-                            builder.append(':');
-                            appendNumber2(builder, (int) ((hms >> 6) % (1 << 6)));
-                            builder.append(':');
-                            appendNumber2(builder, (int) (hms % (1 << 6)));
-                            builder.append('.').append(usecondsToStr(frac, 6));
-                            text = builder.toString();
-                        }
-                        buf.append('"').append(text).append('"');
-                    } else {
-                        text = m_data.getFixString((int) m_length, charset);
-                        buf.append('"').append(escapse(text)).append('"');
-                    }
+                                   long packed_value = m_data.getLong64();
+                                   if (packed_value == 0) {
+                                       text = "0000-00-00 00:00:00";
+                                   } else {
+                                       // 构造TimeStamp只处理到秒
+                                       long ultime = Math.abs(packed_value);
+                                       long intpart = ultime >> 24;
+                                       int frac = (int) (ultime % (1L << 24));
+                                       long ymd = intpart >> 17;
+                                       long ym = ymd >> 5;
+                                       long hms = intpart % (1 << 17);
+                                       // text =
+                                       // String.format("%04d-%02d-%02d %02d:%02d:%02d",
+                                       // (int) (ym / 13),
+                                       // (int) (ym % 13),
+                                       // (int) (ymd % (1 << 5)),
+                                       // (int) (hms >> 12),
+                                       // (int) ((hms >> 6) % (1 << 6)),
+                                       // (int) (hms % (1 << 6)));
+                                       StringBuilder builder = new StringBuilder(26);
+                                       appendNumber4(builder, (int) (ym / 13));
+                                       builder.append('-');
+                                       appendNumber2(builder, (int) (ym % 13));
+                                       builder.append('-');
+                                       appendNumber2(builder, (int) (ymd % (1 << 5)));
+                                       builder.append(' ');
+                                       appendNumber2(builder, (int) (hms >> 12));
+                                       builder.append(':');
+                                       appendNumber2(builder, (int) ((hms >> 6) % (1 << 6)));
+                                       builder.append(':');
+                                       appendNumber2(builder, (int) (hms % (1 << 6)));
+                                       builder.append('.').append(usecondsToStr(frac, 6));
+                                       text = builder.toString();
+                                   }
+                                   buf.append('"').append(text).append('"');
+                               } else {
+                                   text = m_data.getFixString((int) m_length, charset);
+                                   buf.append('"').append(escapse(text)).append('"');
+                               }
 
                     break;
                 case STRING:
@@ -452,7 +448,8 @@ public class JsonConversion {
     }
 
     public static enum Json_enum_type {
-        OBJECT, ARRAY, STRING, INT, UINT, DOUBLE, LITERAL_NULL, LITERAL_TRUE, LITERAL_FALSE, OPAQUE, ERROR
+                                       OBJECT, ARRAY, STRING, INT, UINT, DOUBLE, LITERAL_NULL, LITERAL_TRUE,
+                                       LITERAL_FALSE, OPAQUE, ERROR
     }
 
 }

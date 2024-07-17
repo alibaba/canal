@@ -1,12 +1,14 @@
 package com.alibaba.otter.canal.example.rocketmq;
 
-import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.protocol.Message;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * RocketMQ client example
@@ -26,15 +28,23 @@ public class CanalRocketMQClientExample extends AbstractRocektMQTest {
 
     private Thread.UncaughtExceptionHandler handler = (t, e) -> logger.error("parse events has an error", e);
 
-    public CanalRocketMQClientExample(String nameServers, String topic, String groupId) {
+    public CanalRocketMQClientExample(String nameServers, String topic, String groupId){
         connector = new RocketMQCanalConnector(nameServers, topic, groupId, 500, false);
     }
 
     public CanalRocketMQClientExample(String nameServers, String topic, String groupId, boolean enableMessageTrace,
-        String accessKey, String secretKey, String accessChannel, String namespace) {
-        connector = new RocketMQCanalConnector(nameServers, topic, groupId, accessKey,
-            secretKey, -1, false, enableMessageTrace,
-            null, accessChannel, namespace);
+                                      String accessKey, String secretKey, String accessChannel, String namespace){
+        connector = new RocketMQCanalConnector(nameServers,
+            topic,
+            groupId,
+            accessKey,
+            secretKey,
+            -1,
+            false,
+            enableMessageTrace,
+            null,
+            accessChannel,
+            namespace);
     }
 
     public static void main(String[] args) {

@@ -1,0 +1,15 @@
+# arm64
+FROM canal/osbase:v3-arm64
+
+MAINTAINER agapple (jianghang115@gmail.com)
+
+RUN \
+    groupadd -r mysql && useradd -r -g mysql mysql && \
+    wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm  && \
+    rpm -ivh mysql80-community-release-el7-3.noarch.rpm  && \
+    yum install sudo mysql-community-server-8.0.32 --nogpgcheck -y && \
+    rm -f mysql80-community-release-el7-3.noarch.rpm && \
+    yum clean all && \
+    true
+
+CMD ["/bin/bash"]

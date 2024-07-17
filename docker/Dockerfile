@@ -1,6 +1,7 @@
-FROM canal/osbase:v2
+FROM canal/osbase:v3-amd64
+#FROM canal/osbase:v3-arm64
 
-MAINTAINER agapple (jianghang115@gmail.com)
+LABEL agapple (jianghang115@gmail.com)
 
 # install canal
 COPY image/ /tmp/docker/
@@ -19,7 +20,7 @@ RUN \
     /bin/rm -f /home/admin/canal.deployer-*.tar.gz && \
 
     tar zxvf /tmp/node_exporter.tar.gz -C /home/admin && \
-    ln -s /home/admin/node_exporter-0.18.1.linux-arm64 /home/admin/node_exporter && \
+    ln -s /home/admin/node_exporter-1.6.1* /home/admin/node_exporter && \
 
     mkdir -p home/admin/canal-server/logs  && \
     chmod +x /home/admin/*.sh  && \

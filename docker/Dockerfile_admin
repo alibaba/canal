@@ -1,4 +1,5 @@
-FROM canal/osadmin:v1
+FROM canal/osadmin:v3-amd64
+#FROM canal/osadmin:v3-arm64
 
 MAINTAINER agapple (jianghang115@gmail.com)
 
