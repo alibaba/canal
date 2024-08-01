@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.instance.manager;
 
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -13,17 +14,17 @@ import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanal;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
-import com.alibaba.otter.canal.instance.spring.SpringCanalInstanceGenerator;
+import com.alibaba.otter.canal.parse.CanalEventParser;
 
 /**
  * 基于manager生成对应的{@linkplain CanalInstance}
- * 
+ *
  * @author jianghang 2012-7-12 下午05:37:09
  * @version 1.0.0
  */
 public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
 
-    private static final Logger    logger      = LoggerFactory.getLogger(SpringCanalInstanceGenerator.class);
+    private static final Logger    logger      = LoggerFactory.getLogger(PlainCanalInstanceGenerator.class);
     private String                 springXml;
     private PlainCanalConfigClient canalConfigClient;
     private String                 defaultName = "instance";
@@ -35,7 +36,7 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
     }
 
     public CanalInstance generate(String destination) {
-        synchronized (CanalInstanceGenerator.class) {
+        synchronized (CanalEventParser.class) {
             try {
                 PlainCanal canal = canalConfigClient.findInstance(destination, null);
                 if (canal == null) {
@@ -61,6 +62,7 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
                 throw new CanalException(e);
             } finally {
                 System.setProperty("canal.instance.destination", "");
+                com.alibaba.otter.canal.instance.spring.support.PropertyPlaceholderConfigurer.propertiesLocal.remove();
             }
         }
     }
@@ -68,6 +70,9 @@ public class PlainCanalInstanceGenerator implements CanalInstanceGenerator {
     // ================ setter / getter ================
 
     private BeanFactory getBeanFactory(String springXml) {
+        if (!StringUtils.startsWithIgnoreCase(springXml, "classpath:")) {
+            springXml = "classpath:" + springXml;
+        }
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
         return applicationContext;
     }

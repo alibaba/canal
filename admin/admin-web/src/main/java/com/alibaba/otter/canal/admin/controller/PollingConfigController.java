@@ -2,15 +2,11 @@ package com.alibaba.otter.canal.admin.controller;
 
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.otter.canal.admin.model.BaseModel;
 import com.alibaba.otter.canal.admin.model.CanalConfig;
@@ -28,7 +24,7 @@ import com.alibaba.otter.canal.protocol.SecurityUtil;
 @RequestMapping("/api/{env}/config")
 public class PollingConfigController {
 
-    private static final byte[] seeds = "canal is best!".getBytes();
+    private static final byte[] seeds = RandomStringUtils.random(16).getBytes();
 
     @Value(value = "${canal.adminUser}")
     String                      user;
@@ -46,14 +42,15 @@ public class PollingConfigController {
     public BaseModel<CanalConfig> canalConfigPoll(@RequestHeader String user, @RequestHeader String passwd,
                                                   @RequestParam String ip, @RequestParam Integer port,
                                                   @RequestParam String md5, @RequestParam boolean register,
-                                                  @RequestParam String cluster, @PathVariable String env) {
+                                                  @RequestParam String cluster, @RequestParam String name,
+                                                  @PathVariable String env) {
         if (!auth(user, passwd)) {
             throw new RuntimeException("auth :" + user + " is failed");
         }
 
         if (StringUtils.isEmpty(md5) && register) {
             // do something
-            pollingConfigService.autoRegister(ip, port, cluster);
+            pollingConfigService.autoRegister(ip, port, cluster, StringUtils.trimToNull(name));
         }
 
         CanalConfig canalConfig = pollingConfigService.getChangedConfig(ip, port, md5);

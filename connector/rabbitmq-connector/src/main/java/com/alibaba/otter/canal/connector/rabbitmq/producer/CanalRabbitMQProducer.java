@@ -1,6 +1,9 @@
 package com.alibaba.otter.canal.connector.rabbitmq.producer;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -10,10 +13,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.CanalException;
+import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.connector.core.producer.MQMessageUtils;
@@ -25,9 +30,7 @@ import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQConstants;
 import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQProducerConfig;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.*;
 
 /**
  * RabbitMQ Producer SPI 实现
@@ -52,8 +55,14 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
 
         ConnectionFactory factory = new ConnectionFactory();
         String servers = rabbitMQProperties.getHost();
-        if (servers.contains(":")) {
-            String[] serverHostAndPort = servers.split(":");
+        if (servers.startsWith("amqp")) {
+            try {
+                factory.setUri(servers);
+            } catch (URISyntaxException | NoSuchAlgorithmException | KeyManagementException ex) {
+                throw new CanalException("failed to parse host", ex);
+            }
+        } else if (servers.contains(":")) {
+            String[] serverHostAndPort = AddressUtils.splitIPAndPort(servers);
             factory.setHost(serverHostAndPort[0]);
             factory.setPort(Integer.parseInt(serverHostAndPort[1]));
         } else {
@@ -73,7 +82,18 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         try {
             connect = factory.newConnection();
             channel = connect.createChannel();
-            // channel.exchangeDeclare(mqProperties.getExchange(), "topic");
+            String queue = rabbitMQProperties.getQueue();
+            String exchange = rabbitMQProperties.getExchange();
+            String deliveryMode = rabbitMQProperties.getDeliveryMode();
+            String routingKey = rabbitMQProperties.getRoutingKey();
+            if (!StringUtils.isEmpty(queue)) {
+                channel.queueDeclare(queue, true, false, false, null);
+            }
+            if (!StringUtils.isEmpty(queue) && !StringUtils.isEmpty(exchange) && !StringUtils.isEmpty(deliveryMode)
+                && !StringUtils.isEmpty(routingKey)) {
+                channel.exchangeDeclare(exchange, deliveryMode, true, false, false, null);
+                channel.queueBind(queue, exchange, routingKey);
+            }
         } catch (IOException | TimeoutException ex) {
             throw new CanalException("Start RabbitMQ producer error", ex);
         }
@@ -84,25 +104,37 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         // 兼容下<=1.1.4的mq配置
         doMoreCompatibleConvert("canal.mq.servers", "rabbitmq.host", properties);
 
-        String host = properties.getProperty(RabbitMQConstants.RABBITMQ_HOST);
+        String host = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_HOST);
         if (!StringUtils.isEmpty(host)) {
             rabbitMQProperties.setHost(host);
         }
-        String vhost = properties.getProperty(RabbitMQConstants.RABBITMQ_VIRTUAL_HOST);
+        String vhost = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_VIRTUAL_HOST);
         if (!StringUtils.isEmpty(vhost)) {
             rabbitMQProperties.setVirtualHost(vhost);
         }
-        String exchange = properties.getProperty(RabbitMQConstants.RABBITMQ_EXCHANGE);
+        String exchange = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_EXCHANGE);
         if (!StringUtils.isEmpty(exchange)) {
             rabbitMQProperties.setExchange(exchange);
         }
-        String username = properties.getProperty(RabbitMQConstants.RABBITMQ_USERNAME);
+        String username = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_USERNAME);
         if (!StringUtils.isEmpty(username)) {
             rabbitMQProperties.setUsername(username);
         }
-        String password = properties.getProperty(RabbitMQConstants.RABBITMQ_PASSWORD);
+        String password = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_PASSWORD);
         if (!StringUtils.isEmpty(password)) {
             rabbitMQProperties.setPassword(password);
+        }
+        String queue = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_QUEUE);
+        if (!StringUtils.isEmpty(queue)) {
+            rabbitMQProperties.setQueue(queue);
+        }
+        String routingKey = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_ROUTING_KEY);
+        if (!StringUtils.isEmpty(routingKey)) {
+            rabbitMQProperties.setRoutingKey(routingKey);
+        }
+        String deliveryMode = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_DELIVERY_MODE);
+        if (!StringUtils.isEmpty(deliveryMode)) {
+            rabbitMQProperties.setDeliveryMode(deliveryMode);
         }
     }
 
@@ -112,9 +144,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         try {
             if (!StringUtils.isEmpty(destination.getDynamicTopic())) {
                 // 动态topic
-                Map<String, Message> messageMap = MQMessageUtils.messageTopics(message,
-                    destination.getTopic(),
-                    destination.getDynamicTopic());
+                Map<String, Message> messageMap = MQMessageUtils
+                    .messageTopics(message, destination.getTopic(), destination.getDynamicTopic());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
                     final String topicName = entry.getKey().replace('.', '_');
@@ -149,7 +180,8 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
             // 串行分区
             List<FlatMessage> flatMessages = MQMessageUtils.messageConverter(datas, messageSub.getId());
             for (FlatMessage flatMessage : flatMessages) {
-                byte[] message = JSON.toJSONBytes(flatMessage, SerializerFeature.WriteMapNullValue);
+                byte[] message = JSON
+                    .toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject);
                 if (logger.isDebugEnabled()) {
                     logger.debug("send message:{} to destination:{}", message, canalDestination.getCanalDestination());
                 }
@@ -163,7 +195,10 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         // tips: 目前逻辑中暂不处理对exchange处理，请在Console后台绑定 才可使用routekey
         try {
             RabbitMQProducerConfig rabbitMQProperties = (RabbitMQProducerConfig) this.mqProperties;
-            channel.basicPublish(rabbitMQProperties.getExchange(), queueName, null, message);
+            channel.basicPublish(rabbitMQProperties.getExchange(),
+                queueName,
+                MessageProperties.PERSISTENT_TEXT_PLAIN,
+                message);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -173,9 +208,11 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
     public void stop() {
         logger.info("## Stop RabbitMQ producer##");
         try {
-            this.connect.close();
             this.channel.close();
+            this.connect.close();
             super.stop();
+        } catch (AlreadyClosedException ex) {
+            logger.error("Connection is already closed", ex);
         } catch (IOException | TimeoutException ex) {
             throw new CanalException("Stop RabbitMQ producer error", ex);
         }

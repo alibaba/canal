@@ -1,8 +1,13 @@
 package com.alibaba.otter.canal.parse.driver.mysql.utils;
 
-import java.security.DigestException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class MySQLPasswordEncrypter {
 
@@ -83,6 +88,26 @@ public class MySQLPasswordEncrypter {
             chars[i] ^= (char) b;
         }
         return new String(chars);
+    }
+
+    public static final byte[] scrambleRsa(byte[] publicKeyBytes, byte[] pass,
+                                           byte[] seed) throws NoSuchAlgorithmException, InvalidKeySpecException,
+                                                        NoSuchPaddingException, InvalidKeyException,
+                                                        IllegalBlockSizeException, BadPaddingException {
+        byte[] input = new byte[pass.length + 1];
+        System.arraycopy(pass, 0, input, 0, pass.length);
+        byte[] encryptedPassword = new byte[input.length];
+        xorString(input, encryptedPassword, seed, input.length);
+        String publicKeyPem = new String(publicKeyBytes).replace("\n", "")
+            .replace("-----BEGIN PUBLIC KEY-----", "")
+            .replace("-----END PUBLIC KEY-----", "");
+        byte[] certificateData = java.util.Base64.getDecoder().decode(publicKeyPem.getBytes());
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(certificateData);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PublicKey publicKey = keyFactory.generatePublic(keySpec);
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        return cipher.doFinal(encryptedPassword);
     }
 
     private static long[] hash(String src) {

@@ -4,6 +4,8 @@
 ![license](https://img.shields.io/github/license/alibaba/canal.svg)
 [![average time to resolve an issue](http://isitmaintained.com/badge/resolution/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "average time to resolve an issue")
 [![percentage of issues still open](http://isitmaintained.com/badge/open/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "percentage of issues still open")
+[![Leaderboard](https://img.shields.io/badge/Canal-%E6%9F%A5%E7%9C%8B%E8%B4%A1%E7%8C%AE%E6%8E%92%E8%A1%8C%E6%A6%9C-orange)](https://opensource.alibaba.com/contribution_leaderboard/details?projectValue=canal)
+
 
 ## 简介
 
@@ -85,10 +87,15 @@ canal 特别设计了 client-server 模式，交互协议使用 protobuf 3.0 , c
 - canal php客户端: [https://github.com/xingwenge/canal-php](https://github.com/xingwenge/canal-php)
 - canal Python客户端：[https://github.com/haozi3156666/canal-python](https://github.com/haozi3156666/canal-python)
 - canal Rust客户端：[https://github.com/laohanlinux/canal-rs](https://github.com/laohanlinux/canal-rs)
+- canal Nodejs客户端：[https://github.com/marmot-z/canal-nodejs](https://github.com/marmot-z/canal-nodejs)
 
 canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递到 MQ 系统中，比如 Kafka/RocketMQ，可以借助于 MQ 的多语言能力 
 
 - 参考文档: [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
+
+## 基于canal开发的工具
+
+-  canal2sql(基于binlog生成SQL) : [https://github.com/zhuchao941/canal2sql]
 
 ## 相关开源&产品
 
@@ -100,3 +107,5 @@ canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递
 
 ## 问题反馈
 - 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
+
+本项目的Issues会被同步沉淀至[阿里云开发者社区](https://developer.aliyun.com/ask)

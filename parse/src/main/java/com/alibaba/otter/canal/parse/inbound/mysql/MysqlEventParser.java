@@ -69,7 +69,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private int                  dumpErrorCount                    = 0;        // binlogDump失败异常计数
     private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
     private boolean              rdsOssMode                        = false;
-    private boolean              autoResetLatestPosMode            = false;    // true: binlog被删除之后，自动按最新的数据订阅
+    private boolean              autoResetLatestPosMode            = false;    // true:
+                                                                                // binlog被删除之后，自动按最新的数据订阅
+
+    private boolean multiStreamEnable;//support for polardbx binlog-x
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -302,8 +305,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
         MysqlConnection connection = new MysqlConnection(runningInfo.getAddress(),
             runningInfo.getUsername(),
             runningInfo.getPassword(),
-            connectionCharsetNumber,
-            runningInfo.getDefaultDatabaseName());
+            runningInfo.getDefaultDatabaseName(),
+            runningInfo.getSslInfo());
         connection.getConnector().setReceiveBufferSize(receiveBufferSize);
         connection.getConnector().setSendBufferSize(sendBufferSize);
         connection.getConnector().setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
@@ -340,14 +343,14 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     protected EntryPosition findStartPosition(ErosaConnection connection) throws IOException {
         if (isGTIDMode()) {
-            // GTID模式下，CanalLogPositionManager里取最后的gtid，没有则取instanc配置中的
+            // GTID模式下，CanalLogPositionManager里取最后的gtid，没有则取instance配置中的
             LogPosition logPosition = getLogPositionManager().getLatestIndexBy(destination);
             if (logPosition != null) {
                 // 如果以前是非GTID模式，后来调整为了GTID模式，那么为了保持兼容，需要判断gtid是否为空
                 if (StringUtils.isNotEmpty(logPosition.getPostion().getGtid())) {
                     return logPosition.getPostion();
                 }
-            }else {
+            } else {
                 if (masterPosition != null && StringUtils.isNotEmpty(masterPosition.getGtid())) {
                     return masterPosition;
                 }
@@ -378,7 +381,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     protected EntryPosition findEndPositionWithMasterIdAndTimestamp(MysqlConnection connection) {
         MysqlConnection mysqlConnection = (MysqlConnection) connection;
         final EntryPosition endPosition = findEndPosition(mysqlConnection);
-        if (tableMetaTSDB != null) {
+        if (tableMetaTSDB != null || isGTIDMode()) {
             long startTimestamp = System.currentTimeMillis();
             return findAsPerTimestampInSpecificLogFile(mysqlConnection,
                 startTimestamp,
@@ -401,7 +404,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 fixedPosition.getJournalName(),
                 true);
             if (entryPosition == null) {
-                throw new CanalParseException("[fixed timestamp] can't found begin/commit position before with fixed position"
+                throw new CanalParseException("[fixed timestamp] can't found begin/commit position before with fixed position "
                                               + fixedPosition.getJournalName() + ":" + fixedPosition.getPosition());
             }
             return entryPosition;
@@ -423,7 +426,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             }
 
             if (entryPosition == null) {
-                entryPosition = findEndPositionWithMasterIdAndTimestamp(mysqlConnection); // 默认从当前最后一个位置进行消费
+                entryPosition =
+                        findEndPositionWithMasterIdAndTimestamp(mysqlConnection); // 默认从当前最后一个位置进行消费
             }
 
             // 判断一下是否需要按时间订阅
@@ -463,6 +467,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                     }
 
                     if (specificLogFilePosition == null) {
+                        if (isRdsOssMode()) {
+                            // 如果binlog位点不存在，并且属于timestamp不为空,可以返回null走到oss binlog处理
+                            return null;
+                        }
                         // position不存在，从文件头开始
                         entryPosition.setPosition(BINLOG_START_OFFEST);
                         return entryPosition;
@@ -486,7 +494,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         return findPosition;
                     }
                     // 处理 binlog 位点被删除的情况，提供自动重置到当前位点的功能
-                    // 应用场景: 测试环境不稳定，位点经常被删。强烈不建议在正式环境中开启此控制参数，因为binlog 丢失调到最新位点也即意味着数据丢失
+                    // 应用场景: 测试环境不稳定，位点经常被删。强烈不建议在正式环境中开启此控制参数，因为binlog
+                    // 丢失调到最新位点也即意味着数据丢失
                     if (isAutoResetLatestPosMode()) {
                         dumpErrorCount = 0;
                         return findEndPosition(mysqlConnection);
@@ -497,9 +506,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                         return null;
                     }
                 } else if (StringUtils.isBlank(logPosition.getPostion().getJournalName())
-                        && logPosition.getPostion().getPosition() <= 0
-                        && logPosition.getPostion().getTimestamp() > 0) {
-                    return fallbackFindByStartTimestamp(logPosition,mysqlConnection);
+                           && logPosition.getPostion().getPosition() <= 0
+                           && logPosition.getPostion().getTimestamp() > 0) {
+                    return fallbackFindByStartTimestamp(logPosition, mysqlConnection);
                 }
                 // 其余情况
                 logger.warn("prepare to find start position just last position\n {}",
@@ -522,7 +531,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      * @param mysqlConnection
      * @return
      */
-    protected EntryPosition fallbackFindByStartTimestamp(LogPosition logPosition,MysqlConnection mysqlConnection){
+    protected EntryPosition fallbackFindByStartTimestamp(LogPosition logPosition, MysqlConnection mysqlConnection) {
         long timestamp = logPosition.getPostion().getTimestamp();
         long newStartTimestamp = timestamp - fallbackIntervalInSeconds * 1000;
         logger.warn("prepare to find start position by last position {}:{}:{}", new Object[] { "", "",
@@ -660,10 +669,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      */
     private EntryPosition findEndPosition(MysqlConnection mysqlConnection) {
         try {
-            ResultSetPacket packet = mysqlConnection.query("show master status");
+            String showSql = multiStreamEnable ? "show master status with " + destination : "show master status";
+            ResultSetPacket packet = mysqlConnection.query(showSql);
             List<String> fields = packet.getFieldValues();
             if (CollectionUtils.isEmpty(fields)) {
-                throw new CanalParseException("command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+                throw new CanalParseException(
+                        "command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
             }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             if (isGTIDMode() && fields.size() > 4) {
@@ -688,10 +699,13 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      */
     private EntryPosition findStartPosition(MysqlConnection mysqlConnection) {
         try {
-            ResultSetPacket packet = mysqlConnection.query("show binlog events limit 1");
+            String showSql = multiStreamEnable ?
+                    "show binlog events with " + destination + " limit 1" : "show binlog events limit 1";
+            ResultSetPacket packet = mysqlConnection.query(showSql);
             List<String> fields = packet.getFieldValues();
             if (CollectionUtils.isEmpty(fields)) {
-                throw new CanalParseException("command : 'show binlog events limit 1' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+                throw new CanalParseException(
+                        "command : 'show binlog events limit 1' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
             }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             return endPosition;
@@ -959,5 +973,9 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
 
     public void setAutoResetLatestPosMode(boolean autoResetLatestPosMode) {
         this.autoResetLatestPosMode = autoResetLatestPosMode;
+    }
+
+    public void setMultiStreamEnable(boolean multiStreamEnable) {
+        this.multiStreamEnable = multiStreamEnable;
     }
 }

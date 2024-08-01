@@ -119,12 +119,14 @@ public class MysqlQueryExecutor {
                 fields.add(fp);
             }
 
-            moreResult = readEofPacket();
+            readEofPacket();
 
             List<RowDataPacket> rowData = new ArrayList<>();
             while (true) {
                 body = readNextPacket();
                 if (body[0] == -2) {
+                    EOFPacket packet = parseEOFPacket(body);
+                    moreResult = (packet.statusFlag & 0x0008) != 0;
                     break;
                 }
                 RowDataPacket rowDataPacket = new RowDataPacket();
@@ -146,13 +148,17 @@ public class MysqlQueryExecutor {
 
     private boolean readEofPacket() throws IOException {
         byte[] eofBody = readNextPacket();
+        EOFPacket packet = parseEOFPacket(eofBody);
+        return (packet.statusFlag & 0x0008) != 0;
+    }
+
+    private EOFPacket parseEOFPacket(byte[] eofBody) throws IOException {
         EOFPacket packet = new EOFPacket();
         packet.fromBytes(eofBody);
         if (eofBody[0] != -2) {
             throw new IOException("EOF Packet is expected, but packet with field_count=" + eofBody[0] + " is found.");
         }
-
-        return (packet.statusFlag & 0x0008) != 0;
+        return packet;
     }
 
     protected byte[] readNextPacket() throws IOException {

@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.5-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -20,8 +20,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>1.1.2</version>
+            <artifactId>hbase-shaded-client</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

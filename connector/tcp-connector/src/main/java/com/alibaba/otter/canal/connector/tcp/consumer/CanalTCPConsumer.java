@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.otter.canal.common.utils.AddressUtils;
+import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.client.impl.ClusterNodeAccessStrategy;
@@ -20,9 +23,11 @@ import com.alibaba.otter.canal.protocol.Message;
 
 /**
  * TCP 消费者连接器, 一个destination对应一个SPI实例
- * 
+ *
  * @author rewerma 2020-01-30
- * @version 1.0.0
+ * @author XuDaojie
+ * @version 1.1.5
+ * @since 1.1.5
  */
 @SPI("tcp")
 public class CanalTCPConsumer implements CanalMsgConsumer {
@@ -42,8 +47,8 @@ public class CanalTCPConsumer implements CanalMsgConsumer {
         if (batchSizePro != null) {
             batchSize = Integer.parseInt(batchSizePro);
         }
-        if (host != null) {
-            String[] ipPort = host.split(":");
+        if (StringUtils.isNotBlank(host)) {
+            String[] ipPort =  AddressUtils.splitIPAndPort(host);
             SocketAddress sa = new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1]));
             this.canalConnector = new SimpleCanalConnector(sa, username, password, destination);
         } else {
@@ -95,7 +100,9 @@ public class CanalTCPConsumer implements CanalMsgConsumer {
 
     @Override
     public void disconnect() {
-        canalConnector.unsubscribe();
+        // tcp模式下，因为是单tcp消费，避免adapter异常断开时直接unsubscribe
+        // unsubscribe发送给canal-server会导致清理cursor位点,如果此时canal-server出现重启,就会丢失binlog数据
+        // canalConnector.unsubscribe();
         canalConnector.disconnect();
     }
 }

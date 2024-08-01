@@ -1,49 +1,19 @@
 package com.taobao.tddl.dbsync.binlog;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.List;
 
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
+import org.apache.commons.compress.utils.Lists;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
-import com.taobao.tddl.dbsync.binlog.event.AppendBlockLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.BeginLoadQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.CreateFileLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteFileLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ExecuteLoadQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.GtidLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.HeartbeatLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IgnorableLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IncidentLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.IntvarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.LoadLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.LogHeader;
-import com.taobao.tddl.dbsync.binlog.event.PreviousGtidsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RandLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.StartLogEventV3;
-import com.taobao.tddl.dbsync.binlog.event.StopLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TransactionContextLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UnknownLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.UserVarLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.ViewChangeEvent;
-import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XaPrepareLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
-import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidListLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.mariadb.MariaGtidLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.mariadb.StartEncryptionLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.*;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.*;
 
 /**
  * Implements a binary-log decoder.
@@ -87,6 +57,8 @@ public final class LogDecoder {
         handleSet.set(flagIndex);
     }
 
+    private LogBuffer compressIterateBuffer;
+
     /**
      * Decoding an event from binary-log buffer.
      *
@@ -95,7 +67,6 @@ public final class LogDecoder {
      */
     public LogEvent decode(LogBuffer buffer, LogContext context) throws IOException {
         final int limit = buffer.limit();
-
         if (limit >= FormatDescriptionLogEvent.LOG_EVENT_HEADER_LEN) {
             LogHeader header = new LogHeader(buffer, context.getFormatDescription());
 
@@ -141,6 +112,57 @@ public final class LogDecoder {
     }
 
     /**
+     * * process compress binlog payload
+     * 
+     * @param event
+     * @param context
+     * @return
+     * @throws IOException
+     */
+    public List<LogEvent> processIterateDecode(LogEvent event, LogContext context) throws IOException {
+        List<LogEvent> events = Lists.newArrayList();
+        if (event.getHeader().getType() == LogEvent.TRANSACTION_PAYLOAD_EVENT) {
+            // iterate for compresss payload
+            TransactionPayloadLogEvent compressEvent = ((TransactionPayloadLogEvent) event);
+            LogBuffer iterateBuffer = null;
+            if (compressEvent.isCompressByZstd()) {
+                try (ZstdCompressorInputStream in = new ZstdCompressorInputStream(
+                    new ByteArrayInputStream(compressEvent.getPayload()))) {
+                    byte[] decodeBytes = IOUtils.toByteArray(in);
+                    iterateBuffer = new LogBuffer(decodeBytes, 0, decodeBytes.length);
+                }
+            } else if (compressEvent.isCompressByNone()) {
+                iterateBuffer = new LogBuffer(compressEvent.getPayload(), 0, compressEvent.getPayload().length);
+            } else {
+                throw new IllegalArgumentException("unknow compress type for " + event.getHeader().getLogFileName()
+                                                   + ":" + event.getHeader().getLogPos());
+            }
+
+            try {
+                context.setIterateDecode(true);
+                while (iterateBuffer.hasRemaining()) {// iterate
+                    LogEvent deEvent = decode(iterateBuffer, context);
+                    if (deEvent == null) {
+                        break;
+                    }
+
+                    // compress event logPos = 0
+                    deEvent.getHeader().setLogFileName(event.getHeader().getLogFileName());
+                    deEvent.getHeader().setLogPos(event.getHeader().getLogPos());
+                    // 需要重置payload每个event的eventLen , ack位点更新依赖logPos - eventLen,
+                    // 原因:每个payload都是uncompress的eventLen,无法对应物理binlog的eventLen
+                    // 隐患:memory计算空间大小时会出现放大的情况,影响getBatch的数量
+                    deEvent.getHeader().setEventLen(event.getHeader().getEventLen());
+                    events.add(deEvent);
+                }
+            } finally {
+                context.setIterateDecode(false);
+            }
+        }
+        return events;
+    }
+
+    /**
      * Deserialize an event from buffer.
      *
      * @return <code>UknownLogEvent</code> if event type is unknown or skipped.
@@ -158,14 +180,21 @@ public final class LogDecoder {
         }
 
         if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
-            // remove checksum bytes
-            buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
+            if (context.isIterateDecode()) {
+                // transaction compress payload在主事件已经处理了checksum,遍历解析event忽略checksum处理
+            } else {
+                // remove checksum bytes
+                buffer.limit(header.getEventLen() - LogEvent.BINLOG_CHECKSUM_LEN);
+            }
         }
         GTIDSet gtidSet = context.getGtidSet();
         LogEvent gtidLogEvent = context.getGtidLogEvent();
         switch (header.getType()) {
             case LogEvent.QUERY_EVENT: {
-                QueryLogEvent event = new QueryLogEvent(header, buffer, descriptionEvent);
+                QueryLogEvent event = new QueryLogEvent(header,
+                    buffer,
+                    descriptionEvent,
+                    context.isCompatiablePercona());
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 header.putGtid(context.getGtidSet(), gtidLogEvent);
@@ -228,8 +257,9 @@ public final class LogDecoder {
             }
             case LogEvent.SLAVE_EVENT: /* can never happen (unused event) */
             {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported SLAVE_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported SLAVE_EVENT from: " + context.getLogPosition());
+                }
                 break;
             }
             case LogEvent.CREATE_FILE_EVENT: {
@@ -295,22 +325,25 @@ public final class LogDecoder {
                 return descriptionEvent;
             }
             case LogEvent.PRE_GA_WRITE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_WRITE_ROWS_EVENT from: " + context.getLogPosition());
+                }
                 // ev = new Write_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_UPDATE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_UPDATE_ROWS_EVENT from: " + context.getLogPosition());
+                }
                 // ev = new Update_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
             }
             case LogEvent.PRE_GA_DELETE_ROWS_EVENT: {
-                if (logger.isWarnEnabled()) logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: "
-                                                        + context.getLogPosition());
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Skipping unsupported PRE_GA_DELETE_ROWS_EVENT from: " + context.getLogPosition());
+                }
                 // ev = new Delete_rows_log_event_old(buf, event_len,
                 // description_event);
                 break;
@@ -322,7 +355,10 @@ public final class LogDecoder {
                 return event;
             }
             case LogEvent.EXECUTE_LOAD_QUERY_EVENT: {
-                ExecuteLoadQueryLogEvent event = new ExecuteLoadQueryLogEvent(header, buffer, descriptionEvent);
+                ExecuteLoadQueryLogEvent event = new ExecuteLoadQueryLogEvent(header,
+                    buffer,
+                    descriptionEvent,
+                    context.isCompatiablePercona());
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
                 return event;
@@ -386,6 +422,12 @@ public final class LogDecoder {
                 logPosition.position = header.getLogPos();
                 return event;
             }
+            case LogEvent.TRANSACTION_PAYLOAD_EVENT: {
+                TransactionPayloadLogEvent event = new TransactionPayloadLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
             case LogEvent.VIEW_CHANGE_EVENT: {
                 ViewChangeEvent event = new ViewChangeEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
@@ -409,6 +451,7 @@ public final class LogDecoder {
                 BinlogCheckPointLogEvent event = new BinlogCheckPointLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                logPosition.fileName = event.getFilename();
                 return event;
             }
             case LogEvent.GTID_EVENT: {
@@ -441,6 +484,45 @@ public final class LogDecoder {
                 StartEncryptionLogEvent event = new StartEncryptionLogEvent(header, buffer, descriptionEvent);
                 /* updating position in context */
                 logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.HEARTBEAT_LOG_EVENT_V2: {
+                HeartbeatV2LogEvent event = new HeartbeatV2LogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.QUERY_COMPRESSED_EVENT: {
+                QueryCompressedLogEvent event = new QueryCompressedLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                return event;
+            }
+            case LogEvent.WRITE_ROWS_COMPRESSED_EVENT_V1:
+            case LogEvent.WRITE_ROWS_COMPRESSED_EVENT: {
+                WriteRowsCompressLogEvent event = new WriteRowsCompressLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
+                return event;
+            }
+            case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT_V1:
+            case LogEvent.UPDATE_ROWS_COMPRESSED_EVENT: {
+                UpdateRowsCompressLogEvent event = new UpdateRowsCompressLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
+                return event;
+            }
+            case LogEvent.DELETE_ROWS_COMPRESSED_EVENT_V1:
+            case LogEvent.DELETE_ROWS_COMPRESSED_EVENT: {
+                DeleteRowsCompressLogEvent event = new DeleteRowsCompressLogEvent(header, buffer, descriptionEvent);
+                /* updating position in context */
+                logPosition.position = header.getLogPos();
+                event.fillTable(context);
+                header.putGtid(context.getGtidSet(), gtidLogEvent);
                 return event;
             }
             default:

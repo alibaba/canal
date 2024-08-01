@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.5-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -23,18 +21,15 @@
         <dependency>
             <groupId>org.apache.kudu</groupId>
             <artifactId>kudu-client</artifactId>
-            <version>1.6.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.48</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -73,7 +68,7 @@
                             <tasks>
                                 <copy todir="${project.basedir}/../launcher/target/classes/kudu" overwrite="true">
                                     <fileset dir="${project.basedir}/target/classes/kudu" erroronmissingdir="true">
-                                        <include name="*.yml"/>
+                                        <include name="*.yml" />
                                     </fileset>
                                 </copy>
                             </tasks>

@@ -1,12 +1,17 @@
 package com.taobao.tddl.dbsync.binlog;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.BitSet;
+
+import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
+import org.apache.commons.io.IOUtils;
 
 /**
  * TODO: Document Me!!
@@ -16,6 +21,8 @@ import java.util.BitSet;
  */
 public class LogBuffer {
 
+    static final BigDecimal DECIMAL_ZERO_1_SCALE = BigDecimal.valueOf(0, 1);
+    static final BigDecimal DECIMAL_ONE_1_SCALE = BigDecimal.valueOf(10, 1);
     protected byte[] buffer;
 
     protected int    origin, limit;
@@ -26,7 +33,9 @@ public class LogBuffer {
     }
 
     public LogBuffer(byte[] buffer, final int origin, final int limit){
-        if (origin + limit > buffer.length) throw new IllegalArgumentException("capacity excceed: " + (origin + limit));
+        if (origin + limit > buffer.length) {
+            throw new IllegalArgumentException("capacity excceed: " + (origin + limit));
+        }
 
         this.buffer = buffer;
         this.origin = origin;
@@ -38,7 +47,9 @@ public class LogBuffer {
      * Return n bytes in this buffer.
      */
     public final LogBuffer duplicate(final int pos, final int len) {
-        if (pos + len > limit) throw new IllegalArgumentException("limit excceed: " + (pos + len));
+        if (pos + len > limit) {
+            throw new IllegalArgumentException("limit excceed: " + (pos + len));
+        }
 
         // XXX: Do momery copy avoid buffer modified.
         final int off = origin + pos;
@@ -50,8 +61,9 @@ public class LogBuffer {
      * Return next n bytes in this buffer.
      */
     public final LogBuffer duplicate(final int len) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
 
         // XXX: Do momery copy avoid buffer modified.
         final int end = position + len;
@@ -99,7 +111,9 @@ public class LogBuffer {
      * <tt>newPosition</tt> do not hold
      */
     public final LogBuffer position(final int newPosition) {
-        if (newPosition > limit || newPosition < 0) throw new IllegalArgumentException("limit excceed: " + newPosition);
+        if (newPosition > limit || newPosition < 0) {
+            throw new IllegalArgumentException("limit excceed: " + newPosition);
+        }
 
         this.position = origin + newPosition;
         return this;
@@ -112,8 +126,9 @@ public class LogBuffer {
      * @return This buffer
      */
     public final LogBuffer forward(final int len) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
 
         this.position += len;
         return this;
@@ -205,7 +220,9 @@ public class LogBuffer {
      * Return 8-bit signed int from buffer.
      */
     public final int getInt8(final int pos) {
-        if (pos >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: " + pos);
+        if (pos >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + pos);
+        }
 
         return buffer[origin + pos];
     }
@@ -214,7 +231,9 @@ public class LogBuffer {
      * Return next 8-bit signed int from buffer.
      */
     public final int getInt8() {
-        if (position >= origin + limit) throw new IllegalArgumentException("limit excceed: " + (position - origin));
+        if (position >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin));
+        }
 
         return buffer[position++];
     }
@@ -223,7 +242,9 @@ public class LogBuffer {
      * Return 8-bit unsigned int from buffer.
      */
     public final int getUint8(final int pos) {
-        if (pos >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: " + pos);
+        if (pos >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + pos);
+        }
 
         return 0xff & buffer[origin + pos];
     }
@@ -232,7 +253,9 @@ public class LogBuffer {
      * Return next 8-bit unsigned int from buffer.
      */
     public final int getUint8() {
-        if (position >= origin + limit) throw new IllegalArgumentException("limit excceed: " + (position - origin));
+        if (position >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin));
+        }
 
         return 0xff & buffer[position++];
     }
@@ -245,8 +268,9 @@ public class LogBuffer {
     public final int getInt16(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 1 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 1)));
+        if (pos + 1 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 1)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position]) | ((buf[position + 1]) << 8);
@@ -258,8 +282,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - sint2korr
      */
     public final int getInt16() {
-        if (position + 1 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 1));
+        if (position + 1 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 1));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position++]) | ((buf[position++]) << 8);
@@ -273,8 +298,9 @@ public class LogBuffer {
     public final int getUint16(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 1 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 1)));
+        if (pos + 1 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 1)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position]) | ((0xff & buf[position + 1]) << 8);
@@ -286,8 +312,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - uint2korr
      */
     public final int getUint16() {
-        if (position + 1 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 1));
+        if (position + 1 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 1));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position++]) | ((0xff & buf[position++]) << 8);
@@ -300,9 +327,9 @@ public class LogBuffer {
      */
     public final int getBeInt16(final int pos) {
         final int position = origin + pos;
-
-        if (pos + 1 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 1)));
+        if (pos + 1 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 1)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position + 1]) | ((buf[position]) << 8);
@@ -314,8 +341,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - mi_sint2korr
      */
     public final int getBeInt16() {
-        if (position + 1 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 1));
+        if (position + 1 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 1));
+        }
 
         byte[] buf = buffer;
         return (buf[position++] << 8) | (0xff & buf[position++]);
@@ -328,9 +356,9 @@ public class LogBuffer {
      */
     public final int getBeUint16(final int pos) {
         final int position = origin + pos;
-
-        if (pos + 1 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 1)));
+        if (pos + 1 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 1)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position + 1]) | ((0xff & buf[position]) << 8);
@@ -342,8 +370,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_usint2korr
      */
     public final int getBeUint16() {
-        if (position + 1 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 1));
+        if (position + 1 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 1));
+        }
 
         byte[] buf = buffer;
         return ((0xff & buf[position++]) << 8) | (0xff & buf[position++]);
@@ -357,8 +386,9 @@ public class LogBuffer {
     public final int getInt24(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 2 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 2)));
+        if (pos + 2 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 2)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position]) | ((0xff & buf[position + 1]) << 8) | ((buf[position + 2]) << 16);
@@ -370,8 +400,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - sint3korr
      */
     public final int getInt24() {
-        if (position + 2 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 2));
+        if (position + 2 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 2));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position++]) | ((0xff & buf[position++]) << 8) | ((buf[position++]) << 16);
@@ -385,8 +416,9 @@ public class LogBuffer {
     public final int getBeInt24(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 2 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 2)));
+        if (pos + 2 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 2)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position + 2]) | ((0xff & buf[position + 1]) << 8) | ((buf[position]) << 16);
@@ -398,8 +430,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_usint3korr
      */
     public final int getBeInt24() {
-        if (position + 2 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 2));
+        if (position + 2 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 2));
+        }
 
         byte[] buf = buffer;
         return ((buf[position++]) << 16) | ((0xff & buf[position++]) << 8) | (0xff & buf[position++]);
@@ -413,8 +446,9 @@ public class LogBuffer {
     public final int getUint24(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 2 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 2)));
+        if (pos + 2 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 2)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position]) | ((0xff & buf[position + 1]) << 8) | ((0xff & buf[position + 2]) << 16);
@@ -426,8 +460,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - uint3korr
      */
     public final int getUint24() {
-        if (position + 2 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 2));
+        if (position + 2 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 2));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position++]) | ((0xff & buf[position++]) << 8) | ((0xff & buf[position++]) << 16);
@@ -441,8 +476,9 @@ public class LogBuffer {
     public final int getBeUint24(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 2 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 2)));
+        if (pos + 2 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 2)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position + 2]) | ((0xff & buf[position + 1]) << 8) | ((0xff & buf[position]) << 16);
@@ -454,8 +490,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_usint3korr
      */
     public final int getBeUint24() {
-        if (position + 2 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 2));
+        if (position + 2 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 2));
+        }
 
         byte[] buf = buffer;
         return ((0xff & buf[position++]) << 16) | ((0xff & buf[position++]) << 8) | (0xff & buf[position++]);
@@ -469,8 +506,9 @@ public class LogBuffer {
     public final int getInt32(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 3 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 3)));
+        if (pos + 3 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 3)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position]) | ((0xff & buf[position + 1]) << 8) | ((0xff & buf[position + 2]) << 16)
@@ -485,8 +523,9 @@ public class LogBuffer {
     public final int getBeInt32(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 3 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 3)));
+        if (pos + 3 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 3)));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position + 3]) | ((0xff & buf[position + 2]) << 8) | ((0xff & buf[position + 1]) << 16)
@@ -499,8 +538,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - sint4korr
      */
     public final int getInt32() {
-        if (position + 3 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 3));
+        if (position + 3 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 3));
+        }
 
         byte[] buf = buffer;
         return (0xff & buf[position++]) | ((0xff & buf[position++]) << 8) | ((0xff & buf[position++]) << 16)
@@ -513,8 +553,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_sint4korr
      */
     public final int getBeInt32() {
-        if (position + 3 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 3));
+        if (position + 3 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 3));
+        }
 
         byte[] buf = buffer;
         return ((buf[position++]) << 24) | ((0xff & buf[position++]) << 16) | ((0xff & buf[position++]) << 8)
@@ -529,8 +570,9 @@ public class LogBuffer {
     public final long getUint32(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 3 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 3)));
+        if (pos + 3 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 3)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position])) | ((long) (0xff & buf[position + 1]) << 8)
@@ -545,8 +587,9 @@ public class LogBuffer {
     public final long getBeUint32(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 3 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 3)));
+        if (pos + 3 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 3)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position + 3])) | ((long) (0xff & buf[position + 2]) << 8)
@@ -559,8 +602,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - uint4korr
      */
     public final long getUint32() {
-        if (position + 3 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 3));
+        if (position + 3 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 3));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++])) | ((long) (0xff & buf[position++]) << 8)
@@ -573,8 +617,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_uint4korr
      */
     public final long getBeUint32() {
-        if (position + 3 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 3));
+        if (position + 3 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 3));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++]) << 24) | ((long) (0xff & buf[position++]) << 16)
@@ -587,8 +632,9 @@ public class LogBuffer {
     public final long getUlong40(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 4 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 4)));
+        if (pos + 4 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 4)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position])) | ((long) (0xff & buf[position + 1]) << 8)
@@ -600,8 +646,9 @@ public class LogBuffer {
      * Return next 40-bit unsigned int from buffer. (little-endian)
      */
     public final long getUlong40() {
-        if (position + 4 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 4));
+        if (position + 4 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 4));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++])) | ((long) (0xff & buf[position++]) << 8)
@@ -617,8 +664,9 @@ public class LogBuffer {
     public final long getBeUlong40(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 4 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 4)));
+        if (pos + 4 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 4)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position + 4])) | ((long) (0xff & buf[position + 3]) << 8)
@@ -632,8 +680,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_uint5korr
      */
     public final long getBeUlong40() {
-        if (position + 4 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 4));
+        if (position + 4 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 4));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++]) << 32) | ((long) (0xff & buf[position++]) << 24)
@@ -649,8 +698,9 @@ public class LogBuffer {
     public final long getLong48(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 5 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 5)));
+        if (pos + 5 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 5)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position])) | ((long) (0xff & buf[position + 1]) << 8)
@@ -666,8 +716,9 @@ public class LogBuffer {
     public final long getBeLong48(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 5 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 5)));
+        if (pos + 5 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 5)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position + 5])) | ((long) (0xff & buf[position + 4]) << 8)
@@ -681,8 +732,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - sint6korr
      */
     public final long getLong48() {
-        if (position + 5 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 5));
+        if (position + 5 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 5));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++])) | ((long) (0xff & buf[position++]) << 8)
@@ -696,8 +748,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_sint6korr
      */
     public final long getBeLong48() {
-        if (position + 5 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 5));
+        if (position + 5 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 5));
+        }
 
         byte[] buf = buffer;
         return ((long) (buf[position++]) << 40) | ((long) (0xff & buf[position++]) << 32)
@@ -713,8 +766,9 @@ public class LogBuffer {
     public final long getUlong48(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 5 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 5)));
+        if (pos + 5 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 5)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position])) | ((long) (0xff & buf[position + 1]) << 8)
@@ -730,8 +784,9 @@ public class LogBuffer {
     public final long getBeUlong48(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 5 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 5)));
+        if (pos + 5 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 5)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position + 5])) | ((long) (0xff & buf[position + 4]) << 8)
@@ -745,8 +800,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - uint6korr
      */
     public final long getUlong48() {
-        if (position + 5 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 5));
+        if (position + 5 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 5));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++])) | ((long) (0xff & buf[position++]) << 8)
@@ -760,8 +816,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_uint6korr
      */
     public final long getBeUlong48() {
-        if (position + 5 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 5));
+        if (position + 5 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 5));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++]) << 40) | ((long) (0xff & buf[position++]) << 32)
@@ -775,8 +832,9 @@ public class LogBuffer {
     public final long getUlong56(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 6 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 6)));
+        if (pos + 6 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 6)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position])) | ((long) (0xff & buf[position + 1]) << 8)
@@ -789,8 +847,9 @@ public class LogBuffer {
      * Return next 56-bit unsigned int from buffer. (little-endian)
      */
     public final long getUlong56() {
-        if (position + 6 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 6));
+        if (position + 6 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 6));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++])) | ((long) (0xff & buf[position++]) << 8)
@@ -805,8 +864,9 @@ public class LogBuffer {
     public final long getBeUlong56(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 6 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 6)));
+        if (pos + 6 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 6)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position + 6])) | ((long) (0xff & buf[position + 5]) << 8)
@@ -819,8 +879,9 @@ public class LogBuffer {
      * Return next 56-bit unsigned int from buffer. (big-endian)
      */
     public final long getBeUlong56() {
-        if (position + 6 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 6));
+        if (position + 6 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 6));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++]) << 48) | ((long) (0xff & buf[position++]) << 40)
@@ -837,8 +898,9 @@ public class LogBuffer {
     public final long getLong64(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 7 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 7)));
+        if (pos + 7 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 7)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position])) | ((long) (0xff & buf[position + 1]) << 8)
@@ -855,8 +917,9 @@ public class LogBuffer {
     public final long getBeLong64(final int pos) {
         final int position = origin + pos;
 
-        if (pos + 7 >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                            + (pos < 0 ? pos : (pos + 7)));
+        if (pos + 7 >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + 7)));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position + 7])) | ((long) (0xff & buf[position + 6]) << 8)
@@ -871,8 +934,9 @@ public class LogBuffer {
      * @see mysql-5.1.60/include/my_global.h - sint8korr
      */
     public final long getLong64() {
-        if (position + 7 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 7));
+        if (position + 7 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 7));
+        }
 
         byte[] buf = buffer;
         return ((long) (0xff & buf[position++])) | ((long) (0xff & buf[position++]) << 8)
@@ -887,8 +951,9 @@ public class LogBuffer {
      * @see mysql-5.6.10/include/myisampack.h - mi_sint8korr
      */
     public final long getBeLong64() {
-        if (position + 7 >= origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                               + (position - origin + 7));
+        if (position + 7 >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position - origin + 7));
+        }
 
         byte[] buf = buffer;
         return ((long) (buf[position++]) << 56) | ((long) (0xff & buf[position++]) << 48)
@@ -1038,29 +1103,27 @@ public class LogBuffer {
         }
     }
 
-    /* default ANSI charset */
-    public static final String ISO_8859_1 = "ISO-8859-1";
-
     /**
      * Return fix length string from buffer.
      */
     public final String getFixString(final int pos, final int len) {
-        return getFixString(pos, len, ISO_8859_1);
+        return getFixString(pos, len, StandardCharsets.ISO_8859_1);
     }
 
     /**
      * Return next fix length string from buffer.
      */
     public final String getFixString(final int len) {
-        return getFixString(len, ISO_8859_1);
+        return getFixString(len, StandardCharsets.ISO_8859_1);
     }
 
     /**
      * Return fix length string from buffer.
      */
-    public final String getFixString(final int pos, final int len, String charsetName) {
-        if (pos + len > limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                             + (pos < 0 ? pos : (pos + len)));
+    public final String getFixString(final int pos, final int len, Charset charset) {
+        if (pos + len > limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + len)));
+        }
 
         final int from = origin + pos;
         final int end = from + len;
@@ -1069,19 +1132,16 @@ public class LogBuffer {
         for (; (found < end) && buf[found] != '\0'; found++)
             /* empty loop */;
 
-        try {
-            return new String(buf, from, found - from, charsetName);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
-        }
+        return new String(buf, from, found - from, charset);
     }
 
     /**
      * Return next fix length string from buffer.
      */
-    public final String getFixString(final int len, String charsetName) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
+    public final String getFixString(final int len, Charset charset) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
 
         final int from = position;
         final int end = from + len;
@@ -1090,97 +1150,141 @@ public class LogBuffer {
         for (; (found < end) && buf[found] != '\0'; found++)
             /* empty loop */;
 
-        try {
-            String string = new String(buf, from, found - from, charsetName);
-            position += len;
-            return string;
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        String string = new String(buf, from, found - from, charset);
+        position += len;
+        return string;
+    }
+
+    public final String getFixName(final int len, Charset charset) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
         }
+
+        final int from = position;
+        final int end = from + len;
+        byte[] buf = buffer;
+        int found = from;
+        for (; (found < end) && buf[found] != '\0'; found++)
+            /* empty loop */;
+
+        int length = found - from;
+        String string = null;
+        if (length <= 16) {
+            string = NameCache.name(buf, from, length, charset);
+        }
+        if (string == null) {
+            string = new String(buf, from, length, charset);
+        }
+        position += len;
+        return string;
+    }
+
+    public final String getFixName(final int len) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
+
+        final int from = position;
+        final int end = from + len;
+        byte[] buf = buffer;
+        int found = from;
+        for (; (found < end) && buf[found] != '\0'; found++)
+            /* empty loop */;
+
+        int length = found - from;
+        String string = null;
+        if (length <= 16) {
+            string = NameCache.name(buf, from, length, StandardCharsets.ISO_8859_1);
+        }
+        if (string == null) {
+            string = new String(buf, from, length, StandardCharsets.ISO_8859_1);
+        }
+        position += len;
+        return string;
     }
 
     /**
-     * Return fix-length string from buffer without null-terminate checking. Fix
-     * bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
+     * Return fix-length string from buffer without null-terminate checking.
+     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
      */
-    public final String getFullString(final int pos, final int len, String charsetName) {
-        if (pos + len > limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                             + (pos < 0 ? pos : (pos + len)));
-
-        try {
-            return new String(buffer, origin + pos, len, charsetName);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+    public final String getFullString(final int pos, final int len, Charset charset) {
+        if (pos + len > limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos < 0 ? pos : (pos + len)));
         }
+
+        return new String(buffer, origin + pos, len, charset);
     }
 
     /**
      * Return next fix-length string from buffer without null-terminate
-     * checking. Fix bug #17 {@link https
-     * ://github.com/AlibabaTech/canal/issues/17 }
+     * checking.
+     * Fix bug #17 {@link https://github.com/AlibabaTech/canal/issues/17 }
      */
-    public final String getFullString(final int len, String charsetName) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
-
-        try {
-            String string = new String(buffer, position, len, charsetName);
-            position += len;
-            return string;
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+    public final String getFullString(final int len, Charset charset) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
         }
+
+        String string = new String(buffer, position, len, charset);
+        position += len;
+        return string;
     }
+
 
     /**
      * Return dynamic length string from buffer.
      */
     public final String getString(final int pos) {
-        return getString(pos, ISO_8859_1);
+        if (pos >= limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + pos);
+        }
+
+        byte[] buf = buffer;
+        final int len = (0xff & buf[origin + pos]);
+        if (pos + len + 1 > limit) {
+            throw new IllegalArgumentException("limit excceed: " + (pos + len + 1));
+        }
+
+        return new String(buf, origin + pos + 1, len, StandardCharsets.ISO_8859_1);
     }
 
     /**
      * Return next dynamic length string from buffer.
      */
     public final String getString() {
-        return getString(ISO_8859_1);
-    }
-
-    /**
-     * Return dynamic length string from buffer.
-     */
-    public final String getString(final int pos, String charsetName) {
-        if (pos >= limit || pos < 0) throw new IllegalArgumentException("limit excceed: " + pos);
-
-        byte[] buf = buffer;
-        final int len = (0xff & buf[origin + pos]);
-        if (pos + len + 1 > limit) throw new IllegalArgumentException("limit excceed: " + (pos + len + 1));
-
-        try {
-            return new String(buf, origin + pos + 1, len, charsetName);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        if (position >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + position);
         }
-    }
-
-    /**
-     * Return next dynamic length string from buffer.
-     */
-    public final String getString(String charsetName) {
-        if (position >= origin + limit) throw new IllegalArgumentException("limit excceed: " + position);
 
         byte[] buf = buffer;
         final int len = (0xff & buf[position]);
-        if (position + len + 1 > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                    + (position + len + 1 - origin));
-
-        try {
-            String string = new String(buf, position + 1, len, charsetName);
-            position += len + 1;
-            return string;
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding: " + charsetName, e);
+        if (position + len + 1 > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: "
+                                               + (position + len + 1 - origin));
         }
+
+        String string = new String(buf, position + 1, len, StandardCharsets.ISO_8859_1);
+        position += len + 1;
+        return string;
+    }
+
+    public final String getName() {
+        if (position >= origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + position);
+        }
+
+        byte[] buf = buffer;
+        final int len = (0xff & buf[position]);
+        if (position + len + 1 > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len + 1 - origin));
+        }
+
+        String string = NameCache.name(buf, position + 1, len, StandardCharsets.ISO_8859_1);
+        if (string == null) {
+            string = new String(buf, position + 1, len, StandardCharsets.ISO_8859_1);
+        }
+        position += len + 1;
+        return string;
     }
 
     /**
@@ -1445,8 +1549,9 @@ public class LogBuffer {
         }
 
         d_copy[begin] ^= 0x80; /* restore sign */
-        String decimal = String.valueOf(buf, 0, pos);
-        return new BigDecimal(decimal);
+        // String decimal = String.valueOf(buf, 0, pos);
+        // return new BigDecimal(decimal);
+        return new BigDecimal(buf, 0, pos);
     }
 
     /**
@@ -1455,8 +1560,9 @@ public class LogBuffer {
      * @param len The length of MY_BITMAP in bits.
      */
     public final void fillBitmap(BitSet bitmap, final int pos, final int len) {
-        if (pos + ((len + 7) / 8) > limit || pos < 0) throw new IllegalArgumentException("limit excceed: "
-                                                                                         + (pos + (len + 7) / 8));
+        if (pos + ((len + 7) / 8) > limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos + (len + 7) / 8));
+        }
 
         fillBitmap0(bitmap, origin + pos, len);
     }
@@ -1467,9 +1573,9 @@ public class LogBuffer {
      * @param len The length of MY_BITMAP in bits.
      */
     public final void fillBitmap(BitSet bitmap, final int len) {
-        if (position + ((len + 7) / 8) > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                            + (position
-                                                                                               + ((len + 7) / 8) - origin));
+        if (position + ((len + 7) / 8) > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + ((len + 7) / 8) - origin));
+        }
 
         position = fillBitmap0(bitmap, position, len);
     }
@@ -1545,7 +1651,9 @@ public class LogBuffer {
      * Fill n bytes in this buffer.
      */
     public final void fillBytes(final int pos, byte[] dest, final int destPos, final int len) {
-        if (pos + len > limit || pos < 0) throw new IllegalArgumentException("limit excceed: " + (pos + len));
+        if (pos + len > limit || pos < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (pos + len));
+        }
 
         System.arraycopy(buffer, origin + pos, dest, destPos, len);
     }
@@ -1554,8 +1662,9 @@ public class LogBuffer {
      * Fill next n bytes in this buffer.
      */
     public final void fillBytes(byte[] dest, final int destPos, final int len) {
-        if (position + len > origin + limit) throw new IllegalArgumentException("limit excceed: "
-                                                                                + (position + len - origin));
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
 
         System.arraycopy(buffer, position, dest, destPos, len);
         position += len;
@@ -1584,6 +1693,76 @@ public class LogBuffer {
      */
     public final byte[] getData() {
         return getData(0, limit);
+    }
+
+    /**
+     * mariadb compress log event Get the length of uncompress content.
+     * 
+     * @return 0 means error.
+     */
+    public final long getUncompressLong(int lenPad) {
+        long len = 0;
+        switch (lenPad) {
+            case 1:
+                len = getInt8();
+                break;
+            case 2:
+                len = getBeUint16();
+                break;
+            case 3:
+                len = getBeUint24();
+                break;
+            case 4:
+                len = getBeUint32();
+                break;
+            default:
+                len = 0;
+                break;
+        }
+
+        return len;
+    }
+
+    /**
+     * uncompress mariadb log event
+     * 
+     * @return
+     */
+    public LogBuffer uncompressBuf() {
+        int lenPad = getInt8();
+        long len = getUncompressLong(lenPad & 0x07);
+        int alg = (lenPad & 0x70) >> 4;
+        LogBuffer buffer = null;
+        try {
+            switch (alg) {
+                case 0:
+                    buffer = uncompressZlib(limit - position);
+                    break;
+                default:
+                    // bad algorithm
+                    return this;
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("uncompress failed ", e);
+        }
+
+        if (buffer.limit() != len) {
+            throw new IllegalArgumentException(
+                "uncompress lenght not match, expected : " + len + " , but actual : " + buffer.limit());
+        }
+        return buffer;
+    }
+
+    private LogBuffer uncompressZlib(int len) throws Exception {
+        if (position + len > limit || position < 0) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len));
+        }
+
+        try (DeflateCompressorInputStream in = new DeflateCompressorInputStream(
+            new ByteArrayInputStream(buffer, position, position + len))) {
+            byte[] decodeBytes = IOUtils.toByteArray(in);
+            return new LogBuffer(decodeBytes, 0, decodeBytes.length);
+        }
     }
 
     /**
@@ -1631,4 +1810,5 @@ public class LogBuffer {
         }
         return "";
     }
+
 }

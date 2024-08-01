@@ -1,11 +1,11 @@
 package com.taobao.tddl.dbsync.binlog.event;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The Common-Header, documented in the table @ref Table_common_header "below",
@@ -66,7 +66,7 @@ import java.util.Map;
  */
 public final class LogHeader {
 
-    protected final int type;
+    protected int                 type;
 
     /**
      * The offset in the log where this event originally appeared (it is
@@ -293,6 +293,12 @@ public final class LogHeader {
     public void setLogFileName(String logFileName) {
         this.logFileName = logFileName;
     }
+    public void setLogPos(long logPos) {
+        this.logPos = logPos;
+    }
+    public void setEventLen(int eventLen) {
+        this.eventLen = eventLen;
+    }
 
     private void processCheckSum(LogBuffer buffer) {
         if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
@@ -320,7 +326,7 @@ public final class LogHeader {
         if (gtidSet != null) {
             gtidMap.put(GTID_SET_STRING, gtidSet.toString());
             if (gtidEvent != null && gtidEvent instanceof GtidLogEvent) {
-                GtidLogEvent event = (GtidLogEvent)gtidEvent;
+                GtidLogEvent event = (GtidLogEvent) gtidEvent;
                 gtidMap.put(CURRENT_GTID_STRING, event.getGtidStr());
                 gtidMap.put(CURRENT_GTID_SN, String.valueOf(event.getSequenceNumber()));
                 gtidMap.put(CURRENT_GTID_LAST_COMMIT, String.valueOf(event.getLastCommitted()));

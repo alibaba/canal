@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -13,9 +14,8 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.alibaba.druid.sql.repository.Schema;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
-import com.google.common.collect.Lists;
 
 /**
  * @author agapple 2017年8月1日 下午7:15:54
@@ -78,8 +78,8 @@ public class MemoryTableMeta_DDL_Test {
         File create = new File(dummyFile.getParent() + "/ddl", "ddl_any.sql");
         String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
         memoryTableMeta.apply(null, "test", sql, null);
-        
-        List<String> tableNames = Lists.newArrayList();
+
+        List<String> tableNames = new ArrayList<>();
         for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
             tableNames.addAll(schema.showTables());
         }
@@ -87,6 +87,48 @@ public class MemoryTableMeta_DDL_Test {
         for (String table : tableNames) {
             TableMeta sourceMeta = memoryTableMeta.find("test", table);
             System.out.println(sourceMeta.toString());
+        }
+    }
+
+    @Test
+    public void test_create_if_not_exist() throws Throwable {
+        MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
+        File dummyFile = new File(url.getFile());
+        File create = new File(dummyFile.getParent() + "/ddl", "ddl_create_if_not_exist.sql");
+        String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
+        memoryTableMeta.apply(null, "test", sql, null);
+
+        List<String> tableNames = new ArrayList<>();
+        for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
+            tableNames.addAll(schema.showTables());
+        }
+
+        for (String table : tableNames) {
+            TableMeta sourceMeta = memoryTableMeta.find("test", table);
+            System.out.println(sourceMeta.toString());
+        }
+    }
+
+    @Test
+    public void test_function_index () throws Throwable {
+        MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
+        File dummyFile = new File(url.getFile());
+        File create = new File(dummyFile.getParent() + "/ddl", "ddl_create_function_index.sql");
+        String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
+        memoryTableMeta.apply(null, "test", sql, null);
+
+        List<String> tableNames = new ArrayList<>();
+        for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
+            tableNames.addAll(schema.showTables());
+        }
+
+        for (String table : tableNames) {
+            TableMeta sourceMeta = memoryTableMeta.find("test", table);
+            TableMeta.FieldMeta field = sourceMeta.getFieldMetaByName("code");
+            System.out.println(sourceMeta.toString());
+            Assert.assertTrue(field.isUnique());
         }
     }
 }

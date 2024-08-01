@@ -37,7 +37,7 @@ public class CanalAdminController implements CanalAdmin {
     private static final Logger logger = LoggerFactory.getLogger(CanalAdminController.class);
     private String              user;
     private String              passwd;
-    private CanalStarter         canalStater;
+    private CanalStarter        canalStater;
 
     public CanalAdminController(CanalStarter canalStater){
         this.canalStater = canalStater;

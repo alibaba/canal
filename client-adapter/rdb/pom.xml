@@ -3,7 +3,7 @@
     <parent>
         <artifactId>canal.client-adapter</artifactId>
         <groupId>com.alibaba.otter</groupId>
-        <version>1.1.5-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -30,7 +30,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.oracle</groupId>
+            <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc6</artifactId>
             <scope>test</scope>
         </dependency>
@@ -42,7 +42,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

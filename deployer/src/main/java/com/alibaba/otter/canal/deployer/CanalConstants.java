@@ -25,10 +25,12 @@ public class CanalConstants {
     public static final String CANAL_ADMIN_PASSWD                   = ROOT + "." + "admin.passwd";
     public static final String CANAL_ADMIN_AUTO_REGISTER            = ROOT + "." + "admin.register.auto";
     public static final String CANAL_ADMIN_AUTO_CLUSTER             = ROOT + "." + "admin.register.cluster";
+    public static final String CANAL_ADMIN_REGISTER_NAME            = ROOT + "." + "admin.register.name";
     public static final String CANAL_ZKSERVERS                      = ROOT + "." + "zkServers";
     public static final String CANAL_WITHOUT_NETTY                  = ROOT + "." + "withoutNetty";
 
     public static final String CANAL_DESTINATIONS                   = ROOT + "." + "destinations";
+    public static final String CANAL_DESTINATIONS_EXPR              = ROOT + "." + "destinations.expr";
     public static final String CANAL_AUTO_SCAN                      = ROOT + "." + "auto.scan";
     public static final String CANAL_AUTO_SCAN_INTERVAL             = ROOT + "." + "auto.scan.interval";
     public static final String CANAL_CONF_DIR                       = ROOT + "." + "conf.dir";

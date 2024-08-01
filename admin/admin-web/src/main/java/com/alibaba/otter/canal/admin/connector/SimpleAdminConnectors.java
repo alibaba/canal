@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.admin.connector;
 
 import java.util.function.Function;
 
+import org.assertj.core.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -26,12 +27,23 @@ public class SimpleAdminConnectors {
             connector.connect();
             return function.apply(connector);
         } catch (Exception e) {
-            logger.error("connect to ip:{},port:{},user:{},password:{}, failed", ip, port, user, passwd);
+            logger.error("connect to ip:{},port:{},user:{},password:{}, failed",
+                    ip, port, user, getDesensitizationPassword(passwd));
             logger.error(e.getMessage());
         } finally {
             connector.disconnect();
         }
 
         return null;
+    }
+
+    private static String getDesensitizationPassword(String password) {
+        String defaultPassword = "*****";
+
+        if (Strings.isNullOrEmpty(password) || password.length() < 5) {
+            return defaultPassword;
+        } else {
+            return String.format("%s*****", password.substring(0, 3));
+        }
     }
 }

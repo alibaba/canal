@@ -2,11 +2,7 @@ package com.alibaba.otter.canal.client.adapter.kudu.service;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.sql.DataSource;
@@ -45,13 +41,13 @@ public class KuduEtlService extends AbstractEtlService {
         boolean flag = kuduTemplate.tableExists(kuduMapping.getTargetTable());
         // 表不存在，停止导入
         if (!flag) {
-            logger.info("{} is don't hava,please check your kudu table !", kuduMapping.getTargetTable());
+            logger.info("{} is don't exist , please check your kudu table !", kuduMapping.getTargetTable());
             errMsg.add(kuduMapping.getTargetTable() + " is don't hava,please check your kudu table !");
             etlResult.setErrorMessage(Joiner.on("\n").join(errMsg));
             return etlResult;
         }
         logger.info("{} etl is starting!", kuduMapping.getTargetTable());
-        String sql = "SELECT * FROM " + kuduMapping.getDatabase() + "." + kuduMapping.getTable();
+        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(kuduMapping);
         return importData(sql, params);
     }
 

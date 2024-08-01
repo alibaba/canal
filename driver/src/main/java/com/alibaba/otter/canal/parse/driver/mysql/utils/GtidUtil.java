@@ -15,7 +15,8 @@ public class GtidUtil {
     public static GTIDSet parseGtidSet(String gtid, boolean isMariaDB) {
         if (isMariaDB) {
             return MariaGTIDSet.parse(gtid);
+        } else {
+            return MysqlGTIDSet.parse(gtid);
         }
-        return MysqlGTIDSet.parse(gtid);
     }
 }

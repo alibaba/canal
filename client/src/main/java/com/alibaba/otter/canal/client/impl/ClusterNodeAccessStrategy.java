@@ -63,6 +63,7 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
         return nextNode();
     }
 
+    @Override
     public SocketAddress nextNode() {
         if (runningAddress != null) {// 如果服务已经启动，直接选择当前正在工作的节点
             return runningAddress;
@@ -81,7 +82,7 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
             for (String address : currentChilds) {
                 String[] strs = StringUtils.split(address, ":");
                 if (strs != null && strs.length == 2) {
-                    addresses.add(new InetSocketAddress(strs[0], Integer.valueOf(strs[1])));
+                    addresses.add(new InetSocketAddress(strs[0], Integer.parseInt(strs[1])));
                 }
             }
 
@@ -98,7 +99,7 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
         ServerRunningData runningData = JsonUtils.unmarshalFromByte((byte[]) data, ServerRunningData.class);
         String[] strs = StringUtils.split(runningData.getAddress(), ':');
         if (strs.length == 2) {
-            runningAddress = new InetSocketAddress(strs[0], Integer.valueOf(strs[1]));
+            runningAddress = new InetSocketAddress(strs[0], Integer.parseInt(strs[1]));
         }
     }
 

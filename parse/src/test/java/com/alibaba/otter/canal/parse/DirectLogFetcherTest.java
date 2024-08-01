@@ -32,19 +32,10 @@ import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.FormatDescriptionLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RotateLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsQueryLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.*;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
-import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.XidLogEvent;
 import com.taobao.tddl.dbsync.binlog.event.mariadb.AnnotateRowsEvent;
+import com.taobao.tddl.dbsync.binlog.event.mariadb.BinlogCheckPointLogEvent;
 
 @Ignore
 public class DirectLogFetcherTest {
@@ -58,12 +49,12 @@ public class DirectLogFetcherTest {
     public void testSimple() {
         DirectLogFetcher fetcher = new DirectLogFetcher();
         try {
-            MysqlConnector connector = new MysqlConnector(new InetSocketAddress("127.0.0.1", 3306), "root", "hello");
+            MysqlConnector connector = new MysqlConnector(new InetSocketAddress("127.0.0.1", 3306), "canal", "canal");
             connector.connect();
             updateSettings(connector);
             loadBinlogChecksum(connector);
             sendRegisterSlave(connector, 3);
-            sendBinlogDump(connector, "mysql-bin.000001", 4L, 3);
+            sendBinlogDump(connector, "mysql-bin.000002", 4L, 3);
 
             fetcher.start(connector.getChannel());
 
@@ -78,45 +69,9 @@ public class DirectLogFetcherTest {
                 if (event == null) {
                     throw new RuntimeException("parse failed");
                 }
-
-                int eventType = event.getHeader().getType();
-                switch (eventType) {
-                    case LogEvent.ROTATE_EVENT:
-                        // binlogFileName = ((RotateLogEvent)
-                        // event).getFilename();
-                        System.out.println(((RotateLogEvent) event).getFilename());
-                        break;
-                    case LogEvent.TABLE_MAP_EVENT:
-                        parseTableMapEvent((TableMapLogEvent) event);
-                        break;
-                    case LogEvent.WRITE_ROWS_EVENT_V1:
-                    case LogEvent.WRITE_ROWS_EVENT:
-                        parseRowsEvent((WriteRowsLogEvent) event);
-                        break;
-                    case LogEvent.UPDATE_ROWS_EVENT_V1:
-                    case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
-                    case LogEvent.UPDATE_ROWS_EVENT:
-                        parseRowsEvent((UpdateRowsLogEvent) event);
-                        break;
-                    case LogEvent.DELETE_ROWS_EVENT_V1:
-                    case LogEvent.DELETE_ROWS_EVENT:
-                        parseRowsEvent((DeleteRowsLogEvent) event);
-                        break;
-                    case LogEvent.QUERY_EVENT:
-                        parseQueryEvent((QueryLogEvent) event);
-                        break;
-                    case LogEvent.ROWS_QUERY_LOG_EVENT:
-                        parseRowsQueryEvent((RowsQueryLogEvent) event);
-                        break;
-                    case LogEvent.ANNOTATE_ROWS_EVENT:
-                        break;
-                    case LogEvent.XID_EVENT:
-                        break;
-                    default:
-                        break;
-                }
+                processEvent(event, decoder, context);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());
         } finally {
@@ -127,6 +82,56 @@ public class DirectLogFetcherTest {
             }
         }
 
+    }
+
+    private void processEvent(LogEvent event, LogDecoder decoder, LogContext context) throws Throwable {
+        int eventType = event.getHeader().getType();
+        switch (eventType) {
+            case LogEvent.ROTATE_EVENT:
+                // binlogFileName = ((RotateLogEvent)
+                // event).getFilename();
+                System.out.println("RotateLogEvent : " + ((RotateLogEvent) event).getFilename());
+                break;
+            case LogEvent.BINLOG_CHECKPOINT_EVENT:
+                // binlogFileName = ((BinlogCheckPointLogEvent)
+                // event).getFilename();
+                System.out.println("BinlogCheckPointLogEvent : " + ((BinlogCheckPointLogEvent) event).getFilename());
+                break;
+            case LogEvent.TABLE_MAP_EVENT:
+                parseTableMapEvent((TableMapLogEvent) event);
+                break;
+            case LogEvent.WRITE_ROWS_EVENT_V1:
+            case LogEvent.WRITE_ROWS_EVENT:
+                parseRowsEvent((WriteRowsLogEvent) event);
+                break;
+            case LogEvent.UPDATE_ROWS_EVENT_V1:
+            case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
+            case LogEvent.UPDATE_ROWS_EVENT:
+                parseRowsEvent((UpdateRowsLogEvent) event);
+                break;
+            case LogEvent.DELETE_ROWS_EVENT_V1:
+            case LogEvent.DELETE_ROWS_EVENT:
+                parseRowsEvent((DeleteRowsLogEvent) event);
+                break;
+            case LogEvent.QUERY_EVENT:
+                parseQueryEvent((QueryLogEvent) event);
+                break;
+            case LogEvent.ROWS_QUERY_LOG_EVENT:
+                parseRowsQueryEvent((RowsQueryLogEvent) event);
+                break;
+            case LogEvent.ANNOTATE_ROWS_EVENT:
+                break;
+            case LogEvent.XID_EVENT:
+                break;
+            case LogEvent.TRANSACTION_PAYLOAD_EVENT:
+                List<LogEvent> events = decoder.processIterateDecode(event, context);
+                for (LogEvent deEvent : events) {
+                    processEvent(deEvent, decoder, context);
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     private void sendRegisterSlave(MysqlConnector connector, int slaveId) throws IOException {
@@ -151,7 +156,7 @@ public class DirectLogFetcherTest {
                 err.fromBytes(body);
                 throw new IOException("Error When doing Register slave:" + err.toString());
             } else {
-                throw new IOException("unpexpected packet with field_count=" + body[0]);
+                throw new IOException("Unexpected packet with field_count=" + body[0]);
             }
         }
     }
@@ -210,7 +215,8 @@ public class DirectLogFetcherTest {
             // mysql5.6需要设置slave_uuid避免被server kill链接
             update("set @slave_uuid=uuid()", connector);
         } catch (Exception e) {
-            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")) {
+            if (!StringUtils.contains(e.getMessage(), "Unknown system variable")
+                && !StringUtils.contains(e.getMessage(), "slave_uuid can't be set")) {
                 logger.warn("update slave_uuid failed", e);
             }
         }
@@ -301,7 +307,7 @@ public class DirectLogFetcherTest {
                 event.getHeader().getLogPos() - event.getHeader().getEventLen(),
                 event.getTable().getDbName(),
                 event.getTable().getTableName()));
-            RowsLogBuffer buffer = event.getRowsBuf(charset.name());
+            RowsLogBuffer buffer = event.getRowsBuf(charset);
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
             while (buffer.nextOneRow(columns)) {

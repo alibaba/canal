@@ -23,7 +23,7 @@
 						<!-- or whenever the file size reaches 100MB -->
 						<maxFileSize>512MB</maxFileSize>
 					</timeBasedFileNamingAndTriggeringPolicy>
-					<maxHistory>60</maxHistory>
+					<maxHistory>14</maxHistory>
 				</rollingPolicy>
 				<encoder>
 					<pattern>
@@ -50,7 +50,7 @@
 						<!-- or whenever the file size reaches 100MB -->
 						<maxFileSize>32MB</maxFileSize>
 					</timeBasedFileNamingAndTriggeringPolicy>
-					<maxHistory>60</maxHistory>
+					<maxHistory>14</maxHistory>
 				</rollingPolicy>
 				<encoder>
 					<pattern>
@@ -59,6 +59,23 @@
 				</encoder>
 			</appender>
 		</sift>
+	</appender>
+
+	<appender name="RocketmqClientAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>../logs/canal/rocketmq_client.log</file>
+		<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>../logs/canal/%d{yyyy-MM-dd}/rocketmq_client-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<!-- or whenever the file size reaches 100MB -->
+				<maxFileSize>512MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<maxHistory>14</maxHistory>
+		</rollingPolicy>
+		<encoder charset="UTF-8">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{56} - %msg%n</pattern>
+		</encoder>
 	</appender>
 
 	<logger name="com.alibaba.otter.canal.instance" additivity="false">
@@ -82,6 +99,14 @@
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
 	<logger name="com.alibaba.otter.canal.connector.rabbitmq" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+	<logger name="RocketmqClient" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="RocketmqClientAppender" />
+  </logger>
+	<logger name="com.alibaba.otter.canal.connector.pulsarmq" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>

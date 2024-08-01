@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.es.core.monitor;
 
 import java.io.File;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -11,11 +10,13 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.es.core.ESAdapter;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
+import com.alibaba.otter.canal.client.adapter.support.YamlUtils;
+
+;
 
 public class ESConfigMonitor {
 
@@ -36,7 +37,7 @@ public class ESConfigMonitor {
         File confDir = Util.getConfDirPath(adapterName);
         try {
             FileAlterationObserver observer = new FileAlterationObserver(confDir,
-                FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
+                    FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.suffixFileFilter("yml")));
             FileListener listener = new FileListener();
             observer.addListener(listener);
             fileMonitor = new FileAlterationMonitor(3000, observer);
@@ -63,15 +64,20 @@ public class ESConfigMonitor {
             try {
                 // 加载新增的配置文件
                 String configContent = MappingConfigsLoader.loadConfig(adapterName + File.separator + file.getName());
-                ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null,
+                ESSyncConfig config = YamlUtils.ymlToObj(null,
                     configContent,
                     ESSyncConfig.class,
                     null,
                     envProperties);
                 if (config != null) {
+                    // 这里要记得设置esVersion bugfix
+                    config.setEsVersion(adapterName);
                     config.validate();
-                    addConfigToCache(file, config);
-                    logger.info("Add a new es mapping config: {} to canal adapter", file.getName());
+                    boolean result = esAdapter.addConfig(file.getName(), config);
+                    if (result) {
+                        logger.info("Add a new es mapping config: {} to canal adapter",
+                                file.getName());
+                    }
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -91,7 +97,7 @@ public class ESConfigMonitor {
                         onFileDelete(file);
                         return;
                     }
-                    ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null,
+                    ESSyncConfig config = YamlUtils.ymlToObj(null,
                         configContent,
                         ESSyncConfig.class,
                         null,
@@ -99,12 +105,10 @@ public class ESConfigMonitor {
                     if (config == null) {
                         return;
                     }
+                    // 这里要记得设置esVersion bugfix
+                    config.setEsVersion(adapterName);
                     config.validate();
-                    if (esAdapter.getEsSyncConfig().containsKey(file.getName())) {
-                        deleteConfigFromCache(file);
-                    }
-                    addConfigToCache(file, config);
-
+                    esAdapter.updateConfig(file.getName(), config);
                     logger.info("Change a es mapping config: {} of canal adapter", file.getName());
                 }
             } catch (Exception e) {
@@ -118,29 +122,12 @@ public class ESConfigMonitor {
 
             try {
                 if (esAdapter.getEsSyncConfig().containsKey(file.getName())) {
-                    deleteConfigFromCache(file);
-
+                    esAdapter.deleteConfig(file.getName());
                     logger.info("Delete a es mapping config: {} of canal adapter", file.getName());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-        }
-
-        private void addConfigToCache(File file, ESSyncConfig config) {
-            esAdapter.getEsSyncConfig().put(file.getName(), config);
-
-            esAdapter.addSyncConfigToCache(file.getName(), config);
-        }
-
-        private void deleteConfigFromCache(File file) {
-            esAdapter.getEsSyncConfig().remove(file.getName());
-            for (Map<String, ESSyncConfig> configMap : esAdapter.getDbTableEsSyncConfig().values()) {
-                if (configMap != null) {
-                    configMap.remove(file.getName());
-                }
-            }
-
         }
     }
 }

@@ -1,12 +1,11 @@
 package com.alibaba.otter.canal.client.kafka;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.otter.canal.client.kafka.protocol.KafkaFlatMessage;
 import com.alibaba.otter.canal.client.kafka.protocol.KafkaMessage;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -43,7 +42,7 @@ public class KafkaOffsetCanalConnector extends KafkaCanalConnector {
     public List<KafkaMessage> getListWithoutAck(Long timeout, TimeUnit unit, long offset) throws CanalClientException {
         waitClientRunning();
         if (!running) {
-            return Lists.newArrayList();
+            return new ArrayList<>();
         }
 
         if (offset > -1) {
@@ -61,7 +60,7 @@ public class KafkaOffsetCanalConnector extends KafkaCanalConnector {
             }
             return messages;
         }
-        return Lists.newArrayList();
+        return new ArrayList<>();
     }
 
     /**
@@ -76,7 +75,7 @@ public class KafkaOffsetCanalConnector extends KafkaCanalConnector {
     public List<KafkaFlatMessage> getFlatListWithoutAck(Long timeout, TimeUnit unit, long offset) throws CanalClientException {
         waitClientRunning();
         if (!running) {
-            return Lists.newArrayList();
+            return new ArrayList<>();
         }
 
         if (offset > -1) {
@@ -96,7 +95,7 @@ public class KafkaOffsetCanalConnector extends KafkaCanalConnector {
 
             return flatMessages;
         }
-        return Lists.newArrayList();
+        return new ArrayList<>();
     }
 
     /**

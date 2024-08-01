@@ -5,9 +5,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.BitSet;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.junit.Ignore;
 
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlConnector;
 import com.alibaba.otter.canal.parse.driver.mysql.MysqlUpdateExecutor;
@@ -19,14 +22,8 @@ import com.taobao.tddl.dbsync.binlog.LogBuffer;
 import com.taobao.tddl.dbsync.binlog.LogContext;
 import com.taobao.tddl.dbsync.binlog.LogDecoder;
 import com.taobao.tddl.dbsync.binlog.LogEvent;
-import com.taobao.tddl.dbsync.binlog.event.DeleteRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer;
-import com.taobao.tddl.dbsync.binlog.event.RowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent;
+import com.taobao.tddl.dbsync.binlog.event.*;
 import com.taobao.tddl.dbsync.binlog.event.TableMapLogEvent.ColumnInfo;
-import com.taobao.tddl.dbsync.binlog.event.UpdateRowsLogEvent;
-import com.taobao.tddl.dbsync.binlog.event.WriteRowsLogEvent;
-import org.junit.Ignore;
 
 @Ignore
 public class MysqlBinlogParsePerformanceTest {
@@ -44,7 +41,7 @@ public class MysqlBinlogParsePerformanceTest {
             Thread thread = new Thread(() -> {
                 try {
                     consumer(buffer);
-                } catch (IOException | InterruptedException e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                 }
             });
@@ -59,7 +56,7 @@ public class MysqlBinlogParsePerformanceTest {
         }
     }
 
-    public static void consumer(BlockingQueue<LogBuffer> buffer) throws IOException, InterruptedException {
+    public static void consumer(BlockingQueue<LogBuffer> buffer) throws Throwable {
         LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
         LogContext context = new LogContext();
 
@@ -70,33 +67,7 @@ public class MysqlBinlogParsePerformanceTest {
         while (true) {
             LogEvent event = null;
             event = decoder.decode(buffer.take(), context);
-            int eventType = event.getHeader().getType();
-            switch (eventType) {
-                case LogEvent.ROTATE_EVENT:
-                    break;
-                case LogEvent.WRITE_ROWS_EVENT_V1:
-                case LogEvent.WRITE_ROWS_EVENT:
-                    parseRowsEvent((WriteRowsLogEvent) event, sum);
-                    break;
-                case LogEvent.UPDATE_ROWS_EVENT_V1:
-                case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
-                case LogEvent.UPDATE_ROWS_EVENT:
-                    parseRowsEvent((UpdateRowsLogEvent) event, sum);
-                    break;
-                case LogEvent.DELETE_ROWS_EVENT_V1:
-                case LogEvent.DELETE_ROWS_EVENT:
-                    parseRowsEvent((DeleteRowsLogEvent) event, sum);
-                    break;
-                case LogEvent.XID_EVENT:
-                    sum.incrementAndGet();
-                    break;
-                case LogEvent.QUERY_EVENT:
-                    sum.incrementAndGet();
-                    break;
-                default:
-                    break;
-            }
-
+            processEvent(event, decoder, context, sum);
             long current = sum.get();
             if (current - last >= 100000) {
                 end = System.currentTimeMillis();
@@ -105,6 +76,41 @@ public class MysqlBinlogParsePerformanceTest {
                 last = current;
                 start = end;
             }
+        }
+    }
+
+    private static void processEvent(LogEvent event, LogDecoder decoder, LogContext context, AtomicLong sum) throws Throwable {
+        int eventType = event.getHeader().getType();
+        switch (eventType) {
+            case LogEvent.ROTATE_EVENT:
+                break;
+            case LogEvent.WRITE_ROWS_EVENT_V1:
+            case LogEvent.WRITE_ROWS_EVENT:
+                parseRowsEvent((WriteRowsLogEvent) event, sum);
+                break;
+            case LogEvent.UPDATE_ROWS_EVENT_V1:
+            case LogEvent.PARTIAL_UPDATE_ROWS_EVENT:
+            case LogEvent.UPDATE_ROWS_EVENT:
+                parseRowsEvent((UpdateRowsLogEvent) event, sum);
+                break;
+            case LogEvent.DELETE_ROWS_EVENT_V1:
+            case LogEvent.DELETE_ROWS_EVENT:
+                parseRowsEvent((DeleteRowsLogEvent) event, sum);
+                break;
+            case LogEvent.XID_EVENT:
+                sum.incrementAndGet();
+                break;
+            case LogEvent.QUERY_EVENT:
+                sum.incrementAndGet();
+                break;
+            case LogEvent.TRANSACTION_PAYLOAD_EVENT:
+                List<LogEvent> events = decoder.processIterateDecode(event, context);
+                for (LogEvent deEvent : events) {
+                    processEvent(deEvent, decoder, context, sum);
+                }
+                break;
+            default:
+                break;
         }
     }
 
@@ -134,7 +140,7 @@ public class MysqlBinlogParsePerformanceTest {
 
     public static void parseRowsEvent(RowsLogEvent event, AtomicLong sum) {
         try {
-            RowsLogBuffer buffer = event.getRowsBuf(charset.name());
+            RowsLogBuffer buffer = event.getRowsBuf(charset);
             BitSet columns = event.getColumns();
             BitSet changeColumns = event.getChangeColumns();
             while (buffer.nextOneRow(columns)) {

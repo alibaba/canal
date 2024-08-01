@@ -2,11 +2,7 @@ package com.alibaba.otter.canal.client.adapter.es7x.support;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -66,17 +62,17 @@ public class ES7xTemplate implements ESTemplate {
 
     @Override
     public void insert(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
-        if (mapping.get_id() != null) {
+        if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
-                ESUpdateRequest updateRequest = esConnection.new ES7xUpdateRequest(mapping.get_index(),
+                ESUpdateRequest updateRequest = esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     updateRequest.setRouting(parentVal);
                 }
                 getBulk().add(updateRequest);
             } else {
-                ESIndexRequest indexRequest = esConnection.new ES7xIndexRequest(mapping.get_index(), pkVal.toString())
+                ESIndexRequest indexRequest = esConnection.new ES7xIndexRequest(mapping.getIndex(), pkVal.toString())
                     .setSource(esFieldData);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     indexRequest.setRouting(parentVal);
@@ -85,13 +81,13 @@ public class ES7xTemplate implements ESTemplate {
             }
             commitBulk();
         } else {
-            ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index())
+            ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.getIndex())
                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
                 .size(10000);
             SearchResponse response = esSearchRequest.getResponse();
 
             for (SearchHit hit : response.getHits()) {
-                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.get_index(),
+                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     hit.getId()).setDoc(esFieldData);
                 getBulk().add(esUpdateRequest);
                 commitBulk();
@@ -148,18 +144,18 @@ public class ES7xTemplate implements ESTemplate {
 
     @Override
     public void delete(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
-        if (mapping.get_id() != null) {
-            ESDeleteRequest esDeleteRequest = this.esConnection.new ES7xDeleteRequest(mapping.get_index(),
+        if (mapping.getId() != null) {
+            ESDeleteRequest esDeleteRequest = this.esConnection.new ES7xDeleteRequest(mapping.getIndex(),
                 pkVal.toString());
             getBulk().add(esDeleteRequest);
             commitBulk();
         } else {
-            ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index())
+            ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.getIndex())
                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
                 .size(10000);
             SearchResponse response = esSearchRequest.getResponse();
             for (SearchHit hit : response.getHits()) {
-                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.get_index(),
+                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     hit.getId()).setDoc(esFieldData);
                 getBulk().add(esUpdateRequest);
                 commitBulk();
@@ -204,7 +200,7 @@ public class ES7xTemplate implements ESTemplate {
     public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet,
                                   Map<String, Object> esFieldData) throws SQLException {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.getId() == null ? mapping.getPk() : mapping.getId();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             Object value = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
@@ -213,7 +209,7 @@ public class ES7xTemplate implements ESTemplate {
                 resultIdVal = value;
             }
 
-            if (!fieldItem.getFieldName().equals(mapping.get_id())
+            if (!fieldItem.getFieldName().equals(mapping.getId())
                 && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
             }
@@ -228,7 +224,7 @@ public class ES7xTemplate implements ESTemplate {
     @Override
     public Object getIdValFromRS(ESMapping mapping, ResultSet resultSet) throws SQLException {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.getId() == null ? mapping.getPk() : mapping.getId();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             Object value = getValFromRS(mapping, resultSet, fieldItem.getFieldName(), fieldItem.getFieldName());
@@ -245,7 +241,7 @@ public class ES7xTemplate implements ESTemplate {
     public Object getESDataFromRS(ESMapping mapping, ResultSet resultSet, Map<String, Object> dmlOld,
                                   Map<String, Object> esFieldData) throws SQLException {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.getId() == null ? mapping.getPk() : mapping.getId();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             if (fieldItem.getFieldName().equals(idFieldName)) {
@@ -287,10 +283,9 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     @Override
-    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData,
-                                       Map<String, Object> esFieldData) {
+    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.getId() == null ? mapping.getPk() : mapping.getId();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
@@ -300,7 +295,7 @@ public class ES7xTemplate implements ESTemplate {
                 resultIdVal = value;
             }
 
-            if (!fieldItem.getFieldName().equals(mapping.get_id())
+            if (!fieldItem.getFieldName().equals(mapping.getId())
                 && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()), value);
             }
@@ -312,14 +307,22 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     @Override
-    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> dmlOld,
+    public Object getESDataFromDmlData(ESMapping mapping,String owner, Map<String, Object> dmlData, Map<String, Object> dmlOld,
                                        Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
-        String idFieldName = mapping.get_id() == null ? mapping.getPk() : mapping.get_id();
+        String idFieldName = mapping.getId() == null ? mapping.getPk() : mapping.getId();
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
-            String columnName = fieldItem.getColumnItems().iterator().next().getColumnName();
+            ColumnItem columnItem = fieldItem.getColumnItems().iterator().next();
+            if (columnItem.getOwner() == null || columnItem.getColumnName() == null) {
+                continue;
+            }
 
+            if (!columnItem.getOwner().equals(owner)) {
+                continue;
+            }
+
+            String columnName = columnItem.getColumnName();
             if (fieldItem.getFieldName().equals(idFieldName)) {
                 resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
             }
@@ -345,17 +348,17 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     private void append4Update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData) {
-        if (mapping.get_id() != null) {
+        if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
-                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.get_index(),
+                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     esUpdateRequest.setRouting(parentVal);
                 }
                 getBulk().add(esUpdateRequest);
             } else {
-                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.get_index(),
+                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     pkVal.toString()).setDoc(esFieldData);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     esUpdateRequest.setRouting(parentVal);
@@ -363,12 +366,12 @@ public class ES7xTemplate implements ESTemplate {
                 getBulk().add(esUpdateRequest);
             }
         } else {
-            ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.get_index())
+            ESSearchRequest esSearchRequest = this.esConnection.new ESSearchRequest(mapping.getIndex())
                 .setQuery(QueryBuilders.termQuery(mapping.getPk(), pkVal))
                 .size(10000);
             SearchResponse response = esSearchRequest.getResponse();
             for (SearchHit hit : response.getHits()) {
-                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.get_index(),
+                ESUpdateRequest esUpdateRequest = this.esConnection.new ES7xUpdateRequest(mapping.getIndex(),
                     hit.getId()).setDoc(esFieldData);
                 getBulk().add(esUpdateRequest);
             }
@@ -384,15 +387,15 @@ public class ES7xTemplate implements ESTemplate {
      */
     @SuppressWarnings("unchecked")
     private String getEsType(ESMapping mapping, String fieldName) {
-        String key = mapping.get_index() + "-" + mapping.get_type();
+        String key = mapping.getIndex() + "-" + mapping.getType();
         Map<String, String> fieldType = esFieldTypes.get(key);
         if (fieldType != null) {
             return fieldType.get(fieldName);
         } else {
-            MappingMetaData mappingMetaData = esConnection.getMapping(mapping.get_index());
+            MappingMetaData mappingMetaData = esConnection.getMapping(mapping.getIndex());
 
             if (mappingMetaData == null) {
-                throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.get_index());
+                throw new IllegalArgumentException("Not found the mapping info of index: " + mapping.getIndex());
             }
 
             fieldType = new LinkedHashMap<>();

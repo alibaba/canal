@@ -17,9 +17,10 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.connector.core.producer.MQMessageUtils;
@@ -101,19 +102,21 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
             String key = (String) entry.getKey();
             Object value = entry.getValue();
             if (key.startsWith(PREFIX_KAFKA_CONFIG) && value != null) {
+                // check env config
+                value = PropertiesUtils.getProperty(properties, key);
                 key = key.substring(PREFIX_KAFKA_CONFIG.length());
                 kafkaProperties.put(key, value);
             }
         }
-        String kerberosEnabled = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
+        String kerberosEnabled = PropertiesUtils.getProperty(properties, KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_ENABLE);
         if (!StringUtils.isEmpty(kerberosEnabled)) {
             kafkaProducerConfig.setKerberosEnabled(Boolean.parseBoolean(kerberosEnabled));
         }
-        String krb5File = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5_FILE);
+        String krb5File = PropertiesUtils.getProperty(properties, KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_KRB5_FILE);
         if (!StringUtils.isEmpty(krb5File)) {
             kafkaProducerConfig.setKrb5File(krb5File);
         }
-        String jaasFile = properties.getProperty(KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_JAAS_FILE);
+        String jaasFile = PropertiesUtils.getProperty(properties, KafkaConstants.CANAL_MQ_KAFKA_KERBEROS_JAAS_FILE);
         if (!StringUtils.isEmpty(jaasFile)) {
             kafkaProducerConfig.setJaasFile(jaasFile);
         }
@@ -246,13 +249,15 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                         FlatMessage flatMessagePart = partitionFlatMessage[i];
                         if (flatMessagePart != null) {
                             records.add(new ProducerRecord<>(topicName, i, null, JSON.toJSONBytes(flatMessagePart,
-                                SerializerFeature.WriteMapNullValue)));
+                                JSONWriter.Feature.WriteNulls,
+                                JSONWriter.Feature.LargeObject)));
                         }
                     }
                 } else {
                     final int partition = mqDestination.getPartition() != null ? mqDestination.getPartition() : 0;
                     records.add(new ProducerRecord<>(topicName, partition, null, JSON.toJSONBytes(flatMessage,
-                        SerializerFeature.WriteMapNullValue)));
+                        JSONWriter.Feature.WriteNulls,
+                        JSONWriter.Feature.LargeObject)));
                 }
             }
         }

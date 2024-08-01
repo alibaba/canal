@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * ES 映射配置
@@ -28,13 +29,13 @@ public class ESSyncConfig implements AdapterConfig {
     private String    esVersion = "es6";
 
     public void validate() {
-        if (esMapping._index == null) {
+        if (esMapping.index == null) {
             throw new NullPointerException("esMapping._index");
         }
-        if ("es6".equals(esVersion) && esMapping._type == null) {
+        if ("es6".equals(esVersion) && esMapping.type == null) {
             throw new NullPointerException("esMapping._type");
         }
-        if (esMapping._id == null && esMapping.getPk() == null) {
+        if (esMapping.id == null && esMapping.getPk() == null) {
             throw new NullPointerException("esMapping._id or esMapping.pk");
         }
         if (esMapping.sql == null) {
@@ -96,9 +97,14 @@ public class ESSyncConfig implements AdapterConfig {
 
     public static class ESMapping implements AdapterMapping {
 
-        private String                       _index;
-        private String                       _type;
-        private String                       _id;
+        @Value("${_index}")
+        private String index;
+
+        @Value("${_type}")
+        private String type;
+
+        @Value("${_id}")
+        private String id;
         private boolean                      upsert          = false;
         private String                       pk;
         private Map<String, RelationMapping> relations       = new LinkedHashMap<>();
@@ -114,28 +120,28 @@ public class ESSyncConfig implements AdapterConfig {
 
         private SchemaItem                   schemaItem;                             // sql解析结果模型
 
-        public String get_index() {
-            return _index;
+        public String getIndex() {
+            return index;
         }
 
-        public void set_index(String _index) {
-            this._index = _index;
+        public void setIndex(String index) {
+            this.index = index;
         }
 
-        public String get_type() {
-            return _type;
+        public String getType() {
+            return type;
         }
 
-        public void set_type(String _type) {
-            this._type = _type;
+        public void setType(String type) {
+            this.type = type;
         }
 
-        public String get_id() {
-            return _id;
+        public String getId() {
+            return id;
         }
 
-        public void set_id(String _id) {
-            this._id = _id;
+        public void setId(String id) {
+            this.id = id;
         }
 
         public boolean isUpsert() {

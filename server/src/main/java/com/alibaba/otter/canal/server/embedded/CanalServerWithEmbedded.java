@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -72,11 +73,12 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
         if (!isStart()) {
             super.start();
             // 如果存在provider,则启动metrics service
-            loadCanalMetrics();
-            metrics.setServerPort(metricsPort);
-            metrics.initialize();
+            if(metricsPort > 0) {
+                loadCanalMetrics();
+                metrics.setServerPort(metricsPort);
+                metrics.initialize();
+            }
             canalInstances = MigrateMap.makeComputingMap(destination -> canalInstanceGenerator.generate(destination));
-
             // lastRollbackPostions = new MapMaker().makeMap();
         }
     }
@@ -266,9 +268,10 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 boolean raw = isRaw(canalInstance.getEventStore());
                 List entrys = null;
                 if (raw) {
-                    entrys = Lists.transform(events.getEvents(), Event::getRawEntry);
+                    // new list
+                    entrys = events.getEvents().stream().map(Event::getRawEntry).collect(Collectors.toList());
                 } else {
-                    entrys = Lists.transform(events.getEvents(), Event::getEntry);
+                    entrys = events.getEvents().stream().map(Event::getEntry).collect(Collectors.toList());
                 }
                 if (logger.isInfoEnabled()) {
                     logger.info("get successfully, clientId:{} batchSize:{} real size is {} and result is [batchId:{} , position:{}]",
@@ -348,9 +351,10 @@ public class CanalServerWithEmbedded extends AbstractCanalLifeCycle implements C
                 boolean raw = isRaw(canalInstance.getEventStore());
                 List entrys = null;
                 if (raw) {
-                    entrys = Lists.transform(events.getEvents(), Event::getRawEntry);
+                    // new list
+                    entrys = events.getEvents().stream().map(Event::getRawEntry).collect(Collectors.toList());
                 } else {
-                    entrys = Lists.transform(events.getEvents(), Event::getEntry);
+                    entrys = events.getEvents().stream().map(Event::getEntry).collect(Collectors.toList());
                 }
                 if (logger.isInfoEnabled()) {
                     logger.info("getWithoutAck successfully, clientId:{} batchSize:{}  real size is {} and result is [batchId:{} , position:{}]",

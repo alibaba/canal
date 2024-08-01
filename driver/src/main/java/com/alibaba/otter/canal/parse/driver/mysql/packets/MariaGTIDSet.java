@@ -1,10 +1,10 @@
 package com.alibaba.otter.canal.parse.driver.mysql.packets;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 类 MariaGTIDSet.java 的实现
@@ -13,8 +13,9 @@ import java.util.Map;
  * @version 1.0.0
  */
 public class MariaGTIDSet implements GTIDSet {
+
     //MariaDB 10.0.2+ representation of Gtid
-    Map<Long, MariaGtid> gtidMap = new HashMap<>();
+    private Map<Long, MariaGtid> gtidMap = new HashMap<>();
 
     @Override
     public byte[] encode() throws IOException {

@@ -4,12 +4,12 @@
     <parent>
         <groupId>com.alibaba.otter</groupId>
         <artifactId>canal</artifactId>
-        <version>1.1.5-SNAPSHOT</version>
+        <version>1.1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.alibaba.otter</groupId>
     <artifactId>canal.client-adapter</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.1.8-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>canal client adapter module for otter ${project.version}</name>
 
@@ -20,6 +20,7 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
+        <log4j_version>2.17.0</log4j_version>
     </properties>
 
     <modules>
@@ -30,8 +31,12 @@
         <module>rdb</module>
         <module>es6x</module>
         <module>es7x</module>
+        <module>es8x</module>
         <module>escore</module>
         <module>kudu</module>
+        <module>phoenix</module>
+        <module>tablestore</module>
+        <module>clickhouse</module>
     </modules>
 
     <licenses>
@@ -50,7 +55,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -60,7 +65,7 @@
         </repository>
         <repository>
             <id>java.net</id>
-            <url>http://download.java.net/maven/2/</url>
+            <url>https://download.java.net/maven/2/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -70,7 +75,7 @@
         </repository>
         <repository>
             <id>aliyun</id>
-            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -107,38 +112,12 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-context</artifactId>
-                <version>2.0.0.RELEASE</version>
+                <version>3.0.6</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jdbc</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-orm</artifactId>
-                <version>5.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>5.0.5.RELEASE</version>
-                <scope>test</scope>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot</artifactId>
+                <version>2.5.15</version>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -149,50 +128,49 @@
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-client</artifactId>
-            <version>4.5.1</version>
+            <version>${rocketmq_version}</version>
             </dependency>
             <!-- 单独引入kafka依赖 -->
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
-                <version>1.1.1</version>
+                <version>${kafka_version}</version>
             </dependency>
-
+            <!-- rabbotmq -->
             <dependency>
                 <groupId>com.rabbitmq</groupId>
                 <artifactId>amqp-client</artifactId>
-                <version>5.5.0</version>
+                <version>${rabbitmq_version}</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba.mq-amqp</groupId>
                 <artifactId>mq-amqp-client</artifactId>
-                <version>1.0.3</version>
+                <version>${mq_amqp_client}</version>
             </dependency>
             <!-- jdbc -->
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.48</version>
+                <version>${mysql_driver_version}</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.1.4</version>
+                <version>42.5.1</version>
             </dependency>
             <dependency>
-                <groupId>com.oracle</groupId>
+                <groupId>com.oracle.database.jdbc</groupId>
                 <artifactId>ojdbc6</artifactId>
-                <version>11.2.0.3</version>
+                <version>11.2.0.4</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.sqlserver</groupId>
                 <artifactId>mssql-jdbc</artifactId>
                 <version>7.0.0.jre8</version>
             </dependency>
-
             <dependency>
                 <groupId>org.apache.hbase</groupId>
-                <artifactId>hbase-client</artifactId>
+                <artifactId>hbase-shaded-client</artifactId>
                 <version>1.1.2</version>
                 <exclusions>
                     <exclusion>
@@ -206,9 +184,51 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.apache.phoenix</groupId>
+                <artifactId>phoenix-core</artifactId>
+                <version>4.14.1-HBase-1.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-client</artifactId>
+                <version>1.4.8</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.yandex.clickhouse</groupId>
+                <artifactId>clickhouse-jdbc</artifactId>
+                <version>0.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun.openservices</groupId>
+                <artifactId>tablestore</artifactId>
+                <version>5.10.3</version>
+                <classifier>jar-with-dependencies</classifier>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpasyncclient</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kudu</groupId>
+                <artifactId>kudu-client</artifactId>
+                <version>1.6.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>2.10.0</version>
+            </dependency>
+            <!-- 单独指定guava版本，兼容curator-client -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
@@ -218,8 +238,9 @@
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
-                <version>1.19</version>
+                <version>2.0</version>
             </dependency>
+            <!-- test -->
             <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito</artifactId>

@@ -21,6 +21,8 @@ public class UserServiceImpl implements UserService {
 
     private static byte[] seeds = "canal is best!".getBytes();
 
+    private static final Integer PASSWORD_LENGTH = 5;
+
     public User find4Login(String username, String password) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return null;
@@ -43,6 +45,9 @@ public class UserServiceImpl implements UserService {
     }
 
     public void update(User user) {
+        if (user.getPassword().length() < PASSWORD_LENGTH) {
+            throw new ServiceException("The new password is too short,must more than 6 digits");
+        }
         User userTmp = User.find.query().where().eq("username", user.getUsername()).findOne();
         if (userTmp == null) {
             throw new ServiceException();

@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.connector.rabbitmq.consumer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -8,10 +9,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.alibaba.otter.canal.common.utils.AddressUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
@@ -22,14 +25,7 @@ import com.alibaba.otter.canal.connector.rabbitmq.config.RabbitMQConstants;
 import com.alibaba.otter.canal.connector.rabbitmq.producer.AliyunCredentialsProvider;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
-import com.google.common.collect.Lists;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.*;
 
 /**
  * RabbitMQ consumer SPI 实现
@@ -40,7 +36,8 @@ import com.rabbitmq.client.Envelope;
 @SPI("rabbitmq")
 public class CanalRabbitMQConsumer implements CanalMsgConsumer {
 
-    private static final Logger                                logger              = LoggerFactory.getLogger(CanalRabbitMQConsumer.class);
+    private static final Logger                                logger              = LoggerFactory
+        .getLogger(CanalRabbitMQConsumer.class);
 
     // 链接地址
     private String                                             nameServer;
@@ -66,13 +63,13 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
 
     @Override
     public void init(Properties properties, String topic, String groupId) {
-        this.nameServer = properties.getProperty("rabbitmq.host");
-        this.vhost = properties.getProperty("rabbitmq.virtual.host");
+        this.nameServer = PropertiesUtils.getProperty(properties, "rabbitmq.host");
+        this.vhost = PropertiesUtils.getProperty(properties, "rabbitmq.virtual.host");
         this.queueName = topic;
-        this.accessKey = properties.getProperty(CanalConstants.CANAL_ALIYUN_ACCESS_KEY);
-        this.secretKey = properties.getProperty(CanalConstants.CANAL_ALIYUN_SECRET_KEY);
-        this.username = properties.getProperty(RabbitMQConstants.RABBITMQ_USERNAME);
-        this.password = properties.getProperty(RabbitMQConstants.RABBITMQ_PASSWORD);
+        this.accessKey = PropertiesUtils.getProperty(properties, CanalConstants.CANAL_ALIYUN_ACCESS_KEY);
+        this.secretKey = PropertiesUtils.getProperty(properties, CanalConstants.CANAL_ALIYUN_SECRET_KEY);
+        this.username = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_USERNAME);
+        this.password = PropertiesUtils.getProperty(properties, RabbitMQConstants.RABBITMQ_PASSWORD);
         Long resourceOwnerIdPro = (Long) properties.get(RabbitMQConstants.RABBITMQ_RESOURCE_OWNERID);
         if (resourceOwnerIdPro != null) {
             this.resourceOwnerId = resourceOwnerIdPro;
@@ -90,7 +87,15 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
             factory.setUsername(username);
             factory.setPassword(password);
         }
-        factory.setHost(nameServer);
+        // 解析出端口 modified by 16075140
+        if (nameServer != null && nameServer.contains(":")) {
+            String[] serverHostAndPort = AddressUtils.splitIPAndPort(nameServer);
+            factory.setHost(serverHostAndPort[0]);
+            factory.setPort(Integer.parseInt(serverHostAndPort[1]));
+        } else {
+            factory.setHost(nameServer);
+        }
+
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(5000);
         factory.setVirtualHost(vhost);
@@ -128,7 +133,7 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
         if (logger.isDebugEnabled()) {
             logger.debug("Get Message: {}", new String(messageData));
         }
-        List<CommonMessage> messageList = Lists.newArrayList();
+        List<CommonMessage> messageList = new ArrayList<>();
         if (!flatMessage) {
             Message message = CanalMessageSerializerUtil.deserializer(messageData);
             messageList.addAll(MessageUtil.convert(message));

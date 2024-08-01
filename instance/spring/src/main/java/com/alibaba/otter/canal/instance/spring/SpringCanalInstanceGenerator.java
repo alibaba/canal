@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.instance.spring;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -9,6 +10,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.alibaba.otter.canal.common.CanalException;
 import com.alibaba.otter.canal.instance.core.CanalInstance;
 import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
+import com.alibaba.otter.canal.parse.CanalEventParser;
 
 /**
  * @author zebin.xuzb @ 2012-7-12
@@ -22,7 +24,7 @@ public class SpringCanalInstanceGenerator implements CanalInstanceGenerator {
     private BeanFactory         beanFactory;
 
     public CanalInstance generate(String destination) {
-        synchronized (CanalInstanceGenerator.class) {
+        synchronized (CanalEventParser.class) {
             try {
                 // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
                 System.setProperty("canal.instance.destination", destination);
@@ -43,6 +45,9 @@ public class SpringCanalInstanceGenerator implements CanalInstanceGenerator {
     }
 
     private BeanFactory getBeanFactory(String springXml) {
+        if (!StringUtils.startsWithIgnoreCase(springXml, "classpath:")) {
+            springXml = "classpath:" + springXml;
+        }
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(springXml);
         return applicationContext;
     }

@@ -36,6 +36,9 @@ public class CanalLauncher {
             logger.info("## set default uncaught exception handler");
             setGlobalUncaughtExceptionHandler();
 
+            // 支持rocketmq client 配置日志路径
+            System.setProperty("rocketmq.client.logUseSlf4j","true");
+
             logger.info("## load canal configurations");
             String conf = System.getProperty("canal.conf", "classpath:canal.properties");
             Properties properties = new Properties();
@@ -51,10 +54,19 @@ public class CanalLauncher {
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
                 String passwd = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
+                if (StringUtils.isEmpty(passwd)) {
+                    throw new IllegalArgumentException(
+                        "canal.admin.passwd is empty , pls check https://github.com/alibaba/canal/issues/4941");
+                }
                 String adminPort = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT, "11110");
                 boolean autoRegister = BooleanUtils.toBoolean(CanalController.getProperty(properties,
                     CanalConstants.CANAL_ADMIN_AUTO_REGISTER));
                 String autoCluster = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_AUTO_CLUSTER);
+                String name = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_REGISTER_NAME);
+                if (StringUtils.isEmpty(name)) {
+                    name = AddressUtils.getHostName();
+                }
+
                 String registerIp = CanalController.getProperty(properties, CanalConstants.CANAL_REGISTER_IP);
                 if (StringUtils.isEmpty(registerIp)) {
                     registerIp = AddressUtils.getHostIp();
@@ -65,7 +77,8 @@ public class CanalLauncher {
                     registerIp,
                     Integer.parseInt(adminPort),
                     autoRegister,
-                    autoCluster);
+                    autoCluster,
+                    name);
                 PlainCanal canalConfig = configClient.findServer(null);
                 if (canalConfig == null) {
                     throw new IllegalArgumentException("managerAddress:" + managerAddress

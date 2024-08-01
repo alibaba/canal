@@ -17,6 +17,7 @@ public class RocketMQProducerConfig extends MQProperties {
     private String  namesrvAddr;
     private int     retryTimesWhenSendFailed = 0;
     private boolean vipChannelEnabled        = false;
+    private String  tag;
 
     public String getProducerGroup() {
         return producerGroup;
@@ -72,5 +73,13 @@ public class RocketMQProducerConfig extends MQProperties {
 
     public void setVipChannelEnabled(boolean vipChannelEnabled) {
         this.vipChannelEnabled = vipChannelEnabled;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }

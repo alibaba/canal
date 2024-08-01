@@ -100,7 +100,7 @@ public class DdlResult {
     @Override
     public String toString() {
         DdlResult ddlResult = this;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         do {
             sb.append(String.format("DdlResult [schemaName=%s , tableName=%s , oriSchemaName=%s , oriTableName=%s , type=%s ];",
                 ddlResult.schemaName,

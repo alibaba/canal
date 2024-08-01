@@ -11,14 +11,15 @@ import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 
 /**
- * Kafka client example
+ * RocketMQ client example
  *
  * @author machengyuan @ 2018-6-12
  * @version 1.0.0
  */
 public class CanalRocketMQClientFlatMessageExample extends AbstractRocektMQTest {
 
-    protected final static Logger           logger  = LoggerFactory.getLogger(CanalRocketMQClientFlatMessageExample.class);
+    protected final static Logger           logger  = LoggerFactory
+        .getLogger(CanalRocketMQClientFlatMessageExample.class);
 
     private RocketMQCanalConnector          connector;
 
@@ -34,7 +35,8 @@ public class CanalRocketMQClientFlatMessageExample extends AbstractRocektMQTest 
 
     public static void main(String[] args) {
         try {
-            final CanalRocketMQClientFlatMessageExample rocketMQClientExample = new CanalRocketMQClientFlatMessageExample(nameServers,
+            final CanalRocketMQClientFlatMessageExample rocketMQClientExample = new CanalRocketMQClientFlatMessageExample(
+                nameServers,
                 topic,
                 groupId);
             logger.info("## Start the rocketmq consumer: {}-{}", topic, groupId);

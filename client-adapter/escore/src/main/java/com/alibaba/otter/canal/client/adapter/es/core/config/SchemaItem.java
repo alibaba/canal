@@ -136,8 +136,8 @@ public class SchemaItem {
     }
 
     public FieldItem getIdFieldItem(ESSyncConfig.ESMapping mapping) {
-        if (mapping.get_id() != null) {
-            return getSelectFields().get(mapping.get_id());
+        if (mapping.getId() != null) {
+            return getSelectFields().get(mapping.getId());
         } else {
             return getSelectFields().get(mapping.getPk());
         }

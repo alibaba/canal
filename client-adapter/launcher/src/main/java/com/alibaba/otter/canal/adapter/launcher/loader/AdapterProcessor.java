@@ -22,10 +22,11 @@ import com.alibaba.otter.canal.connector.core.config.CanalConstants;
 import com.alibaba.otter.canal.connector.core.consumer.CommonMessage;
 import com.alibaba.otter.canal.connector.core.spi.CanalMsgConsumer;
 import com.alibaba.otter.canal.connector.core.spi.ExtensionLoader;
+import com.alibaba.otter.canal.connector.core.spi.ProxyCanalMsgConsumer;
 
 /**
  * 适配处理器
- * 
+ *
  * @author rewerma 2020-02-01
  * @version 1.0.0
  */
@@ -62,17 +63,18 @@ public class AdapterProcessor {
 
         // load connector consumer
         ExtensionLoader<CanalMsgConsumer> loader = new ExtensionLoader<>(CanalMsgConsumer.class);
-        canalMsgConsumer = loader
-            .getExtension(canalClientConfig.getMode().toLowerCase(), CONNECTOR_SPI_DIR, CONNECTOR_STANDBY_SPI_DIR);
+        // see https://github.com/alibaba/canal/pull/5175
+        String key = destination + "_" + groupId;
+        canalMsgConsumer = new ProxyCanalMsgConsumer(loader.getExtension(canalClientConfig.getMode().toLowerCase(),
+            key,
+            CONNECTOR_SPI_DIR,
+            CONNECTOR_STANDBY_SPI_DIR));
 
         Properties properties = canalClientConfig.getConsumerProperties();
         properties.put(CanalConstants.CANAL_MQ_FLAT_MESSAGE, canalClientConfig.getFlatMessage());
         properties.put(CanalConstants.CANAL_ALIYUN_ACCESS_KEY, canalClientConfig.getAccessKey());
         properties.put(CanalConstants.CANAL_ALIYUN_SECRET_KEY, canalClientConfig.getSecretKey());
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(canalMsgConsumer.getClass().getClassLoader());
         canalMsgConsumer.init(properties, canalDestination, groupId);
-        Thread.currentThread().setContextClassLoader(cl);
     }
 
     public void start() {
@@ -87,6 +89,7 @@ public class AdapterProcessor {
     public void writeOut(final List<CommonMessage> commonMessages) {
         List<Future<Boolean>> futures = new ArrayList<>();
         // 组间适配器并行运行
+        // 当 canalOuterAdapters 初始化失败时，消息将会全部丢失
         canalOuterAdapters.forEach(outerAdapters -> {
             futures.add(groupInnerExecutorService.submit(() -> {
                 try {
@@ -211,13 +214,21 @@ public class AdapterProcessor {
                                     canalDestination,
                                     System.currentTimeMillis() - begin);
                             }
+                            break;
                         } catch (Exception e) {
                             if (i != retry - 1) {
                                 canalMsgConsumer.rollback(); // 处理失败, 回滚数据
                                 logger.error(e.getMessage() + " Error sync and rollback, execute times: " + (i + 1));
                             } else {
-                                canalMsgConsumer.ack();
-                                logger.error(e.getMessage() + " Error sync but ACK!");
+                                if (canalClientConfig.getTerminateOnException()) {
+                                    canalMsgConsumer.rollback();
+                                    logger.error("Retry fail, turn switch off and abort data transfer.");
+                                    syncSwitch.off(canalDestination);
+                                    logger.error("finish turn off switch of destination:" + canalDestination);
+                                } else {
+                                    canalMsgConsumer.ack();
+                                    logger.error(e.getMessage() + " Error sync but ACK!", e);
+                                }
                             }
                             Thread.sleep(500);
                         }

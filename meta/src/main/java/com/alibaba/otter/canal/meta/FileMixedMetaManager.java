@@ -91,6 +91,8 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             for (ClientIdentity clientIdentity : tasks) {
                 MDC.put("destination", String.valueOf(clientIdentity.getDestination()));
                 try {
+                    updateCursorTasks.remove(clientIdentity);
+
                     // 定时将内存中的最新值刷到file中，多次变更只刷一次
                     if (logger.isInfoEnabled()) {
                         LogPosition cursor = (LogPosition) getCursor(clientIdentity);
@@ -100,7 +102,6 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                                 cursor.getIdentity().getSourceAddress().toString());
                     }
                     flushDataToFile(clientIdentity.getDestination());
-                    updateCursorTasks.remove(clientIdentity);
                 } catch (Throwable e) {
                     // ignore
                     logger.error("period update" + clientIdentity.toString() + " curosr failed!", e);
@@ -170,7 +171,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
                 return null;
             }
 
-            String json = FileUtils.readFileToString(dataFile, charset.name());
+            String json = FileUtils.readFileToString(dataFile, charset);
             return JsonUtils.unmarshalFromString(json, FileMetaInstanceData.class);
         } catch (IOException e) {
             throw new CanalMetaManagerException(e);
@@ -193,7 +194,7 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
             synchronized (destination.intern()) { // 基于destination控制一下并发更新
                 data.setDestination(destination);
 
-                List<FileMetaClientIdentityData> clientDatas = Lists.newArrayList();
+                List<FileMetaClientIdentityData> clientDatas = new ArrayList<>();
                 List<ClientIdentity> clientIdentitys = destinations.get(destination);
                 for (ClientIdentity clientIdentity : clientIdentitys) {
                     FileMetaClientIdentityData clientData = new FileMetaClientIdentityData();
@@ -208,7 +209,11 @@ public class FileMixedMetaManager extends MemoryMetaManager implements CanalMeta
 
                 data.setClientDatas(clientDatas);
             }
-
+            //fixed issue https://github.com/alibaba/canal/issues/4312
+            //客户端数据为空时不覆盖文件内容 （适合单客户端）
+            if(data.getClientDatas().isEmpty()){
+                return;
+            }
             String json = JsonUtils.marshalToString(data);
             try {
                 FileUtils.writeStringToFile(dataFile, json);

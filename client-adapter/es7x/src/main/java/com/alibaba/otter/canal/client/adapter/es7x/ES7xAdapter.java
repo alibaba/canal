@@ -59,11 +59,11 @@ public class ES7xAdapter extends ESAdapter {
     public Map<String, Object> count(String task) {
         ESSyncConfig config = esSyncConfig.get(task);
         ESSyncConfig.ESMapping mapping = config.getEsMapping();
-        SearchResponse response = this.esConnection.new ESSearchRequest(mapping.get_index()).size(0).getResponse();
+        SearchResponse response = this.esConnection.new ESSearchRequest(mapping.getIndex()).size(0).getResponse();
 
         long rowCount = response.getHits().getTotalHits().value;
         Map<String, Object> res = new LinkedHashMap<>();
-        res.put("esIndex", mapping.get_index());
+        res.put("esIndex", mapping.getIndex());
         res.put("count", rowCount);
         return res;
     }

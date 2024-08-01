@@ -1,8 +1,8 @@
 package com.taobao.tddl.dbsync.binlog;
 
-import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber2;
-import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.appendNumber4;
-import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.usecondsToStr;
+import static com.taobao.tddl.dbsync.binlog.event.RowsLogBuffer.*;
+
+import java.nio.charset.Charset;
 
 /**
  * 处理下MySQL json二进制转化为可读的字符串
@@ -32,48 +32,51 @@ public class JsonConversion {
     public static final char JSONB_FALSE_LITERAL     = '\2';
 
     /*
-     * The size of offset or size fields in the small and the large storage
-     * format for JSON objects and JSON arrays.
+     * The size of offset or size fields in the small and the large storage format
+     * for JSON objects and JSON arrays.
      */
     public static final int  SMALL_OFFSET_SIZE       = 2;
     public static final int  LARGE_OFFSET_SIZE       = 4;
 
     /*
-     * The size of key entries for objects when using the small storage format
-     * or the large storage format. In the small format it is 4 bytes (2 bytes
-     * for key length and 2 bytes for key offset). In the large format it is 6
-     * (2 bytes for length, 4 bytes for offset).
+     * The size of key entries for objects when using the small storage format or
+     * the large storage format. In the small format it is 4 bytes (2 bytes for key
+     * length and 2 bytes for key offset). In the large format it is 6 (2 bytes for
+     * length, 4 bytes for offset).
      */
     public static final int  KEY_ENTRY_SIZE_SMALL    = (2 + SMALL_OFFSET_SIZE);
     public static final int  KEY_ENTRY_SIZE_LARGE    = (2 + LARGE_OFFSET_SIZE);
 
     /*
-     * The size of value entries for objects or arrays. When using the small
-     * storage format, the entry size is 3 (1 byte for type, 2 bytes for
-     * offset). When using the large storage format, it is 5 (1 byte for type, 4
-     * bytes for offset).
+     * The size of value entries for objects or arrays. When using the small storage
+     * format, the entry size is 3 (1 byte for type, 2 bytes for offset). When using
+     * the large storage format, it is 5 (1 byte for type, 4 bytes for offset).
      */
     public static final int  VALUE_ENTRY_SIZE_SMALL  = (1 + SMALL_OFFSET_SIZE);
     public static final int  VALUE_ENTRY_SIZE_LARGE  = (1 + LARGE_OFFSET_SIZE);
 
     public static Json_Value parse_value(int type, LogBuffer buffer, long len, String charsetName) {
+        return parse_value(type, buffer, len, Charset.forName(charsetName));
+    }
+
+    public static Json_Value parse_value(int type, LogBuffer buffer, long len, Charset charset) {
         buffer = buffer.duplicate(buffer.position(), (int) len);
         switch (type) {
             case JSONB_TYPE_SMALL_OBJECT:
-                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, false, charsetName);
+                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, false, charset);
             case JSONB_TYPE_LARGE_OBJECT:
-                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, true, charsetName);
+                return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, true, charset);
             case JSONB_TYPE_SMALL_ARRAY:
-                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, false, charsetName);
+                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, false, charset);
             case JSONB_TYPE_LARGE_ARRAY:
-                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, true, charsetName);
+                return parse_array_or_object(Json_enum_type.ARRAY, buffer, len, true, charset);
             default:
-                return parse_scalar(type, buffer, len, charsetName);
+                return parse_scalar(type, buffer, len, charset);
         }
     }
 
     private static Json_Value parse_array_or_object(Json_enum_type type, LogBuffer buffer, long len, boolean large,
-                                                    String charsetName) {
+                                                    Charset charset) {
         long offset_size = large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
         if (len < 2 * offset_size) {
             throw new IllegalArgumentException("illegal json data");
@@ -100,7 +103,7 @@ public class JsonConversion {
         return large ? buffer.getUint32() : buffer.getUint16();
     }
 
-    private static Json_Value parse_scalar(int type, LogBuffer buffer, long len, String charsetName) {
+    private static Json_Value parse_scalar(int type, LogBuffer buffer, long len, Charset charset) {
         switch (type) {
             case JSONB_TYPE_LITERAL:
                 /* purecov: inspected */
@@ -154,13 +157,12 @@ public class JsonConversion {
                 if (len < n + str_len) {
                     throw new IllegalArgumentException("illegal json data");
                 }
-                return new Json_Value(Json_enum_type.STRING, buffer.rewind()
-                    .forward((int) n)
-                    .getFixString((int) str_len, charsetName));
+                return new Json_Value(Json_enum_type.STRING,
+                    buffer.rewind().forward((int) n).getFixString((int) str_len, charset));
             case JSONB_TYPE_OPAQUE:
                 /*
-                 * There should always be at least one byte, which tells the
-                 * field type of the opaque value.
+                 * There should always be at least one byte, which tells the field type of the
+                 * opaque value.
                  */
                 // The type is encoded as a uint8 that maps to an
                 // enum_field_types.
@@ -242,7 +244,7 @@ public class JsonConversion {
             this.m_large = large;
         }
 
-        public String key(int i, String charsetName) {
+        public String key(int i, Charset charset) {
             m_data.rewind();
             int offset_size = m_large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
             int key_entry_size = m_large ? KEY_ENTRY_SIZE_LARGE : KEY_ENTRY_SIZE_SMALL;
@@ -255,10 +257,10 @@ public class JsonConversion {
             // entry, always two
             // bytes.
             long key_length = m_data.getUint16();
-            return m_data.rewind().forward((int) key_offset).getFixString((int) key_length, charsetName);
+            return m_data.rewind().forward((int) key_offset).getFixString((int) key_length, charset);
         }
 
-        public Json_Value element(int i, String charsetName) {
+        public Json_Value element(int i, Charset charset) {
             m_data.rewind();
             int offset_size = m_large ? LARGE_OFFSET_SIZE : SMALL_OFFSET_SIZE;
             int key_entry_size = m_large ? KEY_ENTRY_SIZE_LARGE : KEY_ENTRY_SIZE_SMALL;
@@ -271,13 +273,13 @@ public class JsonConversion {
             int type = m_data.forward(entry_offset).getUint8();
             if (type == JSONB_TYPE_INT16 || type == JSONB_TYPE_UINT16 || type == JSONB_TYPE_LITERAL
                 || (m_large && (type == JSONB_TYPE_INT32 || type == JSONB_TYPE_UINT32))) {
-                return parse_scalar(type, m_data, value_entry_size - 1, charsetName);
+                return parse_scalar(type, m_data, value_entry_size - 1, charset);
             }
             int value_offset = (int) read_offset_or_size(m_data, m_large);
-            return parse_value(type, m_data.rewind().forward(value_offset), (int) m_length - value_offset, charsetName);
+            return parse_value(type, m_data.rewind().forward(value_offset), (int) m_length - value_offset, charset);
         }
 
-        public StringBuilder toJsonString(StringBuilder buf, String charsetName) {
+        public StringBuilder toJsonString(StringBuilder buf, Charset charset) {
             switch (m_type) {
                 case OBJECT:
                     buf.append("{");
@@ -285,9 +287,9 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        buf.append('"').append(key(i, charsetName)).append('"');
+                        buf.append('"').append(escapse(key(i, charset))).append('"');
                         buf.append(": ");
-                        element(i, charsetName).toJsonString(buf, charsetName);
+                        element(i, charset).toJsonString(buf, charset);
                     }
                     buf.append("}");
                     break;
@@ -297,7 +299,7 @@ public class JsonConversion {
                         if (i > 0) {
                             buf.append(", ");
                         }
-                        element(i, charsetName).toJsonString(buf, charsetName);
+                        element(i, charset).toJsonString(buf, charset);
                     }
                     buf.append("]");
                     break;
@@ -362,45 +364,45 @@ public class JsonConversion {
                         buf.append('"').append(text).append('"');
                     } else if (m_field_type == LogEvent.MYSQL_TYPE_DATE || m_field_type == LogEvent.MYSQL_TYPE_DATETIME
                                || m_field_type == LogEvent.MYSQL_TYPE_TIMESTAMP) {
-                        long packed_value = m_data.getLong64();
-                        if (packed_value == 0) {
-                            text = "0000-00-00 00:00:00";
-                        } else {
-                            // 构造TimeStamp只处理到秒
-                            long ultime = Math.abs(packed_value);
-                            long intpart = ultime >> 24;
-                            int frac = (int) (ultime % (1L << 24));
-                            long ymd = intpart >> 17;
-                            long ym = ymd >> 5;
-                            long hms = intpart % (1 << 17);
-                            // text =
-                            // String.format("%04d-%02d-%02d %02d:%02d:%02d",
-                            // (int) (ym / 13),
-                            // (int) (ym % 13),
-                            // (int) (ymd % (1 << 5)),
-                            // (int) (hms >> 12),
-                            // (int) ((hms >> 6) % (1 << 6)),
-                            // (int) (hms % (1 << 6)));
-                            StringBuilder builder = new StringBuilder(26);
-                            appendNumber4(builder, (int) (ym / 13));
-                            builder.append('-');
-                            appendNumber2(builder, (int) (ym % 13));
-                            builder.append('-');
-                            appendNumber2(builder, (int) (ymd % (1 << 5)));
-                            builder.append(' ');
-                            appendNumber2(builder, (int) (hms >> 12));
-                            builder.append(':');
-                            appendNumber2(builder, (int) ((hms >> 6) % (1 << 6)));
-                            builder.append(':');
-                            appendNumber2(builder, (int) (hms % (1 << 6)));
-                            builder.append('.').append(usecondsToStr(frac, 6));
-                            text = builder.toString();
-                        }
-                        buf.append('"').append(text).append('"');
-                    } else {
-                        text = m_data.getFixString((int) m_length, charsetName);
-                        buf.append('"').append(escapse(text)).append('"');
-                    }
+                                   long packed_value = m_data.getLong64();
+                                   if (packed_value == 0) {
+                                       text = "0000-00-00 00:00:00";
+                                   } else {
+                                       // 构造TimeStamp只处理到秒
+                                       long ultime = Math.abs(packed_value);
+                                       long intpart = ultime >> 24;
+                                       int frac = (int) (ultime % (1L << 24));
+                                       long ymd = intpart >> 17;
+                                       long ym = ymd >> 5;
+                                       long hms = intpart % (1 << 17);
+                                       // text =
+                                       // String.format("%04d-%02d-%02d %02d:%02d:%02d",
+                                       // (int) (ym / 13),
+                                       // (int) (ym % 13),
+                                       // (int) (ymd % (1 << 5)),
+                                       // (int) (hms >> 12),
+                                       // (int) ((hms >> 6) % (1 << 6)),
+                                       // (int) (hms % (1 << 6)));
+                                       StringBuilder builder = new StringBuilder(26);
+                                       appendNumber4(builder, (int) (ym / 13));
+                                       builder.append('-');
+                                       appendNumber2(builder, (int) (ym % 13));
+                                       builder.append('-');
+                                       appendNumber2(builder, (int) (ymd % (1 << 5)));
+                                       builder.append(' ');
+                                       appendNumber2(builder, (int) (hms >> 12));
+                                       builder.append(':');
+                                       appendNumber2(builder, (int) ((hms >> 6) % (1 << 6)));
+                                       builder.append(':');
+                                       appendNumber2(builder, (int) (hms % (1 << 6)));
+                                       builder.append('.').append(usecondsToStr(frac, 6));
+                                       text = builder.toString();
+                                   }
+                                   buf.append('"').append(text).append('"');
+                               } else {
+                                   text = m_data.getFixString((int) m_length, charset);
+                                   buf.append('"').append(escapse(text)).append('"');
+                               }
 
                     break;
                 case STRING:
@@ -420,17 +422,34 @@ public class JsonConversion {
         for (int i = 0; i < endIndex; ++i) {
             char c = data.charAt(i);
             if (c == '"') {
-                sb.append('\\');
+                sb.append("\\\"");
+            } else if (c == '\n') {
+                sb.append("\\n");
+            } else if (c == '\r') {
+                sb.append("\\r");
             } else if (c == '\\') {
-                sb.append("\\");
+                sb.append("\\\\");
+            } else if (c == '\t') {
+                sb.append("\\t");
+            } else if (c < 16) {
+                sb.append("\\u000");
+                sb.append(Integer.toHexString(c));
+            } else if (c < 32) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else if (c >= 0x7f && c <= 0xA0) {
+                sb.append("\\u00");
+                sb.append(Integer.toHexString(c));
+            } else {
+                sb.append(c);
             }
-            sb.append(c);
         }
         return sb;
     }
 
     public static enum Json_enum_type {
-        OBJECT, ARRAY, STRING, INT, UINT, DOUBLE, LITERAL_NULL, LITERAL_TRUE, LITERAL_FALSE, OPAQUE, ERROR
+                                       OBJECT, ARRAY, STRING, INT, UINT, DOUBLE, LITERAL_NULL, LITERAL_TRUE,
+                                       LITERAL_FALSE, OPAQUE, ERROR
     }
 
 }
