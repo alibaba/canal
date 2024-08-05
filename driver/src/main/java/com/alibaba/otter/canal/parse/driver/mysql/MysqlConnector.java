@@ -284,7 +284,7 @@ public class MysqlConnector {
                     encryptedPassword = getPassword().getBytes();
                     header = authSwitchAfterAuth(encryptedPassword, header);
                     body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
-                } else if ("mysql_native_password".equals(pluginName)) {
+                } else if (pluginName == null || "mysql_native_password".equals(pluginName)) {
                     try {
                         encryptedPassword = MySQLPasswordEncrypter.scramble411(getPassword().getBytes(), authData);
                     } catch (NoSuchAlgorithmException e) {

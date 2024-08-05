@@ -668,13 +668,20 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      * 查询当前的binlog位置
      */
     private EntryPosition findEndPosition(MysqlConnection mysqlConnection) {
+        String showSql = "SHOW MASTER STATUS";
         try {
-            String showSql = multiStreamEnable ? "show master status with " + destination : "show master status";
+            if (mysqlConnection.atLeastMySQL84()) {
+                showSql = "SHOW BINARY LOG STATUS";
+            }
+            if (multiStreamEnable) {
+                showSql = "show master status with " + destination;
+            }
+
             ResultSetPacket packet = mysqlConnection.query(showSql);
             List<String> fields = packet.getFieldValues();
             if (CollectionUtils.isEmpty(fields)) {
                 throw new CanalParseException(
-                        "command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+                        "command : '" + showSql +"' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
             }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             if (isGTIDMode() && fields.size() > 4) {
@@ -690,7 +697,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             }
             return endPosition;
         } catch (IOException e) {
-            throw new CanalParseException("command : 'show master status' has an error!", e);
+            throw new CanalParseException("command : '" + showSql +"' has an error! ", e);
         }
     }
 
