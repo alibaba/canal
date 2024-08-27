@@ -200,14 +200,18 @@ public class MysqlConnector {
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
         handshakePacket.fromBytes(body);
+        byte serverCharsetNumber
+            = (handshakePacket.serverCharsetNumber != 0)
+            ? handshakePacket.serverCharsetNumber
+            : 33;
         SslMode sslMode = sslInfo != null ? sslInfo.getSslMode() : SslMode.DISABLED;
         if (sslMode != SslMode.DISABLED) {
             boolean serverSupportSsl = (handshakePacket.serverCapabilities & CLIENT_SSL) > 0;
             if (!serverSupportSsl) {
-                throw new IOException("MySQL Server does not support SSL: " + address + " serverCapabilities: "
-                                      + handshakePacket.serverCapabilities);
+                throw new IOException("MySQL Server does not support SSL: " + address
+                    + " serverCapabilities: " + handshakePacket.serverCapabilities);
             }
-            byte[] sslPacket = new SslRequestCommandPacket(handshakePacket.serverCharsetNumber).toBytes();
+            byte[] sslPacket = new SslRequestCommandPacket(serverCharsetNumber).toBytes();
             HeaderPacket sslHeader = new HeaderPacket();
             sslHeader.setPacketBodyLength(sslPacket.length);
             sslHeader.setPacketSequenceNumber((byte) (header.getPacketSequenceNumber() + 1));
@@ -225,23 +229,28 @@ public class MysqlConnector {
         connectionId = handshakePacket.threadId; // 记录一下connection
         serverVersion = handshakePacket.serverVersion; // 记录serverVersion
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
-        logger.info("auth plugin: {}", new String(handshakePacket.authPluginName));
+        // 某些老协议的 server 默认不返回 auth plugin，需要使用默认的 mysql_native_password
+        String authPluginName
+            = (handshakePacket.authPluginName != null && handshakePacket.authPluginName.length > 0)
+            ? new String(handshakePacket.authPluginName)
+            : "mysql_native_password";
+        logger.info("auth plugin: {}", authPluginName);
         boolean isSha2Password = false;
         ClientAuthenticationPacket clientAuth;
-        if ("caching_sha2_password".equals(new String(handshakePacket.authPluginName))) {
+        if ("caching_sha2_password".equals(authPluginName)) {
             clientAuth = new ClientAuthenticationSHA2Packet();
             isSha2Password = true;
         } else {
             clientAuth = new ClientAuthenticationPacket();
         }
-        clientAuth.setCharsetNumber(handshakePacket.serverCharsetNumber);
+        clientAuth.setCharsetNumber(serverCharsetNumber);
 
         clientAuth.setUsername(username);
         clientAuth.setPassword(password);
         clientAuth.setServerCapabilities(handshakePacket.serverCapabilities);
         clientAuth.setDatabaseName(defaultSchema);
         clientAuth.setScrumbleBuff(joinAndCreateScrumbleBuff(handshakePacket));
-        clientAuth.setAuthPluginName(handshakePacket.authPluginName);
+        clientAuth.setAuthPluginName(authPluginName.getBytes());
 
         byte[] clientAuthPkgBody = clientAuth.toBytes();
         HeaderPacket h = new HeaderPacket();
