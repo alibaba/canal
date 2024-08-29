@@ -207,6 +207,11 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             }
 
             for (String schema : schemas) {
+                // 如果schema命中黑名单，直接跳过
+                // 解决部分数据库可以看到database，但实际表级别无权限的情况
+                if (blackFilter != null && blackFilter.filter(schema + ".%")) {
+                    continue;
+                }
                 // filter views
                 packet = connection.query("show full tables from `" + schema + "` where Table_type = 'BASE TABLE'");
                 columnSize = packet.getFieldDescriptors().size();

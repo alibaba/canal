@@ -603,6 +603,32 @@ public class MysqlConnection implements ErosaConnection {
         }
     }
 
+    /**
+     * MySQL 8.4版本开始部分命令出现变化
+     * https://dev.mysql.com/doc/relnotes/mysql/8.4/en/news-8-4-0.html#mysqld-8-4-0-deprecation-removal
+     * 
+     * @param major
+     * @param minor
+     * @return
+     */
+    public boolean atLeast(int major, int minor) {
+        if (isMariaDB()) {
+            return false;
+        }
+        String version = connector.getServerVersion();
+        if (StringUtils.isNotEmpty(version)) {
+            String[] parts = version.split("\\.");
+            int majorVer = Integer.parseInt(parts[0]);
+            int minorVer = Integer.parseInt(parts[1]);
+            return (majorVer > major) || (majorVer == major && minorVer >= minor);
+        }
+        return false;
+    }
+
+    public boolean atLeastMySQL84() {
+        return atLeast(8, 4);
+    }
+
     private void accumulateReceivedBytes(long x) {
         if (receivedBinlogBytes != null) {
             receivedBinlogBytes.addAndGet(x);
@@ -627,7 +653,7 @@ public class MysqlConnection implements ErosaConnection {
 
         private String value;
 
-        private BinlogFormat(String value){
+        private BinlogFormat(String value) {
             this.value = value;
         }
 
@@ -667,7 +693,7 @@ public class MysqlConnection implements ErosaConnection {
 
         private String value;
 
-        private BinlogImage(String value){
+        private BinlogImage(String value) {
             this.value = value;
         }
 

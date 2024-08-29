@@ -668,13 +668,20 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      * 查询当前的binlog位置
      */
     private EntryPosition findEndPosition(MysqlConnection mysqlConnection) {
+        String showSql = "show master status";
         try {
-            String showSql = multiStreamEnable ? "show master status with " + destination : "show master status";
+            if (mysqlConnection.atLeastMySQL84()) {
+                // 8.4新语法
+                showSql = "show binary log status";
+            } else if (multiStreamEnable) {
+                // 兼容polardb-x的多流binlog
+                showSql = "show master status with " + destination;
+            }
             ResultSetPacket packet = mysqlConnection.query(showSql);
             List<String> fields = packet.getFieldValues();
             if (CollectionUtils.isEmpty(fields)) {
                 throw new CanalParseException(
-                        "command : 'show master status' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
+                    "command : '" + showSql + "' has an error! pls check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation");
             }
             EntryPosition endPosition = new EntryPosition(fields.get(0), Long.valueOf(fields.get(1)));
             if (isGTIDMode() && fields.size() > 4) {
@@ -690,7 +697,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
             }
             return endPosition;
         } catch (IOException e) {
-            throw new CanalParseException("command : 'show master status' has an error!", e);
+            throw new CanalParseException("command : '" + showSql + "' has an error!", e);
         }
     }
 
@@ -721,7 +728,12 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     @SuppressWarnings("unused")
     private SlaveEntryPosition findSlavePosition(MysqlConnection mysqlConnection) {
         try {
-            ResultSetPacket packet = mysqlConnection.query("show slave status");
+            String showSql = "show slave stauts";
+            if (mysqlConnection.atLeastMySQL84()) {
+                // 兼容mysql 8.4
+                showSql = "show replica status";
+            }
+            ResultSetPacket packet = mysqlConnection.query(showSql);
             List<FieldPacket> names = packet.getFieldDescriptors();
             List<String> fields = packet.getFieldValues();
             if (CollectionUtils.isEmpty(fields)) {
