@@ -432,7 +432,7 @@ public class MysqlConnection implements ErosaConnection {
      * <li>net_write_timeout</li>
      * <li>net_read_timeout</li>
      * </ol>
-     *
+     * 
      * @throws IOException
      */
     private void updateSettings() throws IOException {
@@ -560,7 +560,7 @@ public class MysqlConnection implements ErosaConnection {
 
     /**
      * 获取主库checksum信息
-     *
+     * 
      * <pre>
      * mariadb区别于mysql会在binlog的第一个事件Rotate_Event里也会采用checksum逻辑,而mysql是在第二个binlog事件之后才感知是否需要处理checksum
      * 导致maraidb只要是开启checksum就会出现binlog文件名解析乱码
@@ -601,6 +601,32 @@ public class MysqlConnection implements ErosaConnection {
         } catch (Throwable e) {
             compatiablePercona = false;
         }
+    }
+
+    /**
+     * MySQL 8.4版本开始部分命令出现变化
+     * https://dev.mysql.com/doc/relnotes/mysql/8.4/en/news-8-4-0.html#mysqld-8-4-0-deprecation-removal
+     * 
+     * @param major
+     * @param minor
+     * @return
+     */
+    public boolean atLeast(int major, int minor) {
+        if (isMariaDB()) {
+            return false;
+        }
+        String version = connector.getServerVersion();
+        if (StringUtils.isNotEmpty(version)) {
+            String[] parts = version.split("\\.");
+            int majorVer = Integer.parseInt(parts[0]);
+            int minorVer = Integer.parseInt(parts[1]);
+            return (majorVer > major) || (majorVer == major && minorVer >= minor);
+        }
+        return false;
+    }
+
+    public boolean atLeastMySQL84() {
+        return atLeast(8, 4);
     }
 
     private void accumulateReceivedBytes(long x) {
@@ -645,7 +671,7 @@ public class MysqlConnection implements ErosaConnection {
     /**
      * http://dev.mysql.com/doc/refman/5.6/en/replication-options-binary-log.
      * html#sysvar_binlog_row_image
-     *
+     * 
      * @author agapple 2015年6月29日 下午10:39:03
      * @since 1.0.20
      */
@@ -756,23 +782,4 @@ public class MysqlConnection implements ErosaConnection {
         return connector.getServerVersion() != null && connector.getServerVersion().toLowerCase().contains("mariadb");
     }
 
-    // MySQL 8.4版本开始部分命令出现变化
-    // https://dev.mysql.com/doc/relnotes/mysql/8.4/en/news-8-4-0.html#mysqld-8-4-0-deprecation-removal
-    public boolean atLeast(int major, int minor) {
-        if (isMariaDB()) {
-            return false;
-        }
-        String version = connector.getServerVersion();
-        if (StringUtils.isNotEmpty(version)) {
-            String[] parts = version.split("\\.");
-            int majorVer = Integer.parseInt(parts[0]);
-            int minorVer = Integer.parseInt(parts[1]);
-            return (majorVer > major) || (majorVer == major && minorVer >= minor);
-        }
-        return false;
-    }
-
-    public boolean atLeastMySQL84() {
-        return atLeast(8, 4);
-    }
 }

@@ -30,18 +30,17 @@ import com.alibaba.otter.canal.parse.driver.mysql.utils.PacketManager;
  */
 public class MysqlConnector {
 
+    public static final int     timeout           = 5 * 1000;                                     // 5s
     private static final Logger logger            = LoggerFactory.getLogger(MysqlConnector.class);
     private InetSocketAddress   address;
     private String              username;
     private String              password;
     private SslInfo             sslInfo;
-
     private String              defaultSchema;
     private int                 soTimeout         = 30 * 1000;
     private int                 connTimeout       = 5 * 1000;
     private int                 receiveBufferSize = 16 * 1024;
     private int                 sendBufferSize    = 16 * 1024;
-
     private SocketChannel       channel;
     private volatile boolean    dumping           = false;
     // mysql connectionId
@@ -49,8 +48,6 @@ public class MysqlConnector {
     private AtomicBoolean       connected         = new AtomicBoolean(false);
     // serverVersion
     private String              serverVersion;
-
-    public static final int     timeout           = 5 * 1000;                                     // 5s
 
     public MysqlConnector(){
     }
@@ -200,16 +197,13 @@ public class MysqlConnector {
         }
         HandshakeInitializationPacket handshakePacket = new HandshakeInitializationPacket();
         handshakePacket.fromBytes(body);
-        byte serverCharsetNumber
-            = (handshakePacket.serverCharsetNumber != 0)
-            ? handshakePacket.serverCharsetNumber
-            : 33;
+        byte serverCharsetNumber = (handshakePacket.serverCharsetNumber != 0) ? handshakePacket.serverCharsetNumber : 33;
         SslMode sslMode = sslInfo != null ? sslInfo.getSslMode() : SslMode.DISABLED;
         if (sslMode != SslMode.DISABLED) {
             boolean serverSupportSsl = (handshakePacket.serverCapabilities & CLIENT_SSL) > 0;
             if (!serverSupportSsl) {
-                throw new IOException("MySQL Server does not support SSL: " + address
-                    + " serverCapabilities: " + handshakePacket.serverCapabilities);
+                throw new IOException("MySQL Server does not support SSL: " + address + " serverCapabilities: "
+                                      + handshakePacket.serverCapabilities);
             }
             byte[] sslPacket = new SslRequestCommandPacket(serverCharsetNumber).toBytes();
             HeaderPacket sslHeader = new HeaderPacket();
@@ -230,10 +224,9 @@ public class MysqlConnector {
         serverVersion = handshakePacket.serverVersion; // 记录serverVersion
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
         // 某些老协议的 server 默认不返回 auth plugin，需要使用默认的 mysql_native_password
-        String authPluginName
-            = (handshakePacket.authPluginName != null && handshakePacket.authPluginName.length > 0)
-            ? new String(handshakePacket.authPluginName)
-            : "mysql_native_password";
+        String authPluginName = (handshakePacket.authPluginName != null
+                                 && handshakePacket.authPluginName.length > 0) ? new String(
+                                     handshakePacket.authPluginName) : "mysql_native_password";
         logger.info("auth plugin: {}", authPluginName);
         boolean isSha2Password = false;
         ClientAuthenticationPacket clientAuth;
@@ -490,10 +483,6 @@ public class MysqlConnector {
         this.channel = channel;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public long getConnectionId() {
         return connectionId;
     }
@@ -520,6 +509,10 @@ public class MysqlConnector {
 
     public String getPassword() {
         return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getServerVersion() {
