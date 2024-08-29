@@ -168,16 +168,6 @@ public class BioSocketChannel implements SocketChannel {
         Socket socket = this.socket;
         if (socket != null) {
             try {
-                socket.shutdownInput();
-            } catch (IOException e) {
-                // Ignore, could not do anymore
-            }
-            try {
-                socket.shutdownOutput();
-            } catch (IOException e) {
-                // Ignore, could not do anymore
-            }
-            try {
                 socket.close();
             } catch (IOException e) {
                 // Ignore, could not do anymore
