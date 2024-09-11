@@ -819,7 +819,7 @@ public class QueryLogEvent extends LogEvent {
             case Q_MASTER_DATA_WRITTEN_CODE:
                 return "Q_MASTER_DATA_WRITTEN_CODE";
             case Q_INVOKER:
-                return "case Q_INVOKER";
+                return "Q_INVOKER";
             case Q_MICROSECONDS:
                 return "Q_MICROSECONDS";
             case Q_UPDATED_DB_NAMES:
