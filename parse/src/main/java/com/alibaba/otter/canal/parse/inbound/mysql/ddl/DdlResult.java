@@ -10,8 +10,8 @@ public class DdlResult {
 
     private String    schemaName;
     private String    tableName;
-    private String    oriSchemaName;    // rename ddl中的源表
-    private String    oriTableName;     // rename ddl中的目标表
+    private String    oriSchemaName;     // rename ddl中的源表
+    private String    oriTableName;      // rename ddl中的目标表
     private EventType type;
     private DdlResult renameTableResult; // 多个rename table的存储
 
@@ -102,7 +102,8 @@ public class DdlResult {
         DdlResult ddlResult = this;
         StringBuilder sb = new StringBuilder();
         do {
-            sb.append(String.format("DdlResult [schemaName=%s , tableName=%s , oriSchemaName=%s , oriTableName=%s , type=%s ];",
+            sb.append(String.format(
+                "DdlResult [schemaName=%s , tableName=%s , oriSchemaName=%s , oriTableName=%s , type=%s ];",
                 ddlResult.schemaName,
                 ddlResult.tableName,
                 ddlResult.oriSchemaName,

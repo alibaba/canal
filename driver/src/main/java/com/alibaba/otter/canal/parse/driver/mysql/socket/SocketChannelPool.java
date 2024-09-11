@@ -29,10 +29,9 @@ public abstract class SocketChannelPool {
 
     public static SocketChannel connectSsl(SocketChannel channel, SslInfo sslInfo) throws IOException {
         SslMode sslMode = sslInfo.getSslMode();
-
         String type = chooseSocketChannel();
         if ("netty".equalsIgnoreCase(type)) {
-            throw new UnsupportedOperationException("canal.socketChannel netty not support ssl mode: " + sslMode);
+            throw new UnsupportedOperationException("canal socketChannel netty not support ssl mode: " + sslMode);
         } else {
             SocketAddress remoteSocketAddress = channel.getRemoteSocketAddress();
             try {

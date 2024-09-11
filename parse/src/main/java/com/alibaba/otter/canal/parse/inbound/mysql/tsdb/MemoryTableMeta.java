@@ -3,26 +3,22 @@ package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.parse.inbound.TableMeta;
+import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
+import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.polardbx.druid.DbType;
 import com.alibaba.polardbx.druid.sql.SQLUtils;
 import com.alibaba.polardbx.druid.sql.ast.SQLDataType;
 import com.alibaba.polardbx.druid.sql.ast.SQLDataTypeImpl;
 import com.alibaba.polardbx.druid.sql.ast.SQLExpr;
 import com.alibaba.polardbx.druid.sql.ast.SQLStatement;
-import com.alibaba.polardbx.druid.sql.ast.expr.SQLCharExpr;
-import com.alibaba.polardbx.druid.sql.ast.expr.SQLIdentifierExpr;
-import com.alibaba.polardbx.druid.sql.ast.expr.SQLMethodInvokeExpr;
-import com.alibaba.polardbx.druid.sql.ast.expr.SQLNullExpr;
-import com.alibaba.polardbx.druid.sql.ast.expr.SQLPropertyExpr;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnConstraint;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnDefinition;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnPrimaryKey;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnUniqueKey;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLCreateTableStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLNotNullConstraint;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLNullConstraint;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLSelectOrderByItem;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLTableElement;
+import com.alibaba.polardbx.druid.sql.ast.expr.*;
+import com.alibaba.polardbx.druid.sql.ast.statement.*;
 import com.alibaba.polardbx.druid.sql.dialect.mysql.ast.MySqlPrimaryKey;
 import com.alibaba.polardbx.druid.sql.dialect.mysql.ast.MySqlUnique;
 import com.alibaba.polardbx.druid.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
@@ -32,13 +28,6 @@ import com.alibaba.polardbx.druid.sql.repository.SchemaRepository;
 import com.alibaba.polardbx.druid.sql.visitor.SQLASTOutputVisitor;
 import com.alibaba.polardbx.druid.sql.visitor.VisitorFeature;
 import com.alibaba.polardbx.druid.util.JdbcConstants;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.alibaba.otter.canal.parse.inbound.TableMeta;
-import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
-import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
-import com.alibaba.otter.canal.protocol.position.EntryPosition;
 
 /**
  * 基于DDL维护的内存表结构
@@ -50,7 +39,7 @@ public class MemoryTableMeta implements TableMetaTSDB {
 
     private Logger                       logger     = LoggerFactory.getLogger(MemoryTableMeta.class);
     private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<>();
-    private SchemaRepository repository;
+    private SchemaRepository             repository;
 
     public MemoryTableMeta(){
         repository = new SchemaRepository(JdbcConstants.MYSQL);

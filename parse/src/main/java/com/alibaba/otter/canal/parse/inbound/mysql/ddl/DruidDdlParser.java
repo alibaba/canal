@@ -4,39 +4,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 import com.alibaba.polardbx.druid.sql.SQLUtils;
 import com.alibaba.polardbx.druid.sql.ast.SQLExpr;
 import com.alibaba.polardbx.druid.sql.ast.SQLStatement;
 import com.alibaba.polardbx.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.polardbx.druid.sql.ast.expr.SQLPropertyExpr;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableAddConstraint;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableAddIndex;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableDropConstraint;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableDropIndex;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableDropKey;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableItem;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableRename;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLAlterTableStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLConstraint;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLCreateDatabaseStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLCreateIndexStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLCreateTableStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLDeleteStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLDropDatabaseStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLDropIndexStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLDropTableStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLExprTableSource;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLInsertStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLTableSource;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLTruncateStatement;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLUnique;
-import com.alibaba.polardbx.druid.sql.ast.statement.SQLUpdateStatement;
+import com.alibaba.polardbx.druid.sql.ast.statement.*;
 import com.alibaba.polardbx.druid.sql.dialect.mysql.ast.statement.MySqlRenameTableStatement;
 import com.alibaba.polardbx.druid.sql.parser.ParserException;
 import com.alibaba.polardbx.druid.util.JdbcConstants;
-import org.apache.commons.lang.StringUtils;
-
-import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 
 /**
  * @author agapple 2017年7月27日 下午4:05:34
