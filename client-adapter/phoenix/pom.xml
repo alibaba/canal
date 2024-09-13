@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>2.5.0</version>
+            <version>3.16.1</version>
         </dependency>
 
         <dependency>
@@ -118,17 +118,17 @@
                             <tasks>
                                 <copy todir="${project.basedir}/../launcher/target/canal-adapter/conf/phoenix" overwrite="true">
                                     <fileset dir="${project.basedir}/target/classes/phoenix" erroronmissingdir="true">
-                                        <include name="*.yml" />
+                                        <include name="*.yml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${project.basedir}/../launcher/target/canal-adapter/plugin" overwrite="true">
                                     <fileset dir="${project.basedir}/target/" erroronmissingdir="true">
-                                        <include name="*with-dependencies.jar" />
+                                        <include name="*with-dependencies.jar"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${project.basedir}/../launcher/target/classes/phoenix" overwrite="true">
                                     <fileset dir="${project.basedir}/target/classes/phoenix" erroronmissingdir="true">
-                                        <include name="*.yml" />
+                                        <include name="*.yml"/>
                                     </fileset>
                                 </copy>
                             </tasks>
