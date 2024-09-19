@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.connector.core.spi;
 
+import com.alibaba.otter.canal.common.counter.TpsCounter;
 import com.alibaba.otter.canal.connector.core.config.MQProperties;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.connector.core.util.Callback;
@@ -9,6 +10,7 @@ import java.util.Properties;
 public class ProxyCanalMQProducer implements CanalMQProducer {
 
     private CanalMQProducer canalMQProducer;
+    private TpsCounter tpsCounter;
 
     public ProxyCanalMQProducer(CanalMQProducer canalMQProducer) {
         this.canalMQProducer = canalMQProducer;
@@ -29,6 +31,7 @@ public class ProxyCanalMQProducer implements CanalMQProducer {
         ClassLoader cl = changeCL();
         try {
             canalMQProducer.init(properties);
+            this.tpsCounter = TpsCounter.getInstance(this.canalMQProducer.getClass().getName()+"$tpsCounter");
         } finally {
             revertCL(cl);
         }
@@ -48,6 +51,11 @@ public class ProxyCanalMQProducer implements CanalMQProducer {
     public void send(MQDestination canalDestination, Message message, Callback callback) {
         ClassLoader cl = changeCL();
         try {
+            MQProperties mqProperties = getMqProperties();
+            int maxTps = mqProperties.getMaxTps();
+            if (maxTps > 0) {
+                tpsCounter.waitTps(maxTps);
+            }
             canalMQProducer.send(canalDestination, message, callback);
         } finally {
             revertCL(cl);

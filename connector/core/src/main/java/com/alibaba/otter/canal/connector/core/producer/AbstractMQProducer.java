@@ -126,6 +126,13 @@ public abstract class AbstractMQProducer implements CanalMQProducer {
         if (!StringUtils.isEmpty(aliyunUid)) {
             mqProperties.setAliyunUid(Integer.parseInt(aliyunUid));
         }
+        String maxTps = PropertiesUtils.getProperty(properties, CanalConstants.CANAL_MQ_MAX_TPS);
+        if (!StringUtils.isEmpty(maxTps)) {
+            int tps = Integer.parseInt(maxTps);
+            if (tps>0) {
+                mqProperties.setMaxTps(tps);
+            }
+        }
     }
 
     /**

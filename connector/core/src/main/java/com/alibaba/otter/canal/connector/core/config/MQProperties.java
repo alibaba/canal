@@ -20,6 +20,7 @@ public class MQProperties {
     private String  aliyunAccessKey         = "";
     private String  aliyunSecretKey         = "";
     private int     aliyunUid               = 0;
+    private int     maxTps                  = -1;
 
     public boolean isFlatMessage() {
         return flatMessage;
@@ -107,5 +108,13 @@ public class MQProperties {
 
     public void setAliyunUid(int aliyunUid) {
         this.aliyunUid = aliyunUid;
+    }
+
+    public int getMaxTps() {
+        return maxTps;
+    }
+
+    public void setMaxTps(int maxTps) {
+        this.maxTps = maxTps;
     }
 }
