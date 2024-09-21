@@ -154,6 +154,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
     private Entry parseHeartbeatLogEvent(HeartbeatLogEvent logEvent) {
         Header.Builder headerBuilder = Header.newBuilder();
         headerBuilder.setEventType(EventType.MHEARTBEAT);
+        headerBuilder.setLogfileName(logEvent.getHeader().getLogFileName());
+        headerBuilder.setLogfileOffset(logEvent.getHeader().getLogPos());
         Entry.Builder entryBuilder = Entry.newBuilder();
         entryBuilder.setHeader(headerBuilder.build());
         entryBuilder.setEntryType(EntryType.HEARTBEAT);
