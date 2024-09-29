@@ -1,0 +1,34 @@
+ingress:
+  enabled: true
+  hosts:
+    - host: admin.canal.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+admin:
+  config: |
+    server:
+      port: 8089
+    spring:
+      jackson:
+        date-format: yyyy-MM-dd HH:mm:ss
+        time-zone: GMT+8
+    spring.datasource:
+      address: you_db_host:3306
+      database: canal_manager
+      username: ****
+      password: ****
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://${spring.datasource.address}/${spring.datasource.database}?useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true
+      hikari:
+        maximum-pool-size: 30
+        minimum-idle: 1
+    canal:
+      adminUser: admin
+      adminPasswd: admin
+    debug: true
+    
+image:
+  repository: registry.us-east-1.aliyuncs.com/sll0/canal-admin
+  tag: "latest"
