@@ -10,6 +10,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.channels.ClosedByInterruptException;
 
+import javax.net.ssl.SSLSocket;
+
 /**
  * 使用BIO进行dump
  *
@@ -17,16 +19,18 @@ import java.nio.channels.ClosedByInterruptException;
  */
 public class BioSocketChannel implements SocketChannel {
 
-    static final int     DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
-    static final int     SO_TIMEOUT              = 1000;
-    private Socket       socket;
-    private InputStream  input;
-    private OutputStream output;
+    static final int      DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
+    static final int      SO_TIMEOUT              = 1000;
+    private Socket        socket;
+    private InputStream   input;
+    private OutputStream  output;
+    private final boolean ssl;
 
     BioSocketChannel(Socket socket) throws IOException{
         this.socket = socket;
         this.input = new BufferedInputStream(socket.getInputStream(), 16384);
         this.output = socket.getOutputStream();
+        this.ssl = (socket instanceof SSLSocket);
     }
 
     public void write(byte[]... buf) throws IOException {
@@ -88,9 +92,9 @@ public class BioSocketChannel implements SocketChannel {
             }
         }
         if (remain > 0 && accTimeout >= timeout) {
-            throw new SocketTimeoutException("Timeout occurred, failed to read total " + readSize + " bytes in "
-                                             + timeout + " milliseconds, actual read only " + (readSize - remain)
-                                             + " bytes");
+            throw new SocketTimeoutException(
+                "Timeout occurred, failed to read total " + readSize + " bytes in " + timeout
+                                             + " milliseconds, actual read only " + (readSize - remain) + " bytes");
         }
         return data;
     }
@@ -134,6 +138,14 @@ public class BioSocketChannel implements SocketChannel {
         return false;
     }
 
+    public boolean isSsl() {
+        return ssl;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
     public SocketAddress getRemoteSocketAddress() {
         Socket socket = this.socket;
         if (socket != null) {
@@ -155,16 +167,6 @@ public class BioSocketChannel implements SocketChannel {
     public void close() {
         Socket socket = this.socket;
         if (socket != null) {
-            try {
-                socket.shutdownInput();
-            } catch (IOException e) {
-                // Ignore, could not do anymore
-            }
-            try {
-                socket.shutdownOutput();
-            } catch (IOException e) {
-                // Ignore, could not do anymore
-            }
             try {
                 socket.close();
             } catch (IOException e) {

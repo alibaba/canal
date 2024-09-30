@@ -24,7 +24,7 @@ public class DefaultSpringInstanceTest {
     @Before
     public void start() {
         System.setProperty("canal.instance.destination", "retl");
-        context = new ClassPathXmlApplicationContext(new String[] { "spring/default-instance.xml" });
+        context = new ClassPathXmlApplicationContext(new String[] { "classpath:spring/default-instance.xml" });
     }
 
     @After

@@ -33,7 +33,6 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     protected TableMetaTSDB        tableMetaTSDB;
 
     // 编码信息
-    protected byte                 connectionCharsetNumber   = (byte) 33;
     protected Charset              connectionCharset         = Charset.forName("UTF-8");
     protected boolean              filterQueryDcl            = false;
     protected boolean              filterQueryDml            = false;
@@ -204,10 +203,6 @@ public abstract class AbstractMysqlEventParser extends AbstractEventParser {
     }
 
     // ============================ setter / getter =========================
-
-    public void setConnectionCharsetNumber(byte connectionCharsetNumber) {
-        this.connectionCharsetNumber = connectionCharsetNumber;
-    }
 
     public void setConnectionCharsetStd(Charset connectionCharset) {
         this.connectionCharset = connectionCharset;

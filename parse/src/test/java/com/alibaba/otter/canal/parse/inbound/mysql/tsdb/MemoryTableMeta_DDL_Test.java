@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.alibaba.druid.sql.repository.Schema;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 
 /**
@@ -107,6 +107,28 @@ public class MemoryTableMeta_DDL_Test {
         for (String table : tableNames) {
             TableMeta sourceMeta = memoryTableMeta.find("test", table);
             System.out.println(sourceMeta.toString());
+        }
+    }
+
+    @Test
+    public void test_function_index () throws Throwable {
+        MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
+        File dummyFile = new File(url.getFile());
+        File create = new File(dummyFile.getParent() + "/ddl", "ddl_create_function_index.sql");
+        String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
+        memoryTableMeta.apply(null, "test", sql, null);
+
+        List<String> tableNames = new ArrayList<>();
+        for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
+            tableNames.addAll(schema.showTables());
+        }
+
+        for (String table : tableNames) {
+            TableMeta sourceMeta = memoryTableMeta.find("test", table);
+            TableMeta.FieldMeta field = sourceMeta.getFieldMetaByName("code");
+            System.out.println(sourceMeta.toString());
+            Assert.assertTrue(field.isUnique());
         }
     }
 }

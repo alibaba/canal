@@ -3,14 +3,14 @@ package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.alibaba.druid.DbType;
-import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.repository.Schema;
-import com.alibaba.druid.sql.repository.SchemaObject;
-import com.alibaba.druid.sql.repository.SchemaRepository;
-import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
-import com.alibaba.druid.sql.visitor.VisitorFeature;
-import com.alibaba.druid.util.JdbcConstants;
+import com.alibaba.polardbx.druid.DbType;
+import com.alibaba.polardbx.druid.sql.SQLUtils;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
+import com.alibaba.polardbx.druid.sql.repository.SchemaObject;
+import com.alibaba.polardbx.druid.sql.repository.SchemaRepository;
+import com.alibaba.polardbx.druid.sql.visitor.SQLASTOutputVisitor;
+import com.alibaba.polardbx.druid.sql.visitor.VisitorFeature;
+import com.alibaba.polardbx.druid.util.JdbcConstants;
 
 public class FastsqlSchemaTest {
 
@@ -325,6 +325,19 @@ public class FastsqlSchemaTest {
         }
 
         System.out.println(data.toString());
+    }
+
+
+    @Test
+    public void test_function_index () throws Throwable {
+        SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
+        repository.setDefaultSchema("test");
+        String sql = "CREATE TABLE test1 (\n" + "    id INT AUTO_INCREMENT PRIMARY KEY,\n"
+                     + "    owner_id INT NOT NULL,\n" + "    code VARCHAR(100) NOT NULL,\n"
+                     + "    UNIQUE KEY uk_owner_id_upper_code (owner_id, (upper(code)))\n" + ");";
+        repository.console(sql);
+        SchemaObject table = repository.findTable("test1");
+        Assert.assertTrue(table != null);
     }
 
 }

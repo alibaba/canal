@@ -73,6 +73,11 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                 // 角色权限认证的token
                 builder.authentication(AuthenticationFactory.token(pulsarMQProducerConfig.getRoleToken()));
             }
+            if (StringUtils.isNotEmpty(pulsarMQProducerConfig.getListenerName())) {
+                // listener name
+                builder.listenerName(pulsarMQProducerConfig.getListenerName());
+            }
+
             client = builder.build();
         } catch (PulsarClientException e) {
             throw new RuntimeException(e);
@@ -127,6 +132,21 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         if (!StringUtils.isEmpty(adminServerUrl)) {
             tmpProperties.setAdminServerUrl(adminServerUrl);
         }
+        String listenerName = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_LISTENER_NAME);
+        if (!StringUtils.isEmpty(listenerName)) {
+            tmpProperties.setListenerName(listenerName);
+        }
+
+        String enableChunkingStr = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_ENABLE_CHUNKING);
+        if (!StringUtils.isEmpty(enableChunkingStr)) {
+            tmpProperties.setEnableChunking(Boolean.parseBoolean(enableChunkingStr));
+        }
+
+        String compressionType = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_COMPRESSION_TYPE);
+        if (!StringUtils.isEmpty(compressionType)) {
+            tmpProperties.setCompressionType(compressionType);
+        }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Load pulsar properties ==> {}", JSON.toJSON(this.mqProperties));
         }
@@ -398,11 +418,34 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                     }
 
                     // 创建指定topic的生产者
-                    producer = client.newProducer()
-                        .topic(fullTopic)
+                    ProducerBuilder producerBuilder = client.newProducer();
+                    if (pulsarMQProperties.getEnableChunking()) {
+                        producerBuilder.enableChunking(true);
+                        producerBuilder.enableBatching(false);
+                    }
+
+                    if (!StringUtils.isEmpty(pulsarMQProperties.getCompressionType())) {
+                        switch (pulsarMQProperties.getCompressionType().toLowerCase()) {
+                            case "lz4":
+                                producerBuilder.compressionType(CompressionType.LZ4);
+                                break;
+                            case "zlib":
+                                producerBuilder.compressionType(CompressionType.ZLIB);
+                                break;
+                            case "zstd":
+                                producerBuilder.compressionType(CompressionType.ZSTD);
+                                break;
+                            case "snappy":
+                                producerBuilder.compressionType(CompressionType.SNAPPY);
+                                break;
+                        }
+                    }
+
+                    producer = producerBuilder.topic(fullTopic)
                         // 指定路由器
                         .messageRouter(new MessageRouterImpl(topic))
                         .create();
+
                     // 放入缓存
                     PRODUCERS.put(topic, producer);
                 }

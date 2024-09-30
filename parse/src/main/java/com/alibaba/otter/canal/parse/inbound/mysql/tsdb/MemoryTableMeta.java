@@ -1,44 +1,40 @@
 package com.alibaba.otter.canal.parse.inbound.mysql.tsdb;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.alibaba.druid.DbType;
-import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
-import com.alibaba.druid.sql.visitor.VisitorFeature;
+import com.alibaba.polardbx.druid.DbType;
+import com.alibaba.polardbx.druid.sql.SQLUtils;
+import com.alibaba.polardbx.druid.sql.ast.SQLDataType;
+import com.alibaba.polardbx.druid.sql.ast.SQLDataTypeImpl;
+import com.alibaba.polardbx.druid.sql.ast.SQLExpr;
+import com.alibaba.polardbx.druid.sql.ast.SQLStatement;
+import com.alibaba.polardbx.druid.sql.ast.expr.SQLCharExpr;
+import com.alibaba.polardbx.druid.sql.ast.expr.SQLIdentifierExpr;
+import com.alibaba.polardbx.druid.sql.ast.expr.SQLMethodInvokeExpr;
+import com.alibaba.polardbx.druid.sql.ast.expr.SQLNullExpr;
+import com.alibaba.polardbx.druid.sql.ast.expr.SQLPropertyExpr;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnConstraint;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnDefinition;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnPrimaryKey;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLColumnUniqueKey;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLCreateTableStatement;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLNotNullConstraint;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLNullConstraint;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLSelectOrderByItem;
+import com.alibaba.polardbx.druid.sql.ast.statement.SQLTableElement;
+import com.alibaba.polardbx.druid.sql.dialect.mysql.ast.MySqlPrimaryKey;
+import com.alibaba.polardbx.druid.sql.dialect.mysql.ast.MySqlUnique;
+import com.alibaba.polardbx.druid.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
+import com.alibaba.polardbx.druid.sql.repository.SchemaObject;
+import com.alibaba.polardbx.druid.sql.repository.SchemaRepository;
+import com.alibaba.polardbx.druid.sql.visitor.SQLASTOutputVisitor;
+import com.alibaba.polardbx.druid.sql.visitor.VisitorFeature;
+import com.alibaba.polardbx.druid.util.JdbcConstants;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.alibaba.druid.sql.ast.SQLDataType;
-import com.alibaba.druid.sql.ast.SQLDataTypeImpl;
-import com.alibaba.druid.sql.ast.SQLExpr;
-import com.alibaba.druid.sql.ast.SQLStatement;
-import com.alibaba.druid.sql.ast.expr.SQLCharExpr;
-import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
-import com.alibaba.druid.sql.ast.expr.SQLMethodInvokeExpr;
-import com.alibaba.druid.sql.ast.expr.SQLNullExpr;
-import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
-import com.alibaba.druid.sql.ast.statement.SQLColumnConstraint;
-import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
-import com.alibaba.druid.sql.ast.statement.SQLColumnPrimaryKey;
-import com.alibaba.druid.sql.ast.statement.SQLColumnUniqueKey;
-import com.alibaba.druid.sql.ast.statement.SQLCreateTableStatement;
-import com.alibaba.druid.sql.ast.statement.SQLNotNullConstraint;
-import com.alibaba.druid.sql.ast.statement.SQLNullConstraint;
-import com.alibaba.druid.sql.ast.statement.SQLSelectOrderByItem;
-import com.alibaba.druid.sql.ast.statement.SQLTableElement;
-import com.alibaba.druid.sql.dialect.mysql.ast.MySqlPrimaryKey;
-import com.alibaba.druid.sql.dialect.mysql.ast.MySqlUnique;
-import com.alibaba.druid.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
-import com.alibaba.druid.sql.repository.Schema;
-import com.alibaba.druid.sql.repository.SchemaObject;
-import com.alibaba.druid.sql.repository.SchemaRepository;
-import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
@@ -54,9 +50,10 @@ public class MemoryTableMeta implements TableMetaTSDB {
 
     private Logger                       logger     = LoggerFactory.getLogger(MemoryTableMeta.class);
     private Map<List<String>, TableMeta> tableMetas = new ConcurrentHashMap<>();
-    private SchemaRepository             repository = new SchemaRepository(JdbcConstants.MYSQL);
+    private SchemaRepository repository;
 
     public MemoryTableMeta(){
+        repository = new SchemaRepository(JdbcConstants.MYSQL);
     }
 
     @Override
@@ -271,11 +268,50 @@ public class MemoryTableMeta implements TableMetaTSDB {
         } else if (element instanceof MySqlUnique) {
             MySqlUnique column = (MySqlUnique) element;
             List<SQLSelectOrderByItem> uks = column.getColumns();
+            // https://github.com/alibaba/canal/issues/5094
+            // 处理一下函数索引
+            List<String> columnNames = new ArrayList<String>();
             for (SQLSelectOrderByItem uk : uks) {
-                String name = getSqlName(uk.getExpr());
-                FieldMeta field = tableMeta.getFieldMetaByName(name);
-                field.setUnique(true);
+                SQLExpr sqlName = uk.getExpr();
+                columnNames.addAll(getIndexColumnNames(sqlName));
             }
+            // uniqe打标
+            for (String name : columnNames) {
+                FieldMeta field = tableMeta.tryGetFieldMetaByName(name);
+                if (field != null) {
+                    field.setUnique(true);
+                }
+            }
+        }
+    }
+
+    private List<String> getIndexColumnNames(SQLExpr expr) {
+        if (expr instanceof SQLMethodInvokeExpr) {
+            // 需要递归处理下函数索引, 尽可能收集一下列名
+            // 常见的case:
+            // 1. upper(col)
+            // 2. left(upper(col) , 10)
+            // 3. col(10)
+            List<SQLExpr> indexExpres = ((SQLMethodInvokeExpr) expr).getArguments();
+            List<String> columnNames = new ArrayList<String>();
+            // 加上当前列
+            columnNames.add(getSqlName(expr));
+            // 处理函数索引列
+            for (SQLExpr exArgs : indexExpres) {
+                if (exArgs instanceof SQLMethodInvokeExpr) {
+                    // 加上当前列
+                    columnNames.add(getSqlName(exArgs));
+                    columnNames.addAll(getIndexColumnNames(exArgs));
+                } else {
+                    String columnName = getSqlName(exArgs);
+                    columnNames.add(columnName);
+                }
+            }
+
+            return columnNames;
+        } else {
+            String columnName = getSqlName(expr);
+            return Arrays.asList(columnName);
         }
     }
 

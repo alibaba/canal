@@ -46,8 +46,8 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>druid</artifactId>
+			<groupId>com.alibaba.polardbx</groupId>
+			<artifactId>polardbx-parser</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
