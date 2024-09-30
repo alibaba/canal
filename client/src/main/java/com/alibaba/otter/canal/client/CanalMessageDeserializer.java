@@ -51,7 +51,7 @@ public class CanalMessageDeserializer {
                 }
             }
         } catch (Exception e) {
-            throw new CanalClientException("deserializer failed", e);
+            throw new CanalClientException("deserializer failed by " + e.getMessage(), e);
         }
     }
 }

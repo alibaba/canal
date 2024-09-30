@@ -91,6 +91,7 @@ canal.conf:
 #        hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
 #        properties:
 #          mode: transport # or rest
+#          # security.ca.path: /etc/es8/ca.crt
 #          # security.auth: test:123456 #  only used for rest mode
 #          cluster.name: elasticsearch
 #      - name: kudu
@@ -104,3 +105,13 @@ canal.conf:
 #          jdbc.url: jdbc:phoenix:127.0.0.1:2181:/hbase/db
 #          jdbc.username:
 #          jdbc.password:
+#      - name: clickhouse
+#        key: clickhouse1
+#        properties:
+#          jdbc.driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+#          jdbc.url: jdbc:clickhouse://127.0.0.1:8123/default
+#          jdbc.username: default
+#          jdbc.password: 123456
+#          batchSize: 3000
+#          scheduleTime: 600   # second unit
+#          threads: 3          # parallel threads

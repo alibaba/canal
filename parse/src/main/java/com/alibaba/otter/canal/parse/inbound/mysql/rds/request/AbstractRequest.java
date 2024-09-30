@@ -195,7 +195,7 @@ public abstract class AbstractRequest<T> {
     private final HttpResponse executeHttpRequest(HttpGet getMethod, String host) throws Exception {
         SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (TrustStrategy) (arg0, arg1) -> true).build();
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
-            new String[] { "TLSv1" },
+            new String[] { "TLSv1.2" },
             null,
             SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
         Registry registry = RegistryBuilder.create()

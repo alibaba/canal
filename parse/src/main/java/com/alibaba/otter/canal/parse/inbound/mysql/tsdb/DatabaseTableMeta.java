@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
-
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
+import com.alibaba.polardbx.druid.sql.repository.Schema;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -22,10 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.alibaba.druid.sql.repository.Schema;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
@@ -207,6 +207,11 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             }
 
             for (String schema : schemas) {
+                // 如果schema命中黑名单，直接跳过
+                // 解决部分数据库可以看到database，但实际表级别无权限的情况
+                if (blackFilter != null && blackFilter.filter(schema + ".%")) {
+                    continue;
+                }
                 // filter views
                 packet = connection.query("show full tables from `" + schema + "` where Table_type = 'BASE TABLE'");
                 columnSize = packet.getFieldDescriptors().size();
@@ -228,7 +233,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
                 StringBuilder sql = new StringBuilder();
                 for (String table : tables) {
-                    sql.append("show create table `" + schema + "`.`" + table + "`;");
+                    sql.append("show create table `" + schema + "`.`" + StringUtils.replace(table,"`","``") + "`;");
                 }
 
                 List<ResultSetPacket> packets = connection.queryMulti(sql.toString());
@@ -247,30 +252,47 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     }
 
     private boolean applyHistoryToDB(EntryPosition position, String schema, String ddl, String extra) {
-        Map<String, String> content = new HashMap<>();
-        content.put("destination", destination);
-        content.put("binlogFile", position.getJournalName());
-        content.put("binlogOffest", String.valueOf(position.getPosition()));
-        content.put("binlogMasterId", String.valueOf(position.getServerId()));
-        content.put("binlogTimestamp", String.valueOf(position.getTimestamp()));
-        content.put("useSchema", schema);
-        if (content.isEmpty()) {
-            throw new RuntimeException("apply failed caused by content is empty in applyHistoryToDB");
-        }
-        // 待补充
+        // Map<String, String> content = new HashMap<>();
+        // content.put("destination", destination);
+        // content.put("binlogFile", position.getJournalName());
+        // content.put("binlogOffest", String.valueOf(position.getPosition()));
+        // content.put("binlogMasterId", String.valueOf(position.getServerId()));
+        // content.put("binlogTimestamp", String.valueOf(position.getTimestamp()));
+        // content.put("useSchema", schema);
+        //
+        // if (content.isEmpty()) {
+        // throw new RuntimeException("apply failed caused by content is empty in
+        // applyHistoryToDB");
+        // }
+        // // 待补充
+        // List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, schema);
+        // if (ddlResults.size() > 0) {
+        // DdlResult ddlResult = ddlResults.get(0);
+        // content.put("sqlSchema", ddlResult.getSchemaName());
+        // content.put("sqlTable", ddlResult.getTableName());
+        // content.put("sqlType", ddlResult.getType().name());
+        // content.put("sqlText", ddl);
+        // content.put("extra", extra);
+        // }
+        // BeanUtils.populate(metaDO, content);
+
+        MetaHistoryDO metaDO = new MetaHistoryDO();
+        metaDO.setDestination(destination);
+        metaDO.setBinlogFile(position.getJournalName());
+        metaDO.setBinlogOffest(position.getPosition());
+        metaDO.setBinlogMasterId(String.valueOf(position.getServerId()));
+        metaDO.setBinlogTimestamp(position.getTimestamp());
+        metaDO.setUseSchema(schema);
         List<DdlResult> ddlResults = DruidDdlParser.parse(ddl, schema);
         if (ddlResults.size() > 0) {
             DdlResult ddlResult = ddlResults.get(0);
-            content.put("sqlSchema", ddlResult.getSchemaName());
-            content.put("sqlTable", ddlResult.getTableName());
-            content.put("sqlType", ddlResult.getType().name());
-            content.put("sqlText", ddl);
-            content.put("extra", extra);
+            metaDO.setSqlSchema(ddlResult.getSchemaName());
+            metaDO.setSqlTable(ddlResult.getTableName());
+            metaDO.setSqlType(ddlResult.getType().name());
+            metaDO.setSqlText(ddl);
+            metaDO.setExtra(extra);
         }
-
-        MetaHistoryDO metaDO = new MetaHistoryDO();
         try {
-            BeanUtils.populate(metaDO, content);
             // 会建立唯一约束,解决:
             // 1. 重复的binlog file+offest
             // 2. 重复的masterId+timestamp
@@ -328,20 +350,27 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         }
 
         if (compareAll) {
-            Map<String, String> content = new HashMap<>();
-            content.put("destination", destination);
-            content.put("binlogFile", position.getJournalName());
-            content.put("binlogOffest", String.valueOf(position.getPosition()));
-            content.put("binlogMasterId", String.valueOf(position.getServerId()));
-            content.put("binlogTimestamp", String.valueOf(position.getTimestamp()));
-            content.put("data", JSON.toJSONString(schemaDdls));
-            if (content.isEmpty()) {
-                throw new RuntimeException("apply failed caused by content is empty in applySnapshotToDB");
-            }
+            // Map<String, String> content = new HashMap<>();
+            // content.put("destination", destination);
+            // content.put("binlogFile", position.getJournalName());
+            // content.put("binlogOffest", String.valueOf(position.getPosition()));
+            // content.put("binlogMasterId", String.valueOf(position.getServerId()));
+            // content.put("binlogTimestamp", String.valueOf(position.getTimestamp()));
+            // content.put("data", JSON.toJSONString(schemaDdls));
+            // if (content.isEmpty()) {
+            // throw new RuntimeException("apply failed caused by content is empty in
+            // applySnapshotToDB");
+            // }
+            // BeanUtils.populate(snapshotDO, content);
 
             MetaSnapshotDO snapshotDO = new MetaSnapshotDO();
+            snapshotDO.setDestination(destination);
+            snapshotDO.setBinlogFile(position.getJournalName());
+            snapshotDO.setBinlogOffest(position.getPosition());
+            snapshotDO.setBinlogMasterId(String.valueOf(position.getServerId()));
+            snapshotDO.setBinlogTimestamp(position.getTimestamp());
+            snapshotDO.setData(JSON.toJSONString(schemaDdls));
             try {
-                BeanUtils.populate(snapshotDO, content);
                 metaSnapshotDAO.insert(snapshotDO);
             } catch (Throwable e) {
                 if (isUkDuplicateException(e)) {
@@ -485,7 +514,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder();
-        return builder.append(structureSchema(schema)).append('.').append('`').append(table).append('`').toString();
+        return builder.append(structureSchema(schema)).append('.').append('`').append(StringUtils.replace(table,"`","``")).append('`').toString();
     }
 
     public static boolean compareTableMeta(TableMeta source, TableMeta target) {

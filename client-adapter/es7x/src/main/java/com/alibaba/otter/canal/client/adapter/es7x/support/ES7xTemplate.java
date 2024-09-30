@@ -2,11 +2,7 @@ package com.alibaba.otter.canal.client.adapter.es7x.support;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -318,11 +314,15 @@ public class ES7xTemplate implements ESTemplate {
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             ColumnItem columnItem = fieldItem.getColumnItems().iterator().next();
+            if (columnItem.getOwner() == null || columnItem.getColumnName() == null) {
+                continue;
+            }
+
             if (!columnItem.getOwner().equals(owner)) {
                 continue;
             }
-            String columnName = columnItem.getColumnName();
 
+            String columnName = columnItem.getColumnName();
             if (fieldItem.getFieldName().equals(idFieldName)) {
                 resultIdVal = getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName);
             }

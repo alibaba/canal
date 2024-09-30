@@ -9,7 +9,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -21,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.common.utils.ExecutorTemplate;
+import com.alibaba.otter.canal.common.utils.PropertiesUtils;
 import com.alibaba.otter.canal.connector.core.producer.AbstractMQProducer;
 import com.alibaba.otter.canal.connector.core.producer.MQDestination;
 import com.alibaba.otter.canal.connector.core.producer.MQMessageUtils;
@@ -249,13 +249,15 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                         FlatMessage flatMessagePart = partitionFlatMessage[i];
                         if (flatMessagePart != null) {
                             records.add(new ProducerRecord<>(topicName, i, null, JSON.toJSONBytes(flatMessagePart,
-                                JSONWriter.Feature.WriteNulls)));
+                                JSONWriter.Feature.WriteNulls,
+                                JSONWriter.Feature.LargeObject)));
                         }
                     }
                 } else {
                     final int partition = mqDestination.getPartition() != null ? mqDestination.getPartition() : 0;
                     records.add(new ProducerRecord<>(topicName, partition, null, JSON.toJSONBytes(flatMessage,
-                        JSONWriter.Feature.WriteNulls)));
+                        JSONWriter.Feature.WriteNulls,
+                        JSONWriter.Feature.LargeObject)));
                 }
             }
         }

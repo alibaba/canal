@@ -54,6 +54,10 @@ public class CanalLauncher {
             if (StringUtils.isNotEmpty(managerAddress)) {
                 String user = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
                 String passwd = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
+                if (StringUtils.isEmpty(passwd)) {
+                    throw new IllegalArgumentException(
+                        "canal.admin.passwd is empty , pls check https://github.com/alibaba/canal/issues/4941");
+                }
                 String adminPort = CanalController.getProperty(properties, CanalConstants.CANAL_ADMIN_PORT, "11110");
                 boolean autoRegister = BooleanUtils.toBoolean(CanalController.getProperty(properties,
                     CanalConstants.CANAL_ADMIN_AUTO_REGISTER));

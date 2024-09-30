@@ -56,12 +56,14 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                     byte[] errorBytes = NettyUtils.errorPacket(400,
                         MessageFormatter.format("auth failed for seed is null", clientAuth.getUsername()).getMessage());
                     NettyUtils.write(ctx.getChannel(), errorBytes, null);
+                    break;
                 }
 
                 if (!embeddedServer.auth(clientAuth.getUsername(), clientAuth.getPassword().toStringUtf8(), seed)) {
                     byte[] errorBytes = NettyUtils.errorPacket(400,
                         MessageFormatter.format("auth failed for user:{}", clientAuth.getUsername()).getMessage());
                     NettyUtils.write(ctx.getChannel(), errorBytes, null);
+                    break;
                 }
 
                 // 如果存在订阅信息

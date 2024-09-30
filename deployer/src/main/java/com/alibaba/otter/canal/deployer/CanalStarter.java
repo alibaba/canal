@@ -115,7 +115,6 @@ public class CanalStarter {
             CanalAdminController canalAdmin = new CanalAdminController(this);
             canalAdmin.setUser(user);
             canalAdmin.setPasswd(passwd);
-
             String ip = CanalController.getProperty(properties, CanalConstants.CANAL_IP);
 
             logger.debug("canal admin port:{}, canal admin user:{}, canal admin password: {}, canal ip:{}",

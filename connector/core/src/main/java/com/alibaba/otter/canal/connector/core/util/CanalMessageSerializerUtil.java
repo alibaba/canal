@@ -79,7 +79,7 @@ public class CanalMessageSerializerUtil {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error when serializing message to byte[] ");
+            throw new RuntimeException("Error when serializing message to byte[] by " + e.getMessage() , e);
         }
         return null;
     }
@@ -125,7 +125,7 @@ public class CanalMessageSerializerUtil {
                 }
             }
         } catch (Exception e) {
-            throw new CanalClientException("deserializer failed", e);
+            throw new CanalClientException("deserializer failed by " + e.getMessage(), e);
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.common.utils;
 
+import com.alibaba.druid.filter.config.ConfigTools;
+
 import java.io.File;
 
 /**
@@ -49,5 +51,9 @@ public class CommonUtils {
         }
 
         return dirFile.delete();
+    }
+
+    public static String decryptDruidPassword(String publicKeyText, String cipherText) throws Exception {
+        return ConfigTools.decrypt(publicKeyText, cipherText);
     }
 }

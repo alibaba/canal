@@ -1,5 +1,26 @@
 package com.alibaba.otter.canal.deployer;
 
+import static com.alibaba.otter.canal.deployer.CanalConstants.CANAL_DESTINATIONS;
+import static com.alibaba.otter.canal.deployer.CanalConstants.CANAL_DESTINATIONS_EXPR;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.I0Itec.zkclient.IZkStateListener;
+import org.I0Itec.zkclient.exception.ZkNoNodeException;
+import org.I0Itec.zkclient.exception.ZkNodeExistsException;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.common.zookeeper.ZookeeperPathUtils;
@@ -23,26 +44,6 @@ import com.alibaba.otter.canal.server.netty.CanalServerWithNetty;
 import com.google.common.base.Function;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.MigrateMap;
-import org.I0Itec.zkclient.IZkStateListener;
-import org.I0Itec.zkclient.exception.ZkNoNodeException;
-import org.I0Itec.zkclient.exception.ZkNodeExistsException;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.alibaba.otter.canal.deployer.CanalConstants.CANAL_DESTINATIONS;
-import static com.alibaba.otter.canal.deployer.CanalConstants.CANAL_DESTINATIONS_EXPR;
 
 /**
  * canal调度控制器
@@ -116,8 +117,14 @@ public class CanalController {
 
         this.adminUser = getProperty(properties, CanalConstants.CANAL_ADMIN_USER);
         this.adminPasswd = getProperty(properties, CanalConstants.CANAL_ADMIN_PASSWD);
-        embeddedCanalServer.setUser(getProperty(properties, CanalConstants.CANAL_USER));
-        embeddedCanalServer.setPasswd(getProperty(properties, CanalConstants.CANAL_PASSWD));
+        String user = getProperty(properties, CanalConstants.CANAL_USER);
+        String passwd = getProperty(properties, CanalConstants.CANAL_PASSWD);
+        if (StringUtils.isNotEmpty(user) && StringUtils.isEmpty(passwd)) {
+            throw new IllegalArgumentException(
+                "canal.user = " + user + " , but canal.passwd is empty , pls check https://github.com/alibaba/canal/issues/4941");
+        }
+        embeddedCanalServer.setUser(user);
+        embeddedCanalServer.setPasswd(passwd);
 
         String canalWithoutNetty = getProperty(properties, CanalConstants.CANAL_WITHOUT_NETTY);
         if (canalWithoutNetty == null || "false".equals(canalWithoutNetty)) {
@@ -601,7 +608,7 @@ public class CanalController {
         ZkClientx.clearClients();
 
         // 需要释放 CanalServerWithEmbedded 否则主线程退出后，进程无法自动完整退出...
-        if (embeddedCanalServer != null) {
+        if (embeddedCanalServer != null && embeddedCanalServer.isStart()) {
             embeddedCanalServer.stop();
         }
     }

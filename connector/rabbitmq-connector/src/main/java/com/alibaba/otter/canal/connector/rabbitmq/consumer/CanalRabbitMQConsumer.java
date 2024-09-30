@@ -9,6 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.alibaba.otter.canal.common.utils.AddressUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +89,7 @@ public class CanalRabbitMQConsumer implements CanalMsgConsumer {
         }
         // 解析出端口 modified by 16075140
         if (nameServer != null && nameServer.contains(":")) {
-            String[] serverHostAndPort = nameServer.split(":");
+            String[] serverHostAndPort = AddressUtils.splitIPAndPort(nameServer);
             factory.setHost(serverHostAndPort[0]);
             factory.setPort(Integer.parseInt(serverHostAndPort[1]));
         } else {

@@ -111,7 +111,6 @@
 		<property name="defaultConnectionTimeoutInSeconds" value="${canal.instance.network.soTimeout:30}" />
 
 		<!-- 解析编码 -->
-		<!-- property name="connectionCharsetNumber" value="${canal.instance.connectionCharsetNumber:33}" /-->
 		<property name="connectionCharset" value="${canal.instance.connectionCharset:UTF-8}" />
 
 		<!-- 解析位点记录 -->
@@ -140,6 +139,18 @@
 				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
 				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
 				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
+				<property name="sslInfo">
+					<bean class="com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo">
+						<property name="sslMode" value="${canal.instance.master.sslMode:DISABLED}"/>
+						<property name="tlsVersions" value="${canal.instance.master.tlsVersions:}"/>
+						<property name="trustCertificateKeyStoreType" value="${canal.instance.master.trustCertificateKeyStoreType:}"/>
+						<property name="trustCertificateKeyStoreUrl" value="${canal.instance.master.trustCertificateKeyStoreUrl:}"/>
+						<property name="trustCertificateKeyStorePassword" value="${canal.instance.master.trustCertificateKeyStorePassword:}"/>
+						<property name="clientCertificateKeyStoreType" value="${canal.instance.master.clientCertificateKeyStoreType:}"/>
+						<property name="clientCertificateKeyStoreUrl" value="${canal.instance.master.clientCertificateKeyStoreUrl:}"/>
+						<property name="clientCertificateKeyStorePassword" value="${canal.instance.master.clientCertificateKeyStorePassword:}"/>
+					</bean>
+				</property>
 			</bean>
 		</property>
 		<property name="standbyInfo">
@@ -150,6 +161,18 @@
 				<property name="pwdPublicKey" value="${canal.instance.pwdPublicKey:retl}" />
 				<property name="enableDruid" value="${canal.instance.enableDruid:false}" />
 				<property name="defaultDatabaseName" value="${canal.instance.defaultDatabaseName:}" />
+				<property name="sslInfo">
+					<bean class="com.alibaba.otter.canal.parse.driver.mysql.ssl.SslInfo">
+						<property name="sslMode" value="${canal.instance.standby.sslMode:DISABLED}"/>
+						<property name="tlsVersions" value="${canal.instance.standby.tlsVersions:}"/>
+						<property name="trustCertificateKeyStoreType" value="${canal.instance.standby.trustCertificateKeyStoreType:}"/>
+						<property name="trustCertificateKeyStoreUrl" value="${canal.instance.standby.trustCertificateKeyStoreUrl:}"/>
+						<property name="trustCertificateKeyStorePassword" value="${canal.instance.standby.trustCertificateKeyStorePassword:}"/>
+						<property name="clientCertificateKeyStoreType" value="${canal.instance.standby.clientCertificateKeyStoreType:}"/>
+						<property name="clientCertificateKeyStoreUrl" value="${canal.instance.standby.clientCertificateKeyStoreUrl:}"/>
+						<property name="clientCertificateKeyStorePassword" value="${canal.instance.standby.clientCertificateKeyStorePassword:}"/>
+					</bean>
+				</property>
 			</bean>
 		</property>
 

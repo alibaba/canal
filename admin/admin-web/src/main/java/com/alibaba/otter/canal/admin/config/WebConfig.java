@@ -5,6 +5,8 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -26,8 +28,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @Value(value = "${canal.adminUser}")
+    private String user;
+
+    @Value(value = "${canal.adminPasswd}")
+    private String passwd;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        if (StringUtils.isEmpty(user)) {
+            throw new IllegalArgumentException(
+                "canal.adminUser is empty , pls check https://github.com/alibaba/canal/issues/4941");
+        }
+
+        if (StringUtils.isEmpty(passwd)) {
+            throw new IllegalArgumentException(
+                "canal.adminPasswd is empty , pls check https://github.com/alibaba/canal/issues/4941");
+        }
+
         registry.addInterceptor(new HandlerInterceptor() {
 
             @Override
