@@ -42,7 +42,7 @@ admin:
         date-format: yyyy-MM-dd HH:mm:ss
         time-zone: GMT+8
     spring.datasource:
-      address: you_db_host:3306
+      address: your_db_host:3306
       database: canal_manager
       username: ****
       password: ****
