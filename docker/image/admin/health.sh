@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ -d "/home/admin/canal-server" ]; then
+if [ -d "/home/admin/canal-admin" ]; then
 	serverPort=`perl -le 'print $ENV{"server.port"}'`
     if [ -z "$serverPort" ] ; then
         serverPort=8089
