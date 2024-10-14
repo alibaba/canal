@@ -147,8 +147,7 @@ public abstract class BioSocketChannelPool {
                         ksIS.close();
                     } catch (IOException e) {
                         // can't close input stream, but keystore can be properly initialized so we
-                        // shouldn't throw
-                        // this exception
+                        // shouldn't throw this exception
                     }
                 }
             }
@@ -194,8 +193,7 @@ public abstract class BioSocketChannelPool {
                     trustStoreIS.close();
                 } catch (IOException e) {
                     // can't close input stream, but keystore can be properly initialized so we
-                    // shouldn't throw this
-                    // exception
+                    // shouldn't throw this exception
                 }
             }
         }

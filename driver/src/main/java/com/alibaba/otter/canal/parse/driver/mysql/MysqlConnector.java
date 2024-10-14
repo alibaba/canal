@@ -107,8 +107,7 @@ public class MysqlConnector {
                 sslVersion,
                 sslCipher);
         } catch (Exception e) {
-            logger.info("Can't show SSL status, server may not standard MySQL server: {}", e.toString());
-            logger.debug("show SSL status exception", e);
+            logger.warn("Can't show SSL status, server may not standard MySQL server", e);
         }
     }
 

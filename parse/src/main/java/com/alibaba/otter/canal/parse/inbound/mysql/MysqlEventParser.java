@@ -46,8 +46,7 @@ import com.taobao.tddl.dbsync.binlog.LogEvent;
 public class MysqlEventParser extends AbstractMysqlEventParser implements CanalEventParser, CanalHASwitchable {
 
     private CanalHAController    haController                      = null;
-
-    private int                  defaultConnectionTimeoutInSeconds = 30;       // sotimeout
+    private int                  defaultConnectionTimeoutInSeconds = 30;
     private int                  receiveBufferSize                 = 64 * 1024;
     private int                  sendBufferSize                    = 64 * 1024;
     // 数据库信息
@@ -69,10 +68,8 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     private int                  dumpErrorCount                    = 0;        // binlogDump失败异常计数
     private int                  dumpErrorCountThreshold           = 2;        // binlogDump失败异常计数阀值
     private boolean              rdsOssMode                        = false;
-    private boolean              autoResetLatestPosMode            = false;    // true:
-                                                                                // binlog被删除之后，自动按最新的数据订阅
-
-    private boolean multiStreamEnable;//support for polardbx binlog-x
+    private boolean              autoResetLatestPosMode            = false;    // binlog被删除之后，自动按最新的数据订阅
+    private boolean              multiStreamEnable;                            // support for polardbx binlog-x
 
     protected ErosaConnection buildErosaConnection() {
         return buildMysqlConnection(this.runningInfo);
@@ -255,7 +252,6 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
                 reconnect = true;
                 logger.warn("connect failed by ", e);
             }
-
         }
 
         public MysqlConnection getMysqlConnection() {
@@ -706,8 +702,10 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
      */
     private EntryPosition findStartPosition(MysqlConnection mysqlConnection) {
         try {
-            String showSql = multiStreamEnable ?
-                    "show binlog events with " + destination + " limit 1" : "show binlog events limit 1";
+            String showSql = "show binlog events limit 1";
+            if (multiStreamEnable) {
+                showSql = "show binlog events with " + destination + " limit 1";
+            }
             ResultSetPacket packet = mysqlConnection.query(showSql);
             List<String> fields = packet.getFieldValues();
             if (CollectionUtils.isEmpty(fields)) {
