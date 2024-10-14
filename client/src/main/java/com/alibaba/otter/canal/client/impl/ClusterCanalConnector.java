@@ -1,19 +1,18 @@
 package com.alibaba.otter.canal.client.impl;
 
-import java.net.SocketAddress;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalNodeAccessStrategy;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 集群版本connector实现，自带了failover功能<br/>
- * 
+ *
  * @author jianghang 2012-10-29 下午08:04:06
  * @version 1.0.0
  */
@@ -65,7 +64,7 @@ public class ClusterCanalConnector implements CanalConnector {
                     currentConnector.connect();
                     break;
                 } catch (Exception e) {
-                    logger.warn("failed to connect to:{} after retry {} times", accessStrategy.currentNode(), times);
+                    logger.warn("failed to connect to canal server after retry {} times", times);
                     currentConnector.disconnect();
                     currentConnector = null;
                     // retry for #retryTimes for each node when trying to
