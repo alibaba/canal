@@ -40,7 +40,7 @@ public class ClickHouseEtlService extends AbstractEtlService {
     public EtlResult importData(List<String> params) {
         DbMapping dbMapping = config.getDbMapping();
         DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType());
+        String sql = "SELECT * FROM " + SyncUtil.getSourceDbTableName(dbMapping, dataSource.getDbType());
         return importData(sql, params);
     }
 
@@ -57,7 +57,7 @@ public class ClickHouseEtlService extends AbstractEtlService {
             String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
 
             Util.sqlRS(targetDS,
-                "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " LIMIT 1 ",
+                "SELECT * FROM " + SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType()) + " LIMIT 1 ",
                 rs -> {
                     try {
 
@@ -85,7 +85,7 @@ public class ClickHouseEtlService extends AbstractEtlService {
 
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ")
-                        .append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()))
+                        .append(SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType()))
                         .append(" (");
                     columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(backtick)
                         .append(targetColumnName)
@@ -113,7 +113,7 @@ public class ClickHouseEtlService extends AbstractEtlService {
                             // 删除数据
                             Map<String, Object> pkVal = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
-                                "ALTER TABLE " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())
+                                "ALTER TABLE " + SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType())
                                                                         + " DELETE WHERE ");
                             appendCondition(dbMapping, deleteSql, pkVal, rs, backtick);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {

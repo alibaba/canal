@@ -294,7 +294,7 @@ public class ClickHouseBatchSyncService {
         Map<String, String> columnsMap = SyncUtil.getColumnsMap(dbMapping, clearDmls.get(0).getData());
 
         StringBuilder insertSql = new StringBuilder();
-        insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" (");
+        insertSql.append("INSERT INTO ").append(SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType())).append(" (");
 
         columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(backtick)
             .append(targetColumnName)
@@ -380,7 +380,7 @@ public class ClickHouseBatchSyncService {
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
         StringBuilder updateSql = new StringBuilder();
-        updateSql.append("ALTER TABLE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" UPDATE ");
+        updateSql.append("ALTER TABLE ").append(SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType())).append(" UPDATE ");
         List<Map<String, ?>> values = new ArrayList<>();
         boolean hasMatched = false;
         for (String srcColumnName : old.keySet()) {
@@ -433,7 +433,7 @@ public class ClickHouseBatchSyncService {
         Map<String, Integer> ctype = getTargetColumnType(batchExecutor.getConn(), config);
 
         StringBuilder sql = new StringBuilder();
-        sql.append("ALTER TABLE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType())).append(" DELETE WHERE ");
+        sql.append("ALTER TABLE ").append(SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType())).append(" DELETE WHERE ");
 
         List<Map<String, ?>> values = new ArrayList<>();
         // 拼接主键
@@ -452,7 +452,7 @@ public class ClickHouseBatchSyncService {
     private void truncate(BatchExecutor batchExecutor, MappingConfig config) throws SQLException {
         DbMapping dbMapping = config.getDbMapping();
         StringBuilder sql = new StringBuilder();
-        sql.append("TRUNCATE TABLE ").append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()));
+        sql.append("TRUNCATE TABLE ").append(SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType()));
         batchExecutor.execute(sql.toString(), new ArrayList<>());
         if (logger.isTraceEnabled()) {
             logger.trace("Truncate target table, sql: {}", sql);
@@ -476,7 +476,7 @@ public class ClickHouseBatchSyncService {
                 if (columnType == null) {
                     columnType = new LinkedHashMap<>();
                     final Map<String, Integer> columnTypeTmp = columnType;
-                    String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " WHERE 1=2";
+                    String sql = "SELECT * FROM " + SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType()) + " WHERE 1=2";
                     Util.sqlRS(conn, sql, rs -> {
                         try {
                             ResultSetMetaData rsd = rs.getMetaData();
