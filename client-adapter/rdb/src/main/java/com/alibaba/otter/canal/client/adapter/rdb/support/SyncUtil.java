@@ -274,7 +274,7 @@ public class SyncUtil {
         }
     }
 
-    public static String getDbTableName(MappingConfig.DbMapping dbMapping, String dbType) {
+    public static String getTargetDbTableName(MappingConfig.DbMapping dbMapping, String dbType) {
         String result = "";
         String backtick = getBacktickByDbType(dbType);
         if (StringUtils.isNotEmpty(dbMapping.getTargetDb())) {
@@ -282,6 +282,11 @@ public class SyncUtil {
         }
         result += (backtick + dbMapping.getTargetTable() + backtick);
         return result;
+    }
+
+    public static String getSourceDbTableName(MappingConfig.DbMapping dbMapping, String dbType) {
+        String backtick = getBacktickByDbType(dbType);
+        return backtick + dbMapping.getDatabase() + backtick + "." + backtick + dbMapping.getTable() + backtick;
     }
 
     /**

@@ -39,7 +39,7 @@ public class RdbEtlService extends AbstractEtlService {
         DbMapping dbMapping = config.getDbMapping();
         // 获取源数据源，根据数据库类型拼装数据库名和表名
         DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType());
+        String sql = "SELECT * FROM " + SyncUtil.getSourceDbTableName(dbMapping, dataSource.getDbType());
         return importData(sql, params);
     }
 
@@ -56,7 +56,7 @@ public class RdbEtlService extends AbstractEtlService {
             String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
 
             Util.sqlRS(targetDS,
-                "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " LIMIT 1 ",
+                "SELECT * FROM " + SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType()) + " LIMIT 1 ",
                 rs -> {
                 try {
 
@@ -84,7 +84,7 @@ public class RdbEtlService extends AbstractEtlService {
 
                     StringBuilder insertSql = new StringBuilder();
                     insertSql.append("INSERT INTO ")
-                        .append(SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()))
+                        .append(SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType()))
                         .append(" (");
                     columnsMap
                         .forEach((targetColumnName, srcColumnName) -> insertSql.append(backtick).append(targetColumnName).append(backtick).append(","));
@@ -110,7 +110,7 @@ public class RdbEtlService extends AbstractEtlService {
                             // 删除数据
                             Map<String, Object> pkVal = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
-                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType()) + " WHERE ");
+                                "DELETE FROM " + SyncUtil.getTargetDbTableName(dbMapping, dataSource.getDbType()) + " WHERE ");
                             appendCondition(dbMapping, deleteSql, pkVal, rs, backtick);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
                                 int k = 1;
