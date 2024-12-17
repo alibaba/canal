@@ -39,7 +39,7 @@ public class RdbEtlService extends AbstractEtlService {
         DbMapping dbMapping = config.getDbMapping();
         // 获取源数据源，根据数据库类型拼装数据库名和表名
         DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType());
+        String sql = "SELECT * FROM " + SyncUtil.getSourceDbTableName(dbMapping, dataSource.getDbType());
         return importData(sql, params);
     }
 

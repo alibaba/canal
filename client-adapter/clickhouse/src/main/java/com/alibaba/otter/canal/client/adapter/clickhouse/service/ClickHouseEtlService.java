@@ -40,7 +40,7 @@ public class ClickHouseEtlService extends AbstractEtlService {
     public EtlResult importData(List<String> params) {
         DbMapping dbMapping = config.getDbMapping();
         DruidDataSource dataSource = DatasourceConfig.DATA_SOURCES.get(config.getDataSourceKey());
-        String sql = "SELECT * FROM " + SyncUtil.getDbTableName(dbMapping, dataSource.getDbType());
+        String sql = "SELECT * FROM " + SyncUtil.getSourceDbTableName(dbMapping, dataSource.getDbType());
         return importData(sql, params);
     }
 
