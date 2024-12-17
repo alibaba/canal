@@ -318,7 +318,7 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
     }
 
     /**
-     * 自定义分配规则 按 schema 或者 schema+table 将 message 分配到对应topic
+     * 自定义分配规则 按 schema 或者 schema+table 将 message 分配到对应topic分区
      *
      * @param message 原message
      * @param defaultTopic 默认topic
