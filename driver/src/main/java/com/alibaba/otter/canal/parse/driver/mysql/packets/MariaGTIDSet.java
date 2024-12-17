@@ -24,8 +24,11 @@ public class MariaGTIDSet implements GTIDSet {
 
     @Override
     public void update(String str) {
-        MariaGtid mariaGtid = MariaGtid.parse(str);
-        gtidMap.put(mariaGtid.getDomainId(), mariaGtid);
+        if (StringUtils.isNotEmpty(str)) {
+            // 兼容 GTID 为空的情况，例如 mysql-bin.000001 的 GTID 是空的
+            MariaGtid mariaGtid = MariaGtid.parse(str);
+            gtidMap.put(mariaGtid.getDomainId(), mariaGtid);
+        }
     }
 
     public void add(MariaGtid mariaGtid) {
