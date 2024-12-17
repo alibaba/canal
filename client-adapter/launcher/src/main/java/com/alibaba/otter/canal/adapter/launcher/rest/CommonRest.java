@@ -217,7 +217,7 @@ public class CommonRest {
             resStatus = "off";
         }
         Map<String, String> res = new LinkedHashMap<>();
-        res.put("stauts", resStatus);
+        res.put("status", resStatus);
         return res;
     }
 }

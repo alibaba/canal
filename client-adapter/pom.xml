@@ -136,7 +136,7 @@
                 <artifactId>kafka-clients</artifactId>
                 <version>${kafka_version}</version>
             </dependency>
-            <!-- rabbotmq -->
+            <!-- rabbitmq -->
             <dependency>
                 <groupId>com.rabbitmq</groupId>
                 <artifactId>amqp-client</artifactId>

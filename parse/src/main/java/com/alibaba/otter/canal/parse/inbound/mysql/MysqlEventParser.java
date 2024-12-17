@@ -726,7 +726,7 @@ public class MysqlEventParser extends AbstractMysqlEventParser implements CanalE
     @SuppressWarnings("unused")
     private SlaveEntryPosition findSlavePosition(MysqlConnection mysqlConnection) {
         try {
-            String showSql = "show slave stauts";
+            String showSql = "show slave status";
             if (mysqlConnection.atLeastMySQL84()) {
                 // 兼容mysql 8.4
                 showSql = "show replica status";

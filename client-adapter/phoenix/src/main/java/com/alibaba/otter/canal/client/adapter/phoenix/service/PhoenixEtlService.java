@@ -352,13 +352,13 @@ public class PhoenixEtlService {
                             Map<String, Object> insertValues = new HashMap<>();
                             int i = 1;
                             for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
-                                String targetClolumnName = entry.getKey();
+                                String targetColumnName = entry.getKey();
                                 String srcColumnName = entry.getValue();
                                 if (srcColumnName == null) {
-                                    srcColumnName = targetClolumnName;
+                                    srcColumnName = targetColumnName;
                                 }
 
-                                Integer type = columnType.get(targetClolumnName.toLowerCase());
+                                Integer type = columnType.get(targetColumnName.toLowerCase());
 
                                 try {
                                     Object value = rs.getObject(srcColumnName);

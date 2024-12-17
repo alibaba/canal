@@ -126,13 +126,13 @@ public class ClickHouseEtlService extends AbstractEtlService {
 
                             int i = 1;
                             for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
-                                String targetClolumnName = entry.getKey();
+                                String targetColumnName = entry.getKey();
                                 String srcColumnName = entry.getValue();
                                 if (srcColumnName == null) {
-                                    srcColumnName = targetClolumnName;
+                                    srcColumnName = targetColumnName;
                                 }
 
-                                Integer type = columnType.get(targetClolumnName.toLowerCase());
+                                Integer type = columnType.get(targetColumnName.toLowerCase());
                                 Object value = rs.getObject(srcColumnName);
                                 if (value != null) {
                                     SyncUtil.setPStmt(type, pstmt, value, i);
