@@ -132,7 +132,12 @@ public class RdbMirrorDbSyncService {
             mappingConfig.setDbMapping(dbMapping);
             dbMapping.setDatabase(dml.getDatabase());
             dbMapping.setTable(dml.getTable());
-            dbMapping.setTargetDb(dml.getDatabase());
+            // 获取 targetDb，如果没有设置则使用 dml.getDatabase()
+            String targetDb = baseConfigMap.getDbMapping().getTargetDb();
+            if (StringUtils.isEmpty(targetDb)) {
+                targetDb = dml.getDatabase();
+            }            
+            dbMapping.setTargetDb(targetDb);
             dbMapping.setTargetTable(dml.getTable());
             dbMapping.setMapAll(true);
             List<String> pkNames = dml.getPkNames();
@@ -151,8 +156,16 @@ public class RdbMirrorDbSyncService {
      */
     private void executeDdl(MirrorDbConfig mirrorDbConfig, Dml ddl) {
         try (Connection conn = dataSource.getConnection(); Statement statement = conn.createStatement()) {
-            // 替换反引号
+
             String sql = ddl.getSql();
+            // 从配置中获取 targetDb，如果有则进行替换
+            String targetDb = mirrorDbConfig.getMappingConfig().getDbMapping().getTargetDb();
+            if (!StringUtils.isEmpty(targetDb)) {
+                String originalDbName = ddl.getDatabase();
+                String regex = String.format("\\b%s\\b([.`])", originalDbName);
+                sql = sql.replaceAll(regex, targetDb + "$1");
+            }
+            // 替换反引号
             String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
             if (!"`".equals(backtick)) {
                 sql = sql.replaceAll("`", backtick);
