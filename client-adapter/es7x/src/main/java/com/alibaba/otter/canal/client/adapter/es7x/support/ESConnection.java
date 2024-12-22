@@ -7,6 +7,8 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
@@ -89,6 +91,19 @@ public class ESConnection {
                 credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(nameAndPwdArr[0],
                     nameAndPwdArr[1]));
                 restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            }
+            String connectTimeout = properties.get("connectTimeout");
+            String socketTimeout = properties.get("socketTimeout");
+            String connectionRequestTimeout = properties.get("connectionRequestTimeout");
+            boolean needSetRequestConfig = Objects.nonNull(connectTimeout) || Objects.nonNull(socketTimeout) || Objects.nonNull(connectionRequestTimeout);
+            if (needSetRequestConfig) {
+                restClientBuilder.setRequestConfigCallback(requestConfigBuilder -> {
+                    Optional.ofNullable(connectTimeout).map(Integer::valueOf).ifPresent(requestConfigBuilder::setConnectTimeout);
+                    Optional.ofNullable(socketTimeout).map(Integer::valueOf).ifPresent(requestConfigBuilder::setSocketTimeout);
+                    Optional.ofNullable(connectionRequestTimeout).map(Integer::valueOf)
+                            .ifPresent(requestConfigBuilder::setConnectionRequestTimeout);
+                    return requestConfigBuilder;
+                });
             }
             restHighLevelClient = new RestHighLevelClient(restClientBuilder);
         }
