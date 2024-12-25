@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.util.TypeUtils;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig.ESMapping;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem;
 import com.alibaba.otter.canal.client.adapter.es.core.config.SchemaItem.ColumnItem;
@@ -101,12 +102,14 @@ public class ESSyncUtil {
                 break;
             case "float":
             case "half_float":
-            case "scaled_float":
                 if (val instanceof Number) {
                     res = ((Number) val).floatValue();
                 } else {
                     res = Float.parseFloat(val.toString());
                 }
+                break;
+            case "scaled_float":
+                res = TypeUtils.toBigDecimal(val);
                 break;
             case "boolean":
                 if (val instanceof Boolean) {
