@@ -740,9 +740,11 @@ public class QueryLogEvent extends LogEvent {
                     case Q_DEFAULT_TABLE_ENCRYPTION:
                         // *start++ = thd->variables.default_table_encryption;
                         buffer.forward(1);
+                        break;
                     case Q_DDL_SKIP_REWRITE:
                         // *start++ = thd->variables.binlog_ddl_skip_rewrite;
                         buffer.forward(1);
+                        break;
                     case Q_HRNOW:
                         // https://github.com/alibaba/canal/issues/4940
                         // percona 和 mariadb各自扩展mysql binlog的格式后有冲突
@@ -779,6 +781,7 @@ public class QueryLogEvent extends LogEvent {
                         int count = buffer.getUint8();
                         // character_set_collations= Lex_cstring((const char *) pos0 , (const char *) pos);
                         buffer.forward(count * 4);
+                        break;
                     default:
                         /*
                          * That's why you must write status vars in growing

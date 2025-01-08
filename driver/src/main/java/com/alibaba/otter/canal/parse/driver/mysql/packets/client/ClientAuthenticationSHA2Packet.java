@@ -3,32 +3,30 @@ package com.alibaba.otter.canal.parse.driver.mysql.packets.client;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.otter.canal.parse.driver.mysql.packets.Capability;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.ByteHelper;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MSC;
 import com.alibaba.otter.canal.parse.driver.mysql.utils.MySQLPasswordEncrypter;
 
-import org.apache.commons.lang.StringUtils;
-
 public class ClientAuthenticationSHA2Packet extends ClientAuthenticationPacket {
+
+    private int clientCapability = Capability.CLIENT_LONG_PASSWORD | Capability.CLIENT_LONG_FLAG
+                                   | Capability.CLIENT_PROTOCOL_41 | Capability.CLIENT_INTERACTIVE
+                                   | Capability.CLIENT_TRANSACTIONS | Capability.CLIENT_SECURE_CONNECTION
+                                   | Capability.CLIENT_MULTI_STATEMENTS | Capability.CLIENT_PLUGIN_AUTH
+                                   | Capability.CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA;
 
     @Override
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // 1. write client_flags
-        int clientCapability = 0;
-        clientCapability |= Capability.CLIENT_LONG_PASSWORD;
-        clientCapability |= Capability.CLIENT_LONG_FLAG;
-        clientCapability |= Capability.CLIENT_PROTOCOL_41;
-        clientCapability |= Capability.CLIENT_TRANSACTIONS;
-        clientCapability |= Capability.CLIENT_SECURE_CONNECTION;
-        clientCapability |= Capability.CLIENT_MULTI_STATEMENTS;
-        clientCapability |= Capability.CLIENT_PLUGIN_AUTH;
-        clientCapability |= Capability.CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA;
+        int capability = clientCapability;
         if (getDatabaseName() != null) {
-            clientCapability |= Capability.CLIENT_CONNECT_WITH_DB;
+            capability |= Capability.CLIENT_CONNECT_WITH_DB;
         }
-        ByteHelper.writeUnsignedIntLittleEndian(clientCapability, out);
+        ByteHelper.writeUnsignedIntLittleEndian(capability, out);
 
         // 2. write max_packet_size
         ByteHelper.writeUnsignedIntLittleEndian(MSC.MAX_PACKET_LENGTH, out);
