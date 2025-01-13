@@ -633,7 +633,6 @@ public class QueryLogEvent extends LogEvent {
      */
     public static final int Q_OPT_INDEX_FORMAT_GPP_ENABLED    = 22;
 
-
     /**
      * Replicate ddl_skip_rewrite.
      *
@@ -661,6 +660,15 @@ public class QueryLogEvent extends LogEvent {
     public static final int Q_GTID_FLAGS3                     = 130;
 
     public static final int Q_CHARACTER_SET_COLLATIONS        = 131;
+
+    /**
+     * support PolarDB-X used for storing snapshot tso or commit tso snapshot tso is
+     * stored in XA End Event with Query_log commit tso is stored in XA Commit Event
+     * with Query_log
+     */
+    public static final int Q_LIZARD_COMMIT_GCN               = 200;
+
+    public static final int Q_LIZARD_PREPARE_GCN              = 201;
 
     private final void unpackVariables(LogBuffer buffer, final int end) throws IOException {
         int code = -1;
@@ -811,6 +819,14 @@ public class QueryLogEvent extends LogEvent {
                         int count = buffer.getUint8();
                         // character_set_collations= Lex_cstring((const char *) pos0 , (const char *) pos);
                         buffer.forward(count * 4);
+                        break;
+                    case Q_LIZARD_COMMIT_GCN:
+                        // commitGCN = buffer.getLong64();
+                        buffer.forward(8);
+                        break;
+                    case Q_LIZARD_PREPARE_GCN:
+                        // prepareGCN = buffer.getLong64();
+                        buffer.forward(8);
                         break;
                     default:
                         /*
