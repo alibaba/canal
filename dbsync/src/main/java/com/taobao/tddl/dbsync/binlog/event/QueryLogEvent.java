@@ -620,26 +620,31 @@ public class QueryLogEvent extends LogEvent {
     public static final int Q_DEFAULT_TABLE_ENCRYPTION        = 20;
 
     /**
-     * @since percona 8.0.31 Replicate ddl_skip_rewrite.
+     * Replicate PolarDB-X
+     * 
+     * @since PolarDB-X 8.0.32
+     */
+    public static final int Q_OPT_FLASHBACK_AREA              = 21;
+
+    /**
+     * Replicate PolarDB-X
+     * 
+     * @since PolarDB-X 8.0.32
+     */
+    public static final int Q_OPT_INDEX_FORMAT_GPP_ENABLED    = 22;
+
+
+    /**
+     * Replicate ddl_skip_rewrite.
+     *
+     * @since percona 8.0.31
      */
     public static final int Q_DDL_SKIP_REWRITE                = 21;
 
     /**
-     * Replicate PolarDB-X
-     * 
-     * @since PolarDB-X 8.0.32
-     */
-    public static final int Q_OPT_FLASHBACK_AREA              = 22;
-
-    /**
-     * Replicate PolarDB-X
-     * 
-     * @since PolarDB-X 8.0.32
-     */
-    public static final int Q_OPT_INDEX_FORMAT_GPP_ENABLED    = 23;
-
-    /**
-     * @since percona 8.0.31 Replicate Q_WSREP_SKIP_READONLY_CHECKS.
+     * Replicate Q_WSREP_SKIP_READONLY_CHECKS.
+     *
+     * @since percona 8.0.31
      */
     public static final int Q_WSREP_SKIP_READONLY_CHECKS      = 128;
 
@@ -755,13 +760,16 @@ public class QueryLogEvent extends LogEvent {
                         // *start++ = thd->variables.default_table_encryption;
                         buffer.forward(1);
                         break;
-                    case Q_DDL_SKIP_REWRITE:
-                        // *start++ = thd->variables.binlog_ddl_skip_rewrite;
-                        buffer.forward(1);
-                        break;
                     case Q_OPT_FLASHBACK_AREA:
-                        // *start++ = thd->variables.opt_flashback_area;
-                        buffer.forward(1);
+                        if (compatiablePercona) {
+                            // percona
+                            // *start++ = thd->variables.binlog_ddl_skip_rewrite;
+                            buffer.forward(1);
+                        }else {
+                            // PolarDB-X
+                            // *start++ = thd->variables.opt_flashback_area;
+                            buffer.forward(1);
+                        }
                         break;
                     case Q_OPT_INDEX_FORMAT_GPP_ENABLED :
                         // *start++ = thd->variables.opt_index_format_gpp_enabled;
@@ -859,9 +867,8 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_SQL_REQUIRE_PRIMARY_KEY";
             case Q_DEFAULT_TABLE_ENCRYPTION:
                 return "Q_DEFAULT_TABLE_ENCRYPTION";
-            case Q_DDL_SKIP_REWRITE:
-                return "Q_DDL_SKIP_REWRITE";
             case Q_OPT_FLASHBACK_AREA:
+                // or Q_DDL_SKIP_REWRITE
                 return "Q_DDL_SKIP_REWRITE";
             case Q_OPT_INDEX_FORMAT_GPP_ENABLED:
                 return "Q_DDL_SKIP_REWRITE";
