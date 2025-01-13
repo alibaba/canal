@@ -625,6 +625,20 @@ public class QueryLogEvent extends LogEvent {
     public static final int Q_DDL_SKIP_REWRITE                = 21;
 
     /**
+     * Replicate PolarDB-X
+     * 
+     * @since PolarDB-X 8.0.32
+     */
+    public static final int Q_OPT_FLASHBACK_AREA              = 22;
+
+    /**
+     * Replicate PolarDB-X
+     * 
+     * @since PolarDB-X 8.0.32
+     */
+    public static final int Q_OPT_INDEX_FORMAT_GPP_ENABLED    = 23;
+
+    /**
      * @since percona 8.0.31 Replicate Q_WSREP_SKIP_READONLY_CHECKS.
      */
     public static final int Q_WSREP_SKIP_READONLY_CHECKS      = 128;
@@ -745,6 +759,14 @@ public class QueryLogEvent extends LogEvent {
                         // *start++ = thd->variables.binlog_ddl_skip_rewrite;
                         buffer.forward(1);
                         break;
+                    case Q_OPT_FLASHBACK_AREA:
+                        // *start++ = thd->variables.opt_flashback_area;
+                        buffer.forward(1);
+                        break;
+                    case Q_OPT_INDEX_FORMAT_GPP_ENABLED :
+                        // *start++ = thd->variables.opt_index_format_gpp_enabled;
+                        buffer.forward(1);
+                        break;
                     case Q_HRNOW:
                         // https://github.com/alibaba/canal/issues/4940
                         // percona 和 mariadb各自扩展mysql binlog的格式后有冲突
@@ -839,7 +861,12 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_DEFAULT_TABLE_ENCRYPTION";
             case Q_DDL_SKIP_REWRITE:
                 return "Q_DDL_SKIP_REWRITE";
+            case Q_OPT_FLASHBACK_AREA:
+                return "Q_DDL_SKIP_REWRITE";
+            case Q_OPT_INDEX_FORMAT_GPP_ENABLED:
+                return "Q_DDL_SKIP_REWRITE";
             case Q_HRNOW:
+                // or Q_WSREP_SKIP_READONLY_CHECKS
                 return "Q_HRNOW";
             case Q_XID:
                 return "Q_XID";
