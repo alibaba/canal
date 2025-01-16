@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.1.8-SNAPSHOT</version>
+    <version>1.1.8</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -98,7 +98,7 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
-        <javadoc_skip>true</javadoc_skip>
+        <javadoc_skip>false</javadoc_skip>
         <spring_version>5.3.26</spring_version>
         <log4j_version>2.17.0</log4j_version>
         <rocketmq_version>4.9.8</rocketmq_version>
