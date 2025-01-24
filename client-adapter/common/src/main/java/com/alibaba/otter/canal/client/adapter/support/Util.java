@@ -16,6 +16,7 @@ import java.util.function.Function;
 
 import javax.sql.DataSource;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -38,7 +39,15 @@ public class Util {
     public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) {
         try (Connection conn = ds.getConnection();
                 Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-            stmt.setFetchSize(Integer.MIN_VALUE);
+
+            DruidDataSource druidDataSource = (DruidDataSource) ds;
+            if ("postgresql".equals(druidDataSource.getDbType())) {
+                conn.setAutoCommit(false);
+                stmt.setFetchSize(1000);
+            } else {
+                stmt.setFetchSize(Integer.MIN_VALUE);
+            }
+
             try (ResultSet rs = stmt.executeQuery(sql)) {
                 return fun.apply(rs);
             }
@@ -52,7 +61,13 @@ public class Util {
         try (Connection conn = ds.getConnection()) {
             try (PreparedStatement pstmt = conn
                 .prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-                pstmt.setFetchSize(Integer.MIN_VALUE);
+                DruidDataSource druidDataSource = (DruidDataSource) ds;
+                if ("postgresql".equals(druidDataSource.getDbType())) {
+                    conn.setAutoCommit(false);
+                    pstmt.setFetchSize(1000);
+                } else {
+                    pstmt.setFetchSize(Integer.MIN_VALUE);
+                }
                 if (values != null) {
                     for (int i = 0; i < values.size(); i++) {
                         pstmt.setObject(i + 1, values.get(i));
