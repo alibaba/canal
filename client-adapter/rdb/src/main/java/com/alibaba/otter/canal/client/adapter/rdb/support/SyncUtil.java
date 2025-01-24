@@ -313,6 +313,9 @@ public class SyncUtil {
             case mariadb:
             case oceanbase:
                 return "`";
+        //  当dbType 为 postgresql时，返回双引号(避免表名为postgresql的关键字时，sql查询报错)
+            case postgresql:
+                return "\"";
             default:
                 return "";
         }
