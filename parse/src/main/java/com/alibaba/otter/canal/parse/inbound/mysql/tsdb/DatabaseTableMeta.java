@@ -24,6 +24,7 @@ import org.slf4j.MDC;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
@@ -369,7 +370,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
             snapshotDO.setBinlogOffest(position.getPosition());
             snapshotDO.setBinlogMasterId(String.valueOf(position.getServerId()));
             snapshotDO.setBinlogTimestamp(position.getTimestamp());
-            snapshotDO.setData(JSON.toJSONString(schemaDdls));
+            snapshotDO.setData(JSON.toJSONString(schemaDdls,JSONWriter.Feature.LargeObject));
             try {
                 metaSnapshotDAO.insert(snapshotDO);
             } catch (Throwable e) {
