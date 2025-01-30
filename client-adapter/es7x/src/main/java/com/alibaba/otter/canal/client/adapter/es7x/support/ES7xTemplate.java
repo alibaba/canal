@@ -314,11 +314,11 @@ public class ES7xTemplate implements ESTemplate {
         Object resultIdVal = null;
         for (FieldItem fieldItem : schemaItem.getSelectFields().values()) {
             ColumnItem columnItem = fieldItem.getColumnItems().iterator().next();
-            if (columnItem.getOwner() == null || columnItem.getColumnName() == null) {
+            if (columnItem.getColumnName() == null) {
                 continue;
             }
 
-            if (!columnItem.getOwner().equals(owner)) {
+            if (columnItem.getOwner() != null && !columnItem.getOwner().equals(owner)) {
                 continue;
             }
 
