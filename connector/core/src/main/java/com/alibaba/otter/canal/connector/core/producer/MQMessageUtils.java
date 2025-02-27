@@ -85,7 +85,12 @@ public class MQMessageUtils {
                                                                                     DynamicTopicData data = new DynamicTopicData();
 
                                                                                     if (!isWildCard(dynamicTopic)) {
-                                                                                        data.simpleName = dynamicTopic;
+                                                                                        int i = dynamicTopic.indexOf(":");
+                                                                                        if (i > 0) {
+                                                                                            data.simpleName = dynamicTopic.substring(0, i);
+                                                                                        } else {
+                                                                                            data.simpleName = dynamicTopic;
+                                                                                        }
                                                                                     } else {
                                                                                         if (dynamicTopic.contains("\\.")) {
                                                                                             data.tableRegexFilter = new AviaterRegexFilter(dynamicTopic);
@@ -582,10 +587,9 @@ public class MQMessageUtils {
         for (String item : router) {
             int i = item.indexOf(":");
             if (i > -1) {
-                String topic = item.substring(0, i).trim();
                 String topicConfigs = item.substring(i + 1).trim();
-                if (matchDynamicTopic(name, topicConfigs)) {
-                    topics.add(topic);
+                if (matchDynamicTopic(name, item)) {
+                    topics.add(topicConfigs);
                     // 匹配了一个就退出
                     break;
                 }
