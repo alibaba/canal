@@ -1,5 +1,14 @@
 package com.alibaba.otter.canal.client.adapter.es8x;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.sql.DataSource;
+
+import org.elasticsearch.action.search.SearchResponse;
+
 import com.alibaba.otter.canal.client.adapter.es.core.ESAdapter;
 import com.alibaba.otter.canal.client.adapter.es.core.config.ESSyncConfig;
 import com.alibaba.otter.canal.client.adapter.es8x.etl.ESEtlService;
@@ -9,13 +18,6 @@ import com.alibaba.otter.canal.client.adapter.support.DatasourceConfig;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
 import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
 import com.alibaba.otter.canal.client.adapter.support.SPI;
-import org.elasticsearch.action.search.SearchResponse;
-
-import javax.sql.DataSource;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * ES 8.x 外部适配器

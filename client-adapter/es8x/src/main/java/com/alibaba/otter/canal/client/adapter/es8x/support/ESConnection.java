@@ -147,6 +147,57 @@ public class ESConnection {
         return mappingMetaData;
     }
 
+    public RestHighLevelClient getRestHighLevelClient() {
+        return restHighLevelClient;
+    }
+
+    public void setRestHighLevelClient(RestHighLevelClient restHighLevelClient) {
+        this.restHighLevelClient = restHighLevelClient;
+    }
+
+    private HttpHost createHttpHost(String uriStr) {
+        URI uri = URI.create(uriStr);
+        if (!org.springframework.util.StringUtils.hasLength(uri.getUserInfo())) {
+            return HttpHost.create(uri.toString());
+        }
+        try {
+            return HttpHost.create(new URI(uri
+                .getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment())
+                    .toString());
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    public static class ES8xBulkResponse implements ESBulkRequest.ESBulkResponse {
+
+        private BulkResponse bulkResponse;
+
+        public ES8xBulkResponse(BulkResponse bulkResponse){
+            this.bulkResponse = bulkResponse;
+        }
+
+        @Override
+        public boolean hasFailures() {
+            return bulkResponse.hasFailures();
+        }
+
+        @Override
+        public void processFailBulkResponse(String errorMsg) {
+            for (BulkItemResponse itemResponse : bulkResponse.getItems()) {
+                if (!itemResponse.isFailed()) {
+                    continue;
+                }
+
+                if (itemResponse.getFailure().getStatus() == RestStatus.NOT_FOUND) {
+                    logger.error(itemResponse.getFailureMessage());
+                } else {
+                    throw new RuntimeException(errorMsg + itemResponse.getFailureMessage());
+                }
+            }
+        }
+    }
+
     public class ES8xIndexRequest implements ESBulkRequest.ESIndexRequest {
 
         private IndexRequestBuilder indexRequestBuilder;
@@ -393,57 +444,6 @@ public class ESConnection {
 
         public void setBulkRequest(BulkRequest bulkRequest) {
             this.bulkRequest = bulkRequest;
-        }
-    }
-
-    public static class ES8xBulkResponse implements ESBulkRequest.ESBulkResponse {
-
-        private BulkResponse bulkResponse;
-
-        public ES8xBulkResponse(BulkResponse bulkResponse){
-            this.bulkResponse = bulkResponse;
-        }
-
-        @Override
-        public boolean hasFailures() {
-            return bulkResponse.hasFailures();
-        }
-
-        @Override
-        public void processFailBulkResponse(String errorMsg) {
-            for (BulkItemResponse itemResponse : bulkResponse.getItems()) {
-                if (!itemResponse.isFailed()) {
-                    continue;
-                }
-
-                if (itemResponse.getFailure().getStatus() == RestStatus.NOT_FOUND) {
-                    logger.error(itemResponse.getFailureMessage());
-                } else {
-                    throw new RuntimeException(errorMsg + itemResponse.getFailureMessage());
-                }
-            }
-        }
-    }
-
-    public RestHighLevelClient getRestHighLevelClient() {
-        return restHighLevelClient;
-    }
-
-    public void setRestHighLevelClient(RestHighLevelClient restHighLevelClient) {
-        this.restHighLevelClient = restHighLevelClient;
-    }
-
-    private HttpHost createHttpHost(String uriStr) {
-        URI uri = URI.create(uriStr);
-        if (!org.springframework.util.StringUtils.hasLength(uri.getUserInfo())) {
-            return HttpHost.create(uri.toString());
-        }
-        try {
-            return HttpHost.create(new URI(uri
-                .getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment())
-                    .toString());
-        } catch (URISyntaxException ex) {
-            throw new IllegalStateException(ex);
         }
     }
 }

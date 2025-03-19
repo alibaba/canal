@@ -39,13 +39,10 @@ public class ES7xTemplate implements ESTemplate {
         .getLogger(ESTemplate.class);
 
     private static final int                                  MAX_BATCH_SIZE = 1000;
-
-    private ESConnection                                      esConnection;
-
-    private ESBulkRequest                                     esBulkRequest;
-
     // es 字段类型本地缓存
     private static ConcurrentMap<String, Map<String, String>> esFieldTypes   = new ConcurrentHashMap<>();
+    private ESConnection                                      esConnection;
+    private ESBulkRequest                                     esBulkRequest;
 
     public ES7xTemplate(ESConnection esConnection){
         this.esConnection = esConnection;
@@ -65,8 +62,9 @@ public class ES7xTemplate implements ESTemplate {
         if (mapping.getId() != null) {
             String parentVal = (String) esFieldData.remove("$parent_routing");
             if (mapping.isUpsert()) {
-                ESUpdateRequest updateRequest = esConnection.new ES7xUpdateRequest(mapping.getIndex(),
-                    pkVal.toString()).setDoc(esFieldData).setDocAsUpsert(true);
+                ESUpdateRequest updateRequest = esConnection.new ES7xUpdateRequest(mapping.getIndex(), pkVal.toString())
+                    .setDoc(esFieldData)
+                    .setDocAsUpsert(true);
                 if (StringUtils.isNotEmpty(parentVal)) {
                     updateRequest.setRouting(parentVal);
                 }
@@ -283,7 +281,8 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     @Override
-    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData, Map<String, Object> esFieldData) {
+    public Object getESDataFromDmlData(ESMapping mapping, Map<String, Object> dmlData,
+                                       Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
         String idFieldName = mapping.getId() == null ? mapping.getPk() : mapping.getId();
         Object resultIdVal = null;
@@ -307,8 +306,8 @@ public class ES7xTemplate implements ESTemplate {
     }
 
     @Override
-    public Object getESDataFromDmlData(ESMapping mapping,String owner, Map<String, Object> dmlData, Map<String, Object> dmlOld,
-                                       Map<String, Object> esFieldData) {
+    public Object getESDataFromDmlData(ESMapping mapping, String owner, Map<String, Object> dmlData,
+                                       Map<String, Object> dmlOld, Map<String, Object> esFieldData) {
         SchemaItem schemaItem = mapping.getSchemaItem();
         String idFieldName = mapping.getId() == null ? mapping.getPk() : mapping.getId();
         Object resultIdVal = null;
@@ -329,7 +328,7 @@ public class ES7xTemplate implements ESTemplate {
 
             if (dmlOld.containsKey(columnName) && !mapping.getSkips().contains(fieldItem.getFieldName())) {
                 esFieldData.put(Util.cleanColumn(fieldItem.getFieldName()),
-                        getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
+                    getValFromData(mapping, dmlData, fieldItem.getFieldName(), columnName));
             }
         }
 

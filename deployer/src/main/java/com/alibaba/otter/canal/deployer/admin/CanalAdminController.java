@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.deployer.admin;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -203,7 +204,10 @@ public class CanalAdminController implements CanalAdmin {
 
     @Override
     public String listInstanceLog(String destination) {
-        Collection<File> files = org.apache.commons.io.FileUtils.listFiles(new File("../logs/" + destination + "/"),
+        // 校验destination
+        String desPath = FileUtils.validateFileName("../logs", destination);
+
+        Collection<File> files = org.apache.commons.io.FileUtils.listFiles(new File(desPath),
             TrueFileFilter.TRUE,
             TrueFileFilter.TRUE);
         List<String> names = files.stream().map(File::getName).collect(Collectors.toList());
@@ -215,7 +219,12 @@ public class CanalAdminController implements CanalAdmin {
         if (StringUtils.isEmpty(fileName)) {
             fileName = destination + ".log";
         }
-        return FileUtils.readFileFromOffset("../logs/" + destination + "/" + fileName, lines, "UTF-8");
+
+        // 分别校验destination和fileName目录
+        String desPath = FileUtils.validateFileName("../logs", destination);
+        String fullPath = FileUtils.validateFileName(desPath , fileName);
+
+        return FileUtils.readFileFromOffset(fullPath, lines, "UTF-8");
     }
 
     private InstanceAction getInstanceAction(String destination) {

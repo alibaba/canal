@@ -1,5 +1,6 @@
 package com.alibaba.otter.canal.common.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
@@ -88,8 +89,43 @@ public class FileUtils {
         return res.toString();
     }
 
-    public static void main(String[] args) {
-        String res = readFileFromOffset("test2.txt", 2, "UTF-8");
-        System.out.println(res);
+    /**
+     * 校验自定义的文件名，是否在允许的基目录范围内，如何合法就返回全路径，否则就直接报错
+     *
+     * @param baseDir
+     * @param destination
+     * @return
+     */
+    public static String validateFileName(String baseDir, String destination) {
+        try {
+            // 验证 destination 是否在允许的基目录范围内
+            String basePath = new File(baseDir).getCanonicalPath();
+            String fullPath = new File(basePath, destination).getCanonicalPath();
+
+            // 检查 fullPath 是否以 basePath 开头
+            if (!fullPath.startsWith(basePath + File.separator)) {
+                throw new IllegalArgumentException("Invalid destination path");
+            }
+
+            return fullPath;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read file", e);
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        String fullPath = validateFileName("/tmp/", "1.txt");
+        System.out.println(fullPath);
+        System.out.println(org.apache.commons.io.FileUtils.readLines(new File(fullPath)));
+
+        fullPath = validateFileName("/tmp/", "test");
+        fullPath = validateFileName(fullPath,"1.txt");
+        System.out.println(fullPath);
+        System.out.println(org.apache.commons.io.FileUtils.readLines(new File(fullPath)));
+
+
+        fullPath = validateFileName("/tmp/", "../etc/hosts");
+        System.out.println(fullPath);
+        System.out.println(org.apache.commons.io.FileUtils.readLines(new File(fullPath)));
     }
 }

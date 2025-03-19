@@ -131,4 +131,26 @@ public class MemoryTableMeta_DDL_Test {
             Assert.assertTrue(field.isUnique());
         }
     }
+
+    @Test
+    public void test_polardbx_columnar_index () throws Throwable {
+        MemoryTableMeta memoryTableMeta = new MemoryTableMeta();
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dummy.txt");
+        File dummyFile = new File(url.getFile());
+        File create = new File(dummyFile.getParent() + "/ddl", "ddl_test4.sql");
+        String sql = StringUtils.join(IOUtils.readLines(new FileInputStream(create)), "\n");
+        memoryTableMeta.apply(null, "test", sql, null);
+
+        List<String> tableNames = new ArrayList<>();
+        for (Schema schema : memoryTableMeta.getRepository().getSchemas()) {
+            tableNames.addAll(schema.showTables());
+        }
+
+        for (String table : tableNames) {
+            TableMeta sourceMeta = memoryTableMeta.find("test", table);
+            TableMeta.FieldMeta field = sourceMeta.getFieldMetaByName("address");
+            System.out.println(sourceMeta.toString());
+            Assert.assertTrue(field.isUnique());
+        }
+    }
 }

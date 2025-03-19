@@ -39,13 +39,10 @@ public class ES8xTemplate implements ESTemplate {
         .getLogger(ESTemplate.class);
 
     private static final int                                  MAX_BATCH_SIZE = 1000;
-
-    private ESConnection                                      esConnection;
-
-    private ESBulkRequest                                     esBulkRequest;
-
     // es 字段类型本地缓存
     private static ConcurrentMap<String, Map<String, String>> esFieldTypes   = new ConcurrentHashMap<>();
+    private ESConnection                                      esConnection;
+    private ESBulkRequest                                     esBulkRequest;
 
     public ES8xTemplate(ESConnection esConnection){
         this.esConnection = esConnection;
