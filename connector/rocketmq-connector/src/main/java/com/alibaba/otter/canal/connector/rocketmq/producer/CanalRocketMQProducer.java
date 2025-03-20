@@ -373,6 +373,10 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             DefaultMQProducerImpl innerProducer = this.defaultMQProducer.getDefaultMQProducerImpl();
             TopicPublishInfo topicInfo = innerProducer.getTopicPublishInfoTable().get(topicName);
             if (topicInfo == null) {
+                innerProducer.getMqClientFactory().updateTopicRouteInfoFromNameServer(topicName);
+            }
+            topicInfo = innerProducer.getTopicPublishInfoTable().get(topicName);
+            if (topicInfo == null) {
                 return null;
             } else {
                 return topicInfo.getMessageQueueList().size();
