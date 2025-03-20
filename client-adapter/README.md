@@ -377,6 +377,7 @@ esMapping:
 #    _obj: obj:{"test":"123"}
   etlCondition: "where a.c_time>='{0}'"     # etl 的条件参数
   commitBatch: 3000                         # 提交批大小
+  routingKey: _id
 ```
 sql映射说明: 
 

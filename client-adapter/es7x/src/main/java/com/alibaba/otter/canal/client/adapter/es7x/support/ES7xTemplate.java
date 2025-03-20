@@ -220,7 +220,7 @@ public class ES7xTemplate implements ESTemplate {
         }
 
         // 添加父子文档关联信息
-        putRelationDataFromRS(mapping, schemaItem, resultSet, esFieldData);
+        putRelationDataAndRoutingFromRS(mapping, schemaItem, resultSet, esFieldData);
 
         return resultIdVal;
     }
@@ -263,7 +263,7 @@ public class ES7xTemplate implements ESTemplate {
         }
 
         // 添加父子文档关联信息
-        putRelationDataFromRS(mapping, schemaItem, resultSet, esFieldData);
+        putRelationDataAndRoutingFromRS(mapping, schemaItem, resultSet, esFieldData);
 
         return resultIdVal;
     }
@@ -306,7 +306,7 @@ public class ES7xTemplate implements ESTemplate {
         }
 
         // 添加父子文档关联信息
-        putRelationData(mapping, schemaItem, dmlData, esFieldData);
+        putRelationDataAndRouting(mapping, schemaItem, dmlData, esFieldData);
         return resultIdVal;
     }
 
@@ -334,7 +334,7 @@ public class ES7xTemplate implements ESTemplate {
         }
 
         // 添加父子文档关联信息
-        putRelationData(mapping, schemaItem, dmlOld, esFieldData);
+        putRelationDataAndRouting(mapping, schemaItem, dmlOld, esFieldData);
         return resultIdVal;
     }
 
@@ -416,8 +416,8 @@ public class ES7xTemplate implements ESTemplate {
         }
     }
 
-    private void putRelationDataFromRS(ESMapping mapping, SchemaItem schemaItem, ResultSet resultSet,
-                                       Map<String, Object> esFieldData) {
+    private void putRelationDataAndRoutingFromRS(ESMapping mapping, SchemaItem schemaItem, ResultSet resultSet,
+                                                 Map<String, Object> esFieldData) {
         // 添加父子文档关联信息
         if (!mapping.getRelations().isEmpty()) {
             mapping.getRelations().forEach((relationField, relationMapping) -> {
@@ -443,10 +443,24 @@ public class ES7xTemplate implements ESTemplate {
                 esFieldData.put(relationField, relations);
             });
         }
+
+        // 强制设置路由字段
+        final String routingKey = mapping.getRoutingKey();
+        if (routingKey != null && routingKey.length() > 0){
+            final Object routingVal;
+            try {
+                routingVal = getValFromRS(mapping, resultSet, routingKey, routingKey);
+                if (routingVal != null) {
+                    esFieldData.put("$parent_routing", routingVal.toString());
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
-    private void putRelationData(ESMapping mapping, SchemaItem schemaItem, Map<String, Object> dmlData,
-                                 Map<String, Object> esFieldData) {
+    private void putRelationDataAndRouting(ESMapping mapping, SchemaItem schemaItem, Map<String, Object> dmlData,
+                                           Map<String, Object> esFieldData) {
         // 添加父子文档关联信息
         if (!mapping.getRelations().isEmpty()) {
             mapping.getRelations().forEach((relationField, relationMapping) -> {
@@ -464,6 +478,16 @@ public class ES7xTemplate implements ESTemplate {
                 }
                 esFieldData.put(relationField, relations);
             });
+        }
+
+        // 强制设置路由字段
+        final String routingKey = mapping.getRoutingKey();
+        if (routingKey != null && routingKey.length() > 0){
+            final Object routingVal;
+            routingVal = getValFromData(mapping, dmlData, routingKey, routingKey);
+            if (routingVal != null) {
+                esFieldData.put("$parent_routing", routingVal.toString());
+            }
         }
     }
 }

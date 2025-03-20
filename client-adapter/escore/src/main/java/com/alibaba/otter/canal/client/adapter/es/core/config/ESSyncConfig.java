@@ -120,6 +120,11 @@ public class ESSyncConfig implements AdapterConfig {
 
         private SchemaItem                   schemaItem;                             // sql解析结果模型
 
+        /**
+         *  wkq: routing字段，es 与 sql resultSet columnName必须一致
+         */
+        private String routingKey;
+
         public String getIndex() {
             return index;
         }
@@ -230,6 +235,14 @@ public class ESSyncConfig implements AdapterConfig {
 
         public void setSchemaItem(SchemaItem schemaItem) {
             this.schemaItem = schemaItem;
+        }
+
+        public String getRoutingKey() {
+            return routingKey;
+        }
+
+        public void setRoutingKey(String routingKey) {
+            this.routingKey = routingKey;
         }
     }
 
