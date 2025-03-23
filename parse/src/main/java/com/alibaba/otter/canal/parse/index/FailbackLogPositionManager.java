@@ -80,4 +80,10 @@ public class FailbackLogPositionManager extends AbstractLogPositionManager {
             secondary.persistLogPosition(destination, logPosition);
         }
     }
+
+    @Override
+    public void removeLogPositionCache(String destination) {
+        primary.removeLogPositionCache(destination);
+        secondary.removeLogPositionCache(destination);
+    }
 }

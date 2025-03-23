@@ -40,4 +40,8 @@ public class MemoryLogPositionManager extends AbstractLogPositionManager {
         return positions.keySet();
     }
 
+    @Override
+    public void removeLogPositionCache(String destination) {
+        positions.remove(destination);
+    }
 }
