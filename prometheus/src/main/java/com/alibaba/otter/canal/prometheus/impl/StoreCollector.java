@@ -162,7 +162,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
             Preconditions.checkNotNull(holder.putMemSize);
             Preconditions.checkNotNull(holder.ackMemSize);
         }
-        StoreMetricsHolder old = instances.putIfAbsent(destination, holder);
+        StoreMetricsHolder old = instances.put(destination, holder);
         if (old != null) {
             logger.warn("Remote stale StoreCollector for instance {}.", destination);
         }
