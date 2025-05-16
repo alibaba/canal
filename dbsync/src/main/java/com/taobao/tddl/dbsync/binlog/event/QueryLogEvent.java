@@ -773,7 +773,7 @@ public class QueryLogEvent extends LogEvent {
                             // percona
                             // *start++ = thd->variables.binlog_ddl_skip_rewrite;
                             buffer.forward(1);
-                        }else {
+                        } else {
                             // PolarDB-X
                             // *start++ = thd->variables.opt_flashback_area;
                             buffer.forward(1);
@@ -835,7 +835,7 @@ public class QueryLogEvent extends LogEvent {
                          */
                         logger.error("Query_log_event has unknown status vars (first has code: " + code
                                      + "), skipping the rest of them");
-                        break; // Break loop
+                        return; // Break loop
                 }
             }
         } catch (RuntimeException e) {
