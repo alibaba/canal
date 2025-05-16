@@ -8,6 +8,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,7 +188,7 @@ public class AdapterProcessor {
                 logger.info("=============> Start to connect destination: {} <=============", this.canalDestination);
                 canalMsgConsumer.connect();
                 logger.info("=============> Subscribe destination: {} succeed <=============", this.canalDestination);
-                while (running) {
+                out: while (running) {
                     try {
                         syncSwitch.get(canalDestination, 1L, TimeUnit.MINUTES);
                     } catch (TimeoutException e) {
@@ -216,6 +218,17 @@ public class AdapterProcessor {
                             }
                             break;
                         } catch (Exception e) {
+                            Throwable th = e.getCause();
+                            // Handle source error when getting message
+                            if (th instanceof CanalClientException) {
+                                String message = ExceptionUtils.getRootCauseMessage(th);
+                                if (message.contains("end of stream when reading header")
+                                    || message.contains("Connection reset by peer") || message.contains("Broken pipe")) {
+                                    logger.error("Sync failed, reconnect to canal instance. Error: {}", message);
+                                    break out;
+                                }
+                            }
+                            // Handle sink error
                             if (i != retry - 1) {
                                 canalMsgConsumer.rollback(); // 处理失败, 回滚数据
                                 logger.error(e.getMessage() + " Error sync and rollback, execute times: " + (i + 1));
