@@ -9,7 +9,10 @@ case "`uname`" in
 		bin_abs_path=`cd $(dirname $0); pwd`
 		;;
 esac
+
 base=${bin_abs_path}/..
+jaas_conf=$base/conf/jaas.conf
+
 export LANG=en_US.UTF-8
 export BASE=$base
 
@@ -81,6 +84,9 @@ fi
 
 JAVA_OPTS=" $JAVA_OPTS -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"
 ADAPTER_OPTS="-DappName=canal-adapter"
+if [ -f "$jaas_conf" ]; then
+  ADAPTER_OPTS="$ADAPTER_OPTS -Djava.security.auth.login.config=$jaas_conf"
+fi
 
 for i in $base/lib/*;
     do CLASSPATH=$i:"$CLASSPATH";
