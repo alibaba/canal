@@ -27,7 +27,7 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>6.8.22</version>
+            <version>8.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
