@@ -322,6 +322,7 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
                     eventSink.interrupt();
                     transactionBuffer.reset();// 重置一下缓冲队列，重新记录数据
                     binlogParser.reset();// 重新置位
+                    removeLogPositionCacheWhenError(destination);
                     if (multiStageCoprocessor != null && multiStageCoprocessor.isStart()) {
                         // 处理 RejectedExecutionException
                         try {
@@ -349,6 +350,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
             runningInfo == null ? null : runningInfo.getAddress()));
         parseThread.start();
     }
+
+
 
     public void stop() {
         super.stop();
@@ -463,6 +466,14 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     }
 
     protected void processDumpError(Throwable e) {
+        // do nothing
+    }
+
+    /**
+     * 如果是缓存，则清理缓存,允许修改底层的持久化文件的时候无需重启canal
+     * @param destination
+     */
+    protected void removeLogPositionCacheWhenError(String destination) {
         // do nothing
     }
 
