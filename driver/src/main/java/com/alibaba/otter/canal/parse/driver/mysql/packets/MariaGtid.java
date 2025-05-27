@@ -72,6 +72,10 @@ public class MariaGtid {
 
     @Override
     public String toString() {
-        return String.format("%s-%s-%s", domainId, serverId, sequence);
+        StringBuilder sb = new StringBuilder(16);
+        sb.append(domainId).append("-");
+        sb.append(serverId).append("-");
+        return sb.append(sequence).toString();
+        // return String.format("%s-%s-%s", domainId, serverId, sequence);
     }
 }
