@@ -72,7 +72,15 @@ public class PulsarMQConstants {
     public static final String PULSARMQ_ENABLE_CHUNKING           = ROOT + "." + "enableChunking";
 
     /**
+     * Pulsar 发送的时候异步发送
+     */
+    public static final String PULSARMQ_ENABLE_ASYNC         = ROOT + "." + "enableAsync";
+
+
+    /**
      * Pulsar 压缩算法
      */
     public static final String PULSARMQ_COMPRESSION_TYPE          = ROOT + "." + "compressionType";
+
+
 }
