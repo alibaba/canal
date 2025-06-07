@@ -5,13 +5,20 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.chrono.GJChronology;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class DateUtil {
 
     private static DateTimeZone dateTimeZone;
+    private static DateTime invalidTimeStart;
+    private static DateTime   invalidTimeEnd;
 
     static {
         dateTimeZone = DateTimeZone.forID(TimeZone.LOCATION_TIME_ZONE);
+        invalidTimeStart = new DateTime("1582-10-5T0:0",dateTimeZone);
+        invalidTimeEnd = new DateTime("1582-10-15T0:0", dateTimeZone);
     }
 
     /**
@@ -39,9 +46,18 @@ public class DateUtil {
                 datetimeStr = year + "-" + month + "-" + day;
             }
         }
-
         DateTime dateTime = new DateTime(datetimeStr, dateTimeZone);
+        // https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-usagenotes-known-issues-limitations.html
+        if (dateTime.getMillis() >= invalidTimeStart.getMillis() && dateTime.getMillis() < invalidTimeEnd.getMillis()){
+            // https://www.ibm.com/support/knowledgecenter/en/SSEPGG_10.1.0/com.ibm.db2.luw.apdv.java.doc/src/tpc/imjcc_r0053436.html
+            dateTime = dateTime.plusDays(10);
+        }
+        DateTimeFormatter formatter = ISODateTimeFormat
+                .dateTimeParser()
+                .withOffsetParsed()
+                .withChronology(GJChronology.getInstance());
 
-        return dateTime.toDate();
+        DateTime parsedDate = DateTime.parse(dateTime.toString(), formatter);
+        return parsedDate.toDate();
     }
 }
