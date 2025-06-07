@@ -14,6 +14,7 @@ public class MQDestination {
     private Integer partitionsNum;
     private String  partitionHash;
     private String  dynamicTopic;
+    private String  dynamicTag;
     private String  dynamicTopicPartitionNum;
     private Boolean enableDynamicQueuePartition;
 
@@ -63,6 +64,14 @@ public class MQDestination {
 
     public void setDynamicTopic(String dynamicTopic) {
         this.dynamicTopic = dynamicTopic;
+    }
+
+    public String getDynamicTag() {
+        return dynamicTag;
+    }
+
+    public void setDynamicTag(String dynamicTag) {
+        this.dynamicTag = dynamicTag;
     }
 
     public String getDynamicTopicPartitionNum() {
