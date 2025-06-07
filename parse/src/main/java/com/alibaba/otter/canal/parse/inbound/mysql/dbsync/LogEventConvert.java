@@ -75,8 +75,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     private volatile AviaterRegexFilter nameFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
     private volatile AviaterRegexFilter nameBlackFilter;
-    private Map<String, List<String>>   fieldFilterMap      = new HashMap<>();
-    private Map<String, List<String>>   fieldBlackFilterMap = new HashMap<>();
+    private volatile AviaterRegexFilter fieldFilter;                                                          // 运行时引用可能会有变化，比如规则发生变化时
+    private volatile AviaterRegexFilter fieldBlackFilter;
 
     private TableMetaCache              tableMetaCache;
     private Charset                     charset             = Charset.defaultCharset();
@@ -615,14 +615,6 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         boolean tableError = false;
         // check table fileds count，只能处理加字段
         boolean existRDSNoPrimaryKey = false;
-        // 获取字段过滤条件
-        List<String> fieldList = null;
-        List<String> blackFieldList = null;
-
-        if (tableMeta != null) {
-            fieldList = fieldFilterMap.get(tableMeta.getFullName().toUpperCase());
-            blackFieldList = fieldBlackFilterMap.get(tableMeta.getFullName().toUpperCase());
-        }
 
         if (tableMeta != null && columnInfo.length > tableMeta.getFields().size()) {
             if (tableMetaCache.isOnRDS() || tableMetaCache.isOnPolarX()) {
@@ -693,7 +685,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 columnBuilder.setSqlType(Types.BIGINT);
                 columnBuilder.setUpdated(false);
 
-                if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
+                if (needField(tableMeta.getFullName() + "." + columnBuilder.getName())) {
                     if (isAfter) {
                         rowDataBuilder.addAfterColumns(columnBuilder.build());
                     } else {
@@ -875,7 +867,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                      && isUpdate(rowDataBuilder.getBeforeColumnsList(),
                                          columnBuilder.getIsNull() ? null : columnBuilder.getValue(),
                                          i));
-            if (needField(fieldList, blackFieldList, columnBuilder.getName())) {
+            if (needField(tableMeta.getFullName() + "." + columnBuilder.getName())) {
                 if (isAfter) {
                     rowDataBuilder.addAfterColumns(columnBuilder.build());
                 } else {
@@ -1018,14 +1010,18 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
     /**
      * 字段过滤判断
+     *
+     * @fullColumnName 字段全名称 schema1.tableName.field
      */
-    private boolean needField(List<String> fieldList, List<String> blackFieldList, String columnName) {
-        if (fieldList == null || fieldList.isEmpty()) {
-            return blackFieldList == null || blackFieldList.isEmpty()
-                   || !blackFieldList.contains(columnName.toUpperCase());
-        } else {
-            return fieldList.contains(columnName.toUpperCase());
+    private boolean needField(String fullColumnName) {
+        if (fieldFilter != null && !fieldFilter.filter(fullColumnName)) {
+            return false;
         }
+
+        if (fieldBlackFilter != null && fieldBlackFilter.filter(fullColumnName)) {
+            return false;
+        }
+        return true;
     }
 
     public static TransactionBegin createTransactionBegin(long threadId) {
@@ -1069,28 +1065,14 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
         logger.warn("--> init table black filter : " + nameBlackFilter.toString());
     }
 
-    public void setFieldFilterMap(Map<String, List<String>> fieldFilterMap) {
-        if (fieldFilterMap != null) {
-            this.fieldFilterMap = fieldFilterMap;
-        } else {
-            this.fieldFilterMap = new HashMap<>();
-        }
-
-        for (Map.Entry<String, List<String>> entry : this.fieldFilterMap.entrySet()) {
-            logger.warn("--> init field filter : " + entry.getKey() + "->" + entry.getValue());
-        }
+    public void setFieldFilter(AviaterRegexFilter fieldFilter) {
+        this.fieldFilter = fieldFilter;
+        logger.warn("--> init table field filter : " + fieldFilter.toString());
     }
 
-    public void setFieldBlackFilterMap(Map<String, List<String>> fieldBlackFilterMap) {
-        if (fieldBlackFilterMap != null) {
-            this.fieldBlackFilterMap = fieldBlackFilterMap;
-        } else {
-            this.fieldBlackFilterMap = new HashMap<>();
-        }
-
-        for (Map.Entry<String, List<String>> entry : this.fieldBlackFilterMap.entrySet()) {
-            logger.warn("--> init field black filter : " + entry.getKey() + "->" + entry.getValue());
-        }
+    public void setFieldBlackFilter(AviaterRegexFilter fieldBlackFilter) {
+        this.fieldBlackFilter = fieldBlackFilter;
+        logger.warn("--> init table field black filter : " + fieldBlackFilter.toString());
     }
 
     public void setTableMetaCache(TableMetaCache tableMetaCache) {

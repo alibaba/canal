@@ -52,10 +52,8 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected CanalEventFilter                       eventBlackFilter           = null;
 
     // 字段过滤
-    protected String		  			  			fieldFilter;
-    protected Map<String, List<String>> 			fieldFilterMap;
-    protected String		  			  			fieldBlackFilter;
-    protected Map<String, List<String>> 			fieldBlackFilterMap;
+    protected CanalEventFilter                       fieldFilter                = null;
+    protected CanalEventFilter                       fieldBlackFilter           = null;
     
     private CanalAlarmHandler                        alarmHandler               = null;
 
@@ -680,41 +678,19 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
         this.serverId = serverId;
     }
 
-    public String getFieldFilter() {
+    public CanalEventFilter getFieldFilter() {
 		return fieldFilter;
 	}
 
-	public void setFieldFilter(String fieldFilter) {
-		this.fieldFilter = fieldFilter.trim();
-		this.fieldFilterMap = parseFieldFilterMap(fieldFilter);
+	public void setFieldFilter(CanalEventFilter fieldFilter) {
+		this.fieldFilter = fieldFilter;
 	}
 	
-	public String getFieldBlackFilter() {
+	public CanalEventFilter getFieldBlackFilter() {
 		return fieldBlackFilter;
 	}
 
-	public void setFieldBlackFilter(String fieldBlackFilter) {
+	public void setFieldBlackFilter(CanalEventFilter fieldBlackFilter) {
 		this.fieldBlackFilter = fieldBlackFilter;
-		this.fieldBlackFilterMap = parseFieldFilterMap(fieldBlackFilter);
-	}
-
-	/**
-	 * 获取表字段过滤规则
-	 * @return
-	 * 	key:	schema.tableName
-	 * 	value:	字段列表
-	 */
-	public Map<String, List<String>> getFieldFilterMap() {
-		return fieldFilterMap;
-	}
-
-	/**
-	 * 获取表字段过滤规则黑名单
-	 * @return
-	 * 	key:	schema.tableName
-	 * 	value:	字段列表
-	 */
-	public Map<String, List<String>> getFieldBlackFilterMap() {
-		return fieldBlackFilterMap;
 	}
 }
