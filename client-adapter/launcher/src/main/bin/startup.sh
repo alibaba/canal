@@ -64,8 +64,10 @@ if [ $JavaVersion -ge 11 ] ; then
   #JAVA_OPTS="$JAVA_OPTS -Xlog:gc*:$base_log/gc.log:time "
   JAVA_OPTS="$JAVA_OPTS"
 else
-  #JAVA_OPTS="$JAVA_OPTS -Xloggc:$base/logs/canal/gc.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCApplicationStoppedTime"
-  JAVA_OPTS="$JAVA_OPTS -XX:+UseFastAccessorMethods -XX:+PrintAdaptiveSizePolicy -XX:+PrintTenuringDistribution"
+  JAVA_OPTS="$JAVA_OPTS -Xloggc:$base/logs/adapter/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=32M"
+  JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:-PrintHeapAtGC -XX:+PrintGCApplicationStoppedTime"
+  JAVA_OPTS="$JAVA_OPTS -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+PrintAdaptiveSizePolicy -XX:+PrintTenuringDistribution"
+  JAVA_OPTS="$JAVA_OPTS -XX:-PrintReferenceGC -XX:+PrintSafepointStatistics -XX:PrintSafepointStatisticsCount=1"
 fi
 
 if [ -n "$str" ]; then

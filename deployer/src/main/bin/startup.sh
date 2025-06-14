@@ -87,8 +87,10 @@ if [ $JavaVersion -ge 11 ] ; then
   #JAVA_OPTS="$JAVA_OPTS -Xlog:gc*:$base_log/gc.log:time "
   JAVA_OPTS="$JAVA_OPTS"
 else
-  #JAVA_OPTS="$JAVA_OPTS -Xloggc:$base/logs/canal/gc.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCApplicationStoppedTime"
+  JAVA_OPTS="$JAVA_OPTS -Xloggc:$base/logs/canal/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=32M"
+  JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:-PrintHeapAtGC -XX:+PrintGCApplicationStoppedTime"
   JAVA_OPTS="$JAVA_OPTS -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+PrintAdaptiveSizePolicy -XX:+PrintTenuringDistribution"
+  JAVA_OPTS="$JAVA_OPTS -XX:-PrintReferenceGC -XX:+PrintSafepointStatistics -XX:PrintSafepointStatisticsCount=1"
 fi
 
 if [ -n "$str" ]; then
@@ -119,8 +121,9 @@ then
 	echo LOG CONFIGURATION : $logback_configurationFile
 	echo canal conf : $canal_conf 
 	echo CLASSPATH :$CLASSPATH
-	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/logs/canal/canal_stdout.log 2>&1 &
-	echo $! > $base/bin/canal.pid 
+	# $JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>$base/logs/canal/canal_stdout.log 2>&1 &
+	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.alibaba.otter.canal.deployer.CanalLauncher 1>>/dev/null 2>&1 &
+	echo $! > $base/bin/canal.pid
 	
 	echo "cd to $current_path for continue"
   	cd $current_path
