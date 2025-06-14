@@ -300,6 +300,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     @Override
     public boolean rollback(EntryPosition position) {
         // 每次rollback需要重新构建一次memory data
+        // FIXME The global MemoryTableMeta may cause OOM when it store too many tables
         this.memoryTableMeta = new MemoryTableMeta();
         boolean flag = false;
         EntryPosition snapshotPosition = buildMemFromSnapshot(position);

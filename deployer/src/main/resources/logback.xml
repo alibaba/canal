@@ -86,6 +86,10 @@
 		<level value="INFO" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
+	<logger name="com.alibaba.otter.canal.server.embedded" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
 	<logger name="com.alibaba.otter.canal.meta.FileMixedMetaManager" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="CANAL-META" />
