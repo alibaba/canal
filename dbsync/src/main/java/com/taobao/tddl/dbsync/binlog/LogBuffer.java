@@ -1155,6 +1155,22 @@ public class LogBuffer {
         return string;
     }
 
+    /**
+     * Return next fix length string from buffer. ignore \0
+     */
+    public final String getFixStringIgnore0000(final int len, Charset charset) {
+        if (position + len > origin + limit) {
+            throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
+        }
+
+        final int from = position;
+        byte[] buf = buffer;
+
+        String string = new String(buf, from, len, charset);
+        position += len;
+        return string;
+    }
+
     public final String getFixName(final int len, Charset charset) {
         if (position + len > origin + limit) {
             throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
