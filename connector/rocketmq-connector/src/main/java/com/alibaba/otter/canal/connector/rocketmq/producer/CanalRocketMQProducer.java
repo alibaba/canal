@@ -159,18 +159,40 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
                     String topicName = entry.getKey().replace('.', '_');
                     com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
-                    template.submit(() -> {
-                        try {
-                            send(destination, topicName, messageSub);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    if (!StringUtils.isEmpty(destination.getDynamicTag())) {
+                        // 按动态tag发送
+                        sendByDynamicTag(template, destination, messageSub, topicName, destination.getDynamicTag());
+                    } else {
+                        template.submit(() -> {
+                            try {
+                                send(destination,
+                                    topicName,
+                                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                                    messageSub);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                    }
                 }
 
                 template.waitForResult();
             } else {
-                send(destination, destination.getTopic(), message);
+                if (!StringUtils.isEmpty(destination.getDynamicTag())) {
+                    // 按动态tag发送
+                    sendByDynamicTag(template,
+                        destination,
+                        message,
+                        destination.getTopic(),
+                        destination.getDynamicTag());
+
+                    template.waitForResult();
+                } else {
+                    send(destination,
+                        destination.getTopic(),
+                        ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                        message);
+                }
             }
 
             callback.commit();
@@ -182,8 +204,37 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
         }
     }
 
-    public void send(final MQDestination destination, String topicName,
-                     com.alibaba.otter.canal.protocol.Message message) {
+    /**
+     * 按动态tag配置发送消息,动态tag配置采用与动态topic配置一致的分割处理
+     *
+     * @param template
+     * @param destination
+     * @param message
+     * @param topicName
+     * @param dynamicTagConfigs
+     */
+    private void sendByDynamicTag(ExecutorTemplate template, MQDestination destination,
+                                  com.alibaba.otter.canal.protocol.Message message, String topicName,
+                                  String dynamicTagConfigs) {
+        // 动态tag, 直接使用[动态topic]相同的分隔逻辑
+        Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils
+            .messageTopics(message, null, dynamicTagConfigs);
+        for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
+            String tagName = entry.getKey().replace('.', '_');
+            com.alibaba.otter.canal.protocol.Message messageTag = entry.getValue();
+
+            template.submit(() -> {
+                try {
+                    send(destination, topicName, tagName, messageTag);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+    }
+
+    private void send(final MQDestination destination, String topicName, String tagName,
+                      com.alibaba.otter.canal.protocol.Message message) {
         // 获取当前topic的分区数
         Integer partitionNum = MQMessageUtils.parseDynamicTopicPartition(topicName,
             destination.getDynamicTopicPartitionNum());
@@ -215,7 +266,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                         final int index = i;
                         template.submit(() -> {
                             Message data = new Message(topicName,
-                                ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                                tagName,
                                 CanalMessageSerializerUtil.serializer(dataPartition,
                                     mqProperties.isFilterTransactionEntry()));
                             sendMessage(data, index);
@@ -227,7 +278,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             } else {
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
                 Message data = new Message(topicName,
-                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                    tagName,
                     CanalMessageSerializerUtil.serializer(message, mqProperties.isFilterTransactionEntry()));
                 sendMessage(data, partition);
             }
@@ -265,7 +316,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                         template.submit(() -> {
                             List<Message> messages = flatMessagePart.stream()
                                 .map(flatMessage -> new Message(topicName,
-                                    ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                                    tagName,
                                     JSON.toJSONBytes(flatMessage,
                                         JSONWriter.Feature.WriteNulls,
                                         JSONWriter.Feature.LargeObject)))
@@ -282,7 +333,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                 final int partition = destination.getPartition() != null ? destination.getPartition() : 0;
                 List<Message> messages = flatMessages.stream()
                     .map(flatMessage -> new Message(topicName,
-                        ((RocketMQProducerConfig) this.mqProperties).getTag(),
+                        tagName,
                         JSON.toJSONBytes(flatMessage, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject)))
                     .collect(Collectors.toList());
                 // 批量发送
