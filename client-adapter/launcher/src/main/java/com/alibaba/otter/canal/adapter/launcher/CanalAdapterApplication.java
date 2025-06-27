@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  */
 @SpringBootApplication(exclude= { DataSourceAutoConfiguration.class})
 public class CanalAdapterApplication {
+
     public static void main(String[] args) {
         // 支持rocketmq client 配置日志路径
         System.setProperty("rocketmq.client.logUseSlf4j","true");
