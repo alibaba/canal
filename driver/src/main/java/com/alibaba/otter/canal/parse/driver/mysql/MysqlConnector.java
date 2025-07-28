@@ -306,7 +306,7 @@ public class MysqlConnector {
                         byte[] scramble = authData;
                         try {
                             encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(),
-                                    scramble);
+                                scramble);
                         } catch (DigestException e) {
                             throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
                         }

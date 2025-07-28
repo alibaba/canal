@@ -885,9 +885,9 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_DEFAULT_TABLE_ENCRYPTION";
             case Q_OPT_FLASHBACK_AREA:
                 // or Q_DDL_SKIP_REWRITE
-                return "Q_DDL_SKIP_REWRITE";
+                return "Q_OPT_FLASHBACK_AREA";
             case Q_OPT_INDEX_FORMAT_GPP_ENABLED:
-                return "Q_DDL_SKIP_REWRITE";
+                return "Q_OPT_INDEX_FORMAT_GPP_ENABLED";
             case Q_HRNOW:
                 // or Q_WSREP_SKIP_READONLY_CHECKS
                 return "Q_HRNOW";
