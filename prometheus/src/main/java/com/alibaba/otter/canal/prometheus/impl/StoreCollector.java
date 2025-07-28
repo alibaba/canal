@@ -1,16 +1,7 @@
 package com.alibaba.otter.canal.prometheus.impl;
 
-import com.alibaba.otter.canal.instance.core.CanalInstance;
-import com.alibaba.otter.canal.prometheus.InstanceRegistry;
-import com.alibaba.otter.canal.store.CanalEventStore;
-import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
-import com.alibaba.otter.canal.store.model.BatchMode;
-import com.google.common.base.Preconditions;
-import io.prometheus.client.Collector;
-import io.prometheus.client.CounterMetricFamily;
-import io.prometheus.client.GaugeMetricFamily;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
+import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABELS_LIST;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,15 +11,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST;
-import static com.alibaba.otter.canal.prometheus.CanalInstanceExports.DEST_LABELS_LIST;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.otter.canal.instance.core.CanalInstance;
+import com.alibaba.otter.canal.prometheus.InstanceRegistry;
+import com.alibaba.otter.canal.store.CanalEventStore;
+import com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer;
+import com.alibaba.otter.canal.store.model.BatchMode;
+import com.google.common.base.Preconditions;
+
+import io.prometheus.client.Collector;
+import io.prometheus.client.CounterMetricFamily;
+import io.prometheus.client.GaugeMetricFamily;
 
 /**
  * @author Chuanyi Li
  */
 public class StoreCollector extends Collector implements InstanceRegistry {
 
-    private static final Logger                             logger           = LoggerFactory.getLogger(SinkCollector.class);
+    private static final Logger                             logger           = LoggerFactory
+        .getLogger(SinkCollector.class);
     private static final String                             PRODUCE          = "canal_instance_store_produce_seq";
     private static final String                             CONSUME          = "canal_instance_store_consume_seq";
     private static final String                             STORE            = "canal_instance_store";
@@ -54,10 +57,7 @@ public class StoreCollector extends Collector implements InstanceRegistry {
     private final ConcurrentMap<String, StoreMetricsHolder> instances        = new ConcurrentHashMap<>();
     private final List<String>                              storeLabelsList  = Arrays.asList(DEST, "batchMode", "size");
 
-    private StoreCollector() {}
-
-    private static class SingletonHolder {
-        private static final StoreCollector SINGLETON = new StoreCollector();
+    private StoreCollector(){
     }
 
     public static StoreCollector instance() {
@@ -67,28 +67,17 @@ public class StoreCollector extends Collector implements InstanceRegistry {
     @Override
     public List<MetricFamilySamples> collect() {
         List<MetricFamilySamples> mfs = new ArrayList<>();
-        CounterMetricFamily put = new CounterMetricFamily(PRODUCE,
-                PRODUCE_HELP, DEST_LABELS_LIST);
-        CounterMetricFamily ack = new CounterMetricFamily(CONSUME,
-                CONSUME_HELP, DEST_LABELS_LIST);
-        GaugeMetricFamily store = new GaugeMetricFamily(STORE,
-                STORE_HELP, storeLabelsList);
-        CounterMetricFamily putMem = new CounterMetricFamily(PRODUCE_MEM,
-                PRODUCE_MEM_HELP, DEST_LABELS_LIST);
-        CounterMetricFamily ackMem = new CounterMetricFamily(CONSUME_MEM,
-                CONSUME_MEM_HELP, DEST_LABELS_LIST);
-        GaugeMetricFamily putDelay = new GaugeMetricFamily(PUT_DELAY,
-                PUT_DELAY_HELP, DEST_LABELS_LIST);
-        GaugeMetricFamily getDelay = new GaugeMetricFamily(GET_DELAY,
-                GET_DELAY_HELP, DEST_LABELS_LIST);
-        GaugeMetricFamily ackDelay = new GaugeMetricFamily(ACK_DELAY,
-                ACK_DELAY_HELP, DEST_LABELS_LIST);
-        CounterMetricFamily putRows = new CounterMetricFamily(PUT_ROWS,
-                PUT_ROWS_HELP, DEST_LABELS_LIST);
-        CounterMetricFamily getRows = new CounterMetricFamily(GET_ROWS,
-                GET_ROWS_HELP, DEST_LABELS_LIST);
-        CounterMetricFamily ackRows = new CounterMetricFamily(ACK_ROWS,
-                ACK_ROWS_HELP, DEST_LABELS_LIST);
+        CounterMetricFamily put = new CounterMetricFamily(PRODUCE, PRODUCE_HELP, DEST_LABELS_LIST);
+        CounterMetricFamily ack = new CounterMetricFamily(CONSUME, CONSUME_HELP, DEST_LABELS_LIST);
+        GaugeMetricFamily store = new GaugeMetricFamily(STORE, STORE_HELP, storeLabelsList);
+        CounterMetricFamily putMem = new CounterMetricFamily(PRODUCE_MEM, PRODUCE_MEM_HELP, DEST_LABELS_LIST);
+        CounterMetricFamily ackMem = new CounterMetricFamily(CONSUME_MEM, CONSUME_MEM_HELP, DEST_LABELS_LIST);
+        GaugeMetricFamily putDelay = new GaugeMetricFamily(PUT_DELAY, PUT_DELAY_HELP, DEST_LABELS_LIST);
+        GaugeMetricFamily getDelay = new GaugeMetricFamily(GET_DELAY, GET_DELAY_HELP, DEST_LABELS_LIST);
+        GaugeMetricFamily ackDelay = new GaugeMetricFamily(ACK_DELAY, ACK_DELAY_HELP, DEST_LABELS_LIST);
+        CounterMetricFamily putRows = new CounterMetricFamily(PUT_ROWS, PUT_ROWS_HELP, DEST_LABELS_LIST);
+        CounterMetricFamily getRows = new CounterMetricFamily(GET_ROWS, GET_ROWS_HELP, DEST_LABELS_LIST);
+        CounterMetricFamily ackRows = new CounterMetricFamily(ACK_ROWS, ACK_ROWS_HELP, DEST_LABELS_LIST);
         boolean hasMem = false;
         for (StoreMetricsHolder smh : instances.values()) {
             final boolean isMem = smh.batchMode.isMemSize();
@@ -174,7 +163,13 @@ public class StoreCollector extends Collector implements InstanceRegistry {
         instances.remove(destination);
     }
 
+    private static class SingletonHolder {
+
+        private static final StoreCollector SINGLETON = new StoreCollector();
+    }
+
     private static class StoreMetricsHolder {
+
         private AtomicLong   putSeq;
         private AtomicLong   ackSeq;
         private BatchMode    batchMode;
