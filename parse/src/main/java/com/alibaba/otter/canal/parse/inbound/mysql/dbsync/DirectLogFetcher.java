@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.nio.channels.ClosedByInterruptException;
-
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.otter.canal.parse.driver.mysql.socket.SocketChannel;
 import com.taobao.tddl.dbsync.binlog.LogFetcher;
+import com.alibaba.otter.canal.parse.exception.ServerLogPurgedException;
 
 /**
  * 基于socket的logEvent实现
@@ -99,6 +100,11 @@ public class DirectLogFetcher extends LogFetcher {
                     final int errno = getInt16();
                     String sqlstate = forward(1).getFixString(SQLSTATE_LENGTH);
                     String errmsg = getFixString(limit - position);
+                    if (StringUtils.containsIgnoreCase(errmsg, "not find first log file name")
+                            || StringUtils.containsIgnoreCase(errmsg, "purged binary logs")) {
+                        // 开始 dump 后，server 位点过期，DUMP 和 DUMP_GTID 两种错误信息
+                        throw new ServerLogPurgedException(errmsg);
+                    }
                     throw new IOException("Received error packet:" + " errno = " + errno + ", sqlstate = " + sqlstate
                                           + " errmsg = " + errmsg);
                 } else if (mark == 254) {

@@ -92,8 +92,10 @@ public class RdsBinlogEventParserProxy extends MysqlEventParser {
     }
 
     private void handleMysqlParserException(Throwable throwable) {
-        if (throwable instanceof PositionNotFoundException) {
-            logger.info("remove rds not found position, try download rds binlog!");
+        if (throwable instanceof PositionNotFoundException
+                || throwable instanceof ServerLogPurgedException) {
+            logger.info("remove rds not found position, try download rds binlog! {} : {}",
+                    throwable.getClass().getSimpleName(), throwable.getMessage());
             executorService.execute(() -> {
                 try {
                     logger.info("stop mysql parser!");
