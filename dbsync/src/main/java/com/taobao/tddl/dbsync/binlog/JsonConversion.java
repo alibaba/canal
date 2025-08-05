@@ -158,7 +158,7 @@ public class JsonConversion {
                     throw new IllegalArgumentException("illegal json data");
                 }
                 return new Json_Value(Json_enum_type.STRING,
-                    buffer.rewind().forward((int) n).getFixStringIgnore0000((int) str_len, charset));
+                    buffer.rewind().forward((int) n).getFixLengthString((int) str_len, charset));
             case JSONB_TYPE_OPAQUE:
                 /*
                  * There should always be at least one byte, which tells the field type of the
@@ -257,7 +257,7 @@ public class JsonConversion {
             // entry, always two
             // bytes.
             long key_length = m_data.getUint16();
-            return m_data.rewind().forward((int) key_offset).getFixStringIgnore0000((int) key_length, charset);
+            return m_data.rewind().forward((int) key_offset).getFixLengthString((int) key_length, charset);
         }
 
         public Json_Value element(int i, Charset charset) {
@@ -400,7 +400,7 @@ public class JsonConversion {
                                    }
                                    buf.append('"').append(text).append('"');
                                } else {
-                                   text = m_data.getFixStringIgnore0000((int) m_length, charset);
+                                   text = m_data.getFixLengthString((int) m_length, charset);
                                    buf.append('"').append(escapse(text)).append('"');
                                }
 

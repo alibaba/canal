@@ -1157,9 +1157,10 @@ public class LogBuffer {
     }
 
     /**
-     * Return next fix length string from buffer. ignore \0
+     * Return next fix length string from buffer.
+     * see json_binary.cc read_variable_length
      */
-    public final String getFixStringIgnore0000(final int len, Charset charset) {
+    public final String getFixLengthString(final int len, Charset charset) {
         if (position + len > origin + limit) {
             throw new IllegalArgumentException("limit excceed: " + (position + len - origin));
         }
