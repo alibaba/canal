@@ -187,6 +187,15 @@ public abstract class LogEvent {
     /* New MySQL/Sun events are to be added right above this comment */
     public static final int    MYSQL_EVENTS_END                         = 49;
 
+    // PolarDB-X 2.5.0
+    // CONSENSUS EVENTS START
+    public static final int    CONSENSUS_LOG_EVENT                      = 101;
+    public static final int    PREVIOUS_CONSENSUS_INDEX_LOG_EVENT       = 102;
+    public static final int    CONSENSUS_CLUSTER_INFO_EVENT             = 103;
+    public static final int    CONSENSUS_EMPTY_EVENT                    = 104;
+    public static final int    GCN_LOG_EVENT                            = 105;
+    // CONSENSUS EVENTS END
+
     public static final int    MARIA_EVENTS_BEGIN                       = 160;
     /* New Maria event numbers start from here */
     public static final int    ANNOTATE_ROWS_EVENT                      = 160;
@@ -229,7 +238,7 @@ public abstract class LogEvent {
     public static final int    DELETE_ROWS_COMPRESSED_EVENT             = 171;
 
     /** end marker */
-    public static final int    ENUM_END_EVENT                           = 171;
+    public static final int    ENUM_END_EVENT                           = 172;
 
     /**
      * 1 byte length, 1 byte format Length is total length in bytes, including 2
@@ -404,6 +413,16 @@ public abstract class LogEvent {
                 return "Xa_prepare";
             case TRANSACTION_PAYLOAD_EVENT :
                 return "transaction_payload";
+            case CONSENSUS_LOG_EVENT:
+                return "Consensus_log";
+            case PREVIOUS_CONSENSUS_INDEX_LOG_EVENT:
+                return "Previous_consensus_index";
+            case CONSENSUS_CLUSTER_INFO_EVENT:
+                return "Consensus_cluster_info";
+            case CONSENSUS_EMPTY_EVENT:
+                return "Consensus_empty";
+            case GCN_LOG_EVENT:
+                return "Gcn_log";
             default:
                 return "Unknown type:" + type;
         }

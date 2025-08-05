@@ -188,8 +188,9 @@ public class LogBuffer {
      * <tt>newLimit</tt> do not hold
      */
     public final LogBuffer limit(int newLimit) {
-        if (origin + newLimit > buffer.length || newLimit < 0) throw new IllegalArgumentException("capacity excceed: "
-                                                                                                  + (origin + newLimit));
+        if (origin + newLimit > buffer.length || newLimit < 0) {
+            throw new IllegalArgumentException("capacity excceed: " + (origin + newLimit));
+        }
 
         limit = newLimit;
         return this;
