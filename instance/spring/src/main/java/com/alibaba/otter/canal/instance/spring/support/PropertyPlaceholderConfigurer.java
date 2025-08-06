@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
@@ -126,20 +127,20 @@ public class PropertyPlaceholderConfigurer extends org.springframework.beans.fac
         }
 
         // 以threadlocal的为准覆盖file properties
-        if (propVal == null) {
+        if (StringUtils.isBlank(propVal)) {
             Properties localProperties = propertiesLocal.get();
             propVal = resolvePlaceholder(dp.placeholder, localProperties);
         }
 
-        if (propVal == null) {
+        if (StringUtils.isBlank(propVal)) {
             propVal = resolvePlaceholder(dp.placeholder, props);
         }
 
-        if (propVal == null && systemPropertiesMode == SYSTEM_PROPERTIES_MODE_FALLBACK) {
+        if (StringUtils.isBlank(propVal) && systemPropertiesMode == SYSTEM_PROPERTIES_MODE_FALLBACK) {
             propVal = resolveSystemProperty(dp.placeholder);
         }
 
-        if (propVal == null) {
+        if (StringUtils.isBlank(propVal)) {
             propVal = dp.defaultValue;
         }
 
