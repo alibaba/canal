@@ -3,6 +3,7 @@ destination: example
 groupId: g1
 outerAdapterKey: mysql1
 concurrent: true
+dmlTypes: UPDATE,DELETE  #指定可同步的DML类型，若不指定，则会同步所有DML操作。目前框架支持的所有DML类型为INSERT,UPDATE,DELETE,TRUNCATE
 dbMapping:
   database: mytest
   table: user
