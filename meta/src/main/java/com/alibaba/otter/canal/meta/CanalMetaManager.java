@@ -90,4 +90,11 @@ public interface CanalMetaManager extends CanalLifeCycle {
      */
     void clearAllBatchs(ClientIdentity clientIdentity) throws CanalMetaManagerException;
 
+    /**
+     * 清楚游标緩存
+     * @param clientIdentity
+     * @throws CanalMetaManagerException
+     */
+   default void removeCursorsCache(ClientIdentity clientIdentity) throws CanalMetaManagerException {};
+
 }

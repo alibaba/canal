@@ -112,4 +112,9 @@ public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
         persistTasks.add(destination);
         memoryLogPositionManager.persistLogPosition(destination, logPosition);
     }
+
+    @Override
+    public void removeLogPositionCache(String destination) {
+        memoryLogPositionManager.removeLogPositionCache(destination);
+    }
 }

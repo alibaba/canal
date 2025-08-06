@@ -75,4 +75,17 @@ public class MetaLogPositionManager extends AbstractLogPositionManager {
         // do nothing
         logger.info("destination [{}] persist LogPosition:{}", destination, logPosition);
     }
+
+    @Override
+    public void removeLogPositionCache(String destination) {
+        List<ClientIdentity> clientIdentities = metaManager.listAllSubscribeInfo(destination);
+        LogPosition result = null;
+        if (CollectionUtils.isEmpty(clientIdentities)) {
+           return;
+        }
+        for (ClientIdentity clientIdentity : clientIdentities) {
+            metaManager.removeCursorsCache(clientIdentity);
+        }
+
+    }
 }

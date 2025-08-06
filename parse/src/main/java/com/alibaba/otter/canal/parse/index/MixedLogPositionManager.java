@@ -81,4 +81,9 @@ public class MixedLogPositionManager extends AbstractLogPositionManager {
             }
         });
     }
+
+    @Override
+    public void removeLogPositionCache(String destination) {
+        memoryLogPositionManager.removeLogPositionCache(destination);
+    }
 }
