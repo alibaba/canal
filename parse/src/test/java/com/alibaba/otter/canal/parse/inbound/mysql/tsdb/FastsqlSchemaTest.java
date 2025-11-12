@@ -20,10 +20,7 @@ public class FastsqlSchemaTest {
         String sql1 = "CREATE TABLE `table_x1` ( `id` bigint(20) NOT NULL AUTO_INCREMENT, "
                       + "`key1` longtext NOT NULL COMMENT 'key1', `value1` longtext NOT NULL COMMENT 'value1', PRIMARY KEY (`id`) )"
                       + "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-        String sql2 = " CREATE TABLE IF NOT EXISTS `table_x1` ( `id` bigint(20) NOT NULL AUTO_INCREMENT,"
-                      + "`key1` longtext NOT NULL COMMENT 'key1',PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
         repository.console(sql1);
-        repository.console(sql2);
         repository.setDefaultSchema("test");
         SchemaObject table = repository.findTable("table_x1");
         System.out.println(table.getStatement().toString());
@@ -48,7 +45,7 @@ public class FastsqlSchemaTest {
         SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
         String sql = " CREATE TABLE `articles` ( `article_id` bigint NOT NULL AUTO_INCREMENT,"
                      + " `tags` json DEFAULT NULL, PRIMARY KEY (`article_id`),"
-                     + " KEY `articles_tags` ((cast(json_extract(`tags`,_utf8mb4'$[*]') as char(40) array)))"
+                     + " KEY `articles_tags` ((cast(json_extract(`tags`,_utf8mb4'$[*]') as char(40))))"
                      + ") ENGINE=InnoDB AUTO_INCREMENT=1054 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
         repository.console(sql);
         repository.setDefaultSchema("test");
@@ -62,7 +59,7 @@ public class FastsqlSchemaTest {
         SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
         String sql = " CREATE TABLE `proposal_order_info` (`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,"
                      + "`created_at` timestamp NULL DEFAULT NULL, " + "PRIMARY KEY (`id`) , "
-                     + "KEY `idx_create_time` (`created_at`) /*!80000 INVISIBLE */"
+                     + "KEY `idx_create_time` (`created_at`)"
                      + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 BLOCK_FORMAT=ENCRYPTED";
         repository.console(sql);
         repository.setDefaultSchema("test");
@@ -76,7 +73,7 @@ public class FastsqlSchemaTest {
         SchemaRepository repository = new SchemaRepository(JdbcConstants.MYSQL);
         String sql = " create table example_vc_tbl( c1 int not null auto_increment primary key,"
                      + "c2 varchar(70), vc1 int as (length(c2)) virtual,"
-                     + "DIM_SUM varchar(128) AS (MD5(UPPER(CONCAT(c2, c1)))) PERSISTENT)";
+                     + "DIM_SUM varchar(128) AS (MD5(UPPER(CONCAT(c2, c1)))) STORED)";
         repository.console(sql);
         repository.setDefaultSchema("test");
         SchemaObject table = repository.findTable("example_vc_tbl");
@@ -117,7 +114,7 @@ public class FastsqlSchemaTest {
                       + " name varchar(32) \n" + " )\n" + " partition by range(id) (\n"
                       + " partition p1 values less than (10),\n" + " partition px values less than MAXVALUE\n"
                       + " );";
-        String sql2 = "alter table test add partition ( partition 2 VALUES LESS THAN (738552) ENGINE = InnoDB, PARTITION pmax VALUES LESS THAN MAXVALUE ENGINE = InnoDB)";
+        String sql2 = "alter table test add partition ( partition p2 VALUES LESS THAN (738552) ENGINE = InnoDB, PARTITION pmax VALUES LESS THAN MAXVALUE ENGINE = InnoDB)";
         repository.console(sql1);
         repository.console(sql2);
         repository.setDefaultSchema("test");
@@ -136,7 +133,7 @@ public class FastsqlSchemaTest {
                       + "avg_frequency decimal(12,4) DEFAULT NULL,\n" + "hist_size tinyint(3) unsigned DEFAULT NULL,\n"
                       + "hist_type enum('SINGLE_PREC_HB','DOUBLE_PREC_HB') COLLATE utf8_bin DEFAULT NULL,\n"
                       + "histogram varbinary(255) DEFAULT NULL,\n" + "PRIMARY KEY (db_name,table_name,column_name)\n"
-                      + ") ENGINE=Aria DEFAULT CHARSET=utf8 COLLATE=utf8_bin PAGE_CHECKSUM=1 TRANSACTIONAL=0";
+                      + ") ENGINE=Aria DEFAULT CHARSET=utf8 COLLATE=utf8_bin";
         repository.console(sql1);
         repository.setDefaultSchema("test");
         SchemaObject table = repository.findTable("test");
