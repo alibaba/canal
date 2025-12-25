@@ -18,11 +18,7 @@ import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
 import com.alibaba.otter.canal.parse.inbound.mysql.local.BinLogFileQueue;
-import com.taobao.tddl.dbsync.binlog.FileLogFetcher;
-import com.taobao.tddl.dbsync.binlog.LogContext;
-import com.taobao.tddl.dbsync.binlog.LogDecoder;
-import com.taobao.tddl.dbsync.binlog.LogEvent;
-import com.taobao.tddl.dbsync.binlog.LogPosition;
+import com.taobao.tddl.dbsync.binlog.*;
 import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
 
 /**
@@ -32,25 +28,27 @@ import com.taobao.tddl.dbsync.binlog.event.QueryLogEvent;
  */
 public class LocalBinLogConnection implements ErosaConnection {
 
-    private static final Logger logger     = LoggerFactory.getLogger(LocalBinLogConnection.class);
-    private BinLogFileQueue     binlogs    = null;
+    private static final Logger logger                       = LoggerFactory.getLogger(LocalBinLogConnection.class);
+    /** rdsOosMode 主从信息 */
+    private final Set<Long>     rdsOssMasterSlaveInfo        = new HashSet<>(4);
+    private BinLogFileQueue     binlogs                      = null;
     private boolean             needWait;
     private String              directory;
-    private int                 bufferSize = 16 * 1024;
-    private boolean             running    = false;
+    private int                 bufferSize                   = 16 * 1024;
+    private boolean             running                      = false;
     private long                serverId;
-
     /** rdsOosMode binlog 的 serverId 是两个 */
-    private boolean             isRdsOssMode = false;
-
-    /** rdsOosMode 主从信息 */
-    private final Set<Long> rdsOssMasterSlaveInfo = new HashSet<>(4);
-
-    private boolean firstUpdateRdsOssMasterSlave = true;
+    private boolean             isRdsOssMode                 = false;
+    private boolean             firstUpdateRdsOssMasterSlave = true;
 
     private FileParserListener  parserListener;
 
     public LocalBinLogConnection(){
+    }
+
+    public LocalBinLogConnection(String directory, boolean needWait){
+        this.needWait = needWait;
+        this.directory = directory;
     }
 
     public boolean isRdsOssMode() {
@@ -59,11 +57,6 @@ public class LocalBinLogConnection implements ErosaConnection {
 
     public void setRdsOssMode(boolean rdsOssMode) {
         isRdsOssMode = rdsOssMode;
-    }
-
-    public LocalBinLogConnection(String directory, boolean needWait){
-        this.needWait = needWait;
-        this.directory = directory;
     }
 
     @Override
@@ -117,7 +110,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                     List<LogEvent> iterateEvents = decoder.processIterateDecode(event, context);
                     if (!iterateEvents.isEmpty()) {
                         // 处理compress event
-                        for(LogEvent itEvent : iterateEvents) {
+                        for (LogEvent itEvent : iterateEvents) {
                             if (!func.sink(itEvent)) {
                                 needContinue = false;
                                 break;
@@ -158,9 +151,10 @@ public class LocalBinLogConnection implements ErosaConnection {
     }
 
     /**
-     * 1. 非 rdsOos 模式下需要要校验 serverId 是否一致 防止解析其他实例的 binlog
-     * 2. rdsOos 高可用模式下解析 binlog 会有两个 serverId,分别对应着主从节点 binlog解析出来的 serverId
-     * 主从的关系可能会变, 但是 serverId一直都会是这两个 serverId
+     * 1. 非 rdsOos 模式下需要要校验 serverId 是否一致 防止解析其他实例的 binlog <br/>
+     * 2. rdsOos 高可用模式下解析 binlog
+     * 会有两个 serverId,分别对应着主从节点 binlog解析出来的 serverId 主从的关系可能会变, 但是 serverId一直都会是这两个
+     * serverId
      *
      * @param event
      */

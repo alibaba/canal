@@ -76,6 +76,5 @@ public class MariaGtid {
         sb.append(domainId).append("-");
         sb.append(serverId).append("-");
         return sb.append(sequence).toString();
-        // return String.format("%s-%s-%s", domainId, serverId, sequence);
     }
 }
