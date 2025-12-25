@@ -118,7 +118,7 @@ public class LocalBinLogConnection implements ErosaConnection {
                     if (!iterateEvents.isEmpty()) {
                         // 处理compress event
                         for(LogEvent itEvent : iterateEvents) {
-                            if (!func.sink(event)) {
+                            if (!func.sink(itEvent)) {
                                 needContinue = false;
                                 break;
                             }
@@ -210,7 +210,8 @@ public class LocalBinLogConnection implements ErosaConnection {
                     if (event != null) {
                         checkServerId(event);
 
-                        if (event.getWhen() > timestampSeconds) {
+                        // 闭区间，防止丢开始那一秒的数据
+                        if (event.getWhen() >= timestampSeconds) {
                             break;
                         }
 
