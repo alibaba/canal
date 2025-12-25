@@ -1,14 +1,15 @@
 package com.alibaba.otter.canal.adapter.launcher.prometheus;
 
-import io.prometheus.client.exporter.HTTPServer;
-import io.prometheus.client.hotspot.DefaultExports;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import io.prometheus.client.exporter.HTTPServer;
+import io.prometheus.client.hotspot.DefaultExports;
 
 /**
  * @author sunxien
@@ -25,8 +26,9 @@ public class PrometheusService implements InitializingBean, DisposableBean {
 
     /**
      * <pre>
-     * Canal Server admin port: 11112
+     * Canal Server admin port: 11110
      * Canal Server tcp port: 11111
+     * Canal Server metric port: 11112
      * Canal Adapter metric port: 11113
      * </pre>
      */

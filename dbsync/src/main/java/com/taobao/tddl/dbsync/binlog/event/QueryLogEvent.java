@@ -3,6 +3,7 @@ package com.taobao.tddl.dbsync.binlog.event;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import com.taobao.tddl.dbsync.binlog.CharsetConversion;
 import com.taobao.tddl.dbsync.binlog.LogBuffer;
@@ -281,82 +282,28 @@ public class QueryLogEvent extends LogEvent {
      * packet (i.e. a query) sent from client to master; First, an auxiliary
      * log_event status vars estimation:
      */
-    public static final int MAX_SIZE_LOG_EVENT_STATUS = (1 + 4 /* type, flags2 */
-                                                         + 1 + 8 /*
-                                                                  * type,
-                                                                  * sql_mode
-                                                                  */
-                                                         + 1 + 1 + 255/*
-                                                                       * type,
-                                                                       * length
-                                                                       * ,
-                                                                       * catalog
-                                                                       */
-                                                         + 1 + 4 /*
-                                                                  * type,
-                                                                  * auto_increment
-                                                                  */
-                                                         + 1 + 6 /*
-                                                                  * type,
-                                                                  * charset
-                                                                  */
-                                                         + 1 + 1 + 255 /*
-                                                                        * type,
-                                                                        * length
-                                                                        * ,
-                                                                        * time_zone
-                                                                        */
-                                                         + 1 + 2 /*
-                                                                  * type,
-                                                                  * lc_time_names_number
-                                                                  */
-                                                         + 1 + 2 /*
-                                                                  * type,
-                                                                  * charset_database_number
-                                                                  */
-                                                         + 1 + 8 /*
-                                                                  * type,
-                                                                  * table_map_for_update
-                                                                  */
-                                                         + 1 + 4 /*
-                                                                  * type,
-                                                                  * master_data_written
-                                                                  */
-                                                         /*
-                                                          * type, db_1, db_2,
-                                                          * ...
-                                                          */
-                                                         /* type, microseconds */
-                                                         /*
-                                                          * MariaDb type,
-                                                          * sec_part of NOW()
-                                                          */
-                                                         + 1 + (MAX_DBS_IN_EVENT_MTS * (1 + NAME_LEN)) + 3 /*
-                                                                                                            * type
-                                                                                                            * ,
-                                                                                                            * microseconds
-                                                                                                            */+ 1 + 32
-                                                         * 3 + 1 + 60/*
-                                                                      * type ,
-                                                                      * user_len
-                                                                      * , user ,
-                                                                      * host_len
-                                                                      * , host
-                                                                      */)
-                                                        + 1 + 1 /*
-                                                                 * type,
-                                                                 * explicit_def
-                                                                 * ..ts
-                                                                 */+ 1 + 8 /*
-                                                                            * type,
-                                                                            * xid
-                                                                            * of
-                                                                            * DDL
-                                                                            */+ 1 + 2 /*
-                                                                                       * type
-                                                                                       * ,
-                                                                                       * default_collation_for_utf8mb4_number
-                                                                                       */+ 1 /* sql_require_primary_key */;
+    public static final int MAX_SIZE_LOG_EVENT_STATUS = (1 + 4 /* type, flags2 */ + 1 + 8 /* type,sql_mode */ + 1 + 1 + 255 /* type,length, catalog */
+                                                         + 1 + 4 /* type,auto_increment */
+                                                         + 1 + 6 /* type, charset */
+                                                         + 1 + 1 + 255 /* type, length, time_zone */
+                                                         + 1 + 2 /* type, lc_time_names_number */
+                                                         + 1 + 2 /* type, charset_database_number */
+                                                         + 1 + 8 /* type, table_map_for_update */
+                                                         + 1 + 4 /* type,master_data_written */
+                                                         + 1 + 1 + 32 * 3 /* type, user_len, user */
+                                                         + 1 + 255 /* host_len, host */
+                                                         + 1 + 1 + (MAX_DBS_IN_EVENT_MTS * (1 + NAME_LEN)) /* type, db_1, db_2, ... */
+                                                         + 1 + 3 /* type, microseconds */
+                                                         + 1 + 1 /* type, explicit_def..ts*/
+                                                         + 1 + 8 /* type, xid of DDL */
+                                                         + 1 + 2 /* type, default_collation_for_utf8mb4_number */
+                                                         + 1 + 1 /* sql_require_primary_key */
+                                                         + 1 + 1 /* type, default_table_encryption */
+                                                         + 1 + 1 /* opt_flashback_area */
+                                                         + 1 + 1 /* type, opt_index_format_gpp_enabled */
+                                                         + 1 + 1 /* type, opt_index_format_panda_enabled */
+                                                         + 1 + 1 + NAME_LEN /* type, length, recycle_bin_table_name */);
+
     /**
      * Fixed data part:
      * <ul>
@@ -670,7 +617,74 @@ public class QueryLogEvent extends LogEvent {
 
     public static final int Q_LIZARD_PREPARE_GCN              = 201;
 
+    /**
+     * Replicate recycle_bin_table_name.
+     */
+    public static final int Q_OPT_RECYCLE_BIN_TABLE_NAME      = 254;
+
     public static final int Q_OPT_INDEX_FORMAT_PANDA_ENABLED  = 255;
+
+    private static final String findCodeName(final int code) {
+        switch (code) {
+            case Q_FLAGS2_CODE:
+                return "Q_FLAGS2_CODE";
+            case Q_SQL_MODE_CODE:
+                return "Q_SQL_MODE_CODE";
+            case Q_CATALOG_CODE:
+                return "Q_CATALOG_CODE";
+            case Q_AUTO_INCREMENT:
+                return "Q_AUTO_INCREMENT";
+            case Q_CHARSET_CODE:
+                return "Q_CHARSET_CODE";
+            case Q_TIME_ZONE_CODE:
+                return "Q_TIME_ZONE_CODE";
+            case Q_CATALOG_NZ_CODE:
+                return "Q_CATALOG_NZ_CODE";
+            case Q_LC_TIME_NAMES_CODE:
+                return "Q_LC_TIME_NAMES_CODE";
+            case Q_CHARSET_DATABASE_CODE:
+                return "Q_CHARSET_DATABASE_CODE";
+            case Q_TABLE_MAP_FOR_UPDATE_CODE:
+                return "Q_TABLE_MAP_FOR_UPDATE_CODE";
+            case Q_MASTER_DATA_WRITTEN_CODE:
+                return "Q_MASTER_DATA_WRITTEN_CODE";
+            case Q_INVOKER:
+                return "Q_INVOKER";
+            case Q_MICROSECONDS:
+                return "Q_MICROSECONDS";
+            case Q_UPDATED_DB_NAMES:
+                return "Q_UPDATED_DB_NAMES";
+            case Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP:
+                return "Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP";
+            case Q_DDL_LOGGED_WITH_XID:
+                return "Q_DDL_LOGGED_WITH_XID";
+            case Q_DEFAULT_COLLATION_FOR_UTF8MB4:
+                return "Q_DEFAULT_COLLATION_FOR_UTF8MB4";
+            case Q_SQL_REQUIRE_PRIMARY_KEY:
+                return "Q_SQL_REQUIRE_PRIMARY_KEY";
+            case Q_DEFAULT_TABLE_ENCRYPTION:
+                return "Q_DEFAULT_TABLE_ENCRYPTION";
+            case Q_OPT_FLASHBACK_AREA:
+                // or Q_DDL_SKIP_REWRITE
+                return "Q_OPT_FLASHBACK_AREA";
+            case Q_OPT_INDEX_FORMAT_GPP_ENABLED:
+                return "Q_OPT_INDEX_FORMAT_GPP_ENABLED";
+            case Q_OPT_RECYCLE_BIN_TABLE_NAME:
+                return "Q_OPT_RECYCLE_BIN_TABLE_NAME";
+            case Q_OPT_INDEX_FORMAT_PANDA_ENABLED:
+                return "Q_OPT_INDEX_FORMAT_PANDA_ENABLED";
+            case Q_HRNOW:
+                // or Q_WSREP_SKIP_READONLY_CHECKS
+                return "Q_HRNOW";
+            case Q_XID:
+                return "Q_XID";
+            case Q_GTID_FLAGS3:
+                return "Q_GTID_FLAGS3";
+            case Q_CHARACTER_SET_COLLATIONS :
+                return "Q_CHARACTER_SET_COLLATIONS";
+        }
+        return "CODE#" + code;
+    }
 
     private final void unpackVariables(LogBuffer buffer, final int end) throws IOException {
         int code = -1;
@@ -830,6 +844,18 @@ public class QueryLogEvent extends LogEvent {
                         // prepareGCN = buffer.getLong64();
                         buffer.forward(8);
                         break;
+                    case Q_OPT_RECYCLE_BIN_TABLE_NAME:
+                        int recycle_bin_table_name_len = buffer.getUint8();
+                        String recycle_bin_table_name = null;
+                        if (recycle_bin_table_name_len > 0) {
+                            if (charset != null) {
+                                recycle_bin_table_name = buffer.getFixLengthString(recycle_bin_table_name_len, charset);
+                            } else {
+                                recycle_bin_table_name = buffer.getFixLengthString(recycle_bin_table_name_len,
+                                    StandardCharsets.ISO_8859_1);
+                            }
+                        }
+                        break;
                     case Q_OPT_INDEX_FORMAT_PANDA_ENABLED:
                         // *start++ = thd->variables.opt_index_format_panda_enabled;
                         buffer.forward(1);
@@ -847,66 +873,6 @@ public class QueryLogEvent extends LogEvent {
         } catch (RuntimeException e) {
             throw new IOException("Read " + findCodeName(code) + " error: " + e.getMessage(), e);
         }
-    }
-
-    private static final String findCodeName(final int code) {
-        switch (code) {
-            case Q_FLAGS2_CODE:
-                return "Q_FLAGS2_CODE";
-            case Q_SQL_MODE_CODE:
-                return "Q_SQL_MODE_CODE";
-            case Q_CATALOG_CODE:
-                return "Q_CATALOG_CODE";
-            case Q_AUTO_INCREMENT:
-                return "Q_AUTO_INCREMENT";
-            case Q_CHARSET_CODE:
-                return "Q_CHARSET_CODE";
-            case Q_TIME_ZONE_CODE:
-                return "Q_TIME_ZONE_CODE";
-            case Q_CATALOG_NZ_CODE:
-                return "Q_CATALOG_NZ_CODE";
-            case Q_LC_TIME_NAMES_CODE:
-                return "Q_LC_TIME_NAMES_CODE";
-            case Q_CHARSET_DATABASE_CODE:
-                return "Q_CHARSET_DATABASE_CODE";
-            case Q_TABLE_MAP_FOR_UPDATE_CODE:
-                return "Q_TABLE_MAP_FOR_UPDATE_CODE";
-            case Q_MASTER_DATA_WRITTEN_CODE:
-                return "Q_MASTER_DATA_WRITTEN_CODE";
-            case Q_INVOKER:
-                return "Q_INVOKER";
-            case Q_MICROSECONDS:
-                return "Q_MICROSECONDS";
-            case Q_UPDATED_DB_NAMES:
-                return "Q_UPDATED_DB_NAMES";
-            case Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP:
-                return "Q_EXPLICIT_DEFAULTS_FOR_TIMESTAMP";
-            case Q_DDL_LOGGED_WITH_XID:
-                return "Q_DDL_LOGGED_WITH_XID";
-            case Q_DEFAULT_COLLATION_FOR_UTF8MB4:
-                return "Q_DEFAULT_COLLATION_FOR_UTF8MB4";
-            case Q_SQL_REQUIRE_PRIMARY_KEY:
-                return "Q_SQL_REQUIRE_PRIMARY_KEY";
-            case Q_DEFAULT_TABLE_ENCRYPTION:
-                return "Q_DEFAULT_TABLE_ENCRYPTION";
-            case Q_OPT_FLASHBACK_AREA:
-                // or Q_DDL_SKIP_REWRITE
-                return "Q_OPT_FLASHBACK_AREA";
-            case Q_OPT_INDEX_FORMAT_GPP_ENABLED:
-                return "Q_OPT_INDEX_FORMAT_GPP_ENABLED";
-            case Q_OPT_INDEX_FORMAT_PANDA_ENABLED:
-                return "Q_OPT_INDEX_FORMAT_PANDA_ENABLED";
-            case Q_HRNOW:
-                // or Q_WSREP_SKIP_READONLY_CHECKS
-                return "Q_HRNOW";
-            case Q_XID:
-                return "Q_XID";
-            case Q_GTID_FLAGS3:
-                return "Q_GTID_FLAGS3";
-            case Q_CHARACTER_SET_COLLATIONS :
-                return "Q_CHARACTER_SET_COLLATIONS";
-        }
-        return "CODE#" + code;
     }
 
     public final String getUser() {
