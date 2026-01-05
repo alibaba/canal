@@ -142,7 +142,18 @@ public class ESConnection {
             logger.error(e.getMessage(), e);
             return null;
         }
+        
+        // 通过别名查询mapping返回的是真实索引名称，mappings.get(index)返回null，为兼容别名情况修改如下：
         mappingMetaData = mappings.get(index);
+        if (mappingMetaData == null && !mappings.isEmpty()) {
+            // 如果通过索引名找不到，可能是别名，取第一个映射
+            mappingMetaData = mappings.values().iterator().next();
+        }
+        
+        // 如果还是null，说明索引不存在或没有mapping
+        if (mappingMetaData == null) {
+            throw new IllegalArgumentException("Not found the mapping info of index: " + index);
+        }
 
         return mappingMetaData;
     }
