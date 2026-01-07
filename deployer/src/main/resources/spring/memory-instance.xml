@@ -203,6 +203,7 @@
 	<bean id="mqConfig" class="com.alibaba.otter.canal.instance.core.CanalMQConfig">
 		<property name="topic" value="${canal.mq.topic}" />
 		<property name="dynamicTopic" value="${canal.mq.dynamicTopic}" />
+		<property name="dynamicTag" value="${canal.mq.dynamicTag}" />
 		<property name="partition" value="${canal.mq.partition}" />
 		<property name="partitionsNum" value="${canal.mq.partitionsNum}" />
 		<property name="partitionHash" value="${canal.mq.partitionHash}" />
