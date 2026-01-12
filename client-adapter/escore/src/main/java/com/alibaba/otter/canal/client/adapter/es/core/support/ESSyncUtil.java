@@ -311,7 +311,19 @@ public class ESSyncUtil {
     }
 
     public static String appendCondition(String sql, String condition) {
-        return sql + " WHERE " + condition + " ";
+        String[] sqlSplit = sql.split("GROUP\\ BY(?!(.*)ON)");
+        String sqlNoWhere = sqlSplit[0];
+        String sqlWhere = "";
+        if (sqlNoWhere.contains("where") || sqlNoWhere.contains("WHERE")) {
+            sqlWhere = sqlNoWhere + " and " + condition + " ";
+        }
+        else{
+            sqlWhere = sqlNoWhere + " WHERE " + condition + " ";
+        }
+        if (sqlSplit.length > 1) {
+            return sqlWhere + "GROUP BY " + sqlSplit[1];
+        }
+        return sqlWhere;
     }
 
     public static void appendCondition(StringBuilder sql, Object value, String owner, String columnName) {
