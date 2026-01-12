@@ -311,7 +311,15 @@ public class ESSyncUtil {
     }
 
     public static String appendCondition(String sql, String condition) {
-        return sql + " WHERE " + condition + " ";
+        //防止最后出现group by,拼接 group by
+        String[] sqlSplit = sql.split("GROUP\\ BY(?!(.*)ON)");
+        String sqlNoWhere = sqlSplit[0];
+        StringBuilder builder = new StringBuilder(sqlNoWhere).append("where ").append(condition).append(" ");
+        if (sqlSplit.length > 1) {
+            builder.append("GROUP BY ").append(sqlSplit[1]);
+        }
+        return builder.toString();
+
     }
 
     public static void appendCondition(StringBuilder sql, Object value, String owner, String columnName) {
