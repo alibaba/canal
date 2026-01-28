@@ -81,12 +81,12 @@ if [ -n "$OS_ARCH" ]; then
     # For G1
     JAVA_OPTS="-server -Xms2g -Xmx3g -XX:+UseG1GC -XX:MaxGCPauseMillis=250 -XX:+UseGCOverheadLimit -XX:+ExplicitGCInvokesConcurrent $JAVA_OPTS"
   else
-	  # JAVA_OPTS="-server -Xms2g -Xmx3g -Xmn1g -XX:SurvivorRatio=2 -XX:PermSize=96m -XX:MaxPermSize=256m -XX:MaxTenuringThreshold=15 -XX:+DisableExplicitGC $JAVA_OPTS"
+	  JAVA_OPTS="-server -Xms2g -Xmx3g -Xmn1g -XX:SurvivorRatio=2 -XX:PermSize=96m -XX:MaxPermSize=256m -XX:MaxTenuringThreshold=15 -XX:+DisableExplicitGC $JAVA_OPTS"
 	  ## JDK 1.8 2c4g [-XX:ConcGCThreads=1 -XX:ParallelGCThreads=2], 4c8g [-XX:ConcGCThreads=2 -XX:ParallelGCThreads=4]
-    JAVA_OPTS="$JAVA_OPTS -XX:InitialRAMPercentage=45.0 -XX:MinRAMPercentage=45.0 -XX:MaxRAMPercentage=45.0"
-    JAVA_OPTS="$JAVA_OPTS -XX:-UseParallelGC -XX:+UseConcMarkSweepGC -XX:ConcGCThreads=2 -XX:ParallelGCThreads=4"
-    JAVA_OPTS="$JAVA_OPTS -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70"
-    JAVA_OPTS="-server -XX:NewRatio=1 -XX:SurvivorRatio=2 -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=128m "
+    #JAVA_OPTS="$JAVA_OPTS -XX:InitialRAMPercentage=45.0 -XX:MinRAMPercentage=45.0 -XX:MaxRAMPercentage=45.0"
+    #JAVA_OPTS="$JAVA_OPTS -XX:-UseParallelGC -XX:+UseConcMarkSweepGC -XX:ConcGCThreads=2 -XX:ParallelGCThreads=4"
+    #JAVA_OPTS="$JAVA_OPTS -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70"
+    #JAVA_OPTS="-server -XX:NewRatio=1 -XX:SurvivorRatio=2 -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=128m "
 	fi
 else
 	JAVA_OPTS="-server -Xms1024m -Xmx1024m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:MaxPermSize=128m $JAVA_OPTS"
