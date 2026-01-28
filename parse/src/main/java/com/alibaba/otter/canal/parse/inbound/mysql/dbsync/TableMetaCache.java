@@ -73,56 +73,6 @@ public class TableMetaCache {
         }
     }
 
-    private LoadingCache<String, TableMeta> createLocalCache() {
-        return CacheBuilder.newBuilder().build(new CacheLoader<String, TableMeta>() {
-
-            @Override
-            public TableMeta load(String name) throws Exception {
-                try {
-                    return getTableMetaByDB(name);
-                } catch (Throwable e) {
-                    // 尝试做一次retry操作
-                    try {
-                        connection.reconnect();
-                        return getTableMetaByDB(name);
-                    } catch (IOException e1) {
-                        throw new CanalParseException("fetch table meta failed. table: " + name, e1);
-                    }
-                }
-            }
-        });
-    }
-
-    private /* synchronized */ TableMeta getTableMetaByDB(String fullname) throws IOException {
-        // try {
-        //    ResultSetPacket packet = connection.query("show create table " + fullname);
-        //    String[] names = StringUtils.split(fullname, "`.`");
-        //    String schema = names[0];
-        //    String table = names[1].substring(0, names[1].length());
-        //    return new TableMeta(schema, table, parseTableMeta(schema, table, packet));
-        // } catch (Throwable e) { // fallback to desc table
-        //    ResultSetPacket packet = connection.query("desc " + fullname);
-        //    String[] names = StringUtils.split(fullname, "`.`");
-        //    String schema = names[0];
-        //    String table = names[1].substring(0, names[1].length());
-        //    return new TableMeta(schema, table, parseTableMetaByDesc(packet));
-        // }
-        boolean showCreateTable = true;
-        ResultSetPacket packet = null;
-        synchronized (this) {
-            try {
-                packet = connection.query("show create table " + fullname);
-            }catch (Exception ex) {
-                packet = connection.query("desc " + fullname);
-            }
-        }
-        String[] names = StringUtils.split(fullname, "`.`");
-        String schema = names[0];
-        String table = names[1].substring(0, names[1].length());
-        List<FieldMeta> fieldMetas = showCreateTable ? parseTableMeta(schema, table, packet) : parseTableMetaByDesc(packet);
-        return new TableMeta(schema, table, fieldMetas);
-    }
-
     public static List<FieldMeta> parseTableMeta(String schema, String table, ResultSetPacket packet) {
         if (packet.getFieldValues().size() > 1) {
             String createDDL = packet.getFieldValues().get(1);
@@ -143,14 +93,11 @@ public class TableMetaCache {
         int size = fieldPackets.size();
         Map<String, Integer> nameMaps = new HashMap<>(size);
         int index = 0;
-        // for (FieldPacket fieldPacket : packet.getFieldDescriptors()) {
         for (FieldPacket fieldPacket : fieldPackets) {
             nameMaps.put(StringUtils.lowerCase(fieldPacket.getName()), index++);
         }
 
         List<String> fieldValues = packet.getFieldValues();
-        // int size = packet.getFieldDescriptors().size();
-        // int count = packet.getFieldValues().size() / packet.getFieldDescriptors().size();
         int count = fieldValues.size() / size;
         List<FieldMeta> result = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
@@ -158,39 +105,80 @@ public class TableMetaCache {
             // 做一个优化，使用String.intern()，共享String对象，减少内存使用
             meta.setColumnName(fieldValues.get(nameMaps.get(COLUMN_NAME) + i * size).intern());
             meta.setColumnType(fieldValues.get(nameMaps.get(COLUMN_TYPE) + i * size));
-            meta.setNullable(StringUtils.equalsIgnoreCase(fieldValues.get(nameMaps.get(IS_NULLABLE) + i * size), "YES"));
+            meta.setNullable(
+                StringUtils.equalsIgnoreCase(fieldValues.get(nameMaps.get(IS_NULLABLE) + i * size), "YES"));
             meta.setKey("PRI".equalsIgnoreCase(fieldValues.get(nameMaps.get(COLUMN_KEY) + i * size)));
             meta.setUnique("UNI".equalsIgnoreCase(fieldValues.get(nameMaps.get(COLUMN_KEY) + i * size)));
             // 特殊处理引号
-            meta.setDefaultValue(DruidDdlParser.unescapeQuotaName(fieldValues.get(nameMaps.get(COLUMN_DEFAULT) + i * size)));
+            meta.setDefaultValue(
+                DruidDdlParser.unescapeQuotaName(fieldValues.get(nameMaps.get(COLUMN_DEFAULT) + i * size)));
             meta.setExtra(fieldValues.get(nameMaps.get(EXTRA) + i * size));
             result.add(meta);
         }
         return result;
     }
 
-    // This method is unused
-    // public TableMeta getTableMeta(String schema, String table) {
-    //    return getTableMeta(schema, table, true);
-    // }
+    private LoadingCache<String, TableMeta> createLocalCache() {
+        return CacheBuilder.newBuilder().build(new CacheLoader<String, TableMeta>() {
+
+            @Override
+            public TableMeta load(String name) throws Exception {
+                try {
+                    return getTableMetaByDB(name);
+                } catch (Throwable e) {
+                    // 尝试做一次retry操作
+                    try {
+                        connection.reconnect();
+                        return getTableMetaByDB(name);
+                    } catch (IOException e1) {
+                        throw new CanalParseException("fetch table meta failed. table: " + name, e1);
+                    }
+                }
+            }
+        });
+    }
+
+    private TableMeta getTableMetaByDB(String fullname) throws IOException {
+        boolean showCreateTable = true;
+        ResultSetPacket packet = null;
+        synchronized (this) {
+            try {
+                packet = connection.query("show create table " + fullname);
+            } catch (Exception ex) {
+                showCreateTable = false;
+                packet = connection.query("desc " + fullname);
+            }
+        }
+        String[] names = StringUtils.split(fullname, "`.`");
+        String schema = names[0];
+        String table = names[1].substring(0, names[1].length());
+        List<FieldMeta> fieldMetas = showCreateTable ? parseTableMeta(schema, table, packet) : parseTableMetaByDesc(
+            packet);
+        return new TableMeta(schema, table, fieldMetas);
+    }
 
     // This method is unused
-    // public TableMeta getTableMeta(String schema, String table, boolean useCache) {
-    //    String fullName = getFullName(schema, table);
-    //    if (!useCache) {
-    //        // tableMetaCache.invalidate(getFullName(schema, table));
-    //        tableMetaCache.invalidate(fullName);
-    //    }
-    //    // return tableMetaCache.getUnchecked(getFullName(schema, table));
-    //    return tableMetaCache.getUnchecked(fullName);
-    // }
+    public TableMeta getTableMeta(String schema, String table) {
+        return getTableMeta(schema, table, true);
+    }
 
     // This method is unused
-    // public TableMeta getTableMeta(String schema, String table, EntryPosition position) {
-    //    return getTableMeta(schema, table, true, position);
-    // }
+    public TableMeta getTableMeta(String schema, String table, boolean useCache) {
+        String fullName = getFullName(schema, table);
+        if (!useCache) {
+            // tableMetaCache.invalidate(getFullName(schema, table));
+            tableMetaCache.invalidate(fullName);
+        }
+        // return tableMetaCache.getUnchecked(getFullName(schema, table));
+        return tableMetaCache.getUnchecked(fullName);
+    }
 
-    public /* synchronized */ TableMeta getTableMeta(String schema, String table, boolean useCache, EntryPosition position) {
+    // This method is unused
+    public TableMeta getTableMeta(String schema, String table, EntryPosition position) {
+        return getTableMeta(schema, table, true, position);
+    }
+
+    public TableMeta getTableMeta(String schema, String table, boolean useCache, EntryPosition position) {
         TableMeta tableMeta = null;
         if (tableMetaTSDB != null) {
             tableMeta = tableMetaTSDB.find(schema, table);
@@ -249,7 +237,7 @@ public class TableMetaCache {
         if (tableMetaTSDB != null) {
             // tsdb不需要做,会基于ddl sql自动清理
         } else {
-            ConcurrentMap<String, TableMeta> map =  tableMetaCache.asMap();
+            ConcurrentMap<String, TableMeta> map = tableMetaCache.asMap();
             if (!map.isEmpty()) {
                 for (String name : map.keySet()) {
                     if (StringUtils.startsWithIgnoreCase(name, schema + ".")) {
@@ -288,9 +276,13 @@ public class TableMetaCache {
 
     private String getFullName(String schema, String table) {
         StringBuilder builder = new StringBuilder(64);
-        return builder.append('`').append(schema).append('`')
+        return builder.append('`')
+            .append(schema)
+            .append('`')
             .append('.')
-            .append('`').append(StringUtils.replace(table,"`","``")).append('`')
+            .append('`')
+            .append(StringUtils.replace(table, "`", "``"))
+            .append('`')
             .toString();
     }
 
