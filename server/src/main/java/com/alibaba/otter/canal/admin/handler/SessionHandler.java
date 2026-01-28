@@ -31,127 +31,114 @@ public class SessionHandler extends SimpleChannelHandler {
     }
 
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-        logger.info("message receives in session handler...");
         ChannelBuffer buffer = (ChannelBuffer) e.getMessage();
         Packet packet = Packet.parseFrom(buffer.readBytes(buffer.readableBytes()).array());
         try {
-            String action = null;
-            String message = null;
-            String destination = null;
             switch (packet.getType()) {
                 case SERVER:
-                    ServerAdmin serverAdmin = ServerAdmin.parseFrom(packet.getBody());
-                    action = serverAdmin.getAction();
-                    switch (action) {
+                    ServerAdmin sa = ServerAdmin.parseFrom(packet.getBody());
+                    logger.info("received {} SERVER request in session handler...", sa.getAction());
+                    byte[] svrResp = null;
+                    switch (sa.getAction()) {
                         case "check":
-                            message = canalAdmin.check() ? "1" : "0";
+                            svrResp = AdminNettyUtils.ackPacket(canalAdmin.check() ? "1" : "0");
                             break;
                         case "start":
-                            message = canalAdmin.start() ? "1" : "0";
+                            svrResp = AdminNettyUtils.ackPacket(canalAdmin.start() ? "1" : "0");
                             break;
                         case "stop":
-                            message = canalAdmin.stop() ? "1" : "0";
+                            svrResp = AdminNettyUtils.ackPacket(canalAdmin.stop() ? "1" : "0");
                             break;
                         case "restart":
-                            message = canalAdmin.restart() ? "1" : "0";
+                            svrResp = AdminNettyUtils.ackPacket(canalAdmin.restart() ? "1" : "0");
                             break;
                         case "list":
-                            message = canalAdmin.getRunningInstances();
+                            svrResp = AdminNettyUtils.ackPacket(canalAdmin.getRunningInstances());
                             break;
                         default:
-                            byte[] errorBytes = AdminNettyUtils.errorPacket(301,
-                                MessageFormatter.format("ServerAdmin action={} is unknown", action).getMessage());
-                            AdminNettyUtils.write(ctx.getChannel(), errorBytes);
+                            svrResp = AdminNettyUtils.errorPacket(301, "ServerAdmin action: " + sa.getAction() + "  is unknown");
                             break;
                     }
-                    AdminNettyUtils.write(ctx.getChannel(), AdminNettyUtils.ackPacket(message));
+                    AdminNettyUtils.write(ctx.getChannel(), svrResp);
                     break;
+
                 case INSTANCE:
-                    InstanceAdmin instanceAdmin = InstanceAdmin.parseFrom(packet.getBody());
-                    destination = instanceAdmin.getDestination();
-                    action = instanceAdmin.getAction();
-                    switch (action) {
+                    InstanceAdmin ia = InstanceAdmin.parseFrom(packet.getBody());
+                    logger.info("received {} INSTANCE request in session handler...", ia.getAction());
+                    byte[] instResp = null;
+                    switch (ia.getAction()) {
                         case "check":
-                            message = canalAdmin.checkInstance(destination) ? "1" : "0";
+                            instResp = AdminNettyUtils.ackPacket(canalAdmin.checkInstance(ia.getDestination()) ? "1" : "0");
                             break;
                         case "start":
-                            message = canalAdmin.startInstance(destination) ? "1" : "0";
+                            instResp = AdminNettyUtils.ackPacket(canalAdmin.startInstance(ia.getDestination()) ? "1" : "0");
                             break;
                         case "stop":
-                            message = canalAdmin.stopInstance(destination) ? "1" : "0";
+                            instResp = AdminNettyUtils.ackPacket(canalAdmin.stopInstance(ia.getDestination()) ? "1" : "0");
                             break;
                         case "release":
-                            message = canalAdmin.releaseInstance(destination) ? "1" : "0";
+                            instResp = AdminNettyUtils.ackPacket(canalAdmin.releaseInstance(ia.getDestination()) ? "1" : "0");
                             break;
                         case "restart":
-                            message = canalAdmin.restartInstance(destination) ? "1" : "0";
+                            instResp = AdminNettyUtils.ackPacket(canalAdmin.restartInstance(ia.getDestination()) ? "1" : "0");
                             break;
                         default:
-                            byte[] errorBytes = AdminNettyUtils.errorPacket(301,
-                                MessageFormatter.format("InstanceAdmin action={} is unknown", action).getMessage());
-                            AdminNettyUtils.write(ctx.getChannel(), errorBytes);
+                            instResp = AdminNettyUtils.errorPacket(301, "InstanceAdmin action: " + ia.getAction() + " is unknown");
                             break;
                     }
-                    AdminNettyUtils.write(ctx.getChannel(), AdminNettyUtils.ackPacket(message));
+                    AdminNettyUtils.write(ctx.getChannel(), instResp);
                     break;
+
                 case LOG:
-                    LogAdmin logAdmin = LogAdmin.parseFrom(packet.getBody());
-                    action = logAdmin.getAction();
-                    destination = logAdmin.getDestination();
-                    String type = logAdmin.getType();
-                    String file = logAdmin.getFile();
-                    int count = logAdmin.getCount();
-                    switch (type) {
+                    LogAdmin la = LogAdmin.parseFrom(packet.getBody());
+                    logger.info("received {} LOG request in session handler...", la.getType());
+                    byte[] logResp = null;
+                    switch (la.getType()) {
                         case "server":
-                            if ("list".equalsIgnoreCase(action)) {
-                                message = canalAdmin.listCanalLog();
+                            if ("list".equalsIgnoreCase(la.getAction())) {
+                                logResp = AdminNettyUtils.ackPacket(canalAdmin.listCanalLog());
                             } else {
-                                message = canalAdmin.canalLog(count);
+                                logResp = AdminNettyUtils.ackPacket(canalAdmin.canalLog(la.getCount()));
                             }
                             break;
                         case "instance":
-                            if ("list".equalsIgnoreCase(action)) {
-                                message = canalAdmin.listInstanceLog(destination);
+                            if ("list".equalsIgnoreCase(la.getAction())) {
+                                logResp = AdminNettyUtils.ackPacket(canalAdmin.listInstanceLog(la.getDestination()));
                             } else {
-                                message = canalAdmin.instanceLog(destination, file, count);
+                                logResp = AdminNettyUtils.ackPacket(canalAdmin.instanceLog(la.getDestination(), la.getFile(), la.getCount()));
                             }
                             break;
                         default:
-                            byte[] errorBytes = AdminNettyUtils.errorPacket(301,
-                                MessageFormatter.format("LogAdmin type={} is unknown", type).getMessage());
-                            AdminNettyUtils.write(ctx.getChannel(), errorBytes);
+                            logResp = AdminNettyUtils.errorPacket(301, "LogAdmin type: " + la.getType() + " is unknown");
                             break;
                     }
-                    AdminNettyUtils.write(ctx.getChannel(), AdminNettyUtils.ackPacket(message));
+                    AdminNettyUtils.write(ctx.getChannel(), logResp);
                     break;
+
                 default:
-                    byte[] errorBytes = AdminNettyUtils.errorPacket(300,
-                        MessageFormatter.format("packet type={} is NOT supported!", packet.getType()).getMessage());
-                    AdminNettyUtils.write(ctx.getChannel(), errorBytes);
+                    logResp = AdminNettyUtils.errorPacket(300, "packet type: " + packet.getType() + " is NOT supported!");
+                    AdminNettyUtils.write(ctx.getChannel(), logResp);
                     break;
             }
+
         } catch (Throwable exception) {
-            byte[] errorBytes = AdminNettyUtils.errorPacket(400,
-                MessageFormatter.format("something goes wrong with channel:{}, exception={}",
-                    ctx.getChannel(),
-                    ExceptionUtils.getStackTrace(exception)).getMessage());
-            AdminNettyUtils.write(ctx.getChannel(), errorBytes);
+            String error = "something goes wrong with channel: " + ctx.getChannel() + ", exception: "+ ExceptionUtils.getStackTrace(exception);
+            AdminNettyUtils.write(ctx.getChannel(), AdminNettyUtils.errorPacket(400, error));
         }
     }
 
-    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-        logger.error("something goes wrong with channel:{}, exception={}",
-            ctx.getChannel(),
-            ExceptionUtils.getStackTrace(e.getCause()));
-
-        ctx.getChannel().close();
-    }
-
-    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-    }
-
-    public void setCanalAdmin(CanalAdmin canalAdmin) {
-        this.canalAdmin = canalAdmin;
-    }
+//    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+//        logger.error("something goes wrong with channel:{}, exception={}",
+//            ctx.getChannel(),
+//            ExceptionUtils.getStackTrace(e.getCause()));
+//        ctx.getChannel().close();
+//    }
+//
+//    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+//    }
+//
+//    public void setCanalAdmin(CanalAdmin canalAdmin) {
+//        this.canalAdmin = canalAdmin;
+//    }
 
 }
