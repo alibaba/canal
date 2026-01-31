@@ -114,6 +114,15 @@ public class ESEtlService extends AbstractEtlService {
                             });
                         }
 
+                        // 设置路由字段
+                        final String routingKey = mapping.getRoutingKey();
+                        if (routingKey != null && routingKey.length() > 0){
+                            final Object routingVal = esTemplate.getValFromRS(mapping, rs, routingKey, routingKey);
+                            if (routingVal != null) {
+                                esFieldData.put("$parent_routing", routingVal.toString());
+                            }
+                        }
+
                         if (idVal != null) {
                             String parentVal = (String) esFieldData.remove("$parent_routing");
                             if (mapping.isUpsert()) {
