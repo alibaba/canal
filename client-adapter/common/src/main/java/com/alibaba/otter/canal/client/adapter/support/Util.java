@@ -44,6 +44,8 @@ public class Util {
             if ("postgresql".equals(druidDataSource.getDbType())) {
                 conn.setAutoCommit(false);
                 stmt.setFetchSize(1000);
+            } else if ("sqlserver".equals(druidDataSource.getDbType())) {
+                stmt.setFetchSize(100);
             } else {
                 stmt.setFetchSize(Integer.MIN_VALUE);
             }
