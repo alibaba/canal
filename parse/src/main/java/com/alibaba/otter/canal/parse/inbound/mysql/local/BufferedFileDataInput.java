@@ -50,6 +50,7 @@ public class BufferedFileDataInput {
     }
 
     public void seek(long seekBytes) throws FileNotFoundException, IOException, InterruptedException {
+        close();
         fileInput = new FileInputStream(file);
         fileChannel = fileInput.getChannel();
 
