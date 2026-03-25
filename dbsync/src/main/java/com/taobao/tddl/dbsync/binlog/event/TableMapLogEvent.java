@@ -501,7 +501,10 @@ public final class TableMapLogEvent extends LogEvent {
                         parse_column_visibility(buffer, len);
                         break;
                     default:
-                        throw new IllegalArgumentException("unknow type : " + type);
+                        // Skip unknown optional metadata types for forward compatibility
+                        // (e.g. PolarDB, MariaDB, or future MySQL versions may add new types)
+                        buffer.forward(len);
+                        break;
                 }
             }
 
