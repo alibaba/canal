@@ -189,19 +189,23 @@ public class BinlogDownloadQueue {
             httpClient = HttpClientBuilder.create().setMaxConnPerRoute(50).setMaxConnTotal(100).build();
         }
 
-        HttpGet httpGet = new HttpGet(downloadLink);
-        RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectTimeout(TIMEOUT)
-            .setConnectionRequestTimeout(TIMEOUT)
-            .setSocketTimeout(TIMEOUT)
-            .build();
-        httpGet.setConfig(requestConfig);
-        HttpResponse response = httpClient.execute(httpGet);
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode != HttpResponseStatus.OK.code()) {
-            throw new RuntimeException("download failed , url:" + downloadLink + " , statusCode:" + statusCode);
+        try {
+            HttpGet httpGet = new HttpGet(downloadLink);
+            RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(TIMEOUT)
+                .setConnectionRequestTimeout(TIMEOUT)
+                .setSocketTimeout(TIMEOUT)
+                .build();
+            httpGet.setConfig(requestConfig);
+            HttpResponse response = httpClient.execute(httpGet);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpResponseStatus.OK.code()) {
+                throw new RuntimeException("download failed , url:" + downloadLink + " , statusCode:" + statusCode);
+            }
+            saveFile(new File(destDir), "mysql-bin." + fileName, response);
+        } finally {
+            httpClient.close();
         }
-        saveFile(new File(destDir), "mysql-bin." + fileName, response);
     }
 
     private static void saveFile(File parentFile, String fileName, HttpResponse response) throws IOException {
