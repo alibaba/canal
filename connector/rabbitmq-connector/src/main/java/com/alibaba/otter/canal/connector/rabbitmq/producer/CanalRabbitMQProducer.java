@@ -210,13 +210,12 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
         try {
             this.channel.close();
             this.connect.close();
-            super.stop();
         } catch (AlreadyClosedException ex) {
             logger.error("Connection is already closed", ex);
         } catch (IOException | TimeoutException ex) {
             throw new CanalException("Stop RabbitMQ producer error", ex);
+        } finally {
+            super.stop();
         }
-
-        super.stop();
     }
 }
