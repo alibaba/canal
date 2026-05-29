@@ -1,7 +1,6 @@
 package com.alibaba.otter.canal.connector.core.filter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +18,6 @@ import com.googlecode.aviator.Expression;
  */
 public class AviaterRegexFilter {
 
-    private static final String             SPLIT             = ",";
     private static final String             PATTERN_SPLIT     = "|";
     private static final String             FILTER_EXPRESSION = "regex(pattern,target)";
     private static final RegexFunction      regexFunction     = new RegexFunction();
@@ -43,8 +41,9 @@ public class AviaterRegexFilter {
         if (StringUtils.isEmpty(pattern)) {
             list = new ArrayList<>();
         } else {
-            String[] ss = StringUtils.split(pattern, SPLIT);
-            list = Arrays.asList(ss);
+            // fix issue #5442: only split on commas outside regex grouping constructs,
+            // so quantifiers like \d{1,2} are kept intact.
+            list = splitPattern(pattern);
         }
 
         // 对pattern按照从长到短的排序
@@ -54,6 +53,60 @@ public class AviaterRegexFilter {
         // 对pattern进行头尾完全匹配
         list = completionPattern(list);
         this.pattern = StringUtils.join(list, PATTERN_SPLIT);
+    }
+
+    /**
+     * 按顶层逗号拆分多个正则表达式，跳过位于 {}, [], () 内的逗号，避免破坏类似 \d{1,2} 的量词写法。
+     */
+    private static List<String> splitPattern(String pattern) {
+        List<String> result = new ArrayList<>();
+        int braceDepth = 0;
+        int bracketDepth = 0;
+        int parenDepth = 0;
+        int start = 0;
+        int len = pattern.length();
+        for (int i = 0; i < len; i++) {
+            char c = pattern.charAt(i);
+            // 反斜杠转义：跳过下一个字符，避免把 \{ \[ \( 等误判为分组开始
+            if (c == '\\' && i + 1 < len) {
+                i++;
+                continue;
+            }
+            switch (c) {
+                case '{':
+                    braceDepth++;
+                    break;
+                case '}':
+                    if (braceDepth > 0) braceDepth--;
+                    break;
+                case '[':
+                    bracketDepth++;
+                    break;
+                case ']':
+                    if (bracketDepth > 0) bracketDepth--;
+                    break;
+                case '(':
+                    parenDepth++;
+                    break;
+                case ')':
+                    if (parenDepth > 0) parenDepth--;
+                    break;
+                case ',':
+                    if (braceDepth == 0 && bracketDepth == 0 && parenDepth == 0) {
+                        if (i > start) {
+                            result.add(pattern.substring(start, i));
+                        }
+                        start = i + 1;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (start < len) {
+            result.add(pattern.substring(start));
+        }
+        return result;
     }
 
     public boolean filter(String filtered) {

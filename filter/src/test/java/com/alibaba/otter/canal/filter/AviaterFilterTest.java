@@ -78,6 +78,28 @@ public class AviaterFilterTest {
     }
 
     @Test
+    public void test_regex_with_quantifier_comma() {
+        // fix issue #5442: comma inside {n,m} quantifier should not split the pattern
+        AviaterRegexFilter filter = new AviaterRegexFilter("test\\.order_\\d{1,2}");
+        Assert.assertTrue(filter.filter("test.order_5"));
+        Assert.assertTrue(filter.filter("test.order_42"));
+        Assert.assertFalse(filter.filter("test.order_123"));
+        Assert.assertFalse(filter.filter("test.order_"));
+
+        // multiple patterns combined with quantifier should still split correctly
+        AviaterRegexFilter filter2 = new AviaterRegexFilter("test\\.order_\\d{1,2},test\\.user_\\d+");
+        Assert.assertTrue(filter2.filter("test.order_7"));
+        Assert.assertTrue(filter2.filter("test.user_99"));
+        Assert.assertFalse(filter2.filter("test.order_123"));
+
+        // open-ended quantifier {n,}
+        AviaterRegexFilter filter3 = new AviaterRegexFilter("test\\.t_\\d{2,}");
+        Assert.assertTrue(filter3.filter("test.t_12"));
+        Assert.assertTrue(filter3.filter("test.t_123"));
+        Assert.assertFalse(filter3.filter("test.t_1"));
+    }
+
+    @Test
     public void testDisordered() {
         AviaterRegexFilter filter = new AviaterRegexFilter("u\\..*,uvw\\..*,uv\\..*,a\\.x,a\\.xyz,a\\.xy,abc\\.x,abc\\.xyz,abc\\.xy,ab\\.x,ab\\.xyz,ab\\.xy");
 
