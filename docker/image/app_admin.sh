@@ -13,6 +13,7 @@ MYSQL_USER_PASSWORD=`perl -le 'print $ENV{"spring.datasource.password"}'`
 MYSQL_USER=`perl -le 'print $ENV{"spring.datasource.username"}'`
 MYSQL_DATABASE=`perl -le 'print $ENV{"spring.datasource.database"}'`
 MYSQL_ADDRESS=`perl -le 'print $ENV{"spring.datasource.address"}'`
+MYSQL_ROOT_PASSWORD=`perl -le 'print $ENV{"spring.datasource.root.password"}'`
 
 if [ -z "${MYSQL_USER_PASSWORD}" ]; then
     MYSQL_USER_PASSWORD="canal"
@@ -91,7 +92,9 @@ function checkStart() {
 function start_mysql() {
     echo "start mysql ..."
     # start mysql
-    MYSQL_ROOT_PASSWORD=Hello1234
+    if [ -z "${MYSQL_ROOT_PASSWORD}" ]; then
+        MYSQL_ROOT_PASSWORD=$(cat /dev/urandom | tr -dc 'A-Za-z0-9!@#$%^&*' | head -c 16)
+    fi
     # connect local mysql
     if [ -z "$(ls -A /var/lib/mysql)" ]; then
         TEMP_FILE='/tmp/init.sql'
