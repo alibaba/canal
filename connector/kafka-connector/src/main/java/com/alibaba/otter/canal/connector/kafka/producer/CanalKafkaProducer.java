@@ -149,13 +149,18 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
                     mqDestination.getTopic(),
                     mqDestination.getDynamicTopic());
 
+                // 获取topic前缀
+                String topicPrefix = mqDestination.getTopicPrefix() == null ? "" : mqDestination.getTopicPrefix();;
+
                 // 针对不同的topic,引入多线程提升效率
                 for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
                     final String topicName = entry.getKey().replace('.', '_');
+                    // 拼接前缀后的topic名称,如果前缀为空字符串则为topicName
+                    final String topicNameWithPrefix = topicPrefix + topicName;
                     final Message messageSub = entry.getValue();
                     template.submit((Callable) () -> {
                         try {
-                            return send(mqDestination, topicName, messageSub, mqProperties.isFlatMessage());
+                            return send(mqDestination, topicNameWithPrefix, messageSub, mqProperties.isFlatMessage());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
