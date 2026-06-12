@@ -192,7 +192,7 @@ public class ClickHouseBatchSyncService {
     /**
      * Dml distributor
      */
-    private void distributeDml(MappingConfig config, Dml dml) {
+    void distributeDml(MappingConfig config, Dml dml) {
         if (config != null) {
             try {
                 String type = dml.getType();

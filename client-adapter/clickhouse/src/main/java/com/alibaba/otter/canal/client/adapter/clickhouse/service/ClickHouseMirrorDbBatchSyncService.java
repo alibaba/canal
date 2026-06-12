@@ -116,7 +116,7 @@ public class ClickHouseMirrorDbBatchSyncService {
             if (config == null) {
                 return false;
             }
-            clickHouseBatchSyncService.appendDmlBufferPartition(config, dml);
+            clickHouseBatchSyncService.distributeDml(config, dml);
             return true;
         });
     }
