@@ -2,6 +2,7 @@ package com.alibaba.otter.canal.connector.pulsarmq.producer;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -56,6 +57,8 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
      */
     protected PulsarAdmin                              pulsarAdmin;
 
+    private boolean                              asyncSend;
+
     @Override
     public void init(Properties properties) {
         // 加载配置
@@ -91,6 +94,8 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                 throw new RuntimeException(e);
             }
         }
+
+        asyncSend = pulsarMQProducerConfig.getEnableAsync();
 
         // 加载所有生产者 --> topic可能有正则或表名，无法确认所有topic，在使用时再加载
         int parallelPartitionSendThreadSize = mqProperties.getParallelSendThreadSize();
@@ -140,6 +145,11 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         String enableChunkingStr = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_ENABLE_CHUNKING);
         if (!StringUtils.isEmpty(enableChunkingStr)) {
             tmpProperties.setEnableChunking(Boolean.parseBoolean(enableChunkingStr));
+        }
+
+        String enableAsyncStr = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_ENABLE_ASYNC);
+        if (!StringUtils.isEmpty(enableAsyncStr)) {
+            tmpProperties.setEnableAsync(Boolean.parseBoolean(enableAsyncStr));
         }
 
         String compressionType = PropertiesUtils.getProperty(properties, PulsarMQConstants.PULSARMQ_COMPRESSION_TYPE);
@@ -322,13 +332,23 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         Producer<byte[]> producer = getProducer(topic);
         byte[] msgBytes = CanalMessageSerializerUtil.serializer(msg, mqProperties.isFilterTransactionEntry());
         try {
-            MessageId msgResultId = producer.newMessage()
-                .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partitionNum))
-                .value(msgBytes)
-                .send();
-            // todo 判断发送结果
-            if (logger.isDebugEnabled()) {
-                logger.debug("Send Message to topic:{} Result: {}", topic, msgResultId);
+            if(asyncSend) {
+                producer.newMessage()
+                        .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partitionNum))
+                        .value(msgBytes)
+                        .sendAsync();
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Async Send  Message to topic:{}", topic);
+                }
+            } else {
+                MessageId msgResultId = producer.newMessage()
+                        .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partitionNum))
+                        .value(msgBytes)
+                        .send();
+                // todo 判断发送结果
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Send Message to topic:{} Result: {}", topic, msgResultId);
+                }
             }
         } catch (Throwable e) {
             throw new RuntimeException(e);
@@ -349,14 +369,26 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
         Producer<byte[]> producer = getProducer(topic);
         for (FlatMessage f : flatMessages) {
             try {
-                MessageId msgResultId = producer.newMessage()
-                    .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partition))
-                    .value(JSON.toJSONBytes(f, Feature.WriteNulls, JSONWriter.Feature.LargeObject))
-                    .send()
-                //
-                ;
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Send Messages to topic:{} Result: {}", topic, msgResultId);
+                if(asyncSend) {
+                    producer.newMessage()
+                            .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partition))
+                            .value(JSON.toJSONBytes(f, Feature.WriteNulls, JSONWriter.Feature.LargeObject))
+                            .sendAsync()
+                            //
+                            ;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Send Messages to topic:{}", topic);
+                    }
+                } else {
+                    MessageId msgResultId = producer.newMessage()
+                            .property(MSG_PROPERTY_PARTITION_NAME, String.valueOf(partition))
+                            .value(JSON.toJSONBytes(f, Feature.WriteNulls, JSONWriter.Feature.LargeObject))
+                            .send()
+                            //
+                            ;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Send Messages to topic:{} Result: {}", topic, msgResultId);
+                    }
                 }
             } catch (Throwable e) {
                 throw new RuntimeException(e);
@@ -440,6 +472,7 @@ public class CanalPulsarMQProducer extends AbstractMQProducer implements CanalMQ
                                 break;
                         }
                     }
+
 
                     producer = producerBuilder.topic(fullTopic)
                         // 指定路由器
