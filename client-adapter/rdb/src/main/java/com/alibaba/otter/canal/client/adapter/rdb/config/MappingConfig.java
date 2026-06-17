@@ -221,5 +221,15 @@ public class MappingConfig implements AdapterConfig {
         public void setAllMapColumns(Map<String, String> allMapColumns) {
             this.allMapColumns = allMapColumns;
         }
+
+        @Override
+        public Boolean isSimpleTable() {
+            return false;
+        }
+
+        @Override
+        public String getPrimaryKey() {
+            return getTable();
+        }
     }
 }
