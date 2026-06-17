@@ -362,6 +362,11 @@ public class MQMessageUtils {
                 || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
                 continue;
             }
+            // 过滤掉空数据
+            if (entry.getEntryType() == CanalEntry.EntryType.ROWDATA &&
+                    (rowChange.getRowDatasList() == null || rowChange.getRowDatasList().isEmpty())) {
+                continue;
+            }
 
             // build flatMessage
             CanalEntry.EventType eventType = rowChange.getEventType();

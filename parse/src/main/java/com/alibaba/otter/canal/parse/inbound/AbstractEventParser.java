@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -56,7 +57,11 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
     protected Map<String, List<String>> 			fieldFilterMap;
     protected String		  			  			fieldBlackFilter;
     protected Map<String, List<String>> 			fieldBlackFilterMap;
-    
+    // 是否只需要发生变化的字段
+    protected boolean                               needOnlyChangedField        = false;
+    // 无论是否变化，都必需的字段
+    protected Map<String, List<String>>             fieldNecessaryMap           = null;
+
     private CanalAlarmHandler                        alarmHandler               = null;
 
     // 统计参数
@@ -533,25 +538,37 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
      * 解析字段过滤规则
      */
     private Map<String, List<String>> parseFieldFilterMap(String config) {
-    	
-    	Map<String, List<String>> map = new HashMap<>();
-		
-		if (StringUtils.isNotBlank(config)) {
-			for (String filter : config.split(",")) {
-				if (StringUtils.isBlank(filter)) {
-					continue;
-				}
-				
-				String[] filterConfig = filter.split(":");
-				if (filterConfig.length != 2) {
-					continue;
-				}
-				
-				map.put(filterConfig[0].trim().toUpperCase(), Arrays.asList(filterConfig[1].trim().toUpperCase().split("/")));
-			}
-		}
-		
-		return map;
+        return parseFieldFilterMap(config, (filterConfig, map) -> {
+            if (filterConfig.length >= 2) {
+                map.put(filterConfig[0].trim().toUpperCase(), Arrays.asList(filterConfig[1].trim().toUpperCase().split("/")));
+            }
+        });
+    }
+
+    /**
+     * 解析必需字段
+     */
+    private Map<String, List<String>> parseFieldNecessaryMap(String config) {
+        return parseFieldFilterMap(config, (filterConfig, map) -> {
+            //在旧格式上扩展
+            if (filterConfig.length >= 3) {
+                map.put(filterConfig[0].trim().toUpperCase(), Arrays.asList(filterConfig[2].trim().toUpperCase().split("/")));
+            }
+        });
+    }
+
+    private Map<String, List<String>> parseFieldFilterMap(String config, BiConsumer<String[], Map<String, List<String>>> consumer) {
+        Map<String, List<String>> map = new HashMap<String, List<String>>();
+        if (StringUtils.isNotBlank(config)) {
+            for (String filter : config.split(",")) {
+                if (StringUtils.isBlank(filter)) {
+                    continue;
+                }
+                String[] filterConfig = filter.split(":");
+                consumer.accept(filterConfig, map);
+            }
+        }
+        return map;
     }
 
     public void setEventFilter(CanalEventFilter eventFilter) {
@@ -687,8 +704,13 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 	public void setFieldFilter(String fieldFilter) {
 		this.fieldFilter = fieldFilter.trim();
 		this.fieldFilterMap = parseFieldFilterMap(fieldFilter);
+        this.fieldNecessaryMap = parseFieldNecessaryMap(fieldFilter);
 	}
-	
+
+    public void setNeedOnlyChangedField(boolean needOnlyChangedField) {
+        this.needOnlyChangedField = needOnlyChangedField;
+    }
+
 	public String getFieldBlackFilter() {
 		return fieldBlackFilter;
 	}
@@ -717,4 +739,15 @@ public abstract class AbstractEventParser<EVENT> extends AbstractCanalLifeCycle 
 	public Map<String, List<String>> getFieldBlackFilterMap() {
 		return fieldBlackFilterMap;
 	}
+
+    /**
+     * 获取必须的表字段名单
+     *
+     * @return key:	schema.tableName
+     * value:	字段列表
+     */
+    public Map<String, List<String>> getFieldNecessaryMap() {
+        return fieldNecessaryMap;
+    }
+	
 }
