@@ -26,6 +26,8 @@ public class MappingConfig implements AdapterConfig {
     private boolean   concurrent = false; // 是否并行同步
 
     private DbMapping dbMapping;          // db映射配置
+    
+    private String dmlTypes;             //允许的同步类型，多个逗号分割
 
     public String getDataSourceKey() {
         return dataSourceKey;
@@ -79,6 +81,14 @@ public class MappingConfig implements AdapterConfig {
         return dbMapping;
     }
 
+    public String getDmlTypes() {
+        return dmlTypes;
+    }
+
+    public void setDmlTypes(String dmlTypes) {
+        this.dmlTypes = dmlTypes;
+    }
+    
     public void validate() {
         if (dbMapping.database == null || dbMapping.database.isEmpty()) {
             throw new NullPointerException("dbMapping.database");
