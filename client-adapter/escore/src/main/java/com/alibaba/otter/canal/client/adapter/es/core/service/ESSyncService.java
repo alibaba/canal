@@ -356,7 +356,12 @@ public class ESSyncService {
                     } else {
                         // ------主键带函数, 查询sql获取主键删除------
                         // FIXME 删除时反查sql为空记录, 无法获获取 id field 值
-                        mainTableDelete(config, dml, data);
+
+                        //                        mainTableDelete(config, dml, data);
+                        List<String> idVals = getIdValFromDml(mapping, dml);
+                        for (String idVal : idVals) {
+                            esTemplate.delete(mapping, idVal, null);
+                        }
                     }
                 } else {
                     FieldItem pkFieldItem = schemaItem.getIdFieldItem(mapping);
@@ -376,7 +381,11 @@ public class ESSyncService {
                         esTemplate.delete(mapping, pkVal, esFieldData);
                     } else {
                         // ------主键带函数, 查询sql获取主键删除------
-                        mainTableDelete(config, dml, data);
+                        //                        mainTableDelete(config, dml, data);
+                        List<String> idVals = getIdValFromDml(mapping, dml);
+                        for (String idVal : idVals) {
+                            esTemplate.delete(mapping, idVal, null);
+                        }
                     }
                 }
 
@@ -485,6 +494,70 @@ public class ESSyncService {
             }
             return 0;
         });
+    }
+
+    /**
+     * 复合主键中获取要删除的id
+     * select concat(a.id,'_',b.type) as _id, ... from user a left join role b on b.id=a.role_id
+     *
+     * @param esMapping
+     * @param dml
+     * @return
+     */
+    private List<String> getIdValFromDml(ESMapping esMapping, Dml dml) {
+
+        try {
+            List<Map<String, Object>> mapList = dml.getData();
+            logger.info("getIdValFromDml dml.getData()={},\ndml.getPkNames={}", JSON.toJSONString(mapList), JSON.toJSONString(dml.getPkNames()));
+
+            String idColumn = esMapping.get_id() != null ? esMapping.get_id() : esMapping.getPk() != null ? esMapping.getPk() : "_id";
+            logger.info("getIdValFromDml :" + idColumn);
+            //mysql字段为ES主键
+            FieldItem fieldItem = esMapping.getSchemaItem().getSelectFields().get(idColumn);
+            //
+            logger.info("getIdValFromDml fieldItem.getExpr():" + fieldItem.getExpr());
+            if (!fieldItem.getExpr().contains("CONCAT") && !fieldItem.getExpr().contains("concat")) {
+                //只支持用concat函数作为复合主键
+                logger.error("复合主键仅支持concat函数方式 fieldItem.getExpr() " + fieldItem.getExpr());
+                throw new RuntimeException("复合主键仅支持concat函数方式 fieldItem.getExpr() " + fieldItem.getExpr());
+            }
+//            concat(a.id,'_',b.type)
+            String str = fieldItem.getExpr();
+            //a.id,'_',b.type
+            String quStr = str.substring(str.indexOf("(") + 1, str.indexOf(")"));
+            //{a.id,'_',b.type}
+            String[] split = quStr.split(",");
+            //修改的id list
+            List<String> idVals = new ArrayList<>();
+            for (Map<String, Object> data : mapList) {
+                StringBuilder sb = new StringBuilder();
+                for (String value : split) {
+                    String s;
+                    if (value.contains("'")) {
+                        //'_' 直接拼接
+                        s = value.replace("'", "").trim();
+                    } else {
+                        //不包含''静态字符，则认为是字段名称 获取对应的值
+                        //带有别名 a.colName
+                        if (value.contains(".")) {
+                            String[] split1 = value.split("\\.");
+                            s = String.valueOf(data.get(split1[1].trim()));
+                        } else {
+                            //colName
+                            s = String.valueOf(data.get(value.trim()));
+                        }
+                    }
+                    sb.append(s);
+                }
+                logger.error("delete _id=" + sb);
+                idVals.add(sb.toString());
+            }
+
+            return idVals;
+        } catch (Exception e) {
+            logger.error("函数复合主键不满足句式要求esMapping={},\ndml={}", JSON.toJSONString(esMapping), JSON.toJSONString(dml), e);
+            throw new RuntimeException("函数复合主键不满足句式要求", e);
+        }
     }
 
     private void mainTableDelete(ESSyncConfig config, Dml dml, Map<String, Object> data) {
