@@ -34,7 +34,7 @@ public class JdbcTypeUtil {
         switch (jdbcType) {
             case Types.BIT:
             case Types.BOOLEAN:
-                // return Boolean.class;
+                return Boolean.class;
             case Types.TINYINT:
                 return Byte.TYPE;
             case Types.SMALLINT:
