@@ -139,7 +139,7 @@ public class EntryPosition extends TimePosition {
         final int val = journalName.compareTo(o.journalName);
 
         if (val == 0) {
-            return (int) (position - o.position);
+            return Long.compare(position, o.position);
         }
         return val;
     }
