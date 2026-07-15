@@ -172,11 +172,12 @@ public class PhoenixEtlService {
                     "SELECT * FROM " + dbMapping.getDatabase() + "." + dbMapping.getTable());
 
             // 拼接条件
-            appendCondition(params, dbMapping, srcDS, sql);
+            List<Object> values = new ArrayList<>();
+            appendCondition(params, dbMapping, srcDS, sql, values);
 
             // 获取总数
             String countSql = "SELECT COUNT(1) FROM ( " + sql + ") _CNT ";
-            long cnt = (Long) Util.sqlRS(srcDS, countSql, rs -> {
+            long cnt = (Long) Util.sqlRS(srcDS, countSql, values, rs -> {
                 Long count = null;
                 try {
                     if (rs.next()) {
@@ -206,14 +207,14 @@ public class PhoenixEtlService {
                         sqlFinal = sql + " LIMIT " + offset + "," + cnt;
                     }
                     executor
-                            .execute(() -> executeSqlImport(srcDS, targetDSConnection, sqlFinal, dbMapping, successCount, errMsg, debug));
+                            .execute(() -> executeSqlImport(srcDS, targetDSConnection, sqlFinal, values, dbMapping, successCount, errMsg, debug));
                 }
 
                 executor.shutdown();
                 //noinspection StatementWithEmptyBody
                 while (!executor.awaitTermination(3, TimeUnit.SECONDS)) ;
             } else {
-                executeSqlImport(srcDS, targetDSConnection, sql.toString(), dbMapping, successCount, errMsg, debug);
+                executeSqlImport(srcDS, targetDSConnection, sql.toString(), values, dbMapping, successCount, errMsg, debug);
             }
 
             logger.info(
@@ -235,7 +236,7 @@ public class PhoenixEtlService {
     }
 
     private static void appendCondition(List<String> params, DbMapping dbMapping, DataSource ds,
-                                        StringBuilder sql) {
+                                        StringBuilder sql, List<Object> values) {
         if (params != null && params.size() == 1 && dbMapping.getEtlCondition() == null) {
             AtomicBoolean stExists = new AtomicBoolean(false);
             // 验证是否有SYS_TIME字段
@@ -256,13 +257,27 @@ public class PhoenixEtlService {
                 return null;
             });
             if (stExists.get()) {
-                sql.append(" WHERE SYS_TIME >= '").append(params.get(0)).append("' ");
+                sql.append(" WHERE SYS_TIME >= ? ");
+                values.add(params.get(0));
             }
         } else if (dbMapping.getEtlCondition() != null && params != null && params.size() > 0) {
             String etlCondition = dbMapping.getEtlCondition();
             int size = params.size();
             for (int i = 0; i < size; i++) {
-                etlCondition = etlCondition.replace("{" + i + "}", params.get(i));
+                String placeholder = "{" + i + "}";
+                int idx = etlCondition.indexOf(placeholder);
+                if (idx >= 0) {
+                    int start = idx;
+                    int end = idx + placeholder.length();
+                    // 兼容配置中 '{i}' 这种被单引号包裹的写法，避免生成 '?' 语法错误
+                    if (start > 0 && etlCondition.charAt(start - 1) == '\''
+                        && end < etlCondition.length() && etlCondition.charAt(end) == '\'') {
+                        start--;
+                        end++;
+                    }
+                    etlCondition = etlCondition.substring(0, start) + "?" + etlCondition.substring(end);
+                    values.add(params.get(i));
+                }
             }
 
             sql.append(" ").append(etlCondition);
@@ -272,8 +287,8 @@ public class PhoenixEtlService {
     /**
      * 执行导入
      */
-    private static boolean executeSqlImport(DataSource srcDS, Connection targetDSConnection, String sql, DbMapping dbMapping,
-                                            AtomicLong successCount, List<String> errMsg, boolean debug) {
+    private static boolean executeSqlImport(DataSource srcDS, Connection targetDSConnection, String sql, List<Object> values,
+                                            DbMapping dbMapping, AtomicLong successCount, List<String> errMsg, boolean debug) {
         try {
             Map<String, String> columnsMap = new LinkedHashMap<>();
             Map<String, Integer> columnType = new LinkedHashMap<>();
@@ -300,7 +315,7 @@ public class PhoenixEtlService {
                     return false;
                 }
             });
-            Util.sqlRS(srcDS, sql, rs -> {
+            Util.sqlRS(srcDS, sql, values, rs -> {
                 int idx = 1;
 
                 try {
@@ -337,13 +352,13 @@ public class PhoenixEtlService {
                             pstmt.clearParameters();
 
                             // 删除数据
-                            Map<String, Object> values = new LinkedHashMap<>();
+                            Map<String, Object> deleteValues = new LinkedHashMap<>();
                             StringBuilder deleteSql = new StringBuilder(
                                     "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
-                            appendCondition(dbMapping, deleteSql, values, rs);
+                            appendCondition(dbMapping, deleteSql, deleteValues, rs);
                             try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
                                 int k = 1;
-                                for (Object val : values.values()) {
+                                for (Object val : deleteValues.values()) {
                                     pstmt2.setObject(k++, val);
                                 }
                                 pstmt2.execute();
