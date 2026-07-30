@@ -91,7 +91,8 @@ public class PhoenixAdapter implements OuterAdapter {
             phoenixPro.setProperty("phoenix.query.timeoutMs","3600000");
             Class.forName(DriverClass);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            logger.error("Failed to load Phoenix driver class: {}", DriverClass, e);
+            throw new RuntimeException("Failed to load Phoenix driver class: " + DriverClass, e);
         }
         String threads = properties.get("threads");
         phoenixSyncService = new PhoenixSyncService(
