@@ -145,6 +145,7 @@ public abstract class ESAdapter implements OuterAdapter {
         schemaItem.getAliasTableItems().values().forEach(tableItem -> {
             Map<String, ESSyncConfig> esSyncConfigMap;
             String schemaKey = tableItem.getSchema() == null ? schema : tableItem.getSchema();
+            schemaKey = StringUtils.trimToEmpty(schemaKey).replaceAll("[`']", "");
             if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
                 esSyncConfigMap = dbTableEsSyncConfig
                     .computeIfAbsent(StringUtils.trimToEmpty(config.getDestination()) + "-"
