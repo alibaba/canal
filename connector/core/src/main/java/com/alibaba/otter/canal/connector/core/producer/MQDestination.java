@@ -16,6 +16,7 @@ public class MQDestination {
     private String  dynamicTopic;
     private String  dynamicTopicPartitionNum;
     private Boolean enableDynamicQueuePartition;
+    private String topicPrefix;
 
     public String getCanalDestination() {
         return canalDestination;
@@ -80,4 +81,7 @@ public class MQDestination {
     public void setEnableDynamicQueuePartition(Boolean enableDynamicQueuePartition) {
         this.enableDynamicQueuePartition = enableDynamicQueuePartition;
     }
+    public String getTopicPrefix() {return topicPrefix;}
+
+    public void setTopicPrefix(String topicPrefix) {this.topicPrefix = topicPrefix;}
 }
