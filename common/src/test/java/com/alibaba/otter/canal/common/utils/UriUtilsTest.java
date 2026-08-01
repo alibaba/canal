@@ -48,4 +48,14 @@ public class UriUtilsTest {
 
         assertEquals("bar", params.get("foo"));
     }
+
+    @Test
+    public void testParseQueryTrailingEquals() throws URISyntaxException {
+        // A parameter written as "key=" carries an explicitly empty value,
+        // which must be preserved as "" and not collapsed to null.
+        Map<String, String> params = UriUtils.parseQuery("http://example.com?key=");
+
+        assertTrue(params.containsKey("key"));
+        assertEquals("", params.get("key"));
+    }
 }
