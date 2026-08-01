@@ -59,7 +59,7 @@ public final class UriUtils {
         scan.useDelimiter(SPLIT);
         while (scan.hasNext()) {
             String token = scan.next().trim();
-            String[] pair = token.split(EQUAL);
+            String[] pair = token.split(EQUAL, 2);
             String key = decode(pair[0], encoding);
             String value = null;
             if (pair.length == 2) {
