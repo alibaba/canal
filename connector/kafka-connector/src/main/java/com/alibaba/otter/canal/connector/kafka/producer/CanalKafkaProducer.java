@@ -151,7 +151,9 @@ public class CanalKafkaProducer extends AbstractMQProducer implements CanalMQPro
 
                 // 针对不同的topic,引入多线程提升效率
                 for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
-                    final String topicName = entry.getKey().replace('.', '_');
+                    // 与默认topic匹配直接返回默认topic
+                    final String topicName = mqDestination.getTopic().equals(entry.getKey()) ?
+                            entry.getKey() : entry.getKey().replace('.', '_');
                     final Message messageSub = entry.getValue();
                     template.submit((Callable) () -> {
                         try {
