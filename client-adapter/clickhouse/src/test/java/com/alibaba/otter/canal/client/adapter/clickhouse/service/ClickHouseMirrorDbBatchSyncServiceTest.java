@@ -75,14 +75,7 @@ public class ClickHouseMirrorDbBatchSyncServiceTest {
 
         @Override
         public void sync(List<Dml> dmls, java.util.function.Function<Dml, Boolean> function) {
-            boolean toExecute = false;
-            for (Dml dml : dmls) {
-                if (!toExecute) {
-                    toExecute = function.apply(dml);
-                } else {
-                    function.apply(dml);
-                }
-            }
+            super.sync(dmls, function);
         }
 
         @Override
