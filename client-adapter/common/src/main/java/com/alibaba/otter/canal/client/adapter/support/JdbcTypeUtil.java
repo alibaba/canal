@@ -24,7 +24,7 @@ public class JdbcTypeUtil {
 
     public static Object getRSData(ResultSet rs, String columnName, int jdbcType) throws SQLException {
         if (jdbcType == Types.BIT || jdbcType == Types.BOOLEAN) {
-            return rs.getByte(columnName);
+            return rs.getBoolean(columnName);
         } else {
             return rs.getObject(columnName);
         }
@@ -34,7 +34,7 @@ public class JdbcTypeUtil {
         switch (jdbcType) {
             case Types.BIT:
             case Types.BOOLEAN:
-                // return Boolean.class;
+                return Boolean.class;
             case Types.TINYINT:
                 return Byte.TYPE;
             case Types.SMALLINT:
