@@ -94,8 +94,10 @@ public class DruidDdlParser {
                         SQLConstraint constraint = ((SQLAlterTableAddConstraint) item).getConstraint();
                         if (constraint instanceof SQLUnique) {
                             ddlResult.setType(EventType.CINDEX);
-                            ddlResults.add(ddlResult);
+                        } else {
+                            ddlResult.setType(EventType.ALTER);
                         }
+                        ddlResults.add(ddlResult);
                     } else if (item instanceof SQLAlterTableDropConstraint) {
                         DdlResult ddlResult = new DdlResult();
                         processName(ddlResult, schmeaName, alterTable.getName(), false);

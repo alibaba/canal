@@ -8,7 +8,31 @@ import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.SimpleDdlParser;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
 
+import java.util.List;
+
 public class DruidDdlParserTest {
+
+    @Test
+    public void testAlterAddConstraintForeignKey() {
+        String queryString = "alter table retl_mark add constraint fk1 foreign key (a) references p(id)";
+        List<DdlResult> results = DruidDdlParser.parse(queryString, "retl");
+        Assert.assertFalse("ADD CONSTRAINT FOREIGN KEY should emit a DDL event", results.isEmpty());
+        DdlResult result = results.get(0);
+        Assert.assertEquals("retl", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getTableName());
+        Assert.assertEquals(EventType.ALTER, result.getType());
+    }
+
+    @Test
+    public void testAlterAddConstraintCheck() {
+        String queryString = "alter table retl_mark add constraint ck1 check (a > 0)";
+        List<DdlResult> results = DruidDdlParser.parse(queryString, "retl");
+        Assert.assertFalse("ADD CONSTRAINT CHECK should emit a DDL event", results.isEmpty());
+        DdlResult result = results.get(0);
+        Assert.assertEquals("retl", result.getSchemaName());
+        Assert.assertEquals("retl_mark", result.getTableName());
+        Assert.assertEquals(EventType.ALTER, result.getType());
+    }
 
     @Test
     public void testCreate() {
