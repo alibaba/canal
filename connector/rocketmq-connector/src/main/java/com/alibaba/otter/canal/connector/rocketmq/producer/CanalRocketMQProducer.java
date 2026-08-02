@@ -218,7 +218,7 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
                                   String dynamicTagConfigs) {
         // 动态tag, 直接使用[动态topic]相同的分隔逻辑
         Map<String, com.alibaba.otter.canal.protocol.Message> messageMap = MQMessageUtils
-            .messageTopics(message, null, dynamicTagConfigs);
+            .messageTopics(message, ((RocketMQProducerConfig) this.mqProperties).getTag(), dynamicTagConfigs);
         for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
             String tagName = entry.getKey().replace('.', '_');
             com.alibaba.otter.canal.protocol.Message messageTag = entry.getValue();
