@@ -120,6 +120,7 @@ public class RdbMirrorDbSyncService {
      */
     private void initMappingConfig(String key, MappingConfig baseConfigMap, MirrorDbConfig mirrorDbConfig, Dml dml) {
         MappingConfig mappingConfig = mirrorDbConfig.getTableConfig().get(key);
+        MappingConfig.DbMapping defaultDbMapping = mirrorDbConfig.getMappingConfig().getDbMapping();
         if (mappingConfig == null) {
             // 构造表配置
             mappingConfig = new MappingConfig();
@@ -132,7 +133,11 @@ public class RdbMirrorDbSyncService {
             mappingConfig.setDbMapping(dbMapping);
             dbMapping.setDatabase(dml.getDatabase());
             dbMapping.setTable(dml.getTable());
-            dbMapping.setTargetDb(dml.getDatabase());
+            if(StringUtils.isNotBlank(defaultDbMapping.getTargetDb())){
+                dbMapping.setTargetDb(defaultDbMapping.getTargetDb());
+            }else {
+                dbMapping.setTargetDb(dml.getDatabase());
+            }
             dbMapping.setTargetTable(dml.getTable());
             dbMapping.setMapAll(true);
             List<String> pkNames = dml.getPkNames();
