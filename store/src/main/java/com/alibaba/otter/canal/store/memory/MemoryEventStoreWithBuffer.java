@@ -393,11 +393,11 @@ public class MemoryEventStoreWithBuffer extends AbstractCanalStoreScavenge imple
         try {
             long latestSequence = putSequence.get();
             if (latestSequence > INIT_SEQUENCE && latestSequence != ackSequence.get()) {
-                Event event = entries[(int) putSequence.get() & indexMask]; // 最后一次写入的数据，最后一条未消费的数据
+                Event event = entries[getIndex(latestSequence)]; // 最后一次写入的数据，最后一条未消费的数据
                 return CanalEventUtils.createPosition(event, true);
             } else if (latestSequence > INIT_SEQUENCE && latestSequence == ackSequence.get()) {
                 // ack已经追上了put操作
-                Event event = entries[(int) putSequence.get() & indexMask]; // 最后一次写入的数据，included
+                Event event = entries[getIndex(latestSequence)]; // 最后一次写入的数据，included
                                                                             // =
                                                                             // false
                 return CanalEventUtils.createPosition(event, false);
