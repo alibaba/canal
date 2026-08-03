@@ -390,6 +390,16 @@ public class MappingConfig implements AdapterConfig {
         }
 
         @Override
+        public Boolean isSimpleTable() {
+            return false;
+        }
+
+        @Override
+        public String getPrimaryKey() {
+            return null;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;

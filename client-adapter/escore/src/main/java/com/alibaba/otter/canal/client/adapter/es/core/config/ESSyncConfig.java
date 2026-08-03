@@ -231,6 +231,21 @@ public class ESSyncConfig implements AdapterConfig {
         public void setSchemaItem(SchemaItem schemaItem) {
             this.schemaItem = schemaItem;
         }
+
+        @Override
+        public Boolean isSimpleTable() {
+            return getSchemaItem().isAllFieldsSimple();
+        }
+
+        @Override
+        public String getPrimaryKey() {
+            return getPk() == null ? get_id() : getPk();
+        }
+
+        @Override
+        public String getTable() {
+            return getSchemaItem().getMainTable().getTableName();
+        }
     }
 
     public static class RelationMapping {
