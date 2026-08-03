@@ -222,6 +222,13 @@ public class RdbSyncService {
         if (config != null) {
             try {
                 String type = dml.getType();
+                String syncTypes = config.getDmlTypes();
+                if(StringUtils.isNotBlank(syncTypes) && !syncTypes.contains(type.toUpperCase())){
+                     if (logger.isDebugEnabled()) {
+                         logger.debug("allow DML types: {},current: {},skip !!", syncTypes,type.toUpperCase());
+                     }
+                    return;
+                }
                 if (type != null && type.equalsIgnoreCase("INSERT")) {
                     insert(batchExecutor, config, dml);
                 } else if (type != null && type.equalsIgnoreCase("UPDATE")) {
