@@ -55,7 +55,9 @@ public class ServerRunningMonitor extends AbstractCanalLifeCycle {
                 MDC.put("destination", destination);
                 ServerRunningData runningData = JsonUtils.unmarshalFromByte((byte[]) data, ServerRunningData.class);
                 if (!isMine(runningData.getAddress())) {
+                    release = true;
                     mutex.set(false);
+                    processActiveExit();
                 }
 
                 if (!runningData.isActive() && isMine(runningData.getAddress())) { // 说明出现了主动释放的操作，并且本机之前是active
