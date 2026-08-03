@@ -705,7 +705,13 @@ public class ESSyncService {
             sqlGroupBy = "GROUP BY " + sqlSplit[1];
         }
 
-        StringBuilder sql = new StringBuilder(sqlNoWhere + " WHERE ");
+        StringBuilder sql;
+        if (sqlNoWhere.contains("where") || sqlNoWhere.contains("WHERE")) {
+            sql =new StringBuilder(sqlNoWhere + " and ");
+        }
+        else{
+            sql = new StringBuilder(sqlNoWhere + " WHERE ");
+        }
 
         for (FieldItem fkFieldItem : tableItem.getRelationTableFields().keySet()) {
             String columnName = fkFieldItem.getColumn().getColumnName();
