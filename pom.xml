@@ -73,7 +73,7 @@
         <file_encoding>UTF-8</file_encoding>
         <javadoc_skip>true</javadoc_skip>
         <spring_version>5.3.26</spring_version>
-        <log4j_version>2.17.0</log4j_version>
+        <log4j_version>2.26.1</log4j_version>
         <rocketmq_version>4.9.8</rocketmq_version>
         <rabbitmq_version>5.18.0</rabbitmq_version>
         <mq_amqp_client>1.0.3</mq_amqp_client>
@@ -254,7 +254,7 @@
             <dependency>
                 <groupId>com.alibaba.fastjson2</groupId>
                 <artifactId>fastjson2</artifactId>
-                <version>2.0.31</version>
+                <version>2.0.64</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
