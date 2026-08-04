@@ -52,12 +52,16 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                     byte[] errorBytes = AdminNettyUtils.errorPacket(300,
                         MessageFormatter.format("auth failed for seed is null", clientAuth.getUsername()).getMessage());
                     AdminNettyUtils.write(ctx.getChannel(), errorBytes);
+                    ctx.getChannel().close();
+                    return;
                 }
 
                 if (!canalAdmin.auth(clientAuth.getUsername(), clientAuth.getPassword().toStringUtf8(), seed)) {
                     byte[] errorBytes = AdminNettyUtils.errorPacket(300,
                         MessageFormatter.format("auth failed for user:{}", clientAuth.getUsername()).getMessage());
                     AdminNettyUtils.write(ctx.getChannel(), errorBytes);
+                    ctx.getChannel().close();
+                    return;
                 }
 
                 byte[] ackBytes = AdminNettyUtils.ackPacket();
