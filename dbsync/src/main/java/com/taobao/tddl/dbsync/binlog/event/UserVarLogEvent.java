@@ -102,7 +102,10 @@ public final class UserVarLogEvent extends LogEvent {
                     break;
                 case STRING_RESULT:
                     Charset charset = CharsetConversion.getNioCharset(charsetNumber);
-                    value = buffer.getFixString(valueLen, charset);
+                    // charset is null for out-of-range collation ids (MariaDB 11.8+ / recent MySQL);
+                    // getEntry() has already logged a warning, so degrade like QueryLogEvent
+                    // (ISO-8859-1) instead of passing null to new String(...) which throws NPE.
+                    value = charset != null ? buffer.getFixString(valueLen, charset) : buffer.getFixString(valueLen);
                     break;
                 case ROW_RESULT:
                     // this seems to be banned in MySQL altogether

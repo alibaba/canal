@@ -40,7 +40,12 @@ public final class CharsetConversion {
         if (id >= 0 && id < entries.length) {
             return entries[id];
         } else {
-            throw new IllegalArgumentException("Invalid charset id: " + id);
+            // Out of range: MariaDB 11.8+ and recent MySQL versions emit collation ids at
+            // or above the 2048-entry table ceiling. Every caller already handles a null
+            // return (logs a warning and falls back), so degrade instead of aborting binlog
+            // parsing. See issue #5601.
+            logger.warn("Unexpect mysql charset: " + id);
+            return null;
         }
     }
 
