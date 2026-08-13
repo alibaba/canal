@@ -148,7 +148,9 @@ public class CanalRabbitMQProducer extends AbstractMQProducer implements CanalMQ
                     .messageTopics(message, destination.getTopic(), destination.getDynamicTopic());
 
                 for (Map.Entry<String, com.alibaba.otter.canal.protocol.Message> entry : messageMap.entrySet()) {
-                    final String topicName = entry.getKey().replace('.', '_');
+                    // RabbitMQ routing key 以 '.' 为 topic exchange 路由分隔符，须保留动态 topic 原值；
+                    // 不能像 Kafka/RocketMQ/Pulsar producer 那样 replace('.', '_')（那里该值是 topic 名）
+                    final String topicName = entry.getKey();
                     final com.alibaba.otter.canal.protocol.Message messageSub = entry.getValue();
 
                     template.submit(() -> send(destination, topicName, messageSub));
