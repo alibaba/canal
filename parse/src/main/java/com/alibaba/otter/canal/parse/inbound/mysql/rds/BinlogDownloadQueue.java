@@ -227,6 +227,10 @@ public class BinlogDownloadQueue {
                 while ((tarArchiveEntry = tais.getNextTarEntry()) != null) {
                     String name = tarArchiveEntry.getName();
                     File tarFile = new File(parentFile, name + ".tmp");
+                    String canonicalDest = parentFile.getCanonicalPath() + File.separator;
+                    if (!tarFile.getCanonicalPath().startsWith(canonicalDest)) {
+                        throw new IOException("Tar entry outside target directory: " + name);
+                    }
                     logger.info("start to download file " + tarFile.getName());
                     if (tarFile.exists()) {
                         tarFile.delete();
@@ -248,6 +252,10 @@ public class BinlogDownloadQueue {
                 tais.close();
             } else {
                 File file = new File(parentFile, fileName + ".tmp");
+                String canonicalDest = parentFile.getCanonicalPath() + File.separator;
+                if (!file.getCanonicalPath().startsWith(canonicalDest)) {
+                    throw new IOException("Filename escapes target directory: " + fileName);
+                }
                 if (file.exists()) {
                     file.delete();
                 }
