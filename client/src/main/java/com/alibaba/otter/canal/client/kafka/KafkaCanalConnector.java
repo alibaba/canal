@@ -44,6 +44,24 @@ public class KafkaCanalConnector implements CanalMQConnector {
 
     public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, Integer batchSize,
                                boolean flatMessage){
+        this(servers, topic, partition, groupId, batchSize, flatMessage, null);
+    }
+
+    /**
+     * 支持自定义 kafka consumer 配置的构造方法
+     *
+     * <pre>
+     * customProperties 会在默认配置之后覆盖写入, 用于传递 SASL / SSL 等认证配置, 例如:
+     *   security.protocol=SASL_PLAINTEXT
+     *   sasl.mechanism=SCRAM-SHA-512
+     *   sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="xx" password="xx";
+     * 与服务端 canal.properties 中 kafka.* 前缀透传的配置项保持一致
+     * </pre>
+     *
+     * @param customProperties 自定义 kafka consumer 配置, 允许为 null
+     */
+    public KafkaCanalConnector(String servers, String topic, Integer partition, String groupId, Integer batchSize,
+                               boolean flatMessage, Properties customProperties){
         this.topic = topic;
         this.partition = partition;
         this.flatMessage = flatMessage;
@@ -66,6 +84,9 @@ public class KafkaCanalConnector implements CanalMQConnector {
             properties.put("value.deserializer", MessageDeserializer.class);
         } else {
             properties.put("value.deserializer", StringDeserializer.class);
+        }
+        if (customProperties != null) {
+            properties.putAll(customProperties);
         }
     }
 
@@ -254,7 +275,7 @@ public class KafkaCanalConnector implements CanalMQConnector {
         if (kafkaConsumer2 != null) {
             for (Map.Entry<Integer, Long> entry : currentOffsets.entrySet()) {
                 kafkaConsumer2.seek(new TopicPartition(topic, entry.getKey()), currentOffsets.get(entry.getKey()));
-                kafkaConsumer.commitSync();
+                kafkaConsumer2.commitSync();
             }
         }
     }

@@ -13,6 +13,7 @@ import org.apache.kafka.common.TopicPartition;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,9 +26,21 @@ import java.util.concurrent.TimeUnit;
 public class KafkaOffsetCanalConnector extends KafkaCanalConnector {
 
     public KafkaOffsetCanalConnector(String servers, String topic, Integer partition, String groupId, boolean flatMessage) {
-        super(servers, topic, partition, groupId, 100, flatMessage);
-        // 启动时从未消费的消息位置开始
-        properties.put("auto.offset.reset", "earliest");
+        this(servers, topic, partition, groupId, flatMessage, null);
+    }
+
+    /**
+     * 支持自定义 kafka consumer 配置(如 SASL / SSL 认证)的构造方法
+     *
+     * @param customProperties 自定义 kafka consumer 配置, 允许为 null
+     */
+    public KafkaOffsetCanalConnector(String servers, String topic, Integer partition, String groupId,
+                                     boolean flatMessage, Properties customProperties) {
+        super(servers, topic, partition, groupId, 100, flatMessage, customProperties);
+        // 启动时从未消费的消息位置开始, 自定义配置中未指定时才使用默认值
+        if (customProperties == null || !customProperties.containsKey("auto.offset.reset")) {
+            properties.put("auto.offset.reset", "earliest");
+        }
     }
 
     /**
