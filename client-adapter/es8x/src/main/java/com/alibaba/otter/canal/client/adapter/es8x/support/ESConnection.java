@@ -144,6 +144,15 @@ public class ESConnection {
         }
         mappingMetaData = mappings.get(index);
 
+        // PATCH 2026-09-08 (issue #4417): 按别名请求 getMapping 时，ES 响应的 key 是物理索引名
+        // （实测：GET /{别名}/_mapping 返回 { "capab_inspection_record-000001": {...} }），
+        // 原代码 mappings.get(别名) 恒为 null，导致 "Not found the mapping info of index"。
+        // 修法：精确名未命中且响应恰好只有一个索引映射时，取该唯一映射。
+        // 前提约束：同步用 write 别名同一时刻仅指向一个物理索引（rollover 场景成立）。
+        if (mappingMetaData == null && mappings.size() == 1) {
+            mappingMetaData = mappings.values().iterator().next();
+        }
+
         return mappingMetaData;
     }
 
