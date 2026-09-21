@@ -181,7 +181,8 @@ public class UUIDSet {
             int j;
             for (j = i + 1; j < len; j++) {
                 if (intervals.get(i).stop >= intervals.get(j).start) {
-                    intervals.get(i).stop = intervals.get(j).stop;
+                    // 后一个区间可能被前一个完全包含，直接赋值会把已合并的上界改小
+                    intervals.get(i).stop = Math.max(intervals.get(i).stop, intervals.get(j).stop);
                 } else {
                     break;
                 }
