@@ -44,7 +44,43 @@ public class MysqlGTIDSetTest {
         String gtid2 = "726757ad-4455-11e8-ae04-0242ac110002:1-20304074";
 
         mysqlGTIDSet1.update(gtid2);
-        assertEquals("726757ad-4455-11e8-ae04-0242ac110002:1-20304074", mysqlGTIDSet1.toString());
+        // gtid2 被 gtid1 完全包含，并集应保持 gtid1 的上界
+        assertEquals("726757ad-4455-11e8-ae04-0242ac110002:1-25536412", mysqlGTIDSet1.toString());
+    }
+
+    /**
+     * 并入被完全包含的区间时不能收缩已有区间。
+     * 典型场景：MySQL 的 gtid_purged 总是 Previous_gtids 的子集，两者求并后若区间被截断，
+     * 用该 GTID SET 发起 COM_BINLOG_DUMP_GTID 会让 master 认为 slave 缺失大量事务，
+     * 从而报 ERROR 1236 或回退到很早的 binlog 重复投递。
+     */
+    @Test
+    public void testUpdateWithContainedInterval() {
+        String uuid = "726757ad-4455-11e8-ae04-0242ac110002";
+
+        MysqlGTIDSet gtidSet = MysqlGTIDSet.parse(uuid + ":1-43994380489");
+        gtidSet.update(uuid + ":1-43957248584");
+        assertEquals(uuid + ":1-43994380489", gtidSet.toString());
+
+        MysqlGTIDSet singleGtid = MysqlGTIDSet.parse(uuid + ":1-100");
+        singleGtid.update(uuid + ":3");
+        assertEquals(uuid + ":1-100", singleGtid.toString());
+    }
+
+    /**
+     * 相邻与不相交区间的合并行为保持不变。
+     */
+    @Test
+    public void testUpdateKeepsAdjacentAndDisjointIntervals() {
+        String uuid = "726757ad-4455-11e8-ae04-0242ac110002";
+
+        MysqlGTIDSet adjacent = MysqlGTIDSet.parse(uuid + ":1-3");
+        adjacent.update(uuid + ":4");
+        assertEquals(uuid + ":1-4", adjacent.toString());
+
+        MysqlGTIDSet disjoint = MysqlGTIDSet.parse(uuid + ":7-9");
+        disjoint.update(uuid + ":1-3");
+        assertEquals(uuid + ":1-3:7-9", disjoint.toString());
     }
 
     @Test
