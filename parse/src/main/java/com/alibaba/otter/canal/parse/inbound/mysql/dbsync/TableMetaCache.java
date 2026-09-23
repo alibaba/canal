@@ -181,15 +181,20 @@ public class TableMetaCache {
     public TableMeta getTableMeta(String schema, String table, boolean useCache, EntryPosition position) {
         TableMeta tableMeta = null;
         if (tableMetaTSDB != null) {
-            tableMeta = tableMetaTSDB.find(schema, table);
+            if (useCache) {
+                tableMeta = tableMetaTSDB.find(schema, table);
+            }
             if (tableMeta == null) {
                 // 因为条件变化，可能第一次的tableMeta没取到，需要从db获取一次，并记录到snapshot中
+                // useCache=false 时表示强制重新获取，需要跳过tsdb缓存，直接查询db并覆盖snapshot
                 String fullName = getFullName(schema, table);
                 try {
                     synchronized (this) {
-                        tableMeta = tableMetaTSDB.find(schema, table);
-                        if (tableMeta != null) {
-                            return tableMeta;
+                        if (useCache) {
+                            tableMeta = tableMetaTSDB.find(schema, table);
+                            if (tableMeta != null) {
+                                return tableMeta;
+                            }
                         }
 
                         ResultSetPacket packet = null;
