@@ -57,7 +57,7 @@ public class ExecutorTemplate {
                 future.get();
             } catch (Throwable e) {
                 // 取消完之后立马退出
-                cacelAllFutures();
+                cancelAllFutures();
                 throw new RuntimeException(e);
             }
         }
@@ -78,19 +78,27 @@ public class ExecutorTemplate {
         }
 
         if (exception != null) {
-            cacelAllFutures();
+            cancelAllFutures();
             throw exception;
         } else {
             return result;
         }
     }
 
-    public void cacelAllFutures() {
+    public void cancelAllFutures() {
         for (Future future : futures) {
             if (!future.isDone() && !future.isCancelled()) {
                 future.cancel(true);
             }
         }
+    }
+
+    /**
+     * @deprecated use {@link #cancelAllFutures()} instead
+     */
+    @Deprecated
+    public void cacelAllFutures() {
+        cancelAllFutures();
     }
 
     public void clear() {
