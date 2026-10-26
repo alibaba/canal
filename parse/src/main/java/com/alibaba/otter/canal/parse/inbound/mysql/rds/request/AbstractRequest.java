@@ -180,8 +180,26 @@ public abstract class AbstractRequest<T> {
         for (Map.Entry<String, String> entry : param.entrySet()) {
             builder.append(encode(entry.getKey())).append("=").append(encode(entry.getValue())).append("&");
         }
-        builder.append("Signature").append("=").append(sign);
+        builder.append(buildSignatureParameter(sign));
         return builder.toString();
+    }
+
+    /**
+     * Build the Signature parameter appended to the request string.
+     * <p>
+     * The base64 output of HMAC-SHA1 may contain '+', '/' and '='. If the raw value is put into the query string,
+     * the server decodes '+' as a space, which corrupts the signature and makes the call fail randomly with
+     * IncompleteSignature (The request signature does not conform to Aliyun standards).
+     */
+    String buildSignatureParameter(String signature) throws UnsupportedEncodingException {
+        return encode("Signature") + "=" + encode(signature);
+    }
+
+    /**
+     * Build the full request string (custom params + common params + signature), package private for unit tests.
+     */
+    final String buildRequestString() throws Exception {
+        return makeRequestString(treeMap);
     }
 
     /**
@@ -231,7 +249,7 @@ public abstract class AbstractRequest<T> {
 
     public final T doAction() throws Exception {
         processBefore();
-        String requestStr = makeRequestString(treeMap);
+        String requestStr = buildRequestString();
         HttpGet httpGet = new HttpGet(protocol + "://" + endPoint + "?" + requestStr);
         HttpResponse response = executeHttpRequest(httpGet, endPoint);
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
