@@ -178,7 +178,7 @@ public class NettySocketChannel implements SocketChannel {
                 if (timeout > 0) {
                     accumulatedWaitTime += WAIT_PERIOD;
                     if (accumulatedWaitTime > timeout) {
-                        StringBuilder sb = new StringBuilder("socket read timeout occured !");
+                        StringBuilder sb = new StringBuilder("socket read timeout occurred !");
                         sb.append(" readSize = ").append(readSize);
                         sb.append(", readableBytes = ").append(cache.readableBytes());
                         sb.append(", timeout = ").append(timeout);
