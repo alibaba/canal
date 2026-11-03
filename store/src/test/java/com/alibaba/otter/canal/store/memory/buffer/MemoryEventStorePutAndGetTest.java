@@ -148,7 +148,7 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
                 eventStore.get(position, batchSize);
             } catch (CanalStoreException e) {
             } catch (InterruptedException e) {
-                System.out.println("interrupt occured.");
+                System.out.println("interrupt occurred.");
                 result = true;
             }
             Assert.assertTrue(result);
