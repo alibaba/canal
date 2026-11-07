@@ -64,7 +64,8 @@ public class CanalMQStarter {
                 destination = destination.trim();
                 CanalMQRunnable canalMQRunnable = new CanalMQRunnable(destination);
                 canalMQWorks.put(destination, canalMQRunnable);
-                executorService.execute(canalMQRunnable);
+                Future future = executorService.submit(canalMQRunnable);
+                canalMQRunnable.setFuture(future);
             }
 
             running = true;
