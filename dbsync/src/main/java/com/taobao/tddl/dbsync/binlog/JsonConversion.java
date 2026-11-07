@@ -60,7 +60,7 @@ public class JsonConversion {
     }
 
     public static Json_Value parse_value(int type, LogBuffer buffer, long len, Charset charset) {
-        buffer = buffer.duplicate(buffer.position(), (int) len);
+        buffer = slice(buffer, buffer.position(), (int) len);
         switch (type) {
             case JSONB_TYPE_SMALL_OBJECT:
                 return parse_array_or_object(Json_enum_type.OBJECT, buffer, len, false, charset);
@@ -73,6 +73,19 @@ public class JsonConversion {
             default:
                 return parse_scalar(type, buffer, len, charset);
         }
+    }
+
+    /**
+     * Returns a view of len bytes starting at pos, sharing the bytes of the given buffer instead of copying
+     * them. Json_Value.element() calls parse_value() with the rest of the document, so a copy here made
+     * parsing quadratic in the size of the JSON value. The value is fully read before the row buffer is
+     * reused, so sharing the bytes is safe.
+     */
+    private static LogBuffer slice(LogBuffer buffer, int pos, int len) {
+        if (len < 0 || len > buffer.limit - pos) {
+            throw new IllegalArgumentException("limit excceed: " + (pos + len));
+        }
+        return new LogBuffer(buffer.buffer, buffer.origin + pos, len);
     }
 
     private static Json_Value parse_array_or_object(Json_enum_type type, LogBuffer buffer, long len, boolean large,
