@@ -77,4 +77,47 @@ public class JsonConversion_Json_ValueTest {
         Json_Value element = jsonValue.element(0, charset);
         Assert.assertEquals(element.key(0, charset), "(.*)(/[^/]+\\.(mp|MP)4)$");
     }
+
+    @Test
+    public void testLargeArrayOfNestedArrays() {
+        // [["s0"], ["s1"], ...] in the large array format, each element a small array holding one string
+        int count = 3000;
+        int outerHeader = 8 + 5 * count;
+        int innerSize = 4 + 3 + 1 + 6; // header, one value entry, length byte, up to 6 characters
+        byte[] data = new byte[outerHeader + innerSize * count];
+        putInt(data, 0, count, 4);
+        putInt(data, 4, data.length, 4);
+        StringBuilder expected = new StringBuilder("[");
+        for (int i = 0; i < count; i++) {
+            String s = "s" + i;
+            int inner = outerHeader + innerSize * i;
+            data[8 + 5 * i] = JsonConversion.JSONB_TYPE_SMALL_ARRAY;
+            putInt(data, 8 + 5 * i + 1, inner, 4);
+            putInt(data, inner, 1, 2);
+            putInt(data, inner + 2, innerSize, 2);
+            data[inner + 4] = JsonConversion.JSONB_TYPE_STRING;
+            putInt(data, inner + 5, 7, 2);
+            data[inner + 7] = (byte) s.length();
+            System.arraycopy(s.getBytes(), 0, data, inner + 8, s.length());
+            expected.append(i > 0 ? ", " : "").append("[\"").append(s).append("\"]");
+        }
+        expected.append("]");
+
+        Charset charset = Charset.forName("UTF-8");
+        LogBuffer buffer = new LogBuffer(data, 0, data.length);
+        Json_Value jsonValue = JsonConversion.parse_value(JsonConversion.JSONB_TYPE_LARGE_ARRAY,
+            buffer,
+            data.length,
+            charset);
+        StringBuilder builder = new StringBuilder();
+        jsonValue.toJsonString(builder, charset);
+
+        Assert.assertEquals(expected.toString(), builder.toString());
+    }
+
+    private static void putInt(byte[] data, int offset, int value, int bytes) {
+        for (int i = 0; i < bytes; i++) {
+            data[offset + i] = (byte) (value >>> (8 * i));
+        }
+    }
 }
