@@ -17,6 +17,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- 这里指定runtime的metrics provider-->
         <dependency>
             <groupId>com.alibaba.otter</groupId>

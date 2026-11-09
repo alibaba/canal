@@ -51,11 +51,15 @@ public class InstanceConfig {
     }
 
     public InstanceMode getMode() {
-        if (mode == null && globalConfig != null) {
-            return globalConfig.getMode();
-        } else {
+        if (mode != null) {
             return mode;
         }
+        if (globalConfig != null) {
+            return globalConfig.getMode();
+        }
+        // `canal.instance.global.mode` defaults to spring in canal.properties. A minimal
+        // user configuration that omits it must not make callers dereference null.
+        return InstanceMode.SPRING;
     }
 
     public void setMode(InstanceMode mode) {
