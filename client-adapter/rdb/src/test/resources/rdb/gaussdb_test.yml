@@ -1,0 +1,12 @@
+dataSourceKey: gaussdbTestSource
+destination: gaussdb_test
+outerAdapterKey: gaussdb_test
+dbMapping:
+  database: canal_adapter_test
+  table: source_user
+  targetDb: canal_adapter_test
+  targetTable: user
+  targetPk:
+    id: id
+  mapAll: true
+  commitBatch: 2
