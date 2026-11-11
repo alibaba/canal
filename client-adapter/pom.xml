@@ -25,6 +25,7 @@
 
     <modules>
         <module>common</module>
+        <module>gaussdb</module>
         <module>logger</module>
         <module>hbase</module>
         <module>launcher</module>

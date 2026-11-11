@@ -1,0 +1,14 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+outerAdapterKey: gaussdb1
+concurrent: true
+dbMapping:
+  database: mytest
+  table: user
+  targetDb: public
+  targetTable: user
+  targetPk:
+    id: id
+  mapAll: true
+  commitBatch: 3000

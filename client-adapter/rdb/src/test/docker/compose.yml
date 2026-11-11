@@ -1,0 +1,72 @@
+services:
+  gaussdb:
+    image: ${CANAL_GAUSSDB_IMAGE:-opengauss/opengauss-server:latest}
+    shm_size: 512mb
+    environment:
+      GS_PASSWORD: Canal@Test123
+      GS_DB: canal_test
+      GS_USERNAME: canal_test
+      GS_HOST_AUTH_METHOD: sha256
+      OTHER_PG_CONF: password_encryption_type = 2
+    healthcheck:
+      test: ["CMD-SHELL", "su - omm -c 'gsql -d canal_test -c \"SELECT 1\"' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: canal_test
+      POSTGRES_PASSWORD: Canal@Test123
+      POSTGRES_DB: canal_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U canal_test -d canal_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  mysql:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: Canal@Test123
+      MARIADB_USER: canal_test
+      MARIADB_PASSWORD: Canal@Test123
+      MARIADB_DATABASE: canal_adapter_test
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  tests:
+    image: maven:3.9-eclipse-temurin-8
+    working_dir: /workspace
+    volumes:
+      - ../../../../..:/workspace
+      - ${CANAL_MAVEN_CACHE:-maven-cache}:/root/.m2/repository
+      - ./settings.xml:/tmp/canal-settings.xml:ro
+    depends_on:
+      gaussdb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    command:
+      - mvn
+      - -B
+      - -s
+      - /tmp/canal-settings.xml
+      - -pl
+      - client-adapter/rdb
+      - -am
+      - -Dmaven.test.skip=false
+      - -Dtest=GaussDbIntegrationTest
+      - -Dsurefire.failIfNoSpecifiedTests=false
+      - -DfailIfNoTests=false
+      - -DcloseTestReports=false
+      - -Dgpg.skip=true
+      - -Dgaussdb.jdbc.url=jdbc:postgresql://gaussdb:5432/canal_test?prepareThreshold=0&loginTimeout=20&connectTimeout=20
+      - -Dpostgresql.jdbc.url=jdbc:postgresql://postgres:5432/canal_test
+      - -Dmysql.jdbc.url=jdbc:mysql://mysql:3306/canal_adapter_test?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+      - verify
+volumes:
+  maven-cache:

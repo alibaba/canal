@@ -82,6 +82,15 @@ canal.conf:
 #          jdbc.password: 121212
 #          threads: 1
 #          commitSize: 3000
+#      # DBeaver's gsjdbc4 driver, relocated to coexist with PostgreSQL JDBC.
+#      - name: rdb
+#        key: gaussdb1
+#        properties:
+#          jdbc.driverClassName: com.alibaba.otter.canal.client.adapter.gaussdb.jdbc.Driver
+#          jdbc.url: jdbc:postgresql://127.0.0.1:8000/gaussdb?prepareThreshold=0&loginTimeout=20&connectTimeout=20
+#          jdbc.username: gaussdb
+#          jdbc.password: change_me
+#          threads: 1
 #      - name: hbase
 #        properties:
 #          hbase.zookeeper.quorum: 127.0.0.1

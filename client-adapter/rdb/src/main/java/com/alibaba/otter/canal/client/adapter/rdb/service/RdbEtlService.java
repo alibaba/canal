@@ -52,7 +52,7 @@ public class RdbEtlService extends AbstractEtlService {
             DbMapping dbMapping = (DbMapping) mapping;
             Map<String, String> columnsMap = new LinkedHashMap<>();
             Map<String, Integer> columnType = new LinkedHashMap<>();
-            DruidDataSource dataSource = (DruidDataSource) srcDS;
+            DruidDataSource dataSource = (DruidDataSource) targetDS;
             String backtick = SyncUtil.getBacktickByDbType(dataSource.getDbType());
 
             Util.sqlRS(targetDS,

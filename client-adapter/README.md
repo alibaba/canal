@@ -4,6 +4,7 @@ canal 1.1.1版本之后, 增加客户端数据落地的适配及启动功能, �
 * 同步管理REST接口
 * 日志适配器, 作为DEMO
 * HBase的数据同步(表对表同步), ETL功能
+* GaussDB 数据同步与 ETL（使用 DBeaver 同款 JDBC 驱动，可与 PostgreSQL 同时使用），见 [GaussDB 配置](gaussdb/README.md)
 * (后续支持) ElasticSearch多表数据同步,ETL功能
 
 ## 环境版本
