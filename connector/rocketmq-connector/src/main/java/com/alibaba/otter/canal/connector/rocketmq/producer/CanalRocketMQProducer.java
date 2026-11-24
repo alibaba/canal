@@ -20,6 +20,7 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.common.topic.TopicValidator;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,14 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
         } catch (MQClientException ex) {
             throw new CanalException("Start RocketMQ producer error", ex);
         }
+        // The client registers the auto-create template topic (TBW102) as a placeholder publish
+        // topic on start and refreshes its route on every poll. When the cluster has no TBW102
+        // (autoCreateTopicEnable=false, or a managed service such as Alibaba Cloud RocketMQ), every
+        // refresh logs "get Topic [TBW102] RouteInfoFromNameServer is not exist value". The
+        // placeholder is not needed for sending: when a topic has no route, the client queries
+        // createTopicKey directly (see apache/rocketmq#6001). Drop it so the scheduled refresh only
+        // covers topics that canal really uses.
+        removeAutoCreateTopicPlaceholder();
 
         int parallelPartitionSendThreadSize = mqProperties.getParallelSendThreadSize();
         sendPartitionExecutor = new ThreadPoolExecutor(parallelPartitionSendThreadSize,
@@ -100,6 +109,18 @@ public class CanalRocketMQProducer extends AbstractMQProducer implements CanalMQ
             new ArrayBlockingQueue<>(parallelPartitionSendThreadSize * 2),
             new NamedThreadFactory("MQ-Parallel-Sender-Partition"),
             new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    private void removeAutoCreateTopicPlaceholder() {
+        DefaultMQProducerImpl producer = defaultMQProducer.getDefaultMQProducerImpl();
+        producer.getTopicPublishInfoTable().remove(TopicValidator.AUTO_CREATE_TOPIC_KEY_TOPIC);
+        // MQClientInstance also starts an internal producer for heartbeats and registers the same
+        // placeholder in it; that producer shares the client's scheduled route refresh.
+        producer.getMqClientFactory()
+            .getDefaultMQProducer()
+            .getDefaultMQProducerImpl()
+            .getTopicPublishInfoTable()
+            .remove(TopicValidator.AUTO_CREATE_TOPIC_KEY_TOPIC);
     }
 
     private void loadRocketMQProperties(Properties properties) {
